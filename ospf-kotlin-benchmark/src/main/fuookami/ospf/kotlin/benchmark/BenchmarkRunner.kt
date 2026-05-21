@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.benchmark
 
 import org.openjdk.jmh.runner.Runner
 import org.openjdk.jmh.runner.options.OptionsBuilder
+import org.openjdk.jmh.results.format.ResultFormatType
 import java.io.File
 import java.net.URLClassLoader
 
@@ -12,6 +13,16 @@ import java.net.URLClassLoader
  * 用法：
  * Usage:
  * `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".* small 1 1"`
+ *
+ * 可选参数：
+ * Optional arguments:
+ * 1) include regex
+ * 2) dataset (`small` / `medium` / `large`)
+ * 3) forks
+ * 4) warmup iterations
+ * 5) measurement iterations
+ * 6) result format (`json` / `csv` / ...)
+ * 7) result file path
  */
 fun main(args: Array<String>) {
     patchJavaClassPathForForkedJmh()
@@ -21,6 +32,11 @@ fun main(args: Array<String>) {
     val forks = args.getOrNull(2)?.toIntOrNull() ?: 1
     val warmupIterations = args.getOrNull(3)?.toIntOrNull() ?: 1
     val measurementIterations = args.getOrNull(4)?.toIntOrNull() ?: 1
+    val resultFormat = args.getOrNull(5)?.uppercase() ?: "JSON"
+    val resultFile = args.getOrNull(6) ?: "target/benchmark-results/${sanitizeForFileName(includeRegex)}-$mode.${
+        resultFormat.lowercase()
+    }"
+    File(resultFile).parentFile?.mkdirs()
 
     val options = OptionsBuilder()
         .include(includeRegex)
@@ -28,6 +44,8 @@ fun main(args: Array<String>) {
         .forks(forks)
         .warmupIterations(warmupIterations)
         .measurementIterations(measurementIterations)
+        .resultFormat(parseResultFormat(resultFormat))
+        .result(resultFile)
         .build()
 
     Runner(options).run()
@@ -48,4 +66,25 @@ private fun patchJavaClassPathForForkedJmh() {
     if (classpath.isNotBlank()) {
         System.setProperty("java.class.path", classpath)
     }
+}
+
+/**
+ * 解析结果格式，异常值回退到 JSON。
+ * Parse result format and fallback to JSON on invalid input.
+ */
+private fun parseResultFormat(format: String): ResultFormatType {
+    return runCatching {
+        ResultFormatType.valueOf(format.uppercase())
+    }.getOrElse {
+        ResultFormatType.JSON
+    }
+}
+
+/**
+ * 过滤 regex 以生成稳定可读的文件名。
+ * Sanitize regex text for stable and readable file names.
+ */
+private fun sanitizeForFileName(raw: String): String {
+    val sanitized = raw.replace(Regex("[^A-Za-z0-9._-]"), "_")
+    return sanitized.trim('_').ifBlank { "all" }
 }

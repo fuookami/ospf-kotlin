@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 open class SymbolCombineBenchmark {
-    @Param("small", "medium")
+    @Param("small", "medium", "large")
     lateinit var dataset: String
 
     private data class BenchSymbol(
@@ -49,11 +49,17 @@ open class SymbolCombineBenchmark {
         val symbolCount = when (dataset) {
             "small" -> 64
             "medium" -> 256
+            "large" -> 768
             else -> 64
         }
         symbols = List(symbolCount) { BenchSymbol("x$it") }
 
-        val repeat = if (dataset == "small") 8 else 16
+        val repeat = when (dataset) {
+            "small" -> 8
+            "medium" -> 16
+            "large" -> 24
+            else -> 8
+        }
         linearMonomials = buildList(symbolCount * repeat) {
             for (r in 0 until repeat) {
                 for (i in symbols.indices) {

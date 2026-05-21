@@ -6,6 +6,7 @@ on:
       - "ospf-kotlin-core/**"
       - "ospf-kotlin-framework/**"
       - "ospf-kotlin-core-plugin/**"
+      - "ospf-kotlin-benchmark/**"
       - "ospf-kotlin-example/**"
       - ".github/workflows/core-refactor-guards.yml"
   push:
@@ -13,6 +14,7 @@ on:
       - "ospf-kotlin-core/**"
       - "ospf-kotlin-framework/**"
       - "ospf-kotlin-core-plugin/**"
+      - "ospf-kotlin-benchmark/**"
       - "ospf-kotlin-example/**"
       - ".github/workflows/core-refactor-guards.yml"
 
@@ -75,3 +77,28 @@ jobs:
         shell: pwsh
         run: |
           mvn -pl ospf-kotlin-example -Pcore-demo-only "-Dtest=CoreDemoTest,GenericNumberDemoTest" -Dsurefire.failIfNoSpecifiedTests=false test
+
+  benchmark-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Compile Benchmark Module
+        shell: pwsh
+        run: |
+          mvn -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
+
+      - name: Run Benchmark Smoke
+        shell: pwsh
+        run: |
+          mvn -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java "-Dexec.args=.*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"

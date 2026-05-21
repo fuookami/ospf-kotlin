@@ -171,7 +171,7 @@ mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumb
 
 ## Benchmark Baseline
 
-Benchmark baseline module: `ospf-kotlin-benchmark` (JMH 1.37), currently covering `multiarray` / `math` / `core` hot paths.
+Benchmark baseline module: `ospf-kotlin-benchmark` (JMH 1.37), currently covering `multiarray` / `math` / `core` and `core-plugin dump` hot paths.
 
 Compile benchmark module:
 
@@ -185,7 +185,33 @@ Run a `small` smoke benchmark (example):
 mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
 ```
 
-The `small`/`medium` dataset parameter is currently available, and benchmark numbers are used for same-machine trend comparison instead of CI hard gates.
+Run a `core-plugin dump` smoke benchmark (example):
+
+```bash
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*CorePluginDumpBenchmark.prepareVariableDumpingDataHotPath.* small 1 1 1"
+```
+
+The `small`/`medium`/`large` dataset parameter is available. `medium`/`large` are intended for manual trend comparison, not default CI gates.
+
+Benchmark result files are written to:
+
+1. default path: `ospf-kotlin-benchmark/target/benchmark-results/*.json`
+2. custom path (optional): `-Dexec.args="... json target/benchmark-results/custom.json"`
+
+Lightweight CI smoke for benchmark runnable validation (without comparing absolute scores):
+
+```powershell
+mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+```
+
+Baseline environment used in P21-1:
+
+1. JDK: GraalVM JDK 17.0.12
+2. Maven: Apache Maven 3.9.12
+3. OS: Windows (PowerShell)
+4. JVM opts recommendation (for frequent CodeHeap warnings):
+   - `MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
 
 ## Migration Release Gate (Compatibility-Free Core/Math)
 

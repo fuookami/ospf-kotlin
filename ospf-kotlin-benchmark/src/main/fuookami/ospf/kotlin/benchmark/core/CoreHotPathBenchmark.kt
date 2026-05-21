@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 open class CoreHotPathBenchmark {
-    @Param("small", "medium")
+    @Param("small", "medium", "large")
     lateinit var dataset: String
 
     private lateinit var linearFlattenData: List<LinearFlattenData<Flt64>>
@@ -36,8 +36,18 @@ open class CoreHotPathBenchmark {
 
     @Setup
     fun setup() {
-        val variableCount = if (dataset == "small") 64 else 256
-        val block = if (dataset == "small") 16 else 32
+        val variableCount = when (dataset) {
+            "small" -> 64
+            "medium" -> 256
+            "large" -> 768
+            else -> 64
+        }
+        val block = when (dataset) {
+            "small" -> 16
+            "medium" -> 32
+            "large" -> 64
+            else -> 16
+        }
 
         val vars = List(variableCount) { BinVar("b$it") }
 
@@ -68,8 +78,18 @@ open class CoreHotPathBenchmark {
         }
 
         sparseMatrix = SparseMatrix()
-        val rows = if (dataset == "small") 128 else 512
-        val cols = if (dataset == "small") 256 else 1024
+        val rows = when (dataset) {
+            "small" -> 128
+            "medium" -> 512
+            "large" -> 1536
+            else -> 128
+        }
+        val cols = when (dataset) {
+            "small" -> 256
+            "medium" -> 1024
+            "large" -> 3072
+            else -> 256
+        }
         for (r in 0 until rows) {
             val row = SparseVector<Flt64>()
             var c = r % 5

@@ -171,7 +171,7 @@ mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumb
 
 ## Benchmark 基线
 
-基准模块：`ospf-kotlin-benchmark`（JMH 1.37），当前覆盖 `multiarray` / `math` / `core` 热点路径。
+基准模块：`ospf-kotlin-benchmark`（JMH 1.37），当前覆盖 `multiarray` / `math` / `core` 以及 `core-plugin dump` 热点路径。
 
 编译 benchmark 模块：
 
@@ -185,7 +185,33 @@ mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
 mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
 ```
 
-当前支持 `small`/`medium` 数据规模。benchmark 数值用于同机趋势对比，不作为跨机器 CI 硬门禁。
+执行 `core-plugin dump` 烟测（示例）：
+
+```bash
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*CorePluginDumpBenchmark.prepareVariableDumpingDataHotPath.* small 1 1 1"
+```
+
+当前支持 `small`/`medium`/`large` 数据规模。`medium`/`large` 仅用于手动趋势对比，不进入默认 CI 硬门禁。
+
+benchmark 结果文件默认输出到：
+
+1. 默认路径：`ospf-kotlin-benchmark/target/benchmark-results/*.json`
+2. 可选自定义路径：`-Dexec.args="... json target/benchmark-results/custom.json"`
+
+benchmark 轻量 CI smoke 口径（只验证可运行，不比较绝对数值）：
+
+```powershell
+mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+```
+
+P21-1 基线运行环境：
+
+1. JDK：GraalVM JDK 17.0.12
+2. Maven：Apache Maven 3.9.12
+3. OS：Windows（PowerShell）
+4. JVM 参数建议（缓解频繁 CodeHeap warning）：
+   - `MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
 
 ## 迁移统一门禁（无兼容层）
 

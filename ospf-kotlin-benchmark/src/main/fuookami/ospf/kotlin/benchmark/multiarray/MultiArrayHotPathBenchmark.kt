@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 open class MultiArrayHotPathBenchmark {
-    @Param("small", "medium")
+    @Param("small", "medium", "large")
     lateinit var dataset: String
 
     private lateinit var shape: Shape3
@@ -40,6 +40,7 @@ open class MultiArrayHotPathBenchmark {
         val n = when (dataset) {
             "small" -> 12
             "medium" -> 28
+            "large" -> 48
             else -> 12
         }
         shape = Shape3.withOrder(n, n, n, StorageOrder.RowMajor)
