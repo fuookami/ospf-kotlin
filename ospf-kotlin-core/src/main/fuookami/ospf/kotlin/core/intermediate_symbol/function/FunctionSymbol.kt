@@ -202,19 +202,24 @@ class LinearFunctionSymbolAdapter<V>(
     }
     override fun toRawString(unfold: UInt64): String = name
 
-    internal val flattenedMonomials: LinearFlattenData<V> get() {
-        val poly = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
+    @Suppress("UNCHECKED_CAST")
+    private fun resultPolynomialOrZero(): LinearPolynomial<V> {
+        // 安全不变量：本模块内 HasResultPolynomial 的实现与 delegate 使用相同的 V 类型参数。
+        // Safety invariant: HasResultPolynomial implementations in this module use the same V type parameter as delegate.
+        return (delegate as? HasResultPolynomial<*>)?.resultPolynomial as? LinearPolynomial<V>
             ?: LinearPolynomial(emptyList(), converter.zero)
+    }
+
+    internal val flattenedMonomials: LinearFlattenData<V> get() {
+        val poly = resultPolynomialOrZero()
         return LinearFlattenData(poly.monomials, poly.constant)
     }
 
     override val polynomial: LinearPolynomial<V>
-        get() = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
-            ?: LinearPolynomial(emptyList(), converter.zero)
+        get() = resultPolynomialOrZero()
 
     override fun asMutable(): MutableLinearPolynomial<V> {
-        val poly = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
-            ?: LinearPolynomial(emptyList(), converter.zero)
+        val poly = resultPolynomialOrZero()
         return MutableLinearPolynomial(poly.monomials, poly.constant)
     }
 
