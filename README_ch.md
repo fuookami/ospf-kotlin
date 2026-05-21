@@ -211,7 +211,12 @@ P21-1 基线运行环境：
 2. Maven：Apache Maven 3.9.12
 3. OS：Windows（PowerShell）
 4. JVM 参数建议（缓解频繁 CodeHeap warning）：
-   - `MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
+   - PowerShell（当前会话）：
+     - ``$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"``
+   - Windows 持久化用户变量：
+     - ``setx MAVEN_OPTS "-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"``
+   - bash/zsh：
+     - `export MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
 
 ## 迁移统一门禁（无兼容层）
 

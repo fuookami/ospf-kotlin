@@ -501,7 +501,7 @@ sealed class MutableTokenTable<V>(
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
 
-        // B1: ���ͻ�������
+        // B1: 解绑并清理缓存
         // B1: Unbind and clear caches for removed symbol
         unbindTokenTableContext(symbol, this)
         cacheContexts.linearFlatten.remove(symbol)
@@ -1085,7 +1085,7 @@ sealed class ConcurrentMutableTokenTable<V>(
             _symbols.remove(symbol)
             _symbolsMap.remove(symbol.name)
 
-            // B1: ���ͻ�������
+            // B1: 解绑并清理缓存
             // B1: Unbind and clear caches for removed symbol
             unbindTokenTableContext(symbol, this)
             cacheContexts.linearFlatten.remove(symbol)
@@ -1343,14 +1343,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             val thisReadSymbol = readySymbolList
                                 .subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment))
                             // B2: Batch write value cache via prepare + cache
-                            // B2: ͨ�� prepare + cache ����д�� value ����
+                            // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
                                     it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
-                            // B2: ����д�� flatten/range ����
+                            // B2: 批量写入 flatten/range 缓存
                             tokenTable.cacheSymbolContexts(thisReadSymbol)
                             if (memoryUseOver()) {
                                 System.gc()
@@ -1374,14 +1374,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                     listOf(
                         launch(Dispatchers.Default) {
                             // B2: Batch write value cache via prepare + cache
-                            // B2: ͨ�� prepare + cache ����д�� value ����
+                            // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
                                     it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
-                            // B2: ����д�� flatten/range ����
+                            // B2: 批量写入 flatten/range 缓存
                             tokenTable.cacheSymbolContexts(readySymbols)
 
                             if (callBack != null) {

@@ -41,7 +41,7 @@ private fun <V, T> tokenTableAs(tokens: AbstractTokenTable<T>): AbstractTokenTab
 // This file adds convenience aliases (leq/geq/neq/ls/gr) and
 // core-specific cross-type operators (Int/Double/Boolean/UInt64).
 
-// LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> aliases �?delegate directly to constructor to avoid
+// LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> aliases -> delegate directly to constructor to avoid
 // resolution ambiguity with math-layer generic operators.
 infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.LE)
 infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.GE)

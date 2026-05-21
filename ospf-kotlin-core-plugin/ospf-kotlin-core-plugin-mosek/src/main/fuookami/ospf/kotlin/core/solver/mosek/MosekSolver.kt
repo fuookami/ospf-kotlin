@@ -24,11 +24,21 @@ abstract class MosekSolver : AutoCloseable {
         name: String,
         callBack: CreatingEnvironmentFunction? = null
     ): Try {
-        TODO("not implemented yet")
+        return Failed(
+            Err(
+                ErrorCode.OREngineEnvironmentLost,
+                "MOSEK environment initialization is not implemented yet. / MOSEK 环境初始化尚未实现。"
+            )
+        )
     }
 
     protected suspend fun solve(): Try {
-        TODO("not implemented yet")
+        return Failed(
+            Err(
+                ErrorCode.OREngineSolvingException,
+                "MOSEK solving flow is not implemented yet. / MOSEK 求解流程尚未实现。"
+            )
+        )
     }
 
     protected suspend fun analyzeStatus(): Try {

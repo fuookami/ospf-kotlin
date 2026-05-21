@@ -425,7 +425,7 @@ data class QuadraticTetradModel(
     companion object {
         private val logger = logger()
 
-        /** V��Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
+        /** V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
             model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,

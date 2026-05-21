@@ -392,7 +392,7 @@ private fun validateDualById(
     dualById: Map<String, *>,
     log: org.apache.logging.log4j.kotlin.KotlinLogger
 ) {
-    // Detect duplicate constraint names �?multiple constraints sharing the same name
+    // Detect duplicate constraint names - multiple constraints sharing the same name
     // would silently reuse the same dual value from the by-id map.
     val nameCounts = HashMap<String, Int>()
     for (c in constraints) {
@@ -403,7 +403,7 @@ private fun validateDualById(
             log.warn { "Duplicate constraint name '$name' appears $count times in model; by_id lookup will use the same dual value for all" }
         }
     }
-    // Detect names in dualById that don't match any constraint �?likely a caller error.
+    // Detect names in dualById that don't match any constraint - likely a caller error.
     val constraintNames = nameCounts.keys
     for (name in dualById.keys) {
         if (name !in constraintNames) {

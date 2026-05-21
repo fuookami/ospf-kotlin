@@ -277,11 +277,21 @@ class MosekLinearSolverImpl(
     }
 
     private suspend fun configure(): Try {
-        TODO("not implemented yet")
+        return Failed(
+            Err(
+                ErrorCode.OREngineModelingException,
+                "MOSEK linear solver configuration is not implemented yet. / MOSEK 线性求解器配置尚未实现。"
+            )
+        )
     }
 
     private suspend fun analyzeSolution(): Try {
-        TODO("not implemented yet")
+        return Failed(
+            Err(
+                ErrorCode.ORSolutionInvalid,
+                "MOSEK linear solution extraction is not implemented yet. / MOSEK 线性解提取尚未实现。"
+            )
+        )
     }
 }
 

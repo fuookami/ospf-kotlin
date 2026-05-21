@@ -14,14 +14,14 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * `MechanismModel<V>` extends this with the objective function and Benders cut generation.
  *
  * BasicMechanismModel delegates token storage to an [AbstractTokenTable<V>] provided
- * at construction time �� the same mechanism used by MechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
+ * at construction time - the same mechanism used by MechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 open class BasicMechanismModel<V>(
     open val name: String,
     open val tokens: AbstractTokenTable<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
 
-    // ���� Query helpers ������������������������������������������������������������������������������������������������
+    // Query helpers
 
     val numVariables: Int get() = tokens.tokens.size
 }

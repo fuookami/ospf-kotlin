@@ -211,7 +211,12 @@ Baseline environment used in P21-1:
 2. Maven: Apache Maven 3.9.12
 3. OS: Windows (PowerShell)
 4. JVM opts recommendation (for frequent CodeHeap warnings):
-   - `MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
+   - PowerShell (current session):
+     - ``$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"``
+   - Windows persistent user variable:
+     - ``setx MAVEN_OPTS "-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"``
+   - bash/zsh:
+     - `export MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
 
 ## Migration Release Gate (Compatibility-Free Core/Math)
 
