@@ -10,6 +10,9 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import mosek.*
 
+private fun solvingException(message: String?): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
+private fun solvingException(): Try = Failed(Err(ErrorCode.OREngineSolvingException))
+
 abstract class MosekSolver : AutoCloseable {
     protected lateinit var env: Env
     protected lateinit var mosekModel: Task
@@ -67,9 +70,9 @@ abstract class MosekSolver : AutoCloseable {
 
             ok
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: java.lang.Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 }

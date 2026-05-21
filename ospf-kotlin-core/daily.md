@@ -155,7 +155,7 @@ P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容
 
 ### P24-3：solver 插件公共化第三批
 
-状态：待执行。
+状态：已完成（第一批：COPT / Hexaly / MindOPT / Mosek 基类 callback 与错误构造 helper 收敛）。
 
 目标：继续降低 COPT / Hexaly / MindOPT / Mosek solver 插件重复代码，重点抽 solver 无关的 callback、状态映射和错误构造逻辑。
 
@@ -182,6 +182,34 @@ P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容
 2. 目标重复逻辑减少，且无新增 `status.errCode!!`、重复 `when` 分支或无上下文 NPE 风险。
 3. P6/P7 静态门禁通过。
 4. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. COPT：`ospf-kotlin-core-plugin-copt/.../CoptSolver.kt`
+   - 抽取 `executeCreatingEnvironmentCallback(...)`。
+   - 抽取环境/求解错误构造 helper（`environmentLost(...)`、`solvingException(...)`、`terminated()`）。
+2. Hexaly：`ospf-kotlin-core-plugin-hexaly/.../HexalySolver.kt`
+   - 抽取 `executeCreatingEnvironmentCallback(...)`。
+   - 抽取环境/求解错误构造 helper（`environmentLost(...)`、`solvingException(...)`、`terminated()`）。
+3. MindOPT：`ospf-kotlin-core-plugin-mindopt/.../MindOPTSolver.kt`
+   - 抽取 `executeCreatingEnvironmentCallback(...)`。
+   - 抽取环境/求解错误构造 helper（`environmentLost(...)`、`solvingException(...)`）。
+4. Mosek：`ospf-kotlin-core-plugin-mosek/.../MosekSolver.kt`
+   - 抽取求解错误构造 helper（`solvingException(...)`）。
+5. 说明：
+   - 仅抽 solver 无关辅助逻辑（callback 失败兜底与错误构造）。
+   - 保持各插件真实 solver API 调用、状态语义和许可证假设不变。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt -am -DskipTests compile`：通过。
+2. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-hexaly -am -DskipTests compile`：通过。
+3. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mindopt -am -DskipTests compile`：通过。
+4. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mosek -am -DskipTests compile`：通过。
+5. 扫描 `status.errCode!!`（COPT / Hexaly / MindOPT / Mosek main 源码）：无结果（通过）。
+6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+7. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+8. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
 ### P24-4：benchmark 趋势沉淀完善
 

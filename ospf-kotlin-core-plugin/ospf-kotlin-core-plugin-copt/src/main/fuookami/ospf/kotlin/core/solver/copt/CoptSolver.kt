@@ -14,6 +14,22 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
+private fun <T> executeCreatingEnvironmentCallback(
+    target: T,
+    callBack: ((T) -> Try)?
+): Try {
+    return when (val result = callBack?.invoke(target)) {
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        else -> ok
+    }
+}
+
+private fun environmentLost(message: String?): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
+private fun environmentLost(): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost))
+private fun solvingException(message: String?): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
+private fun terminated(): Try = Failed(Err(ErrorCode.OREngineTerminated))
+
 abstract class CoptSolver : AutoCloseable {
     protected lateinit var env: Envr
     protected lateinit var coptModel: Model
@@ -38,24 +54,18 @@ abstract class CoptSolver : AutoCloseable {
             config.set(COPT.Client.Port, port.toString())
             config.set(COPT.Client.Password, password)
             config.set(COPT.Client.WaitTime, connectionTime.toInt(DurationUnit.SECONDS).toString())
-            when (val result = callBack?.invoke(config)) {
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
+            when (val callbackResult = executeCreatingEnvironmentCallback(config, callBack)) {
+                is Failed -> return callbackResult
+                is Fatal -> return callbackResult
                 else -> {}
             }
             val env = Envr(config)
             coptModel = env.createModel(name)
             ok
         } catch (e: CoptException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 
@@ -65,24 +75,18 @@ abstract class CoptSolver : AutoCloseable {
     ): Try {
         return try {
             val config = EnvrConfig()
-            when (val result = callBack?.invoke(config)) {
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
+            when (val callbackResult = executeCreatingEnvironmentCallback(config, callBack)) {
+                is Failed -> return callbackResult
+                is Fatal -> return callbackResult
                 else -> {}
             }
             env = Envr(config)
             coptModel = env.createModel(name)
             ok
         } catch (e: CoptException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 
@@ -95,9 +99,9 @@ abstract class CoptSolver : AutoCloseable {
             }
             ok
         } catch (e: CoptException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineTerminated))
+            terminated()
         }
     }
 
@@ -134,9 +138,9 @@ abstract class CoptSolver : AutoCloseable {
             }
             ok
         } catch (e: CoptException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 }

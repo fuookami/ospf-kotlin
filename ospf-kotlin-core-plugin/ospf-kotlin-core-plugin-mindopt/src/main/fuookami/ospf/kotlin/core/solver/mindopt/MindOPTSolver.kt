@@ -12,6 +12,22 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 
+private fun <T> executeCreatingEnvironmentCallback(
+    target: T,
+    callBack: ((T) -> Try)?
+): Try {
+    return when (val result = callBack?.invoke(target)) {
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        else -> ok
+    }
+}
+
+private fun environmentLost(message: String?): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
+private fun environmentLost(): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost))
+private fun solvingException(message: String?): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
+private fun solvingException(): Try = Failed(Err(ErrorCode.OREngineSolvingException))
+
 abstract class MindOPTSolver : AutoCloseable {
     protected lateinit var env: MDOEnv
     protected lateinit var mindoptModel: MDOModel
@@ -28,23 +44,17 @@ abstract class MindOPTSolver : AutoCloseable {
     ): Try {
         return try {
             env = MDOEnv()
-            when (val result = callBack?.invoke(env)) {
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
+            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack)) {
+                is Failed -> return callbackResult
+                is Fatal -> return callbackResult
                 else -> {}
             }
             mindoptModel = MDOModel(env, name)
             ok
         } catch (e: MDOException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 
@@ -53,9 +63,9 @@ abstract class MindOPTSolver : AutoCloseable {
             mindoptModel.optimize()
             ok
         } catch (e: MDOException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 
@@ -88,9 +98,9 @@ abstract class MindOPTSolver : AutoCloseable {
             }
             ok
         } catch (e: MDOException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 }

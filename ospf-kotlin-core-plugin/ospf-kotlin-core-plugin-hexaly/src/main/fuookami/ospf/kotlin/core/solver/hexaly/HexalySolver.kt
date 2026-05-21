@@ -15,6 +15,23 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
+private fun <T> executeCreatingEnvironmentCallback(
+    target: T,
+    callBack: ((T) -> Try)?
+): Try {
+    return when (val result = callBack?.invoke(target)) {
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        else -> ok
+    }
+}
+
+private fun environmentLost(message: String?): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
+private fun environmentLost(): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost))
+private fun solvingException(message: String?): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
+private fun solvingException(): Try = Failed(Err(ErrorCode.OREngineSolvingException))
+private fun terminated(): Try = Failed(Err(ErrorCode.OREngineTerminated))
+
 @OptIn(ExperimentalTime::class)
 abstract class HexalySolver : AutoCloseable {
     protected lateinit var optimizer: HexalyOptimizer
@@ -35,24 +52,18 @@ abstract class HexalySolver : AutoCloseable {
     ): Try {
         return try {
             optimizer = HexalyOptimizer()
-            when (val result = callBack?.invoke(optimizer)) {
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
+            when (val callbackResult = executeCreatingEnvironmentCallback(optimizer, callBack)) {
+                is Failed -> return callbackResult
+                is Fatal -> return callbackResult
                 else -> {}
             }
             hexalyModel = optimizer.model
 
             ok
         } catch (e: HxException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 
@@ -65,9 +76,9 @@ abstract class HexalySolver : AutoCloseable {
 
             ok
         } catch (e: HxException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineTerminated))
+            terminated()
         }
     }
 
@@ -98,9 +109,9 @@ abstract class HexalySolver : AutoCloseable {
 
             ok
         } catch (e: HxException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 }
