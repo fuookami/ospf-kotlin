@@ -25,6 +25,18 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import java.math.RoundingMode
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {
+    // 安全不变量：当值为 FltX 时 withScale 仍返回 FltX；否则保持原类型 T。
+    // Safety invariant: when value is FltX, withScale still returns FltX; otherwise keep original T.
+    return if (value is FltX) {
+        value.withScale(digits, RoundingMode.HALF_UP) as T
+    } else {
+        value
+    }
+}
+
 fun <T : FloatingNumber<T>> ln(
     x: T,
     constants: FloatingNumberConstants<T>,
@@ -40,13 +52,9 @@ fun <T : FloatingNumber<T>> ln(
         var i = constants.one
         while (true) {
             yPow = yPow * y * y
-            if (yPow is FltX) {
-                yPow = yPow.withScale(digits, RoundingMode.HALF_UP) as T
-            }
+            yPow = normalizeFltXScale(yPow, digits)
             var term = yPow / (constants.two * i + constants.one)
-            if (term is FltX) {
-                term = term.withScale(digits, RoundingMode.HALF_UP) as T
-            }
+            term = normalizeFltXScale(term, digits)
             value += term
             i += constants.one
 

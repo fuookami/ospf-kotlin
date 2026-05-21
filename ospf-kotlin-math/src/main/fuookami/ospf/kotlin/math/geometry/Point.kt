@@ -36,12 +36,26 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     val dim: D
 ) : Plus<Point<D, V>, Point<D, V>>, Minus<Point<D, V>, Point<D, V>>, Eq<Point<D, V>> {
     companion object {
+        @Suppress("UNCHECKED_CAST")
+        private fun <D : Dimension> dim2AsType(): D {
+            // 安全不变量：二维构造函数只在调用方期望 D=Dim2 时使用。
+            // Safety invariant: 2D factory is used when caller expects D=Dim2.
+            return Dim2 as D
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun <D : Dimension> dim3AsType(): D {
+            // 安全不变量：三维构造函数只在调用方期望 D=Dim3 时使用。
+            // Safety invariant: 3D factory is used when caller expects D=Dim3.
+            return Dim3 as D
+        }
+
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Point<D, V> {
-            return Point(listOf(x, y), Dim2 as D)
+            return Point(listOf(x, y), dim2AsType())
         }
 
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Point<D, V> {
-            return Point(listOf(x, y, z), Dim3 as D)
+            return Point(listOf(x, y, z), dim3AsType())
         }
 
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(vector: Vector<D, V>): Point<D, V> {

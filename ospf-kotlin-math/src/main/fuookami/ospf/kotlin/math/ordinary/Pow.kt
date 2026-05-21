@@ -33,6 +33,17 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.*
 import java.math.RoundingMode
 
+@Suppress("UNCHECKED_CAST")
+private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {
+    // 安全不变量：当值为 FltX 时 withScale 保持 FltX；否则返回原始 T。
+    // Safety invariant: when value is FltX, withScale remains FltX; otherwise original T is returned.
+    return if (value is FltX) {
+        value.withScale(digits, RoundingMode.HALF_UP) as T
+    } else {
+        value
+    }
+}
+
 private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(
     value: T,
     base: T,
@@ -213,9 +224,7 @@ fun <T : FloatingNumber<T>> exp(
     var i = constants.one
     while (true) {
         var thisItem = (term * index) / i
-        if (thisItem is FltX) {
-            thisItem = thisItem.withScale(digits, RoundingMode.HALF_UP) as T
-        }
+        thisItem = normalizeFltXScale(thisItem, digits)
         value += thisItem
         i += constants.one
 

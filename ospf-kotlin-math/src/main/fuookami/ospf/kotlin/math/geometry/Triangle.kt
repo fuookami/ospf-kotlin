@@ -26,12 +26,24 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 
     val perimeter: V by lazy { e1.length + e2.length + e3.length }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun castPoint(position: List<V>): P {
+        // 安全不变量：P 受限于 Point<D, V>，构造结果保持相同维度与数值类型。
+        // Safety invariant: P is constrained by Point<D, V>, and constructed point keeps the same D/V.
+        return Point(position, p1.dim) as P
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun castValue(value: Any): V {
+        // 安全不变量：当前三角形数值泛型为 V，sqrt 结果与输入域一致。
+        // Safety invariant: triangle numeric generic is V, and sqrt result stays in the same numeric domain.
+        return value as V
+    }
+
     val centroid: P by lazy {
         val v = p1[0]
         val three = v.constants.three
-        p1.indices.map { (p1[it] + p2[it] + p3[it]) / three }.let {
-            Point(it, p1.dim) as P
-        }
+        castPoint(p1.indices.map { (p1[it] + p2[it] + p3[it]) / three })
     }
 
     val isDegenerate: Boolean by lazy {
@@ -55,7 +67,7 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         val two = v.constants.two
         val p = (a + b + c) / two
         val s = p * (p - a) * (p - b) * (p - c)
-        s.sqrt() as V
+        castValue(s.sqrt())
     }
 
     override fun toString() = "Triangle($p1, $p2, $p3)"

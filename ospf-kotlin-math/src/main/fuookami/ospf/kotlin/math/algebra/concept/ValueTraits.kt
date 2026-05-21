@@ -25,7 +25,12 @@ interface Invariant<T> {
      * @return 内部倌
      * @return The internal value
      */
-    fun value(): T = this as T
+    @Suppress("UNCHECKED_CAST")
+    fun value(): T {
+        // 安全不变量：Invariant<T> 语义要求实现类型本身就是 T。
+        // Safety invariant: Invariant<T> requires the implementing runtime type to be T itself.
+        return this as T
+    }
 }
 
 /**

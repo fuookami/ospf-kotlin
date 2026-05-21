@@ -169,6 +169,19 @@ internal data class WorkerPoolResult<R>(
     val result: R
 )
 
+@PublishedApi
+@Suppress("UNCHECKED_CAST")
+internal fun <R> castWorkerPoolResult(value: Any?): R {
+    // 安全不变量：结果槽位在读取前都由对应任务完整写入，运行时类型与目标 R 一致。
+    // Safety invariant: each result slot is fully written before read, and runtime type matches target R.
+    return value as R
+}
+
+@PublishedApi
+internal fun <R> castWorkerPoolResultList(results: Array<Any?>): List<R> {
+    return results.map { castWorkerPoolResult(it) }
+}
+
 /**
  * 使用 Worker Pool 执行并行任务（协程数量 = concurrentAmount）
  *
@@ -210,7 +223,7 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
                 }
             }
             jobs.forEach { it.await() }
-            results.mapIndexed { _, v -> v as R }
+            castWorkerPoolResultList(results)
         }
     }
 
@@ -346,7 +359,7 @@ internal suspend inline fun <R, T> executeTryWithWorkerPool(
                 is Fatal -> return@coroutineScope Fatal(ret.errors)
             }
         }
-        Ok(orderedResults.map { it as R })
+        Ok(castWorkerPoolResultList(orderedResults))
     }
 }
 
@@ -428,7 +441,7 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
                 is Failed, is Fatal -> errors.appendFrom(ret)
             }
         }
-        exResultOf(orderedResults.map { it as R }, errors)
+        exResultOf(castWorkerPoolResultList(orderedResults), errors)
     }
 }
 

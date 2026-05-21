@@ -1,3 +1,205 @@
+# P24 低风险工程健康第二批交接（2026-05-21）
+
+## 最新结论
+
+`math`、`multiarray`、`quantities`、`core` 的迁移目标已在 P18-P23 完成：架构收口、泛型化、接口恢复、兼容层删除、性能基线、solver 边界清晰化、第一批 warning debt 收敛和 benchmark 趋势入口均已闭环。P24 不是迁移补课，而是迁移完成后的低风险工程健康第二批。
+
+## 已完成事项摘要
+
+以下只保留已完成结论，不保留执行细节。
+
+1. 已完成从 core 自有表达式体系到 `math.symbol` 正式符号体系的迁移。
+2. 已删除旧兼容层与迁移桥接入口，包括旧 adapter/bridge/compat 路径和迁移期命名。
+3. 已完成 core 主链路泛型化，保留的 Flt64 命名仅表达真实快捷层、解析器或 solver 边界职责。
+4. 已恢复 example 默认构建与项目内 source-compat / profile 验收入口。
+5. 已建立 P6/P7 等静态门禁，覆盖兼容层回流、旧命名回流、旧 import 回流、危险 hard-cast、空测试等风险。
+6. 已完成 multiarray、math、core、core-plugin、framework 的多轮性能和结构优化。
+7. 已建立 benchmark baseline 与 small smoke artifact；benchmark 模块参与默认构建但不参与发布。
+8. 已完成 core 大文件多轮职责拆分，覆盖 dump、elastic builder、dual/farkasDual、Flt64 solver-boundary conversion 等辅助逻辑。
+9. 已完成 solver 插件公共数据准备、状态归一、错误码兜底、重复 when 分支清理和第一批热路径非空不变量清理。
+10. 已完成 math / quantities 第一批 unchecked cast 局部收敛。
+11. 已完成 benchmark JSON 趋势比较脚本，趋势比较只输出报告，不作为性能硬门禁。
+12. 已完成 P23 整体验收，P6/P7 与 `git diff --check` 均通过。
+
+## P24 目标
+
+P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容层的前提下，继续做低风险工程健康清理。
+
+1. 继续收敛 warning debt 第二批，优先处理可证明安全的 math 自类型 / 几何 cast 和 utils parallel 结果 cast。
+2. 继续拆分 core 剩余大文件职责，优先处理 `MechanismModel.kt` 中 dump async、dumping status flow、cut conversion、objective construction 等辅助逻辑。
+3. 推进 solver 插件公共化第三批，优先抽取 COPT / Hexaly / MindOPT / Mosek 中 solver 无关的 callback、状态映射、错误构造辅助逻辑。
+4. 完善 benchmark 趋势沉淀，补充 baseline/current 命名约定、报告输出约定和 CI artifact 留存说明；继续不设置性能硬门禁。
+
+## 总体原则
+
+1. 不新增兼容层，不恢复旧 bridge/adapter/compat 设计。
+2. 不改变公开 API；如必须改变，先在本文件记录理由、影响范围、替代方案和验收方式。
+3. P24 是工程健康清理，不重新定义 P18-P23 的迁移完成口径。
+4. Flt64 / Double 转换必须留在显式 solver 边界或既有白名单，不能回流到 core 泛型主链路。
+5. warning debt 清理不做全仓机械 suppress；新增 suppress 必须靠近最小作用域，并用中英双语注释说明可证明不变量。
+6. 大文件拆分只移动内聚职责，不混入语义变化。
+7. solver 公共化只抽 solver 无关的数据准备、状态归一、callback 失败兜底和错误构造逻辑，不强行统一真实 solver API。
+8. benchmark 趋势比较只生成报告和 artifact，不把绝对性能数值作为跨机器硬失败条件。
+9. README / README_ch 如涉及用户入口、benchmark 使用或 profile 说明，必须同步更新并保持互链。
+10. 写注释时遵守项目规则：中英双语；不添加版权声明。
+11. 每个子任务建议独立 commit；提交前必须记录修改清单与验收命令。
+
+## P24 事项与步骤
+
+### P24-1：warning debt 第二批局部收敛
+
+状态：已完成（第一批：math 自类型/几何/ordinary 与 utils.parallel 结果 cast 局部收敛）。
+
+目标：继续消化高频但可证明安全的 unchecked cast，不做全仓压制。
+
+详细步骤：
+
+1. 用目标模块编译日志确认 warning 来源，不仅依赖文本扫描。
+2. 第一优先级：`ospf-kotlin-math` 中自类型 / 几何 / ordinary 运算相关的重复 unchecked cast。
+3. 第二优先级：`ospf-kotlin-utils` parallel worker pool 中结果收集 cast。
+4. 每次只处理同一不变量族；能用局部 helper 收口就不用散落 suppress。
+5. 对剩余风险较高或不变量不清晰的 cast，只记录为后续项，不强行清理。
+
+预计修改清单：
+
+1. `ospf-kotlin-math/src/main/...`
+2. `ospf-kotlin-utils/src/main/...`
+3. 必要时补充对应测试或已有测试覆盖说明。
+4. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-math -am "-DskipTests" test-compile` 通过。
+2. 如触及 utils：`mvn -pl ospf-kotlin-utils -am "-DskipTests" test-compile` 通过。
+3. 被处理文件的目标 unchecked cast warning 消失或减少，并在 daily.md 记录剩余风险。
+4. P6/P7 静态门禁通过。
+5. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. `ospf-kotlin-math`（自类型 / ordinary / 几何同类不变量收敛）：
+   - `algebra/concept/LinearSpaces.kt`、`Numbers.kt`、`ValueTraits.kt`
+   - `algebra/number/Floating.kt`
+   - `ordinary/Log.kt`、`Pow.kt`
+   - `geometry/Circle.kt`、`Distance.kt`、`Edge.kt`、`Point.kt`、`Triangle.kt`、`Vector.kt`
+2. `ospf-kotlin-utils`（parallel worker pool 结果收集 cast 收敛）：
+   - `parallel/Common.kt`
+   - `parallel/Map.kt`
+3. 处理方式：
+   - 用局部 helper 收敛重复 unchecked cast。
+   - `@Suppress("UNCHECKED_CAST")` 严格放在最小作用域，并补充中英双语不变量注释。
+   - 不改变公开 API，不引入兼容层，不回流 Flt64/Double 到 core 泛型主链路。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-math -am -DskipTests test-compile`：通过。
+2. `mvn --% -pl ospf-kotlin-utils -am -DskipTests test-compile`：通过。
+3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+5. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
+
+剩余风险与后续项（未在本批强行清理）：
+
+1. `ospf-kotlin-math` 仍有 7 处 main 源 warning（`ValueRange.kt`、`ArnoldTongue.kt`、`ChebyshevMap.kt`、`CircleMap.kt`、`EvaluateBoolean.kt`、`Factorization.kt`），涉及更高风险的数值域/表达式语义边界，本批仅记录，不做机械 suppress。
+
+### P24-2：core 剩余大文件职责拆分
+
+状态：待执行。
+
+目标：继续降低 core 大文件维护成本，优先拆分纯辅助逻辑，不改变模型行为。
+
+详细步骤：
+
+1. 重新扫描 core 大文件行数与职责分布，至少覆盖 `MechanismModel.kt`、`TokenTable.kt`、`IntermediateSymbol.kt`。
+2. 第一批优先从 `MechanismModel.kt` 拆分 dump async / dumping status flow / cut conversion / objective construction helper。
+3. 对 `TokenTable.kt` 和 `IntermediateSymbol.kt` 只在职责边界明确时拆分，不做大范围移动。
+4. 保持公开签名、返回类型、错误分支和日志行为不变。
+5. 如拆分后触发 P7 whitelist，需要说明是文件搬移导致的真实分布变化，并同步 whitelist。
+
+预计修改清单：
+
+1. `ospf-kotlin-core/src/main/.../model/mechanism/MechanismModel.kt`
+2. 新增同包 helper 文件，例如 `MechanismModelDumpSupport.kt`、`MechanismModelCutSupport.kt` 或等价命名。
+3. 可能涉及 `p7-whitelist.json`。
+4. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-core -am "-DskipTests" test-compile` 通过。
+2. 与拆分目标相关的核心测试通过；若只做职责搬移，至少执行现有 core 目标测试集。
+3. P6/P7 静态门禁通过。
+4. `git diff --check` 通过。
+
+### P24-3：solver 插件公共化第三批
+
+状态：待执行。
+
+目标：继续降低 COPT / Hexaly / MindOPT / Mosek solver 插件重复代码，重点抽 solver 无关的 callback、状态映射和错误构造逻辑。
+
+详细步骤：
+
+1. 扫描 COPT / Hexaly / MindOPT / Mosek 的线性与二次 solver，按重复逻辑分类：callback 失败中断、status 映射、errCode 兜底、异常包装、日志消息。
+2. 只抽取不依赖真实 solver API 类型的公共 helper。
+3. 保持各插件现有 solver API 调用、状态语义和 license 假设不变。
+4. 如发现明显行为 bug，单独记录并独立修复，不混进纯重构提交。
+5. 不要求真实外部 solver license 作为默认阻塞项。
+
+预计修改清单：
+
+1. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt/src/main/...`
+2. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-hexaly/src/main/...`
+3. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mindopt/src/main/...`
+4. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mosek/src/main/...`
+5. 可能新增 core-plugin 公共 helper 文件。
+6. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. 触及插件均执行 `-DskipTests compile` 并通过。
+2. 目标重复逻辑减少，且无新增 `status.errCode!!`、重复 `when` 分支或无上下文 NPE 风险。
+3. P6/P7 静态门禁通过。
+4. `git diff --check` 通过。
+
+### P24-4：benchmark 趋势沉淀完善
+
+状态：待执行。
+
+目标：让 benchmark 趋势比较更适合长期使用，但继续只做报告和 artifact 留存。
+
+详细步骤：
+
+1. 规范 benchmark 输出命名，例如 `baseline-<dataset>.json`、`current-<dataset>.json`、`trend-<dataset>.md`。
+2. 扩展现有比较脚本的报告字段，必要时加入样本数、score error、单位差异提示和缺失 benchmark 提示。
+3. 补充 README / README_ch 中的手动趋势对比流程。
+4. 可选：在 CI artifact 中保留 trend report，但不因性能差异失败。
+
+预计修改清单：
+
+1. `ospf-kotlin-benchmark/scripts/compare-benchmark-results.ps1`
+2. `.github/workflows/core-refactor-guards.yml`（仅在需要上传趋势报告时修改）
+3. `README.md`
+4. `README_ch.md`
+5. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-benchmark -am -Pbench "-DskipTests" compile` 通过。
+2. benchmark small smoke 可生成 JSON。
+3. 比较脚本可对两份 JSON 生成可读 Markdown 报告。
+4. 如修改 CI，workflow 语法应保持可解析，artifact 路径明确。
+5. `git diff --check` 通过。
+
+## P24 建议执行顺序
+
+1. P24-1：先处理 warning debt，收益明确且范围可控。
+2. P24-2：再拆 core 大文件，优先纯 helper 搬移。
+3. P24-3：随后做 solver 插件公共化，按插件分批提交。
+4. P24-4：最后完善 benchmark 趋势沉淀和文档。
+
+每个子任务完成后，都应把实际修改清单、验收命令和结果补回本文件。
+
+---
+
 # P23 工程健康交接（2026-05-21）
 
 ## 最新结论

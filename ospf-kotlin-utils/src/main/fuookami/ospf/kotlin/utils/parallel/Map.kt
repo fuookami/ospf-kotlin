@@ -185,7 +185,7 @@ suspend inline fun <R : Any, T> Iterable<T>.mapNotNullParallelly(
     crossinline extractor: SuspendExtractor<R?, T>
 ): List<R> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val results = executeWithWorkerPool(this, limit) { _, element -> extractor(element) } as List<R>
+    val results = executeWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }
     return results.filterNotNull()
 }
 
@@ -208,7 +208,7 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapNotNullParallelly(
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
     return when (val result = executeTryWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }) {
         is Ok -> {
-            Ok(result.value.filterNotNull() as List<R>)
+            Ok(result.value.filterNotNull())
         }
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
@@ -234,12 +234,12 @@ suspend inline fun <R : Any, T> Iterable<T>.exTryMapNotNullParallelly(
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
     return when (val result = executeExTryWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }) {
         is Ok -> {
-            Ok(result.value.filterNotNull() as List<R>)
+            Ok(result.value.filterNotNull())
         }
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> {
-            Ok(result.value.filterNotNull() as List<R>)
+            Ok(result.value.filterNotNull())
         }
     }
 }
@@ -499,7 +499,7 @@ suspend inline fun <R : Any, T> Iterable<T>.mapIndexedNotNullParallelly(
     crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val results = executeWithWorkerPool(this, limit) { index, element -> extractor(index, element) } as List<R>
+    val results = executeWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }
     return results.filterNotNull()
 }
 
@@ -522,7 +522,7 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapIndexedNotNullParallelly(
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
     return when (val result = executeTryWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }) {
         is Ok -> {
-            Ok(result.value.filterNotNull() as List<R>)
+            Ok(result.value.filterNotNull())
         }
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
@@ -548,12 +548,12 @@ suspend inline fun <R : Any, T> Iterable<T>.exTryMapIndexedNotNullParallelly(
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
     return when (val result = executeExTryWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }) {
         is Ok -> {
-            Ok(result.value.filterNotNull() as List<R>)
+            Ok(result.value.filterNotNull())
         }
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> {
-            Ok(result.value.filterNotNull() as List<R>)
+            Ok(result.value.filterNotNull())
         }
     }
 }

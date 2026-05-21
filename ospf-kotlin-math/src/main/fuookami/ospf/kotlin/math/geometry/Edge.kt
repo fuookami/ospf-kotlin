@@ -61,18 +61,21 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun castPoint(position: List<V>): P {
+        // 安全不变量：P 约束为 Point<D, V>，此处只改变具体子类型视图，不改变坐标维度与数值类型。
+        // Safety invariant: P is constrained as Point<D, V>; this only reuses concrete subtype view with same D/V.
+        return Point(position, from.dim) as P
+    }
+
     fun midpoint(): P {
         val v = from[0]
         val two = v.constants.two
-        return from.indices.map { (from[it] + to[it]) / two }.let {
-            Point(it, from.dim) as P
-        }
+        return castPoint(from.indices.map { (from[it] + to[it]) / two })
     }
 
     fun pointAt(t: V): P {
-        return from.indices.map { from[it] + t * (to[it] - from[it]) }.let {
-            Point(it, from.dim) as P
-        }
+        return castPoint(from.indices.map { from[it] + t * (to[it] - from[it]) })
     }
 
     fun containsPoint(point: P, epsilon: V = from[0].constants.decimalPrecision): Boolean {

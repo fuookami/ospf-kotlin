@@ -139,12 +139,26 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
     override fun sqr() = pow(2)
     override fun cub() = pow(3)
 
-    override fun sqrt(): Self = pow(constants.one / constants.two) as Self
-    override fun cbrt(): Self = pow(constants.one / constants.three) as Self
+    @Suppress("UNCHECKED_CAST")
+    private fun castFloatingToSelf(value: Any): Self {
+        // 安全不变量：Self 实现 FloatingImpl<Self>，pow/log 返回值运行时与 Self 一致。
+        // Safety invariant: Self implements FloatingImpl<Self>, and pow/log runtime results are Self-compatible.
+        return value as Self
+    }
 
-    override fun lg(): Self? = log(constants.ten) as Self?
-    override fun lg2(): Self? = log(constants.two) as Self?
-    override fun ln(): Self? = log(constants.e) as Self?
+    @Suppress("UNCHECKED_CAST")
+    private fun castNullableFloatingToSelf(value: Any?): Self? {
+        // 安全不变量：同上；null 分支保留，非 null 分支运行时为 Self。
+        // Safety invariant: same as above; null stays null, non-null runtime value is Self-compatible.
+        return value as Self?
+    }
+
+    override fun sqrt(): Self = castFloatingToSelf(pow(constants.one / constants.two))
+    override fun cbrt(): Self = castFloatingToSelf(pow(constants.one / constants.three))
+
+    override fun lg(): Self? = castNullableFloatingToSelf(log(constants.ten))
+    override fun lg2(): Self? = castNullableFloatingToSelf(log(constants.two))
+    override fun ln(): Self? = castNullableFloatingToSelf(log(constants.e))
 
     override fun toRtn8() = floatingToRational(value(), { Int8(it.toByte()) }, { Int8(it.toByte()) }, Rtn8::invoke)
     override fun toRtn16() = floatingToRational(value(), { Int16(it.toShort()) }, { Int16(it.toShort()) }, Rtn16::invoke)

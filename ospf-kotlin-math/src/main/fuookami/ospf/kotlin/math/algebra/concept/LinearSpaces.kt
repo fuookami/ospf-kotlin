@@ -19,7 +19,12 @@ import fuookami.ospf.kotlin.math.operator.Minus
  * Defines total ordering relation, extending from Ord interface.
  */
 interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
-    private fun self(): Self = this as Self
+    @Suppress("UNCHECKED_CAST")
+    private fun self(): Self {
+        // 安全不变量：实现方通过 CRTP 模式声明为 TotallyOrdered<Self>，运行时 this 即 Self。
+        // Safety invariant: implementers follow CRTP as TotallyOrdered<Self>, so runtime this is Self.
+        return this as Self
+    }
 
     /**
      * 取两个值中的较小倌

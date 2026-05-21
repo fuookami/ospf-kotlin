@@ -6,6 +6,13 @@ import kotlin.math.sqrt
 import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.geometry.vector2
 
+@Suppress("UNCHECKED_CAST")
+private fun <D : Dimension, Va : FloatingNumber<Va>, Vec : Vector<D, Va>> unitAsSameVectorType(radiusVec: Vec): Vec {
+    // 安全不变量：unit 保持 Vector<D, Va> 数域与维度不变，仅回收为调用方 Vec 视图。
+    // Safety invariant: unit keeps Vector<D, Va> domain/dimension unchanged; cast only restores caller Vec view.
+    return radiusVec.unit as Vec
+}
+
 data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : FloatingNumber<Va>>(
     val center: P,
     val direction: Vec,
@@ -14,7 +21,7 @@ data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : Flo
     companion object {}
     constructor(center: P, radiusVec: Vec) : this(
         center = center,
-        direction = radiusVec.unit as Vec,
+        direction = unitAsSameVectorType(radiusVec),
         radius = radiusVec.norm
     )
 }

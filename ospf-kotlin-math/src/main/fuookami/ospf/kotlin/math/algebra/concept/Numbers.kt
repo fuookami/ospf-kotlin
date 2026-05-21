@@ -189,8 +189,16 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
             else -> value
         }
     }
-    fun isSelfWithinBounds(): Boolean = isWithinBounds(this as Self)
-    fun clampSelfToBounds(): Self = clampToBounds(this as Self)
+
+    @Suppress("UNCHECKED_CAST")
+    private fun self(): Self {
+        // 安全不变量：RealNumber<Self> 使用自类型约束，运行时 this 与 Self 一致。
+        // Safety invariant: RealNumber<Self> uses self-typed constraint, so runtime this matches Self.
+        return this as Self
+    }
+
+    fun isSelfWithinBounds(): Boolean = isWithinBounds(self())
+    fun clampSelfToBounds(): Self = clampToBounds(self())
 
     /**
      * 等价判断

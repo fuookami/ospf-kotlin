@@ -18,6 +18,20 @@ import fuookami.ospf.kotlin.math.operator.Plus
 import fuookami.ospf.kotlin.math.geometry.vector2
 import fuookami.ospf.kotlin.math.geometry.vector3
 
+@Suppress("UNCHECKED_CAST")
+private fun <V : FloatingNumber<V>> castVectorValue(value: Any): V {
+    // 安全不变量：向量范数/夹角结果与向量分量处于同一 V 数域。
+    // Safety invariant: vector norm/angle results stay in the same V numeric domain as vector components.
+    return value as V
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <V : FloatingNumber<V>> castNullableVectorValue(value: Any?): V? {
+    // 安全不变量：同上；null 分支保留，非 null 分支为 V 兼容值。
+    // Safety invariant: same as above; null remains null and non-null values are V-compatible.
+    return value as V?
+}
+
 /**
  * 计算向量的范数（模长）
  * Calculates the norm (magnitude) of a vector
@@ -28,7 +42,7 @@ import fuookami.ospf.kotlin.math.geometry.vector3
  */
 private fun <V : FloatingNumber<V>> normOf(vector: List<V>): V {
     val v = vector[0]
-    return (vector.indices.sumOf(v.constants) { i -> vector[i].sqr() }).sqrt() as V
+    return castVectorValue((vector.indices.sumOf(v.constants) { i -> vector[i].sqr() }).sqrt())
 }
 
 /**
@@ -78,12 +92,26 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
     val dim: D
 ) : InnerProductSpace<Vector<D, V>, V> {
     companion object {
+        @Suppress("UNCHECKED_CAST")
+        private fun <D : Dimension> dim2AsType(): D {
+            // 安全不变量：二维构造函数只在调用方期望 D=Dim2 时使用。
+            // Safety invariant: 2D factory is used when caller expects D=Dim2.
+            return Dim2 as D
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun <D : Dimension> dim3AsType(): D {
+            // 安全不变量：三维构造函数只在调用方期望 D=Dim3 时使用。
+            // Safety invariant: 3D factory is used when caller expects D=Dim3.
+            return Dim3 as D
+        }
+
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Vector<D, V> {
-            return Vector(listOf(x, y), Dim2 as D)
+            return Vector(listOf(x, y), dim2AsType())
         }
 
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Vector<D, V> {
-            return Vector(listOf(x, y, z), Dim3 as D)
+            return Vector(listOf(x, y, z), dim3AsType())
         }
 
         operator fun invoke(x: Flt64, y: Flt64): Vector<Dim2, Flt64> {
@@ -124,7 +152,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
     operator fun plus(rhs: Point<D, V>) = Point(indices.map { this[it] + rhs[it] }, dim)
 
     override fun angle(rhs: Vector<D, V>): V? {
-        return super<InnerProductSpace>.angle(rhs) as? V
+        return castNullableVectorValue<V>(super<InnerProductSpace>.angle(rhs))
     }
 
     fun projectionOn(rhs: Vector<D, V>): Vector<D, V>? {
