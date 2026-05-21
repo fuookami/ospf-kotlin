@@ -29,8 +29,9 @@ class SparseVector<V : RealNumber<V>>(
     /**
      * Iterate over all entries in this vector, invoking [action] with (index, value).
      */
-    fun forEachEntry(action: (index: Int, value: V) -> Unit) {
-        for (entry in entries) {
+    inline fun forEachEntry(action: (index: Int, value: V) -> Unit) {
+        for (i in entries.indices) {
+            val entry = entries[i]
             action(entry.index, entry.value)
         }
     }
@@ -69,17 +70,23 @@ class SparseMatrix<V : RealNumber<V>>(
      * Iterate over all non-zero entries in row [row], invoking [action] with (colIndex, value).
      * If [row] is out of bounds, the call is a no-op.
      */
-    fun forEachEntry(row: Int, action: (colIndex: Int, value: V) -> Unit) {
-        val r = rows.getOrNull(row) ?: return
-        r.forEachEntry(action)
+    inline fun forEachEntry(row: Int, action: (colIndex: Int, value: V) -> Unit) {
+        if (row < 0 || row >= rows.size) {
+            return
+        }
+        val entries = rows[row].entries
+        for (i in entries.indices) {
+            val entry = entries[i]
+            action(entry.index, entry.value)
+        }
     }
 
     /**
      * Iterate over all rows, invoking [action] with (rowIndex, SparseVector).
      */
-    fun forEachRow(action: (rowIndex: Int, row: SparseVector<V>) -> Unit) {
-        for ((index, row) in rows.withIndex()) {
-            action(index, row)
+    inline fun forEachRow(action: (rowIndex: Int, row: SparseVector<V>) -> Unit) {
+        for (i in rows.indices) {
+            action(i, rows[i])
         }
     }
 
@@ -87,25 +94,45 @@ class SparseMatrix<V : RealNumber<V>>(
      * Build the transpose of this matrix: each entry (r, c, v) becomes (c, r, v).
      */
     fun transpose(): SparseMatrix<V> {
-        val result = SparseMatrix<V>()
         var maxCol = -1
-        for (row in rows) {
-            for (entry in row.entries) {
+        for (rowIndex in rows.indices) {
+            val entries = rows[rowIndex].entries
+            for (entryIndex in entries.indices) {
+                val entry = entries[entryIndex]
                 if (entry.index > maxCol) {
                     maxCol = entry.index
                 }
             }
         }
-        if (maxCol < 0) return result
-        for (c in 0..maxCol) {
-            result.addRow(SparseVector())
+        if (maxCol < 0) {
+            return SparseMatrix()
         }
-        for ((r, row) in rows.withIndex()) {
-            for (entry in row.entries) {
-                result.rows[entry.index].add(r, entry.value)
+
+        val columnCounts = IntArray(maxCol + 1)
+        for (r in rows.indices) {
+            val entries = rows[r].entries
+            for (entryIndex in entries.indices) {
+                val entry = entries[entryIndex]
+                columnCounts[entry.index] += 1
             }
         }
-        return result
+
+        val resultRows = MutableList(maxCol + 1) { c ->
+            SparseVector<V>(ArrayList(columnCounts[c]))
+        }
+        for (r in rows.indices) {
+            val entries = rows[r].entries
+            for (entryIndex in entries.indices) {
+                val entry = entries[entryIndex]
+                resultRows[entry.index].entries.add(
+                    SparseVectorEntry(
+                        index = r,
+                        value = entry.value
+                    )
+                )
+            }
+        }
+        return SparseMatrix(resultRows)
     }
 
     override fun toString(): String = "SparseMatrix($rows)"
@@ -185,8 +212,9 @@ class SparseQuadraticVector(
     /**
      * Iterate over all entries, invoking [action] with (colIndex1, colIndex2, coefficient).
      */
-    fun forEachEntry(action: (colIndex1: Int, colIndex2: Int?, coefficient: Flt64) -> Unit) {
-        for (entry in entries) {
+    inline fun forEachEntry(action: (colIndex1: Int, colIndex2: Int?, coefficient: Flt64) -> Unit) {
+        for (i in entries.indices) {
+            val entry = entries[i]
             action(entry.colIndex1, entry.colIndex2, entry.coefficient)
         }
     }
@@ -225,9 +253,15 @@ class SparseQuadraticMatrix(
      * Iterate over all entries in row [row], invoking [action] with (colIndex1, colIndex2, coefficient).
      * If [row] is out of bounds, the call is a no-op.
      */
-    fun forEachEntry(row: Int, action: (colIndex1: Int, colIndex2: Int?, coefficient: Flt64) -> Unit) {
-        val r = rows.getOrNull(row) ?: return
-        r.forEachEntry(action)
+    inline fun forEachEntry(row: Int, action: (colIndex1: Int, colIndex2: Int?, coefficient: Flt64) -> Unit) {
+        if (row < 0 || row >= rows.size) {
+            return
+        }
+        val entries = rows[row].entries
+        for (i in entries.indices) {
+            val entry = entries[i]
+            action(entry.colIndex1, entry.colIndex2, entry.coefficient)
+        }
     }
 
     override fun toString(): String = "SparseQuadraticMatrix($rows)"
