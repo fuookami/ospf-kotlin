@@ -11,6 +11,8 @@ import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
+import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -275,10 +277,6 @@ private class GurobiLinearSolverImpl(
                     return Fatal(result.errors)
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
                 else -> {}
             }
             ok
@@ -329,7 +327,7 @@ private class GurobiLinearSolverImpl(
                             }
 
                             statusCallBack?.let {
-                                when (it(
+                                val callbackResult = it(
                                     SolvingStatus(
                                         solver = "gurobi",
                                         solverConfig = config,
@@ -357,16 +355,9 @@ private class GurobiLinearSolverImpl(
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                         currentBestSolution = bestSolution
                                     )
-                                )) {
-                                    is Ok -> {}
-
-                                    is Failed -> {
-                                        abort()
-                                    }
-
-                                    is Fatal -> {
-                                        abort()
-                                    }
+                                )
+                                if (shouldAbortOnCallbackFailure(callbackResult) { abort() }) {
+                                    return
                                 }
                             }
                         }
@@ -461,7 +452,7 @@ private class GurobiLinearSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))
+                Failed(Err(status.resolveErrCode()))
             }
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))

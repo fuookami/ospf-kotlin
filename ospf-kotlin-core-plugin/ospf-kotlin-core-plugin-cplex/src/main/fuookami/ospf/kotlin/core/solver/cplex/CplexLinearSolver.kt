@@ -11,6 +11,8 @@ import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
+import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gap
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -345,7 +347,7 @@ private class CplexLinearSolverImpl(
                     }
 
                     statusCallBack?.let {
-                        when (it(
+                        val callbackResult = it(
                             SolvingStatus(
                                 solver = "cplex",
                                 solverConfig = config,
@@ -373,16 +375,9 @@ private class CplexLinearSolverImpl(
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                 currentBestSolution = currentBestSolution
                             )
-                        )) {
-                            is Ok -> {}
-
-                            is Failed -> {
-                                abort()
-                            }
-
-                            is Fatal -> {
-                                abort()
-                            }
+                        )
+                        if (shouldAbortOnCallbackFailure(callbackResult) { abort() }) {
+                            return
                         }
                     }
 
@@ -493,7 +488,7 @@ private class CplexLinearSolverImpl(
 
                 else -> {}
             }
-            Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))
+            Failed(Err(status.resolveErrCode()))
         }
     }
 }

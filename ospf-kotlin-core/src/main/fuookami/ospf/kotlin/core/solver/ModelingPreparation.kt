@@ -3,6 +3,10 @@ package fuookami.ospf.kotlin.core.solver
 import fuookami.ospf.kotlin.core.model.basic.Variable
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 
+/**
+ * solver 边界公共 helper（仅用于 solver dump 前数据准备）。
+ * Shared helper at solver boundary (only for pre-dump data preparation).
+ */
 data class VariableDumpingData(
     val lowerBounds: DoubleArray,
     val upperBounds: DoubleArray,

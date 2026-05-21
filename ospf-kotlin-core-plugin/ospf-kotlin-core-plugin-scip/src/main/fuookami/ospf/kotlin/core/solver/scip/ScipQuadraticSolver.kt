@@ -11,6 +11,8 @@ import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
+import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gap
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -447,7 +449,7 @@ private class ScipQuadraticSolverImpl(
                         } else {
                             scipVars.map { variable -> Flt64(solverModel.getSolVal(bestSolution, variable)) }
                         }
-                        when (it(
+                        val callbackResult = it(
                             fuookami.ospf.kotlin.core.solver.output.SolvingStatus(
                                 solver = "scip",
                                 solverConfig = config,
@@ -463,16 +465,9 @@ private class ScipQuadraticSolverImpl(
                                 gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                 currentBestSolution = currentBestSolution
                             )
-                        )) {
-                            is Ok -> {}
-
-                            is Failed -> {
-                                solverModel.interruptSolve()
-                            }
-
-                            is Fatal -> {
-                                solverModel.interruptSolve()
-                            }
+                        )
+                        if (shouldAbortOnCallbackFailure(callbackResult) { solverModel.interruptSolve() }) {
+                            return
                         }
                     }
                 }
@@ -557,7 +552,7 @@ private class ScipQuadraticSolverImpl(
 
                 else -> {}
             }
-            Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))
+            Failed(Err(status.resolveErrCode()))
         }
     }
 }

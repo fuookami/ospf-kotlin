@@ -11,6 +11,8 @@ import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
+import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -299,10 +301,6 @@ private class GurobiQuadraticSolverImpl(
                     return Fatal(result.errors)
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
                 else -> {}
             }
             ok
@@ -353,7 +351,7 @@ private class GurobiQuadraticSolverImpl(
                             }
 
                             statusCallBack?.let {
-                                when (it(
+                                val callbackResult = it(
                                     SolvingStatus(
                                         solver = "gurobi",
                                         time = currentTime,
@@ -367,7 +365,7 @@ private class GurobiQuadraticSolverImpl(
                                             }
 
                                             GRB.MAXIMIZE -> {
-                                                ObjectCategory.Minimum
+                                                ObjectCategory.Maximum
                                             }
 
                                             else -> {
@@ -381,16 +379,9 @@ private class GurobiQuadraticSolverImpl(
                                         gap = (currentObj - currentBound + Flt64.decimalPrecision) / (currentObj + Flt64.decimalPrecision),
                                         currentBestSolution = bestSolution
                                     )
-                                )) {
-                                    is Ok -> {}
-
-                                    is Failed -> {
-                                        abort()
-                                    }
-
-                                    is Fatal -> {
-                                        abort()
-                                    }
+                                )
+                                if (shouldAbortOnCallbackFailure(callbackResult) { abort() }) {
+                                    return
                                 }
                             }
                         }
@@ -485,7 +476,7 @@ private class GurobiQuadraticSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))
+                Failed(Err(status.resolveErrCode()))
             }
         } catch (e: GRBException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
