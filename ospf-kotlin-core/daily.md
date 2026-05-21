@@ -1,3 +1,244 @@
+# P25 工程健康第三批交接（2026-05-21）
+
+## 最新结论
+
+`math`、`multiarray`、`quantities`、`core` 的迁移目标已在 P18-P24 完成：架构收口、泛型化、接口恢复、兼容层删除、性能基线、solver 边界清晰化、warning debt 第一批与第二批局部收敛、benchmark 趋势入口和 P24 低风险工程健康清理均已闭环。P25 不是迁移补课，不重新定义完成口径；P25 的价值在于继续降低后续维护风险，优先处理已经显露的内存清理策略不统一、高风险 unchecked cast、core 大文件残余职责和 solver 插件批处理重复逻辑。
+
+## 已完成事项摘要
+
+以下只保留已完成结论，不保留执行细节。
+
+1. 已完成从 core 自有表达式体系到 `math.symbol` 正式符号体系的迁移。
+2. 已删除旧兼容层与迁移桥接入口，包括旧 adapter/bridge/compat 路径和迁移期命名。
+3. 已完成 core 主链路泛型化，保留的 Flt64 命名仅表达真实快捷层、解析器或 solver 边界职责。
+4. 已恢复 example 默认构建与项目内 source-compat / profile 验收入口。
+5. 已建立 P6/P7 等静态门禁，覆盖兼容层回流、旧命名回流、旧 import 回流、危险 hard-cast、空测试等风险。
+6. 已完成 multiarray、math、core、core-plugin、framework 的多轮性能和结构优化。
+7. 已建立 benchmark baseline、small smoke artifact 与 JSON 趋势比较脚本；趋势比较只输出报告，不作为性能硬门禁。
+8. 已完成 core 大文件多轮职责拆分，覆盖 dump、elastic builder、dual/farkasDual、Flt64 solver-boundary conversion、MechanismModel dump/objective 等辅助逻辑。
+9. 已完成 solver 插件公共数据准备、状态归一、错误码兜底、重复 when 分支清理、callback/error helper 收敛和第一批热路径非空不变量清理。
+10. 已完成 math / quantities / utils 第一批与第二批 unchecked cast 局部收敛。
+11. 已完成 benchmark 模块默认构建参与、不参与发布、`bench` profile 下启用 JMH 生成与运行的边界整理。
+12. 已完成 P24 整体验收，P6/P7、核心编译、目标 solver 插件编译、benchmark 编译与 smoke 均通过。
+
+## P25 目标
+
+P25 的目标是在不改变公开 API、不增加兼容层、不重启迁移目标的前提下，继续做工程健康第三批，优先处理真实维护风险和可验证收益。
+
+1. 统一 core 与 solver 插件中的内存清理和 batch 分段策略，减少直接 `System.gc()`、`availableProcessors() - 1`、`lg()!!` 等分散实现。
+2. 消化 `ospf-kotlin-math` 剩余 7 处高风险 unchecked cast，优先通过结构收口或测试证明不变量，避免机械 suppress。
+3. 继续拆分 core 剩余大文件的纯辅助职责，优先处理 `TokenTable.kt`、`IntermediateSymbol.kt`、`MechanismModel.kt` / `MetaModel.kt` 中内聚清晰的 helper。
+4. 推进 solver 插件第四批公共化，聚焦 solver 无关的 batch、cleanup、错误构造和状态辅助逻辑，不统一真实 solver API。
+5. 低优先级完善 benchmark 趋势沉淀，例如目录级对比或 CI artifact 结构优化；继续不设置性能硬门禁。
+
+## 总体原则
+
+1. 不新增兼容层，不恢复旧 bridge/adapter/compat 设计。
+2. 不改变公开 API；如必须改变，先在本文件记录理由、影响范围、替代方案和验收方式。
+3. P25 是工程健康清理，不重新定义 P18-P24 的迁移完成口径。
+4. Flt64 / Double 转换必须留在显式 solver 边界或既有白名单，不能回流到 core 泛型主链路。
+5. warning debt 清理不做全仓机械 suppress；新增 suppress 必须靠近最小作用域，并用中英双语注释说明可证明不变量。
+6. 处理高风险 unchecked cast 时，优先补测试或重构类型边界；不变量不清晰时只记录，不强行清理。
+7. 内存清理策略优先复用或扩展既有 `MemoryCleanupPolicy`，减少直接 `System.gc()`；如因 solver 插件边界无法复用 core internal helper，应显式记录原因。
+8. batch 分段策略应避免除零、空集合、`lg()!!` 等隐式风险；行为变化必须有测试或 benchmark smoke 兜底。
+9. 大文件拆分只移动内聚职责，不混入语义变化；如发现真实 bug，应单独提交并单独记录。
+10. solver 公共化只抽 solver 无关的数据准备、分段、cleanup、callback 失败兜底、状态归一和错误构造逻辑，不强行统一真实 solver API。
+11. benchmark 趋势比较只生成报告和 artifact，不把绝对性能数值作为跨机器硬失败条件。
+12. README / README_ch 如涉及用户入口、benchmark 使用或 profile 说明，必须同步更新并保持互链。
+13. 写注释时遵守项目规则：中英双语；不添加版权声明。
+14. 每个子任务建议独立 commit；提交前必须记录修改清单与验收命令。
+
+## P25 事项与步骤
+
+### P25-1：统一内存清理与 batch 分段策略
+
+状态：计划中。
+
+目标：收敛 core 与 solver 插件中分散的直接 `System.gc()` 和 batch 分段计算，降低不可控 GC、除零、空集合和隐式 NPE 风险。
+
+详细步骤：
+
+1. 扫描并分类 `System.gc()`、`memoryUseOver(...)`、`availableProcessors() - 1`、`lg()!!` 的使用点。
+2. 第一批优先处理 core 主链路：
+   - `MechanismModelDumpSupport.kt`
+   - `MechanismModel.kt`
+   - `TokenTable.kt`
+   - `LinearTriadDumpBuilders.kt`
+   - `QuadraticTetradDumpBuilders.kt`
+3. 复用或扩展 `MemoryCleanupPolicy`，把直接 `System.gc()` 收口为命名明确的策略调用。
+4. 抽取安全的 batch segment 计算 helper，处理空集合、单核/双核环境、小规模集合和非正 segment。
+5. 第二批再处理 solver 插件中同类逻辑，优先 COPT / Hexaly / MindOPT / Mosek，再评估 Gurobi / Cplex / SCIP。
+6. 如 helper 需要跨模块共享，优先放在合适的 core-plugin 公共位置；不要让插件依赖 core internal API。
+7. 保持默认行为保守：不因 P25 默认开启更激进 GC，也不把性能数值作为硬门禁。
+
+预计修改清单：
+
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/MemoryCleanupPolicy.kt`
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModelDumpSupport.kt`
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt`
+4. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenTable.kt`
+5. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadDumpBuilders.kt`
+6. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradDumpBuilders.kt`
+7. 必要时新增 core 或 core-plugin 公共 helper 文件。
+8. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-core -am "-DskipTests" test-compile` 通过。
+2. core 目标测试通过，至少覆盖 dump、flatten、token table、modeling preparation 相关路径。
+3. 被处理 core 文件中直接 `System.gc()` 明显减少，残留点必须说明原因。
+4. batch helper 覆盖空集合、小集合、单核/双核模拟或等价边界测试。
+5. P6/P7 静态门禁通过。
+6. `git diff --check` 通过。
+
+### P25-2：math 剩余高风险 unchecked cast 消化
+
+状态：计划中。
+
+目标：处理 P24 记录的 `ospf-kotlin-math` 剩余 7 处 main 源 warning，不做机械 suppress。
+
+详细步骤：
+
+1. 重新运行 `mvn -pl ospf-kotlin-math -am "-DskipTests" test-compile`，以编译日志确认 warning 位置。
+2. 逐个评估以下文件中的 cast 是否可通过类型边界、局部 helper 或测试证明收口：
+   - `ValueRange.kt`
+   - `ArnoldTongue.kt`
+   - `ChebyshevMap.kt`
+   - `CircleMap.kt`
+   - `EvaluateBoolean.kt`
+   - `Factorization.kt`
+3. 对数值域 / 表达式语义边界不清晰的 cast，不强行 suppress；记录原因和后续建议。
+4. 如新增 `@Suppress("UNCHECKED_CAST")`，必须放在最小作用域，并用中英双语注释说明可证明不变量。
+5. 为行为敏感点补充小范围回归测试，优先验证原语义而不是只验证编译通过。
+
+预计修改清单：
+
+1. `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/algebra/value_range/ValueRange.kt`
+2. `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/chaotic_operator/ArnoldTongue.kt`
+3. `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/chaotic_operator/ChebyshevMap.kt`
+4. `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/chaotic_operator/CircleMap.kt`
+5. `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/expression/operation/EvaluateBoolean.kt`
+6. `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/Factorization.kt`
+7. 必要时补充 `ospf-kotlin-math/src/test/...`
+8. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-math -am "-DskipTests" test-compile` 通过。
+2. 被处理 warning 消失或明确减少；未处理项必须在 daily.md 记录原因。
+3. 相关目标测试通过；如新增测试，测试不得为空断言。
+4. P6/P7 静态门禁通过。
+5. `git diff --check` 通过。
+
+### P25-3：core 剩余大文件纯职责拆分
+
+状态：计划中。
+
+目标：继续降低 core 大文件维护成本，只拆职责边界清晰的 helper，不改变公开 API 和模型行为。
+
+详细步骤：
+
+1. 重新统计 core 主路径大文件行数与职责分布。
+2. 第一优先级：`TokenTable.kt` 中 dump/export/batch/cleanup helper。
+3. 第二优先级：`IntermediateSymbol.kt` 中工厂、默认实现或注册辅助职责。
+4. 第三优先级：`MechanismModel.kt` / `MetaModel.kt` 中已经内聚但尚未搬移的 helper。
+5. 拆分时保持包、可见性和调用语义；不要为了行数移动与当前任务无关的代码。
+6. 如拆分触发 P7 whitelist 变化，应说明是职责搬移导致，并同步对应白名单。
+
+预计修改清单：
+
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenTable.kt`
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/IntermediateSymbol.kt`
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt`
+4. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MetaModel.kt`
+5. 可能新增同包 helper 文件。
+6. 可能更新 `ospf-kotlin-core/scripts/p7-whitelist.json`。
+7. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-core -am "-DskipTests" test-compile` 通过。
+2. 与拆分目标相关的核心测试通过；至少覆盖 source compat、flatten、token table、mechanism model dump 或 modeling preparation。
+3. 公开 API、返回类型、错误分支和日志语义保持不变。
+4. P6/P7 静态门禁通过。
+5. `git diff --check` 通过。
+
+### P25-4：solver 插件第四批公共化
+
+状态：计划中。
+
+目标：继续降低 solver 插件重复代码，聚焦 solver 无关的 batch、cleanup、错误构造和状态辅助逻辑。
+
+详细步骤：
+
+1. 扫描 Gurobi / Gurobi11 / Cplex / SCIP / COPT / Hexaly / MindOPT / Mosek 的线性与二次 solver，按重复逻辑分类。
+2. 第一批优先抽取与真实 solver API 无关的 batch segment、cleanup trigger、错误构造 helper。
+3. 第二批评估 status 映射或 callback 兜底是否还有重复，但不强行统一不同 solver 的 API。
+4. 不能要求真实外部 solver license 作为默认阻塞项；以 compile、静态扫描和现有结构测试为默认验收。
+5. 如发现真实行为 bug，独立记录并独立修复，不混入纯重构提交。
+
+预计修改清单：
+
+1. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi/src/main/...`
+2. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11/src/main/...`
+3. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex/src/main/...`
+4. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip/src/main/...`
+5. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt/src/main/...`
+6. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-hexaly/src/main/...`
+7. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mindopt/src/main/...`
+8. `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mosek/src/main/...`
+9. 可能新增 core-plugin 公共 helper 文件或结构测试。
+10. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. 触及插件执行 `-DskipTests compile` 并通过。
+2. 不新增 `status.errCode!!`、无上下文 `!!`、重复 `when` 分支或直接无保护 `System.gc()`。
+3. solver 真实 API 调用顺序、状态语义和 license 假设保持不变。
+4. P6/P7 静态门禁通过。
+5. `git diff --check` 通过。
+
+### P25-5：benchmark 趋势沉淀低优先级完善
+
+状态：计划中。
+
+目标：让 benchmark 趋势比较更适合长期沉淀，但继续只做报告和 artifact，不做性能硬门禁。
+
+详细步骤：
+
+1. 评估是否需要支持目录级输入，例如同一目录下自动匹配 `baseline-*.json` 与 `current-*.json`。
+2. 评估 CI artifact 是否需要同时保存 baseline/current/trend 三类文件。
+3. 保持 README / README_ch 中流程简洁，避免把 benchmark 变成默认必跑重任务。
+4. 不因 benchmark 数值波动让 CI 失败。
+
+预计修改清单：
+
+1. `ospf-kotlin-benchmark/scripts/compare-benchmark-results.ps1`
+2. `.github/workflows/core-refactor-guards.yml`（仅在 artifact 结构需要调整时修改）
+3. `README.md`
+4. `README_ch.md`
+5. `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. `mvn -pl ospf-kotlin-benchmark -am -Pbench "-DskipTests" compile` 通过。
+2. benchmark small smoke 可生成 JSON。
+3. 比较脚本可生成可读 Markdown 报告。
+4. 如修改 CI，artifact 路径明确且 workflow 语法保持可解析。
+5. `git diff --check` 通过。
+
+## P25 建议执行顺序
+
+1. P25-1：优先统一内存清理与 batch 分段策略，这是当前最明确的工程风险点。
+2. P25-2：随后处理 math 剩余高风险 unchecked cast，小批量推进，不能证明的不强行 suppress。
+3. P25-3：再拆 core 剩余大文件，只做纯职责搬移。
+4. P25-4：接着做 solver 插件第四批公共化，按插件分批提交。
+5. P25-5：最后做 benchmark 趋势沉淀增强，保持低优先级。
+
+每个子任务完成后，都应把实际修改清单、验收命令和结果补回本文件，并独立提交。
+
+---
+
 # P24 低风险工程健康第二批交接（2026-05-21）
 
 ## 最新结论
