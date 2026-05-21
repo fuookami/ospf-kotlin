@@ -10,6 +10,7 @@ import com.alibaba.damo.mindopt.*
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.solver.resolveErrCode
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -429,7 +430,7 @@ private class MindOPTQuadraticSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.errCode!!))
+                Failed(Err(status.resolveErrCode()))
             }
         } catch (e: MDOException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))

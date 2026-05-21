@@ -6,6 +6,7 @@ import copt.*
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.solver.resolveErrCode
 import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -471,7 +472,7 @@ private class CoptQuadraticSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.errCode!!))
+                Failed(Err(status.resolveErrCode()))
             }
         } catch (e: CoptException) {
             Failed(Err(ErrorCode.OREngineSolvingException, e.message))
