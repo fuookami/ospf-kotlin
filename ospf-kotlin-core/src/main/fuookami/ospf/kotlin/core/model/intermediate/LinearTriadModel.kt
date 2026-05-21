@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
@@ -1384,47 +1383,5 @@ data class LinearTriadModel(
 
     override fun toString(): String {
         return name
-    }
-}
-
-suspend fun solveDual(
-    model: LinearTriadModel,
-    solver: LinearSolver
-): Ret<kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>> {
-    val dualModel = model.dual()
-
-    return when (val result = solver(dualModel)) {
-        is Ok -> {
-            Ok(dualModel.tidyDualSolution(result.value.solution))
-        }
-
-        is Failed -> {
-            Failed(result.error)
-        }
-
-        is Fatal -> {
-            Fatal(result.errors)
-        }
-    }
-}
-
-suspend fun solveFarkasDual(
-    model: LinearTriadModelView,
-    solver: LinearSolver
-): Ret<kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>> {
-    val dualModel = model.farkasDual()
-
-    return when (val result = solver(dualModel)) {
-        is Ok -> {
-            Ok(dualModel.tidyDualSolution(result.value.solution))
-        }
-
-        is Failed -> {
-            Failed(result.error)
-        }
-
-        is Fatal -> {
-            Fatal(result.errors)
-        }
     }
 }
