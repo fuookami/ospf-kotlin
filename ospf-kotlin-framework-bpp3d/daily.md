@@ -6,6 +6,167 @@
 
 ---
 
+## 零、2026-05-21 可完成性复核
+
+结论：这份计划方向正确，但**按当前代码不能原样完成**。需要先补一个基础类型决策，否则 Phase 0 和后续 `Point<Dim*, Quantity<V>>` 会在类型约束上卡住。
+
+### 0.1 当前硬阻塞
+
+1. `Point<D, V>` / `Vector<D, V>` 当前约束是 `V : FloatingNumber<V>`。
+2. `Quantity<out V>` 当前只是 `data class Quantity<out V>(val value: V, val unit: PhysicalUnit)`，并未实现 `FloatingNumber<Quantity<V>>`。
+3. 因此计划中的 `Point<Dim3, Quantity<FltX>>`、`Vector<Dim3, Quantity<FltX>>`、`qpoint3(...)` 不能只靠扩展函数成立。
+
+### 0.2 必须先选择的实现路线
+
+**推荐路线 A：新增几何物理量类型，不强行让 `Quantity<V>` 实现 `FloatingNumber`。**
+
+1. 新增 `QuantityPoint<D, V>` / `QuantityVector<D, V>`，内部保存 `List<Quantity<V>>`。
+2. 只实现 BPP3D 需要的坐标加减、比较、投影、面积/体积计算。
+3. 保留 math 几何层 `Point<D, V>` / `Vector<D, V>` 的现有约束，避免影响全生态。
+
+优点：改动边界清晰，不污染 `FloatingNumber` 抽象。  
+缺点：BPP3D 需要迁移 `Point<Dim*, Flt64>` 到新类型，不能复用现有全部几何算法。
+
+**备选路线 B：让 `Quantity<V>` 实现完整 `FloatingNumber<Quantity<V>>`。**
+
+优点：可直接使用 `Point<Dim*, Quantity<V>>`。  
+缺点：需要定义 `sqrt`、`abs`、`constants`、三角/幂运算、无穷值、精度等语义；物理量开方和常量的量纲语义复杂，风险高。
+
+### 0.3 原计划需调整的地方
+
+1. Phase 0.1 的 `Point<Dim*, Quantity<V>>` 扩展不能作为前置准备直接实现，除非先完成路线 B。
+2. Phase 0.2 “确保 `Quantity<V>` 满足 `FloatingNumber<V>` 约束”成本被低估，应拆成独立技术预研和验收。
+3. `Orientation<V>` 不应写成 `object Upright : Orientation<Nothing>()` 后再期望直接当作 `Orientation<V>` 无摩擦使用；建议采用非泛型 `Orientation` + 泛型方法，或 sealed object + `@UnsafeVariance`/转换函数并专门测试序列化。
+4. `width * height * depth` 的结果单位来自 `PhysicalUnit` 运算，不应假设仍是“同一种长度 Quantity”。文档中返回类型 `Quantity<V>` 是可以的，但必须在测试中断言 unit 为体积量纲。
+5. `weight / depth` 得到线密度量纲，不是 Mass 或 Length，调用方不能再按裸数值理解。
+
+### 0.4 调整后的执行门禁
+
+在进入 Phase 1 前先完成：
+
+- [ ] 决定路线 A 或路线 B。
+- [ ] 增加一个最小 spike：长度、面积、体积、质量、线密度四类 `Quantity<Flt64>` 运算全部通过。
+- [ ] 增加一个坐标 spike：二维/三维位置可比较、可平移、可计算矩形相交面积。
+- [ ] 明确 Flt64 兼容层：旧 API 是保留裸 `Flt64` 包装为默认单位，还是直接公开 `Quantity<Flt64>`。
+
+后续章节保留为目标分解，但执行时应先按本节修正基础类型路线。
+
+### 0.5 物理量化硬规则
+
+无论最终选择路线 A 还是路线 B，BPP3D 中所有有物理量纲的字段都必须 `Quantity<V>` 化：
+
+| 类型 | 示例字段 | 建议单位 |
+|------|----------|----------|
+| 坐标 | `position.x/y/z`, `minX/maxX`, `offset` | `Length` |
+| 尺寸 | `width`, `height`, `depth` | `Length` |
+| 面积/体积 | `area`, `volume`, `actualVolume` | `Area` / `Volume` |
+| 重量/承重 | `weight`, `bottomSupport.weight`, `capacity` | `Mass` |
+| 密度/线密度 | `linearDensity` | `Mass / Length` |
+| 产能/处理能力 | 若后续引入装卸/包装产能 | `Amount / Time` 或业务定义单位 |
+
+裸 `V` 只用于无量纲值，例如变形系数、悬挂百分比、利用率、排序评分和归一化目标值。
+
+### 0.6 统计模式扩展：item 数量 / item-material 数量 / item-material 重量
+
+当前 BPP3D 的装载、层选择和需求约束默认都按 item 个数统计：
+
+1. `Container2.amounts` / `Container3.amounts` 递归统计 `Map<AbstractCuboid, UInt64>`。
+2. `BinLayer.amount(item)`、`Projection.amount(unit)`、`Block.amounts` 都以 item 作为统计 key。
+3. `Load` 和 `ItemDemandConstraint` 使用 `List<Pair<Item, UInt64>>` 或 `List<Triple<Item, UInt64, ValueRange<UInt64>>>` 表达需求。
+4. `Package` 已经有 `materials: Map<Material, UInt64>`，但这只服务包装/持料逻辑，没有进入统一的 load/demand 统计口径。
+
+需要将“几何放置对象”和“需求统计对象”分离：空间装载仍然放置 item / block / layer，但需求、load、KPI 和 shadow price 可以选择不同统计模式。
+
+#### 0.6.1 目标统计模式
+
+| 模式 | 统计对象 | 单个 item 的贡献 | 汇总结果 | 典型用途 |
+|------|----------|------------------|----------|----------|
+| `ItemAmount` | `Item` | 1 个 item | `Map<Item, UInt64>` | 当前行为，兼容原 item 需求 |
+| `ItemMaterialAmount` | `MaterialKey` / `Material` | 一个 item 中各物料的数量 | `Map<MaterialKey, UInt64>` | 按物料件数/套数满足需求 |
+| `ItemMaterialWeight` | `MaterialKey` / `Material` | 一个 item 中各物料的重量 | `Map<MaterialKey, Quantity<V>>` | 按物料总重量满足需求 |
+
+`ItemMaterialAmount` 中，一个 item 可以贡献多种物料的多个数量，例如 `A: 2, B: 1`。  
+`ItemMaterialWeight` 中，一个 item 可以贡献多种物料的重量，例如 `A: 10kg, B: 3kg`，最终按物料汇总总重量。
+
+#### 0.6.2 建议新增领域抽象
+
+新增统一统计口径，不直接把 `ItemDemandConstraint` 扩写成多个分支：
+
+```kotlin
+sealed interface Bpp3dDemandMode {
+    data object ItemAmount : Bpp3dDemandMode
+    data object ItemMaterialAmount : Bpp3dDemandMode
+    data object ItemMaterialWeight : Bpp3dDemandMode
+}
+
+sealed interface Bpp3dDemandKey {
+    data class Item(val item: fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item) : Bpp3dDemandKey
+    data class Material(val material: fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey) : Bpp3dDemandKey
+}
+
+sealed interface Bpp3dDemandValue<V : FloatingNumber<V>> {
+    data class Amount<V : FloatingNumber<V>>(val value: UInt64) : Bpp3dDemandValue<V>
+    data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : Bpp3dDemandValue<V>
+}
+```
+
+最终实现时可以根据 Kotlin 泛型约束调整命名，但语义必须保持：统计模式决定 key 类型、贡献值类型和 solver 转换策略。
+
+#### 0.6.3 item-material 数据来源
+
+建议按以下优先级确定 item 的物料贡献：
+
+1. `ActualItem.pack?.materials` 作为默认物料数量来源。
+2. `ActualItem.pack?.materials + Material.weight` 可以推导默认物料重量；物理量化后应改为 `Material<V>.weight: Quantity<V>`。
+3. 若下游需要更精确的物料重量，新增 `Item.materialWeights: Map<MaterialKey, Quantity<V>>` 或 `ItemMaterialWeightProvider<V>`，由使用者显式提供。
+4. `PatternedItem` 的物料数量/重量按其内部 `actualItems` 加权汇总，不按平均值处理；需求统计必须反映实际消耗。
+5. `ItemContainer`、`BinLayer`、`Block`、`Bin` 的物料数量/重量通过递归展开子 item 后汇总，不直接以 container 自身作为 material 统计 key。
+
+#### 0.6.4 约束与列生成影响
+
+需要改造的关键位置：
+
+1. `Container.kt`：保留 `amounts: Map<AbstractCuboid, UInt64>` 兼容旧代码，新增可配置统计函数，例如 `statistics(mode)`。
+2. `Projection.kt`：保留 `amount(unit)`，新增按统计模式返回贡献值的接口。
+3. `Aggregation.kt`：`usedItems` / `restItems` 继续保留，同时新增 `usedDemand` / `restDemand`，由统计模式生成。
+4. `Load.kt`：从 `items: List<Pair<Item, UInt64>>` 改为 demand entries，load 系数由 `layer.statistics(mode)[key]` 生成。
+5. `ItemDemandConstraint.kt`：重命名或包装为通用 `DemandConstraint`，支持 `ItemAmount`、`ItemMaterialAmount`、`ItemMaterialWeight` 三类需求。
+6. `ItemDemandShadowPriceKey`：泛化为包含 `mode + key` 的 demand shadow price key。
+7. `LayerSelectionContext` / `ColumnGenerationAlgorithm`：reduced cost 计算必须按 demand mode 读取 shadow price，不能只按 item key 读取。
+
+#### 0.6.5 Solver 数值边界
+
+`ItemAmount` 和 `ItemMaterialAmount` 的系数是整数，可以继续转为 `Flt64` 入模。  
+`ItemMaterialWeight` 的系数是 `Quantity<V>`，必须先用统一 adapter 转成 solver 数值：
+
+```kotlin
+interface Bpp3dDemandValueAdapter<V : FloatingNumber<V>> {
+    fun amountToSolver(value: UInt64): Flt64
+    fun weightToSolver(value: Quantity<V>): Flt64
+}
+```
+
+重量统计的单位必须在 adapter 中归一化，例如统一转为 kg 或 t，不能在 constraint 内散落单位换算。
+
+#### 0.6.6 向后兼容
+
+1. 默认统计模式为 `ItemAmount`，现有 item 个数需求行为不变。
+2. 保留 `amount(item)`、`amount(predicate)` 等 API。
+3. 旧 `ItemDemandConstraint` 可以作为 wrapper，内部构造 `DemandConstraint(ItemAmount, ...)`。
+4. 旧 `List<Pair<Item, UInt64>>` / `List<Triple<Item, UInt64, ValueRange<UInt64>>>` 输入保留 legacy factory。
+
+#### 0.6.7 验收用例
+
+至少补以下测试：
+
+1. item 数量模式：旧测试结果完全不变。
+2. item-material 数量模式：item1 含 `A: 2, B: 1`，item2 含 `A: 1`，加载 `3 * item1 + 2 * item2` 后统计为 `A: 8, B: 3`。
+3. item-material 重量模式：item1 含 `A: 10kg, B: 3kg`，item2 含 `A: 7kg`，加载 `3 * item1 + 2 * item2` 后统计为 `A: 44kg, B: 9kg`。
+4. layer assignment：同一批 layer 在三种统计模式下生成不同 load 系数。
+5. column generation：三种统计模式下 shadow price key 不冲突，reduced cost 可正确读取对应统计口径。
+
+---
+
 ## 一、现状分析
 
 ### 1.1 数值类型现状
@@ -442,6 +603,85 @@ typealias Flt64Item = Item<Flt64>
 - [ ] `Item<FltX>` 编译通过
 - [ ] `Item.packageShape` 返回 `PackageShape<V>`
 
+#### 2.4.1 `Material` / `Package` / `Item` 补充物料统计口径
+
+**文件**：
+- `bpp3d-domain-item-context/src/main/.../model/Material.kt`
+- `bpp3d-domain-item-context/src/main/.../model/Package.kt`
+- `bpp3d-domain-item-context/src/main/.../model/Item.kt`
+
+**改造目标**：在保留 item 几何装载对象的同时，为 item 提供物料数量和物料重量统计。
+
+**建议模型**：
+```kotlin
+open class Material<V : FloatingNumber<V>>(
+    val no: MaterialNo,
+    val type: MaterialType,
+    val cargo: AbstractCargoAttribute,
+    val name: String,
+    ...
+    val weight: Quantity<V> = zeroMass()
+)
+
+interface Item<V : FloatingNumber<V>> : Cuboid<Item<V>, V>, Indexed {
+    val materialAmounts: Map<MaterialKey, UInt64>
+    val materialWeights: Map<MaterialKey, Quantity<V>>
+}
+```
+
+`ActualItem` 默认从 `pack?.materials` 提取 `materialAmounts`，从 `pack?.materials` 和 `Material.weight` 推导 `materialWeights`。  
+`PatternedItem` 必须按内部 actual item 的需求数量加权汇总：
+
+```kotlin
+materialAmounts[key] = actualItems.sumOf { (item, amount, _) ->
+    (item.materialAmounts[key] ?: UInt64.zero) * amount
+}
+
+materialWeights[key] = actualItems.sumOfQuantity { (item, amount, _) ->
+    (item.materialWeights[key] ?: zeroMass()) * amount.toValue()
+}
+```
+
+**验收标准**：
+- [ ] `ActualItem` 未绑定 `Package` 时，物料统计为空。
+- [ ] `ActualItem(pack=...)` 能从 `Package.materials` 得到物料数量。
+- [ ] `ActualItem(pack=...)` 能通过 `Material.weight` 推导物料重量。
+- [ ] `PatternedItem` 的物料数量/重量是加权总和，不是平均值。
+- [ ] 物料重量使用 `Quantity<V>`，量纲为 `Mass`。
+
+#### 2.4.2 新增通用统计接口
+
+**文件**：
+- `bpp3d-infrastructure/src/main/.../Container.kt`
+- `bpp3d-infrastructure/src/main/.../Projection.kt`
+- `bpp3d-domain-item-context/src/main/.../model/Item.kt`
+- `bpp3d-domain-item-context/src/main/.../model/Layer.kt`
+- `bpp3d-domain-item-context/src/main/.../model/Block.kt`
+
+**改造目标**：`amounts` 继续表示 item 个数，新增 `statistics(mode)` 表达需求统计。
+
+**建议接口**：
+```kotlin
+interface Bpp3dStatisticProvider<V : FloatingNumber<V>> {
+    fun statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue<V>>
+}
+```
+
+实现规则：
+
+1. `ItemAmount`：`Item -> UInt64.one`。
+2. `ItemMaterialAmount`：展开 item 的 `materialAmounts`。
+3. `ItemMaterialWeight`：展开 item 的 `materialWeights`。
+4. `Container2` / `Container3` / `Projection` / `Block` / `BinLayer` 递归汇总子对象。
+5. `statistics(mode)` 不参与几何相等性和 hashCode，避免改变 layer/block 去重逻辑。
+
+**验收标准**：
+- [ ] 旧 `amount(item)` 行为不变。
+- [ ] `BinLayer.statistics(ItemAmount)` 与旧 `amounts` 等价。
+- [ ] `BinLayer.statistics(ItemMaterialAmount)` 可跨多个 item 汇总同一 `MaterialKey`。
+- [ ] `BinLayer.statistics(ItemMaterialWeight)` 可跨多个 item 汇总同一 `MaterialKey` 的 `Quantity<V>`。
+- [ ] block loading 的 `restItems` 仍可使用 item 数量；若启用物料统计，应通过新增 demand statistics 路径处理。
+
 #### 2.5 `ItemContainer` / `Bin` / `Block` / `Layer` / `Pattern` / `Schema` → 泛型化
 
 **文件**：`bpp3d-domain-item-context/src/main/.../model/` 下所有文件
@@ -483,6 +723,60 @@ typealias Flt64Item = Item<Flt64>
 **验收标准**：
 - [ ] 全部编译通过
 - [ ] 算法行为不变
+
+#### 3.3.1 `layer-assignment-context` 支持多统计模式需求
+
+**文件**：
+- `bpp3d-domain-layer-assignment-context/src/main/.../model/Load.kt`
+- `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/ItemDemandConstraint.kt`
+- `bpp3d-domain-layer-assignment-context/src/main/.../model/Assignment.kt`
+- `bpp3d-domain-layer-selection-context/src/main/.../service/ColumnGenerationAlgorithm.kt`
+
+**改造目标**：把 `ItemDemandConstraint` 从“item 个数约束”升级为“需求统计约束”。
+
+**建议模型**：
+```kotlin
+data class Bpp3dDemand<V : FloatingNumber<V>>(
+    val mode: Bpp3dDemandMode,
+    val key: Bpp3dDemandKey,
+    val target: Bpp3dDemandValue<V>,
+    val range: ValueRange<Bpp3dDemandValue<V>>
+)
+```
+
+实际实现时如果 `ValueRange<Bpp3dDemandValue<V>>` 不适合比较，应拆成：
+
+```kotlin
+data class AmountDemand(...)
+data class WeightDemand<V : FloatingNumber<V>>(...)
+```
+
+`Load` 的系数来源从：
+
+```kotlin
+layer.amount(item).toFlt64()
+```
+
+改为：
+
+```kotlin
+demandValueAdapter.toSolver(layer.statistics(mode)[key])
+```
+
+**改造规则**：
+
+1. `ItemAmount` 使用旧的 item load 逻辑，保持默认行为。
+2. `ItemMaterialAmount` 的 load key 是 `MaterialKey`，系数是该 layer 内物料数量。
+3. `ItemMaterialWeight` 的 load key 是 `MaterialKey`，系数是该 layer 内物料重量归一化后的 solver 数值。
+4. shadow price key 必须包含 `mode + key`，避免 item 需求和 material 需求共用同一 key。
+5. `Load.overLoad` / `Load.lessLoad` 的 shape 应按 demand entries 数量生成，而不是按 items 数量生成。
+
+**验收标准**：
+- [ ] 旧 `ItemDemandConstraint` 作为 `ItemAmount` wrapper 编译通过。
+- [ ] `ItemMaterialAmount` 能对 `MaterialKey` 建立上下界约束。
+- [ ] `ItemMaterialWeight` 能对 `MaterialKey` 建立重量上下界约束。
+- [ ] 三种模式下 `Load.addColumns` 生成的列系数正确。
+- [ ] shadow price extractor/refresh 能区分三种统计模式。
 
 #### 3.4 `bpp3d-domain-packing-context`
 
@@ -529,6 +823,9 @@ BPP3D 改造为 `Quantity<V>` 后，各属性的量纲约定：
 | `maxHeight`, `minDepth`, `maxDepth` | 长度 | `Length` |
 | `maxDifference` (HangingPolicy) | 长度 | `Length` |
 | `maxOverWeight` (StackingOnPolicy) | 质量 | `Mass` |
+| `Material.weight` | 单个物料质量 | `Mass` |
+| `Item.materialWeights` | item 内物料质量贡献 | `Mass` |
+| `ItemMaterialWeight` 统计结果 | 按物料汇总质量 | `Mass` |
 | `deformationCoefficient` | 无量纲 | `Dimensionless` |
 | `hangingPercentage` | 无量纲 | `Dimensionless` |
 | `position.x/y/z` | 长度 | `Length` |
@@ -625,4 +922,8 @@ Phase 4 (starter-bpp3d 适配) ────────┘
 - [ ] `PackageType` / `PackageCategory` / `PackageClassification` 在 `bpp3d-infrastructure` 中统一定义
 - [ ] 所有物理量属性量纲正确（长度=Length, 质量=Mass, 面积=Area, 体积=Volume）
 - [ ] 无量纲值（系数、百分比）保持裸 `V` 类型
+- [ ] 默认 `ItemAmount` 统计模式下，旧 item 数量需求行为不变
+- [ ] 新增 `ItemMaterialAmount` 统计模式，支持一个 item 贡献多种物料数量并按物料汇总
+- [ ] 新增 `ItemMaterialWeight` 统计模式，支持一个 item 贡献多种物料重量并按物料汇总
+- [ ] layer assignment 的 load、demand constraint、shadow price、column generation 都支持三种统计模式
 - [ ] 向后兼容：typealias + 扩展函数确保现有调用方式不中断

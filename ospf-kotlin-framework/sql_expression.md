@@ -1,415 +1,275 @@
-# SQL Expression 设计与实施计划（交接文档）
+# SQL Expression 当前状态与后续事项
 
-> 状态：**math 侧已完成**，framework 侧待实施  
-> 更新日期：2026-04-06  
-> 目标读者：下一个执行环境（无上下文接入）。
+更新日期：2026-05-21
 
-## 实施进度总览
+本文合并并替代以下旧文档：
 
-| 阶段 | 模块 | 状态 | 提交 |
-|------|------|------|------|
-| Phase 0 | math 脚手架 | ✅ 已完成 | 48cb8b17 |
-| Phase 1 | math 核心 AST | ✅ 已完成 | 48cb8b17 |
-| Phase 2 | math DSL/parser/serde/normalize/evaluate | ✅ 已完成 | 9530e622, e0bc60dd |
-| Phase 3 | framework 查询适配 (SortBy) | ✅ 已完成 | 923e8dbd, 52268758 |
-| Phase 4 | framework 更新适配 (UpdateAssignment) | ✅ 已完成 | 0dc2053a |
-| Phase 5 | 兼容迁移 | ✅ 已完成 | 2eb37d95 |
+- `ospf-kotlin-framework/sql_expression.md`
+- `ospf-kotlin-framework/src/main/fuookami/ospf/kotlin/framework/persistence/expression/daily.md`
 
-### math 侧完成内容
+## 1. 总结
 
-- [x] `PropertyPath` 路径抽象
-- [x] `PathSymbol` 路径-符号桥接
-- [x] `ScalarExpression<T>` 标量表达式 AST
-- [x] `BooleanExpression` 布尔表达式 AST
-- [x] `ExpressionOperator` 操作符定义
-- [x] DSL 构造（and/or/not/in/isNull）
-- [x] Lexer/Parser（支持 a.b.c 路径）
-- [x] JSON 序列化/反序列化
-- [x] Normalize（flatten/fold/dedup/deMorgan）
-- [x] Evaluate（三值逻辑 Trivalent）
-- [x] LegacyExprBridge 新旧桥接
-- [x] 文档更新
+SQL Expression 已从“设计与实施计划”进入“已有实现但需要补齐质量与一致性”的状态。
 
-### math 侧额外修复
+当前事实：
 
-- `Trivalent/BalancedTrivalent` 初始化顺序 bug（改用 sealed class + lazy）
+1. `ospf-kotlin-math` 的通用表达式 AST、DSL、parser、serde、normalize、evaluate 仍存在并有单元测试。
+2. `ospf-kotlin-framework` 主模块保留表达式仓储公共接口与模型：`ExpressionRepository`、`SortBy`、`UpdateAssignments`。
+3. ORM/存储适配已迁移到插件模块：Ktorm、MyBatis-Plus、MongoDB。
+4. 旧计划中的 `EntityMeta` / `FieldBinding` 不再存在于当前代码中，实际实现改为 resolver 函数：
+   - Ktorm：`KtormColumnResolver = (String) -> ColumnDeclaring<*>?`
+   - MyBatis：`MybatisColumnNameResolver = (String) -> String?`
+   - MongoDB：`MongoFieldNameResolver = (String) -> String?`
+5. `daily.md` 中的 P8 泛型化、solver 边界、Rust 功能对齐等内容属于 core/framework 更大范围重构，不再放在 SQL Expression 文档中维护。
 
-## 1. 最终结论
+## 2. 当前代码结构
 
-采用“双层表达式”分层：
+### 2.1 math 表达式层
 
-1. `math.symbol`：承载通用表达式语义（标量、布尔、比较、`IN`、`PatternMatch`），不依赖 ORM/SQL 方言。
-2. `framework.persistence`：承载 SQL 专属能力（字段映射、`SortBy`、`UpdateAssignment`、方言翻译、查询执行）。
+位置：`ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/expression`
 
-命名收敛：
+已存在：
 
-1. 使用 `BooleanExpression`，不使用 `NonLinearExpression`。
-2. 使用 `ScalarExpression<T>` + `BooleanExpression` 并行体系。
-3. SQL 独有能力（`LIKE ESCAPE`、`ILIKE`、`EXISTS`、子查询、`UPDATE SET` 细节、raw sql）只放 framework。
+- `PropertyPath.kt`
+- `PathSymbol.kt`
+- `ScalarExpression.kt`
+- `BooleanExpression.kt`
+- `ExpressionOperator.kt`
+- `dsl/ExpressionDsl.kt`
+- `parser/Lexer.kt`
+- `parser/Parser.kt`
+- `parser/Token.kt`
+- `serde/ExpressionSerde.kt`
+- `operation/Normalize.kt`
+- `operation/EvaluateBoolean.kt`
+- `operation/NumericOps.kt`
 
-## 2. 目标与非目标
+已存在测试：
 
-### 2.1 目标
+- `PropertyPathPathSymbolTest.kt`
+- `ExpressionASTTest.kt`
+- `BooleanDslTest.kt`
+- `BooleanParserTest.kt`
+- `ExpressionSerdeTest.kt`
+- `NormalizeTest.kt`
+- `EvaluateBooleanTest.kt`
 
-1. 支持复杂逻辑：`(A and B) or not C`。
-2. 支持谓词：`Comparison / In / PatternMatch / IsNull / IsNotNull`。
-3. 支持查询排序能力：`SortBy`（多字段、方向、空值顺序）。
-4. 支持更新赋值能力：`UpdateAssignment`（`SET a = ... , b = ...`）。
-5. 支持 JSON 往返、normalize、evaluate。
-6. 在 framework 落地 Ktorm Translator（MVP）。
+### 2.2 framework 公共模型层
 
-### 2.2 非目标（首期不做）
+位置：`ospf-kotlin-framework/src/main/fuookami/ospf/kotlin/framework/persistence/expression`
 
-1. 不做运行时 lambda 字节码 AST 还原。
-2. 不做多 ORM 全量适配（首期只做 Ktorm）。
-3. 不在 `math.symbol` 引入 SQL 方言细节。
-4. 不做复杂子查询自动推导。
+已存在：
 
-## 3. 边界与依赖
+- `RepositoryApi.kt`
+  - `ExpressionRepository<E>`
+  - `find(where)`
+  - `find(where, sortBy, limit, offset)`
+  - `count(where)`
+  - `update(where, assignments)`
+  - `delete(where)`
+  - `exists(where)`
+- `SortBy.kt`
+  - `SortBy`
+  - `SortItem`
+  - `SortDirection`
+  - `NullsOrder`
+  - `NullsOrderSupport`
+- `UpdateAssignment.kt`
+  - `UpdateAssignments`
+  - `SetValue`
+  - `SetNull`
+  - `SetFromExpression`
 
-1. `ospf-kotlin-math` 不依赖 `ktorm/jdbc/framework`。
-2. `ospf-kotlin-framework` 依赖 `ospf-kotlin-math` 并做翻译。
-3. `math.symbol` 只定义语义，不定义 SQL 文本。
-4. `PO 字段 <-> Column` 映射、`SortBy`、`UpdateAssignment` 执行只放 `framework.persistence`。
+已存在测试：
 
-## 4. math.symbol 模型
+- `SortByTest.kt`
+- `UpdateAssignmentTest.kt`
 
-### 4.1 ScalarExpression（建议）
+### 2.3 Ktorm 插件
 
-1. `sealed interface ScalarExpression<out T>`
-2. `ConstantExpression<T>(value)`
-3. `ReferenceExpression<T>(path: PropertyPath, type?)`
-4. `UnaryScalarExpression<T>(operator, operand)`
-5. `BinaryScalarExpression<T>(operator, left, right)`
-6. `FunctionScalarExpression<T>(name, args)`
-7. `CustomScalarExpression<T>(id, payload)`
+位置：`ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-ktorm`
 
-### 4.2 BooleanExpression（建议）
+已存在：
 
-1. `sealed interface BooleanExpression`
-2. `BooleanConstantExpression(value)`
-3. `ComparisonExpression<T>(left, comparator, right)`
-4. `InExpression<T>(target, candidates, negated)`
-5. `PatternMatchExpression(target, pattern, mode, caseSensitive, escapeChar?)`
-6. `NullCheckExpression(target, isNull)`
-7. `AndExpression(operands)`
-8. `OrExpression(operands)`
-9. `NotExpression(operand)`
-10. `CustomBooleanExpression(id, payload)`
+- `KtormRepository.kt`
+- `translator/KtormBooleanTranslator.kt`
+- `translator/KtormOrderByTranslator.kt`
+- `translator/KtormUpdateTranslator.kt`
+- `translator/PatternMatchPolicy.kt`
 
-### 4.3 扩展机制（建议）
+已存在测试：
 
-1. `ScalarOperatorRegistry`
-2. `BooleanOperatorRegistry`
-3. `ExpressionFunctionRegistry`
+- `KtormBooleanTranslatorTest.kt`
+- `KtormOrderByTranslatorTest.kt`
+- `KtormUpdateTranslatorTest.kt`
 
-### 4.4 PathSymbol 桥接（新增约束）
+### 2.4 MyBatis-Plus 插件
 
-目的：
+位置：`ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mybatis`
 
-1. 保持 SQL 字段引用的主语义在 `PropertyPath` / `ReferenceExpression`。
-2. 在需要复用现有 `math.symbol.Symbol` 运算能力时，提供桥接而非替代。
+已存在：
 
-建议：
+- `MybatisRepository.kt`
+- `translator/MybatisBooleanTranslator.kt`
+- `translator/MybatisOrderByTranslator.kt`
+- `translator/MybatisUpdateTranslator.kt`
 
-1. 新增 `PathSymbol(path: PropertyPath)`，实现 `Symbol`（必要时实现 `IdentifiedSymbol` 以提供稳定身份）。
-2. `PathSymbol.name = path.value`，`symbolId = "path:${path.value}"`。
-3. `PathSymbol` 仅作为适配器，不作为 SQL AST 主节点；SQL AST 仍以 `ReferenceExpression(path)` 为准。
-4. 提供 `PropertyPath <-> PathSymbol` 的显式转换函数，避免隐式魔法。
+已存在测试：
 
-## 5. 需补齐的符号运算能力
+- `MybatisBooleanTranslatorTest.kt`
 
-当前缺口是“算术 + 单比较”，缺少逻辑树。必须补齐：
+### 2.5 MongoDB 插件
 
-1. `And/Or/Not` 与布尔常量节点。
-2. `In/PatternMatch/IsNull` 节点。
-3. normalize：扁平化、常量折叠、去重、双重否定、德摩根。
-4. `evaluateBoolean(...)` 本地求值。
-5. JSON 序列化/反序列化。
-6. DSL：`and/or/not/in/patternMatch/isNull`。
+位置：`ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mongodb`
 
-## 6. framework.persistence 设计
+已存在：
 
-### 6.1 字段映射层（核心）
+- `MongoRepository.kt`
+- `translator/MongoBooleanTranslator.kt`
+- `translator/MongoOrderByTranslator.kt`
+- `translator/MongoUpdateTranslator.kt`
 
-新增 `EntityMeta<E>` / `FieldBinding`：
+已存在测试：
 
-1. `poPath -> ColumnDeclaring<*>` 显式映射。
-2. 支持单表嵌套路径（MVP）。
-3. 提供类型转换钩子（复用现有 `transform` 思路）。
-4. `poPath` 推荐统一为 `PropertyPath`，避免字符串拼写漂移。
+- `MongoBooleanTranslatorTest.kt`
 
-### 6.2 SortBy 能力（必须项）
+## 3. 完成情况矩阵
 
-新增排序模型（放 framework，不放 math）：
+| 能力 | 当前状态 | 说明 |
+|------|----------|------|
+| math AST | 已完成 | `ScalarExpression` / `BooleanExpression` 已存在 |
+| math DSL/parser/serde/normalize/evaluate | 已完成 | 有对应实现与测试 |
+| 公共排序模型 | 已完成 | `SortBy` 支持多字段、方向、nulls 配置 |
+| 公共更新模型 | 已完成 | `UpdateAssignments` 支持 value/null/expression |
+| 公共仓储接口 | 已完成 | `ExpressionRepository` 已存在 |
+| Ktorm 插件骨架 | 已完成 | repository + 三类 translator 已存在 |
+| MyBatis 插件骨架 | 已完成 | repository + 三类 translator 已存在 |
+| MongoDB 插件骨架 | 已完成 | repository + 三类 translator 已存在 |
+| `EntityMeta` / `FieldBinding` | 已取消或被替代 | 当前代码使用 resolver 函数，不再保留这两个模型 |
+| 多 ORM 集成测试 | 未完成 | 当前主要是模型构造或轻量 translator 测试 |
+| translator 行为完整性 | 未完成 | 不同插件支持范围不一致 |
 
-1. `data class SortBy(val items: List<SortItem>)`
-2. `data class SortItem(val path: String, val direction: SortDirection, val nulls: NullsOrder?)`
-3. `enum class SortDirection { Asc, Desc }`
-4. `enum class NullsOrder { NullsFirst, NullsLast }`
+## 4. 主要未完成事项
 
-说明：
+### 4.1 文档与代码不一致
 
-1. `path` 复用 `EntityMeta` 字段解析。
-2. `NullsOrder` 若方言不支持，采用降级策略（文档化）。
+当前 `README.md` / `README_ch.md` 仍提到 `EntityMeta`、`FieldBinding` 和基于 `EntityMeta` 的示例，但代码中已不存在对应类型。
 
-### 6.3 UpdateAssignment 能力（新增必须项）
+需要处理：
 
-新增更新赋值模型（放 framework，不放 math）：
+1. 更新 expression README，改为 resolver 函数示例。
+2. 删除或改写 `EntityMeta` / `FieldBinding` 相关描述。
+3. 修复 README 中指向本文件的相对链接。
 
-1. `data class UpdateAssignments(val items: List<UpdateAssignment>)`
-2. `sealed interface UpdateAssignment`
-3. `data class SetValue(val path: String, val value: ScalarExpression<*>) : UpdateAssignment`
-4. `data class SetNull(val path: String) : UpdateAssignment`
-5. `data class SetFromExpression(val path: String, val expression: ScalarExpression<*>) : UpdateAssignment`
+### 4.2 Ktorm translator 支持不完整
 
-说明：
+`KtormBooleanTranslator` 当前存在明显 MVP 限制：
 
-1. `path` 通过 `EntityMeta` 解析为具体 Column。
-2. `value/expression` 允许常量、字段引用、函数表达式。
-3. SQL 专属赋值行为（如数据库函数、方言 cast）放 translator 策略层。
+1. `InExpression` 直接返回 `null`。
+2. `BooleanCustom` 返回 `null`。
+3. `ComparisonOperator.Lt/Le/Gt/Ge` 在列-常量比较中返回 `null`。
+4. 只处理列-常量和常量-列，不处理列-列、复杂标量表达式。
+5. `BooleanConstant` 返回 `null`，调用方会把条件视为空结果或空查询，语义需要明确。
 
-### 6.4 Ktorm Translator（MVP）
+`KtormUpdateTranslator` 当前限制：
 
-新增：
+1. `SetFromExpression` 只支持 `ScalarConstant`。
+2. 复杂表达式未翻译为 Ktorm SQL expression。
+3. 未做列类型兼容校验。
 
-1. `KtormBooleanExpressionTranslator`：`BooleanExpression -> ColumnDeclaring<Boolean>`。
-2. `KtormOrderByTranslator`：`SortBy -> List<OrderByExpression>`（或直接 apply 到 query）。
-3. `KtormUpdateAssignmentTranslator`：`UpdateAssignments -> updateBuilder.set(...)` 执行动作。
+`KtormOrderByTranslator` 当前限制：
 
-MVP 支持：
+1. 忽略 `NullsOrder`。
+2. `NullsOrderSupport` 参数未真正参与排序降级。
 
-1. 条件：`Comparison/In/PatternMatch/NullCheck/And/Or/Not/BoolConst`。
-2. 排序：多字段 `ASC/DESC`，空值顺序尽力映射。
-3. 更新：`SetValue/SetNull/SetFromExpression`。
+### 4.3 MyBatis translator 与 repository 风险
 
-### 6.5 Repository 查询与更新接口
+`MybatisBooleanTranslator` 支持比较、IN、LIKE、NULL、AND/OR/NOT，但仍有边界：
 
-统一入口建议：
+1. `BooleanConstant` 被忽略。
+2. `BooleanCustom` 被忽略。
+3. `PatternMatchMode.Regex` 被忽略。
+4. 只处理列-常量与常量-列，不处理列-列和复杂标量表达式。
 
-1. `find(where: BooleanExpression): List<T>`
-2. `find(where: BooleanExpression, sortBy: SortBy?, limit: Int?, offset: Int?): List<T>`
-3. `count(where: BooleanExpression): Long`
-4. `update(where: BooleanExpression, assignments: UpdateAssignments): Int`
+`MybatisRepository.update` 当前存在高风险：
 
-## 7. 分阶段实施计划
+1. 先构造了 `queryWrapper` 并翻译 where。
+2. 实际调用 `mapper.update(null, updateWrapper)` 时没有把 where 条件应用到 `updateWrapper`。
+3. 这可能导致更新条件丢失。
 
-### Phase 0（0.5 天）：脚手架
+`MybatisRepository.find` 分页也需要复核：
 
-实施项：
+1. 连续调用 `wrapper.last("LIMIT ...")` 和 `wrapper.last("OFFSET ...")` 可能后者覆盖前者。
+2. 应合并为单次 `last("LIMIT ... OFFSET ...")` 或使用 MyBatis-Plus 分页机制。
 
-1. 创建 `math.symbol.expression` 与 `framework.persistence.expression` 包结构。
-2. 创建基础 README 占位说明。
+### 4.4 MongoDB translator 语义需复核
 
-验收：
+`MongoBooleanTranslator` 当前支持比较、IN、PatternMatch、NULL、AND/OR/NOT。
 
-1. 结构可编译，无行为变化。
+需要复核：
 
-### Phase 1（1 天）：math.symbol 核心 AST
+1. `NullCheck(IsNull)` 当前翻译为 `Filters.exists(field, false)`，这与 MongoDB 中字段存在但值为 `null` 的语义不同。
+2. `PatternMatch` 没有处理 case-sensitive / case-insensitive 选项。
+3. `BooleanCustom` 返回 `null`。
 
-新增（建议）：
+### 4.5 测试覆盖不足
 
-1. `.../expression/ScalarExpression.kt`
-2. `.../expression/BooleanExpression.kt`
-3. `.../expression/ExpressionOperator.kt`
-4. `.../expression/PropertyPath.kt`
-5. `.../expression/PathSymbol.kt`
-6. `.../expression/ExpressionFactory.kt`
+当前不少 translator 测试只验证表达式对象可构造，并未验证实际翻译结果。
 
-验收：
+需要补齐：
 
-1. AST 可完整表达比较与逻辑组合。
+1. Ktorm translator 结果测试或 SQL 生成测试。
+2. MyBatis `QueryWrapper` / `UpdateWrapper` 条件生成测试。
+3. MongoDB `Bson` 输出结构测试。
+4. Repository 层集成测试，至少覆盖 where + sort + page + update + delete。
+5. 失败路径测试：未知路径、空 assignments、BooleanConstant、unsupported expression。
 
-### Phase 2（1.5 天）：DSL/parser/serde/normalize/evaluate
+## 5. 建议后续优先级
 
-新增（建议）：
+### P0：修复高风险行为
 
-1. `.../expression/dsl/ExpressionDsl.kt`
-2. `.../expression/parser/Token.kt`
-3. `.../expression/parser/Lexer.kt`
-4. `.../expression/parser/Parser.kt`
-5. `.../expression/serde/ExpressionSerde.kt`
-6. `.../expression/operation/Normalize.kt`
-7. `.../expression/operation/EvaluateBoolean.kt`
+1. 修复 `MybatisRepository.update` 条件丢失问题。
+2. 修复 MyBatis 分页 `last(...)` 覆盖问题。
+3. 明确 `BooleanConstant(True/False/Unknown)` 在各 translator 中的语义，避免 `null` 被误解释。
 
-验收：
+### P1：让文档与当前架构一致
 
-1. parse + dsl + serde round-trip 通过。
-2. normalize 与 evaluate 用例通过。
-3. 若启用文本路径解析，则支持 `a.b.c` 形式的 `PropertyPath` 词法/语法。
+1. 更新 `README.md` / `README_ch.md`。
+2. 移除 `EntityMeta` / `FieldBinding` 旧描述。
+3. 补充 resolver 函数示例。
 
-### Phase 3（2 天）：framework 查询适配（含 SortBy）
+### P2：补齐 translator 能力
 
-新增（建议）：
+1. Ktorm 支持 `InExpression`。
+2. Ktorm 支持 `Lt/Le/Gt/Ge`。
+3. 明确或实现 `NullsOrder` 降级策略。
+4. 各插件统一处理 unsupported expression：要么早失败，要么显式返回空条件策略。
 
-1. `.../persistence/expression/EntityMeta.kt`
-2. `.../persistence/expression/FieldBinding.kt`
-3. `.../persistence/expression/SortBy.kt`
-4. `.../persistence/expression/KtormBooleanTranslator.kt`
-5. `.../persistence/expression/KtormOrderByTranslator.kt`
-6. `.../persistence/expression/PatternMatchSqlPolicy.kt`
-7. `.../persistence/expression/RepositoryQueryApi.kt`
+### P3：补测试与门禁
 
-验收：
+1. 为每个插件补 translator 行为测试。
+2. 增加 repository 集成测试。
+3. 在 CI 或常用命令中覆盖 framework 与 persistence 插件模块。
 
-1. where 条件翻译正确。
-2. `SortBy` 多字段排序可执行。
-3. 分页 + 排序 + 条件组合可执行。
-
-### Phase 4（1 天）：framework 更新适配（UpdateAssignment）
-
-新增（建议）：
-
-1. `.../persistence/expression/UpdateAssignment.kt`
-2. `.../persistence/expression/KtormUpdateAssignmentTranslator.kt`
-3. `.../persistence/expression/RepositoryUpdateApi.kt`（或并入 QueryApi）
-
-实施项：
-
-1. 将 `UpdateAssignments` 翻译为 Ktorm update builder。
-2. 支持 where + set 的批量更新。
-3. 增加赋值类型与列类型兼容校验。
-
-验收：
-
-1. `update(where, assignments)` 正确返回影响行数。
-2. `SetValue/SetNull/SetFromExpression` 用例全部通过。
-
-### Phase 5（1 天）：兼容迁移
-
-实施项：
-
-1. 保持旧 `symbol.parser.Expr` 可用。
-2. 需要时增加桥接：`legacy Expr -> Scalar/BooleanExpression`。
-3. 更新文档与示例。
-
-验收：
-
-1. 老功能无回归，新接口可并存。
-
-## 8. 测试计划
-
-math 模块新增测试（建议）：
-
-1. `.../expression/parser/BooleanParserTest.kt`
-2. `.../expression/dsl/BooleanDslTest.kt`
-3. `.../expression/serde/ExpressionSerdeTest.kt`
-4. `.../expression/operation/NormalizeTest.kt`
-5. `.../expression/operation/EvaluateBooleanTest.kt`
-
-framework 模块新增测试（建议）：
-
-1. `.../persistence/expression/EntityMetaTest.kt`
-2. `.../persistence/expression/KtormBooleanTranslatorTest.kt`
-3. `.../persistence/expression/KtormOrderByTranslatorTest.kt`
-4. `.../persistence/expression/KtormUpdateAssignmentTranslatorTest.kt`
-5. `.../persistence/expression/SqliteIntegrationTest.kt`
-
-建议命令：
+## 6. 建议验证命令
 
 ```powershell
-mvn -pl ospf-kotlin-math -Dtest=BooleanParserTest,BooleanDslTest,ExpressionSerdeTest,NormalizeTest,EvaluateBooleanTest test
-mvn -pl ospf-kotlin-framework -Dtest=EntityMetaTest,KtormBooleanTranslatorTest,KtormOrderByTranslatorTest,KtormUpdateAssignmentTranslatorTest,SqliteIntegrationTest test
+mvn -pl ospf-kotlin-math -Dtest=PropertyPathPathSymbolTest,ExpressionASTTest,BooleanDslTest,BooleanParserTest,ExpressionSerdeTest,NormalizeTest,EvaluateBooleanTest test
+mvn -pl ospf-kotlin-framework -Dtest=SortByTest,UpdateAssignmentTest test
+mvn -pl ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-ktorm -Dtest=KtormBooleanTranslatorTest,KtormOrderByTranslatorTest,KtormUpdateTranslatorTest test
+mvn -pl ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mybatis -Dtest=MybatisBooleanTranslatorTest test
+mvn -pl ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mongodb -Dtest=MongoBooleanTranslatorTest test
 ```
 
-## 9. 风险与控制
+如要做最终验收，应运行包含 framework plugin 的完整构建，而不仅是上述窄测试。
 
-风险：
+## 7. 旧计划处理说明
 
-1. `PatternMatch` 方言差异。
-2. `ReferenceExpression` 与列类型不一致。
-3. `NullsFirst/NullsLast` 在不同数据库支持度不同。
-4. 更新赋值表达式的类型推断错误可能导致运行时 SQL 异常。
-5. 将 `PropertyPath` 直接当作 `Symbol.name` 参与运算时，可能出现身份歧义或冲突。
+旧文档中以下内容已经归档，不再作为当前执行清单：
 
-控制：
+1. Phase 0-5 的早期实施计划。
+2. Phase F0-F7 的逐日计划。
+3. `EntityMeta` / `FieldBinding` 的设计草案。
+4. P8 泛型化、solver/framework 入口命名、Rust 功能缺口等跨模块事项。
 
-1. `PatternMatchSqlPolicy` 统一封装方言策略。
-2. `EntityMeta` 做类型校验，Translator 早失败。
-3. `NullsOrder` 提供方言降级与明确文档。
-4. `UpdateAssignment` 进入 translator 前做列类型兼容校验。
-5. `PathSymbol` 实现 `IdentifiedSymbol` 并固定 `symbolId = "path:${path.value}"`。
-
-## 10. 交接执行清单
-
-1. 严格按 Phase 0 -> 5 执行。
-2. 每阶段先补测试，再补实现。
-3. 先打通 Ktorm MVP：`where + sortBy + page + update(assignments)`。
-4. 保持 `math.symbol` 无 SQL 依赖。
-
-## 11. 结论
-
-1. `math.symbol` 负责通用表达式语义与逻辑能力。
-2. `framework.persistence` 负责 SQL 翻译、字段映射、`SortBy`、`UpdateAssignment` 执行。
-3. 下一环境可按本文直接实施。
-
----
-
-## 12. 实施日志
-
-### 2026-04-06：math 侧完成
-
-**提交记录：**
-- `48cb8b17` - feat(math): add expression AST for SQL-like boolean expressions (M0+M1)
-- `9530e622` - feat(math): add DSL and Parser for boolean expressions (M2)
-- `e0bc60dd` - feat(math): add serde, normalize, and evaluate for expressions (M3)
-- `cc364b01` - feat(math): add LegacyExprBridge for legacy Expr compatibility (M4)
-- `eedb31bd` - docs(math): update expression module documentation (M5)
-
-**测试覆盖：**
-- 711 tests 全部通过
-- 新增测试文件：
-  - `PropertyPathPathSymbolTest.kt` (19 tests)
-  - `ExpressionASTTest.kt` (20 tests)
-  - `BooleanParserTest.kt` (22 tests)
-  - `BooleanDslTest.kt` (24 tests)
-  - `ExpressionSerdeTest.kt` (14 tests)
-  - `NormalizeTest.kt` (17 tests)
-  - `EvaluateBooleanTest.kt` (24 tests)
-  - `LegacyExprBridgeTest.kt` (28 tests)
-
-**关键设计决策：**
-1. `Trivalent` 改用 sealed class + lazy 属性，避免 URtn8 初始化顺序问题
-2. `BooleanExpression` 使用 sealed interface，支持完整的布尔逻辑
-3. `PropertyPath` 支持点分隔路径 `a.b.c`
-4. `PathSymbol` 实现 `IdentifiedSymbol`，`symbolId = "path:${path.value}"`
-
-**下一步：framework 侧实施**
-- Phase F0：脚手架（添加 math 依赖、创建包结构）
-- Phase F1：EntityMeta、FieldBinding、SortBy
-- Phase F2：KtormBooleanTranslator、KtormOrderByTranslator、PatternMatchPolicy
-- Phase F3：UpdateAssignment、KtormUpdateTranslator
-- Phase F4：RepositoryApi
-- Phase F5：测试与文档
-
-详细计划见：`framework/persistence/expression/daily.md`
-
-### 2026-04-06：framework 侧完成
-
-**提交记录：**
-- `8beaffbb` - feat(framework): add expression scaffolding and math dependency (F0)
-- `923e8dbd` - feat(framework): add EntityMeta, FieldBinding, SortBy models (F1)
-- `52268758` - feat(framework): add Ktorm translators and PatternMatchPolicy (F2)
-- `0dc2053a` - feat(framework): add UpdateAssignment model and KtormUpdateTranslator (F3)
-- `2eb37d95` - feat(framework): add RepositoryApi for expression-based queries (F4)
-
-**新增文件：**
-- `expression/EntityMeta.kt` - 实体元数据
-- `expression/FieldBinding.kt` - 字段绑定
-- `expression/SortBy.kt` - 排序模型
-- `expression/UpdateAssignment.kt` - 更新赋值模型
-- `expression/RepositoryApi.kt` - 仓储接口
-- `translator/PatternMatchPolicy.kt` - 模式匹配策略
-- `translator/KtormBooleanTranslator.kt` - 布尔翻译器
-- `translator/KtormOrderByTranslator.kt` - 排序翻译器
-- `translator/KtormUpdateTranslator.kt` - 更新翻译器
-
-**关键设计决策：**
-1. `EntityMeta` 使用 `PropertyPath` 作为字段引用主语义
-2. `PatternMatchPolicy` 策略模式处理 LIKE/ILIKE 方言差异
-3. `KtormRepository` 提供抽象基类，子类只需实现 `mapToEntity`
-4. `UpdateAssignments` 支持 set/setNull/setExpr 链式调用
-
-**项目完成状态：**
-- math 侧：✅ 完成 (711 tests)
-- framework 侧：✅ 完成
+这些内容如需继续维护，应迁移到对应模块的专项文档，而不是放在 SQL Expression 文档中。
