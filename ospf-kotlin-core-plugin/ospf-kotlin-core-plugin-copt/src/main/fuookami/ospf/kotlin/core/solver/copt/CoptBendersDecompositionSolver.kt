@@ -64,11 +64,6 @@ class CplexLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -138,11 +133,6 @@ class CplexLinearBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -287,11 +277,6 @@ class CoptLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -387,11 +372,6 @@ class CoptLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -450,14 +430,6 @@ class CoptLinearBendersDecompositionSolver(
                             is Fatal -> {
                                 return Fatal(result.errors)
                             }
-
-                            is Fatal -> {
-                                return Fatal(result.errors)
-                            }
-
-                            is Fatal -> {
-                                return Fatal(result.errors)
-                            }
                         }
                         Ok(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
@@ -482,14 +454,6 @@ class CoptLinearBendersDecompositionSolver(
 
                                 is Failed -> {
                                     return Failed(result.error)
-                                }
-
-                                is Fatal -> {
-                                    return Fatal(result.errors)
-                                }
-
-                                is Fatal -> {
-                                    return Fatal(result.errors)
                                 }
 
                                 is Fatal -> {

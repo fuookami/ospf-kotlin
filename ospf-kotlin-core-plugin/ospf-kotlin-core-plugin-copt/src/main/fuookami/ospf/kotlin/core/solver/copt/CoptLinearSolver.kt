@@ -145,10 +145,6 @@ private class CoptLinearSolverImpl(
                     return Fatal(result.errors)
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
                 else -> {}
             }
         }
@@ -263,10 +259,6 @@ private class CoptLinearSolverImpl(
                     return Fatal(result.errors)
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
                 else -> {}
             }
             ok
@@ -373,10 +365,6 @@ private class CoptLinearSolverImpl(
                     return Fatal(result.errors)
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
                 else -> {}
             }
             ok
@@ -432,10 +420,6 @@ private class CoptLinearSolverImpl(
                         return Fatal(result.errors)
                     }
 
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
                     else -> {}
                 }
                 ok
@@ -449,10 +433,6 @@ private class CoptLinearSolverImpl(
                 )) {
                     is Failed -> {
                         return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
                     }
 
                     is Fatal -> {

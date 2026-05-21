@@ -200,6 +200,17 @@ benchmark 结果文件默认输出到：
 
 CI 会上传 `ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json` 作为 artifact，仅用于结果留存，不作为性能硬门禁。
 
+比较两份 JMH JSON 结果并输出 Markdown 趋势报告：
+
+```powershell
+pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
+  -Baseline .\ospf-kotlin-benchmark\target\benchmark-results\baseline.json `
+  -Current .\ospf-kotlin-benchmark\target\benchmark-results\current.json `
+  -Output .\ospf-kotlin-benchmark\target\benchmark-results\trend.md
+```
+
+比较脚本只生成报告，不设置性能硬门禁，因为 JMH 分数对机器环境敏感。
+
 benchmark 轻量 CI smoke 口径（只验证可运行，不比较绝对数值）：
 
 ```powershell

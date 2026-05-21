@@ -167,6 +167,13 @@ private val json = Json {
     classDiscriminator = "type"
 }
 
+@Suppress("UNCHECKED_CAST")
+private fun ScalarExpression<Any?>.asAnyScalarExpression(): ScalarExpression<Any> {
+    // JSON 反序列化边界只恢复表达式树结构，调用方按 ScalarExpression<Any> 继续处理。
+    // The JSON boundary restores expression-tree shape only; callers continue with ScalarExpression<Any>.
+    return this as ScalarExpression<Any>
+}
+
 // ========== ScalarExpression 序列化 / ScalarExpression Serialization ==========
 
 /**
@@ -221,23 +228,23 @@ internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = 
             JsonNull -> null
             else -> value.toString()
         }
-        ScalarConstant(v) as ScalarExpression<Any>
+        ScalarConstant(v).asAnyScalarExpression()
     }
     is ScalarExpressionData.Reference -> ScalarReference<Any>(PropertyPath.parse(path))
     is ScalarExpressionData.SymbolReference -> ScalarSymbolReference<Any>(symbolOfSerializedIdentifier(identifier))
     is ScalarExpressionData.Unary -> ScalarUnary(
         UnaryOperator.valueOf(operator),
         operand.toScalarExpression()
-    ) as ScalarExpression<Any>
+    ).asAnyScalarExpression()
     is ScalarExpressionData.Binary -> ScalarBinary(
         BinaryOperator.valueOf(operator),
         left.toScalarExpression(),
         right.toScalarExpression()
-    ) as ScalarExpression<Any>
+    ).asAnyScalarExpression()
     is ScalarExpressionData.Function -> ScalarFunction(
         name,
         arguments.map { it.toScalarExpression() }
-    ) as ScalarExpression<Any>
+    ).asAnyScalarExpression()
     is ScalarExpressionData.Custom -> ScalarCustom<Any>(payload ?: Unit, description)
 }
 

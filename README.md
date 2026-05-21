@@ -200,6 +200,17 @@ Benchmark result files are written to:
 
 CI uploads `ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json` as an artifact for retention only; it is not a performance gate.
 
+Compare two JMH JSON result files and write a Markdown trend report:
+
+```powershell
+pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
+  -Baseline .\ospf-kotlin-benchmark\target\benchmark-results\baseline.json `
+  -Current .\ospf-kotlin-benchmark\target\benchmark-results\current.json `
+  -Output .\ospf-kotlin-benchmark\target\benchmark-results\trend.md
+```
+
+The comparison script is report-only. It always avoids performance hard-gating because JMH scores are machine-sensitive.
+
 Lightweight CI smoke for benchmark runnable validation (without comparing absolute scores):
 
 ```powershell

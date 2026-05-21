@@ -222,7 +222,7 @@ private class MindOPTLinearSolverImpl(
                     }
 
                     ObjectCategory.Maximum -> {
-                        MDO.MINIMIZE
+                        MDO.MAXIMIZE
                     }
                 }
             )
@@ -236,10 +236,6 @@ private class MindOPTLinearSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
                 }
 
                 is Fatal -> {

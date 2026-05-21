@@ -1,3 +1,177 @@
+# P23 工程健康交接（2026-05-21）
+
+## 最新结论
+
+`math`、`multiarray`、`quantities`、`core` 已按 P18-P22 目标完成架构收口、泛型化、接口恢复、性能基线、工程拆分和第一批 warning debt 收敛。当前迁移目标已达成，P23 是迁移完成后的增量工程健康清理，不重新打开兼容层或平滑迁移目标。
+
+## 已完成事项摘要
+
+以下只保留已完成结论，不保留逐批执行细节。
+
+1. 已完成从 core 自有表达式体系到 `math.symbol` 正式符号体系的迁移。
+2. 已删除旧兼容层与迁移桥接入口，包括旧 adapter/bridge/compat 路径和迁移期命名。
+3. 已完成 core 主链路泛型化，保留的 Flt64 命名仅表达真实快捷层、解析器或 solver 边界职责。
+4. 已恢复 example 默认构建与项目内 source-compat / profile 验收入口。
+5. 已建立 P6/P7 等静态门禁，覆盖兼容层回流、旧命名回流、旧 import 回流、危险 hard-cast、空测试等风险。
+6. 已完成 multiarray、math、core、core-plugin、framework 的第一轮性能和结构优化。
+7. 已建立 benchmark baseline；`ospf-kotlin-benchmark` 参与默认构建但跳过 install、deploy 和 central publish，JMH 生成与运行仍由 `bench` profile 激活。
+8. 已完成 core 大文件多轮职责拆分，覆盖 dump、elastic builder、dual/farkasDual 支持等辅助逻辑。
+9. 已完成 solver 插件公共数据准备、状态归一、错误码兜底和第一批热路径非空不变量清理。
+10. 已完成 benchmark small smoke CI artifact 留存，不把绝对性能数值作为跨机器硬门禁。
+11. 已完成 mosek 主路径 TODO 语义化、core 主路径乱码注释清理和第一批泛型 unchecked cast 局部收敛。
+
+## P23 目标
+
+P23 的目标是继续做增量工程健康清理，重点消化残余编译 warning、收敛泛型 cast、拆分 core 剩余辅助职责，并沉淀 benchmark 趋势比较入口。
+
+1. 清理 COPT / MindOPT 中残余 `Duplicate branch condition in when` warning。
+2. 继续收敛 math / quantities 中高频且可证明安全的 unchecked cast。
+3. 拆分 core 剩余 normalize / copy / clone 或 flatten / export helper。
+4. 扩展 benchmark 趋势比较脚本，只输出对比报告，不设性能硬门禁。
+
+## 总体原则
+
+1. 不新增兼容层，不恢复旧 bridge/adapter/compat 设计。
+2. 不改变公开 API；如必须改变，先在本文件记录理由、影响范围、替代方案和验收方式。
+3. P23 是工程健康清理，不重新定义 P18-P22 的迁移完成口径。
+4. benchmark 模块参与默认构建；JMH 生成与运行只在 `bench` profile 下启用，且该模块不参与 install、deploy 和 central publish。
+5. solver 清理只处理可证明等价的重复分支、错误兜底或明显方向映射问题，不重写真实 solver API。
+6. Flt64 / Double 转换必须留在显式 solver 边界或既有白名单，不能回流到 core 泛型主链路。
+7. 大文件拆分只移动内聚职责，不混入语义变化。
+8. warning debt 清理不做全仓机械 suppress；新增 suppress 必须靠近最小作用域，并说明可证明不变量。
+9. 写注释时遵守项目规则：中英双语；不添加版权声明。
+10. README / README_ch 如涉及用户入口、benchmark 使用或 profile 说明，必须同步更新并保持互链。
+
+## P23 事项与步骤
+
+### P23-1：COPT / MindOPT 重复 when 分支清理
+
+状态：已完成。
+
+目标：清理 COPT / MindOPT 插件中相邻重复的 `is Fatal` when 分支，消除 Kotlin 编译器的 `Duplicate branch condition in when` warning，并修正 MindOPT 最大化方向映射。
+
+实际修改清单：
+
+1. COPT：
+   - `CoptBendersDecompositionSolver.kt`
+   - `CoptColumnGenerationSolver.kt`
+   - `CoptLinearSolver.kt`
+   - `CoptQuadraticSolver.kt`
+2. MindOPT：
+   - `MindOPTColumnGenerationSolver.kt`
+   - `MindOPTLinearSolver.kt`
+   - `MindOPTQuadraticSolver.kt`
+3. MindOPT 线性/二次 solver 的 `ObjectCategory.Maximum` 已映射到 `MDO.MAXIMIZE`。
+
+验收结果：
+
+1. `mvn -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt -am "-DskipTests" compile`：通过，日志中未检出 `Duplicate branch condition`。
+2. `mvn -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mindopt -am "-DskipTests" compile`：通过，日志中未检出 `Duplicate branch condition`。
+3. `pwsh.exe -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+4. `pwsh.exe -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+5. `git diff --check`：通过（仅 Git LF/CRLF 提示，无空白错误）。
+
+### P23-2：math / quantities unchecked cast 局部收敛
+
+状态：已完成（第一批：符号 serde / 数值分派 / quantity 转换边界）。
+
+详细步骤：
+
+1. 扫描 `ospf-kotlin-math` 与 `ospf-kotlin-utils/ospf-kotlin-utils-quantity` 中的 unchecked cast warning。
+2. 优先处理高频、局部不变量清晰、可用 helper 收口的 cast。
+3. suppress 必须贴近最小作用域，并用中英双语注释说明不变量。
+4. 不修改公开 API，不把 Flt64 快捷层逻辑回流为泛型主链路依赖。
+
+验收标准：
+
+1. math / quantities 目标模块 `test-compile` 或目标测试通过。
+2. 被处理文件的目标 warning 消失。
+3. P6/P7 静态门禁通过。
+4. `git diff --check` 通过。
+
+实际修改清单：
+
+1. `NumericOps.kt`：将数值分派注册表读取的 unchecked cast 收敛到 `typedOpsFor()`。
+2. `ExpressionSerde.kt`：将 JSON 反序列化边界的 `ScalarExpression<Any>` cast 收敛到 `asAnyScalarExpression()`。
+3. `DurationExtensions.kt`：将 Duration converter 注册表读取收敛到 `asDurationConverter()`，并移除可由泛型推导覆盖的 Quantity cast。
+4. `Quantity.kt`：将 `tryConvertByValueType()` 的值类型转换 cast 收敛到 `convertKnownValueType()`。
+
+验收结果：
+
+1. `mvn -pl ospf-kotlin-math -am "-DskipTests" test-compile`：通过，目标文件 warning 已消失。
+2. `mvn -pl ospf-kotlin-quantities -am "-DskipTests" test-compile`：通过，`Quantity.kt` / `DurationExtensions.kt` 目标 warning 已消失。
+
+### P23-3：core 剩余辅助职责拆分
+
+状态：已完成（第一批：MechanismModel Flt64 solver-boundary conversion 拆分）。
+
+详细步骤：
+
+1. 扫描 `core` 中仍偏大的 model/function/symbol 文件。
+2. 优先拆分 normalize、copy、clone、flatten/export 等职责明确的 helper。
+3. 拆分只搬移实现，不改变公开签名、返回类型和错误分支行为。
+4. 如跨模块调用要求 helper 保持 public，必须在提交说明和本文件中记录原因。
+
+验收标准：
+
+1. core `test-compile` 通过。
+2. 与拆分目标相关的单元测试通过。
+3. P6/P7 静态门禁通过。
+4. `git diff --check` 通过。
+
+实际修改清单：
+
+1. 新增 `MechanismModelFlt64Conversion.kt`，承接机制模型到 Flt64 求解器边界模型的转换、函数符号约束注册、固定变量转换和 token table 辅助转换。
+2. `MechanismModel.kt` 删除上述边界转换 helper，仅保留模型定义和构建流程。
+3. `p7-whitelist.json` 按文件拆分后的真实星投影行数同步，避免把搬移后的 solver-boundary helper 误判为新回流。
+4. 搬出的 helper 使用 `internal`，原因是它们被同模块其他机制模型构建流程调用；不新增模块外公开 API。
+
+验收结果：
+
+1. `mvn -pl ospf-kotlin-core -am "-DskipTests" test-compile`：通过。
+
+### P23-4：benchmark 趋势比较脚本
+
+状态：已完成。
+
+详细步骤：
+
+1. 为 JMH JSON 结果补充轻量比较脚本或 Maven/profile 入口。
+2. 支持 baseline 与 current 两份结果输出趋势差异。
+3. 只做报告和 CI artifact 留存，不把性能差异设为硬失败条件。
+4. README / README_ch 同步补充使用方式。
+
+验收标准：
+
+1. benchmark 模块 `-Pbench -DskipTests compile` 通过。
+2. small smoke 仍可生成 CI artifact JSON。
+3. 趋势比较脚本可对两份 JSON 输出可读报告。
+4. `git diff --check` 通过。
+
+实际修改清单：
+
+1. 新增 `ospf-kotlin-benchmark/scripts/compare-benchmark-results.ps1`。
+2. README / README_ch 同步补充趋势比较脚本用法。
+3. 脚本只输出 Markdown 趋势报告，不设置性能硬门禁。
+
+验收结果：
+
+1. `pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 -Baseline ... -Current ... -Output ...`：通过，可生成趋势报告。
+2. `mvn -pl ospf-kotlin-benchmark -am -Pbench "-DskipTests" compile`：通过。
+3. `mvn -pl ospf-kotlin-benchmark -Pbench "-DskipTests" exec:java "-Dexec.args=.*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"`：通过，`ci-smoke.json` 可生成。
+
+## P23 整体验收结果
+
+1. COPT / MindOPT 插件 `-DskipTests compile`：通过，目标日志中未检出 `Duplicate branch condition`。
+2. math / quantities / core 目标模块 `test-compile`：通过。
+3. benchmark 模块 `-Pbench -DskipTests compile`：通过。
+4. benchmark small smoke：通过，`ci-smoke.json` 可生成。
+5. `pwsh.exe -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+6. `pwsh.exe -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+7. `git diff --check`：通过（仅 Git LF/CRLF 提示，无空白错误）。
+
+---
+
 # P22 工程深化交接（2026-05-21）
 
 ## 最新结论

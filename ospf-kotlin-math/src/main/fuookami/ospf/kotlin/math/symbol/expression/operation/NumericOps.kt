@@ -68,14 +68,21 @@ object NumericDispatcher {
         registry[ops.type] = ops
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> typedOpsFor(type: KClass<out Any>): NumericOps<T>? {
+        // 注册时 key 来自 ops.type，读取时只按同一个运行时 KClass 取回。
+        // The key is ops.type at registration, so lookup by the same runtime KClass preserves T.
+        return registry[type] as NumericOps<T>?
+    }
+
     /** 获取指定类型的运算处理器 / Get operation handler for type */
     fun <T : Any> opsFor(type: KClass<T>): NumericOps<T>? {
-        return registry[type] as NumericOps<T>?
+        return typedOpsFor(type)
     }
 
     /** 获取值的运算处理噌/ Get operation handler for a value's type */
     fun <T : Any> opsFor(value: T): NumericOps<T>? {
-        return registry[value::class] as NumericOps<T>?
+        return typedOpsFor(value::class)
     }
 
     /** 执行一元运箌/ Execute unary operation */
@@ -83,7 +90,7 @@ object NumericDispatcher {
         if (operator == UnaryOperator.Positive) {
             return operand
         }
-        val ops = registry[operand::class] as NumericOps<Any>? ?: return null
+        val ops = typedOpsFor<Any>(operand::class) ?: return null
 
         return when (operator) {
             UnaryOperator.Negate -> ops.negate(operand)
@@ -96,7 +103,7 @@ object NumericDispatcher {
     fun evaluateBinary(operator: BinaryOperator, left: Any, right: Any): Any? {
         // Both operands must be of the same type
         if (left::class != right::class) return null
-        val ops = registry[left::class] as NumericOps<Any>? ?: return null
+        val ops = typedOpsFor<Any>(left::class) ?: return null
 
         return when (operator) {
             BinaryOperator.Add -> ops.add(left, right)

@@ -120,17 +120,27 @@ class UnitConversionException(message: String) : Exception(message)
  */
 private fun <V> Quantity<V>.tryConvertByValueType(unit: PhysicalUnit): Quantity<V>? {
     return when (value) {
-        is Int64 -> (this as Quantity<Int64>).to(unit) as Quantity<V>?
-        is UInt64 -> (this as Quantity<UInt64>).to(unit) as Quantity<V>?
-        is IntX -> (this as Quantity<IntX>).to(unit) as Quantity<V>?
-        is Flt64 -> (this as Quantity<Flt64>).to(unit) as Quantity<V>?
-        is FltX -> (this as Quantity<FltX>).to(unit) as Quantity<V>?
+        is Int64 -> convertKnownValueType<V, Int64>(unit) { target -> to(target) }
+        is UInt64 -> convertKnownValueType<V, UInt64>(unit) { target -> to(target) }
+        is IntX -> convertKnownValueType<V, IntX>(unit) { target -> to(target) }
+        is Flt64 -> convertKnownValueType<V, Flt64>(unit) { target -> to(target) }
+        is FltX -> convertKnownValueType<V, FltX>(unit) { target -> to(target) }
         else -> if (this.unit == unit) {
             Quantity(this.value, unit)
         } else {
             null
         }
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <V, T> Quantity<V>.convertKnownValueType(
+    unit: PhysicalUnit,
+    convert: Quantity<T>.(PhysicalUnit) -> Quantity<T>?
+): Quantity<V>? {
+    // 调用方已在 when(value) 分支确认 V 的运行时值类型是 T。
+    // The caller has checked value in a when branch, so V's runtime value type is T here.
+    return (this as Quantity<T>).convert(unit) as Quantity<V>?
 }
 
 /**

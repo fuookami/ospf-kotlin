@@ -152,12 +152,19 @@ private val converters = mutableMapOf<Class<*>, DurationConverter<*>>(
     UIntX::class.java to UIntXDurationConverter
 )
 
+@Suppress("UNCHECKED_CAST")
+private fun <V> DurationConverter<*>.asDurationConverter(): DurationConverter<V> {
+    // converters 的 key 是转换器支持的值类型 Class，读取时由同一个 Class 约束 V。
+    // The converters key is the supported value Class, so lookup by that Class constrains V.
+    return this as DurationConverter<V>
+}
+
 /**
  * 获取指定类型的转换器
  * Get converter for specified type
  */
 fun <V> getConverter(valueClass: Class<V>): Ret<DurationConverter<V>> {
-    val converter = converters[valueClass] as? DurationConverter<V>
+    val converter = converters[valueClass]?.asDurationConverter<V>()
     return if (converter != null) {
         Ok(converter)
     } else {
@@ -199,7 +206,7 @@ fun <V> Quantity<V>.toDuration(): Ret<Duration> where V : RealNumber<V> {
 
     // 获取转换器
     val converter = when (val result = getConverter(this.value::class.java)) {
-        is Ok -> result.value as DurationConverter<V>
+        is Ok -> result.value.asDurationConverter<V>()
         is Failed -> return Failed(result.error)
         is Fatal -> return Fatal(result.errors)
     }
@@ -281,7 +288,7 @@ inline fun <reified V> Duration.toQuantity(unit: PhysicalUnit): Ret<Quantity<V>>
     // 计算目标单位下的值
     return when (val valueResult = converter.fromDouble(secondsValue * factor)) {
         is Ok -> {
-            Ok((valueResult.value * unit) as Quantity<V>)
+            Ok(valueResult.value * unit)
         }
         is Failed -> Failed(valueResult.error)
         is Fatal -> Fatal(valueResult.errors)
@@ -483,7 +490,7 @@ inline fun <reified V> Duration.toQuantityBestFit(threshold: Double = 1000.0): R
 
     return when (val r = converter.fromDouble(secondsValue * factor)) {
         is Ok -> {
-            Ok((r.value * unit) as Quantity<V>)
+            Ok(r.value * unit)
         }
         is Failed -> Failed(r.error)
         is Fatal -> Fatal(r.errors)

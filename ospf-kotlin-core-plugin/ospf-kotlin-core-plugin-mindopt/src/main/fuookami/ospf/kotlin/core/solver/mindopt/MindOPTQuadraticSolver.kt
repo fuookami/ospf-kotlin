@@ -230,7 +230,7 @@ private class MindOPTQuadraticSolverImpl(
                     }
 
                     ObjectCategory.Maximum -> {
-                        MDO.MINIMIZE
+                        MDO.MAXIMIZE
                     }
                 }
             )
@@ -244,10 +244,6 @@ private class MindOPTQuadraticSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
                 }
 
                 is Fatal -> {
@@ -348,10 +344,6 @@ private class MindOPTQuadraticSolverImpl(
             )) {
                 is Failed -> {
                     return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
                 }
 
                 is Fatal -> {
