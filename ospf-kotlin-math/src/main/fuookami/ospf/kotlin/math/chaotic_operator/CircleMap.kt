@@ -42,9 +42,16 @@ data class CircleMap<V : FloatingImpl<V>>(
     override fun invoke(x: V): V {
         val v = alpha
         val pi2 = v.constants.pi * v.constants.two
-        val sinVal = (x * pi2).sin() as V
+        val sinVal = castToV((x * pi2).sin())
         val raw = x + alpha - beta * sinVal / pi2
         return raw - (raw / v.constants.one).floor() * v.constants.one
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun castToV(value: Any): V {
+        // 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
+        // Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
+        return value as V
     }
 }
 

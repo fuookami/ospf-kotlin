@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.solver.gurobi
+﻿package fuookami.ospf.kotlin.core.solver.gurobi
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
@@ -57,11 +57,6 @@ class GurobiLinearBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -137,11 +132,6 @@ class GurobiLinearBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -290,11 +280,6 @@ class GurobiQuadraticBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -390,11 +375,6 @@ class GurobiQuadraticBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -457,14 +437,6 @@ class GurobiQuadraticBendersDecompositionSolver(
                             is Fatal -> {
                                 return Fatal(result.errors)
                             }
-
-                            is Fatal -> {
-                                return Fatal(result.errors)
-                            }
-
-                            is Fatal -> {
-                                return Fatal(result.errors)
-                            }
                         }
                         Ok(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
@@ -489,14 +461,6 @@ class GurobiQuadraticBendersDecompositionSolver(
 
                                 is Failed -> {
                                     return Failed(result.error)
-                                }
-
-                                is Fatal -> {
-                                    return Fatal(result.errors)
-                                }
-
-                                is Fatal -> {
-                                    return Fatal(result.errors)
                                 }
 
                                 is Fatal -> {

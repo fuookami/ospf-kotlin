@@ -3,9 +3,11 @@
 package fuookami.ospf.kotlin.core.solver.copt
 
 import copt.*
+import fuookami.ospf.kotlin.core.solver.environmentLost
+import fuookami.ospf.kotlin.core.solver.executeCreatingEnvironmentCallback
+import fuookami.ospf.kotlin.core.solver.solvingException
+import fuookami.ospf.kotlin.core.solver.terminated
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -13,22 +15,6 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-
-private fun <T> executeCreatingEnvironmentCallback(
-    target: T,
-    callBack: ((T) -> Try)?
-): Try {
-    return when (val result = callBack?.invoke(target)) {
-        is Failed -> Failed(result.error)
-        is Fatal -> Fatal(result.errors)
-        else -> ok
-    }
-}
-
-private fun environmentLost(message: String?): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
-private fun environmentLost(): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost))
-private fun solvingException(message: String?): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
-private fun terminated(): Try = Failed(Err(ErrorCode.OREngineTerminated))
 
 abstract class CoptSolver : AutoCloseable {
     protected lateinit var env: Envr

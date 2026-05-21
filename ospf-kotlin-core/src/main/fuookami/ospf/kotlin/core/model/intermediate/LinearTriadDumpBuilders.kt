@@ -9,8 +9,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.operator.pow
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.utils.functional.Quadruple
@@ -140,18 +138,18 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
     }.distinct().toSet()
     val notBoundConstraints = model.linearConstraints.filter { !boundConstraints.contains(it) }
 
-    return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
-        val factor = Flt64(notBoundConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-        val segment = if (factor >= 1) {
-            pow(UInt64.ten, factor).toInt()
-        } else {
-            10
-        }
+    val dispatchPlan = computeBatchDispatchPlan(notBoundConstraints.size)
+    return if (dispatchPlan.shouldUseParallelPath) {
+        val segment = dispatchPlan.segmentSize
         coroutineScope {
-            val constraintPromises = (0..(notBoundConstraints.size / segment)).map {
+            val slices = buildBatchSlices(
+                itemCount = notBoundConstraints.size,
+                segmentSize = segment
+            )
+            val constraintPromises = slices.map { slice ->
                 async(Dispatchers.Default) {
                     val constraints = ArrayList<Pair<List<LinearConstraintCell>, Flt64>>()
-                    for (i in (it * segment) until minOf(notBoundConstraints.size, (it + 1) * segment)) {
+                    for (i in slice.fromIndex until slice.toIndexExclusive) {
                         val constraint = notBoundConstraints[i]
                         val lhs = ArrayList<LinearConstraintCell>()
                         var rhs = constraint.rhs
@@ -184,7 +182,9 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
             val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
             val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
-                val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
+                val slice = slices[index / segment]
+                val offset = index - slice.fromIndex
+                val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[offset]
                 lhs.add(thisLhs)
                 signs.add(constraint.sign)
                 rhs.add(thisRhs)

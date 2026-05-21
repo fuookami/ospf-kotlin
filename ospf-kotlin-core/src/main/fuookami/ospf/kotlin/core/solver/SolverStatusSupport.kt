@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -34,5 +35,12 @@ fun SolverStatus.resolveErrCode(
     fallback: ErrorCode = ErrorCode.OREngineSolvingException
 ): ErrorCode {
     return errCode ?: fallback
+}
+
+fun failByStatus(
+    status: SolverStatus,
+    fallback: ErrorCode = ErrorCode.OREngineSolvingException
+): Try {
+    return Failed(Err(status.resolveErrCode(fallback)))
 }
 

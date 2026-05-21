@@ -198,7 +198,7 @@ Benchmark result files are written to:
 1. default path: `ospf-kotlin-benchmark/target/benchmark-results/*.json`
 2. custom path (optional): `-Dexec.args="... json target/benchmark-results/custom.json"`
 
-CI uploads `ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json` as an artifact for retention only; it is not a performance gate.
+CI uploads `ospf-kotlin-benchmark/target/benchmark-results/` as an artifact for retention only, including `ci-smoke.json`, `baseline-smoke.json`, `current-smoke.json`, and `trend-smoke.md`; it is not a performance gate.
 
 Compare two JMH JSON result files and write a Markdown trend report:
 
@@ -209,6 +209,16 @@ pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
 ```
 
 If `-Output` is omitted and file naming follows `baseline-<dataset>.json` / `current-<dataset>.json`, the script writes `trend-<dataset>.md` to the same directory by default.
+
+You can also use directory mode:
+
+```powershell
+pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
+  -ResultsDir .\ospf-kotlin-benchmark\target\benchmark-results `
+  -Dataset small
+```
+
+If the directory contains exactly one matched `baseline-*.json` / `current-*.json` pair, `-Dataset` can be omitted.
 
 You can still pass explicit output path when needed:
 

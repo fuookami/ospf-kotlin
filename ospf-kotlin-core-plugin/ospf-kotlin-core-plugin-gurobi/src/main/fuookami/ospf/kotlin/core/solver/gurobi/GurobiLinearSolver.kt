@@ -10,8 +10,12 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.solvingException
+import fuookami.ospf.kotlin.core.solver.modelingException
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
-import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.failByStatus
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
@@ -23,7 +27,6 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
 import gurobi.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -50,7 +53,7 @@ class GurobiLinearSolver(
             statusCallBack = solvingStatusCallBack
         ).use { impl ->
             val result = impl(model)
-            System.gc()
+            cleanupAfterSolverRun()
             result
         }
     }
@@ -89,7 +92,7 @@ class GurobiLinearSolver(
                 statusCallBack = solvingStatusCallBack
             ).use { impl ->
                 val result = impl(model).map { it to results }
-                System.gc()
+                cleanupAfterSolverRun()
                 result
             }
         }
@@ -200,9 +203,7 @@ private class GurobiLinearSolverImpl(
                                 }
                                 ii to lhs
                             }
-                            if (memoryUseOver()) {
-                                System.gc()
-                            }
+                            cleanupOnSolverMemoryPressure()
                             constraints
                         }
                     }
@@ -215,9 +216,7 @@ private class GurobiLinearSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                         result
                     }
                 } else {
@@ -238,7 +237,7 @@ private class GurobiLinearSolverImpl(
                     }
                 }
             }
-            System.gc()
+            cleanupAfterSolverRun()
             grbConstraints = constraints
 
             val obj = GRBLinExpr()
@@ -281,9 +280,9 @@ private class GurobiLinearSolverImpl(
             }
             ok
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 
@@ -384,9 +383,9 @@ private class GurobiLinearSolverImpl(
             }
             ok
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 
@@ -452,13 +451,12 @@ private class GurobiLinearSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.resolveErrCode()))
+                failByStatus(status)
             }
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 }
-

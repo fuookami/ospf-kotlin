@@ -10,15 +10,11 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.MutableTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentAutoTokenTable
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
@@ -43,13 +39,8 @@ import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
-import java.io.FileWriter
 import java.nio.file.Path
 import kotlin.io.path.Path
-import kotlin.io.path.isDirectory
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
@@ -79,43 +70,6 @@ private fun <V> createTokenTable(
             AutoTokenTable<V>(category, checkTokenExists)
         }
     }
-}
-
-
-private fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
-    return if (monomials.isEmpty()) {
-        "$constant"
-    } else if (constant neq Flt64.zero) {
-        "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }} + $constant"
-    } else {
-        monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }
-    }
-}
-
-private fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
-    return if (monomials.isEmpty()) {
-        "$constant"
-    } else if (constant neq Flt64.zero) {
-        "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }} + $constant"
-    } else {
-        monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }
-    }
-}
-
-// ========== V -> Flt64 conversion via IntoValue converter ==========
-
-private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
-    return LinearPolynomial(
-        monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
-        converter.fromValue(constant)
-    )
-}
-
-private fun <V> QuadraticPolynomial<V>.toFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
-    return QuadraticPolynomial(
-        monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
-        converter.fromValue(constant)
-    )
 }
 
 sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
@@ -410,98 +364,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 
     suspend fun export(path: Path, unfold: UInt64 = UInt64.zero): Try {
-        val file = if (path.isDirectory()) {
-            path.resolve("$name.opm").toFile()
-        } else {
-            path.toFile()
-        }
-        if (!file.exists()) {
-            withContext(Dispatchers.IO) {
-                file.createNewFile()
-            }
-        }
-        val writer = withContext(Dispatchers.IO) {
-            FileWriter(file)
-        }
-        val result = when (file.extension) {
-            "opm" -> {
-                exportOpm(writer, unfold)
-            }
-
-            else -> {
-                ok
-            }
-        }
-        withContext(Dispatchers.IO) {
-            writer.flush()
-            writer.close()
-        }
-        return result
-    }
-
-    private suspend fun exportOpm(writer: FileWriter, unfold: UInt64): Try {
-        val temp = when (tokens) {
-            is MutableTokenTable<*> -> tokens.copy()
-            is ConcurrentMutableTokenTable<*> -> tokens.copy()
-            else -> throw IllegalStateException("Unknown token table type: ${tokens::class}")
-        }
-
-        for (symbol in tokens.symbols) {
-            if (symbol is MathFunctionSymbolBase<*>) {
-                when (val result = SolverBoundaryCasts.registerAuxiliaryTokensStar(symbol, temp)) {
-                    is Ok -> {}
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-            }
-        }
-
-        return withContext(Dispatchers.IO) {
-            writer.append("Model Name: $name\n")
-            writer.append("\n")
-
-            writer.append("Variables:\n")
-            for (token in tokens.tokens.toList().sortedBy { it.solverIndex }) {
-                val range = token.range
-                writer.append("${token.name}, ${token.type}, ")
-                if (range == null) {
-                    writer.append("empty\n")
-                } else {
-                    writer.append("${range}\n")
-                }
-            }
-            writer.append("\n")
-
-            writer.append("Symbols:\n")
-            for (symbol in tokens.symbols.toList().sortedBy { it.name }) {
-                val range = symbol.range
-                writer.append("$symbol = ${symbol.toRawString(UInt64.one)}, ")
-                if (range.empty) {
-                    writer.append("empty")
-                } else {
-                    writer.append("${range}\n")
-                }
-            }
-            writer.append("\n")
-
-            writer.append("Objectives:\n")
-            for (obj in subObjects) {
-                writer.append("${obj.category} ${obj.name}: ${obj.polynomial.toFlt64Poly(converter).toRawString(unfold)} \n")
-            }
-            writer.append("\n")
-
-            writer.append("Subject to:\n")
-            for (constraint in constraints) {
-                writer.append("$constraint\n")
-            }
-            writer.append("\n")
-
-            ok
-        }
+        return exportMetaModel(metaModel = this, path = path, unfold = unfold)
     }
 
     override fun close() {

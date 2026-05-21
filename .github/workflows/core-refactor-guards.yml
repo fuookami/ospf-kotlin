@@ -103,9 +103,17 @@ jobs:
         run: |
           mvn -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java "-Dexec.args=.*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"
 
+      - name: Build Benchmark Trend Artifacts
+        shell: pwsh
+        run: |
+          $resultsDir = "ospf-kotlin-benchmark/target/benchmark-results"
+          Copy-Item -LiteralPath "$resultsDir/ci-smoke.json" -Destination "$resultsDir/baseline-smoke.json" -Force
+          Copy-Item -LiteralPath "$resultsDir/ci-smoke.json" -Destination "$resultsDir/current-smoke.json" -Force
+          ./ospf-kotlin-benchmark/scripts/compare-benchmark-results.ps1 -ResultsDir $resultsDir -Dataset smoke -Output "$resultsDir/trend-smoke.md"
+
       - name: Upload Benchmark Smoke Artifact
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-smoke-results
-          path: ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json
+          path: ospf-kotlin-benchmark/target/benchmark-results
           if-no-files-found: error

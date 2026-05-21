@@ -10,21 +10,21 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.failByStatus
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
-import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
+import fuookami.ospf.kotlin.core.solver.solvingException
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gap
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
 import ilog.concert.IloException
 import ilog.concert.IloNumVar
 import ilog.concert.IloObjectiveSense
@@ -55,7 +55,7 @@ class CplexQuadraticSolver(
             statusCallBack = solvingStatusCallBack
         ).use { impl ->
             val result = impl(model)
-            System.gc()
+            cleanupAfterSolverRun()
             result
         }
     }
@@ -88,7 +88,7 @@ class CplexQuadraticSolver(
                             cplex.populate()
                             ok
                         } catch (e: IloException) {
-                            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+                            solvingException(e.message)
                         }
                     }
                     .analyzingSolution { _, cplex, variables, _ ->
@@ -103,7 +103,7 @@ class CplexQuadraticSolver(
                 statusCallBack = solvingStatusCallBack
             ).use { impl ->
                 val result = impl(model).map { Pair(it, results) }
-                System.gc()
+                cleanupAfterSolverRun()
                 result
             }
         }
@@ -216,9 +216,7 @@ private class CplexQuadraticSolverImpl(
                             }
                             ii to Triple(lb, lhs, ub)
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                         constraints
                     }
                 }
@@ -234,9 +232,7 @@ private class CplexQuadraticSolverImpl(
                         cplex.add(cplexConstraint)
                         cplexConstraint
                     }
-                    if (memoryUseOver()) {
-                        System.gc()
-                    }
+                    cleanupOnSolverMemoryPressure()
                     result
                 }
             } else {
@@ -276,7 +272,7 @@ private class CplexQuadraticSolverImpl(
                 }
             }
         }
-        System.gc()
+        cleanupAfterSolverRun()
         cplexConstraints = constraints
 
         val objective = cplex.lqNumExpr()
@@ -440,7 +436,7 @@ private class CplexQuadraticSolverImpl(
                 try {
                     cplex.solve()
                 } catch (e: IloException) {
-                    return Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+                    return solvingException(e.message)
                 }
                 return ok
             }
@@ -502,7 +498,7 @@ private class CplexQuadraticSolverImpl(
 
                 else -> {}
             }
-            Failed(Err(status.resolveErrCode()))
+            failByStatus(status)
         }
     }
 }

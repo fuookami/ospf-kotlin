@@ -1,0 +1,283 @@
+package fuookami.ospf.kotlin.core.model.mechanism
+
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.ge
+import fuookami.ospf.kotlin.math.symbol.inequality.le
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import org.apache.logging.log4j.kotlin.KotlinLogger
+
+private data class OrderedVariablePair(
+    val first: AbstractVariableItem<*, *>,
+    val second: AbstractVariableItem<*, *>
+) {
+    companion object {
+        fun of(
+            lhs: AbstractVariableItem<*, *>,
+            rhs: AbstractVariableItem<*, *>
+        ): OrderedVariablePair {
+            return if (
+                lhs.key.identifier < rhs.key.identifier ||
+                (lhs.key.identifier == rhs.key.identifier && lhs.key.index <= rhs.key.index)
+            ) {
+                OrderedVariablePair(lhs, rhs)
+            } else {
+                OrderedVariablePair(rhs, lhs)
+            }
+        }
+    }
+}
+
+internal fun <V> buildLinearOptimalCut(
+    constraints: List<LinearConstraintImpl<V>>,
+    objectCategory: ObjectCategory,
+    objectVariable: AbstractVariableItem<*, *>,
+    fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+    dualSolution: Map<Constraint<V, Linear>, V>,
+    zero: V,
+    one: V
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val constants = constraints.fold(zero) { acc, constraint ->
+        acc + (dualSolution[constraint] ?: zero) * constraint.rhs
+    }
+    val polynomials = HashMap<AbstractVariableItem<*, *>, V>()
+    for (constraint in constraints) {
+        val dual = dualSolution[constraint] ?: continue
+        if (dual eq zero) {
+            continue
+        }
+
+        for (cell in constraint.lhs) {
+            val variable = cell.token.variable
+            if (variable in fixedVariables) {
+                val coefficient = dual * cell.coefficient
+                if (coefficient neq zero) {
+                    polynomials[variable] = (polynomials[variable] ?: zero) - coefficient
+                }
+            }
+        }
+    }
+    val rhs = LinearPolynomial(
+        monomials = polynomials.map { LinearMonomial(it.value, it.key) },
+        constant = constants
+    )
+    val lhs = LinearPolynomial(listOf(LinearMonomial(one, objectVariable)), zero)
+    return when (objectCategory) {
+        ObjectCategory.Maximum -> {
+            listOf(lhs le rhs)
+        }
+
+        ObjectCategory.Minimum -> {
+            listOf(lhs ge rhs)
+        }
+    }
+}
+
+internal fun <V> buildLinearFeasibleCut(
+    constraints: List<LinearConstraintImpl<V>>,
+    fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+    farkasDualSolution: Map<Constraint<V, Linear>, V>,
+    zero: V,
+    one: V,
+    logger: KotlinLogger
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    var value = zero
+    var constants = zero
+    val polynomials = HashMap<AbstractVariableItem<*, *>, V>()
+    for (constraint in constraints) {
+        val dual = farkasDualSolution[constraint] ?: continue
+        if (dual eq zero) {
+            continue
+        }
+
+        value += dual * constraint.rhs
+        constants += dual * constraint.rhs
+        for (cell in constraint.lhs) {
+            val variable = cell.token.variable
+            if (variable in fixedVariables) {
+                val coefficient = dual * cell.coefficient
+                if (coefficient neq zero) {
+                    polynomials[variable] = (polynomials[variable] ?: zero) - coefficient
+                }
+                value -= dual * cell.coefficient * fixedVariables[variable]!!
+            }
+        }
+    }
+    if (value ls zero) {
+        logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
+        constants *= -one
+        polynomials.replaceAll { _, v -> -v }
+    }
+    val lhs = LinearPolynomial(
+        monomials = polynomials.map { LinearMonomial(it.value, it.key) },
+        constant = constants
+    )
+    return listOf(lhs le zero)
+}
+
+internal fun <V> buildQuadraticOptimalCut(
+    constraints: List<QuadraticConstraintImpl<V>>,
+    objectCategory: ObjectCategory,
+    objectVariable: AbstractVariableItem<*, *>,
+    fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+    dualSolution: Map<Constraint<V, Quadratic>, V>,
+    zero: V,
+    one: V
+): List<Any> where V : RealNumber<V>, V : NumberField<V> {
+    val constants = constraints.fold(zero) { acc, constraint ->
+        acc + (dualSolution[constraint] ?: zero) * constraint.rhs
+    }
+    val linearPolynomial = HashMap<AbstractVariableItem<*, *>, V>()
+    val quadraticPolynomial = HashMap<OrderedVariablePair, V>()
+    for (constraint in constraints) {
+        val dual = dualSolution[constraint] ?: continue
+        if (dual eq zero) {
+            continue
+        }
+
+        for (cell in constraint.lhs) {
+            val variable1 = cell.token1.variable
+            val variable2 = cell.token2?.variable
+            if (variable2 == null) {
+                if (variable1 in fixedVariables) {
+                    val projected = -dual * cell.coefficient
+                    if (projected neq zero) {
+                        linearPolynomial[variable1] = (linearPolynomial[variable1] ?: zero) + projected
+                    }
+                }
+            } else if (variable1 in fixedVariables && variable2 in fixedVariables) {
+                val projected = -dual * cell.coefficient
+                if (projected neq zero) {
+                    val key = OrderedVariablePair.of(variable1, variable2)
+                    quadraticPolynomial[key] = (quadraticPolynomial[key] ?: zero) + projected
+                }
+            }
+        }
+    }
+
+    val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq zero }
+    if (!hasQuadratic) {
+        val rhs = LinearPolynomial(
+            monomials = linearPolynomial
+                .filterValues { it neq zero }
+                .map { LinearMonomial(it.value, it.key) },
+            constant = constants
+        )
+        val lhs = LinearPolynomial(
+            monomials = listOf(LinearMonomial(one, objectVariable)),
+            constant = zero
+        )
+        val cut = when (objectCategory) {
+            ObjectCategory.Maximum -> {
+                lhs le rhs
+            }
+
+            ObjectCategory.Minimum -> {
+                lhs ge rhs
+            }
+        }
+        return listOf(cut)
+    }
+
+    val rhs = QuadraticPolynomial(
+        monomials = linearPolynomial
+            .filterValues { it neq zero }
+            .map { QuadraticMonomial.linear(it.value, it.key) } +
+            quadraticPolynomial
+                .filterValues { it neq zero }
+                .map { QuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
+        constant = constants
+    )
+    val lhs = QuadraticPolynomial(
+        monomials = listOf(QuadraticMonomial.linear(one, objectVariable)),
+        constant = zero
+    )
+    val cut = when (objectCategory) {
+        ObjectCategory.Maximum -> {
+            lhs le rhs
+        }
+
+        ObjectCategory.Minimum -> {
+            lhs ge rhs
+        }
+    }
+    return listOf(cut)
+}
+
+internal fun <V> buildQuadraticFeasibleCut(
+    constraints: List<QuadraticConstraintImpl<V>>,
+    fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+    farkasDualSolution: Map<Constraint<V, Quadratic>, V>,
+    zero: V,
+    one: V,
+    logger: KotlinLogger
+): List<Any> where V : RealNumber<V>, V : NumberField<V> {
+    var value = zero
+    var constants = zero
+    val linearPolynomial = HashMap<AbstractVariableItem<*, *>, V>()
+    val quadraticPolynomial = HashMap<OrderedVariablePair, V>()
+    for (constraint in constraints) {
+        val dual = farkasDualSolution[constraint] ?: continue
+        if (dual eq zero) {
+            continue
+        }
+
+        value += dual * constraint.rhs
+        constants += dual * constraint.rhs
+        for (cell in constraint.lhs) {
+            val variable1 = cell.token1.variable
+            val variable2 = cell.token2?.variable
+            if (variable2 == null) {
+                if (variable1 in fixedVariables) {
+                    val projected = -dual * cell.coefficient
+                    if (projected neq zero) {
+                        linearPolynomial[variable1] = (linearPolynomial[variable1] ?: zero) + projected
+                    }
+                    value -= dual * cell.coefficient * fixedVariables[variable1]!!
+                }
+            } else if (variable1 in fixedVariables && variable2 in fixedVariables) {
+                val projected = -dual * cell.coefficient
+                if (projected neq zero) {
+                    val key = OrderedVariablePair.of(variable1, variable2)
+                    quadraticPolynomial[key] = (quadraticPolynomial[key] ?: zero) + projected
+                }
+                value -= dual * cell.coefficient * fixedVariables[variable1]!! * fixedVariables[variable2]!!
+            }
+        }
+    }
+    if (value ls zero) {
+        logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
+        constants *= -one
+        linearPolynomial.replaceAll { _, coefficient -> -coefficient }
+        quadraticPolynomial.replaceAll { _, coefficient -> -coefficient }
+    }
+
+    val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq zero }
+    if (!hasQuadratic) {
+        val lhs = LinearPolynomial(
+            monomials = linearPolynomial
+                .filterValues { it neq zero }
+                .map { LinearMonomial(it.value, it.key) },
+            constant = constants
+        )
+        return listOf(lhs le zero)
+    }
+
+    val lhs = QuadraticPolynomial(
+        monomials = linearPolynomial
+            .filterValues { it neq zero }
+            .map { QuadraticMonomial.linear(it.value, it.key) } +
+            quadraticPolynomial
+                .filterValues { it neq zero }
+                .map { QuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
+        constant = constants
+    )
+    val rhs = QuadraticPolynomial(emptyList(), zero)
+    return listOf(lhs le rhs)
+}

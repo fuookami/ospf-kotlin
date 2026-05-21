@@ -23,26 +23,40 @@ internal object MemoryCleanupPolicy {
         return memoryUseOver(threshold())
     }
 
+    private fun cleanupIfNeeded(shouldCleanup: Boolean) {
+        if (shouldCleanup) {
+            System.gc()
+        }
+    }
+
     fun cleanupAfterModelBuilt() {
         if (!enabled()) {
             return
         }
-        if (aggressive() || shouldCleanup()) {
-            System.gc()
-        }
+        cleanupIfNeeded(aggressive() || shouldCleanup())
     }
 
     fun cleanupOnPressure() {
         if (!enabled()) {
             return
         }
-        if (shouldCleanup()) {
-            System.gc()
-        }
+        cleanupIfNeeded(shouldCleanup())
     }
 
     fun cleanupAfterBatch() {
         cleanupOnPressure()
+    }
+
+    fun cleanupAfterAsyncBatch() {
+        cleanupOnPressure()
+    }
+
+    fun cleanupBeforeConcurrentBatch() {
+        cleanupOnPressure()
+    }
+
+    fun cleanupAfterSymbolRegistration() {
+        cleanupAfterModelBuilt()
     }
 }
 

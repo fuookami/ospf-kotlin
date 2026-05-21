@@ -308,11 +308,18 @@ private fun compareOrder(left: Any, right: Any): Int? {
     return when {
         left is Number && right is Number -> compareNumbers(left, right)
         left is Comparable<*> && right::class == left::class -> {
-            (left as Comparable<Any>).compareTo(right)
+            compareSameTypeComparable(left, right)
         }
         left is String && right is String -> left.compareTo(right)
         else -> null
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun compareSameTypeComparable(left: Any, right: Any): Int {
+    // 安全不变量：调用点先保证 right::class == left::class，compareTo 的参数类型与 left 运行时类型一致。
+    // Safety invariant: call site guarantees right::class == left::class, so compareTo receives the runtime-compatible type of left.
+    return (left as Comparable<Any>).compareTo(right)
 }
 
 /**

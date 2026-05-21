@@ -1,9 +1,11 @@
 param(
-    [Parameter(Mandatory = $true)]
-    [string] $Baseline,
+    [string] $Baseline = "",
 
-    [Parameter(Mandatory = $true)]
-    [string] $Current,
+    [string] $Current = "",
+
+    [string] $ResultsDir = "",
+
+    [string] $Dataset = "",
 
     [string] $Output = ""
 )
@@ -45,6 +47,85 @@ function Resolve-DefaultOutputPath {
         return (Join-Path $currentDir ("trend-{0}.md" -f $currentDataset))
     }
     return ""
+}
+
+function Resolve-BenchmarkInputPaths {
+    param(
+        [string] $BaselinePath,
+        [string] $CurrentPath,
+        [string] $ResultsDirectory,
+        [string] $DatasetTag
+    )
+
+    $baselineTrimmed = $BaselinePath.Trim()
+    $currentTrimmed = $CurrentPath.Trim()
+    $resultsDirTrimmed = $ResultsDirectory.Trim()
+    $datasetTrimmed = $DatasetTag.Trim()
+
+    if (($baselineTrimmed.Length -gt 0) -or ($currentTrimmed.Length -gt 0)) {
+        if (($baselineTrimmed.Length -eq 0) -or ($currentTrimmed.Length -eq 0)) {
+            throw "Both -Baseline and -Current must be provided together."
+        }
+        if (!(Test-Path -LiteralPath $baselineTrimmed)) {
+            throw "Benchmark result file not found: $baselineTrimmed"
+        }
+        if (!(Test-Path -LiteralPath $currentTrimmed)) {
+            throw "Benchmark result file not found: $currentTrimmed"
+        }
+        return [pscustomobject]@{
+            BaselinePath = $baselineTrimmed
+            CurrentPath = $currentTrimmed
+            Dataset = ""
+            Mode = "explicit-files"
+        }
+    }
+
+    if ($resultsDirTrimmed.Length -eq 0) {
+        throw "Either provide -Baseline/-Current, or provide -ResultsDir (and optional -Dataset)."
+    }
+    if (!(Test-Path -LiteralPath $resultsDirTrimmed)) {
+        throw "Benchmark result directory not found: $resultsDirTrimmed"
+    }
+
+    $baselineFiles = Get-ChildItem -LiteralPath $resultsDirTrimmed -File -Filter "baseline-*.json"
+    $currentFiles = Get-ChildItem -LiteralPath $resultsDirTrimmed -File -Filter "current-*.json"
+
+    $baselineMap = @{}
+    foreach ($file in $baselineFiles) {
+        $tag = Get-DatasetTagFromPath -Path $file.Name -Prefix "baseline"
+        if ($tag.Length -gt 0 -and -not $baselineMap.ContainsKey($tag)) {
+            $baselineMap[$tag] = $file.FullName
+        }
+    }
+
+    $currentMap = @{}
+    foreach ($file in $currentFiles) {
+        $tag = Get-DatasetTagFromPath -Path $file.Name -Prefix "current"
+        if ($tag.Length -gt 0 -and -not $currentMap.ContainsKey($tag)) {
+            $currentMap[$tag] = $file.FullName
+        }
+    }
+
+    $matchedDatasets = @($baselineMap.Keys | Where-Object { $currentMap.ContainsKey($_) } | Sort-Object)
+    if ($matchedDatasets.Count -eq 0) {
+        throw "No matched baseline/current dataset pair found in: $resultsDirTrimmed"
+    }
+
+    if ($datasetTrimmed.Length -eq 0) {
+        if ($matchedDatasets.Count -gt 1) {
+            throw ("Multiple matched datasets found: {0}. Please specify -Dataset." -f ($matchedDatasets -join ", "))
+        }
+        $datasetTrimmed = $matchedDatasets[0]
+    } elseif (-not ($baselineMap.ContainsKey($datasetTrimmed) -and $currentMap.ContainsKey($datasetTrimmed))) {
+        throw ("Dataset '{0}' not found as matched baseline/current pair in {1}. Available: {2}" -f $datasetTrimmed, $resultsDirTrimmed, ($matchedDatasets -join ", "))
+    }
+
+    return [pscustomobject]@{
+        BaselinePath = $baselineMap[$datasetTrimmed]
+        CurrentPath = $currentMap[$datasetTrimmed]
+        Dataset = $datasetTrimmed
+        Mode = "results-dir"
+    }
 }
 
 function Format-Score {
@@ -147,18 +228,29 @@ function Format-PercentDelta {
     return ("{0:+0.00;-0.00;0.00}%" -f $delta)
 }
 
+$resolvedInput = Resolve-BenchmarkInputPaths -BaselinePath $Baseline -CurrentPath $Current -ResultsDirectory $ResultsDir -DatasetTag $Dataset
+$Baseline = $resolvedInput.BaselinePath
+$Current = $resolvedInput.CurrentPath
+
 $baselineItems = Read-BenchmarkResults -Path $Baseline
 $currentItems = Read-BenchmarkResults -Path $Current
 $keys = @($baselineItems.Keys + $currentItems.Keys | Sort-Object -Unique)
 $baselineDataset = Get-DatasetTagFromPath -Path $Baseline -Prefix "baseline"
 $currentDataset = Get-DatasetTagFromPath -Path $Current -Prefix "current"
-$detectedDataset = if ($baselineDataset.Length -gt 0 -and $baselineDataset -eq $currentDataset) { $baselineDataset } else { "n/a" }
+$detectedDataset = if ($resolvedInput.Dataset.Trim().Length -gt 0) {
+    $resolvedInput.Dataset.Trim()
+} elseif ($baselineDataset.Length -gt 0 -and $baselineDataset -eq $currentDataset) {
+    $baselineDataset
+} else {
+    "n/a"
+}
 
 $lines = New-Object System.Collections.Generic.List[string]
 $lines.Add("# Benchmark Trend Comparison")
 $lines.Add("")
 $lines.Add("- Baseline: ``$Baseline``")
 $lines.Add("- Current: ``$Current``")
+$lines.Add("- Input mode: ``$($resolvedInput.Mode)``")
 $lines.Add("- Naming convention: ``baseline-<dataset>.json`` / ``current-<dataset>.json`` / ``trend-<dataset>.md``")
 $lines.Add("- Detected dataset: ``$detectedDataset``")
 $lines.Add("- Gate policy: report only (no hard performance gate)")

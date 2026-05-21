@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.solver.scip
+﻿package fuookami.ospf.kotlin.core.solver.scip
 
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -59,11 +59,6 @@ class ScipLinearBendersDecompositionSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -145,11 +140,6 @@ class ScipLinearBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -221,11 +211,6 @@ class ScipLinearBendersDecompositionSolver(
                                 is Failed -> {
                                     jobs.joinAll()
                                     return Failed(result.error)
-                                }
-
-                                is Fatal -> {
-                                    jobs.joinAll()
-                                    return Fatal(result.errors)
                                 }
 
                                 is Fatal -> {
@@ -330,11 +315,6 @@ class ScipQuadraticBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -430,11 +410,6 @@ class ScipQuadraticBendersDecompositionSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             QuadraticTetradModel(
                 model = mechanismModel,
@@ -512,11 +487,6 @@ class ScipQuadraticBendersDecompositionSolver(
                                     jobs.joinAll()
                                     return Fatal(result.errors)
                                 }
-
-                                is Fatal -> {
-                                    jobs.joinAll()
-                                    return Fatal(result.errors)
-                                }
                             }
                         }
                         jobs.joinAll()
@@ -531,14 +501,6 @@ class ScipQuadraticBendersDecompositionSolver(
 
                             is Failed -> {
                                 return Failed(result.error)
-                            }
-
-                            is Fatal -> {
-                                return Fatal(result.errors)
-                            }
-
-                            is Fatal -> {
-                                return Fatal(result.errors)
                             }
 
                             is Fatal -> {
@@ -568,14 +530,6 @@ class ScipQuadraticBendersDecompositionSolver(
 
                                 is Failed -> {
                                     return Failed(result.error)
-                                }
-
-                                is Fatal -> {
-                                    return Fatal(result.errors)
-                                }
-
-                                is Fatal -> {
-                                    return Fatal(result.errors)
                                 }
 
                                 is Fatal -> {

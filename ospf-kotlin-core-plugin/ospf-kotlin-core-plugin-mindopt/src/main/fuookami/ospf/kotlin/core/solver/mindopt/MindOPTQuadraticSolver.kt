@@ -10,7 +10,12 @@ import com.alibaba.damo.mindopt.*
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
-import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.solvingException
+import fuookami.ospf.kotlin.core.solver.modelingException
+import fuookami.ospf.kotlin.core.solver.failByStatus
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -20,8 +25,6 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -47,7 +50,7 @@ class MindOPTQuadraticSolver(
             statusCallBack = solvingStatusCallBack
         ).use { impl ->
             val result = impl(model)
-            System.gc()
+            cleanupAfterSolverRun()
             result
         }
     }
@@ -84,7 +87,7 @@ class MindOPTQuadraticSolver(
                 statusCallBack = solvingStatusCallBack
             ).use { impl ->
                 val result = impl(model).map { it to results }
-                System.gc()
+                cleanupAfterSolverRun()
                 result
             }
         }
@@ -156,11 +159,13 @@ private class MindOPTQuadraticSolverImpl(
 
             val constraints = coroutineScope {
                 if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                    val segment = pow(UInt64.ten, factor).toInt()
-                    val promises = (0..(model.constraints.size / segment)).map { i ->
+                    val segment = computeConstraintSegmentSize(model.constraints.size)
+                    val chunkAmount = (model.constraints.size + segment - 1) / segment
+                    val promises = (0 until chunkAmount).map { i ->
                         async(Dispatchers.Default) {
-                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val from = i * segment
+                            val to = minOf(model.constraints.size, from + segment)
+                            val constraints = (from until to).map { ii ->
                                 val lhs = MDOQuadExpr()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
                                     if (colIndex2 != null) {
@@ -171,9 +176,7 @@ private class MindOPTQuadraticSolverImpl(
                                 }
                                 ii to lhs
                             }
-                            if (memoryUseOver()) {
-                                System.gc()
-                            }
+                            cleanupOnSolverMemoryPressure()
                             constraints
                         }
                     }
@@ -186,9 +189,7 @@ private class MindOPTQuadraticSolverImpl(
                                 model.constraints.names[it.first]
                             )
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                         result
                     }
                 } else {
@@ -210,7 +211,7 @@ private class MindOPTQuadraticSolverImpl(
                     }
                 }
             }
-            System.gc()
+            cleanupAfterSolverRun()
             mindoptConstraints = constraints
 
             val obj = MDOQuadExpr()
@@ -254,9 +255,9 @@ private class MindOPTQuadraticSolverImpl(
             }
             ok
         } catch (e: MDOException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 
@@ -354,9 +355,9 @@ private class MindOPTQuadraticSolverImpl(
             }
             ok
         } catch (e: MDOException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 
@@ -422,13 +423,12 @@ private class MindOPTQuadraticSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.resolveErrCode()))
+                failByStatus(status)
             }
         } catch (e: MDOException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 }
-

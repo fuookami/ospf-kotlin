@@ -13,7 +13,11 @@ import com.hexaly.optimizer.HxObjectiveDirection
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
-import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.modelingException
+import fuookami.ospf.kotlin.core.solver.failByStatus
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -24,8 +28,6 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -51,7 +53,7 @@ class HexalyLinearSolver(
             statusCallBack = solvingStatusCallBack
         ).use { impl ->
             val result = impl(model)
-            System.gc()
+            cleanupAfterSolverRun()
             result
         }
     }
@@ -78,7 +80,7 @@ class HexalyLinearSolver(
                 statusCallBack = solvingStatusCallBack
             ).use { impl ->
                 val result = impl(model).map { it to results }
-                System.gc()
+                cleanupAfterSolverRun()
                 result
             }
         }
@@ -141,15 +143,13 @@ private class HexalyLinearSolverImpl(
 
             val constraints = coroutineScope {
                 if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                    val segment = if (factor >= 1) {
-                        pow(UInt64.ten, factor).toInt()
-                    } else {
-                        10
-                    }
-                    val promises = (0..(model.constraints.size / segment)).map { i ->
+                    val segment = computeConstraintSegmentSize(model.constraints.size)
+                    val chunkAmount = (model.constraints.size + segment - 1) / segment
+                    val promises = (0 until chunkAmount).map { i ->
                         val constraints = async(Dispatchers.Default) {
-                            ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val from = i * segment
+                            val to = minOf(model.constraints.size, from + segment)
+                            (from until to).map { ii ->
                                 val lhs = hexalyModel.sum()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
                                     lhs.addOperands(
@@ -159,9 +159,7 @@ private class HexalyLinearSolverImpl(
                                 ii to lhs
                             }
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                         constraints
                     }
                     promises.flatMap { promise ->
@@ -182,9 +180,7 @@ private class HexalyLinearSolverImpl(
                             hexalyModel.constraint(constraint)
                             constraint
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                         result
                     }
                 } else {
@@ -213,7 +209,7 @@ private class HexalyLinearSolverImpl(
                     }
                 }
             }
-            System.gc()
+            cleanupAfterSolverRun()
             hexalyConstraints = constraints
 
             val obj = hexalyModel.sum()
@@ -251,9 +247,9 @@ private class HexalyLinearSolverImpl(
             }
             ok
         } catch (e: HxException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 
@@ -357,9 +353,9 @@ private class HexalyLinearSolverImpl(
             }
             ok
         } catch (e: HxException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 
@@ -414,13 +410,12 @@ private class HexalyLinearSolverImpl(
 
                     else -> {}
                 }
-                Failed(Err(status.resolveErrCode()))
+                failByStatus(status)
             }
         } catch (e: HxException) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 }
-

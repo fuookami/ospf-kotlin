@@ -136,13 +136,20 @@ fun <T> solveQuadratic(coefficients: QuadraticCoefficients<T>): PolynomialRoots<
         }
         else -> {
             // 两个不同的实栌/ Two distinct real roots
-            val sqrtD = discriminant.sqrt() as T
+            val sqrtD = castToFloatingType<T>(discriminant.sqrt())
             val twoA = constants.two * a
             val root1 = (-b + sqrtD) / twoA
             val root2 = (-b - sqrtD) / twoA
             return PolynomialRoots(listOf(root1, root2), discriminant, true)
         }
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> castToFloatingType(value: Any): T where T : Field<T>, T : FloatingNumber<T> {
+    // 安全不变量：solveQuadratic 的 T 是具体 FloatingNumber<T>，sqrt 对该数值族返回同族实例。
+    // Safety invariant: T in solveQuadratic is a concrete FloatingNumber<T>, and sqrt returns an instance from the same numeric family.
+    return value as T
 }
 
 /**

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.solver.gurobi
+﻿package fuookami.ospf.kotlin.core.solver.gurobi
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
@@ -49,11 +49,6 @@ class GurobiColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -127,11 +122,6 @@ class GurobiColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -224,11 +214,6 @@ class GurobiColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {

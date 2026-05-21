@@ -9,6 +9,10 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.modelingException
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -19,8 +23,6 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -47,7 +49,7 @@ class MosekLinearSolver(
             statusCallBack = solvingStatusCallBack
         ).use { impl ->
             val result = impl(model)
-            System.gc()
+            cleanupAfterSolverRun()
             result
         }
     }
@@ -74,7 +76,7 @@ class MosekLinearSolver(
                 statusCallBack = solvingStatusCallBack
             ).use { impl ->
                 val result = impl(model).map { it to results }
-                System.gc()
+                cleanupAfterSolverRun()
                 result
             }
         }
@@ -146,15 +148,13 @@ class MosekLinearSolverImpl(
             mosekModel.appendcons(model.constraints.size)
             coroutineScope {
                 if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                    val segment = if (factor >= 1) {
-                        pow(UInt64.ten, factor).toInt()
-                    } else {
-                        10
-                    }
-                    val promises = (0..(model.constraints.size / segment)).map { i ->
+                    val segment = computeConstraintSegmentSize(model.constraints.size)
+                    val chunkAmount = (model.constraints.size + segment - 1) / segment
+                    val promises = (0 until chunkAmount).map { i ->
                         async(Dispatchers.Default) {
-                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val from = i * segment
+                            val to = minOf(model.constraints.size, from + segment)
+                            val constraints = (from until to).map { ii ->
                                 val cols = ArrayList<Int>()
                                 val coefficients = ArrayList<Double>()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
@@ -163,9 +163,7 @@ class MosekLinearSolverImpl(
                                 }
                                 Triple(ii, cols, coefficients)
                             }
-                            if (memoryUseOver()) {
-                                System.gc()
-                            }
+                            cleanupOnSolverMemoryPressure()
                             constraints
                         }
                     }
@@ -205,9 +203,7 @@ class MosekLinearSolverImpl(
                                 coefficients.toDoubleArray()
                             )
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                     }
                 } else {
                     model.constraints.indices.map { i ->
@@ -253,7 +249,7 @@ class MosekLinearSolverImpl(
                     }
                 }
             }
-            System.gc()
+            cleanupAfterSolverRun()
 
             for (cell in model.objective.objective) {
                 mosekModel.putcj(cell.colIndex, cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"))
@@ -270,9 +266,9 @@ class MosekLinearSolverImpl(
 
             ok
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException, e.message))
+            modelingException(e.message)
         } catch (e: java.lang.Exception) {
-            Failed(Err(ErrorCode.OREngineModelingException))
+            modelingException()
         }
     }
 

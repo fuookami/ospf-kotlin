@@ -32,10 +32,25 @@ data class ChebyshevMap<V : FloatingNumber<V>>(
     override operator fun invoke(x: V): V {
         val v = a
         return if (x geq -v.constants.one && x leq v.constants.one) {
-            (/* unchecked */ a * (x.acos() as V)).cos() as V
+            val acosValue = castNullableToV(x.acos()) ?: return v.constants.zero
+            castToV((a * acosValue).cos())
         } else {
             v.constants.zero
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun castToV(value: Any): V {
+        // 安全不变量：V 实现 FloatingNumber<V>，cos 返回值与输入保持同一运行时数值类型。
+        // Safety invariant: V implements FloatingNumber<V>, and cos keeps the same runtime numeric type as input.
+        return value as V
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun castNullableToV(value: Any?): V? {
+        // 安全不变量：acos 在定义域内返回与输入同一数值族；定义域外保持 null。
+        // Safety invariant: acos returns the same numeric family as input in-domain; out-of-domain remains null.
+        return value as V?
     }
 
     companion object {

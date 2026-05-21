@@ -10,8 +10,10 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.failByStatus
 import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
-import fuookami.ospf.kotlin.core.solver.resolveErrCode
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gap
@@ -19,12 +21,9 @@ import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -61,7 +60,7 @@ class ScipQuadraticSolver(
             statusCallBack = solvingStatusCallBack
         )
         val result = impl(model)
-        System.gc()
+        cleanupAfterSolverRun()
         return result
     }
 
@@ -108,7 +107,7 @@ class ScipQuadraticSolver(
                 statusCallBack = solvingStatusCallBack
             )
             val result = impl(model).map { it to results }
-            System.gc()
+            cleanupAfterSolverRun()
             return result
         }
     }
@@ -251,9 +250,7 @@ private class ScipQuadraticSolverImpl(
                             }
                             ii to Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
                         }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
+                        cleanupOnSolverMemoryPressure()
                         constraints
                     }
                 }
@@ -276,9 +273,7 @@ private class ScipQuadraticSolverImpl(
                         scip.addCons(constraint)
                         constraint
                     }
-                    if (memoryUseOver()) {
-                        System.gc()
-                    }
+                    cleanupOnSolverMemoryPressure()
                     result
                 }
             } else {
@@ -329,7 +324,7 @@ private class ScipQuadraticSolverImpl(
                 }
             }
         }
-        System.gc()
+        cleanupAfterSolverRun()
         scipConstraints = constraints
 
         val qovars = ArrayList<jscip.Variable>()
@@ -552,7 +547,7 @@ private class ScipQuadraticSolverImpl(
 
                 else -> {}
             }
-            Failed(Err(status.resolveErrCode()))
+            failByStatus(status)
         }
     }
 }

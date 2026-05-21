@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.solver.scip
+﻿package fuookami.ospf.kotlin.core.solver.scip
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
@@ -52,11 +52,6 @@ class ScipColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -130,11 +125,6 @@ class ScipColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -242,11 +232,6 @@ class ScipColumnGenerationSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -297,11 +282,6 @@ class ScipColumnGenerationSolver(
                                 is Failed -> {
                                     jobs.joinAll()
                                     return Failed(result.error)
-                                }
-
-                                is Fatal -> {
-                                    jobs.joinAll()
-                                    return Fatal(result.errors)
                                 }
 
                                 is Fatal -> {

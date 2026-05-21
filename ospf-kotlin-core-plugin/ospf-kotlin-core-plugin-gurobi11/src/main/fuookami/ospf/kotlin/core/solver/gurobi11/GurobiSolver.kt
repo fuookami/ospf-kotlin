@@ -6,9 +6,11 @@ import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBModel
+import fuookami.ospf.kotlin.core.solver.environmentLost
+import fuookami.ospf.kotlin.core.solver.executeCreatingEnvironmentCallback
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.solver.solvingException
+import fuookami.ospf.kotlin.core.solver.terminated
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -39,15 +41,9 @@ abstract class GurobiSolver : AutoCloseable {
             env.set(GRB.DoubleParam.CSQueueTimeout, connectionTime.toDouble(DurationUnit.SECONDS))
             env.set(GRB.StringParam.ComputeServer, server)
             env.set(GRB.StringParam.ServerPassword, password)
-            when (val result = callBack?.invoke(env)) {
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
+            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack)) {
+                is Failed -> return callbackResult
+                is Fatal -> return callbackResult
                 else -> {}
             }
             env.start()
@@ -56,9 +52,9 @@ abstract class GurobiSolver : AutoCloseable {
             grbModel.set(GRB.StringAttr.ModelName, name)
             ok
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 
@@ -68,24 +64,18 @@ abstract class GurobiSolver : AutoCloseable {
     ): Try {
         return try {
             env = GRBEnv()
-            when (val result = callBack?.invoke(env)) {
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
+            when (val callbackResult = executeCreatingEnvironmentCallback(env, callBack)) {
+                is Failed -> return callbackResult
+                is Fatal -> return callbackResult
                 else -> {}
             }
             grbModel = GRBModel(env)
             grbModel.set(GRB.StringAttr.ModelName, name)
             ok
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost, e.message))
+            environmentLost(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineEnvironmentLost))
+            environmentLost()
         }
     }
 
@@ -95,9 +85,9 @@ abstract class GurobiSolver : AutoCloseable {
 
             ok
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineTerminated))
+            terminated()
         }
     }
 
@@ -131,9 +121,9 @@ abstract class GurobiSolver : AutoCloseable {
 
             ok
         } catch (e: GRBException) {
-            Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+            solvingException(e.message)
         } catch (e: Exception) {
-            Failed(Err(ErrorCode.OREngineSolvingException))
+            solvingException()
         }
     }
 }

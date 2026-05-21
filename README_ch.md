@@ -198,7 +198,7 @@ benchmark 结果文件默认输出到：
 1. 默认路径：`ospf-kotlin-benchmark/target/benchmark-results/*.json`
 2. 可选自定义路径：`-Dexec.args="... json target/benchmark-results/custom.json"`
 
-CI 会上传 `ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json` 作为 artifact，仅用于结果留存，不作为性能硬门禁。
+CI 会上传 `ospf-kotlin-benchmark/target/benchmark-results/` 目录作为 artifact，仅用于结果留存（包含 `ci-smoke.json`、`baseline-smoke.json`、`current-smoke.json`、`trend-smoke.md`），不作为性能硬门禁。
 
 比较两份 JMH JSON 结果并输出 Markdown 趋势报告：
 
@@ -209,6 +209,16 @@ pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
 ```
 
 当省略 `-Output` 且命名遵循 `baseline-<dataset>.json` / `current-<dataset>.json` 时，脚本会默认在同目录输出 `trend-<dataset>.md`。
+
+也可以使用目录模式：
+
+```powershell
+pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
+  -ResultsDir .\ospf-kotlin-benchmark\target\benchmark-results `
+  -Dataset small
+```
+
+如果目录中仅存在一组可匹配的 `baseline-*.json` / `current-*.json`，可省略 `-Dataset`。
 
 如需显式输出路径，也可传入 `-Output`：
 

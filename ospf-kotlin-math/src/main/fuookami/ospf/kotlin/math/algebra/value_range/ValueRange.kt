@@ -1170,11 +1170,17 @@ data class ValueRange<T>(
         other as ValueRange<*>
         if (constants != other.constants) return false
 
-        other as ValueRange<T>
-        if (lowerBound neq other.lowerBound) return false
-        if (upperBound neq other.upperBound) return false
+        if (!hasSameBounds(other)) return false
 
         return true
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun hasSameBounds(other: Any): Boolean {
+        // 安全不变量：equals 已校验 javaClass 与 constants，当前对象与 other 共享同一运行时数值类型。
+        // Safety invariant: equals already checked javaClass and constants, so this and other share the same runtime numeric type.
+        val typedOther = other as ValueRange<T>
+        return lowerBound eq typedOther.lowerBound && upperBound eq typedOther.upperBound
     }
 
     /**

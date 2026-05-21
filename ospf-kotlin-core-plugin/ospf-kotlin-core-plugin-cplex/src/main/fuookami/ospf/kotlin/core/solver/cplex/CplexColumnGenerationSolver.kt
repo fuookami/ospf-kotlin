@@ -1,14 +1,13 @@
-package fuookami.ospf.kotlin.core.solver.cplex
+﻿package fuookami.ospf.kotlin.core.solver.cplex
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.solver.solvingException
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -52,11 +51,6 @@ class CplexColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -136,11 +130,6 @@ class CplexColumnGenerationSolver(
                 jobs.joinAll()
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
-            }
         }.use { mechanismModel ->
             LinearTriadModel(
                 model = mechanismModel,
@@ -174,7 +163,7 @@ class CplexColumnGenerationSolver(
                                 cplex.populate()
                                 ok
                             } catch (e: IloException) {
-                                Failed(Err(ErrorCode.OREngineSolvingException, e.message))
+                                solvingException(e.message)
                             }
                         }
                         .analyzingSolution { _, cplex, variables, _ ->
@@ -237,11 +226,6 @@ class CplexColumnGenerationSolver(
             is Failed -> {
                 jobs.joinAll()
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                jobs.joinAll()
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
