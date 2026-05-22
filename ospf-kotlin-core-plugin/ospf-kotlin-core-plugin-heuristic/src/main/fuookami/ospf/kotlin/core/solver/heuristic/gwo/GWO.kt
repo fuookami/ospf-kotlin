@@ -13,7 +13,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.functional.sumOf
 import kotlinx.coroutines.Dispatchers
@@ -296,19 +297,17 @@ class GreyWolfOptimizer<Obj, ObjValue, V>(
                 model = model
             )
             iteration.next(globalBetter)
-            if (memoryUseOver()) {
-                System.gc()
-            }
+            cleanupOnSolverMemoryPressure()
 
             if (runningCallBack?.invoke(iteration, bestWolf, goodWolfs, populations) is Failed) {
                 break
             }
         }
 
+        cleanupAfterSolverRun()
         return goodWolfs.take(solutionAmount.toInt())
     }
 }
 
 typealias GWO = GreyWolfOptimizer<Flt64, Flt64, Flt64>
 typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
-

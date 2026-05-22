@@ -14,6 +14,16 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.ord
 import fuookami.ospf.kotlin.utils.functional.Order
 
+/**
+ * 并发 token table 读写实现。
+ * Concurrent token-table read/write implementation.
+ *
+ * 说明：通过统一锁与 TokenCacheContexts 管理 value/flatten/range 缓存，并在 close/remove 时解绑上下文。
+ * Note: value/flatten/range caches are managed with a unified lock and TokenCacheContexts, and symbol contexts are unbound on close/remove.
+ *
+ * 非目标：不在该层执行建模求解逻辑，仅提供线程安全的数据与缓存容器。
+ * Non-goal: no modeling/solving logic is executed in this layer; it only provides thread-safe data and cache containers.
+ */
 data class ConcurrentTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractTokenList<V>,
@@ -210,6 +220,10 @@ data class ConcurrentTokenTable<V>(
     }
 }
 
+/**
+ * 并发可变 token table 基类。
+ * Base class for concurrent mutable token tables.
+ */
 sealed class ConcurrentMutableTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractMutableTokenList<V>,

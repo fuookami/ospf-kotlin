@@ -10,7 +10,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -187,15 +188,14 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
                 model = model
             )
             iteration.next(globalBetter)
-            if (memoryUseOver()) {
-                System.gc()
-            }
+            cleanupOnSolverMemoryPressure()
 
             if (runningCallBack?.invoke(iteration, bestParticle, goodParticles) is Failed) {
                 break
             }
         }
 
+        cleanupAfterSolverRun()
         return goodParticles
             .take(solutionAmount.toInt())
             .map {
@@ -209,4 +209,3 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
 
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64, Flt64>
 typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
-

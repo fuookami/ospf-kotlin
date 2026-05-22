@@ -11,7 +11,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.functional.sumOf
 import kotlinx.coroutines.Dispatchers
@@ -376,20 +377,17 @@ class GeneAlgorithm<Obj, ObjValue, V>(
                 model = model
             )
             iteration.next(globalBetter)
-            if (memoryUseOver()) {
-                System.gc()
-            }
+            cleanupOnSolverMemoryPressure()
 
             if (runningCallBack?.invoke(iteration, bestChromosome, goodChromosomes, populations) is Failed) {
                 break
             }
         }
 
+        cleanupAfterSolverRun()
         return goodChromosomes.take(solutionAmount.toInt())
     }
 }
 
 typealias GA = GeneAlgorithm<Flt64, Flt64, Flt64>
 typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
-
-

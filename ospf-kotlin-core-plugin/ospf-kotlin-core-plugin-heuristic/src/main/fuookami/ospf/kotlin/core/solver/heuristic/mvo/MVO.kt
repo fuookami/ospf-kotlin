@@ -12,7 +12,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -249,19 +250,17 @@ class MultiVerseOptimizer<Obj, ObjValue, V>(
                 model = model
             )
             iteration.next(globalBetter)
-            if (memoryUseOver()) {
-                System.gc()
-            }
+            cleanupOnSolverMemoryPressure()
 
             if (runningCallBack?.invoke(iteration, bestUniverse, goodUniverses) is Failed) {
                 break
             }
         }
 
+        cleanupAfterSolverRun()
         return goodUniverses.take(solutionAmount.toInt())
     }
 }
 
 typealias MVO = MultiVerseOptimizer<Flt64, Flt64, Flt64>
 typealias MulObjMVO = MultiVerseOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
-

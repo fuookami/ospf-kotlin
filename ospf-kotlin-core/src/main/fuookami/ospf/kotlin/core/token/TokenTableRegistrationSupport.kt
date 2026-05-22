@@ -24,6 +24,17 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
+/**
+ * Token 注册与缓存预热支持（含并发路径）。
+ * Token registration and cache warm-up support (including concurrent path).
+ *
+ * 说明：该文件负责符号依赖分层注册、aux token 准备与 flatten/range/value 缓存写入。
+ * Note: this file handles layered registration by symbol dependencies, auxiliary-token preparation, and flatten/range/value cache writes.
+ *
+ * 非目标：不承担函数约束建模与求解流程控制，这些职责在 MetaModel/MechanismModel 与 solver 侧完成。
+ * Non-goal: function-constraint modeling and solve-flow orchestration are out of scope and handled by MetaModel/MechanismModel and solver side.
+ */
+
 // 求解器边界转换：委托给集中的 SolverBoundaryCasts。 / Solver-boundary conversion: delegates to centralized SolverBoundaryCasts.
 private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenCollection<*>): Try {
     return SolverBoundaryCasts.registerAuxiliaryTokensStar(this, tokens)

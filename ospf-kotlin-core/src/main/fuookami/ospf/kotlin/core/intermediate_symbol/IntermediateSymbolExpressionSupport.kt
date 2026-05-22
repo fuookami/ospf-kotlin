@@ -38,6 +38,16 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
+/**
+ * IntermediateSymbol 表达式求值与缓存支持。
+ * IntermediateSymbol expression evaluation and cache support.
+ *
+ * 说明：该文件统一维护 solver 边界上的 Flt64 视图、缓存命中策略与回写路径。
+ * Note: this file centralizes Flt64 boundary views, cache-hit policy, and write-back paths at solver boundaries.
+ *
+ * 非目标：不在此处定义兼容层桥接 API；跨类型转换统一走显式 converter 与 SolverBoundaryCasts。
+ * Non-goal: compatibility bridge APIs are not defined here; cross-type conversions must go through explicit converters and SolverBoundaryCasts.
+ */
 
 internal fun IntermediateSymbol<*>.shouldPrepare(
     cacheKey: IntermediateSymbol<*>,

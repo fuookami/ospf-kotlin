@@ -11,7 +11,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.functional.sumOf
@@ -334,20 +335,17 @@ class SineCosineAlgorithm<Obj, ObjValue, V>(
                 model = model
             )
             iteration.next(globalBetter)
-            if (memoryUseOver()) {
-                System.gc()
-            }
+            cleanupOnSolverMemoryPressure()
 
             if (runningCallBack?.invoke(iteration, bestIndividual) is Failed) {
                 break
             }
         }
 
+        cleanupAfterSolverRun()
         return goodIndividuals.take(solutionAmount.toInt())
     }
 }
 
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64, Flt64>
 typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
-
-

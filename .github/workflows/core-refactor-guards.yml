@@ -111,6 +111,11 @@ jobs:
           Copy-Item -LiteralPath "$resultsDir/ci-smoke.json" -Destination "$resultsDir/current-smoke.json" -Force
           ./ospf-kotlin-benchmark/scripts/compare-benchmark-results.ps1 -ResultsDir $resultsDir -Dataset smoke -Output "$resultsDir/trend-smoke.md"
 
+      - name: Run Benchmark Trend Script Smoke
+        shell: pwsh
+        run: |
+          ./ospf-kotlin-benchmark/scripts/test-compare-benchmark-results.ps1
+
       - name: Upload Benchmark Smoke Artifact
         uses: actions/upload-artifact@v4
         with:

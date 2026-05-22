@@ -13,6 +13,13 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import org.apache.logging.log4j.kotlin.KotlinLogger
 
+/**
+ * 机制模型 cut 构造支持。
+ * Cut-construction support for mechanism models.
+ *
+ * 说明：基于 dual / farkas dual 与 fixed variable 投影构造线性或二次 cut。
+ * Note: builds linear/quadratic cuts from dual/farkas-dual solutions with fixed-variable projection.
+ */
 private data class OrderedVariablePair(
     val first: AbstractVariableItem<*, *>,
     val second: AbstractVariableItem<*, *>
@@ -34,6 +41,10 @@ private data class OrderedVariablePair(
     }
 }
 
+/**
+ * 构造线性最优性 cut。
+ * Build linear optimality cuts.
+ */
 internal fun <V> buildLinearOptimalCut(
     constraints: List<LinearConstraintImpl<V>>,
     objectCategory: ObjectCategory,
@@ -79,6 +90,10 @@ internal fun <V> buildLinearOptimalCut(
     }
 }
 
+/**
+ * 构造线性可行性 cut（Farkas）。
+ * Build linear feasibility cuts (Farkas).
+ */
 internal fun <V> buildLinearFeasibleCut(
     constraints: List<LinearConstraintImpl<V>>,
     fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -121,6 +136,10 @@ internal fun <V> buildLinearFeasibleCut(
     return listOf(lhs le zero)
 }
 
+/**
+ * 构造二次最优性 cut；二次项为空时自动退化为线性 cut。
+ * Build quadratic optimality cuts; degrades to linear cuts when no quadratic terms remain.
+ */
 internal fun <V> buildQuadraticOptimalCut(
     constraints: List<QuadraticConstraintImpl<V>>,
     objectCategory: ObjectCategory,
@@ -210,6 +229,10 @@ internal fun <V> buildQuadraticOptimalCut(
     return listOf(cut)
 }
 
+/**
+ * 构造二次可行性 cut（Farkas）；二次项为空时自动退化为线性 cut。
+ * Build quadratic feasibility cuts (Farkas); degrades to linear cuts when no quadratic terms remain.
+ */
 internal fun <V> buildQuadraticFeasibleCut(
     constraints: List<QuadraticConstraintImpl<V>>,
     fixedVariables: Map<AbstractVariableItem<*, *>, V>,
