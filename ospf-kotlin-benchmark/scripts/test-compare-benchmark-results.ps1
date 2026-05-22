@@ -262,6 +262,111 @@ try {
     Assert-True -Condition ($missingScoreMessage.Length -gt 0) -Message "Missing score field should fail."
     Assert-Contains -Text $missingScoreMessage -Expected "missing 'primaryMetric.score'" -Message "Missing score failure should point to primaryMetric.score."
 
+    $nonNumericScoreBaseline = Join-Path $errorDir "baseline-non-numeric-score.json"
+    $nonNumericScorePayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = "not-a-number"
+                scoreError = 0.1
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $nonNumericScoreBaseline -Value ($nonNumericScorePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $nonNumericScoreMessage = ""
+    try {
+        & $compareScript -Baseline $nonNumericScoreBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $nonNumericScoreMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($nonNumericScoreMessage.Length -gt 0) -Message "Non-numeric score should fail."
+    Assert-Contains -Text $nonNumericScoreMessage -Expected "invalid 'primaryMetric.score' value" -Message "Non-numeric score failure should point to primaryMetric.score."
+
+    $nonNumericErrorBaseline = Join-Path $errorDir "baseline-non-numeric-score-error.json"
+    $nonNumericErrorPayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = "not-a-number"
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $nonNumericErrorBaseline -Value ($nonNumericErrorPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $nonNumericErrorMessage = ""
+    try {
+        & $compareScript -Baseline $nonNumericErrorBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $nonNumericErrorMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($nonNumericErrorMessage.Length -gt 0) -Message "Non-numeric scoreError should fail."
+    Assert-Contains -Text $nonNumericErrorMessage -Expected "invalid 'primaryMetric.scoreError' value" -Message "Non-numeric scoreError failure should point to primaryMetric.scoreError."
+
+    $emptyUnitBaseline = Join-Path $errorDir "baseline-empty-unit.json"
+    $emptyUnitPayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = 0.1
+                scoreUnit = "   "
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $emptyUnitBaseline -Value ($emptyUnitPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $emptyUnitMessage = ""
+    try {
+        & $compareScript -Baseline $emptyUnitBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $emptyUnitMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($emptyUnitMessage.Length -gt 0) -Message "Empty scoreUnit should fail."
+    Assert-Contains -Text $emptyUnitMessage -Expected "missing 'primaryMetric.scoreUnit'" -Message "Empty scoreUnit failure should point to primaryMetric.scoreUnit."
+
+    $duplicateBaseline = Join-Path $errorDir "baseline-duplicate-key.json"
+    $duplicatePayload = @(
+        (New-BenchmarkEntry -Name "demo.Benchmark.duplicate" -Score 100.0 -Error 0.1 -Unit "ops/s"),
+        (New-BenchmarkEntry -Name "demo.Benchmark.duplicate" -Score 105.0 -Error 0.1 -Unit "ops/s")
+    )
+    Set-Content -LiteralPath $duplicateBaseline -Value ($duplicatePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $duplicateMessage = ""
+    try {
+        & $compareScript -Baseline $duplicateBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $duplicateMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($duplicateMessage.Length -gt 0) -Message "Duplicate benchmark key should fail."
+    Assert-Contains -Text $duplicateMessage -Expected "duplicate benchmark key" -Message "Duplicate benchmark key failure should be explicit."
+
     $mismatchBaseline = Join-Path $mismatchDir "baseline-smoke.json"
     $mismatchCurrent = Join-Path $mismatchDir "current-smoke.json"
     Write-BenchmarkFile -Path $mismatchBaseline -Name "demo.Benchmark.onlyBaseline" -Score 90.0

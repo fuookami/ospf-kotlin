@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.IATA
 
 data class Flight(
     val leg: IATA,
-    val now: Instant,
-    val etd: Instant
+    val now: kotlin.time.Instant,
+    val etd: kotlin.time.Instant
 ) {
     companion object {
         private val reweighNeededTerminals = setOf<IATA>()

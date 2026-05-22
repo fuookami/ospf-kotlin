@@ -199,6 +199,32 @@ function Get-OptionalPropertyValue {
     return $prop.Value
 }
 
+function Convert-MetricDouble {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Value,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Path,
+
+        [Parameter(Mandatory = $true)]
+        [string] $BenchmarkName,
+
+        [Parameter(Mandatory = $true)]
+        [string] $FieldName
+    )
+
+    if ($Value -is [string] -and [string]::IsNullOrWhiteSpace($Value)) {
+        throw ("Invalid benchmark entry in file '{0}' for '{1}': invalid '{2}' value '{3}', expected numeric." -f $Path, $BenchmarkName, $FieldName, $Value)
+    }
+
+    try {
+        return [double] $Value
+    } catch {
+        throw ("Invalid benchmark entry in file '{0}' for '{1}': invalid '{2}' value '{3}', expected numeric." -f $Path, $BenchmarkName, $FieldName, $Value)
+    }
+}
+
 function Read-BenchmarkResults {
     param(
         [Parameter(Mandatory = $true)]
@@ -239,10 +265,14 @@ function Read-BenchmarkResults {
         if ($null -eq $score) {
             throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric.score'." -f $Path, $benchmarkName)
         }
+        $score = Convert-MetricDouble -Value $score -Path $Path -BenchmarkName $benchmarkName -FieldName "primaryMetric.score"
+
         $scoreError = Get-OptionalPropertyValue -Object $primaryMetric -Name "scoreError"
         if ($null -eq $scoreError) {
             throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric.scoreError'." -f $Path, $benchmarkName)
         }
+        $scoreError = Convert-MetricDouble -Value $scoreError -Path $Path -BenchmarkName $benchmarkName -FieldName "primaryMetric.scoreError"
+
         $scoreUnit = [string](Get-OptionalPropertyValue -Object $primaryMetric -Name "scoreUnit")
         if ([string]::IsNullOrWhiteSpace($scoreUnit)) {
             throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric.scoreUnit'." -f $Path, $benchmarkName)
@@ -260,11 +290,14 @@ function Read-BenchmarkResults {
         } else {
             "$benchmarkName [$($params -join ', ')]"
         }
+        if ($items.ContainsKey($key)) {
+            throw ("Invalid benchmark JSON in file '{0}': duplicate benchmark key '{1}' after params normalization." -f $Path, $key)
+        }
         $measurementIterations = Get-OptionalPropertyValue -Object $entry -Name "measurementIterations"
         $items[$key] = [pscustomobject]@{
             Benchmark = $key
-            Score = [double] $score
-            Error = [double] $scoreError
+            Score = $score
+            Error = $scoreError
             Unit = $scoreUnit
             Samples = [int] (Get-SampleCount -Metric $primaryMetric -Fallback ([int]$measurementIterations)
             )

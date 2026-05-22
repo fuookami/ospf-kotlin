@@ -15,7 +15,7 @@ data class RunningHeartBeatDTO(
     val estimatedTime: Duration,
     val optimizedRate: Flt64
 ) {
-    val time: LocalDateTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()).toLocalDateTime(TimeZone.currentSystemDefault())
+    val time: LocalDateTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()).toLocalDateTime(TimeZone.currentSystemDefault())
 }
 
 data class FinnishHeartBeatDTO(
@@ -24,7 +24,7 @@ data class FinnishHeartBeatDTO(
     val code: UInt64,
     val message: String
 ) {
-    val time: LocalDateTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()).toLocalDateTime(TimeZone.currentSystemDefault())
+    val time: LocalDateTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()).toLocalDateTime(TimeZone.currentSystemDefault())
 
     companion object {
         operator fun invoke(

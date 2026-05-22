@@ -134,8 +134,8 @@ data class ItemCargo(
 }
 
 data class ItemOrder(
-    val hardstand: Instant?,
-    val reweighed: Instant?,
+    val hardstand: kotlin.time.Instant?,
+    val reweighed: kotlin.time.Instant?,
     val carBoard: CarBoard?,
     val order: UInt8?
 ) {

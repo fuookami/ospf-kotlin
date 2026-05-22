@@ -29,6 +29,37 @@ data class BendersResult(
 )
 
 object BendersSolver {
+    private fun requireFeasibleMasterOutput(output: SolverOutput): Ret<FeasibleSolverOutput<Flt64>> {
+        return when (output) {
+            is FeasibleSolverOutput<*> -> {
+                val normalizedSolution = output.solution.mapNotNull { it as? Flt64 }
+                if (normalizedSolution.size != output.solution.size) {
+                    Failed(fuookami.ospf.kotlin.utils.error.Err(
+                        fuookami.ospf.kotlin.utils.error.ErrorCode.ORModelInfeasible,
+                        "Master feasible output contains non-Flt64 solution values."
+                    ))
+                } else {
+                    Ok(FeasibleSolverOutput(
+                        obj = output.obj,
+                        solution = normalizedSolution,
+                        time = output.time,
+                        possibleBestObj = output.possibleBestObj,
+                        gap = output.gap,
+                        iterations = output.iterations,
+                        nodeCount = output.nodeCount,
+                        bestBound = output.bestBound,
+                        mipGap = output.mipGap,
+                        solveTime = output.solveTime
+                    ))
+                }
+            }
+
+            else -> {
+                Failed(fuookami.ospf.kotlin.utils.error.Err(fuookami.ospf.kotlin.utils.error.ErrorCode.ORModelInfeasible))
+            }
+        }
+    }
+
     suspend fun solve(
         solver: LinearBendersDecompositionSolver,
         masterModel: AbstractLinearMetaModel<Flt64>,
@@ -61,9 +92,18 @@ object BendersSolver {
                 is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
                 is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
             }
+            if (masterOutput == null) {
+                return Failed(fuookami.ospf.kotlin.utils.error.Err(
+                    fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationError,
+                    "Master solver returned null output."
+                ))
+            }
 
-            val masterFeasible = masterOutput as? FeasibleSolverOutput<Flt64>
-                ?: return Failed(fuookami.ospf.kotlin.utils.error.Err(fuookami.ospf.kotlin.utils.error.ErrorCode.ORModelInfeasible))
+            val masterFeasible = when (val normalized = requireFeasibleMasterOutput(masterOutput)) {
+                is Ok -> normalized.value
+                is Failed -> return Failed(normalized.error)
+                is Fatal -> return Fatal(normalized.errors)
+            }
 
             val masterObj = masterFeasible.obj.toDouble()
             snapshots.add(BendersIterationSnapshot(masterObj = masterObj, gap = masterFeasible.gap.toDouble()))

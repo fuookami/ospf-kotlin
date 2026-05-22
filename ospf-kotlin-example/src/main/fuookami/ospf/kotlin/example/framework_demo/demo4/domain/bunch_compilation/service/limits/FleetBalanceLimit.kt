@@ -99,14 +99,14 @@ class FleetBalanceLimit(
     }
 
     override fun refresh(
-        map: ShadowPriceMap,
+        shadowPriceMap: ShadowPriceMap,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup(this)) {
             val key = constraint.args as? FleetBalanceShadowPriceKey ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
-                map.put(ShadowPrice(key = key, price = price))
+                shadowPriceMap.put(ShadowPrice(key = key, price = price))
             }
         }
 

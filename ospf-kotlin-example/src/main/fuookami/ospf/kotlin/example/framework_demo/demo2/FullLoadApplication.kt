@@ -72,7 +72,7 @@ private class FullLoadAlgorithmImpl {
         finnishHeartBeatCallBack: ((FinnishHeartBeatDTO) -> Unit)? = null,
         withRender: Boolean = false
     ): Pair<ResponseDTO, RenderDTO?> {
-        val startTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val startTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis())
         val parameter = request.parameter
         val notes = mutableListOf<String>()
 
@@ -192,7 +192,7 @@ private class FullLoadAlgorithmImpl {
         }
 
         runningHeartBeatCallBack?.let {
-            val runTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
+            val runTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
             RunningHeartBeatDTO(
                 id = request.id,
                 runTime = runTime,
@@ -340,7 +340,7 @@ private class FullLoadAlgorithmImpl {
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
-        startTime: kotlinx.datetime.Instant,
+        startTime: kotlin.time.Instant,
         runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
         val model = LinearMetaModel<Flt64>(converter = flt64Converter)
@@ -358,7 +358,7 @@ private class FullLoadAlgorithmImpl {
 
         val timeLimit = 1.minutes
         runningHeartBeatCallBack?.let {
-            val runTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
+            val runTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
             RunningHeartBeatDTO(
                 id = id,
                 runTime = runTime,
@@ -378,7 +378,7 @@ private class FullLoadAlgorithmImpl {
             metaModel = model,
             registrationStatusCallBack = { status ->
                 runningHeartBeatCallBack?.let {
-                    val runTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
+                    val runTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
                     it(
                         RunningHeartBeatDTO(
                             id = id,
@@ -392,7 +392,7 @@ private class FullLoadAlgorithmImpl {
             },
             solvingStatusCallBack = { status ->
                 runningHeartBeatCallBack?.let {
-                    val runTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
+                    val runTime = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
                     if (gap == null) {
                         gap = status.gap
                         it(
