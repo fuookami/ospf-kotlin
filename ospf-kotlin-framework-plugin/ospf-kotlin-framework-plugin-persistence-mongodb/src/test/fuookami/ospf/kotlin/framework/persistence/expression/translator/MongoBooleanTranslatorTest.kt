@@ -1,184 +1,103 @@
 /**
- * MongoDB 布尔表达式翻译器测试
- * MongoDB Boolean Expression Translator Tests
- *
- * 验收标准：
- * 1. BooleanExpression 可正确翻译为 MongoDB Bson
+ * MongoDB 布尔翻译器测试
+ * MongoDB Boolean Translator Tests
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import com.mongodb.MongoClientSettings
+import org.bson.BsonDocument
+import org.bson.conversions.Bson
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 
 @DisplayName("MongoBooleanTranslator Tests / MongoDB 布尔翻译器测试")
 class MongoBooleanTranslatorTest {
-
-    @Nested
-    @DisplayName("Expression Pattern Tests / 表达式模式测试")
-    inner class ExpressionPatternTests {
-
-        @Test
-        @DisplayName("BooleanConstant pattern / 布尔常量模式")
-        fun testConstantPattern() {
-            val trueExpr = BooleanConstant(Trivalent.True)
-            val falseExpr = BooleanConstant(Trivalent.False)
-            val unknownExpr = BooleanConstant(Trivalent.Unknown)
-
-            assertEquals(Trivalent.True, trueExpr.value)
-            assertEquals(Trivalent.False, falseExpr.value)
-            assertEquals(Trivalent.Unknown, unknownExpr.value)
-        }
-
-        @Test
-        @DisplayName("Comparison pattern / 比较模式")
-        fun testComparisonPattern() {
-            val expr = Comparison(
-                ComparisonOperator.Gt,
-                ScalarReference(PropertyPath.parse("age")),
-                ScalarConstant(18)
-            )
-
-            assertEquals(ComparisonOperator.Gt, expr.operator)
-            assertTrue(expr.left is ScalarReference<*>)
-            assertTrue(expr.right is ScalarConstant<*>)
-        }
-
-        @Test
-        @DisplayName("And pattern / And 模式")
-        fun testAndPattern() {
-            val expr = AndExpression(listOf(
-                Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("b")), ScalarConstant(2))
-            ))
-
-            assertEquals(2, expr.operands.size)
-        }
-
-        @Test
-        @DisplayName("Or pattern / Or 模式")
-        fun testOrPattern() {
-            val expr = OrExpression(listOf(
-                Comparison(ComparisonOperator.Lt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(10))
-            ))
-
-            assertEquals(2, expr.operands.size)
-        }
-
-        @Test
-        @DisplayName("Not pattern / Not 模式")
-        fun testNotPattern() {
-            val inner = Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("status")), ScalarConstant("deleted"))
-            val expr = NotExpression(inner)
-
-            assertTrue(expr.operand is Comparison<*>)
-        }
-
-        @Test
-        @DisplayName("NullCheck pattern / 空值检查模式")
-        fun testNullCheckPattern() {
-            val isNull = NullCheck(PropertyPath.parse("email"), NullCheckType.IsNull)
-            val isNotNull = NullCheck(PropertyPath.parse("phone"), NullCheckType.IsNotNull)
-
-            assertTrue(isNull.isNull)
-            assertFalse(isNotNull.isNull)
-        }
-
-        @Test
-        @DisplayName("InExpression pattern / In 表达式模式")
-        fun testInPattern() {
-            val expr = InExpression(
-                ScalarReference(PropertyPath.parse("status")),
-                listOf(ScalarConstant("active"), ScalarConstant("pending")),
-                negated = false
-            )
-
-            assertFalse(expr.negated)
-            assertEquals(2, expr.candidates.size)
-        }
-
-        @Test
-        @DisplayName("PatternMatch pattern / 模式匹配模式")
-        fun testPatternMatchPattern() {
-            val expr = PatternMatch(
-                ScalarReference(PropertyPath.parse("name")),
-                ScalarConstant("A%"),
-                PatternMatchMode.Like,
-                negated = false
-            )
-
-            assertEquals(PatternMatchMode.Like, expr.mode)
-            assertFalse(expr.negated)
+    private val resolver: MongoFieldNameResolver = { path ->
+        when (path.substringAfterLast(".")) {
+            "id", "name", "age", "status" -> path.substringAfterLast(".")
+            else -> null
         }
     }
 
-    @Nested
-    @DisplayName("Complex Expression Tests / 复杂表达式测试")
-    inner class ComplexExpressionTests {
+    private val translator = MongoBooleanTranslator(resolver)
+    private val codec = MongoClientSettings.getDefaultCodecRegistry()
 
-        @Test
-        @DisplayName("Nested and/or pattern / 嵌套 and/or 模式")
-        fun testNestedAndOr() {
-            // (A and B) or (C and D)
-            val expr = OrExpression(listOf(
-                AndExpression(listOf(
-                    Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                    Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("b")), ScalarConstant(2))
-                )),
-                AndExpression(listOf(
-                    Comparison(ComparisonOperator.Lt, ScalarReference(PropertyPath.parse("c")), ScalarConstant(3)),
-                    Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("d")), ScalarConstant(4))
-                ))
-            ))
-
-            assertTrue(expr is OrExpression)
-            assertEquals(2, (expr as OrExpression).operands.size)
-        }
-
-        @Test
-        @DisplayName("Not with and pattern / Not 与 and 组合模式")
-        fun testNotWithAnd() {
-            // not (A and B)
-            val expr = NotExpression(
-                AndExpression(listOf(
-                    Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                    Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("b")), ScalarConstant(2))
-                ))
-            )
-
-            assertTrue(expr.operand is AndExpression)
-        }
+    private fun json(bson: Bson?): String {
+        return (bson ?: error("bson is null")).toBsonDocument(BsonDocument::class.java, codec).toJson()
     }
 
-    @Nested
-    @DisplayName("PatternMatch Mode Tests / 模式匹配模式测试")
-    inner class PatternMatchModeTests {
+    @Test
+    @DisplayName("true should translate to empty filter / true 应翻译为空过滤器")
+    fun trueShouldTranslateToEmptyFilter() {
+        val actual = json(translator.translate(BooleanConstant(Trivalent.True)))
+        assertTrue(actual == "{}")
+    }
 
-        @Test
-        @DisplayName("All pattern match modes / 所有模式匹配模式")
-        fun testAllPatternMatchModes() {
-            val modes = listOf(
-                PatternMatchMode.Exact,
-                PatternMatchMode.Prefix,
-                PatternMatchMode.Suffix,
-                PatternMatchMode.Contains,
-                PatternMatchMode.Like,
-                PatternMatchMode.Regex
-            )
+    @Test
+    @DisplayName("false unknown custom should translate to always-false filter / false unknown custom 应翻译为恒假过滤器")
+    fun falseUnknownCustomShouldTranslateToAlwaysFalseFilter() {
+        val falseJson = json(translator.translate(BooleanConstant(Trivalent.False)))
+        val unknownJson = json(translator.translate(BooleanConstant(Trivalent.Unknown)))
+        val customJson = json(translator.translate(BooleanCustom("x")))
 
-            assertEquals(6, modes.size)
-            modes.forEach { mode ->
-                val expr = PatternMatch(
-                    ScalarReference(PropertyPath.parse("field")),
-                    ScalarConstant("test"),
-                    mode,
-                    negated = false
-                )
-                assertEquals(mode, expr.mode)
-            }
-        }
+        assertTrue(falseJson.contains("\"_id\""))
+        assertTrue(unknownJson.contains("\"\$exists\""))
+        assertTrue(customJson.contains("false"))
+    }
+
+    @Test
+    @DisplayName("comparison in pattern should translate to bson operators / comparison in pattern 应翻译为 bson 操作符")
+    fun comparisonInPatternShouldTranslateToBsonOperators() {
+        val cmp = Comparison(
+            ComparisonOperator.Gt,
+            ScalarReference(PropertyPath.parse("age")),
+            ScalarConstant(18)
+        )
+        val inExpr = InExpression(
+            ScalarReference(PropertyPath.parse("status")),
+            listOf(ScalarConstant("active"), ScalarConstant("pending"))
+        )
+        val like = PatternMatch(
+            ScalarReference(PropertyPath.parse("name")),
+            ScalarConstant("A%"),
+            PatternMatchMode.Like
+        )
+
+        assertTrue(json(translator.translate(cmp)).contains("\"\$gt\""))
+        assertTrue(json(translator.translate(inExpr)).contains("\"\$in\""))
+        val likeJson = json(translator.translate(like))
+        assertTrue(likeJson.contains("\"\$regex\"") || likeJson.contains("\"\$regularExpression\""))
+    }
+
+    @Test
+    @DisplayName("null check should distinguish null and missing / null 检查应区分空值与缺失")
+    fun nullCheckShouldDistinguishNullAndMissing() {
+        val isNull = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNull)
+        val isNotNull = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNotNull)
+
+        val left = json(translator.translate(isNull))
+        val right = json(translator.translate(isNotNull))
+
+        assertTrue(left.contains("\"\$or\""))
+        assertTrue(left.contains("\"\$exists\""))
+        assertTrue(right.contains("\"\$and\""))
+        assertTrue(right.contains("\"\$ne\""))
+    }
+
+    @Test
+    @DisplayName("unresolved path should become always-false filter / 未解析路径应转为恒假过滤器")
+    fun unresolvedPathShouldBecomeAlwaysFalseFilter() {
+        val expr = Comparison(
+            ComparisonOperator.Eq,
+            ScalarReference(PropertyPath.parse("unknown")),
+            ScalarConstant(1)
+        )
+
+        val actual = json(translator.translate(expr))
+        assertTrue(actual.contains("\"_id\""))
+        assertTrue(actual.contains("\"\$exists\""))
     }
 }

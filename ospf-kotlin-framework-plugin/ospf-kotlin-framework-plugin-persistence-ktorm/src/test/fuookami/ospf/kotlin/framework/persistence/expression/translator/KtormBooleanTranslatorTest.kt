@@ -1,162 +1,175 @@
 /**
  * Ktorm 布尔表达式翻译器测试
- * Ktorm Boolean Expression Translator Tests
- *
- * 验收标准：
- * 1. BooleanExpression 可正确翻译为 Ktorm 条件
+ * Ktorm Boolean Translator Tests
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.ktorm.expression.BinaryExpression
+import org.ktorm.expression.BinaryExpressionType
+import org.ktorm.expression.InListExpression
+import org.ktorm.expression.UnaryExpression
+import org.ktorm.expression.UnaryExpressionType
+import org.ktorm.schema.Table
+import org.ktorm.schema.int
+import org.ktorm.schema.varchar
 
 @DisplayName("KtormBooleanTranslator Tests / Ktorm 布尔翻译器测试")
 class KtormBooleanTranslatorTest {
+    private object Users : Table<Nothing>("users") {
+        val id = int("id")
+        val age = int("age")
+        val name = varchar("name")
+        val status = varchar("status")
+    }
 
-    // 注意：由于 Ktorm 需要 Database 实例和实际的表结构，
-    // 这些测试主要验证翻译器能正确处理表达式而不抛出异常。
-    // Note: Since Ktorm requires Database instance and actual table structure,
-    // these tests mainly verify the translator handles expressions without exceptions.
+    private val resolver: KtormColumnResolver = { path ->
+        when (path.substringAfterLast(".")) {
+            "id" -> Users.id
+            "age" -> Users.age
+            "name" -> Users.name
+            "status" -> Users.status
+            else -> null
+        }
+    }
+
+    private val translator = KtormBooleanTranslator(resolver)
 
     @Nested
-    @DisplayName("Expression Pattern Tests / 表达式模式测试")
-    inner class ExpressionPatternTests {
-
+    @DisplayName("Comparison Tests / 比较翻译测试")
+    inner class ComparisonTests {
         @Test
-        @DisplayName("BooleanConstant pattern / 布尔常量模式")
-        fun testConstantPattern() {
-            val trueExpr = BooleanConstant(Trivalent.True)
-            val falseExpr = BooleanConstant(Trivalent.False)
-            val unknownExpr = BooleanConstant(Trivalent.Unknown)
-
-            // 验证表达式构造正确
-            // Verify expression construction
-            assertEquals(Trivalent.True, trueExpr.value)
-            assertEquals(Trivalent.False, falseExpr.value)
-            assertEquals(Trivalent.Unknown, unknownExpr.value)
-        }
-
-        @Test
-        @DisplayName("Comparison pattern / 比较模式")
-        fun testComparisonPattern() {
-            val expr = Comparison(
+        @DisplayName("should support lt/le/gt/ge / 应支持 lt/le/gt/ge")
+        fun shouldSupportLtLeGtGe() {
+            val gtExpr = Comparison(
                 ComparisonOperator.Gt,
                 ScalarReference(PropertyPath.parse("age")),
                 ScalarConstant(18)
             )
-
-            assertEquals(ComparisonOperator.Gt, expr.operator)
-            assertTrue(expr.left is ScalarReference<*>)
-            assertTrue(expr.right is ScalarConstant<*>)
-        }
-
-        @Test
-        @DisplayName("And pattern / And 模式")
-        fun testAndPattern() {
-            val expr = AndExpression(listOf(
-                Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("b")), ScalarConstant(2))
-            ))
-
-            assertEquals(2, expr.operands.size)
-        }
-
-        @Test
-        @DisplayName("Or pattern / Or 模式")
-        fun testOrPattern() {
-            val expr = OrExpression(listOf(
-                Comparison(ComparisonOperator.Lt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(10))
-            ))
-
-            assertEquals(2, expr.operands.size)
-        }
-
-        @Test
-        @DisplayName("Not pattern / Not 模式")
-        fun testNotPattern() {
-            val inner = Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("status")), ScalarConstant("deleted"))
-            val expr = NotExpression(inner)
-
-            assertTrue(expr.operand is Comparison<*>)
-        }
-
-        @Test
-        @DisplayName("NullCheck pattern / 空值检查模式")
-        fun testNullCheckPattern() {
-            val isNull = NullCheck(PropertyPath.parse("email"), NullCheckType.IsNull)
-            val isNotNull = NullCheck(PropertyPath.parse("phone"), NullCheckType.IsNotNull)
-
-            assertTrue(isNull.isNull)
-            assertFalse(isNotNull.isNull)
-        }
-
-        @Test
-        @DisplayName("InExpression pattern / In 表达式模式")
-        fun testInPattern() {
-            val expr = InExpression(
-                ScalarReference(PropertyPath.parse("status")),
-                listOf(ScalarConstant("active"), ScalarConstant("pending")),
-                negated = false
+            val leExpr = Comparison(
+                ComparisonOperator.Le,
+                ScalarReference(PropertyPath.parse("age")),
+                ScalarConstant(65)
             )
 
-            assertFalse(expr.negated)
-            assertEquals(2, expr.candidates.size)
+            val gt = translator.translate(gtExpr) as BinaryExpression<Boolean>
+            val le = translator.translate(leExpr) as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.GREATER_THAN, gt.type)
+            assertEquals(BinaryExpressionType.LESS_THAN_OR_EQUAL, le.type)
         }
 
         @Test
-        @DisplayName("PatternMatch pattern / 模式匹配模式")
-        fun testPatternMatchPattern() {
-            val expr = PatternMatch(
-                ScalarReference(PropertyPath.parse("name")),
-                ScalarConstant("A%"),
-                PatternMatchMode.Like,
-                negated = false
+        @DisplayName("should reverse operator for constant-column / 常量-列比较应反转操作符")
+        fun shouldReverseOperatorForConstantColumn() {
+            val expr = Comparison(
+                ComparisonOperator.Lt,
+                ScalarConstant(10),
+                ScalarReference(PropertyPath.parse("age"))
             )
 
-            assertEquals(PatternMatchMode.Like, expr.mode)
-            assertFalse(expr.negated)
+            val translated = translator.translate(expr) as BinaryExpression<Boolean>
+            assertEquals(BinaryExpressionType.GREATER_THAN, translated.type)
         }
     }
 
     @Nested
-    @DisplayName("Complex Expression Tests / 复杂表达式测试")
-    inner class ComplexExpressionTests {
-
+    @DisplayName("In Tests / In 翻译测试")
+    inner class InTests {
         @Test
-        @DisplayName("Nested and/or pattern / 嵌套 and/or 模式")
-        fun testNestedAndOr() {
-            // (A and B) or (C and D)
-            val expr = OrExpression(listOf(
-                AndExpression(listOf(
-                    Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                    Comparison(ComparisonOperator.Gt, ScalarReference(PropertyPath.parse("b")), ScalarConstant(2))
-                )),
-                AndExpression(listOf(
-                    Comparison(ComparisonOperator.Lt, ScalarReference(PropertyPath.parse("c")), ScalarConstant(3)),
-                    Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("d")), ScalarConstant(4))
-                ))
-            ))
+        @DisplayName("should translate in and not in / 应翻译 in 与 not in")
+        fun shouldTranslateInAndNotIn() {
+            val inExpr = InExpression(
+                ScalarReference(PropertyPath.parse("status")),
+                listOf(ScalarConstant("active"), ScalarConstant("pending")),
+                negated = false
+            )
+            val notInExpr = inExpr.copy(negated = true)
 
-            assertTrue(expr is OrExpression)
-            assertEquals(2, (expr as OrExpression).operands.size)
+            val inResult = translator.translate(inExpr) as InListExpression
+            val notInResult = translator.translate(notInExpr) as InListExpression
+
+            assertEquals(false, inResult.notInList)
+            assertEquals(true, notInResult.notInList)
+            assertEquals(2, inResult.values?.size)
+        }
+    }
+
+    @Nested
+    @DisplayName("Fallback Tests / 降级策略测试")
+    inner class FallbackTests {
+        @Test
+        @DisplayName("unsupported path should become always false / 未知路径应转为恒假条件")
+        fun unsupportedPathShouldBecomeAlwaysFalse() {
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference(PropertyPath.parse("unknown")),
+                ScalarConstant(1)
+            )
+
+            val translated = translator.translate(expr) as BinaryExpression<Boolean>
+            assertEquals(BinaryExpressionType.EQUAL, translated.type)
         }
 
         @Test
-        @DisplayName("Not with and pattern / Not 与 and 组合模式")
-        fun testNotWithAnd() {
-            // not (A and B)
-            val expr = NotExpression(
-                AndExpression(listOf(
-                    Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("a")), ScalarConstant(1)),
-                    Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("b")), ScalarConstant(2))
-                ))
-            )
+        @DisplayName("boolean false and custom should become always false / false 与 custom 应转恒假")
+        fun booleanFalseAndCustomShouldBecomeAlwaysFalse() {
+            val falseExpr = BooleanConstant(Trivalent.False)
+            val customExpr = BooleanCustom("x")
 
-            assertTrue(expr.operand is AndExpression)
+            val falseResult = translator.translate(falseExpr) as BinaryExpression<Boolean>
+            val customResult = translator.translate(customExpr) as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.EQUAL, falseResult.type)
+            assertEquals(BinaryExpressionType.EQUAL, customResult.type)
+        }
+    }
+
+    @Nested
+    @DisplayName("Logical Tests / 逻辑组合测试")
+    inner class LogicalTests {
+        @Test
+        @DisplayName("and/or/not should build expression tree / and/or/not 应生成组合表达式")
+        fun andOrNotShouldBuildExpressionTree() {
+            val a = Comparison(
+                ComparisonOperator.Gt,
+                ScalarReference(PropertyPath.parse("age")),
+                ScalarConstant(18)
+            )
+            val b = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNotNull)
+            val andExpr = AndExpression(listOf(a, b))
+            val orExpr = OrExpression(listOf(andExpr, BooleanConstant(Trivalent.True)))
+            val notExpr = NotExpression(orExpr)
+
+            val andResult = translator.translate(andExpr) as BinaryExpression<Boolean>
+            val orResult = translator.translate(orExpr) as BinaryExpression<Boolean>
+            val notResult = translator.translate(notExpr) as UnaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.AND, andResult.type)
+            assertEquals(BinaryExpressionType.OR, orResult.type)
+            assertEquals(UnaryExpressionType.NOT, notResult.type)
+        }
+
+        @Test
+        @DisplayName("null check should use unary operators / null 检查应使用一元表达式")
+        fun nullCheckShouldUseUnaryOperators() {
+            val isNull = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNull)
+            val isNotNull = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNotNull)
+
+            val left = translator.translate(isNull) as UnaryExpression<Boolean>
+            val right = translator.translate(isNotNull) as UnaryExpression<Boolean>
+
+            assertNotNull(left)
+            assertNotNull(right)
+            assertTrue(left.type == UnaryExpressionType.IS_NULL)
+            assertTrue(right.type == UnaryExpressionType.IS_NOT_NULL)
         }
     }
 }

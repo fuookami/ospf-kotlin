@@ -1,142 +1,92 @@
 /**
  * Ktorm 排序翻译器测试
- * Ktorm Order By Translator Tests
- *
- * 验收标准：
- * 1. SortBy 可正确转换为排序逻辑
- * 2. 支持多字段排序
+ * Ktorm OrderBy Translator Tests
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrder
+import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrderSupport
+import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
+import fuookami.ospf.kotlin.framework.persistence.expression.SortDirection
+import fuookami.ospf.kotlin.framework.persistence.expression.SortItem
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.ktorm.database.Database
+import org.ktorm.expression.OrderType
+import org.ktorm.expression.SelectExpression
+import org.ktorm.expression.UnaryExpression
+import org.ktorm.expression.UnaryExpressionType
+import org.ktorm.dsl.from
+import org.ktorm.dsl.select
+import org.ktorm.schema.int
+import org.ktorm.schema.Table
+import org.ktorm.schema.varchar
 
 @DisplayName("KtormOrderByTranslator Tests / Ktorm 排序翻译器测试")
 class KtormOrderByTranslatorTest {
-
-    // 简单列名解析器：直接使用路径最后一部分
-    private val simpleResolver: KtormColumnResolver = { path ->
-        // 返回 null，因为测试不需要实际的 Ktorm Column
-        null
+    private object Users : Table<Nothing>("users") {
+        val id = int("id")
+        val name = varchar("name")
     }
 
-    @Nested
-    @DisplayName("Translator Creation Tests / 翻译器创建测试")
-    inner class CreationTests {
-
-        @Test
-        @DisplayName("Create translator with column resolver / 使用列解析器创建翻译器")
-        fun testCreateWithColumnResolver() {
-            val translator = KtormOrderByTranslator(simpleResolver)
-            assertNotNull(translator)
-        }
-
-        @Test
-        @DisplayName("Create translator with NullsOrderSupport / 使用 NullsOrderSupport 创建翻译器")
-        fun testCreateWithNullsOrderSupport() {
-            val translator = KtormOrderByTranslator(simpleResolver, NullsOrderSupport.Always)
-            assertNotNull(translator)
+    private val resolver: KtormColumnResolver = { path ->
+        when (path.substringAfterLast(".")) {
+            "id" -> Users.id
+            "name" -> Users.name
+            else -> null
         }
     }
 
-    @Nested
-    @DisplayName("SortBy Model Tests / SortBy 模型测试")
-    inner class SortByModelTests {
+    private fun newQuery() = Database.connect("jdbc:sqlite::memory:").from(Users).select(Users.id)
 
-        @Test
-        @DisplayName("Empty SortBy / 空 SortBy")
-        fun testEmptySortBy() {
-            val sort = SortBy.empty
-            assertTrue(sort.isEmpty())
-        }
+    @Test
+    @DisplayName("should apply nulls fallback when unsupported / 不支持时应启用 nulls 降级排序")
+    fun shouldApplyNullsFallbackWhenUnsupported() {
+        val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Never)
+        val sortBy = SortBy(listOf(SortItem("name", SortDirection.Asc, NullsOrder.NullsLast)))
 
-        @Test
-        @DisplayName("Single field sort / 单字段排序")
-        fun testSingleFieldSort() {
-            val sort = SortBy.asc("id")
-            assertFalse(sort.isEmpty())
-            assertEquals(1, sort.items.size)
-        }
+        val query = translator.apply(newQuery(), sortBy)
+        val selectExpr = query.expression as SelectExpression
 
-        @Test
-        @DisplayName("Multi field sort / 多字段排序")
-        fun testMultiFieldSort() {
-            val sort = SortBy.asc("priority") + SortBy.desc("name")
-            assertEquals(2, sort.items.size)
-        }
+        assertEquals(2, selectExpr.orderBy.size)
+        val nullOrder = selectExpr.orderBy[0]
+        val directionOrder = selectExpr.orderBy[1]
 
-        @Test
-        @DisplayName("Sort with nulls order / 带空值排序的排序")
-        fun testSortWithNullsOrder() {
-            val sort = SortBy.desc("name", NullsOrder.NullsLast)
-            assertEquals(NullsOrder.NullsLast, sort.items[0].nulls)
-        }
+        assertEquals(OrderType.ASCENDING, directionOrder.orderType)
+        val unary = nullOrder.expression as UnaryExpression<*>
+        assertEquals(UnaryExpressionType.IS_NULL, unary.type)
+        assertEquals(OrderType.ASCENDING, nullOrder.orderType)
     }
 
-    @Nested
-    @DisplayName("NullsOrderSupport Tests / 空值排序支持测试")
-    inner class NullsOrderSupportTests {
+    @Test
+    @DisplayName("should not add nulls fallback when supported / 支持时不应注入 nulls 降级排序")
+    fun shouldNotAddNullsFallbackWhenSupported() {
+        val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Always)
+        val sortBy = SortBy.desc("name", NullsOrder.NullsFirst)
 
-        @Test
-        @DisplayName("Always support / 总是支持")
-        fun testAlwaysSupport() {
-            val item = SortItem("name", SortDirection.Desc, NullsOrder.NullsFirst)
-            assertTrue(NullsOrderSupport.Always.isSupported(item))
-        }
+        val query = translator.apply(newQuery(), sortBy)
+        val selectExpr = query.expression as SelectExpression
 
-        @Test
-        @DisplayName("Never support / 从不支持")
-        fun testNeverSupport() {
-            val item = SortItem("name", SortDirection.Asc, NullsOrder.NullsFirst)
-            assertFalse(NullsOrderSupport.Never.isSupported(item))
-        }
-
-        @Test
-        @DisplayName("OnlyAsc support / 仅升序支持")
-        fun testOnlyAscSupport() {
-            val ascItem = SortItem("name", SortDirection.Asc, NullsOrder.NullsFirst)
-            val descItem = SortItem("name", SortDirection.Desc, NullsOrder.NullsFirst)
-
-            assertTrue(NullsOrderSupport.OnlyAsc.isSupported(ascItem))
-            assertFalse(NullsOrderSupport.OnlyAsc.isSupported(descItem))
-        }
+        assertEquals(1, selectExpr.orderBy.size)
+        assertEquals(OrderType.DESCENDING, selectExpr.orderBy[0].orderType)
     }
 
-    @Nested
-    @DisplayName("SortItem Tests / SortItem 测试")
-    inner class SortItemTests {
+    @Test
+    @DisplayName("should support multi sort ordering / 应支持多字段排序")
+    fun shouldSupportMultiSortOrdering() {
+        val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Never)
+        val sortBy = SortBy.asc("id").thenDesc("name", NullsOrder.NullsFirst)
 
-        @Test
-        @DisplayName("Create SortItem with all fields / 创建带所有字段的 SortItem")
-        fun testCreateSortItem() {
-            val item = SortItem("name", SortDirection.Asc, NullsOrder.NullsFirst)
-            assertEquals("name", item.path)
-            assertEquals(SortDirection.Asc, item.direction)
-            assertEquals(NullsOrder.NullsFirst, item.nulls)
-        }
+        val query = translator.apply(newQuery(), sortBy)
+        val selectExpr = query.expression as SelectExpression
 
-        @Test
-        @DisplayName("Create SortItem without nulls order / 创建不带空值排序的 SortItem")
-        fun testCreateSortItemWithoutNulls() {
-            val item = SortItem("priority", SortDirection.Desc)
-            assertEquals("priority", item.path)
-            assertEquals(SortDirection.Desc, item.direction)
-            assertNull(item.nulls)
-        }
-    }
-
-    @Nested
-    @DisplayName("SortDirection Tests / SortDirection 测试")
-    inner class SortDirectionTests {
-
-        @Test
-        @DisplayName("SortDirection values / SortDirection 值")
-        fun testSortDirectionValues() {
-            assertEquals(2, SortDirection.entries.size)
-            assertTrue(SortDirection.entries.contains(SortDirection.Asc))
-            assertTrue(SortDirection.entries.contains(SortDirection.Desc))
-        }
+        // id asc + (name null-order fallback + name desc)
+        assertEquals(3, selectExpr.orderBy.size)
+        val nameNullOrder = selectExpr.orderBy[1].expression as UnaryExpression<*>
+        assertTrue(nameNullOrder.type == UnaryExpressionType.IS_NULL)
+        assertEquals(OrderType.DESCENDING, selectExpr.orderBy[1].orderType)
+        assertEquals(OrderType.DESCENDING, selectExpr.orderBy[2].orderType)
     }
 }

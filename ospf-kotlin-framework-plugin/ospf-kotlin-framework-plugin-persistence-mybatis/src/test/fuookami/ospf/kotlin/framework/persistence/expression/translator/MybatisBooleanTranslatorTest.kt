@@ -10,11 +10,20 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
 @DisplayName("MybatisBooleanTranslator Tests / MyBatis 布尔翻译器测试")
 class MybatisBooleanTranslatorTest {
+    data class TestEntity(val id: Long, val name: String?)
+
+    private val resolver: MybatisColumnNameResolver = { path ->
+        when (path.substringAfterLast(".")) {
+            "age", "status", "name", "a", "b", "c", "d", "x" -> path.substringAfterLast(".")
+            else -> null
+        }
+    }
 
     @Nested
     @DisplayName("Expression Pattern Tests / 表达式模式测试")
@@ -174,6 +183,48 @@ class MybatisBooleanTranslatorTest {
                 val expr = Comparison(op, ScalarReference(PropertyPath.parse("x")), ScalarConstant(1))
                 assertEquals(op, expr.operator)
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Translator Behavior Tests / 翻译行为测试")
+    inner class TranslatorBehaviorTests {
+        private val translator = MybatisBooleanTranslator<TestEntity>(resolver)
+
+        @Test
+        @DisplayName("false and unknown should become impossible condition / false 与 unknown 应转不可能条件")
+        fun falseAndUnknownShouldBecomeImpossibleCondition() {
+            val falseWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.False))
+            val unknownWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.Unknown))
+
+            assertTrue(falseWrapper.customSqlSegment.contains("1 = 0"))
+            assertTrue(unknownWrapper.customSqlSegment.contains("1 = 0"))
+        }
+
+        @Test
+        @DisplayName("unresolved path should become impossible condition / 未解析路径应转不可能条件")
+        fun unresolvedPathShouldBecomeImpossibleCondition() {
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference(PropertyPath.parse("unknown")),
+                ScalarConstant(1)
+            )
+
+            val wrapper = translator.translate(QueryWrapper(), expr)
+            assertTrue(wrapper.customSqlSegment.contains("1 = 0"))
+        }
+
+        @Test
+        @DisplayName("regex should become impossible condition / regex 应转不可能条件")
+        fun regexShouldBecomeImpossibleCondition() {
+            val expr = PatternMatch(
+                ScalarReference(PropertyPath.parse("name")),
+                ScalarConstant("a.*"),
+                PatternMatchMode.Regex
+            )
+
+            val wrapper = translator.translate(QueryWrapper(), expr)
+            assertTrue(wrapper.customSqlSegment.contains("1 = 0"))
         }
     }
 }

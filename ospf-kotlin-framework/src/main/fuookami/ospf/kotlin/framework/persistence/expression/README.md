@@ -2,7 +2,7 @@
 
 [中文文档 (README_ch.md)](./README_ch.md)
 
-SQL Expression framework layer implementation for Ktorm integration.
+SQL Expression framework layer interfaces and models.
 
 ## Architecture
 
@@ -10,60 +10,62 @@ SQL Expression framework layer implementation for Ktorm integration.
 
 | Component | Purpose |
 |-----------|---------|
-| `EntityMeta` | PO field to database column mapping |
-| `FieldBinding` | Field binding definition with optional transformer |
+| `ExpressionRepository` | Unified CRUD-style expression repository contract |
 | `SortBy` | Multi-field sorting model with nulls order support |
-| `UpdateAssignment` | UPDATE SET statement model |
+| `UpdateAssignments` | UPDATE SET statement model (`SetValue`/`SetNull`/`SetFromExpression`) |
+| `NullsOrderSupport` | NULLS FIRST/LAST capability model |
 
-### Translators
+### Plugin Translators
 
-| Translator | Purpose |
-|------------|---------|
-| `KtormBooleanTranslator` | BooleanExpression -> Ktorm WHERE condition |
-| `KtormOrderByTranslator` | SortBy -> Ktorm ORDER BY clause |
-| `KtormUpdateTranslator` | UpdateAssignment -> Ktorm UPDATE SET |
+Repository implementations and translators are in plugin modules:
 
-### Dialect Policies
-
-| Policy | Purpose |
-|--------|---------|
-| `PatternMatchPolicy` | LIKE/ILIKE/REGEX dialect handling |
-| `NullsOrderSupport` | NULLS FIRST/LAST support detection |
+- Ktorm plugin:
+  `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-ktorm`
+- MyBatis-Plus plugin:
+  `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mybatis`
+- MongoDB plugin:
+  `ospf-kotlin-framework-plugin/ospf-kotlin-framework-plugin-persistence-mongodb`
 
 ## Usage
 
-### Define Entity Metadata
-
-```kotlin
-val userMeta = EntityMeta<User>(User::class, "users") {
-    binding("id", User::id, Users.id)
-    binding("name", User::name, Users.name)
-    binding("email", User::email, Users.email)
-    binding("status", User::status, Users.status)
-}
-```
-
-### Query with BooleanExpression
+### Build Query/Update Models
 
 ```kotlin
 val where = path("status").eq("active") and path("age").gt(18)
-val users = repository.find(where, sortBy = SortBy.desc("createdAt"), limit = 10)
+val sortBy = SortBy.desc("createdAt")
+val assignments = UpdateAssignments
+    .set("status", "inactive")
+    .thenSetNull("deletedAt")
 ```
 
-### Update with UpdateAssignment
+### Resolver Functions (Current Mapping Mechanism)
 
 ```kotlin
-val assignments = UpdateAssignments.set("status", "inactive") + UpdateAssignments.setNull("deletedAt")
+// Ktorm
+val ktormResolver: KtormColumnResolver = { path -> /* resolve to ColumnDeclaring<*> */ null }
+
+// MyBatis-Plus
+val mybatisResolver: MybatisColumnNameResolver = { path -> path.substringAfterLast(".") }
+
+// MongoDB
+val mongoResolver: MongoFieldNameResolver = { path -> path.substringAfterLast(".") }
+```
+
+### Repository API
+
+```kotlin
+val users = repository.find(where, sortBy = sortBy, limit = 10, offset = 0)
+val total = repository.count(where)
 val updated = repository.update(where, assignments)
+val deleted = repository.delete(where)
+val exists = repository.exists(where)
 ```
 
 ## Dependencies
 
-- `ospf-kotlin-math`: BooleanExpression, ScalarExpression, PropertyPath
-- `ktorm-core`: Ktorm ORM framework
-- `ktorm-support-sqlite`: SQLite dialect support
+- `ospf-kotlin-math`: `BooleanExpression`, `ScalarExpression`, `PropertyPath`
 
 ## Related
 
 - [math/symbol/expression](../../../math/src/main/fuookami/ospf/kotlin/math/symbol/expression/README.md) - Core expression AST
-- [sql_expression.md](../../../../../../../sql_expression.md) - Design document
+- [sql_expression.md](../../../../../../../../sql_expression.md) - Current status and execution backlog

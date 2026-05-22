@@ -57,11 +57,14 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
 
         // 应用分页
         // Apply pagination
-        if (limit != null) {
-            wrapper = wrapper.last("LIMIT $limit")
+        val limitOffsetClause = when {
+            limit != null && offset != null -> "LIMIT $limit OFFSET $offset"
+            limit != null -> "LIMIT $limit"
+            offset != null -> "OFFSET $offset"
+            else -> null
         }
-        if (offset != null) {
-            wrapper = wrapper.last("OFFSET $offset")
+        if (limitOffsetClause != null) {
+            wrapper = wrapper.last(limitOffsetClause)
         }
 
         return mapper.selectList(wrapper)
@@ -76,10 +79,8 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
         if (assignments.isEmpty()) return 0
 
-        val queryWrapper = QueryWrapper<E>()
-        booleanTranslator.translate(queryWrapper, where)
-
         var updateWrapper = UpdateWrapper<E>()
+        updateWrapper = booleanTranslator.translate(updateWrapper, where)
         updateWrapper = updateTranslator.apply(updateWrapper, assignments)
 
         return mapper.update(null, updateWrapper)

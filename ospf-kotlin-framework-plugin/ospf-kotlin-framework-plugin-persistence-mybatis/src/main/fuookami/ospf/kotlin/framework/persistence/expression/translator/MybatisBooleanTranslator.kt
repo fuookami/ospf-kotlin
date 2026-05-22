@@ -9,7 +9,10 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
+import com.baomidou.mybatisplus.core.conditions.AbstractWrapper
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 
 /**
  * 列名解析器
@@ -35,8 +38,20 @@ class MybatisBooleanTranslator<T : Any>(
      * Translate to QueryWrapper
      */
     fun translate(wrapper: QueryWrapper<T>, expr: BooleanExpression): QueryWrapper<T> {
+        return translateInternal(wrapper, expr)
+    }
+
+    /**
+     * 翻译到 UpdateWrapper
+     * Translate to UpdateWrapper
+     */
+    fun translate(wrapper: UpdateWrapper<T>, expr: BooleanExpression): UpdateWrapper<T> {
+        return translateInternal(wrapper, expr)
+    }
+
+    private fun <W : AbstractWrapper<T, String, W>> translateInternal(wrapper: W, expr: BooleanExpression): W {
         return when (expr) {
-            is BooleanConstant -> wrapper
+            is BooleanConstant -> translateConstant(wrapper, expr)
             is Comparison<*> -> translateComparison(wrapper, expr)
             is InExpression<*> -> translateIn(wrapper, expr)
             is PatternMatch<*> -> translatePatternMatch(wrapper, expr)
@@ -44,10 +59,22 @@ class MybatisBooleanTranslator<T : Any>(
             is AndExpression -> translateAnd(wrapper, expr)
             is OrExpression -> translateOr(wrapper, expr)
             is NotExpression -> translateNot(wrapper, expr)
-            is BooleanCustom -> wrapper
+            is BooleanCustom -> alwaysFalse(wrapper)
         }
     }
-    private fun translateComparison(wrapper: QueryWrapper<T>, expr: Comparison<*>): QueryWrapper<T> {
+
+    private fun <W : AbstractWrapper<T, String, W>> translateConstant(wrapper: W, expr: BooleanConstant): W {
+        return when (expr.value) {
+            Trivalent.True -> wrapper
+            Trivalent.False, Trivalent.Unknown -> wrapper.apply("1 = 0")
+        }
+    }
+
+    private fun <W : AbstractWrapper<T, String, W>> alwaysFalse(wrapper: W): W {
+        return wrapper.apply("1 = 0")
+    }
+
+    private fun <W : AbstractWrapper<T, String, W>> translateComparison(wrapper: W, expr: Comparison<*>): W {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
         val rightRef = expr.right as? ScalarReference<*>
@@ -56,8 +83,8 @@ class MybatisBooleanTranslator<T : Any>(
         // 左边是列引用，右边是常量
         // Left is column reference, right is constant
         if (leftRef != null && rightConst != null) {
-            val column = resolveColumnName(leftRef.path.value) ?: return wrapper
-            val value = rightConst.value ?: return wrapper
+            val column = resolveColumnName(leftRef.path.value) ?: return alwaysFalse(wrapper)
+            val value = rightConst.value ?: return alwaysFalse(wrapper)
 
             return when (expr.operator) {
                 ComparisonOperator.Eq -> wrapper.eq(column, value)
@@ -72,8 +99,8 @@ class MybatisBooleanTranslator<T : Any>(
         // 左边是常量，右边是列引用（反转比较）
         // Left is constant, right is column reference (reverse comparison)
         if (leftConst != null && rightRef != null) {
-            val column = resolveColumnName(rightRef.path.value) ?: return wrapper
-            val value = leftConst.value ?: return wrapper
+            val column = resolveColumnName(rightRef.path.value) ?: return alwaysFalse(wrapper)
+            val value = leftConst.value ?: return alwaysFalse(wrapper)
 
             return when (expr.operator) {
                 ComparisonOperator.Eq -> wrapper.eq(column, value)
@@ -85,14 +112,15 @@ class MybatisBooleanTranslator<T : Any>(
             }
         }
 
-        return wrapper
+        return alwaysFalse(wrapper)
     }
-    private fun translateIn(wrapper: QueryWrapper<T>, expr: InExpression<*>): QueryWrapper<T> {
-        val ref = expr.value as? ScalarReference<*> ?: return wrapper
-        val column = resolveColumnName(ref.path.value) ?: return wrapper
+
+    private fun <W : AbstractWrapper<T, String, W>> translateIn(wrapper: W, expr: InExpression<*>): W {
+        val ref = expr.value as? ScalarReference<*> ?: return alwaysFalse(wrapper)
+        val column = resolveColumnName(ref.path.value) ?: return alwaysFalse(wrapper)
 
         val values = expr.candidates.mapNotNull { (it as? ScalarConstant<*>)?.value }
-        if (values.isEmpty()) return wrapper
+        if (values.isEmpty()) return alwaysFalse(wrapper)
 
         return if (expr.negated) {
             wrapper.notIn(column, values)
@@ -100,11 +128,12 @@ class MybatisBooleanTranslator<T : Any>(
             wrapper.`in`(column, values)
         }
     }
-    private fun translatePatternMatch(wrapper: QueryWrapper<T>, expr: PatternMatch<*>): QueryWrapper<T> {
-        val ref = expr.value as? ScalarReference<*> ?: return wrapper
-        val column = resolveColumnName(ref.path.value) ?: return wrapper
 
-        val patternValue = (expr.pattern as? ScalarConstant<*>)?.value?.toString() ?: return wrapper
+    private fun <W : AbstractWrapper<T, String, W>> translatePatternMatch(wrapper: W, expr: PatternMatch<*>): W {
+        val ref = expr.value as? ScalarReference<*> ?: return alwaysFalse(wrapper)
+        val column = resolveColumnName(ref.path.value) ?: return alwaysFalse(wrapper)
+
+        val patternValue = (expr.pattern as? ScalarConstant<*>)?.value?.toString() ?: return alwaysFalse(wrapper)
 
         val sqlPattern = when (expr.mode) {
             PatternMatchMode.Exact -> patternValue
@@ -112,7 +141,7 @@ class MybatisBooleanTranslator<T : Any>(
             PatternMatchMode.Suffix -> "%$patternValue"
             PatternMatchMode.Contains -> "%$patternValue%"
             PatternMatchMode.Like -> patternValue
-            PatternMatchMode.Regex -> return wrapper // MyBatis-Plus 不直接支持正则
+            PatternMatchMode.Regex -> return alwaysFalse(wrapper)
         }
 
         return if (expr.negated) {
@@ -122,8 +151,8 @@ class MybatisBooleanTranslator<T : Any>(
         }
     }
 
-    private fun translateNullCheck(wrapper: QueryWrapper<T>, expr: NullCheck): QueryWrapper<T> {
-        val column = resolveColumnName(expr.path.value) ?: return wrapper
+    private fun <W : AbstractWrapper<T, String, W>> translateNullCheck(wrapper: W, expr: NullCheck): W {
+        val column = resolveColumnName(expr.path.value) ?: return alwaysFalse(wrapper)
 
         return if (expr.isNull) {
             wrapper.isNull(column)
@@ -132,33 +161,33 @@ class MybatisBooleanTranslator<T : Any>(
         }
     }
 
-    private fun translateAnd(wrapper: QueryWrapper<T>, expr: AndExpression): QueryWrapper<T> {
+    private fun <W : AbstractWrapper<T, String, W>> translateAnd(wrapper: W, expr: AndExpression): W {
         var result = wrapper
         for (operand in expr.operands) {
-            result = translate(result, operand)
+            result = translateInternal(result, operand)
         }
         return result
     }
 
-    private fun translateOr(wrapper: QueryWrapper<T>, expr: OrExpression): QueryWrapper<T> {
+    private fun <W : AbstractWrapper<T, String, W>> translateOr(wrapper: W, expr: OrExpression): W {
         if (expr.operands.isEmpty()) return wrapper
 
         return wrapper.and { innerWrapper ->
             var result = innerWrapper
             for ((index, operand) in expr.operands.withIndex()) {
                 result = if (index == 0) {
-                    translate(result, operand)
+                    translateInternal(result, operand)
                 } else {
-                    result.or().let { translate(it, operand) }
+                    result.or().let { translateInternal(it, operand) }
                 }
             }
             result
         }
     }
 
-    private fun translateNot(wrapper: QueryWrapper<T>, expr: NotExpression): QueryWrapper<T> {
+    private fun <W : AbstractWrapper<T, String, W>> translateNot(wrapper: W, expr: NotExpression): W {
         return wrapper.not { innerWrapper ->
-            translate(innerWrapper, expr.operand)
+            translateInternal(innerWrapper, expr.operand)
         }
     }
 }

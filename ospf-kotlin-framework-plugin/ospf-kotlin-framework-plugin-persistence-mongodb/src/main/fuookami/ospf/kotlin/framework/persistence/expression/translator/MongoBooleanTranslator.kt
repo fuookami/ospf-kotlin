@@ -45,15 +45,14 @@ class MongoBooleanTranslator(
             is AndExpression -> translateAnd(expr)
             is OrExpression -> translateOr(expr)
             is NotExpression -> translateNot(expr)
-            is BooleanCustom -> null
+            is BooleanCustom -> alwaysFalse()
         }
     }
 
     private fun translateConstant(expr: BooleanConstant): Bson? {
         return when (expr.value) {
-            Trivalent.True -> Filters.expr(true)
-            Trivalent.False -> Filters.expr(false)
-            Trivalent.Unknown -> null
+            Trivalent.True -> Filters.empty()
+            Trivalent.False, Trivalent.Unknown -> alwaysFalse()
         }
     }
     private fun translateComparison(expr: Comparison<*>): Bson? {
@@ -65,8 +64,8 @@ class MongoBooleanTranslator(
         // 左边是列引用，右边是常量
         // Left is column reference, right is constant
         if (leftRef != null && rightConst != null) {
-            val field = resolveFieldName(leftRef.path.value) ?: return null
-            val value = rightConst.value ?: return null
+            val field = resolveFieldName(leftRef.path.value) ?: return alwaysFalse()
+            val value = rightConst.value ?: return alwaysFalse()
 
             return when (expr.operator) {
                 ComparisonOperator.Eq -> Filters.eq(field, value)
@@ -81,8 +80,8 @@ class MongoBooleanTranslator(
         // 左边是常量，右边是列引用（反转比较）
         // Left is constant, right is column reference (reverse comparison)
         if (leftConst != null && rightRef != null) {
-            val field = resolveFieldName(rightRef.path.value) ?: return null
-            val value = leftConst.value ?: return null
+            val field = resolveFieldName(rightRef.path.value) ?: return alwaysFalse()
+            val value = leftConst.value ?: return alwaysFalse()
 
             return when (expr.operator) {
                 ComparisonOperator.Eq -> Filters.eq(field, value)
@@ -94,14 +93,14 @@ class MongoBooleanTranslator(
             }
         }
 
-        return null
+        return alwaysFalse()
     }
     private fun translateIn(expr: InExpression<*>): Bson? {
-        val ref = expr.value as? ScalarReference<*> ?: return null
-        val field = resolveFieldName(ref.path.value) ?: return null
+        val ref = expr.value as? ScalarReference<*> ?: return alwaysFalse()
+        val field = resolveFieldName(ref.path.value) ?: return alwaysFalse()
 
         val values = expr.candidates.mapNotNull { (it as? ScalarConstant<*>)?.value }
-        if (values.isEmpty()) return null
+        if (values.isEmpty()) return alwaysFalse()
 
         return if (expr.negated) {
             Filters.nin(field, values)
@@ -110,10 +109,10 @@ class MongoBooleanTranslator(
         }
     }
     private fun translatePatternMatch(expr: PatternMatch<*>): Bson? {
-        val ref = expr.value as? ScalarReference<*> ?: return null
-        val field = resolveFieldName(ref.path.value) ?: return null
+        val ref = expr.value as? ScalarReference<*> ?: return alwaysFalse()
+        val field = resolveFieldName(ref.path.value) ?: return alwaysFalse()
 
-        val patternValue = (expr.pattern as? ScalarConstant<*>)?.value?.toString() ?: return null
+        val patternValue = (expr.pattern as? ScalarConstant<*>)?.value?.toString() ?: return alwaysFalse()
 
         val regexPattern = when (expr.mode) {
             PatternMatchMode.Exact -> "^${escapeRegex(patternValue)}$"
@@ -132,30 +131,42 @@ class MongoBooleanTranslator(
     }
 
     private fun translateNullCheck(expr: NullCheck): Bson? {
-        val field = resolveFieldName(expr.path.value) ?: return null
+        val field = resolveFieldName(expr.path.value) ?: return alwaysFalse()
 
         return if (expr.isNull) {
-            Filters.exists(field, false)
+            Filters.or(
+                Filters.eq(field, null),
+                Filters.exists(field, false)
+            )
         } else {
-            Filters.exists(field, true)
+            Filters.and(
+                Filters.exists(field, true),
+                Filters.ne(field, null)
+            )
         }
     }
 
     private fun translateAnd(expr: AndExpression): Bson? {
-        val conditions = expr.operands.mapNotNull { translate(it) }
-        if (conditions.isEmpty()) return null
+        val conditions = expr.operands.map { translate(it) ?: alwaysFalse() }
         return Filters.and(conditions)
     }
 
     private fun translateOr(expr: OrExpression): Bson? {
-        val conditions = expr.operands.mapNotNull { translate(it) }
-        if (conditions.isEmpty()) return null
+        val conditions = expr.operands.map { translate(it) ?: alwaysFalse() }
         return Filters.or(conditions)
     }
 
     private fun translateNot(expr: NotExpression): Bson? {
-        val condition = translate(expr.operand) ?: return null
+        val condition = translate(expr.operand) ?: alwaysFalse()
         return Filters.not(condition)
+    }
+
+    /**
+     * 生成恒假条件，避免 unsupported 表达式被误解释为“无条件”。
+     * Build an always-false filter to avoid unsupported expressions becoming "no filter".
+     */
+    private fun alwaysFalse(): Bson {
+        return Filters.exists("_id", false)
     }
 
     /**
