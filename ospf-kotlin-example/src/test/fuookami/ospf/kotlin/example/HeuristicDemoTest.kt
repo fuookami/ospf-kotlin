@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example
 
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -14,13 +14,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class HeuristicDemoTest {
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     @Test
     fun smoke() {
         val x = RealVar("heuristic_demo_x")
@@ -38,13 +31,13 @@ class HeuristicDemoTest {
 
         val maxFunction = MaxFunction(
             polynomials = listOf(xPoly, yPoly),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "heuristic_max"
         )
         val masking = MaskingFunction(
             input = xPoly,
             mask = z,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "heuristic_mask"
         )
 

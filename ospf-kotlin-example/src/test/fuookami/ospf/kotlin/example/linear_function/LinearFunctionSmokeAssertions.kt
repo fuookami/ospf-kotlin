@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.linear_function
 
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AbsFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.BalanceTernaryzationFunction
@@ -18,7 +19,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.RoundingFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -33,13 +33,6 @@ import org.junit.jupiter.api.Assertions.assertNull
 import fuookami.ospf.kotlin.math.geometry.point3
 
 object LinearFunctionSmokeAssertions {
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     private fun polyOf(symbol: Symbol): LinearPolynomial<Flt64> {
         return LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, symbol)),
@@ -51,7 +44,7 @@ object LinearFunctionSmokeAssertions {
         val x = RealVar("example_abs_x")
         val function = AbsFunction(
             polynomial = polyOf(x),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_abs"
         )
         val positive = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(3.0)))
@@ -65,7 +58,7 @@ object LinearFunctionSmokeAssertions {
         val y = RealVar("example_and_y")
         val function = AndFunction(
             polynomials = listOf(polyOf(x), polyOf(y)),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_and"
         )
         val allNonZero = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64.one, y to Flt64(2.0)))
@@ -78,7 +71,7 @@ object LinearFunctionSmokeAssertions {
         val x = RealVar("example_bin_x")
         val function = BinaryzationFunction(
             polynomial = polyOf(x),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_bin"
         )
         val positive = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64.one))
@@ -102,7 +95,7 @@ object LinearFunctionSmokeAssertions {
                     point3(Flt64.zero, Flt64.one, Flt64.one)
                 )
             ),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_blp"
         )
         val inside = function.evaluate(
@@ -125,7 +118,7 @@ object LinearFunctionSmokeAssertions {
         val x = RealVar("example_bter_x")
         val function = BalanceTernaryzationFunction(
             x = polyOf(x),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_bter"
         )
         val positive = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(5.0)))
@@ -138,21 +131,21 @@ object LinearFunctionSmokeAssertions {
 
     fun assertCeilingFunctionWorks() {
         val x = RealVar("example_ceil_x")
-        val function = CeilingFunction(x = polyOf(x), converter = flt64Converter, name = "example_ceil")
+        val function = CeilingFunction(x = polyOf(x), converter = flt64TestConverter, name = "example_ceil")
         val value = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(1.2)))
         assertEquals(Flt64(2.0), value)
     }
 
     fun assertFloorFunctionWorks() {
         val x = RealVar("example_floor_x")
-        val function = FloorFunction(x = polyOf(x), converter = flt64Converter, name = "example_floor")
+        val function = FloorFunction(x = polyOf(x), converter = flt64TestConverter, name = "example_floor")
         val value = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(1.8)))
         assertEquals(Flt64.one, value)
     }
 
     fun assertIfFunctionWorks() {
         val x = RealVar("example_if_x")
-        val function = IfFunction(condition = polyOf(x), converter = flt64Converter, name = "example_if")
+        val function = IfFunction(condition = polyOf(x), converter = flt64TestConverter, name = "example_if")
         val positive = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(0.1)))
         val negative = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(-0.1)))
         assertEquals(Flt64.one, positive)
@@ -169,7 +162,7 @@ object LinearFunctionSmokeAssertions {
         val function = MaskingFunction(
             input = input,
             mask = z,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_mask"
         )
         val maskOn = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(2.0), z to Flt64.one))
@@ -184,7 +177,7 @@ object LinearFunctionSmokeAssertions {
         val z = RealVar("example_max_z")
         val function = MaxFunction(
             polynomials = listOf(polyOf(x), polyOf(y), polyOf(z)),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_max"
         )
         val result = function.evaluate(
@@ -203,7 +196,7 @@ object LinearFunctionSmokeAssertions {
         val z = RealVar("example_min_z")
         val function = MinFunction(
             polynomials = listOf(polyOf(x), polyOf(y), polyOf(z)),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_min"
         )
         val result = function.evaluate(
@@ -221,7 +214,7 @@ object LinearFunctionSmokeAssertions {
         val function = ModFunction(
             x = polyOf(x),
             d = Flt64.two,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_mod"
         )
         val result = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(5.0)))
@@ -230,7 +223,7 @@ object LinearFunctionSmokeAssertions {
 
     fun assertNotFunctionWorks() {
         val x = RealVar("example_not_x")
-        val function = NotFunction(polynomial = polyOf(x), converter = flt64Converter, name = "example_not")
+        val function = NotFunction(polynomial = polyOf(x), converter = flt64TestConverter, name = "example_not")
         val zero = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64.zero))
         val nonZero = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(3.0)))
         assertEquals(Flt64.one, zero)
@@ -243,7 +236,7 @@ object LinearFunctionSmokeAssertions {
         val constantTwo = LinearPolynomial<Flt64>(emptyList(), Flt64(2.0))
         val function = OneOfFunction(
             polynomials = listOf(polyOf(x), polyOf(y), constantTwo),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_oneof"
         )
         val exactlyOne = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64.zero, y to Flt64.zero))
@@ -257,7 +250,7 @@ object LinearFunctionSmokeAssertions {
         val y = RealVar("example_or_y")
         val function = OrFunction(
             polynomials = listOf(polyOf(x), polyOf(y)),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_or"
         )
         val allZero = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64.zero, y to Flt64.zero))
@@ -268,7 +261,7 @@ object LinearFunctionSmokeAssertions {
 
     fun assertRoundingFunctionWorks() {
         val x = RealVar("example_round_x")
-        val function = RoundingFunction(x = polyOf(x), converter = flt64Converter, name = "example_round")
+        val function = RoundingFunction(x = polyOf(x), converter = flt64TestConverter, name = "example_round")
         val low = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(1.2)))
         val high = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(1.6)))
         assertEquals(Flt64.one, low)
@@ -281,7 +274,7 @@ object LinearFunctionSmokeAssertions {
             x = polyOf(x),
             lb = LinearPolynomial(emptyList(), -Flt64.two),
             ub = LinearPolynomial(emptyList(), Flt64.two),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_slack_range"
         )
         val high = function.evaluate(mapOf<Symbol, Flt64>(x to Flt64(5.0)))
@@ -296,7 +289,7 @@ object LinearFunctionSmokeAssertions {
         val function = SlackFunction(
             x = polyOf(x),
             y = polyOf(y),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_slack"
         )
         val result = function.evaluate(

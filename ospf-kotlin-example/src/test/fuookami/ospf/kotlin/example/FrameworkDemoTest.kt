@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example
 
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -13,13 +13,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class FrameworkDemoTest {
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     @Test
     fun smoke() {
         val x = RealVar("framework_demo_x")
@@ -29,7 +22,7 @@ class FrameworkDemoTest {
         )
         val ifFunction = IfFunction(
             condition = xPoly,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "framework_if"
         )
         val slackRange = SlackRangeFunction(
@@ -42,7 +35,7 @@ class FrameworkDemoTest {
                 monomials = emptyList(),
                 constant = Flt64.two
             ),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "framework_slack_range"
         )
 

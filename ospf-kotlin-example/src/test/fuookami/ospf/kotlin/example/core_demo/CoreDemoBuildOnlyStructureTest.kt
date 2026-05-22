@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.example.exampleAbsoluteSlack
 import fuookami.ospf.kotlin.example.flt64Constant
 import fuookami.ospf.kotlin.example.flt64Linear
@@ -27,14 +27,6 @@ import kotlin.reflect.KClass
 import kotlin.test.assertTrue
 
 class CoreDemoBuildOnlyStructureTest {
-
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     @BeforeEach
     fun resetAutoIndices() {
         flushIndices(
@@ -86,7 +78,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo1ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo1", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo1", converter = flt64TestConverter)
         try {
             val x = BinVariable1("x", Shape1(d1Companies.size))
             for (c in d1Companies) { x[c].name = "${x.name}_${c.index}" }
@@ -122,7 +114,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo2ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo2", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo2", converter = flt64TestConverter)
         try {
             val x = BinVariable2("x", Shape2(d2Companies.size, d2Products.size))
             for (c in d2Companies) { for (p in d2Products) { x[c, p].name = "${x.name}_${c.index},${p.index}" } }
@@ -173,7 +165,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo3ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo3", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo3", converter = flt64TestConverter)
         try {
             val x = UIntVariable1("x", Shape1(d3Materials.size))
             for (m in d3Materials) { x[m].name = "${x.name}_${m.index}" }
@@ -209,7 +201,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo4ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo4", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo4", converter = flt64TestConverter)
         try {
             val x = RealVariable1("x", Shape1(d4Products.size))
             for (p in d4Products) { x[p].name = "${x.name}_${p.index}" }
@@ -246,7 +238,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo5ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo5", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo5", converter = flt64TestConverter)
         try {
             val x = BinVariable1("x", Shape1(d5Cargos.size))
             for (c in d5Cargos) { x[c].name = "${x.name}_${c.index}" }
@@ -277,7 +269,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo6ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo6", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo6", converter = flt64TestConverter)
         try {
             val x = UIntVariable1("x", Shape1(d6Cargos.size))
             for (c in d6Cargos) { x[c].name = "${x.name}_${c.index}" }
@@ -311,7 +303,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo7ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo7", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo7", converter = flt64TestConverter)
         try {
             val x = UIntVariable2("x", Shape2(d7Warehouses.size, d7Stores.size))
             for (w in d7Warehouses) { for (s in d7Stores) { x[w, s].name = "${x.name}_${w.index},${s.index}" } }
@@ -358,7 +350,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo8ShouldBuildLinearMetaModelWithCorrectStructure() {
-        val model = LinearMetaModel(name = "demo8", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo8", converter = flt64TestConverter)
         try {
             val x = UIntVariable1("x", Shape1(d8Products.size))
             for (p in d8Products) { x[p].name = "${x.name}_${p.index}" }
@@ -386,7 +378,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo9ShouldBuildLinearMetaModelWithSlackFunctions() {
-        val model = LinearMetaModel(name = "demo9", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo9", converter = flt64TestConverter)
         try {
             val x = IntVar("demo9_build_x")
             val y = IntVar("demo9_build_y")
@@ -440,7 +432,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo10ShouldBuildLinearMetaModelForTSP() {
-        val model = LinearMetaModel(name = "demo10", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo10", converter = flt64TestConverter)
         try {
             val n = 5
             val x = BinVariable2("x", Shape2(n, n))
@@ -476,7 +468,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo11ShouldBuildLinearMetaModelForMaxFlow() {
-        val model = LinearMetaModel(name = "demo11", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo11", converter = flt64TestConverter)
         try {
             val n = 9
             val x = UIntVariable2("x", Shape2(n, n))
@@ -494,7 +486,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo12ShouldBuildLinearMetaModelWithBinaryzationAndMax() {
-        val model = LinearMetaModel(name = "demo12", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo12", converter = flt64TestConverter)
         try {
             val x = UIntVariable1("x", Shape1(5))
             assertTrue(model.add(x) is Ok)
@@ -503,10 +495,10 @@ class CoreDemoBuildOnlyStructureTest {
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
                         polynomial = LinearPolynomial(x[i]),
-                        converter = flt64Converter,
+                        converter = flt64TestConverter,
                         name = "assignment_$i"
                     ),
-                    converter = flt64Converter
+                    converter = flt64TestConverter
                 )
             }
             model.add(assignment)
@@ -523,7 +515,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo13ShouldBuildLinearMetaModelForTransport() {
-        val model = LinearMetaModel(name = "demo13", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo13", converter = flt64TestConverter)
         try {
             val x = UIntVariable2("x", Shape2(5, 3))
             val y = UIntVariable2("y", Shape2(5, 3))
@@ -542,7 +534,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo14ShouldBuildLinearMetaModelForNetworkFlow() {
-        val model = LinearMetaModel(name = "demo14", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo14", converter = flt64TestConverter)
         try {
             val x = UIntVariable2("x", Shape2(8, 8))
             assertTrue(model.add(x) is Ok)
@@ -559,7 +551,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo15ShouldBuildLinearMetaModelForCarDistribution() {
-        val model = LinearMetaModel(name = "demo15", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo15", converter = flt64TestConverter)
         try {
             val x = UIntVariable3("x", Shape3(3, 2, 4))
             assertTrue(model.add(x) is Ok)
@@ -576,7 +568,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo16ShouldBuildLinearMetaModelForProductionSchedule() {
-        val model = LinearMetaModel(name = "demo16", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo16", converter = flt64TestConverter)
         try {
             val x = UIntVariable2("x", Shape2(4, 4))
             assertTrue(model.add(x) is Ok)
@@ -593,7 +585,7 @@ class CoreDemoBuildOnlyStructureTest {
 
     @Test
     fun demo17ShouldBuildLinearMetaModelForVRPTW() {
-        val model = LinearMetaModel(name = "demo17", converter = flt64Converter)
+        val model = LinearMetaModel(name = "demo17", converter = flt64TestConverter)
         try {
             val nodes = 10
             val vehicles = 3

@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.example.linear_function
 
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -16,13 +16,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class LinearFunctionBuildOnlyStructureTest {
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     @Test
     fun absAndSlackRangeShouldExposeExpectedConstraintShapeWithoutSolver() {
         val x = RealVar("example_linear_build_x")
@@ -32,20 +25,20 @@ class LinearFunctionBuildOnlyStructureTest {
         )
         val abs = fuookami.ospf.kotlin.core.intermediate_symbol.function.AbsFunction(
             polynomial = xPoly,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_abs_build"
         )
         val slackRange = fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction(
             x = xPoly,
             lb = LinearPolynomial(emptyList(), -Flt64.two),
             ub = LinearPolynomial(emptyList(), Flt64.two),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_slack_range_build"
         )
 
         val model = LinearMetaModel<Flt64>(
             name = "linear-build-only",
-            converter = flt64Converter
+            converter = flt64TestConverter
         )
 
         try {

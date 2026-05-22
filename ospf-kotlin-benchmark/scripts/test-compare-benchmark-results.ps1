@@ -75,11 +75,13 @@ function Write-BenchmarkFile {
         [string] $Path,
 
         [Parameter(Mandatory = $true)]
-        [double] $Score
+        [double] $Score,
+
+        [string] $Name = "demo.Benchmark.hotPath"
     )
 
     $payload = @(
-        New-BenchmarkEntry -Name "demo.Benchmark.hotPath" -Score $Score -Error 0.123456 -Unit "ops/s"
+        New-BenchmarkEntry -Name $Name -Score $Score -Error 0.123456 -Unit "ops/s"
     )
     $json = $payload | ConvertTo-Json -Depth 10
     Set-Content -LiteralPath $Path -Value $json -Encoding UTF8
@@ -95,7 +97,9 @@ try {
     $explicitDir = Join-Path $tempRoot "explicit"
     $singleDir = Join-Path $tempRoot "single"
     $multiDir = Join-Path $tempRoot "multi"
-    New-Item -ItemType Directory -Force -Path $explicitDir, $singleDir, $multiDir | Out-Null
+    $errorDir = Join-Path $tempRoot "error"
+    $mismatchDir = Join-Path $tempRoot "mismatch"
+    New-Item -ItemType Directory -Force -Path $explicitDir, $singleDir, $multiDir, $errorDir, $mismatchDir | Out-Null
 
     $baselineSmoke = Join-Path $explicitDir "baseline-smoke.json"
     $currentSmoke = Join-Path $explicitDir "current-smoke.json"
@@ -152,6 +156,61 @@ try {
     Assert-Contains -Text $multiReport -Expected "Input mode: ``results-dir``" -Message "Multi-dataset explicit report missing input mode."
     Assert-Contains -Text $multiReport -Expected "Detected dataset: ``smoke``" -Message "Multi-dataset explicit report missing detected dataset."
     Assert-Contains -Text $multiReport -Expected "Gate policy: report only (no hard performance gate)" -Message "Multi-dataset explicit report missing gate policy."
+
+    $missingBaseline = Join-Path $errorDir "baseline-missing.json"
+    $missingFileMessage = ""
+    try {
+        & $compareScript -Baseline $missingBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingFileMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingFileMessage.Length -gt 0) -Message "Missing baseline file should fail."
+    Assert-Contains -Text $missingFileMessage -Expected "Benchmark result file not found" -Message "Missing file failure message is not readable."
+
+    $invalidBaseline = Join-Path $errorDir "baseline-invalid.json"
+    Set-Content -LiteralPath $invalidBaseline -Value "{ invalid-json" -Encoding UTF8
+    $invalidJsonMessage = ""
+    try {
+        & $compareScript -Baseline $invalidBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $invalidJsonMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($invalidJsonMessage.Length -gt 0) -Message "Invalid JSON input should fail."
+    Assert-Contains -Text $invalidJsonMessage -Expected "JSON" -Message "Invalid JSON failure should mention JSON parsing."
+
+    $missingMetricBaseline = Join-Path $errorDir "baseline-missing-metric.json"
+    $missingMetricPayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+        }
+    )
+    Set-Content -LiteralPath $missingMetricBaseline -Value ($missingMetricPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $missingMetricMessage = ""
+    try {
+        & $compareScript -Baseline $missingMetricBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingMetricMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingMetricMessage.Length -gt 0) -Message "Missing primaryMetric should fail."
+    Assert-Contains -Text $missingMetricMessage -Expected "primaryMetric" -Message "Missing metric failure should point to primaryMetric."
+
+    $mismatchBaseline = Join-Path $mismatchDir "baseline-smoke.json"
+    $mismatchCurrent = Join-Path $mismatchDir "current-smoke.json"
+    Write-BenchmarkFile -Path $mismatchBaseline -Name "demo.Benchmark.onlyBaseline" -Score 90.0
+    Write-BenchmarkFile -Path $mismatchCurrent -Name "demo.Benchmark.onlyCurrent" -Score 120.0
+    $mismatchOutput = Join-Path $mismatchDir "trend-smoke.md"
+    & $compareScript -Baseline $mismatchBaseline -Current $mismatchCurrent -Output $mismatchOutput | Out-Null
+    $mismatchReport = Get-Content -LiteralPath $mismatchOutput -Raw
+    Assert-Contains -Text $mismatchReport -Expected "missing in current" -Message "Mismatch report should include missing benchmark notes."
+    Assert-Contains -Text $mismatchReport -Expected "new benchmark in current" -Message "Mismatch report should include new benchmark notes."
 
     Write-Output "compare-benchmark-results smoke passed."
 } finally {

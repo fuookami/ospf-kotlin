@@ -10,6 +10,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import org.ktorm.database.Database
@@ -23,9 +24,24 @@ import org.ktorm.schema.long
 import org.ktorm.schema.varchar
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import kotlin.reflect.KClass
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+
+@OptIn(InternalSerializationApi::class)
+@Suppress("UNCHECKED_CAST")
+private fun <T : RequestDTO<T>> runtimeRequestSerializer(request: T): KSerializer<T> {
+    // RequestDTO 使用 F-bounded 泛型约束，运行时 request 类型与 T 语义一致。
+    // RequestDTO uses F-bounded generics; runtime request type is consistent with T semantics.
+    return request::class.serializer() as KSerializer<T>
+}
+
+@OptIn(InternalSerializationApi::class)
+@Suppress("UNCHECKED_CAST")
+private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerializer<T> {
+    // ResponseDTO 使用 F-bounded 泛型约束，运行时 response 类型与 T 语义一致。
+    // ResponseDTO uses F-bounded generics; runtime response type is consistent with T semantics.
+    return response::class.serializer() as KSerializer<T>
+}
 
 interface RequestRecordRPO : Entity<RequestRecordRPO> {
     companion object : Entity.Factory<RequestRecordRPO>()
@@ -127,7 +143,7 @@ data class RequestRecordPO<T>(
             val stream = ByteArrayOutputStream()
             writeJsonToStream(
                 stream = stream,
-                serializer = (request::class as KClass<T>).serializer(),
+                serializer = runtimeRequestSerializer(request),
                 value = request
             )
             stream.toByteArray()
@@ -288,7 +304,7 @@ data class ResponseRecordPO<T>(
     val rpo: ResponseRecordRPO by lazy {
         rpo {
             val stream = ByteArrayOutputStream()
-            writeJsonToStream(stream, (response::class as KClass<T>).serializer(), response)
+            writeJsonToStream(stream, runtimeResponseSerializer(response), response)
             stream.toByteArray()
         }
     }

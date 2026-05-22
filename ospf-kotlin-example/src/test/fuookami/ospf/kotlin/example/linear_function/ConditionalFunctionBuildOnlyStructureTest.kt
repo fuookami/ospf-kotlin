@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.example.linear_function
 
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -15,13 +15,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class ConditionalFunctionBuildOnlyStructureTest {
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     @Test
     fun ifAndOneOfShouldAppendComparableConstraintsWithoutSolver() {
         val x = RealVar("example_cond_build_x")
@@ -37,18 +30,18 @@ class ConditionalFunctionBuildOnlyStructureTest {
 
         val ifFunction = fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction(
             condition = xPoly,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_if_build"
         )
         val oneOfFunction = fuookami.ospf.kotlin.core.intermediate_symbol.function.OneOfFunction(
             polynomials = listOf(xPoly, yPoly, LinearPolynomial<Flt64>(emptyList(), Flt64.two)),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "example_oneof_build"
         )
 
         val model = LinearMetaModel<Flt64>(
             name = "conditional-build-only",
-            converter = flt64Converter
+            converter = flt64TestConverter
         )
 
         try {

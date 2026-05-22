@@ -42,7 +42,7 @@ class LocalMonthSerializerTest {
 
         // 验证反序列化结果为当月 1 日
         assertEquals(2026, result.date.year)
-        assertEquals(1, result.date.dayOfMonth)
+        assertEquals(1, result.date.day)
     }
 
     /**
@@ -66,7 +66,7 @@ class LocalMonthSerializerTest {
 
         // 验证年月一致（日总是为 1）
         assertEquals(original.date.year, decoded.date.year)
-        assertEquals(original.date.dayOfMonth, decoded.date.dayOfMonth)
+        assertEquals(original.date.day, decoded.date.day)
     }
 
     /**
@@ -86,7 +86,7 @@ class LocalMonthSerializerTest {
         for ((jsonString, expectedYear, expectedMonth) in testCases) {
             val result = Json.decodeFromString<LocalDateMonth>(jsonString)
             assertEquals(expectedYear, result.date.year)
-            assertEquals(1, result.date.dayOfMonth)
+            assertEquals(1, result.date.day)
             // 验证序列化输出包含正确的月份
             val output = Json.encodeToString(result)
             assertTrue(output.contains("$expectedYear-${expectedMonth.toString().padStart(2, '0')}"))

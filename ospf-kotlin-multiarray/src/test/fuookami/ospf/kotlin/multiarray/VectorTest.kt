@@ -58,7 +58,9 @@ class VectorTest {
     fun testDummyIndexAllAlias() {
         // 测试 _a 别名
         // Test _a alias
-        assertTrue(_a is DummyIndex.All)
+        val shape = Shape2(3, 4)
+        assertEquals(3, _a.lenOf(shape, 0))
+        assertEquals(4, _a.lenOf(shape, 1))
     }
 
     @Test

@@ -15,11 +15,18 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import java.io.ByteArrayOutputStream
-import kotlin.reflect.KClass
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.ExperimentalTime
+
+@OptIn(InternalSerializationApi::class)
+@Suppress("UNCHECKED_CAST")
+private fun <T : Any> runtimeLogSerializer(value: T): KSerializer<T> {
+    // LogRecordPO 的 value 按同一泛型 T 写入与读取，此处将运行时序列化器收敛到最小作用域。
+    // LogRecordPO writes/reads value under the same generic T; keep runtime serializer cast in minimal scope.
+    return value::class.serializer() as KSerializer<T>
+}
 
 enum class LogRecordType {
     Info,
@@ -78,7 +85,7 @@ data class LogRecordPO<T : Any>(
             val stream = ByteArrayOutputStream()
             writeJsonToStream(
                 stream = stream,
-                serializer = (value::class as KClass<T>).serializer(),
+                serializer = runtimeLogSerializer(value),
                 value = value
             )
             stream.toByteArray()
