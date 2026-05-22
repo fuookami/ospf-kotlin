@@ -8,6 +8,7 @@
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
+import kotlin.reflect.KProperty1
 
 /**
  * 更新赋值集�?
@@ -40,6 +41,13 @@ data class UpdateAssignments(
             UpdateAssignments(listOf(SetValue(path, value)))
 
         /**
+         * 按属性设置值
+         * Set value by property
+         */
+        fun <E, T> set(property: KProperty1<E, T>, value: T): UpdateAssignments =
+            set(property.name, value)
+
+        /**
          * 设置 NULL
          * Set NULL
          */
@@ -47,11 +55,25 @@ data class UpdateAssignments(
             UpdateAssignments(listOf(SetNull(path)))
 
         /**
+         * 按属性设置 NULL
+         * Set NULL by property
+         */
+        fun <E, T> setNull(property: KProperty1<E, T?>): UpdateAssignments =
+            setNull(property.name)
+
+        /**
          * 从表达式设置
          * Set from expression
          */
         fun setExpr(path: String, expr: ScalarExpression<*>): UpdateAssignments =
             UpdateAssignments(listOf(SetFromExpression(path, expr)))
+
+        /**
+         * 按属性从表达式设置
+         * Set from expression by property
+         */
+        fun <E, T> setExpr(property: KProperty1<E, T>, expr: ScalarExpression<*>): UpdateAssignments =
+            setExpr(property.name, expr)
     }
 
     /**
@@ -69,6 +91,13 @@ data class UpdateAssignments(
         UpdateAssignments(items + SetValue(path, value))
 
     /**
+     * 添加属性设置值项
+     * Add set value item by property
+     */
+    fun <E, T> thenSet(property: KProperty1<E, T>, value: T): UpdateAssignments =
+        thenSet(property.name, value)
+
+    /**
      * 添加设置 NULL �?
      * Add set NULL item
      */
@@ -76,11 +105,25 @@ data class UpdateAssignments(
         UpdateAssignments(items + SetNull(path))
 
     /**
+     * 添加属性设置 NULL 项
+     * Add set NULL item by property
+     */
+    fun <E, T> thenSetNull(property: KProperty1<E, T?>): UpdateAssignments =
+        thenSetNull(property.name)
+
+    /**
      * 添加表达式设置项
      * Add expression set item
      */
     fun thenSetExpr(path: String, expr: ScalarExpression<*>): UpdateAssignments =
         UpdateAssignments(items + SetFromExpression(path, expr))
+
+    /**
+     * 添加属性表达式设置项
+     * Add expression set item by property
+     */
+    fun <E, T> thenSetExpr(property: KProperty1<E, T>, expr: ScalarExpression<*>): UpdateAssignments =
+        thenSetExpr(property.name, expr)
 
     /**
      * 是否为空

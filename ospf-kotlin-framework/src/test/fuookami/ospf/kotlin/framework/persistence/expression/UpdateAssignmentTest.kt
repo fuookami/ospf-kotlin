@@ -14,6 +14,11 @@ import org.junit.jupiter.api.Assertions.*
 
 @DisplayName("UpdateAssignment Tests / 更新赋值模型测试")
 class UpdateAssignmentTest {
+    data class User(
+        val status: String,
+        val deletedAt: String?,
+        val count: Int
+    )
 
     @Nested
     @DisplayName("UpdateAssignments Creation Tests / UpdateAssignments 创建测试")
@@ -61,6 +66,19 @@ class UpdateAssignmentTest {
             assertEquals("count", item.path)
             assertTrue(item.expression is ScalarConstant<*>)
         }
+
+        @Test
+        @DisplayName("Create assignments from properties / 从属性创建赋值")
+        fun testPropertyAssignments() {
+            val expr: ScalarExpression<Int> = ScalarConstant(42)
+            val set = UpdateAssignments.set(User::status, "inactive")
+            val setNull = UpdateAssignments.setNull(User::deletedAt)
+            val setExpr = UpdateAssignments.setExpr(User::count, expr)
+
+            assertEquals(UpdateAssignments.set("status", "inactive"), set)
+            assertEquals(UpdateAssignments.setNull("deletedAt"), setNull)
+            assertEquals(UpdateAssignments.setExpr("count", expr), setExpr)
+        }
     }
 
     @Nested
@@ -89,6 +107,20 @@ class UpdateAssignmentTest {
             assertEquals("name", assignments.items[0].path)
             assertEquals("status", assignments.items[1].path)
             assertEquals("deletedAt", assignments.items[2].path)
+        }
+
+        @Test
+        @DisplayName("Chain assignments with properties / 使用属性链式赋值")
+        fun testChainPropertyAssignments() {
+            val expr: ScalarExpression<Int> = ScalarConstant(7)
+            val assignments = UpdateAssignments.set(User::status, "inactive")
+                .thenSetNull(User::deletedAt)
+                .thenSetExpr(User::count, expr)
+
+            assertEquals(3, assignments.items.size)
+            assertEquals("status", assignments.items[0].path)
+            assertEquals("deletedAt", assignments.items[1].path)
+            assertEquals("count", assignments.items[2].path)
         }
     }
 

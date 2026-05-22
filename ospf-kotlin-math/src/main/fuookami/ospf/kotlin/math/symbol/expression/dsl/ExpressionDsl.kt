@@ -22,6 +22,7 @@ package fuookami.ospf.kotlin.math.symbol.expression.dsl
 
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import kotlin.reflect.KProperty1
 
 /**
  * 布尔表达式构建器
@@ -219,6 +220,81 @@ class PathBuilder(private val path: PropertyPath) {
         PatternMatch(ScalarReference(path), ScalarConstant(pattern), PatternMatchMode.Like, negated = true)
 }
 
+/**
+ * 类型化路径引用构建器
+ * Typed path reference builder
+ */
+class TypedPathBuilder<E, T>(
+    val property: KProperty1<E, T>,
+    val path: PropertyPath = PropertyPath.parse(property.name)
+) {
+    /**
+     * 转换为标量引用
+     * Convert to scalar reference
+     */
+    fun asScalar(): ScalarReference<T> = ScalarReference(path)
+
+    /**
+     * 等于比较
+     * Equal comparison
+     */
+    infix fun eq(value: T): Comparison<T> =
+        Comparison(ComparisonOperator.Eq, asScalar(), ScalarConstant(value))
+
+    /**
+     * 不等于比较
+     * Not equal comparison
+     */
+    infix fun ne(value: T): Comparison<T> =
+        Comparison(ComparisonOperator.Ne, asScalar(), ScalarConstant(value))
+
+    /**
+     * 列-列等于比较
+     * Column-column equal comparison
+     */
+    infix fun eq(other: TypedPathBuilder<E, T>): Comparison<T> =
+        Comparison(ComparisonOperator.Eq, asScalar(), other.asScalar())
+
+    /**
+     * 列-列不等于比较
+     * Column-column not equal comparison
+     */
+    infix fun ne(other: TypedPathBuilder<E, T>): Comparison<T> =
+        Comparison(ComparisonOperator.Ne, asScalar(), other.asScalar())
+
+    /**
+     * 集合成员判断
+     * Set membership
+     */
+    fun inValues(vararg values: T): InExpression<T> =
+        InExpression(asScalar(), values.map { ScalarConstant(it) })
+
+    /**
+     * 非集合成员判断
+     * Negated set membership
+     */
+    fun notInValues(vararg values: T): InExpression<T> =
+        InExpression(asScalar(), values.map { ScalarConstant(it) }, negated = true)
+}
+
+/**
+ * 手写谓词 schema
+ * Hand-written predicate schema
+ */
+abstract class PredicateSchema<E> {
+    /**
+     * 创建类型化字段
+     * Create typed field
+     */
+    protected fun <T> field(property: KProperty1<E, T>): TypedPathBuilder<E, T> = prop(property)
+}
+
+/**
+ * 使用具体 schema 类型构造谓词
+ * Build predicate with concrete schema type
+ */
+fun <E, S : PredicateSchema<E>> S.predicate(block: S.() -> BooleanExpression): BooleanExpression = block()
+
 // ========== DSL 入口函数 / DSL Entry Functions ==========
 
 /**
@@ -226,6 +302,12 @@ class PathBuilder(private val path: PropertyPath) {
  * Create path reference
  */
 fun path(name: String): PathBuilder = PathBuilder(PropertyPath.parse(name))
+
+/**
+ * 创建属性引用
+ * Create property reference
+ */
+fun <E, T> prop(property: KProperty1<E, T>): TypedPathBuilder<E, T> = TypedPathBuilder(property)
 
 /**
  * 创建标量引用
@@ -383,6 +465,54 @@ fun or(vararg expressions: BooleanExpression): OrExpression = OrExpression(expre
  */
 fun notExpr(expression: BooleanExpression): NotExpression = NotExpression(expression)
 
+// ========== 类型化路径操作 / Typed Path Operations ==========
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.lt(value: T): Comparison<T> =
+    Comparison(ComparisonOperator.Lt, asScalar(), ScalarConstant(value))
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.le(value: T): Comparison<T> =
+    Comparison(ComparisonOperator.Le, asScalar(), ScalarConstant(value))
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.gt(value: T): Comparison<T> =
+    Comparison(ComparisonOperator.Gt, asScalar(), ScalarConstant(value))
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.ge(value: T): Comparison<T> =
+    Comparison(ComparisonOperator.Ge, asScalar(), ScalarConstant(value))
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.lt(other: TypedPathBuilder<E, T>): Comparison<T> =
+    Comparison(ComparisonOperator.Lt, asScalar(), other.asScalar())
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.le(other: TypedPathBuilder<E, T>): Comparison<T> =
+    Comparison(ComparisonOperator.Le, asScalar(), other.asScalar())
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.gt(other: TypedPathBuilder<E, T>): Comparison<T> =
+    Comparison(ComparisonOperator.Gt, asScalar(), other.asScalar())
+
+infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.ge(other: TypedPathBuilder<E, T>): Comparison<T> =
+    Comparison(ComparisonOperator.Ge, asScalar(), other.asScalar())
+
+fun <E, T> TypedPathBuilder<E, T?>.isNull(): NullCheck = NullCheck(path, NullCheckType.IsNull)
+
+fun <E, T> TypedPathBuilder<E, T?>.isNotNull(): NullCheck = NullCheck(path, NullCheckType.IsNotNull)
+
+infix fun <E> TypedPathBuilder<E, String>.like(pattern: String): PatternMatch<String> =
+    PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Like)
+
+infix fun <E> TypedPathBuilder<E, String>.likeExact(pattern: String): PatternMatch<String> =
+    PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Exact)
+
+infix fun <E> TypedPathBuilder<E, String>.likePrefix(pattern: String): PatternMatch<String> =
+    PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Prefix)
+
+infix fun <E> TypedPathBuilder<E, String>.likeSuffix(pattern: String): PatternMatch<String> =
+    PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Suffix)
+
+infix fun <E> TypedPathBuilder<E, String>.likeContains(pattern: String): PatternMatch<String> =
+    PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Contains)
+
+fun <E> TypedPathBuilder<E, String>.notLike(pattern: String): PatternMatch<String> =
+    PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Like, negated = true)
+
 // ========== 标量函数 / Scalar Functions ==========
 
 @Suppress("UNCHECKED_CAST")
@@ -396,32 +526,6 @@ fun abs(expr: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Abs, listOf(expr))
 
 fun abs(path: PathBuilder): ScalarFunction<Any?> = abs(path.asScalar<Any?>())
-
-fun lower(expr: ScalarExpression<*>): ScalarFunction<Any?> =
-    function(ScalarFunctionNames.Lower, listOf(expr))
-
-fun lower(path: PathBuilder): ScalarFunction<Any?> = lower(path.asScalar<Any?>())
-
-fun upper(expr: ScalarExpression<*>): ScalarFunction<Any?> =
-    function(ScalarFunctionNames.Upper, listOf(expr))
-
-fun upper(path: PathBuilder): ScalarFunction<Any?> = upper(path.asScalar<Any?>())
-
-fun trim(expr: ScalarExpression<*>): ScalarFunction<Any?> =
-    function(ScalarFunctionNames.Trim, listOf(expr))
-
-fun trim(path: PathBuilder): ScalarFunction<Any?> = trim(path.asScalar<Any?>())
-
-fun length(expr: ScalarExpression<*>): ScalarFunction<Any?> =
-    function(ScalarFunctionNames.Length, listOf(expr))
-
-fun length(path: PathBuilder): ScalarFunction<Any?> = length(path.asScalar<Any?>())
-
-fun coalesce(vararg expressions: ScalarExpression<*>): ScalarFunction<Any?> =
-    function(ScalarFunctionNames.Coalesce, expressions.toList())
-
-fun coalesce(vararg paths: PathBuilder): ScalarFunction<Any?> =
-    coalesce(*paths.map { it.asScalar<Any?>() }.toTypedArray())
 
 infix fun ScalarExpression<*>.eq(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Eq, anyScalar(this), ScalarConstant(value))

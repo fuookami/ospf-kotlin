@@ -9,6 +9,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.prop
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
 import fuookami.ospf.kotlin.math.Trivalent
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import org.junit.jupiter.api.*
@@ -16,7 +18,7 @@ import org.junit.jupiter.api.Assertions.*
 
 @DisplayName("MybatisBooleanTranslator Tests / MyBatis 布尔翻译器测试")
 class MybatisBooleanTranslatorTest {
-    data class TestEntity(val id: Long, val name: String?)
+    data class TestEntity(val id: Long, val age: Int, val name: String?)
 
     private val resolver: MybatisColumnNameResolver = { path ->
         when (path.substringAfterLast(".")) {
@@ -273,6 +275,17 @@ class MybatisBooleanTranslatorTest {
 
             assertTrue(wrapper.customSqlSegment.contains("ABS(age) >"))
             assertFalse(wrapper.customSqlSegment.contains("10"))
+        }
+
+        @Test
+        @DisplayName("should translate property predicate / 应翻译属性谓词")
+        fun shouldTranslatePropertyPredicate() {
+            val expr = prop(TestEntity::age) gt 18
+
+            val wrapper = translator.translate(QueryWrapper(), expr)
+
+            assertTrue(wrapper.customSqlSegment.contains("age >"))
+            assertFalse(wrapper.customSqlSegment.contains("18"))
         }
 
         @Test

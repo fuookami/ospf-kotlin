@@ -47,7 +47,7 @@ val columnComparison = path("startAt").lt(path("endAt"))
 val amountCheck = (path("price") * path("quantity")).gt(100)
 ```
 
-标量函数复用 `ospf-kotlin-math` 的 `ScalarFunction` 节点。它们是逻辑函数符号，不是原始 SQL 字符串：
+标量函数复用 `ospf-kotlin-math` 的 `ScalarFunction` 节点。它们是逻辑函数符号，不是原始 SQL 字符串。`abs` 保留在 math DSL 中，因为它本身也是数学函数；面向仓储的字符串/空值函数由当前 framework 包提供：
 
 ```kotlin
 val absoluteBalance = abs(path("balance")).gt(10)

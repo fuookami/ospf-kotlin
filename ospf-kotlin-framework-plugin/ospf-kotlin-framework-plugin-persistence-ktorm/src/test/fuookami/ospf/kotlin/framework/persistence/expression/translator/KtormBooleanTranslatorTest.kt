@@ -6,6 +6,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.prop
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -25,6 +27,8 @@ import org.ktorm.schema.varchar
 
 @DisplayName("KtormBooleanTranslator Tests / Ktorm 布尔翻译器测试")
 class KtormBooleanTranslatorTest {
+    data class Entity(val age: Int)
+
     private object Users : Table<Nothing>("users") {
         val id = int("id")
         val age = int("age")
@@ -123,6 +127,16 @@ class KtormBooleanTranslatorTest {
 
             assertEquals(BinaryExpressionType.GREATER_THAN, result.type)
             assertEquals("ABS", (result.left as FunctionExpression<*>).functionName)
+        }
+
+        @Test
+        @DisplayName("should translate property predicate / 应翻译属性谓词")
+        fun shouldTranslatePropertyPredicate() {
+            val expr = prop(Entity::age) gt 18
+
+            val result = translator.translate(expr) as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.GREATER_THAN, result.type)
         }
     }
 

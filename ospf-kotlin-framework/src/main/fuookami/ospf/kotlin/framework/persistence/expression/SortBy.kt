@@ -7,6 +7,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
+import kotlin.reflect.KProperty1
+
 /**
  * 排序定义
  * Sort Definition
@@ -44,6 +46,20 @@ data class SortBy(
             SortBy(listOf(SortItem(path, SortDirection.Desc, nulls)))
 
         /**
+         * 按属性升序排序
+         * Ascending sort by property
+         */
+        fun <E, T> asc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
+            asc(property.name, nulls)
+
+        /**
+         * 按属性降序排序
+         * Descending sort by property
+         */
+        fun <E, T> desc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
+            desc(property.name, nulls)
+
+        /**
          * 从多个路径创建升序排�?
          * Create ascending sort from multiple paths
          */
@@ -56,6 +72,20 @@ data class SortBy(
          */
         fun desc(vararg paths: String): SortBy =
             SortBy(paths.map { SortItem(it, SortDirection.Desc) })
+
+        /**
+         * 从多个属性创建升序排序
+         * Create ascending sort from multiple properties
+         */
+        fun <E> asc(vararg properties: KProperty1<E, *>): SortBy =
+            SortBy(properties.map { SortItem(it.name, SortDirection.Asc) })
+
+        /**
+         * 从多个属性创建降序排序
+         * Create descending sort from multiple properties
+         */
+        fun <E> desc(vararg properties: KProperty1<E, *>): SortBy =
+            SortBy(properties.map { SortItem(it.name, SortDirection.Desc) })
     }
 
     /**
@@ -77,6 +107,20 @@ data class SortBy(
      */
     fun thenDesc(path: String, nulls: NullsOrder? = null): SortBy =
         SortBy(items + SortItem(path, SortDirection.Desc, nulls))
+
+    /**
+     * 添加属性升序排序
+     * Add ascending property sort item
+     */
+    fun <E, T> thenAsc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
+        thenAsc(property.name, nulls)
+
+    /**
+     * 添加属性降序排序
+     * Add descending property sort item
+     */
+    fun <E, T> thenDesc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
+        thenDesc(property.name, nulls)
 
     /**
      * 是否为空

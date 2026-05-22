@@ -13,6 +13,11 @@ import org.junit.jupiter.api.Assertions.*
 
 @DisplayName("SortBy Tests / 排序模型测试")
 class SortByTest {
+    data class User(
+        val age: Int,
+        val status: String,
+        val deletedAt: String?
+    )
 
     @Nested
     @DisplayName("SortBy Creation Tests / SortBy 创建测试")
@@ -61,6 +66,18 @@ class SortByTest {
             assertEquals("status", sort.items[0].path)
             assertEquals("name", sort.items[1].path)
         }
+
+        @Test
+        @DisplayName("Create sort from property / 从属性创建排序")
+        fun testPropertySort() {
+            val asc = SortBy.asc(User::age)
+            val desc = SortBy.desc(User::age, NullsOrder.NullsLast)
+            val multi = SortBy.asc(User::status, User::age)
+
+            assertEquals(SortBy.asc("age"), asc)
+            assertEquals(SortBy.desc("age", NullsOrder.NullsLast), desc)
+            assertEquals(SortBy.asc("status", "age"), multi)
+        }
     }
 
     @Nested
@@ -95,6 +112,20 @@ class SortByTest {
             assertEquals("priority", sort.items[1].path)
             assertEquals(SortDirection.Desc, sort.items[1].direction)
             assertEquals("createdAt", sort.items[2].path)
+            assertEquals(NullsOrder.NullsLast, sort.items[2].nulls)
+        }
+
+        @Test
+        @DisplayName("Chain property sorts / 链式属性排序")
+        fun testChainPropertySorts() {
+            val sort = SortBy.asc(User::status)
+                .thenDesc(User::age)
+                .thenAsc(User::deletedAt, NullsOrder.NullsLast)
+
+            assertEquals(3, sort.items.size)
+            assertEquals("status", sort.items[0].path)
+            assertEquals("age", sort.items[1].path)
+            assertEquals("deletedAt", sort.items[2].path)
             assertEquals(NullsOrder.NullsLast, sort.items[2].nulls)
         }
     }

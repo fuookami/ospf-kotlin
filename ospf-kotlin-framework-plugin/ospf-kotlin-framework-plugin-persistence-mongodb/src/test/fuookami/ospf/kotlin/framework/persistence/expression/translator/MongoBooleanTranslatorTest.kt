@@ -7,6 +7,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.prop
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
 import com.mongodb.MongoClientSettings
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
@@ -17,6 +19,8 @@ import org.junit.jupiter.api.Test
 
 @DisplayName("MongoBooleanTranslator Tests / MongoDB 布尔翻译器测试")
 class MongoBooleanTranslatorTest {
+    data class Entity(val age: Int)
+
     private val resolver: MongoFieldNameResolver = { path ->
         when (path.substringAfterLast(".")) {
             "id", "name", "age", "status", "price", "quantity" -> path.substringAfterLast(".")
@@ -117,6 +121,17 @@ class MongoBooleanTranslatorTest {
         assertTrue(actual.contains("\"\$gt\""))
         assertTrue(actual.contains("\"\$age\""))
         assertTrue(actual.contains("\"\$id\""))
+    }
+
+    @Test
+    @DisplayName("property predicate should translate / 属性谓词应翻译")
+    fun propertyPredicateShouldTranslate() {
+        val expr = prop(Entity::age) gt 18
+
+        val actual = json(translator.translate(expr))
+
+        assertTrue(actual.contains("\"\$gt\""))
+        assertTrue(actual.contains("\"age\""))
     }
 
     @Test

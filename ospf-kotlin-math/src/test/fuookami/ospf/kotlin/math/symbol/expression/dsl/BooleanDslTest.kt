@@ -15,6 +15,19 @@ import org.junit.jupiter.api.Assertions.*
 
 @DisplayName("Boolean DSL Tests / 布尔表达式 DSL 测试")
 class BooleanDslTest {
+    data class User(
+        val id: Int,
+        val status: String,
+        val age: Int,
+        val deletedAt: String?
+    )
+
+    object Users : PredicateSchema<User>() {
+        val id = field(User::id)
+        val status = field(User::status)
+        val age = field(User::age)
+        val deletedAt = field(User::deletedAt)
+    }
 
     @Nested
     @DisplayName("Path Builder Tests / 路径构建器测试")
@@ -139,6 +152,75 @@ class BooleanDslTest {
     }
 
     @Nested
+    @DisplayName("Typed Path Builder Tests / 类型化路径构建器测试")
+    inner class TypedPathBuilderTests {
+
+        @Test
+        @DisplayName("Property eq builds typed comparison / 属性 eq 构造类型化比较")
+        fun testPropertyEqBuildsTypedComparison() {
+            val dotCall = prop(User::status).eq("active")
+            val infixCall = prop(User::status) eq "active"
+
+            assertEquals(dotCall, infixCall)
+            assertEquals(ComparisonOperator.Eq, dotCall.operator)
+            assertEquals(PropertyPath.parse("status"), (dotCall.left as ScalarReference<*>).path)
+        }
+
+        @Test
+        @DisplayName("Property gt builds typed comparison / 属性 gt 构造类型化比较")
+        fun testPropertyGtBuildsTypedComparison() {
+            val dotCall = prop(User::age).gt(18)
+            val infixCall = prop(User::age) gt 18
+
+            assertEquals(dotCall, infixCall)
+            assertEquals(ComparisonOperator.Gt, dotCall.operator)
+            assertEquals(PropertyPath.parse("age"), (dotCall.left as ScalarReference<*>).path)
+        }
+
+        @Test
+        @DisplayName("Property column comparison / 属性列-列比较")
+        fun testPropertyColumnComparison() {
+            val dotCall = prop(User::age).gt(prop(User::id))
+            val infixCall = prop(User::age) gt prop(User::id)
+
+            assertEquals(dotCall, infixCall)
+            assertEquals(ComparisonOperator.Gt, dotCall.operator)
+            assertEquals(PropertyPath.parse("age"), (dotCall.left as ScalarReference<*>).path)
+            assertEquals(PropertyPath.parse("id"), (dotCall.right as ScalarReference<*>).path)
+        }
+
+        @Test
+        @DisplayName("Property in values / 属性集合成员判断")
+        fun testPropertyInValues() {
+            val expr = prop(User::status).inValues("active", "pending")
+
+            assertFalse(expr.negated)
+            assertEquals(PropertyPath.parse("status"), (expr.value as ScalarReference<*>).path)
+            assertEquals(2, expr.candidates.size)
+        }
+
+        @Test
+        @DisplayName("Nullable property null check / 可空属性空值检查")
+        fun testNullablePropertyNullCheck() {
+            val expr = prop(User::deletedAt).isNull()
+
+            assertTrue(expr.isNull)
+            assertEquals(PropertyPath.parse("deletedAt"), expr.path)
+        }
+
+        @Test
+        @DisplayName("Schema predicate block / Schema 谓词块")
+        fun testSchemaPredicateBlock() {
+            val expr = Users.predicate {
+                (status eq "active") and (age gt 18)
+            }
+
+            assertTrue(expr is AndExpression)
+            assertEquals(2, (expr as AndExpression).operands.size)
+        }
+    }
+
+    @Nested
     @DisplayName("Convenience Functions Tests / 便捷函数测试")
     inner class ConvenienceFunctionsTests {
 
@@ -199,12 +281,10 @@ class BooleanDslTest {
         fun testScalarFunctionDsl() {
             val absExpr = abs(path("balance"))
             val comparison = abs(path("balance")) gt 10
-            val lowerComparison = lower(path("name")) eq "alice"
 
             assertEquals(ScalarFunctionNames.Abs, absExpr.name)
             assertEquals(ComparisonOperator.Gt, comparison.operator)
             assertTrue(comparison.left is ScalarFunction<*>)
-            assertEquals(ComparisonOperator.Eq, lowerComparison.operator)
         }
     }
 

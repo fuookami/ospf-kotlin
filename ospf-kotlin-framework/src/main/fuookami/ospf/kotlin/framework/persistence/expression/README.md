@@ -47,7 +47,7 @@ val columnComparison = path("startAt").lt(path("endAt"))
 val amountCheck = (path("price") * path("quantity")).gt(100)
 ```
 
-Scalar functions reuse `ospf-kotlin-math` `ScalarFunction` nodes. They are logical function symbols, not raw SQL strings:
+Scalar functions reuse `ospf-kotlin-math` `ScalarFunction` nodes. They are logical function symbols, not raw SQL strings. `abs` remains in the math DSL because it is also a math function; repository-oriented string/null functions are exposed from this framework package:
 
 ```kotlin
 val absoluteBalance = abs(path("balance")).gt(10)
