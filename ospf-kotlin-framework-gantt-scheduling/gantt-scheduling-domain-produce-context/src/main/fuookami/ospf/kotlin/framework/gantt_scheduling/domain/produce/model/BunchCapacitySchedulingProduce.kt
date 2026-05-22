@@ -65,10 +65,7 @@ class BunchCapacitySchedulingProduce<
                 it.setConstant(Flt64.zero)
             }
             for ((actionIndex, action) in actions.withIndex()) {
-                if (action !is CapacityActionProduce<*, *>) {
-                    continue
-                }
-                val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
+                val unitProduce = unitProduceMapOf<P>(action)?.get(product) ?: Flt64.zero
                 if (unitProduce eq Flt64.zero) {
                     continue
                 }

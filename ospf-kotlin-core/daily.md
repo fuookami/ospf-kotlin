@@ -1632,191 +1632,318 @@ P33 建议主线：
 1. 优先处理 `gantt-scheduling` model 层高频 unchecked cast（resource/produce/infrastructure）。
 2. 若继续处理 CodeHeap，仅做观测对比与统计，不改全局 JVM 配置。
 
-## P33 草案：framework model 层 warning 收束批次
+## P33：framework model 层 warning 收束批次
 
-状态：草案，交接给下一会话执行。
+状态：已完成（2026-05-22）
 
-目标：在 P32 已收敛 `service/limits` 与高价值 service warning 的基础上，继续处理 framework gantt-scheduling model/infrastructure 层剩余 unchecked cast。P33 不继续扩展 warning summary 功能，只复用现有 summary 做前后对比；不修改 core/math 主线 API，不做跨模块泛型重构，不改 `.mvn/jvm.config`，不把 warning 设为 CI 硬门禁。
-
-### P33 总边界
-
-1. 默认允许修改：
-   - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/**/domain/resource/model/**`
-   - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/**/domain/produce/model/**`
-   - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/**/infrastructure/WorkingCalendar.kt`
-   - `ospf-kotlin-core/daily.md`
-2. 默认不修改：
-   - core/math 主线公共 API；
-   - service/limits 已完成的 P32 helper，除非发现明确 bug；
-   - warning summary 脚本参数和 CI artifact 配置；
-   - `.mvn/jvm.config`；
-   - README / README_ch。
-3. 优先使用命名 helper 或局部封装表达不变量；如果只能 suppress，必须放在最小作用域，并补中英双语说明。
-4. 不做 framework model 泛型体系大重构；如果需要改泛型约束才能真正消除 warning，应记录为后续候选，而不是强行推进。
+目标：在 P32 已收敛 `service/limits` 和 service 层高价值 warning 的基础上，继续收敛 framework gantt-scheduling 的 model/infrastructure 层 unchecked cast。P33 未改 core/math 主线 API，未改 `.mvn/jvm.config`，未扩展 warning summary 脚本功能，CI 仍维持观测口径。
 
 ### P33-1：resource model ExpressionRange cast 收敛
 
-状态：待执行。
+状态：已完成。
 
-目标：处理 P32 后仍出现在 resource model 层的 `ExpressionRange<Flt64>` unchecked cast warning。
+实际修改：
 
-建议优先文件：
+1. 文件：`.../domain/resource/model/Resource.kt`
+2. 新增局部 helper：
+   - `setResourceSlackUpperBoundAsFlt64(range: ExpressionRange<*>, upperBound: Flt64)`
+   - 最小作用域 `@Suppress("UNCHECKED_CAST")`，含中英双语不变量说明。
+3. 将两处散点 cast：
+   - `slack.helperVariables.last().range as ExpressionRange<Flt64>`
+   - `slack.helperVariables.first().range as ExpressionRange<Flt64>`
+   收敛到 helper 调用。
 
-1. `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/Resource.kt`
+结果：
 
-详细步骤：
-
-1. 先复跑或查看 warning summary，确认 `Resource.kt` 当前 warning 行号与数量。
-2. 阅读相关变量、range、capacity 构造路径，确认 `Range<...>` 到 `ExpressionRange<Flt64>` 的运行期不变量来源。
-3. 若可行，抽 private helper 收敛 cast，命名应表达 resource variable range / expression range 边界。
-4. 若泛型擦除导致 warning 不可消除，使用最小 `@Suppress("UNCHECKED_CAST")` 并补中英双语说明：
-   - 中文：资源变量范围由 Flt64 表达式变量构造，运行期类型不变量由资源建模路径保证。
-   - English: Resource variable ranges are built from Flt64 expression variables; the resource modeling path owns the runtime type invariant.
-5. 不改变 `Resource` 对外构造、字段类型或求解语义。
-
-验收标准：
-
-1. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context -am "-DskipTests" compile` 通过。
-2. `Resource.kt` 目标 unchecked cast warning 消失或集中到一个有说明的局部点。
-3. `daily.md` 记录处理方式、保留项和验收结果。
+1. `Resource.kt` 2 条目标 warning 收敛（从散点转为单点封装并加说明）。
+2. 编译通过（见“P33 验收命令与结果”）。
 
 ### P33-2：produce model CapacityActionProduce cast 收敛
 
-状态：待执行。
+状态：已完成。
 
-目标：处理 produce model 层 `CapacityActionProduce<*, *>` 到具体 `P/C` 类型的 unchecked cast，减少业务模型中的裸 cast。
+实际修改：
 
-建议优先文件：
+1. 文件：`.../domain/produce/model/CapacityActionProduce.kt`
+   - 新增两个 helper（最小作用域 suppress + 中英注释）：
+     - `unitProduceMapOf(action: ProductionAction)`
+     - `unitConsumptionMapOf(action: ProductionAction)`
+   - `CapacityColumn.produce(...)` / `CapacityColumn.consumption(...)` 改为复用上述 helper，移除裸 cast。
+2. 文件：`.../domain/produce/model/BunchCapacitySchedulingProduce.kt`
+   - `addColumns(...)` 中改为 `unitProduceMapOf<P>(action)?.get(product)`。
+3. 文件：`.../domain/produce/model/PlanCapacitySchedulingProduce.kt`
+   - 构造流程中改为 `unitProduceMapOf<P>(action)?.get(product)`。
 
-1. `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/BunchCapacitySchedulingProduce.kt`
-2. `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/CapacityActionProduce.kt`
-3. `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/PlanCapacitySchedulingProduce.kt`
+结果：
 
-详细步骤：
-
-1. 先阅读 `ProductionAction`、`CapacityActionProduce`、`CapacityColumn` 与 plan/bunch produce 的泛型关系。
-2. 优先尝试用 private helper 收敛重复 cast，例如按 produce/consumption 方向命名，而不是散点 suppress。
-3. 如果类型系统无法表达当前业务不变量，使用最小 suppress，并补中英双语说明：
-   - 中文：生产动作与产出/消耗物料类型由对应 column/produce 构造路径绑定。
-   - English: Production action material types are bound by the corresponding column/produce construction path.
-4. 不改变 `CapacityActionProduce` 的公开泛型签名，除非能证明所有调用方无影响并补验收。
-5. 不把 produce model 的泛型重设扩大到 task/resource context。
-
-验收标准：
-
-1. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am "-DskipTests" compile` 通过。
-2. 上述 3 个目标文件的 unchecked cast warning 数量下降。
-3. 若仍保留 warning，必须记录具体原因和后续需要确认的泛型语义。
+1. 三个目标文件内的 4 条裸 cast warning 收敛到 helper 封装点。
+2. 编译通过（见“P33 验收命令与结果”）。
 
 ### P33-3：WorkingCalendar Productivity cast 单点评估
 
+状态：已完成。
+
+实际修改：
+
+1. 文件：`.../infrastructure/WorkingCalendar.kt`
+2. 在 `ProductivityCalendar` 内新增局部 helper：
+   - `rebuiltProductivityOf(source: P, timeWindow: TimeRange): P`
+   - 最小作用域 `@Suppress("UNCHECKED_CAST")`，含中英双语不变量说明。
+3. 将 `it.new(timeWindow = time) as P` 改为 helper 调用。
+
+结果：
+
+1. `WorkingCalendar.kt` 该单点 warning 收敛到命名 helper。
+2. 编译通过（见“P33 验收命令与结果”）。
+
+### P33-4：warning summary 复用前后对比
+
+状态：已完成。
+
+执行命令：
+
+1. 生成编译日志：
+   `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context,ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context,ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am -DskipTests compile`
+   日志：`ospf-kotlin-core/target/ci/maven-p33-framework-model-compile.log`
+2. 生成 summary：
+   `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\summarize-maven-warnings.ps1 -LogPath .\ospf-kotlin-core\target\ci\maven-p33-framework-model-compile.log -Output .\ospf-kotlin-core\target\ci\maven-p33-warning-summary.md -Format markdown -Top 20`
+
+对比摘要（P33 目标点）：
+
+1. P33 前（基于 P32 编译日志）：
+   - `Resource.kt`：2 条
+   - produce 3 文件：4 条
+   - `WorkingCalendar.kt`：1 条
+   - 合计：7 条目标 warning
+2. P33 后（本轮 summary + 编译输出）：
+   - 上述目标 warning：0 条
+   - summary 仅剩 CodeHeap/HotSpot 分组（2 组，4 行）
+
+### P33-5：CodeHeap 观测延续
+
+状态：已完成。
+
+记录：
+
+1. 本轮主要验收编译均出现 CodeHeap/HotSpot 警告（构建命令见“P33 验收命令与结果”）。
+2. `MAVEN_OPTS`：本轮未显式设置（沿用环境默认）。
+3. summary（`maven-p33-warning-summary.md`）统计：
+   - Total warnings：4
+   - Unique groups：2
+   - `CodeHeap 'non-profiled nmethods' is full...`：2 次
+   - `Try increasing the code heap size using -XX:NonProfiledCodeHeapSize=`：2 次
+   - 归属 module：`ospf-kotlin-core`
+4. 影响评估：构建均 `BUILD SUCCESS`，未阻断。
+
+### P33-6：daily.md 收尾与候选池重分层
+
+状态：已完成。
+
+剩余 warning 候选池分层：
+
+1. 已收敛：
+   - resource model `ExpressionRange<Flt64>` 2 处；
+   - produce model `CapacityActionProduce` 4 处；
+   - infrastructure `WorkingCalendar` 1 处；
+   - 以上共 7 条目标 warning。
+2. 可继续低风险收敛：
+   - framework 其余 model 文件中同构的 material/resource 泛型 cast（优先同包 helper 化）。
+3. 需要泛型/业务语义确认：
+   - 若后续要彻底移除 helper 内 suppress，需要评估 `ProductionAction` 与 `Productivity` 的上层泛型绑定方式是否可增强。
+4. 暂不处理：
+   - `.mvn/jvm.config` JVM 参数调整；
+   - 将 warning 提升为 CI 硬门禁。
+
+P34 建议主线：
+
+1. 聚焦 framework model 里剩余具体文件 warning，不重复 P31-P33 已清理项。
+2. CodeHeap 继续观测口径，不做全局 JVM 改参。
+
+## P34 草案：framework warning 防回流与维护化批次
+
+状态：草案，交接给下一会话执行。
+
+目标：在 P31-P33 已完成 framework warning 收敛后，从“继续清 warning”转为“防止已清理模式回流”。P34 聚焦 guard、helper 命名/作用域复核、warning summary 复用和 CodeHeap 观测口径固化；不做大范围泛型重构，不继续扩展 warning summary 功能，不修改 `.mvn/jvm.config`，不把 CodeHeap 或普通 warning 提升为 CI 硬门禁。
+
+### P34 总边界
+
+1. 默认允许修改：
+   - `ospf-kotlin-core/scripts/check-c8-guards.ps1`
+   - `ospf-kotlin-core/daily.md`
+   - P32/P33 新增或触及的 framework helper 文件，仅限必要命名、注释或作用域小修。
+2. 默认不修改：
+   - core/math 主线公共 API；
+   - framework 泛型体系；
+   - warning summary 参数和 CI artifact 配置；
+   - `.mvn/jvm.config`；
+   - README / README_ch。
+3. 新增 guard 应以防回流为目标，避免把 CodeHeap、历史 model 复杂泛型点或环境噪音变成硬门禁。
+4. 若 guard 需要 baseline，应记录 baseline、当前值和允许范围；优先使用“目标模式零容忍”检查。
+
+### P34-1：framework 已清理裸 cast 模式防回流 guard
+
 状态：待执行。
 
-目标：评估并尽量收敛 infrastructure 层 `WorkingCalendar.kt` 中 `Productivity<...>` 到 `P` 的 unchecked cast。该点位于基础设施层，影响面高于普通业务模型散点，值得单独判断。
+目标：为 P31-P33 已清理的高风险裸 cast 模式补静态 guard，防止后续代码重新引入散点 cast。
 
-建议优先文件：
+建议覆盖模式：
 
-1. `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/WorkingCalendar.kt`
+1. `constraint.args as? XxxShadowPriceKey` 或 `constraint.args as XxxShadowPriceKey`。
+2. `CapacityActionProduce<P, *>` / `CapacityActionProduce<*, C>` 的散点 cast。
+3. `ExpressionRange<Flt64>` 的直接 cast，允许 P33 命名 helper 内的单点封装。
+4. `it.new(...) as P` / `.new(...) as P` 的直接 Productivity cast，允许 `rebuiltProductivityOf(...)` 内的单点封装。
+5. `result.error as Error<ErrorCode>` 与 `result.errors as List<Error<ErrorCode>>` 旧写法。
 
 详细步骤：
 
-1. 先定位当前 warning 行号与所在类/函数，阅读 `ProductivityCalendar` 泛型关系。
-2. 判断是否能通过构造函数、factory 或 private helper 保留 `P` 类型信息。
-3. 若不能低风险消除，使用最小 suppress 并补中英双语说明：
-   - 中文：日历的 productivity 实例由同一 `P` 类型构造路径产生，cast 只恢复被集合/泛型擦除隐藏的具体类型。
-   - English: Productivity instances in this calendar are produced by the same P-typed construction path; the cast restores the concrete type hidden by collection/generic erasure.
-4. 不重设 `ProductivityCalendar` 整体泛型体系。
+1. 在 `check-c8-guards.ps1` 中新增 P34 guard 小节，命名应说明“framework warning backflow”或类似含义。
+2. guard 扫描范围限定在 `ospf-kotlin-framework-gantt-scheduling/**/src/main/**/*.kt`。
+3. 对允许的 helper 文件/函数设置精确 allowlist，不用宽泛目录豁免。
+4. 输出应包含命中路径与行号，便于回归定位。
+5. 将 guard 接入 P6/P7 模式，或至少保证 P6/P7 都会执行该小节。
 
 验收标准：
 
-1. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am "-DskipTests" compile` 通过。
-2. `WorkingCalendar.kt` 目标 warning 消失或被集中说明。
-3. 如不处理，`daily.md` 记录阻塞原因和后续需要确认的泛型设计点。
+1. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6` 通过。
+2. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7` 通过。
+3. guard 输出能明确说明已清理 cast 模式无回流。
+4. `daily.md` 记录新增 guard 名称、覆盖模式、allowlist 和结果。
 
-### P33-4：warning summary 复用做前后对比
+### P34-2：P32/P33 helper 命名、作用域与注释复核
 
 状态：待执行。
 
-目标：复用 P32 已增强的 warning summary，对 P33 前后 warning 变化做记录；不新增脚本功能。
+目标：复核 P32/P33 新增 helper 的命名、可见性、注释和 suppress 作用域，让后续维护者能理解这些 helper 是不变量边界，不是普通工具函数。
+
+建议检查对象：
+
+1. `shadowPriceKeyOf(...)`
+2. `unitProduceMapOf(...)`
+3. `unitConsumptionMapOf(...)`
+4. `setResourceSlackUpperBoundAsFlt64(...)`
+5. `rebuiltProductivityOf(...)`
+6. `analyzedTaskOf(...)`
+7. `errorCodeErrorOf(...)` / `errorCodeErrorsOf(...)`
 
 详细步骤：
 
-1. 使用现有 compile log 或重新生成日志，运行：
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\summarize-maven-warnings.ps1 -LogPath <log> -Output <summary> -Format markdown -Top 20`
-2. 记录 P33 目标模块中 warning 的前后数量和剩余分组。
-3. 不新增 `summarize-maven-warnings.ps1` 参数，不改 CI artifact 配置。
-4. 不提交临时日志或临时 summary，除非它们本来就是 CI artifact 路径。
+1. 检查 helper 是否为最小合理可见性：优先 private；跨同包复用时才用 internal。
+2. 检查 `@Suppress("UNCHECKED_CAST")` 是否在函数级或文件级最小作用域。
+3. 检查中英双语注释是否说明：
+   - 运行期不变量由哪条构造路径保证；
+   - helper 的非目标，例如不做通用类型转换。
+4. 只做必要小修，不做 helper 合并或跨模块迁移。
+
+验收标准：
+
+1. 相关模块 compile 通过，或确认仅文档/注释改动无需全量编译并记录理由。
+2. `git diff --check` 通过。
+3. `daily.md` 记录是否有 helper 小修和保留理由。
+
+### P34-3：warning summary 复用做防回流观测
+
+状态：待执行。
+
+目标：复用 P32/P33 已建立的 warning summary，确认当前目标编译日志中不再出现 P31-P33 已清理的 warning 分组；不新增脚本参数。
+
+详细步骤：
+
+1. 对 framework 目标模块生成一份编译日志，建议覆盖：
+   - `gantt-scheduling-domain-task-compilation-context`
+   - `gantt-scheduling-domain-resource-context`
+   - `gantt-scheduling-domain-produce-context`
+   - `gantt-scheduling-domain-bunch-compilation-context`
+   - `gantt-scheduling-infrastructure`
+2. 使用现有 `summarize-maven-warnings.ps1 -Top 20` 生成报告。
+3. 在 `daily.md` 记录 summary 中是否仍包含：
+   - P31 `shadowPriceMap` named-argument warning；
+   - P32 `service/limits` ShadowPriceKey cast warning；
+   - P33 model/infrastructure 目标 cast warning。
+4. 不提交临时日志/summary，除非它们在既有 `target/ci` artifact 路径且不进入 git。
 
 验收标准：
 
 1. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\test-summarize-maven-warnings.ps1` 通过。
-2. `daily.md` 有 P33 前后对比摘要。
-3. 工作区无无意遗留 `tmp-*` 或 `*-review` 日志/报告文件。
+2. summary 生成成功。
+3. `daily.md` 记录防回流观测结论。
 
-### P33-5：CodeHeap 观测延续
+### P34-4：CodeHeap 观测口径固化
 
 状态：待执行。
 
-目标：延续 P32 的 CodeHeap 观测口径，只记录，不调整 JVM 全局配置。
+目标：继续保持 CodeHeap 只观测不处理，避免后续会话重复尝试修改 `.mvn/jvm.config`。
 
 详细步骤：
 
-1. 在 P33 主要编译验收中记录是否出现 CodeHeap warning。
-2. 若出现，记录：
-   - 构建命令；
-   - 是否设置 `MAVEN_OPTS`；
-   - summary 中 CodeHeap 分组数和行数；
-   - 是否影响构建结果。
-3. 不修改 `.mvn/jvm.config`。
-4. 不将 CodeHeap warning 设为 CI 失败。
+1. 在 P34 构建日志 summary 中记录 CodeHeap/HotSpot 分组数量。
+2. 明确写入 `daily.md`：
+   - 本轮是否设置 `MAVEN_OPTS`；
+   - CodeHeap warning 是否阻塞构建；
+   - 是否修改 `.mvn/jvm.config`（应为否）；
+   - 后续是否建议继续尝试 JVM 参数（默认不建议，除非有新的 CI 环境证据）。
+3. 不改 `.mvn/jvm.config`。
+4. 不把 CodeHeap warning 设为 guard 或 CI 失败。
 
 验收标准：
 
-1. `daily.md` 记录 CodeHeap 观测结果。
-2. 构建成功与否单独记录，CodeHeap warning 不作为失败依据。
+1. `daily.md` 有明确 CodeHeap 观测结论。
+2. 工作区不包含 JVM 配置改动。
 
-### P33-6：daily.md 收尾与候选池重分层
+### P34-5：daily.md 收尾与候选池重分层
 
 状态：待执行。
 
-目标：P33 完成后重新分层剩余 framework warning，避免后续会话继续扫描已处理的 model/infrastructure 点。
+目标：P34 完成后，明确后续是否还值得继续 P35，避免无收益迭代。
 
 详细步骤：
 
-1. 回填 P33 各子项实际修改清单、验收命令与结果。
-2. 将剩余 warning 分层：
-   - 已收敛；
-   - 可继续低风险收敛；
-   - 需要泛型/业务语义确认；
+1. 回填 P34 各子项实际修改清单、验收命令与结果。
+2. 将剩余项分层：
+   - 已防回流；
+   - 可继续低风险清理；
+   - 需要大范围泛型设计确认；
    - 暂不处理。
-3. 若建议 P34，优先聚焦仍在 model 层的具体文件，不再重复处理 P31-P33 已完成项。
+3. 若建议 P35，应只针对明确的新 warning 或明确的 guard 缺口，不再重复扫描 P31-P34 已闭环范围。
+4. 如果没有高价值项，明确建议暂停工程健康批次，转入提交/发布准备。
 
 推荐执行顺序：
 
-1. P33-1：先处理 resource model，范围最小。
-2. P33-2：再处理 produce model，覆盖高频 cast。
-3. P33-3：评估 WorkingCalendar 单点。
-4. P33-4：复用 warning summary 记录前后对比。
-5. P33-5：记录 CodeHeap 观测。
-6. P33-6：最后同步 daily.md。
+1. P34-1：先补 guard，锁住 P31-P33 成果。
+2. P34-2：复核 helper 作用域和注释。
+3. P34-3：用 warning summary 做防回流观测。
+4. P34-4：记录 CodeHeap 口径。
+5. P34-5：最后同步 daily.md 与候选池。
 
 推荐验收命令：
 
-1. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context -am "-DskipTests" compile`
-2. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am "-DskipTests" compile`
-3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am "-DskipTests" compile`
-4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\test-summarize-maven-warnings.ps1`
-5. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`
-6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`
-7. `git diff --check`
+1. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`
+2. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`
+3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\test-summarize-maven-warnings.ps1`
+4. 视实际 helper 小修范围选择：
+   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context -am "-DskipTests" compile`
+   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am "-DskipTests" compile`
+   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am "-DskipTests" compile`
+5. `git diff --check`
 
 交接注意事项：
 
-1. P33 目标是收束 model/infrastructure 层 warning，不继续扩脚本功能。
-2. 不做跨模块泛型重构；遇到需要类型体系重设的点，记录为后续候选。
-3. suppress 必须最小作用域并附中英双语不变量说明。
-4. 不修改 `.mvn/jvm.config`，不把 warning 提升为 CI 硬门禁。
-5. 每个 P33 子任务完成后，应在本文件补充状态、实际修改清单、验收命令和结果，再提交独立 commit。
+1. P34 是防回流批次，不是继续压 helper 内 suppress 的批次。
+2. 不做跨模块泛型重构。
+3. 不扩展 warning summary 功能，不改 CI artifact 语义。
+4. 不修改 `.mvn/jvm.config`。
+5. 每个 P34 子任务完成后，应在本文件补充状态、实际修改清单、验收命令和结果，再提交独立 commit。
+
+### P33 验收命令与结果
+
+1. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context -am "-DskipTests" compile`：通过。
+2. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am "-DskipTests" compile`：通过。
+3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am "-DskipTests" compile`：通过。
+4. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context,ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context,ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am -DskipTests compile`：通过（用于 P33 summary 日志）。
+5. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\summarize-maven-warnings.ps1 -LogPath .\ospf-kotlin-core\target\ci\maven-p33-framework-model-compile.log -Output .\ospf-kotlin-core\target\ci\maven-p33-warning-summary.md -Format markdown -Top 20`：通过。
+6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\test-summarize-maven-warnings.ps1`：通过。
+7. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+8. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+9. `git diff --check`：通过（存在 LF/CRLF 提示警告，不影响检查结果）。
 
 ### P32 验收命令与结果
 

@@ -1157,14 +1157,25 @@ sealed class ProductivityCalendar<Q, P, T, U>(
     private val div: (TimeWindow, Q, Duration) -> Q,
     private val floor: Extractor<Q, Flt64>
 ) : WorkingCalendar(timeWindow) where P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q : TimesGroup<Q> {
+    /**
+     * 在拆分时间窗时恢复同构建路径的具体 Productivity 子类型。
+     * 日历中的 productivity 实例由同一 P 类型构造路径产生，cast 仅恢复泛型擦除隐藏的具体类型。
+     *
+     * Restores the concrete Productivity subtype when splitting time windows.
+     * Productivity instances in this calendar are produced by the same P-typed construction path,
+     * and this cast only restores the concrete type hidden by generic erasure.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun rebuiltProductivityOf(source: P, timeWindow: TimeRange): P {
+        return source.new(timeWindow = timeWindow) as P
+    }
+
     val productivity: List<P> by lazy {
         if (unavailableTimes != null) {
             productivity.flatMap {
                 val timeRanges = it.timeWindow.differenceWith(unavailableTimes)
                 timeRanges.map { time ->
-                    it.new(
-                        timeWindow = time
-                    ) as P
+                    rebuiltProductivityOf(it, time)
                 }
             }.sortedBy { it.timeWindow.start }
         } else {

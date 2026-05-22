@@ -25,6 +25,21 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/**
+ * 将资源 slack 变量范围收敛为 Flt64 表达式范围并设置上限。
+ * 资源变量范围由 Flt64 表达式变量构造，运行期类型不变量由资源建模路径保证。
+ *
+ * Narrows resource slack-variable ranges to Flt64 expression ranges and sets upper bounds.
+ * Resource variable ranges are built from Flt64 expression variables; the resource modeling path owns the runtime type invariant.
+ */
+@Suppress("UNCHECKED_CAST")
+private fun setResourceSlackUpperBoundAsFlt64(
+    range: ExpressionRange<*>,
+    upperBound: Flt64
+): Boolean {
+    return (range as ExpressionRange<Flt64>).setUb(upperBound)
+}
+
 interface AbstractResourceCapacity {
     val time: TimeRange
     val quantity: ValueRange<Flt64>
@@ -136,7 +151,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_over_quantity_$slot"
                             )
                             slot.resourceCapacity.overQuantity?.let {
-                                (/* unchecked */ slack.helperVariables.last().range as ExpressionRange<Flt64>).setUb(it)
+                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.last().range, it)
                             }
                             slack
                         } else {
@@ -178,7 +193,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_less_quantity_$slot"
                             )
                             slot.resourceCapacity.lessQuantity?.let {
-                                (/* unchecked */ slack.helperVariables.first().range as ExpressionRange<Flt64>).setUb(it)
+                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.first().range, it)
                             }
                             slack
                         } else {

@@ -39,14 +39,12 @@ class PlanCapacitySchedulingProduce<
         // Bind compilation object at construction
         for ((product, _) in products) {
             for (action in actions) {
-                if (action is CapacityActionProduce<*, *>) {
-                    val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
-                    if (unitProduce neq Flt64.zero) {
-                        for ((s, _) in slots.withIndex()) {
-                            val actionIndex = actions.indexOf(action)
-                            if (actionIndex >= 0) {
-                                quantity[product].asMutable() += LinearMonomial(unitProduce, compilation.operationTime[actionIndex, s])
-                            }
+                val unitProduce = unitProduceMapOf<P>(action)?.get(product) ?: Flt64.zero
+                if (unitProduce neq Flt64.zero) {
+                    for ((s, _) in slots.withIndex()) {
+                        val actionIndex = actions.indexOf(action)
+                        if (actionIndex >= 0) {
+                            quantity[product].asMutable() += LinearMonomial(unitProduce, compilation.operationTime[actionIndex, s])
                         }
                     }
                 }

@@ -32,6 +32,36 @@ interface CapacityActionProduce<
 }
 
 /**
+ * 按产品方向读取生产动作的单位产量映射。
+ * 生产动作与产出物料类型由对应 column/produce 构造路径绑定。
+ *
+ * Reads the unit-produce map from a production action for product-side lookup.
+ * Production action material types are bound by the corresponding column/produce construction path.
+ */
+@Suppress("UNCHECKED_CAST")
+internal fun <P : AbstractMaterial> unitProduceMapOf(
+    action: ProductionAction
+): Map<P, Flt64>? {
+    val produceAction = action as? CapacityActionProduce<*, *> ?: return null
+    return produceAction.produce as Map<P, Flt64>
+}
+
+/**
+ * 按消耗方向读取生产动作的单位消耗映射。
+ * 生产动作与消耗物料类型由对应 column/produce 构造路径绑定。
+ *
+ * Reads the unit-consumption map from a production action for material-side lookup.
+ * Production action material types are bound by the corresponding column/produce construction path.
+ */
+@Suppress("UNCHECKED_CAST")
+internal fun <C : AbstractMaterial> unitConsumptionMapOf(
+    action: ProductionAction
+): Map<C, Flt64>? {
+    val produceAction = action as? CapacityActionProduce<*, *> ?: return null
+    return produceAction.consumption as Map<C, Flt64>
+}
+
+/**
  * �?CapacityColumn 计算产量
  * Calculate produce from CapacityColumn
  *
@@ -42,10 +72,8 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
         CapacityColumn<E, A>.produce(product: P): Flt64 {
     var result = Flt64.zero
     for ((action, amount) in allocations) {
-        if (action is CapacityActionProduce<*, *>) {
-            val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
-            result += unitProduce * amount.toFlt64()
-        }
+        val unitProduce = unitProduceMapOf<P>(action)?.get(product) ?: Flt64.zero
+        result += unitProduce * amount.toFlt64()
     }
     return result
 }
@@ -61,10 +89,8 @@ fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
         CapacityColumn<E, A>.consumption(material: C): Flt64 {
     var result = Flt64.zero
     for ((action, amount) in allocations) {
-        if (action is CapacityActionProduce<*, *>) {
-            val unitConsumption = (action as CapacityActionProduce<*, C>).consumption[material] ?: Flt64.zero
-            result += unitConsumption * amount.toFlt64()
-        }
+        val unitConsumption = unitConsumptionMapOf<C>(action)?.get(material) ?: Flt64.zero
+        result += unitConsumption * amount.toFlt64()
     }
     return result
 }
