@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -10,7 +11,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -19,13 +19,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
 class ConvertMechanismModelTest {
     @Test
     fun shouldConvertLinearMechanismModelToFlt64() {
@@ -33,7 +26,7 @@ class ConvertMechanismModelTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         tokens.add(x)
 
-        val metaModel = LinearMetaModel<Flt64>(name = "test-linear", converter = flt64Converter)
+        val metaModel = LinearMetaModel<Flt64>(name = "test-linear", converter = flt64TestConverter)
         val model = LinearMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",
@@ -55,7 +48,7 @@ class ConvertMechanismModelTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(x)
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic", converter = flt64Converter)
+        val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic", converter = flt64TestConverter)
         val model = QuadraticMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",

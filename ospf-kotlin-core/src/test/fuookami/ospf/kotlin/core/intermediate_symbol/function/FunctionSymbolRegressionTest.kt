@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -19,13 +19,6 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
 /**
  * MathFunctionSymbol 行为回归测试。
  * Regression tests for MathFunctionSymbol behavior.
@@ -40,10 +33,10 @@ class FunctionSymbolRegressionTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "test_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
 
         assertEquals(Linear, adapter.category)
         assertFalse(adapter.cached)
@@ -60,10 +53,10 @@ class FunctionSymbolRegressionTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "my_func", displayName = "My Function"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
 
         assertEquals("my_func", adapter.name)
         assertEquals("My Function", adapter.displayName)
@@ -86,7 +79,7 @@ class FunctionSymbolRegressionTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "slack_test"
         )
 
@@ -105,7 +98,7 @@ class FunctionSymbolRegressionTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "aux_slack"
         )
 
@@ -127,10 +120,10 @@ class FunctionSymbolRegressionTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "adapter_aux"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
 
         val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
         tokens.add(listOf(x))
@@ -148,10 +141,10 @@ class FunctionSymbolRegressionTest {
         val slack = SlackFunction(
             x = xPoly,
             y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "eval_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(5.0))
         val result = adapter.evaluate(values)
@@ -166,10 +159,10 @@ class FunctionSymbolRegressionTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "flatten_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
 
         assertEquals(2, adapter.flattenedMonomials.monomials.size)
         assertEquals(setOf(slack.negVar, slack.posVar), adapter.flattenedMonomials.monomials.map { it.symbol }.toSet())
@@ -203,10 +196,10 @@ class FunctionSymbolRegressionTest {
         val slack = SlackFunction(
             x = xPoly,
             y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = flt64Converter,
+            converter = flt64TestConverter,
             name = "register_adapter_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64TestConverter)
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         tokenTable.add(listOf(x))
 

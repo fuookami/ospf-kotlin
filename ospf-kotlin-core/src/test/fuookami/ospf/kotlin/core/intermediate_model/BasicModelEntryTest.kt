@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.Variable
@@ -12,7 +13,6 @@ import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -39,13 +40,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 class BasicModelEntryTest {
     @Test
@@ -106,7 +100,7 @@ class BasicModelEntryTest {
             name = "c1"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "factory-parent", converter = flt64Converter),
+            parent = LinearMetaModel<Flt64>(name = "factory-parent", converter = flt64TestConverter),
             name = "factory-model",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -215,7 +209,7 @@ class BasicModelEntryTest {
             name = "qc1"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q", converter = flt64Converter),
+            parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q", converter = flt64TestConverter),
             name = "factory-model-q",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),

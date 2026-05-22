@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -14,13 +14,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 class ProductFunctionTest {
     @Test
@@ -37,12 +30,12 @@ class ProductFunctionTest {
             constant = Flt64.zero
         )
 
-        val product = ProductFunction(left, right, converter = flt64Converter, name = "x_times_y")
+        val product = ProductFunction(left, right, converter = flt64TestConverter, name = "x_times_y")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, y))
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-product", converter = flt64Converter)
+        val metaModel = QuadraticMetaModel<Flt64>(name = "test-product", converter = flt64TestConverter)
         val model = QuadraticMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",
@@ -75,7 +68,7 @@ class ProductFunctionTest {
             constant = Flt64(7.0)
         )
 
-        val product = ProductFunction(left, right, converter = flt64Converter, name = "test")
+        val product = ProductFunction(left, right, converter = flt64TestConverter, name = "test")
         val poly = product.toQuadraticPolynomial()
 
         // (2x + 3)(5y + 7) = 10xy + 14x + 15y + 21

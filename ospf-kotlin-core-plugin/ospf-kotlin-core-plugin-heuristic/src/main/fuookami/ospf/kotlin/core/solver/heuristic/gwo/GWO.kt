@@ -224,88 +224,91 @@ class GreyWolfOptimizer<Obj, ObjValue, V>(
             .take(solutionAmount.toInt())
             .toMutableList()
 
-        while (!policy.finished(iteration)) {
-            var globalBetter = false
+        try {
+            while (!policy.finished(iteration)) {
+                var globalBetter = false
 
-            val a = policy.a(iteration)
-            val newPopulationAndWolfs = coroutineScope {
-                populations.map { population ->
-                    async(Dispatchers.Default) {
-                        val movedWolfs = population.individuals.map { wolf ->
-                            policy.move(
+                val a = policy.a(iteration)
+                val newPopulationAndWolfs = coroutineScope {
+                    populations.map { population ->
+                        async(Dispatchers.Default) {
+                            val movedWolfs = population.individuals.map { wolf ->
+                                policy.move(
+                                    iteration = iteration,
+                                    wolf = wolf,
+                                    leaders = listOf(
+                                        population.alpha(),
+                                        population.beta(),
+                                        population.delta()
+                                    ),
+                                    a = a,
+                                    model = model
+                                )
+                            }.sortedWithPartialThreeWayComparator { lhs, rhs ->
+                                model.compareObjective(lhs.fitness, rhs.fitness)
+                            }
+                            val movedLeaders = movedWolfs.take(3)
+                            val perturbedLeaders = policy.perturb(
                                 iteration = iteration,
-                                wolf = wolf,
-                                leaders = listOf(
-                                    population.alpha(),
-                                    population.beta(),
-                                    population.delta()
-                                ),
+                                leaders = movedLeaders,
                                 a = a,
                                 model = model
                             )
-                        }.sortedWithPartialThreeWayComparator { lhs, rhs ->
-                            model.compareObjective(lhs.fitness, rhs.fitness)
+                            val wolfs = (movedWolfs.subList(3, movedWolfs.size) + perturbedLeaders)
+                                .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                                    model.compareObjective(lhs.fitness, rhs.fitness)
+                                }
+                            AbstractPopulation(
+                                individuals = wolfs,
+                                elites = wolfs.take(population.eliteAmount.toInt()),
+                                best = wolfs.first(),
+                                eliteAmount = population.eliteAmount,
+                                densityRange = population.densityRange,
+                                mutationRateRange = population.mutationRateRange,
+                                parentAmountRange = population.parentAmountRange
+                            ) to (movedWolfs + perturbedLeaders)
                         }
-                        val movedLeaders = movedWolfs.take(3)
-                        val perturbedLeaders = policy.perturb(
-                            iteration = iteration,
-                            leaders = movedLeaders,
-                            a = a,
-                            model = model
-                        )
-                        val wolfs = (movedWolfs.subList(3, movedWolfs.size) + perturbedLeaders)
-                            .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                                model.compareObjective(lhs.fitness, rhs.fitness)
-                            }
-                        AbstractPopulation(
-                            individuals = wolfs,
-                            elites = wolfs.take(population.eliteAmount.toInt()),
-                            best = wolfs.first(),
-                            eliteAmount = population.eliteAmount,
-                            densityRange = population.densityRange,
-                            mutationRateRange = population.mutationRateRange,
-                            parentAmountRange = population.parentAmountRange
-                        ) to (movedWolfs + perturbedLeaders)
-                    }
-                }.awaitAll()
-            }
-            populations = newPopulationAndWolfs.map { it.first }
-            val newWolfs = newPopulationAndWolfs
-                .flatMap { it.second }
-                .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                    model.compareObjective(lhs.fitness, rhs.fitness)
+                    }.awaitAll()
                 }
-            val newBestWolf = newWolfs.first()
-            refreshGoodIndividuals(
-                goodIndividuals = goodWolfs,
-                newIndividuals = newWolfs,
-                model = model,
-                solutionAmount = solutionAmount
-            )
-            if (model.compareObjective(newBestWolf.fitness, bestWolf.fitness) is Order.Less) {
-                bestWolf = newBestWolf
-                globalBetter = true
+                populations = newPopulationAndWolfs.map { it.first }
+                val newWolfs = newPopulationAndWolfs
+                    .flatMap { it.second }
+                    .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                        model.compareObjective(lhs.fitness, rhs.fitness)
+                    }
+                val newBestWolf = newWolfs.first()
+                refreshGoodIndividuals(
+                    goodIndividuals = goodWolfs,
+                    newIndividuals = newWolfs,
+                    model = model,
+                    solutionAmount = solutionAmount
+                )
+                if (model.compareObjective(newBestWolf.fitness, bestWolf.fitness) is Order.Less) {
+                    bestWolf = newBestWolf
+                    globalBetter = true
+                }
+
+                model.flush()
+                policy.update(
+                    iteration = iteration,
+                    better = globalBetter,
+                    bestIndividual = bestWolf,
+                    goodIndividuals = goodWolfs,
+                    populations = populations.map { it.individuals },
+                    model = model
+                )
+                iteration.next(globalBetter)
+                cleanupOnSolverMemoryPressure()
+
+                if (runningCallBack?.invoke(iteration, bestWolf, goodWolfs, populations) is Failed) {
+                    break
+                }
             }
 
-            model.flush()
-            policy.update(
-                iteration = iteration,
-                better = globalBetter,
-                bestIndividual = bestWolf,
-                goodIndividuals = goodWolfs,
-                populations = populations.map { it.individuals },
-                model = model
-            )
-            iteration.next(globalBetter)
-            cleanupOnSolverMemoryPressure()
-
-            if (runningCallBack?.invoke(iteration, bestWolf, goodWolfs, populations) is Failed) {
-                break
-            }
+            return goodWolfs.take(solutionAmount.toInt())
+        } finally {
+            cleanupAfterSolverRun()
         }
-
-        cleanupAfterSolverRun()
-        return goodWolfs.take(solutionAmount.toInt())
     }
 }
 

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
@@ -23,13 +24,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 class QuadraticMechanismModelCutTest {
     @Test
@@ -59,7 +53,7 @@ class QuadraticMechanismModelCutTest {
             name = "qc-optimal"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel(name = "cut-parent-optimal", converter = flt64Converter),
+            parent = QuadraticMetaModel(name = "cut-parent-optimal", converter = flt64TestConverter),
             name = "cut-model-optimal",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList()),
@@ -102,7 +96,7 @@ class QuadraticMechanismModelCutTest {
             name = "qc-linear-fallback"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel(name = "cut-parent-linear", converter = flt64Converter),
+            parent = QuadraticMetaModel(name = "cut-parent-linear", converter = flt64TestConverter),
             name = "cut-model-linear",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList()),

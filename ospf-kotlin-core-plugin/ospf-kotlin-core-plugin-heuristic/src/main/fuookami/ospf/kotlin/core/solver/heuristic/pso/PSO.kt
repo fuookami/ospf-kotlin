@@ -150,60 +150,63 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
         var bestParticle = particles.first()
         val goodParticles = particles.take(solutionAmount.toInt()).toMutableList()
 
-        while (!policy.finished(iteration)) {
-            var globalBetter = false
+        try {
+            while (!policy.finished(iteration)) {
+                var globalBetter = false
 
-            val newParticles = particles
+                val newParticles = particles
+                    .map {
+                        policy.accelerate(
+                            iteration = iteration,
+                            particle = it,
+                            bestParticle = bestParticle,
+                            model = model
+                        )
+                    }
+                    .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                        model.compareObjective(lhs.fitness, rhs.fitness)
+                    }
+                val newBestParticle = newParticles.first()
+                particles = newParticles
+                if (model.compareObjective(newBestParticle.fitness, bestParticle.fitness) is Order.Less) {
+                    bestParticle = newBestParticle
+                    globalBetter = true
+                }
+                refreshGoodIndividuals(
+                    goodIndividuals = goodParticles,
+                    newIndividuals = newParticles,
+                    model = model,
+                    solutionAmount = solutionAmount
+                )
+
+                model.flush()
+                policy.update(
+                    iteration = iteration,
+                    better = globalBetter,
+                    bestIndividual = bestParticle,
+                    goodIndividuals = goodParticles,
+                    populations = listOf(particles),
+                    model = model
+                )
+                iteration.next(globalBetter)
+                cleanupOnSolverMemoryPressure()
+
+                if (runningCallBack?.invoke(iteration, bestParticle, goodParticles) is Failed) {
+                    break
+                }
+            }
+
+            return goodParticles
+                .take(solutionAmount.toInt())
                 .map {
-                    policy.accelerate(
-                        iteration = iteration,
-                        particle = it,
-                        bestParticle = bestParticle,
-                        model = model
+                    SolutionWithFitness(
+                        solution = it.solution,
+                        fitness = it.fitness
                     )
                 }
-                .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                    model.compareObjective(lhs.fitness, rhs.fitness)
-                }
-            val newBestParticle = newParticles.first()
-            particles = newParticles
-            if (model.compareObjective(newBestParticle.fitness, bestParticle.fitness) is Order.Less) {
-                bestParticle = newBestParticle
-                globalBetter = true
-            }
-            refreshGoodIndividuals(
-                goodIndividuals = goodParticles,
-                newIndividuals = newParticles,
-                model = model,
-                solutionAmount = solutionAmount
-            )
-
-            model.flush()
-            policy.update(
-                iteration = iteration,
-                better = globalBetter,
-                bestIndividual = bestParticle,
-                goodIndividuals = goodParticles,
-                populations = listOf(particles),
-                model = model
-            )
-            iteration.next(globalBetter)
-            cleanupOnSolverMemoryPressure()
-
-            if (runningCallBack?.invoke(iteration, bestParticle, goodParticles) is Failed) {
-                break
-            }
+        } finally {
+            cleanupAfterSolverRun()
         }
-
-        cleanupAfterSolverRun()
-        return goodParticles
-            .take(solutionAmount.toInt())
-            .map {
-                SolutionWithFitness(
-                    solution = it.solution,
-                    fitness = it.fitness
-                )
-            }
     }
 }
 

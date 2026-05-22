@@ -148,6 +148,10 @@ try {
     $multiOutput = Join-Path $multiDir "trend-smoke.md"
     & $compareScript -ResultsDir $multiDir -Dataset smoke -Output $multiOutput | Out-Null
     Assert-True -Condition (Test-Path -LiteralPath $multiOutput) -Message "Directory mode with explicit dataset did not generate output."
+    $multiReport = Get-Content -LiteralPath $multiOutput -Raw
+    Assert-Contains -Text $multiReport -Expected "Input mode: ``results-dir``" -Message "Multi-dataset explicit report missing input mode."
+    Assert-Contains -Text $multiReport -Expected "Detected dataset: ``smoke``" -Message "Multi-dataset explicit report missing detected dataset."
+    Assert-Contains -Text $multiReport -Expected "Gate policy: report only (no hard performance gate)" -Message "Multi-dataset explicit report missing gate policy."
 
     Write-Output "compare-benchmark-results smoke passed."
 } finally {

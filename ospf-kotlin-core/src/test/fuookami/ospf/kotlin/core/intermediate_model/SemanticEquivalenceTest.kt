@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -11,20 +12,12 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 class SemanticEquivalenceTest {
     @Test
@@ -42,7 +35,7 @@ class SemanticEquivalenceTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = LinearMetaModel<Flt64>(name = "semantic-linear", converter = flt64Converter)
+        val metaModel = LinearMetaModel<Flt64>(name = "semantic-linear", converter = flt64TestConverter)
         metaModel.add(listOf(x, y))
 
         val lhs = LinearPolynomial(
@@ -71,7 +64,7 @@ class SemanticEquivalenceTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "semantic-quadratic", converter = flt64Converter)
+        val metaModel = QuadraticMetaModel<Flt64>(name = "semantic-quadratic", converter = flt64TestConverter)
         metaModel.add(listOf(x, y))
 
         val quadLhs = QuadraticPolynomial(

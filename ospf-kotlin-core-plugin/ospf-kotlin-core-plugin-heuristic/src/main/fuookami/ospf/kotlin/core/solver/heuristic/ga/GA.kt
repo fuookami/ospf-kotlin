@@ -302,90 +302,93 @@ class GeneAlgorithm<Obj, ObjValue, V>(
             .take(solutionAmount.toInt())
             .toMutableList()
 
-        while (!policy.finished(iteration)) {
-            var globalBetter = false
+        try {
+            while (!policy.finished(iteration)) {
+                var globalBetter = false
 
-            if (migrationPeriod > UInt64.zero && iteration.iteration % migrationPeriod == UInt64.zero) {
-                populations = policy.migrate(
+                if (migrationPeriod > UInt64.zero && iteration.iteration % migrationPeriod == UInt64.zero) {
+                    populations = policy.migrate(
+                        iteration = iteration,
+                        populations = populations,
+                        model = model
+                    )
+                }
+
+                val newPopulationAndChromosomes = coroutineScope {
+                    populations.map { population ->
+                        async(Dispatchers.Default) {
+                            val selected = policy.select(
+                                iteration = iteration,
+                                population = population,
+                                model = model
+                            )
+                            val crossed = policy.cross(
+                                iteration = iteration,
+                                population = selected,
+                                model = model,
+                                parentAmountRange = population.parentAmountRange
+                            )
+                            val mutated = policy.mutate(
+                                iteration = iteration,
+                                population = crossed,
+                                model = model,
+                                mutationRateRange = population.mutationRateRange
+                            )
+                            val combined = (crossed + mutated + population.elites)
+                                .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                                    model.compareObjective(lhs.fitness, rhs.fitness)
+                                }
+                            AbstractPopulation(
+                                individuals = combined,
+                                elites = combined.take(population.eliteAmount.toInt()),
+                                best = combined.first(),
+                                eliteAmount = population.eliteAmount,
+                                densityRange = population.densityRange,
+                                mutationRateRange = population.mutationRateRange,
+                                parentAmountRange = population.parentAmountRange
+                            ) to (crossed + mutated)
+                        }
+                    }.awaitAll()
+                }
+                populations = newPopulationAndChromosomes.map { it.first }
+                val newChromosomes = newPopulationAndChromosomes
+                    .flatMap { it.second }
+                    .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                        model.compareObjective(lhs.fitness, rhs.fitness)
+                    }
+                val newBestChromosome = newChromosomes.first()
+                refreshGoodIndividuals(
+                    goodIndividuals = goodChromosomes,
+                    newIndividuals = newChromosomes,
+                    model = model,
+                    solutionAmount = solutionAmount
+                )
+                if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
+                    bestChromosome = newBestChromosome
+                    globalBetter = true
+                }
+
+                model.flush()
+                policy.update(
                     iteration = iteration,
-                    populations = populations,
+                    better = globalBetter,
+                    bestIndividual = bestChromosome,
+                    goodIndividuals = goodChromosomes,
+                    populations = populations.map { it.individuals },
                     model = model
                 )
-            }
+                iteration.next(globalBetter)
+                cleanupOnSolverMemoryPressure()
 
-            val newPopulationAndChromosomes = coroutineScope {
-                populations.map { population ->
-                    async(Dispatchers.Default) {
-                        val selected = policy.select(
-                            iteration = iteration,
-                            population = population,
-                            model = model
-                        )
-                        val crossed = policy.cross(
-                            iteration = iteration,
-                            population = selected,
-                            model = model,
-                            parentAmountRange = population.parentAmountRange
-                        )
-                        val mutated = policy.mutate(
-                            iteration = iteration,
-                            population = crossed,
-                            model = model,
-                            mutationRateRange = population.mutationRateRange
-                        )
-                        val combined = (crossed + mutated + population.elites)
-                            .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                                model.compareObjective(lhs.fitness, rhs.fitness)
-                            }
-                        AbstractPopulation(
-                            individuals = combined,
-                            elites = combined.take(population.eliteAmount.toInt()),
-                            best = combined.first(),
-                            eliteAmount = population.eliteAmount,
-                            densityRange = population.densityRange,
-                            mutationRateRange = population.mutationRateRange,
-                            parentAmountRange = population.parentAmountRange
-                        ) to (crossed + mutated)
-                    }
-                }.awaitAll()
-            }
-            populations = newPopulationAndChromosomes.map { it.first }
-            val newChromosomes = newPopulationAndChromosomes
-                .flatMap { it.second }
-                .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                    model.compareObjective(lhs.fitness, rhs.fitness)
+                if (runningCallBack?.invoke(iteration, bestChromosome, goodChromosomes, populations) is Failed) {
+                    break
                 }
-            val newBestChromosome = newChromosomes.first()
-            refreshGoodIndividuals(
-                goodIndividuals = goodChromosomes,
-                newIndividuals = newChromosomes,
-                model = model,
-                solutionAmount = solutionAmount
-            )
-            if (model.compareObjective(newBestChromosome.fitness, bestChromosome.fitness) is Order.Less) {
-                bestChromosome = newBestChromosome
-                globalBetter = true
             }
 
-            model.flush()
-            policy.update(
-                iteration = iteration,
-                better = globalBetter,
-                bestIndividual = bestChromosome,
-                goodIndividuals = goodChromosomes,
-                populations = populations.map { it.individuals },
-                model = model
-            )
-            iteration.next(globalBetter)
-            cleanupOnSolverMemoryPressure()
-
-            if (runningCallBack?.invoke(iteration, bestChromosome, goodChromosomes, populations) is Failed) {
-                break
-            }
+            return goodChromosomes.take(solutionAmount.toInt())
+        } finally {
+            cleanupAfterSolverRun()
         }
-
-        cleanupAfterSolverRun()
-        return goodChromosomes.take(solutionAmount.toInt())
     }
 }
 

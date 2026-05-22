@@ -204,61 +204,64 @@ class MultiVerseOptimizer<Obj, ObjValue, V>(
         var bestUniverse = universes.first()
         val goodUniverses = universes.take(solutionAmount.toInt()).toMutableList()
 
-        while (!policy.finished(iteration)) {
-            var globalBetter = false
-            val wep = policy.wep(iteration)
-            val tdr = policy.tdr(iteration)
+        try {
+            while (!policy.finished(iteration)) {
+                var globalBetter = false
+                val wep = policy.wep(iteration)
+                val tdr = policy.tdr(iteration)
 
-            val newUniverses = policy
-                .transformUniverses(
-                    iteration = iteration,
-                    bestSolution = bestUniverse.solution,
-                    solutions = universes,
-                    model = model,
-                    wep = wep,
-                    tdr = tdr
-                )
-                .map {
-                    Universe(
-                        solution = it,
-                        fitness = model.objective(it).ifNull { model.defaultObjective }
+                val newUniverses = policy
+                    .transformUniverses(
+                        iteration = iteration,
+                        bestSolution = bestUniverse.solution,
+                        solutions = universes,
+                        model = model,
+                        wep = wep,
+                        tdr = tdr
                     )
+                    .map {
+                        Universe(
+                            solution = it,
+                            fitness = model.objective(it).ifNull { model.defaultObjective }
+                        )
+                    }
+                    .sortedWithPartialThreeWayComparator { lhs, rhs ->
+                        model.compareObjective(lhs.fitness, rhs.fitness)
+                    }
+                val newBestUniverse = newUniverses.first()
+                universes = newUniverses
+                if (model.compareObjective(newBestUniverse.fitness, bestUniverse.fitness) is Order.Less) {
+                    bestUniverse = newBestUniverse
+                    globalBetter = true
                 }
-                .sortedWithPartialThreeWayComparator { lhs, rhs ->
-                    model.compareObjective(lhs.fitness, rhs.fitness)
+                refreshGoodIndividuals(
+                    goodIndividuals = goodUniverses,
+                    newIndividuals = newUniverses,
+                    model = model,
+                    solutionAmount = solutionAmount
+                )
+
+                model.flush()
+                policy.update(
+                    iteration = iteration,
+                    better = globalBetter,
+                    bestIndividual = bestUniverse,
+                    goodIndividuals = goodUniverses,
+                    populations = listOf(universes),
+                    model = model
+                )
+                iteration.next(globalBetter)
+                cleanupOnSolverMemoryPressure()
+
+                if (runningCallBack?.invoke(iteration, bestUniverse, goodUniverses) is Failed) {
+                    break
                 }
-            val newBestUniverse = newUniverses.first()
-            universes = newUniverses
-            if (model.compareObjective(newBestUniverse.fitness, bestUniverse.fitness) is Order.Less) {
-                bestUniverse = newBestUniverse
-                globalBetter = true
             }
-            refreshGoodIndividuals(
-                goodIndividuals = goodUniverses,
-                newIndividuals = newUniverses,
-                model = model,
-                solutionAmount = solutionAmount
-            )
 
-            model.flush()
-            policy.update(
-                iteration = iteration,
-                better = globalBetter,
-                bestIndividual = bestUniverse,
-                goodIndividuals = goodUniverses,
-                populations = listOf(universes),
-                model = model
-            )
-            iteration.next(globalBetter)
-            cleanupOnSolverMemoryPressure()
-
-            if (runningCallBack?.invoke(iteration, bestUniverse, goodUniverses) is Failed) {
-                break
-            }
+            return goodUniverses.take(solutionAmount.toInt())
+        } finally {
+            cleanupAfterSolverRun()
         }
-
-        cleanupAfterSolverRun()
-        return goodUniverses.take(solutionAmount.toInt())
     }
 }
 

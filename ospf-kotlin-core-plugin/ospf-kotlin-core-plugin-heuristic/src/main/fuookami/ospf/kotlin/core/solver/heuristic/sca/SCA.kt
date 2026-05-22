@@ -289,61 +289,64 @@ class SineCosineAlgorithm<Obj, ObjValue, V>(
         var bestIndividual = population.first()
         val goodIndividuals = population.take(solutionAmount.toInt()).toMutableList()
 
-        while (!policy.finished(iteration)) {
-            var globalBetter = false
+        try {
+            while (!policy.finished(iteration)) {
+                var globalBetter = false
 
-            val r1 = policy.r1(iteration)
-            val r2 = policy.r2(iteration, model)
-            val r3 = policy.r3(iteration, model)
+                val r1 = policy.r1(iteration)
+                val r2 = policy.r2(iteration, model)
+                val r3 = policy.r3(iteration, model)
 
-            val newPopulation = coroutineScope {
-                population.map { individual ->
-                    async(Dispatchers.Default) {
-                        policy.move(
-                            iteration = iteration,
-                            solution = individual,
-                            bestSolution = bestIndividual,
-                            r1 = r1,
-                            r2 = r2,
-                            r3 = r3,
-                            model = model
-                        )
-                    }
-                }.awaitAll()
-            }.sortedWithPartialThreeWayComparator { lhs, rhs ->
-                model.compareObjective(lhs.fitness, rhs.fitness)
+                val newPopulation = coroutineScope {
+                    population.map { individual ->
+                        async(Dispatchers.Default) {
+                            policy.move(
+                                iteration = iteration,
+                                solution = individual,
+                                bestSolution = bestIndividual,
+                                r1 = r1,
+                                r2 = r2,
+                                r3 = r3,
+                                model = model
+                            )
+                        }
+                    }.awaitAll()
+                }.sortedWithPartialThreeWayComparator { lhs, rhs ->
+                    model.compareObjective(lhs.fitness, rhs.fitness)
+                }
+                val newBestIndividual = newPopulation.first()
+                population = newPopulation
+                if (model.compareObjective(newBestIndividual.fitness, bestIndividual.fitness) is Order.Less) {
+                    bestIndividual = newBestIndividual
+                    globalBetter = true
+                }
+                refreshGoodIndividuals(
+                    goodIndividuals = goodIndividuals,
+                    newIndividuals = newPopulation,
+                    model = model
+                )
+
+                model.flush()
+                policy.update(
+                    iteration = iteration,
+                    better = globalBetter,
+                    bestIndividual = bestIndividual,
+                    goodIndividuals = goodIndividuals,
+                    populations = listOf(population),
+                    model = model
+                )
+                iteration.next(globalBetter)
+                cleanupOnSolverMemoryPressure()
+
+                if (runningCallBack?.invoke(iteration, bestIndividual) is Failed) {
+                    break
+                }
             }
-            val newBestIndividual = newPopulation.first()
-            population = newPopulation
-            if (model.compareObjective(newBestIndividual.fitness, bestIndividual.fitness) is Order.Less) {
-                bestIndividual = newBestIndividual
-                globalBetter = true
-            }
-            refreshGoodIndividuals(
-                goodIndividuals = goodIndividuals,
-                newIndividuals = newPopulation,
-                model = model
-            )
 
-            model.flush()
-            policy.update(
-                iteration = iteration,
-                better = globalBetter,
-                bestIndividual = bestIndividual,
-                goodIndividuals = goodIndividuals,
-                populations = listOf(population),
-                model = model
-            )
-            iteration.next(globalBetter)
-            cleanupOnSolverMemoryPressure()
-
-            if (runningCallBack?.invoke(iteration, bestIndividual) is Failed) {
-                break
-            }
+            return goodIndividuals.take(solutionAmount.toInt())
+        } finally {
+            cleanupAfterSolverRun()
         }
-
-        cleanupAfterSolverRun()
-        return goodIndividuals.take(solutionAmount.toInt())
     }
 }
 

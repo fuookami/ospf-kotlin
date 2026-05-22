@@ -191,65 +191,68 @@ class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
         var bestSolution = initialSolution
         var currentSolution = initialSolution
 
-        while (!policy.finished(iteration)) {
-            var globalBetter = false
-            var betterTimes = UInt64.zero
-            var badAcceptTimes = UInt64.zero
-            var badRefuseTimes = UInt64.zero
+        try {
+            while (!policy.finished(iteration)) {
+                var globalBetter = false
+                var betterTimes = UInt64.zero
+                var badAcceptTimes = UInt64.zero
+                var badRefuseTimes = UInt64.zero
 
-            for (t in 0 until policy.markovLength.toInt()) {
-                val newSolution = policy.transformSolution(
-                    iteration = iteration,
-                    solution = currentSolution.solution,
-                    model = model
-                )
-                val newObj = model.objective(newSolution).ifNull { model.defaultObjective }
+                for (t in 0 until policy.markovLength.toInt()) {
+                    val newSolution = policy.transformSolution(
+                        iteration = iteration,
+                        solution = currentSolution.solution,
+                        model = model
+                    )
+                    val newObj = model.objective(newSolution).ifNull { model.defaultObjective }
 
-                val accept = if (model.compareObjective(newObj, currentSolution.fitness) is Order.Less) {
-                    betterTimes += UInt64.one
-                    true
-                } else {
-                    if (policy.accept(iteration, currentSolution.fitness, newObj)) {
-                        badAcceptTimes += UInt64.one
+                    val accept = if (model.compareObjective(newObj, currentSolution.fitness) is Order.Less) {
+                        betterTimes += UInt64.one
                         true
                     } else {
-                        badRefuseTimes += UInt64.one
-                        false
+                        if (policy.accept(iteration, currentSolution.fitness, newObj)) {
+                            badAcceptTimes += UInt64.one
+                            true
+                        } else {
+                            badRefuseTimes += UInt64.one
+                            false
+                        }
+                    }
+
+                    if (accept) {
+                        currentSolution = SolutionWithFitness(
+                            solution = newSolution,
+                            fitness = newObj
+                        )
+                        if (model.compareObjective(currentSolution.fitness, bestSolution.fitness) is Order.Less) {
+                            bestSolution = currentSolution
+                            globalBetter = true
+                            policy.improve()
+                        }
                     }
                 }
 
-                if (accept) {
-                    currentSolution = SolutionWithFitness(
-                        solution = newSolution,
-                        fitness = newObj
-                    )
-                    if (model.compareObjective(currentSolution.fitness, bestSolution.fitness) is Order.Less) {
-                        bestSolution = currentSolution
-                        globalBetter = true
-                        policy.improve()
-                    }
+                model.flush()
+                policy.update(
+                    iteration = iteration,
+                    better = globalBetter,
+                    bestIndividual = bestSolution,
+                    goodIndividuals = listOf(bestSolution),
+                    populations = listOf(listOf(currentSolution)),
+                    model = model
+                )
+                iteration.next(globalBetter)
+                cleanupOnSolverMemoryPressure()
+
+                if (runningCallBack?.invoke(iteration, bestSolution) is Failed) {
+                    break
                 }
             }
 
-            model.flush()
-            policy.update(
-                iteration = iteration,
-                better = globalBetter,
-                bestIndividual = bestSolution,
-                goodIndividuals = listOf(bestSolution),
-                populations = listOf(listOf(currentSolution)),
-                model = model
-            )
-            iteration.next(globalBetter)
-            cleanupOnSolverMemoryPressure()
-
-            if (runningCallBack?.invoke(iteration, bestSolution) is Failed) {
-                break
-            }
+            return listOf(bestSolution)
+        } finally {
+            cleanupAfterSolverRun()
         }
-
-        cleanupAfterSolverRun()
-        return listOf(bestSolution)
     }
 }
 
