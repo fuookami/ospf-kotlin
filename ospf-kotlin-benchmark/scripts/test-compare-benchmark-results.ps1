@@ -176,7 +176,8 @@ try {
         $invalidJsonMessage = $_.Exception.Message
     }
     Assert-True -Condition ($invalidJsonMessage.Length -gt 0) -Message "Invalid JSON input should fail."
-    Assert-Contains -Text $invalidJsonMessage -Expected "JSON" -Message "Invalid JSON failure should mention JSON parsing."
+    Assert-Contains -Text $invalidJsonMessage -Expected "Invalid benchmark JSON in file" -Message "Invalid JSON failure should use explicit benchmark JSON message."
+    Assert-Contains -Text $invalidJsonMessage -Expected "$invalidBaseline" -Message "Invalid JSON failure should include file path."
 
     $missingMetricBaseline = Join-Path $errorDir "baseline-missing-metric.json"
     $missingMetricPayload = @(
@@ -200,7 +201,66 @@ try {
         $missingMetricMessage = $_.Exception.Message
     }
     Assert-True -Condition ($missingMetricMessage.Length -gt 0) -Message "Missing primaryMetric should fail."
-    Assert-Contains -Text $missingMetricMessage -Expected "primaryMetric" -Message "Missing metric failure should point to primaryMetric."
+    Assert-Contains -Text $missingMetricMessage -Expected "missing 'primaryMetric'" -Message "Missing metric failure should point to primaryMetric."
+    Assert-Contains -Text $missingMetricMessage -Expected "$missingMetricBaseline" -Message "Missing metric failure should include file path."
+
+    $missingBenchmarkBaseline = Join-Path $errorDir "baseline-missing-benchmark.json"
+    $missingBenchmarkPayload = @(
+        @{
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = 0.1
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $missingBenchmarkBaseline -Value ($missingBenchmarkPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $missingBenchmarkMessage = ""
+    try {
+        & $compareScript -Baseline $missingBenchmarkBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingBenchmarkMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingBenchmarkMessage.Length -gt 0) -Message "Missing benchmark field should fail."
+    Assert-Contains -Text $missingBenchmarkMessage -Expected "missing 'benchmark'" -Message "Missing benchmark failure should point to benchmark field."
+
+    $missingScoreBaseline = Join-Path $errorDir "baseline-missing-score.json"
+    $missingScorePayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                scoreError = 0.1
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $missingScoreBaseline -Value ($missingScorePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $missingScoreMessage = ""
+    try {
+        & $compareScript -Baseline $missingScoreBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingScoreMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingScoreMessage.Length -gt 0) -Message "Missing score field should fail."
+    Assert-Contains -Text $missingScoreMessage -Expected "missing 'primaryMetric.score'" -Message "Missing score failure should point to primaryMetric.score."
 
     $mismatchBaseline = Join-Path $mismatchDir "baseline-smoke.json"
     $mismatchCurrent = Join-Path $mismatchDir "current-smoke.json"

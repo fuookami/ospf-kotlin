@@ -3,8 +3,8 @@ package fuookami.ospf.kotlin.example.quadratic_function
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.scip.ScipQuadraticSolver
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
@@ -23,6 +23,14 @@ import org.junit.jupiter.api.Test
 
 class QuadraticFunctionSolveTest {
     private fun isScipAvailable(): Boolean = ScipAvailability.isAvailable()
+
+    private fun asFeasibleOutput(output: Any): FeasibleSolverOutput<Flt64> {
+        // SCIP 求解成功路径返回 FeasibleSolverOutput<Flt64>，此处将测试边界转换收敛到最小作用域。
+        // Successful SCIP solve path returns FeasibleSolverOutput<Flt64>; keep this test-boundary cast in minimal scope.
+        @Suppress("UNCHECKED_CAST")
+        val feasible = output as FeasibleSolverOutput<Flt64>
+        return feasible
+    }
 
     @Test
     fun productFunctionSolveShouldMinimizeToZero() {
@@ -74,9 +82,9 @@ class QuadraticFunctionSolveTest {
             }
             assertTrue(result is Ok<*, *, *>, "SCIP quadratic solve should succeed")
 
-            val output = requireNotNull(result.value)
-            assertTrue(output is FeasibleSolverOutput<*>,
-                "SCIP should find feasible solution")
+            val output = asFeasibleOutput(requireNotNull(result.value))
+            assertTrue(output.solution.isNotEmpty(),
+                "SCIP feasible solution should contain variable assignments")
 
             // x*y minimized with x+y=10 and x,y>=0 => minimum is 0 (one of x,y = 0)
             val objValue = output.obj.toDouble()
@@ -139,9 +147,9 @@ class QuadraticFunctionSolveTest {
             }
             assertTrue(result is Ok<*, *, *>, "SCIP quadratic solve should succeed")
 
-            val output = requireNotNull(result.value)
-            assertTrue(output is FeasibleSolverOutput<*>,
-                "SCIP should find feasible solution")
+            val output = asFeasibleOutput(requireNotNull(result.value))
+            assertTrue(output.solution.isNotEmpty(),
+                "SCIP feasible solution should contain variable assignments")
 
             // x^2+y^2 minimized with x+y>=4 => x=y=2, objective = 8
             val objValue = output.obj.toDouble()

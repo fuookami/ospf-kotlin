@@ -180,6 +180,25 @@ function Get-SampleCount {
     return $count
 }
 
+function Get-OptionalPropertyValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Object,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Name
+    )
+
+    if ($null -eq $Object) {
+        return $null
+    }
+    $prop = $Object.PSObject.Properties[$Name]
+    if ($null -eq $prop) {
+        return $null
+    }
+    return $prop.Value
+}
+
 function Read-BenchmarkResults {
     param(
         [Parameter(Mandatory = $true)]
@@ -190,26 +209,65 @@ function Read-BenchmarkResults {
         throw "Benchmark result file not found: $Path"
     }
 
-    $json = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    try {
+        $json = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    } catch {
+        throw ("Invalid benchmark JSON in file '{0}': {1}" -f $Path, $_.Exception.Message)
+    }
+    if ($null -eq $json) {
+        throw ("Invalid benchmark JSON in file '{0}': empty payload." -f $Path)
+    }
+
+    $entries = @($json)
+    if ($entries.Count -eq 0) {
+        throw ("Invalid benchmark JSON in file '{0}': benchmark array is empty." -f $Path)
+    }
+
     $items = @{}
-    foreach ($entry in $json) {
+    $entryIndex = 0
+    foreach ($entry in $entries) {
+        $entryIndex++
+        $benchmarkName = [string](Get-OptionalPropertyValue -Object $entry -Name "benchmark")
+        if ([string]::IsNullOrWhiteSpace($benchmarkName)) {
+            throw ("Invalid benchmark entry in file '{0}' at index {1}: missing 'benchmark'." -f $Path, $entryIndex)
+        }
+        $primaryMetric = Get-OptionalPropertyValue -Object $entry -Name "primaryMetric"
+        if ($null -eq $primaryMetric) {
+            throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric'." -f $Path, $benchmarkName)
+        }
+        $score = Get-OptionalPropertyValue -Object $primaryMetric -Name "score"
+        if ($null -eq $score) {
+            throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric.score'." -f $Path, $benchmarkName)
+        }
+        $scoreError = Get-OptionalPropertyValue -Object $primaryMetric -Name "scoreError"
+        if ($null -eq $scoreError) {
+            throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric.scoreError'." -f $Path, $benchmarkName)
+        }
+        $scoreUnit = [string](Get-OptionalPropertyValue -Object $primaryMetric -Name "scoreUnit")
+        if ([string]::IsNullOrWhiteSpace($scoreUnit)) {
+            throw ("Invalid benchmark entry in file '{0}' for '{1}': missing 'primaryMetric.scoreUnit'." -f $Path, $benchmarkName)
+        }
+
         $params = @()
-        if ($null -ne $entry.params) {
-            $entry.params.PSObject.Properties |
+        $entryParams = Get-OptionalPropertyValue -Object $entry -Name "params"
+        if ($null -ne $entryParams) {
+            $entryParams.PSObject.Properties |
                 Sort-Object Name |
                 ForEach-Object { $params += "$($_.Name)=$($_.Value)" }
         }
         $key = if ($params.Count -eq 0) {
-            $entry.benchmark
+            $benchmarkName
         } else {
-            "$($entry.benchmark) [$($params -join ', ')]"
+            "$benchmarkName [$($params -join ', ')]"
         }
+        $measurementIterations = Get-OptionalPropertyValue -Object $entry -Name "measurementIterations"
         $items[$key] = [pscustomobject]@{
             Benchmark = $key
-            Score = [double] $entry.primaryMetric.score
-            Error = [double] $entry.primaryMetric.scoreError
-            Unit = [string] $entry.primaryMetric.scoreUnit
-            Samples = [int] (Get-SampleCount -Metric $entry.primaryMetric -Fallback ([int] $entry.measurementIterations))
+            Score = [double] $score
+            Error = [double] $scoreError
+            Unit = $scoreUnit
+            Samples = [int] (Get-SampleCount -Metric $primaryMetric -Fallback ([int]$measurementIterations)
+            )
         }
     }
     return $items

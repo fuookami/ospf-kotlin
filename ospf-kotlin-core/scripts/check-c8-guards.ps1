@@ -491,7 +491,8 @@ $converterNewViolations = [Math]::Max(0, $converterViolations.Count - $converter
 Write-Result "P6-1: No new converter样板回流 in core/src/test and example/src/test (baseline=$converterBaseline)" ($converterNewViolations -eq 0) "Found $($converterViolations.Count) total ($converterNewViolations new above baseline)"
 if (($Verbose -or $converterViolations.Count -gt 0) -and $converterViolations.Count -gt 0) {
     $preview = ($converterViolations | Select-Object -First 8) -join "; "
-    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+    $label = if ($converterNewViolations -gt 0) { "Violations" } else { "Tracked occurrences" }
+    Write-Host "      ${label}: $preview" -ForegroundColor DarkGray
 }
 
 # Guard 18: No empty assertions in core/src/test
