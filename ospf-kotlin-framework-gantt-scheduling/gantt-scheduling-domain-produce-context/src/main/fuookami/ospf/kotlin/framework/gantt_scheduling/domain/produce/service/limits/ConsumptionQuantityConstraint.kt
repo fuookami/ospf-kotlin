@@ -193,7 +193,7 @@ class ConsumptionQuantityConstraint<
         }
     }
     override fun refresh(
-        map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
@@ -205,7 +205,7 @@ class ConsumptionQuantityConstraint<
             }
         }
         for ((material, value) in thisShadowPrices) {
-            map.put(ShadowPrice(ConsumptionQuantityShadowPriceKey(material), value))
+            shadowPriceMap.put(ShadowPrice(ConsumptionQuantityShadowPriceKey(material), value))
         }
 
         return ok

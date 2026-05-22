@@ -53,7 +53,7 @@ class TaskStepConflictConstraint<
     }
 
     override fun refresh(
-        map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {

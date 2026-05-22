@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import java.util.*
-import kotlinx.datetime.*
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 

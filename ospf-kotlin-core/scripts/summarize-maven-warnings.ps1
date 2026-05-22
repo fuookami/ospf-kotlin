@@ -31,6 +31,15 @@ function Escape-MarkdownCell {
     return ($Text -replace "\|", "\|" -replace "`r", " " -replace "`n", " ")
 }
 
+function Strip-AnsiEscape {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Text
+    )
+
+    return [Regex]::Replace($Text, "`e\[[0-9;]*m", "")
+}
+
 function Get-WarningFileHint {
     param(
         [Parameter(Mandatory = $true)]
@@ -74,21 +83,27 @@ $currentModule = "unknown"
 $warnings = New-Object System.Collections.Generic.List[object]
 
 foreach ($line in $lines) {
-    if ($line -match "^\[INFO\]\s+Building\s+(.+?)\s+[0-9].*$") {
+    $normalizedLine = Strip-AnsiEscape -Text $line
+
+    if ($normalizedLine -match "^\[INFO\]\s+Building\s+(.+?)\s+[0-9].*$") {
         $currentModule = $Matches[1].Trim()
         continue
     }
 
-    if ($line -match "^\[INFO\]\s+--- .+ @ ([^ ]+) ---$") {
+    if ($normalizedLine -match "^\[INFO\]\s+--- .+ @ ([^ ]+) ---$") {
         $currentModule = $Matches[1].Trim()
         continue
     }
 
-    if ($line -notmatch "^\[WARNING\]\s*(.+)$") {
-        continue
+    $message = ""
+    if ($normalizedLine -match "^\[WARNING\]\s*(.+)$") {
+        $message = $Matches[1].Trim()
+    } elseif ($normalizedLine -match "^\[[0-9.]+s\]\[warning\]\[[^\]]+\]\s*(.+)$") {
+        $message = $Matches[1].Trim()
+    } elseif ($normalizedLine -match ".*Java HotSpot\(TM\)\s+64-Bit Server VM warning:\s*(.+)$") {
+        $message = $Matches[1].Trim()
     }
 
-    $message = $Matches[1].Trim()
     if ($message.Length -eq 0) {
         continue
     }

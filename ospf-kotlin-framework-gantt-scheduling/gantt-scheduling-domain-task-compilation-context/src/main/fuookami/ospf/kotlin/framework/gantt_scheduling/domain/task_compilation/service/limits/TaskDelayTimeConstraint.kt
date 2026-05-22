@@ -84,14 +84,14 @@ class TaskDelayTimeConstraint<
         }
     }
     override fun refresh(
-        map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
             val task = (constraint.args as? TaskDelayTimeShadowPriceKey<E, A>)?.task ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
-                map.put(ShadowPrice(TaskDelayTimeShadowPriceKey(task), price))
+                shadowPriceMap.put(ShadowPrice(TaskDelayTimeShadowPriceKey(task), price))
             }
         }
 

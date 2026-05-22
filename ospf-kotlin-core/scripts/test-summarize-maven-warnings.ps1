@@ -50,6 +50,8 @@ try {
 [WARNING] E:\workspace\ospf-kotlin\ospf-kotlin-core\src\Foo.kt:10:2: warning: unchecked cast
 [WARNING] unchecked cast: Any to String
 [WARNING] unchecked cast: Any to String
+[74.378s][warning][codecache] CodeHeap 'non-profiled nmethods' is full. Compiler has been disabled.
+Java HotSpot(TM) 64-Bit Server VM warning: CodeHeap 'non-profiled nmethods' is full. Compiler has been disabled.
 "@
     Set-Content -LiteralPath $logPath -Value $logContent -Encoding UTF8
 
@@ -57,10 +59,11 @@ try {
     Assert-True -Condition (Test-Path -LiteralPath $outputPath) -Message "Summary script did not generate markdown report."
 
     $report = Get-Content -LiteralPath $outputPath -Raw
-    Assert-Contains -Text $report -Expected "Total warnings: 5" -Message "Unexpected warning total in summary report."
-    Assert-Contains -Text $report -Expected "Unique groups: 3" -Message "Unexpected unique-group total in summary report."
+    Assert-Contains -Text $report -Expected "Total warnings: 7" -Message "Unexpected warning total in summary report."
+    Assert-Contains -Text $report -Expected "Unique groups: 4" -Message "Unexpected unique-group total in summary report."
     Assert-Contains -Text $report -Expected "| ospf-kotlin-example | /a/b/FileA.kt | 2 |" -Message "File-level aggregation should merge duplicate warning lines."
     Assert-Contains -Text $report -Expected "| ospf-kotlin-core | unchecked cast: Any to String | 2 |" -Message "Message-level aggregation should merge duplicate warning lines."
+    Assert-Contains -Text $report -Expected "| ospf-kotlin-core | CodeHeap 'non-profiled nmethods' is full. Compiler has been disabled. | 2 |" -Message "CodeHeap warnings should be summarized and grouped."
 
     Write-Output "summarize-maven-warnings smoke passed."
 } finally {

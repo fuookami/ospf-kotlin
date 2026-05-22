@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Duration
 import kotlin.reflect.*
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.*
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*

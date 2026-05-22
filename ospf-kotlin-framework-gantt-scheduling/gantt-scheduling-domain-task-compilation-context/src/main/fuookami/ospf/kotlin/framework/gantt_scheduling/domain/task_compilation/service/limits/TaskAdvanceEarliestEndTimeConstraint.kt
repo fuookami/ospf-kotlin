@@ -85,14 +85,14 @@ class TaskAdvanceEarliestEndTimeConstraint<
         }
     }
     override fun refresh(
-        map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
             val task = (constraint.args as? TaskAdvanceEarliestEndTimeShadowPriceKey<E, A>)?.task ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
-                map.put(ShadowPrice(TaskAdvanceEarliestEndTimeShadowPriceKey(task), price))
+                shadowPriceMap.put(ShadowPrice(TaskAdvanceEarliestEndTimeShadowPriceKey(task), price))
             }
         }
 

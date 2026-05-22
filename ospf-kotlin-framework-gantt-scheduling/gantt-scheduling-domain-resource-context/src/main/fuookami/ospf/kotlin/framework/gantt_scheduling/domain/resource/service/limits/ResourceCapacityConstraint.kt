@@ -185,7 +185,7 @@ class ResourceCapacityConstraint<
         }
     }
     override fun refresh(
-        map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
@@ -197,7 +197,7 @@ class ResourceCapacityConstraint<
             }
         }
         for ((slot, value) in thisShadowPrices) {
-            map.put(ShadowPrice(ResourceCapacityShadowPriceKey(slot), value))
+            shadowPriceMap.put(ShadowPrice(ResourceCapacityShadowPriceKey(slot), value))
         }
 
         return ok

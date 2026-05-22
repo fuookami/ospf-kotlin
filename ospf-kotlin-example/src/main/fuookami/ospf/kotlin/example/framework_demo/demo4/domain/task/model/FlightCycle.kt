@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Duration
-import kotlinx.datetime.*
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.math.*
 
 data class FlightHour(

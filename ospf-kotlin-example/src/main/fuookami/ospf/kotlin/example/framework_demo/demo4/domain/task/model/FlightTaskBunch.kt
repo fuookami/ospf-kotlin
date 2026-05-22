@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
-import kotlinx.datetime.*
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*

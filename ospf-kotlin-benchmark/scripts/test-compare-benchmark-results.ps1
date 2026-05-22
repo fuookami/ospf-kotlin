@@ -99,7 +99,8 @@ try {
     $multiDir = Join-Path $tempRoot "multi"
     $errorDir = Join-Path $tempRoot "error"
     $mismatchDir = Join-Path $tempRoot "mismatch"
-    New-Item -ItemType Directory -Force -Path $explicitDir, $singleDir, $multiDir, $errorDir, $mismatchDir | Out-Null
+    $semanticDir = Join-Path $tempRoot "semantic"
+    New-Item -ItemType Directory -Force -Path $explicitDir, $singleDir, $multiDir, $errorDir, $mismatchDir, $semanticDir | Out-Null
 
     $baselineSmoke = Join-Path $explicitDir "baseline-smoke.json"
     $currentSmoke = Join-Path $explicitDir "current-smoke.json"
@@ -376,6 +377,70 @@ try {
     $mismatchReport = Get-Content -LiteralPath $mismatchOutput -Raw
     Assert-Contains -Text $mismatchReport -Expected "missing in current" -Message "Mismatch report should include missing benchmark notes."
     Assert-Contains -Text $mismatchReport -Expected "new benchmark in current" -Message "Mismatch report should include new benchmark notes."
+
+    $unitBaseline = Join-Path $semanticDir "baseline-unit.json"
+    $unitCurrent = Join-Path $semanticDir "current-unit.json"
+    $unitBaselinePayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.unitChange" -Score 100.0 -Error 0.1 -Unit "ops/s"
+    )
+    $unitCurrentPayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.unitChange" -Score 101.0 -Error 0.1 -Unit "ms/op"
+    )
+    Set-Content -LiteralPath $unitBaseline -Value ($unitBaselinePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    Set-Content -LiteralPath $unitCurrent -Value ($unitCurrentPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $unitOutput = Join-Path $semanticDir "trend-unit.md"
+    & $compareScript -Baseline $unitBaseline -Current $unitCurrent -Output $unitOutput | Out-Null
+    $unitReport = Get-Content -LiteralPath $unitOutput -Raw
+    Assert-Contains -Text $unitReport -Expected "unit changed" -Message "Unit-change report should include 'unit changed' note."
+    Assert-Contains -Text $unitReport -Expected "ops/s -> ms/op" -Message "Unit-change report should include both unit symbols."
+
+    $zeroBaseline = Join-Path $semanticDir "baseline-zero.json"
+    $zeroCurrent = Join-Path $semanticDir "current-zero.json"
+    $zeroBaselinePayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.zeroBase" -Score 0.0 -Error 0.1 -Unit "ops/s"
+    )
+    $zeroCurrentPayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.zeroBase" -Score 1.0 -Error 0.1 -Unit "ops/s"
+    )
+    Set-Content -LiteralPath $zeroBaseline -Value ($zeroBaselinePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    Set-Content -LiteralPath $zeroCurrent -Value ($zeroCurrentPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $zeroOutput = Join-Path $semanticDir "trend-zero.md"
+    & $compareScript -Baseline $zeroBaseline -Current $zeroCurrent -Output $zeroOutput | Out-Null
+    $zeroReport = Get-Content -LiteralPath $zeroOutput -Raw
+    Assert-Contains -Text $zeroReport -Expected "| demo.Benchmark.zeroBase [scale=smoke] |" -Message "Zero-baseline report should include target benchmark row."
+    Assert-Contains -Text $zeroReport -Expected "| n/a |" -Message "Zero-baseline report should render percent delta as n/a."
+
+    $nanBaseline = Join-Path $semanticDir "baseline-nan.json"
+    $nanCurrent = Join-Path $semanticDir "current-nan.json"
+    $nanBaselinePayload = @(
+        @{
+            benchmark = "demo.Benchmark.nanError"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = "NaN"
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    $nanCurrentPayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.nanError" -Score 101.0 -Error 0.1 -Unit "ops/s"
+    )
+    Set-Content -LiteralPath $nanBaseline -Value ($nanBaselinePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    Set-Content -LiteralPath $nanCurrent -Value ($nanCurrentPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $nanOutput = Join-Path $semanticDir "trend-nan.md"
+    & $compareScript -Baseline $nanBaseline -Current $nanCurrent -Output $nanOutput | Out-Null
+    $nanReport = Get-Content -LiteralPath $nanOutput -Raw
+    Assert-Contains -Text $nanReport -Expected "± n/a" -Message "NaN metric should render error as n/a."
+    Assert-Contains -Text $nanReport -Expected "error unavailable" -Message "NaN metric should include error unavailable note."
 
     Write-Output "compare-benchmark-results smoke passed."
 } finally {

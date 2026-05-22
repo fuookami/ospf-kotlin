@@ -96,7 +96,25 @@ jobs:
       - name: Compile Benchmark Module
         shell: pwsh
         run: |
-          mvn -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
+          $ciDir = "ospf-kotlin-core/target/ci"
+          New-Item -ItemType Directory -Force -Path $ciDir | Out-Null
+          $logPath = "$ciDir/maven-benchmark-compile.log"
+          mvn -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile *>&1 | Tee-Object -FilePath $logPath
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) {
+            exit $exitCode
+          }
+
+      - name: Build Maven Warning Summary
+        shell: pwsh
+        run: |
+          $ciDir = "ospf-kotlin-core/target/ci"
+          $logPath = "$ciDir/maven-benchmark-compile.log"
+          $outputPath = "$ciDir/maven-warning-summary.md"
+          ./ospf-kotlin-core/scripts/summarize-maven-warnings.ps1 -LogPath $logPath -Output $outputPath -Format markdown | Out-Null
+          if (Test-Path -LiteralPath $outputPath) {
+            Get-Content -LiteralPath $outputPath | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
 
       - name: Run Benchmark Smoke
         shell: pwsh
@@ -120,5 +138,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-smoke-results
-          path: ospf-kotlin-benchmark/target/benchmark-results
+          path: |
+            ospf-kotlin-benchmark/target/benchmark-results
+            ospf-kotlin-core/target/ci/maven-warning-summary.md
+            ospf-kotlin-core/target/ci/maven-benchmark-compile.log
           if-no-files-found: error

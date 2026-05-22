@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.geq
@@ -192,7 +192,7 @@ class ProduceQuantityConstraint<
         }
     }
     override fun refresh(
-        map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
+        shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
@@ -204,7 +204,7 @@ class ProduceQuantityConstraint<
             }
         }
         for ((product, value) in thisShadowPrices) {
-            map.put(ShadowPrice(ProduceQuantityShadowPriceKey(product), value))
+            shadowPriceMap.put(ShadowPrice(ProduceQuantityShadowPriceKey(product), value))
         }
 
         return ok
