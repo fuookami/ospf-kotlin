@@ -5,9 +5,12 @@
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.MongoFieldNameResolver
+import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
+import fuookami.ospf.kotlin.math.symbol.expression.BooleanCustom
 import fuookami.ospf.kotlin.math.symbol.expression.Comparison
 import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
 import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import com.mongodb.MongoClientSettings
@@ -21,6 +24,7 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -49,8 +53,9 @@ class MongoRepositoryTest {
 
     private class TestRepository(
         database: MongoDatabase,
-        resolver: MongoFieldNameResolver
-    ) : MongoRepository<User>(database, "users", resolver) {
+        resolver: MongoFieldNameResolver,
+        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
+    ) : MongoRepository<User>(database, "users", resolver, unsupportedPredicatePolicy) {
         override fun mapToEntity(document: Document): User {
             return User(document.getString("name"))
         }
@@ -108,6 +113,54 @@ class MongoRepositoryTest {
         assertTrue(json(recorder.lastSort).contains("age"))
         assertTrue(json(recorder.lastUpdateDoc).contains("\"\$set\""))
         assertTrue(json(recorder.lastDeleteFilter).contains("pending"))
+    }
+
+    @Test
+    @DisplayName("complex predicate should pass expr to collection / 复杂谓词应将 expr 传递到集合层")
+    fun complexPredicateShouldPassExprToCollection() {
+        val recorder = Recorder()
+        val database = createDatabaseProxy(
+            recorder,
+            FindState(docs = listOf(Document(mapOf("name" to "a"))))
+        )
+        val repository = TestRepository(database, resolver)
+        val where = Comparison(
+            ComparisonOperator.Gt,
+            ScalarBinary(
+                BinaryOperator.Multiply,
+                ScalarReference<Int>(PropertyPath.parse("price")),
+                ScalarReference(PropertyPath.parse("quantity"))
+            ),
+            ScalarConstant(100)
+        )
+
+        repository.find(where)
+
+        val filterJson = json(recorder.lastFindFilter)
+        assertTrue(filterJson.contains("\"\$expr\""))
+        assertTrue(filterJson.contains("\"\$multiply\""))
+    }
+
+    @Test
+    @DisplayName("unsupported policy should fail explicitly / 不支持策略应明确失败")
+    fun unsupportedPolicyShouldFailExplicitly() {
+        val failFastRepository = TestRepository(
+            createDatabaseProxy(Recorder(), FindState(emptyList())),
+            resolver,
+            UnsupportedPredicatePolicy.FailFast
+        )
+        val clientFilterRepository = TestRepository(
+            createDatabaseProxy(Recorder(), FindState(emptyList())),
+            resolver,
+            UnsupportedPredicatePolicy.ClientFilter
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            failFastRepository.find(BooleanCustom("x"))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            clientFilterRepository.find(BooleanCustom("x"))
+        }
     }
 
     @Suppress("UNCHECKED_CAST")

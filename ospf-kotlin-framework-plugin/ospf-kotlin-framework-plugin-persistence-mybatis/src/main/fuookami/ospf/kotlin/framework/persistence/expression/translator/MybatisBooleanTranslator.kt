@@ -31,8 +31,11 @@ typealias MybatisColumnNameResolver = (String) -> String?
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  */
 class MybatisBooleanTranslator<T : Any>(
-    private val resolveColumnName: MybatisColumnNameResolver
+    private val resolveColumnName: MybatisColumnNameResolver,
+    private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
+    private val scalarTranslator = MybatisScalarTranslator(resolveColumnName, unsupportedPredicatePolicy)
+
     /**
      * 翻译到 QueryWrapper
      * Translate to QueryWrapper
@@ -59,7 +62,7 @@ class MybatisBooleanTranslator<T : Any>(
             is AndExpression -> translateAnd(wrapper, expr)
             is OrExpression -> translateOr(wrapper, expr)
             is NotExpression -> translateNot(wrapper, expr)
-            is BooleanCustom -> alwaysFalse(wrapper)
+            is BooleanCustom -> unsupported(wrapper, "BooleanCustom is not supported", expr)
         }
     }
 
@@ -74,6 +77,22 @@ class MybatisBooleanTranslator<T : Any>(
         return wrapper.apply("1 = 0")
     }
 
+    private fun <W : AbstractWrapper<T, String, W>> unsupported(
+        wrapper: W,
+        reason: String,
+        expression: BooleanExpression
+    ): W {
+        when (unsupportedPredicatePolicy) {
+            UnsupportedPredicatePolicy.FailFast -> throw IllegalArgumentException(
+                "Unsupported predicate ${expression.typeName}: $reason"
+            )
+            UnsupportedPredicatePolicy.AlwaysFalse -> return alwaysFalse(wrapper)
+            UnsupportedPredicatePolicy.ClientFilter -> throw IllegalArgumentException(
+                "ClientFilter is not implemented for unsupported predicate ${expression.typeName}: $reason"
+            )
+        }
+    }
+
     private fun <W : AbstractWrapper<T, String, W>> translateComparison(wrapper: W, expr: Comparison<*>): W {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
@@ -83,8 +102,10 @@ class MybatisBooleanTranslator<T : Any>(
         // 左边是列引用，右边是常量
         // Left is column reference, right is constant
         if (leftRef != null && rightConst != null) {
-            val column = resolveColumnName(leftRef.path.value) ?: return alwaysFalse(wrapper)
-            val value = rightConst.value ?: return alwaysFalse(wrapper)
+            val column = resolveColumnName(leftRef.path.value)
+                ?: return unsupported(wrapper, "Unresolved comparison path: ${leftRef.path.value}", expr)
+            val value = rightConst.value
+                ?: return unsupported(wrapper, "Null comparison constant is not supported", expr)
 
             return when (expr.operator) {
                 ComparisonOperator.Eq -> wrapper.eq(column, value)
@@ -99,8 +120,10 @@ class MybatisBooleanTranslator<T : Any>(
         // 左边是常量，右边是列引用（反转比较）
         // Left is constant, right is column reference (reverse comparison)
         if (leftConst != null && rightRef != null) {
-            val column = resolveColumnName(rightRef.path.value) ?: return alwaysFalse(wrapper)
-            val value = leftConst.value ?: return alwaysFalse(wrapper)
+            val column = resolveColumnName(rightRef.path.value)
+                ?: return unsupported(wrapper, "Unresolved comparison path: ${rightRef.path.value}", expr)
+            val value = leftConst.value
+                ?: return unsupported(wrapper, "Null comparison constant is not supported", expr)
 
             return when (expr.operator) {
                 ComparisonOperator.Eq -> wrapper.eq(column, value)
@@ -112,15 +135,25 @@ class MybatisBooleanTranslator<T : Any>(
             }
         }
 
-        return alwaysFalse(wrapper)
+        val left = scalarTranslator.translate(expr.left)
+            ?: return unsupported(wrapper, "Unsupported left scalar expression: ${expr.left.typeName}", expr)
+        val right = scalarTranslator.translate(expr.right)?.shifted(left.params.size)
+            ?: return unsupported(wrapper, "Unsupported right scalar expression: ${expr.right.typeName}", expr)
+        val sql = "${left.sql} ${comparisonSql(expr.operator)} ${right.sql}"
+        val params = left.params + right.params
+        return wrapper.apply(sql, *params.toTypedArray())
     }
 
     private fun <W : AbstractWrapper<T, String, W>> translateIn(wrapper: W, expr: InExpression<*>): W {
-        val ref = expr.value as? ScalarReference<*> ?: return alwaysFalse(wrapper)
-        val column = resolveColumnName(ref.path.value) ?: return alwaysFalse(wrapper)
+        val ref = expr.value as? ScalarReference<*>
+            ?: return unsupported(wrapper, "IN value must be a column reference", expr)
+        val column = resolveColumnName(ref.path.value)
+            ?: return unsupported(wrapper, "Unresolved IN path: ${ref.path.value}", expr)
 
         val values = expr.candidates.mapNotNull { (it as? ScalarConstant<*>)?.value }
-        if (values.isEmpty()) return alwaysFalse(wrapper)
+        if (values.size != expr.candidates.size || values.isEmpty()) {
+            return unsupported(wrapper, "IN candidates must be non-empty scalar constants", expr)
+        }
 
         return if (expr.negated) {
             wrapper.notIn(column, values)
@@ -130,10 +163,13 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     private fun <W : AbstractWrapper<T, String, W>> translatePatternMatch(wrapper: W, expr: PatternMatch<*>): W {
-        val ref = expr.value as? ScalarReference<*> ?: return alwaysFalse(wrapper)
-        val column = resolveColumnName(ref.path.value) ?: return alwaysFalse(wrapper)
+        val ref = expr.value as? ScalarReference<*>
+            ?: return unsupported(wrapper, "Pattern value must be a column reference", expr)
+        val column = resolveColumnName(ref.path.value)
+            ?: return unsupported(wrapper, "Unresolved pattern path: ${ref.path.value}", expr)
 
-        val patternValue = (expr.pattern as? ScalarConstant<*>)?.value?.toString() ?: return alwaysFalse(wrapper)
+        val patternValue = (expr.pattern as? ScalarConstant<*>)?.value?.toString()
+            ?: return unsupported(wrapper, "Pattern must be a scalar constant", expr)
 
         val sqlPattern = when (expr.mode) {
             PatternMatchMode.Exact -> patternValue
@@ -141,7 +177,7 @@ class MybatisBooleanTranslator<T : Any>(
             PatternMatchMode.Suffix -> "%$patternValue"
             PatternMatchMode.Contains -> "%$patternValue%"
             PatternMatchMode.Like -> patternValue
-            PatternMatchMode.Regex -> return alwaysFalse(wrapper)
+            PatternMatchMode.Regex -> return unsupported(wrapper, "Regex pattern is not supported", expr)
         }
 
         return if (expr.negated) {
@@ -152,7 +188,8 @@ class MybatisBooleanTranslator<T : Any>(
     }
 
     private fun <W : AbstractWrapper<T, String, W>> translateNullCheck(wrapper: W, expr: NullCheck): W {
-        val column = resolveColumnName(expr.path.value) ?: return alwaysFalse(wrapper)
+        val column = resolveColumnName(expr.path.value)
+            ?: return unsupported(wrapper, "Unresolved null-check path: ${expr.path.value}", expr)
 
         return if (expr.isNull) {
             wrapper.isNull(column)
@@ -188,6 +225,17 @@ class MybatisBooleanTranslator<T : Any>(
     private fun <W : AbstractWrapper<T, String, W>> translateNot(wrapper: W, expr: NotExpression): W {
         return wrapper.not { innerWrapper ->
             translateInternal(innerWrapper, expr.operand)
+        }
+    }
+
+    private fun comparisonSql(operator: ComparisonOperator): String {
+        return when (operator) {
+            ComparisonOperator.Eq -> "="
+            ComparisonOperator.Ne -> "<>"
+            ComparisonOperator.Lt -> "<"
+            ComparisonOperator.Le -> "<="
+            ComparisonOperator.Gt -> ">"
+            ComparisonOperator.Ge -> ">="
         }
     }
 }

@@ -5,13 +5,17 @@
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormColumnResolver
+import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
+import fuookami.ospf.kotlin.math.symbol.expression.BooleanCustom
 import fuookami.ospf.kotlin.math.symbol.expression.Comparison
 import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
 import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -54,12 +58,14 @@ class KtormRepositoryIntegrationTest {
 
     private class UserRepository(
         database: Database,
-        resolveColumn: KtormColumnResolver
+        resolveColumn: KtormColumnResolver,
+        unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
     ) : KtormRepository<User>(
         database = database,
         table = Users,
         resolveColumn = resolveColumn,
-        nullsOrderSupport = NullsOrderSupport.Never
+        nullsOrderSupport = NullsOrderSupport.Never,
+        unsupportedPredicatePolicy = unsupportedPredicatePolicy
     ) {
         override fun mapToEntity(row: QueryRowSet): User {
             return User(
@@ -140,5 +146,53 @@ class KtormRepositoryIntegrationTest {
                 ScalarConstant("pending")
             )
         ))
+    }
+
+    @Test
+    @DisplayName("should support column-column and arithmetic predicate / 应支持列-列与算术谓词")
+    fun shouldSupportColumnColumnAndArithmeticPredicate() {
+        val database = createDatabase()
+        val repository = UserRepository(database, resolver)
+
+        val columnColumn = Comparison<Int>(
+            ComparisonOperator.Gt,
+            ScalarReference<Int>(PropertyPath.parse("age")),
+            ScalarReference<Int>(PropertyPath.parse("id"))
+        )
+        val arithmetic = Comparison<Int>(
+            ComparisonOperator.Gt,
+            ScalarBinary<Int>(
+                BinaryOperator.Multiply,
+                ScalarReference<Int>(PropertyPath.parse("age")),
+                ScalarReference<Int>(PropertyPath.parse("id"))
+            ),
+            ScalarConstant<Int>(25)
+        )
+
+        assertEquals(3, repository.find(columnColumn).size)
+        assertEquals(2, repository.find(arithmetic).size)
+    }
+
+    @Test
+    @DisplayName("unsupported policy should fail explicitly / 不支持策略应明确失败")
+    fun unsupportedPolicyShouldFailExplicitly() {
+        val database = createDatabase()
+        val failFastRepository = UserRepository(
+            database,
+            resolver,
+            UnsupportedPredicatePolicy.FailFast
+        )
+        val clientFilterRepository = UserRepository(
+            database,
+            resolver,
+            UnsupportedPredicatePolicy.ClientFilter
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            failFastRepository.find(BooleanCustom("x"))
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            clientFilterRepository.find(BooleanCustom("x"))
+        }
     }
 }

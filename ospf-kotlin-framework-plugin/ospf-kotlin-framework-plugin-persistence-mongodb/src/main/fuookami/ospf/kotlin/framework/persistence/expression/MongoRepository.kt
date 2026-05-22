@@ -26,14 +26,16 @@ import org.bson.conversions.Bson
  * @property database MongoDB 数据库实例 / MongoDB database instance
  * @property collectionName 集合名称 / Collection name
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
+ * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
  */
 abstract class MongoRepository<E : Any>(
     protected val database: MongoDatabase,
     protected val collectionName: String,
-    protected val resolveFieldName: MongoFieldNameResolver
+    protected val resolveFieldName: MongoFieldNameResolver,
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) : ExpressionRepository<E> {
 
-    private val booleanTranslator = MongoBooleanTranslator(resolveFieldName)
+    private val booleanTranslator = MongoBooleanTranslator(resolveFieldName, unsupportedPredicatePolicy)
     private val orderByTranslator = MongoOrderByTranslator(resolveFieldName)
     private val updateTranslator = MongoUpdateTranslator(resolveFieldName)
 

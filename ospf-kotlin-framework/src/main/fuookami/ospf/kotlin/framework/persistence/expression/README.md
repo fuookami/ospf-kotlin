@@ -14,6 +14,8 @@ SQL Expression framework layer interfaces and models.
 | `SortBy` | Multi-field sorting model with nulls order support |
 | `UpdateAssignments` | UPDATE SET statement model (`SetValue`/`SetNull`/`SetFromExpression`) |
 | `NullsOrderSupport` | NULLS FIRST/LAST capability model |
+| `UnsupportedPredicatePolicy` | Policy for predicates that cannot be pushed down (`FailFast`/`AlwaysFalse`/`ClientFilter`) |
+| `PredicateTranslation` | Structured predicate translation result for future translator APIs |
 
 ### Plugin Translators
 
@@ -36,6 +38,13 @@ val sortBy = SortBy.desc("createdAt")
 val assignments = UpdateAssignments
     .set("status", "inactive")
     .thenSetNull("deletedAt")
+```
+
+Scalar predicates can compare columns and basic arithmetic expressions when the selected plugin supports them:
+
+```kotlin
+val columnComparison = path("startAt").lt(path("endAt"))
+val amountCheck = (path("price") * path("quantity")).gt(100)
 ```
 
 ### Resolver Functions (Current Mapping Mechanism)
@@ -61,11 +70,13 @@ val deleted = repository.delete(where)
 val exists = repository.exists(where)
 ```
 
+Repositories default to `UnsupportedPredicatePolicy.AlwaysFalse`, so unsupported predicates return an empty result instead of becoming unfiltered queries. `FailFast` can be selected by repository constructors for explicit failures. `ClientFilter` is reserved and fails explicitly until client-side filtering is implemented.
+
 ## Dependencies
 
 - `ospf-kotlin-math`: `BooleanExpression`, `ScalarExpression`, `PropertyPath`
 
 ## Related
 
-- [math/symbol/expression](../../../math/src/main/fuookami/ospf/kotlin/math/symbol/expression/README.md) - Core expression AST
+- [math/symbol/expression](../../../../../../../../../ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/expression/README.md) - Core expression AST
 - [sql_expression.md](../../../../../../../../sql_expression.md) - Current status and execution backlog

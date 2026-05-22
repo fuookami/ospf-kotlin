@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -67,8 +68,8 @@ class KtormBooleanTranslatorTest {
         }
 
         @Test
-        @DisplayName("should reverse operator for constant-column / 常量-列比较应反转操作符")
-        fun shouldReverseOperatorForConstantColumn() {
+        @DisplayName("should preserve operator for constant-column / 常量-列比较应保留操作符")
+        fun shouldPreserveOperatorForConstantColumn() {
             val expr = Comparison(
                 ComparisonOperator.Lt,
                 ScalarConstant(10),
@@ -76,7 +77,33 @@ class KtormBooleanTranslatorTest {
             )
 
             val translated = translator.translate(expr) as BinaryExpression<Boolean>
-            assertEquals(BinaryExpressionType.GREATER_THAN, translated.type)
+            assertEquals(BinaryExpressionType.LESS_THAN, translated.type)
+        }
+
+        @Test
+        @DisplayName("should translate column-column and arithmetic comparison / 应翻译列-列与算术比较")
+        fun shouldTranslateColumnColumnAndArithmeticComparison() {
+            val columnColumn = Comparison<Int>(
+                ComparisonOperator.Gt,
+                ScalarReference<Int>(PropertyPath.parse("age")),
+                ScalarReference<Int>(PropertyPath.parse("id"))
+            )
+            val arithmetic = Comparison<Int>(
+                ComparisonOperator.Gt,
+                ScalarBinary<Int>(
+                    BinaryOperator.Multiply,
+                    ScalarReference<Int>(PropertyPath.parse("age")),
+                    ScalarReference<Int>(PropertyPath.parse("id"))
+                ),
+                ScalarConstant<Int>(25)
+            )
+
+            val columnColumnResult = translator.translate(columnColumn) as BinaryExpression<Boolean>
+            val arithmeticResult = translator.translate(arithmetic) as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.GREATER_THAN, columnColumnResult.type)
+            assertEquals(BinaryExpressionType.GREATER_THAN, arithmeticResult.type)
+            assertEquals(BinaryExpressionType.TIMES, (arithmeticResult.left as BinaryExpression<*>).type)
         }
     }
 
@@ -129,6 +156,19 @@ class KtormBooleanTranslatorTest {
 
             assertEquals(BinaryExpressionType.EQUAL, falseResult.type)
             assertEquals(BinaryExpressionType.EQUAL, customResult.type)
+        }
+
+        @Test
+        @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
+        fun failFastShouldThrowForUnsupportedPredicate() {
+            val failFastTranslator = KtormBooleanTranslator(
+                resolver,
+                unsupportedPredicatePolicy = fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy.FailFast
+            )
+
+            assertThrows(IllegalArgumentException::class.java) {
+                failFastTranslator.translate(BooleanCustom("x"))
+            }
         }
     }
 

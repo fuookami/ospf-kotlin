@@ -4,12 +4,14 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import com.mongodb.MongoClientSettings
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
@@ -17,7 +19,7 @@ import org.junit.jupiter.api.Test
 class MongoBooleanTranslatorTest {
     private val resolver: MongoFieldNameResolver = { path ->
         when (path.substringAfterLast(".")) {
-            "id", "name", "age", "status" -> path.substringAfterLast(".")
+            "id", "name", "age", "status", "price", "quantity" -> path.substringAfterLast(".")
             else -> null
         }
     }
@@ -99,5 +101,50 @@ class MongoBooleanTranslatorTest {
         val actual = json(translator.translate(expr))
         assertTrue(actual.contains("\"_id\""))
         assertTrue(actual.contains("\"\$exists\""))
+    }
+
+    @Test
+    @DisplayName("column-column comparison should use expr / 列-列比较应使用 expr")
+    fun columnColumnComparisonShouldUseExpr() {
+        val expr = Comparison<Int>(
+            ComparisonOperator.Gt,
+            ScalarReference<Int>(PropertyPath.parse("age")),
+            ScalarReference<Int>(PropertyPath.parse("id"))
+        )
+
+        val actual = json(translator.translate(expr))
+        assertTrue(actual.contains("\"\$expr\""))
+        assertTrue(actual.contains("\"\$gt\""))
+        assertTrue(actual.contains("\"\$age\""))
+        assertTrue(actual.contains("\"\$id\""))
+    }
+
+    @Test
+    @DisplayName("arithmetic comparison should use expr / 算术比较应使用 expr")
+    fun arithmeticComparisonShouldUseExpr() {
+        val expr = Comparison<Int>(
+            ComparisonOperator.Gt,
+            ScalarBinary<Int>(
+                BinaryOperator.Multiply,
+                ScalarReference<Int>(PropertyPath.parse("price")),
+                ScalarReference<Int>(PropertyPath.parse("quantity"))
+            ),
+            ScalarConstant<Int>(100)
+        )
+
+        val actual = json(translator.translate(expr))
+        assertTrue(actual.contains("\"\$expr\""))
+        assertTrue(actual.contains("\"\$multiply\""))
+        assertTrue(actual.contains("100"))
+    }
+
+    @Test
+    @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
+    fun failFastShouldThrowForUnsupportedPredicate() {
+        val failFastTranslator = MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            failFastTranslator.translate(BooleanCustom("x"))
+        }
     }
 }

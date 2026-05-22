@@ -33,16 +33,18 @@ typealias ColumnNameResolver = (String) -> String?
  * @property resolveColumn Ktorm 列解析函数 / Ktorm column resolver function
  * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
  * @property nullsOrderSupport 空值排序支持 / Nulls order support
+ * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
  */
 abstract class KtormRepository<E : Any>(
     protected val database: Database,
     protected val table: Table<*>,
     protected val resolveColumn: KtormColumnResolver,
     protected val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
-    protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
+    protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) : ExpressionRepository<E> {
 
-    private val booleanTranslator = KtormBooleanTranslator(resolveColumn, patternMatchPolicy)
+    private val booleanTranslator = KtormBooleanTranslator(resolveColumn, patternMatchPolicy, unsupportedPredicatePolicy)
     private val orderByTranslator = KtormOrderByTranslator(resolveColumn, nullsOrderSupport)
     private val updateTranslator = KtormUpdateTranslator(resolveColumn, table)
 

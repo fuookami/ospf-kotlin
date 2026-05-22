@@ -14,6 +14,8 @@ SQL 表达式框架层接口与模型实现。
 | `SortBy` | 多字段排序模型，支持空值顺序 |
 | `UpdateAssignments` | UPDATE SET 语句模型（`SetValue`/`SetNull`/`SetFromExpression`） |
 | `NullsOrderSupport` | NULLS FIRST/LAST 能力模型 |
+| `UnsupportedPredicatePolicy` | 无法下推谓词的处理策略（`FailFast`/`AlwaysFalse`/`ClientFilter`） |
+| `PredicateTranslation` | 面向后续 translator API 的结构化谓词翻译结果 |
 
 ### 插件翻译器
 
@@ -36,6 +38,13 @@ val sortBy = SortBy.desc("createdAt")
 val assignments = UpdateAssignments
     .set("status", "inactive")
     .thenSetNull("deletedAt")
+```
+
+当插件支持时，标量谓词可以比较列与基础算术表达式：
+
+```kotlin
+val columnComparison = path("startAt").lt(path("endAt"))
+val amountCheck = (path("price") * path("quantity")).gt(100)
 ```
 
 ### Resolver 函数（当前映射机制）
@@ -61,11 +70,13 @@ val deleted = repository.delete(where)
 val exists = repository.exists(where)
 ```
 
+Repository 默认使用 `UnsupportedPredicatePolicy.AlwaysFalse`，不支持的谓词会返回空结果，而不会变成未过滤查询。构造 repository 时可选择 `FailFast` 以获得明确异常。`ClientFilter` 为保留策略，在客户端过滤实现前会明确失败。
+
 ## 依赖
 
 - `ospf-kotlin-math`：`BooleanExpression`、`ScalarExpression`、`PropertyPath`
 
 ## 相关链接
 
-- [math/symbol/expression](../../../math/src/main/fuookami/ospf/kotlin/math/symbol/expression/README_ch.md) - 核心表达式 AST
+- [math/symbol/expression](../../../../../../../../../ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/expression/README_ch.md) - 核心表达式 AST
 - [sql_expression.md](../../../../../../../../sql_expression.md) - 当前状态与执行清单

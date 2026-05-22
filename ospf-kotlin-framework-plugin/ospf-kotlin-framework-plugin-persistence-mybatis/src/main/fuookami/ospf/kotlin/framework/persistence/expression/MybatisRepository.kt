@@ -25,14 +25,16 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper
  * @property mapper MyBatis-Plus Mapper / MyBatis-Plus Mapper
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property nullsOrderSupport 空值排序支持 / Nulls order support
+ * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
  */
 abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
     protected val mapper: M,
     protected val resolveColumnName: MybatisColumnNameResolver,
-    protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
+    protected val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto,
+    protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) : ExpressionRepository<E> {
 
-    private val booleanTranslator = MybatisBooleanTranslator<E>(resolveColumnName)
+    private val booleanTranslator = MybatisBooleanTranslator<E>(resolveColumnName, unsupportedPredicatePolicy)
     private val orderByTranslator = MybatisOrderByTranslator<E>(resolveColumnName, nullsOrderSupport)
     private val updateTranslator = MybatisUpdateTranslator<E>(resolveColumnName)
 

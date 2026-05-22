@@ -20,7 +20,7 @@ class MybatisBooleanTranslatorTest {
 
     private val resolver: MybatisColumnNameResolver = { path ->
         when (path.substringAfterLast(".")) {
-            "age", "status", "name", "a", "b", "c", "d", "x" -> path.substringAfterLast(".")
+            "id", "age", "status", "name", "a", "b", "c", "d", "x", "price", "quantity" -> path.substringAfterLast(".")
             else -> null
         }
     }
@@ -225,6 +225,75 @@ class MybatisBooleanTranslatorTest {
 
             val wrapper = translator.translate(QueryWrapper(), expr)
             assertTrue(wrapper.customSqlSegment.contains("1 = 0"))
+        }
+
+        @Test
+        @DisplayName("should translate column-column comparison / 应翻译列-列比较")
+        fun shouldTranslateColumnColumnComparison() {
+            val expr = Comparison<Int>(
+                ComparisonOperator.Gt,
+                ScalarReference<Int>(PropertyPath.parse("age")),
+                ScalarReference<Int>(PropertyPath.parse("id"))
+            )
+
+            val wrapper = translator.translate(QueryWrapper(), expr)
+            assertTrue(wrapper.customSqlSegment.contains("age > id"))
+        }
+
+        @Test
+        @DisplayName("should parameterize arithmetic scalar comparison / 算术标量比较应参数化常量")
+        fun shouldParameterizeArithmeticScalarComparison() {
+            val expr = Comparison<Int>(
+                ComparisonOperator.Gt,
+                ScalarBinary<Int>(
+                    BinaryOperator.Multiply,
+                    ScalarReference<Int>(PropertyPath.parse("price")),
+                    ScalarReference<Int>(PropertyPath.parse("quantity"))
+                ),
+                ScalarConstant<Int>(100)
+            )
+
+            val wrapper = translator.translate(QueryWrapper(), expr)
+            assertTrue(wrapper.customSqlSegment.contains("(price * quantity) >"))
+            assertFalse(wrapper.customSqlSegment.contains("100"))
+        }
+
+        @Test
+        @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
+        fun failFastShouldThrowForUnsupportedPredicate() {
+            val failFastTranslator = MybatisBooleanTranslator<TestEntity>(
+                resolver,
+                UnsupportedPredicatePolicy.FailFast
+            )
+
+            assertThrows(IllegalArgumentException::class.java) {
+                failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
+            }
+        }
+
+        @Test
+        @DisplayName("unsupported policy should apply to unresolved comparison path / 不支持策略应作用于未解析比较路径")
+        fun unsupportedPolicyShouldApplyToUnresolvedComparisonPath() {
+            val failFastTranslator = MybatisBooleanTranslator<TestEntity>(
+                resolver,
+                UnsupportedPredicatePolicy.FailFast
+            )
+            val clientFilterTranslator = MybatisBooleanTranslator<TestEntity>(
+                resolver,
+                UnsupportedPredicatePolicy.ClientFilter
+            )
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference(PropertyPath.parse("unknown")),
+                ScalarConstant(1)
+            )
+
+            assertThrows(IllegalArgumentException::class.java) {
+                failFastTranslator.translate(QueryWrapper(), expr)
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                clientFilterTranslator.translate(QueryWrapper(), expr)
+            }
         }
     }
 }
