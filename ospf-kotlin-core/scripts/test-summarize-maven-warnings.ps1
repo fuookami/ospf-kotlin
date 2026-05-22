@@ -32,6 +32,23 @@ function Assert-Contains {
     }
 }
 
+function Assert-NotContains {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Text,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Unexpected,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Message
+    )
+
+    if ($Text.Contains($Unexpected)) {
+        throw "$Message`nUnexpected: $Unexpected"
+    }
+}
+
 $summaryScript = Join-Path $PSScriptRoot "summarize-maven-warnings.ps1"
 Assert-True -Condition (Test-Path -LiteralPath $summaryScript) -Message "Missing script: $summaryScript"
 
@@ -61,9 +78,25 @@ Java HotSpot(TM) 64-Bit Server VM warning: CodeHeap 'non-profiled nmethods' is f
     $report = Get-Content -LiteralPath $outputPath -Raw
     Assert-Contains -Text $report -Expected "Total warnings: 7" -Message "Unexpected warning total in summary report."
     Assert-Contains -Text $report -Expected "Unique groups: 4" -Message "Unexpected unique-group total in summary report."
+    Assert-Contains -Text $report -Expected "Displayed groups: 4" -Message "Displayed-group total should default to all groups."
     Assert-Contains -Text $report -Expected "| ospf-kotlin-example | /a/b/FileA.kt | 2 |" -Message "File-level aggregation should merge duplicate warning lines."
     Assert-Contains -Text $report -Expected "| ospf-kotlin-core | unchecked cast: Any to String | 2 |" -Message "Message-level aggregation should merge duplicate warning lines."
     Assert-Contains -Text $report -Expected "| ospf-kotlin-core | CodeHeap 'non-profiled nmethods' is full. Compiler has been disabled. | 2 |" -Message "CodeHeap warnings should be summarized and grouped."
+
+    $idxCodeHeap = $report.IndexOf("| ospf-kotlin-core | CodeHeap 'non-profiled nmethods' is full. Compiler has been disabled. | 2 |")
+    $idxUnchecked = $report.IndexOf("| ospf-kotlin-core | unchecked cast: Any to String | 2 |")
+    $idxFileA = $report.IndexOf("| ospf-kotlin-example | /a/b/FileA.kt | 2 |")
+    Assert-True -Condition ($idxFileA -ge 0 -and $idxCodeHeap -ge 0 -and $idxUnchecked -ge 0) -Message "Expected rows for sort-order assertions are missing."
+    Assert-True -Condition ($idxCodeHeap -lt $idxUnchecked -and $idxUnchecked -lt $idxFileA) -Message "Summary rows should be stably sorted by Count desc, Module asc, Key asc."
+
+    $topOutputPath = Join-Path $tempRoot "warning-summary-top2.md"
+    & $summaryScript -LogPath $logPath -Output $topOutputPath -Format markdown -Top 2 | Out-Null
+    Assert-True -Condition (Test-Path -LiteralPath $topOutputPath) -Message "Top-N summary report was not generated."
+    $topReport = Get-Content -LiteralPath $topOutputPath -Raw
+    Assert-Contains -Text $topReport -Expected "Displayed groups: 2" -Message "Top-N summary should report displayed group count."
+    Assert-Contains -Text $topReport -Expected "| ospf-kotlin-core | CodeHeap 'non-profiled nmethods' is full. Compiler has been disabled. | 2 |" -Message "Top-N summary should keep the first sorted row."
+    Assert-Contains -Text $topReport -Expected "| ospf-kotlin-core | unchecked cast: Any to String | 2 |" -Message "Top-N summary should keep the second sorted row."
+    Assert-NotContains -Text $topReport -Unexpected "| ospf-kotlin-example | /a/b/FileA.kt | 2 |" -Message "Top-N summary should truncate rows after the requested limit."
 
     Write-Output "summarize-maven-warnings smoke passed."
 } finally {

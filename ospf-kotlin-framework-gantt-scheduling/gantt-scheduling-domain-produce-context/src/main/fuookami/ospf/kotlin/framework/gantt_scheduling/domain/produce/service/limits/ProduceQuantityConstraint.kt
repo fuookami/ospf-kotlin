@@ -198,7 +198,7 @@ class ProduceQuantityConstraint<
     ): Try {
         val thisShadowPrices = HashMap<P, Flt64>()
         for (constraint in with(this) { model.constraintsOfGroup() }) {
-            val product = (constraint.args as? ProduceQuantityShadowPriceKey<P>)?.product ?: continue
+            val product = shadowPriceKeyOf<ProduceQuantityShadowPriceKey<P>>(constraint.args)?.product ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price
             }

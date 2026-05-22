@@ -19,11 +19,42 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
+
+/**
+ * 将 wildcard 错误收敛为 ErrorCode 错误。
+ * 当前预求解链路约定 solver 返回 ErrorCode；若出现非 ErrorCode，降级为 Unknown 并保留原始信息。
+ *
+ * Normalizes wildcard errors to ErrorCode errors.
+ * The pre-solve pipeline expects solver errors to use ErrorCode; if not,
+ * it degrades to Unknown while preserving original error details.
+ */
+private fun errorCodeErrorOf(error: Error<*>): Error<ErrorCode> {
+    val code = error.code as? ErrorCode
+    return if (code != null) {
+        if (error.withValue) {
+            ExErr(code, error.message, error.value)
+        } else {
+            Err(code, error.message)
+        }
+    } else {
+        ExErr(
+            ErrorCode.Unknown,
+            "slot_based_capacity_presolver.solve received non-ErrorCode solver error.",
+            error.toString()
+        )
+    }
+}
+
+private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
+    return errors.map(::errorCodeErrorOf)
+}
 
 /**
  * 分时隙产能预求解服务
@@ -209,8 +240,8 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         // 求解模型
         when (val result = solver(model)) {
             is Ok<*, *, *> -> {}
-            is Failed<*, *, *> -> return Failed<CapacityIntermediateValues<A, M, R>, ErrorCode, Error<ErrorCode>>(result.error as Error<ErrorCode>)
-            is Fatal<*, *, *> -> return Fatal<CapacityIntermediateValues<A, M, R>, ErrorCode, Error<ErrorCode>>(result.errors as List<Error<ErrorCode>>)
+            is Failed<*, *, *> -> return Failed(errorCodeErrorOf(result.error))
+            is Fatal<*, *, *> -> return Fatal(errorCodeErrorsOf(result.errors))
         }
 
         // Extract intermediate values

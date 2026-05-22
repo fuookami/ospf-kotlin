@@ -191,7 +191,7 @@ class ResourceCapacityConstraint<
     ): Try {
         val thisShadowPrices = HashMap<ResourceTimeSlot<R, C>, Flt64>()
         for (constraint in model.constraintsOfGroup()) {
-            val slot = (constraint.args as? ResourceCapacityShadowPriceKey<R, C>)?.slot ?: continue
+            val slot = shadowPriceKeyOf<ResourceCapacityShadowPriceKey<R, C>>(constraint.args)?.slot ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 thisShadowPrices[slot] = (thisShadowPrices[slot] ?: Flt64.zero) + price
             }

@@ -31,6 +31,23 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * 将求解流程中的任务对象收敛为目标任务类型。
+ * 任务列表与编译产物来自同一上下文，构建路径保证运行期类型不变量。
+ *
+ * Narrows task objects in the solving flow to the target task type.
+ * The task list and compilation artifacts come from the same context,
+ * so the construction path owns the runtime type invariant.
+ */
+@Suppress("UNCHECKED_CAST")
+private fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        > analyzedTaskOf(task: AbstractTask<E, A>): T {
+    return task as T
+}
+
 data object SolutionAnalyzer {
     operator fun <
             T : AbstractTask<E, A>,
@@ -79,7 +96,7 @@ data object SolutionAnalyzer {
                 }
             }
             if (assignedTask != null) {
-                assignedTasks.add(assignedTask as T)
+                assignedTasks.add(analyzedTaskOf(assignedTask))
             } else {
                 canceledTasks.add(task)
             }
@@ -168,7 +185,7 @@ data object SolutionAnalyzer {
                 }
             }
             if (assignedTask != null) {
-                assignedTasks.add(assignedTask as T)
+                assignedTasks.add(analyzedTaskOf(assignedTask))
             } else {
                 canceledTasks.add(task)
             }
@@ -207,7 +224,7 @@ data object SolutionAnalyzer {
                 }.round().toUInt64()
                 if (result geq UInt64.one) {
                     val task = tasks[i].findOrGet(x.index)
-                    assignedTasks.add(task as T)
+                    assignedTasks.add(analyzedTaskOf(task))
                 }
             }
         }

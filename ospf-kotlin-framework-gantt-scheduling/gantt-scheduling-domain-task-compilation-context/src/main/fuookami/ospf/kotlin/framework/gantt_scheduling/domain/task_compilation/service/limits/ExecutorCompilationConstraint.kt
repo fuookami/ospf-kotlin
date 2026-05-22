@@ -77,7 +77,7 @@ class ExecutorCompilationConstraint<
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
-            val executor = (constraint.args as? ExecutorCompilationShadowPriceKey<E>)?.executor ?: continue
+            val executor = shadowPriceKeyOf<ExecutorCompilationShadowPriceKey<E>>(constraint.args)?.executor ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 shadowPriceMap.put(ShadowPrice(ExecutorCompilationShadowPriceKey(executor), price))
             }

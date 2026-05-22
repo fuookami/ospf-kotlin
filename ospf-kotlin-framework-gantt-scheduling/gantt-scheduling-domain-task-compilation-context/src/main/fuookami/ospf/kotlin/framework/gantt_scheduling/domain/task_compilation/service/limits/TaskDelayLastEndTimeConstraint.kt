@@ -89,7 +89,7 @@ class TaskDelayLastEndTimeConstraint<
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
-            val task = (constraint.args as? TaskDelayLastEndTimeShadowPriceKey<E, A>)?.task ?: continue
+            val task = shadowPriceKeyOf<TaskDelayLastEndTimeShadowPriceKey<E, A>>(constraint.args)?.task ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 shadowPriceMap.put(ShadowPrice(TaskDelayLastEndTimeShadowPriceKey(task), price))
             }

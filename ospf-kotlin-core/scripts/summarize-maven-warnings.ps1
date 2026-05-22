@@ -5,7 +5,10 @@ param(
     [string] $Output = "",
 
     [ValidateSet("markdown", "text")]
-    [string] $Format = "markdown"
+    [string] $Format = "markdown",
+
+    [ValidateRange(0, 100000)]
+    [int] $Top = 0
 )
 
 Set-StrictMode -Version Latest
@@ -134,6 +137,11 @@ $grouped = $warnings |
         }
     } |
     Sort-Object -Property @{Expression = "Count"; Descending = $true}, @{Expression = "Module"; Descending = $false}, @{Expression = "Key"; Descending = $false}
+$displayed = if ($Top -gt 0) {
+    @($grouped | Select-Object -First $Top)
+} else {
+    @($grouped)
+}
 
 $reportLines = New-Object System.Collections.Generic.List[string]
 $reportLines.Add("# Maven Warning Summary")
@@ -141,20 +149,21 @@ $reportLines.Add("")
 $reportLines.Add("- Source log: ``$LogPath``")
 $reportLines.Add("- Total warnings: $($warnings.Count)")
 $reportLines.Add("- Unique groups: $(@($grouped).Count)")
+$reportLines.Add("- Displayed groups: $(@($displayed).Count)")
 $reportLines.Add("- Aggregation key: module + file-hint (fallback: normalized warning message)")
 $reportLines.Add("")
 
 if ($Format -eq "markdown") {
     $reportLines.Add("| Module | File/Key | Count | Sample |")
     $reportLines.Add("| --- | --- | ---: | --- |")
-    foreach ($item in $grouped) {
+    foreach ($item in $displayed) {
         $module = Escape-MarkdownCell -Text $item.Module
         $key = Escape-MarkdownCell -Text $item.Key
         $sample = Escape-MarkdownCell -Text $item.Sample
         $reportLines.Add("| $module | $key | $($item.Count) | $sample |")
     }
 } else {
-    foreach ($item in $grouped) {
+    foreach ($item in $displayed) {
         $reportLines.Add(("{0} | {1} | count={2} | sample={3}" -f $item.Module, $item.Key, $item.Count, $item.Sample))
     }
 }

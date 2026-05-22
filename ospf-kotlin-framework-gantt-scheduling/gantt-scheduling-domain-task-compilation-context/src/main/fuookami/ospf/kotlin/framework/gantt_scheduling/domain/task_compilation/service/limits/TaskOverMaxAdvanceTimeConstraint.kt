@@ -89,7 +89,7 @@ class TaskOverMaxAdvanceTimeConstraint<
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
-            val task = (constraint.args as? TaskOverMaxAdvanceShadowPriceKey<E, A>)?.task ?: continue
+            val task = shadowPriceKeyOf<TaskOverMaxAdvanceShadowPriceKey<E, A>>(constraint.args)?.task ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 shadowPriceMap.put(ShadowPrice(TaskOverMaxAdvanceShadowPriceKey(task), price))
             }

@@ -90,7 +90,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
-            val task = (constraint.args as? TaskAdvanceEarliestEndTimeShadowPriceKey<E, A>)?.task ?: continue
+            val task = shadowPriceKeyOf<TaskAdvanceEarliestEndTimeShadowPriceKey<E, A>>(constraint.args)?.task ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 shadowPriceMap.put(ShadowPrice(TaskAdvanceEarliestEndTimeShadowPriceKey(task), price))
             }

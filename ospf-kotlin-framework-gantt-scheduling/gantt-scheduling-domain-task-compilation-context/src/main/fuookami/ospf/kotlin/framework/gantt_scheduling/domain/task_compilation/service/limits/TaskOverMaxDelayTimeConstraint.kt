@@ -89,7 +89,7 @@ class TaskOverMaxDelayTimeConstraint<
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {
-            val task = (constraint.args as? TaskOverMaxDelayShadowPriceKey<E, A>)?.task ?: continue
+            val task = shadowPriceKeyOf<TaskOverMaxDelayShadowPriceKey<E, A>>(constraint.args)?.task ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 shadowPriceMap.put(ShadowPrice(TaskOverMaxDelayShadowPriceKey(task), price))
             }
