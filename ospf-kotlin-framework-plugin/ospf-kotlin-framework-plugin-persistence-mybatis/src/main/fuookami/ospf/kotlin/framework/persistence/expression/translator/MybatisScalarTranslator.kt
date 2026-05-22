@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarUnary
 import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
@@ -61,6 +63,7 @@ class MybatisScalarTranslator(
             is ScalarConstant<*> -> MybatisScalarSql("{0}", listOf(expr.value), isColumnOnly = false)
             is ScalarUnary<*> -> translateUnary(expr)
             is ScalarBinary<*> -> translateBinary(expr)
+            is ScalarFunction<*> -> translateFunction(expr)
             else -> unsupported("Unsupported scalar expression: ${expr.typeName}")
         }
     }
@@ -88,6 +91,49 @@ class MybatisScalarTranslator(
         return MybatisScalarSql(
             sql = "(${left.sql} $operator ${right.sql})",
             params = left.params + right.params,
+            isColumnOnly = false
+        )
+    }
+
+    private fun translateFunction(expr: ScalarFunction<*>): MybatisScalarSql? {
+        val arguments = mutableListOf<MybatisScalarSql>()
+        var paramOffset = 0
+        for (argument in expr.arguments) {
+            val translated = translate(argument)?.shifted(paramOffset) ?: return null
+            paramOffset += translated.params.size
+            arguments.add(translated)
+        }
+
+        return when (expr.name.lowercase()) {
+            ScalarFunctionNames.Abs -> translateSqlFunction(expr.name, "ABS", arguments, expected = 1)
+            ScalarFunctionNames.Lower -> translateSqlFunction(expr.name, "LOWER", arguments, expected = 1)
+            ScalarFunctionNames.Upper -> translateSqlFunction(expr.name, "UPPER", arguments, expected = 1)
+            ScalarFunctionNames.Trim -> translateSqlFunction(expr.name, "TRIM", arguments, expected = 1)
+            ScalarFunctionNames.Length -> translateSqlFunction(expr.name, "LENGTH", arguments, expected = 1)
+            ScalarFunctionNames.Coalesce -> {
+                if (arguments.isEmpty()) return unsupported("Function coalesce expects at least one argument")
+                MybatisScalarSql(
+                    sql = "COALESCE(${arguments.joinToString(", ") { it.sql }})",
+                    params = arguments.flatMap { it.params },
+                    isColumnOnly = false
+                )
+            }
+            else -> unsupported("Unsupported scalar function: ${expr.name}")
+        }
+    }
+
+    private fun translateSqlFunction(
+        logicalName: String,
+        sqlName: String,
+        arguments: List<MybatisScalarSql>,
+        expected: Int
+    ): MybatisScalarSql? {
+        if (arguments.size != expected) {
+            return unsupported("Function $logicalName expects exactly $expected argument(s)")
+        }
+        return MybatisScalarSql(
+            sql = "$sqlName(${arguments.joinToString(", ") { it.sql }})",
+            params = arguments.flatMap { it.params },
             isColumnOnly = false
         )
     }

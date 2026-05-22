@@ -143,8 +143,7 @@ class MybatisBooleanTranslatorTest {
                 ))
             ))
 
-            assertTrue(expr is OrExpression)
-            assertEquals(2, (expr as OrExpression).operands.size)
+            assertEquals(2, expr.operands.size)
         }
 
         @Test
@@ -256,6 +255,24 @@ class MybatisBooleanTranslatorTest {
             val wrapper = translator.translate(QueryWrapper(), expr)
             assertTrue(wrapper.customSqlSegment.contains("(price * quantity) >"))
             assertFalse(wrapper.customSqlSegment.contains("100"))
+        }
+
+        @Test
+        @DisplayName("should translate function comparison / 应翻译函数比较")
+        fun shouldTranslateFunctionComparison() {
+            val expr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarFunction(
+                    ScalarFunctionNames.Abs,
+                    listOf(ScalarReference<Int>(PropertyPath.parse("age")))
+                ),
+                ScalarConstant(10)
+            )
+
+            val wrapper = translator.translate(QueryWrapper(), expr)
+
+            assertTrue(wrapper.customSqlSegment.contains("ABS(age) >"))
+            assertFalse(wrapper.customSqlSegment.contains("10"))
         }
 
         @Test

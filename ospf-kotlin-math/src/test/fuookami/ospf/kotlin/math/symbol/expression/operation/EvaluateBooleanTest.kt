@@ -298,4 +298,112 @@ class EvaluateBooleanTest {
             assertEquals(true, expr.evaluateWithOrNull(mapOf("age" to 25)))
         }
     }
+
+    @Nested
+    @DisplayName("Scalar Function Evaluation Tests / 标量函数求值测试")
+    inner class ScalarFunctionEvaluationTests {
+
+        @Test
+        @DisplayName("Evaluate numeric abs / 数值 abs 求值")
+        fun testEvaluateAbs() {
+            val constExpr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Abs, listOf(ScalarConstant(-3))),
+                ScalarConstant(3)
+            )
+            val refExpr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Abs, listOf(ScalarReference(PropertyPath.parse("x")))),
+                ScalarConstant(5)
+            )
+
+            assertEquals(Trivalent.True, constExpr.evaluateWith(emptyMap()))
+            assertEquals(Trivalent.True, refExpr.evaluateWith(mapOf("x" to -5)))
+        }
+
+        @Test
+        @DisplayName("Evaluate string functions / 字符串函数求值")
+        fun testEvaluateStringFunctions() {
+            val lowerExpr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Lower, listOf(ScalarReference(PropertyPath.parse("name")))),
+                ScalarConstant("alice")
+            )
+            val upperExpr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Upper, listOf(ScalarReference(PropertyPath.parse("name")))),
+                ScalarConstant("ALICE")
+            )
+            val lengthExpr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Length, listOf(ScalarReference(PropertyPath.parse("name")))),
+                ScalarConstant(5)
+            )
+
+            assertEquals(Trivalent.True, lowerExpr.evaluateWith(mapOf("name" to "Alice")))
+            assertEquals(Trivalent.True, upperExpr.evaluateWith(mapOf("name" to "Alice")))
+            assertEquals(Trivalent.True, lengthExpr.evaluateWith(mapOf("name" to "Alice")))
+        }
+
+        @Test
+        @DisplayName("Evaluate coalesce / coalesce 求值")
+        fun testEvaluateCoalesce() {
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(
+                    ScalarFunctionNames.Coalesce,
+                    listOf(
+                        ScalarReference(PropertyPath.parse("nickname")),
+                        ScalarReference(PropertyPath.parse("name")),
+                        ScalarConstant("fallback")
+                    )
+                ),
+                ScalarConstant("Alice")
+            )
+
+            assertEquals(Trivalent.True, expr.evaluateWith(mapOf("nickname" to null, "name" to "Alice")))
+        }
+
+        @Test
+        @DisplayName("Function with unknown argument returns unknown / 函数未知参数返回 Unknown")
+        fun testFunctionWithUnknownArgumentReturnsUnknown() {
+            val expr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Abs, listOf(ScalarReference(PropertyPath.parse("x")))),
+                ScalarConstant(1)
+            )
+
+            assertEquals(Trivalent.Unknown, expr.evaluateWith(emptyMap()))
+        }
+
+        @Test
+        @DisplayName("Invalid function arguments fail explicitly / 非法函数参数明确失败")
+        fun testInvalidFunctionArgumentsFailExplicitly() {
+            val invalidAbs = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Abs, listOf(ScalarConstant("x"))),
+                ScalarConstant(1)
+            )
+            val emptyCoalesce = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction(ScalarFunctionNames.Coalesce, emptyList()),
+                ScalarConstant(1)
+            )
+            val unknown = Comparison(
+                ComparisonOperator.Eq,
+                ScalarFunction("unknown", listOf(ScalarConstant(1))),
+                ScalarConstant(1)
+            )
+
+            assertThrows(IllegalArgumentException::class.java) {
+                invalidAbs.evaluateWith(emptyMap())
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                emptyCoalesce.evaluateWith(emptyMap())
+            }
+            assertThrows(IllegalArgumentException::class.java) {
+                unknown.evaluateWith(emptyMap())
+            }
+        }
+    }
 }

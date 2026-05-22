@@ -193,6 +193,19 @@ class BooleanDslTest {
             val notExpr = notExpr(eq("a", 1))
             assertTrue(notExpr.operand is Comparison<*>)
         }
+
+        @Test
+        @DisplayName("Scalar function DSL / 标量函数 DSL")
+        fun testScalarFunctionDsl() {
+            val absExpr = abs(path("balance"))
+            val comparison = abs(path("balance")) gt 10
+            val lowerComparison = lower(path("name")) eq "alice"
+
+            assertEquals(ScalarFunctionNames.Abs, absExpr.name)
+            assertEquals(ComparisonOperator.Gt, comparison.operator)
+            assertTrue(comparison.left is ScalarFunction<*>)
+            assertEquals(ComparisonOperator.Eq, lowerComparison.operator)
+        }
     }
 
     @Nested

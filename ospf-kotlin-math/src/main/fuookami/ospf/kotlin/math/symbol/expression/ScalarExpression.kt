@@ -279,3 +279,32 @@ object ScalarExpressionFactory {
     fun <T> divide(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Divide, left, right)
 }
+
+/**
+ * 标准标量函数名称
+ * Standard scalar function names
+ */
+object ScalarFunctionNames {
+    const val Abs: String = "abs"
+    const val Lower: String = "lower"
+    const val Upper: String = "upper"
+    const val Trim: String = "trim"
+    const val Length: String = "length"
+    const val Coalesce: String = "coalesce"
+}
+
+/**
+ * 标量函数注册表
+ * Scalar function registry
+ */
+interface ScalarFunctionRegistry<R> {
+    fun translate(name: String, arguments: List<R>): R?
+}
+
+/**
+ * 标量函数求值器
+ * Scalar function evaluator
+ */
+interface ScalarFunctionEvaluator {
+    fun evaluate(name: String, arguments: List<Any?>): Any?
+}

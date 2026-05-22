@@ -139,6 +139,24 @@ class MongoBooleanTranslatorTest {
     }
 
     @Test
+    @DisplayName("function comparison should use expr / 函数比较应使用 expr")
+    fun functionComparisonShouldUseExpr() {
+        val expr = Comparison(
+            ComparisonOperator.Gt,
+            ScalarFunction(
+                ScalarFunctionNames.Abs,
+                listOf(ScalarReference<Int>(PropertyPath.parse("age")))
+            ),
+            ScalarConstant(10)
+        )
+
+        val actual = json(translator.translate(expr))
+        assertTrue(actual.contains("\"\$expr\""))
+        assertTrue(actual.contains("\"\$abs\""))
+        assertTrue(actual.contains("10"))
+    }
+
+    @Test
     @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
     fun failFastShouldThrowForUnsupportedPredicate() {
         val failFastTranslator = MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.FailFast)

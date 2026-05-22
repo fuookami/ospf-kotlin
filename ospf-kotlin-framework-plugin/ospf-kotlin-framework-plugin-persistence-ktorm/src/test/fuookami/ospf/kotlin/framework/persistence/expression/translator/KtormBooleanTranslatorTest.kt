@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.ktorm.expression.BinaryExpression
 import org.ktorm.expression.BinaryExpressionType
+import org.ktorm.expression.FunctionExpression
 import org.ktorm.expression.InListExpression
 import org.ktorm.expression.UnaryExpression
 import org.ktorm.expression.UnaryExpressionType
@@ -104,6 +105,24 @@ class KtormBooleanTranslatorTest {
             assertEquals(BinaryExpressionType.GREATER_THAN, columnColumnResult.type)
             assertEquals(BinaryExpressionType.GREATER_THAN, arithmeticResult.type)
             assertEquals(BinaryExpressionType.TIMES, (arithmeticResult.left as BinaryExpression<*>).type)
+        }
+
+        @Test
+        @DisplayName("should translate function comparison / 应翻译函数比较")
+        fun shouldTranslateFunctionComparison() {
+            val expr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarFunction(
+                    ScalarFunctionNames.Abs,
+                    listOf(ScalarReference<Int>(PropertyPath.parse("age")))
+                ),
+                ScalarConstant(10)
+            )
+
+            val result = translator.translate(expr) as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.GREATER_THAN, result.type)
+            assertEquals("ABS", (result.left as FunctionExpression<*>).functionName)
         }
     }
 

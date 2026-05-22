@@ -65,6 +65,12 @@ class ScalarExpressionBuilder<T> {
  */
 class PathBuilder(private val path: PropertyPath) {
     /**
+     * 转换为标量引用
+     * Convert to scalar reference
+     */
+    fun <T> asScalar(): ScalarReference<T> = ScalarReference(path)
+
+    /**
      * 等于比较
      * Equal comparison
      */
@@ -222,6 +228,12 @@ class PathBuilder(private val path: PropertyPath) {
 fun path(name: String): PathBuilder = PathBuilder(PropertyPath.parse(name))
 
 /**
+ * 创建标量引用
+ * Create scalar reference
+ */
+fun <T> scalarPath(name: String): ScalarReference<T> = ScalarReference(PropertyPath.parse(name))
+
+/**
  * 创建布尔常量
  * Create boolean constant
  */
@@ -370,3 +382,61 @@ fun or(vararg expressions: BooleanExpression): OrExpression = OrExpression(expre
  * Quick create NOT expression
  */
 fun notExpr(expression: BooleanExpression): NotExpression = NotExpression(expression)
+
+// ========== 标量函数 / Scalar Functions ==========
+
+@Suppress("UNCHECKED_CAST")
+private fun anyScalar(expr: ScalarExpression<*>): ScalarExpression<Any?> = expr as ScalarExpression<Any?>
+
+private fun function(name: String, arguments: List<ScalarExpression<*>>): ScalarFunction<Any?> {
+    return ScalarFunction(name, arguments.map { anyScalar(it) })
+}
+
+fun abs(expr: ScalarExpression<*>): ScalarFunction<Any?> =
+    function(ScalarFunctionNames.Abs, listOf(expr))
+
+fun abs(path: PathBuilder): ScalarFunction<Any?> = abs(path.asScalar<Any?>())
+
+fun lower(expr: ScalarExpression<*>): ScalarFunction<Any?> =
+    function(ScalarFunctionNames.Lower, listOf(expr))
+
+fun lower(path: PathBuilder): ScalarFunction<Any?> = lower(path.asScalar<Any?>())
+
+fun upper(expr: ScalarExpression<*>): ScalarFunction<Any?> =
+    function(ScalarFunctionNames.Upper, listOf(expr))
+
+fun upper(path: PathBuilder): ScalarFunction<Any?> = upper(path.asScalar<Any?>())
+
+fun trim(expr: ScalarExpression<*>): ScalarFunction<Any?> =
+    function(ScalarFunctionNames.Trim, listOf(expr))
+
+fun trim(path: PathBuilder): ScalarFunction<Any?> = trim(path.asScalar<Any?>())
+
+fun length(expr: ScalarExpression<*>): ScalarFunction<Any?> =
+    function(ScalarFunctionNames.Length, listOf(expr))
+
+fun length(path: PathBuilder): ScalarFunction<Any?> = length(path.asScalar<Any?>())
+
+fun coalesce(vararg expressions: ScalarExpression<*>): ScalarFunction<Any?> =
+    function(ScalarFunctionNames.Coalesce, expressions.toList())
+
+fun coalesce(vararg paths: PathBuilder): ScalarFunction<Any?> =
+    coalesce(*paths.map { it.asScalar<Any?>() }.toTypedArray())
+
+infix fun ScalarExpression<*>.eq(value: Any?): Comparison<Any?> =
+    Comparison(ComparisonOperator.Eq, anyScalar(this), ScalarConstant(value))
+
+infix fun ScalarExpression<*>.ne(value: Any?): Comparison<Any?> =
+    Comparison(ComparisonOperator.Ne, anyScalar(this), ScalarConstant(value))
+
+infix fun ScalarExpression<*>.lt(value: Any?): Comparison<Any?> =
+    Comparison(ComparisonOperator.Lt, anyScalar(this), ScalarConstant(value))
+
+infix fun ScalarExpression<*>.le(value: Any?): Comparison<Any?> =
+    Comparison(ComparisonOperator.Le, anyScalar(this), ScalarConstant(value))
+
+infix fun ScalarExpression<*>.gt(value: Any?): Comparison<Any?> =
+    Comparison(ComparisonOperator.Gt, anyScalar(this), ScalarConstant(value))
+
+infix fun ScalarExpression<*>.ge(value: Any?): Comparison<Any?> =
+    Comparison(ComparisonOperator.Ge, anyScalar(this), ScalarConstant(value))

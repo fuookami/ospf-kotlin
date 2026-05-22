@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarCustom
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -56,6 +58,47 @@ class MongoScalarTranslatorTest {
         assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))))
         assertThrows(IllegalArgumentException::class.java) {
             failFastTranslator.translate(ScalarCustom<Int>("x"))
+        }
+    }
+
+    @Test
+    @DisplayName("should translate standard functions / 应翻译标准函数")
+    fun shouldTranslateStandardFunctions() {
+        val translator = MongoScalarTranslator(resolver)
+        val absExpr = translator.translate(
+            ScalarFunction(
+                ScalarFunctionNames.Abs,
+                listOf(ScalarReference<Int>(PropertyPath.parse("price")))
+            )
+        ) as Document
+        val lowerExpr = translator.translate(
+            ScalarFunction(
+                ScalarFunctionNames.Lower,
+                listOf(ScalarReference<String>(PropertyPath.parse("price")))
+            )
+        ) as Document
+        val coalesceExpr = translator.translate(
+            ScalarFunction(
+                ScalarFunctionNames.Coalesce,
+                listOf(ScalarReference<String>(PropertyPath.parse("price")), ScalarConstant("fallback"))
+            )
+        ) as Document
+
+        assertEquals("\$price", absExpr["\$abs"])
+        assertEquals("\$price", lowerExpr["\$toLower"])
+        assertEquals(listOf("\$price", "fallback"), coalesceExpr["\$ifNull"])
+    }
+
+    @Test
+    @DisplayName("unknown function should follow policy / 未知函数应遵循策略")
+    fun unknownFunctionShouldFollowPolicy() {
+        val alwaysFalseTranslator = MongoScalarTranslator(resolver)
+        val failFastTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
+
+        assertNull(alwaysFalseTranslator.translate(unknown))
+        assertThrows(IllegalArgumentException::class.java) {
+            failFastTranslator.translate(unknown)
         }
     }
 }

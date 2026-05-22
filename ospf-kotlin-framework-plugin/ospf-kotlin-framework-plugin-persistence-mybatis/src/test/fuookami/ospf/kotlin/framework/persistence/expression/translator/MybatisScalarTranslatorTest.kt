@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarCustom
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -60,6 +62,42 @@ class MybatisScalarTranslatorTest {
         assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))))
         assertThrows(IllegalArgumentException::class.java) {
             failFastTranslator.translate(ScalarCustom<Int>("x"))
+        }
+    }
+
+    @Test
+    @DisplayName("should translate standard functions safely / 应安全翻译标准函数")
+    fun shouldTranslateStandardFunctionsSafely() {
+        val translator = MybatisScalarTranslator(resolver)
+        val absExpr = translator.translate(
+            ScalarFunction(
+                ScalarFunctionNames.Abs,
+                listOf(ScalarReference<Int>(PropertyPath.parse("price")))
+            )
+        )!!
+        val lowerExpr = translator.translate(
+            ScalarFunction(
+                ScalarFunctionNames.Lower,
+                listOf(ScalarConstant("ABC"))
+            )
+        )!!
+
+        assertEquals("ABS(price)", absExpr.sql)
+        assertEquals("LOWER({0})", lowerExpr.sql)
+        assertEquals(listOf("ABC"), lowerExpr.params)
+        assertFalse(lowerExpr.sql.contains("ABC"))
+    }
+
+    @Test
+    @DisplayName("unknown function should follow policy / 未知函数应遵循策略")
+    fun unknownFunctionShouldFollowPolicy() {
+        val alwaysFalseTranslator = MybatisScalarTranslator(resolver)
+        val failFastTranslator = MybatisScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
+
+        assertNull(alwaysFalseTranslator.translate(unknown))
+        assertThrows(IllegalArgumentException::class.java) {
+            failFastTranslator.translate(unknown)
         }
     }
 }

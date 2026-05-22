@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import java.math.BigDecimal
 import java.math.BigInteger
+import kotlin.math.abs
 
 /**
  * 求值上下文
@@ -252,8 +253,62 @@ private fun evaluateScalar(expr: ScalarExpression<*>, context: EvaluationContext
         is ScalarSymbolReference<*> -> null
         is ScalarUnary<*> -> evaluateUnary(expr, context)
         is ScalarBinary<*> -> evaluateBinary(expr, context)
-        is ScalarFunction<*> -> null  // 函数调用需要额外实玌/ Function call needs extra implementation
+        is ScalarFunction<*> -> DefaultScalarFunctionEvaluator.evaluate(
+            expr.name,
+            expr.arguments.map { evaluateScalar(it, context) }
+        )
         is ScalarCustom<*> -> null
+    }
+}
+
+/**
+ * 默认标量函数求值器
+ * Default scalar function evaluator
+ */
+object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
+    override fun evaluate(name: String, arguments: List<Any?>): Any? {
+        return when (name.lowercase()) {
+            ScalarFunctionNames.Abs -> evaluateAbs(arguments)
+            ScalarFunctionNames.Lower -> evaluateStringUnary(name, arguments) { it.lowercase() }
+            ScalarFunctionNames.Upper -> evaluateStringUnary(name, arguments) { it.uppercase() }
+            ScalarFunctionNames.Trim -> evaluateStringUnary(name, arguments) { it.trim() }
+            ScalarFunctionNames.Length -> evaluateStringUnary(name, arguments) { it.length }
+            ScalarFunctionNames.Coalesce -> evaluateCoalesce(arguments)
+            else -> throw IllegalArgumentException("Unsupported scalar function: $name")
+        }
+    }
+
+    private fun evaluateAbs(arguments: List<Any?>): Any? {
+        require(arguments.size == 1) { "Function abs expects exactly one argument" }
+        val value = arguments[0] ?: return null
+        require(value is Number) { "Function abs expects a numeric argument" }
+        return when (value) {
+            is Byte -> abs(value.toInt())
+            is Short -> abs(value.toInt())
+            is Int -> abs(value)
+            is Long -> abs(value)
+            is Float -> abs(value)
+            is Double -> abs(value)
+            is BigDecimal -> value.abs()
+            is BigInteger -> value.abs()
+            else -> throw IllegalArgumentException("Function abs does not support numeric type: ${value::class.simpleName}")
+        }
+    }
+
+    private fun evaluateStringUnary(
+        name: String,
+        arguments: List<Any?>,
+        operation: (String) -> Any
+    ): Any? {
+        require(arguments.size == 1) { "Function $name expects exactly one argument" }
+        val value = arguments[0] ?: return null
+        require(value is String) { "Function $name expects a string argument" }
+        return operation(value)
+    }
+
+    private fun evaluateCoalesce(arguments: List<Any?>): Any? {
+        require(arguments.isNotEmpty()) { "Function coalesce expects at least one argument" }
+        return arguments.firstOrNull { it != null }
     }
 }
 

@@ -12,12 +12,15 @@ import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarUnary
 import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.BinaryExpression
 import org.ktorm.expression.BinaryExpressionType
+import org.ktorm.expression.FunctionExpression
 import org.ktorm.expression.UnaryExpression
 import org.ktorm.expression.UnaryExpressionType
 import org.ktorm.schema.BooleanSqlType
@@ -49,6 +52,7 @@ class KtormScalarTranslator(
             is ScalarConstant<*> -> translateConstant(expr.value)
             is ScalarUnary<*> -> translateUnary(expr)
             is ScalarBinary<*> -> translateBinary(expr)
+            is ScalarFunction<*> -> translateFunction(expr)
             else -> unsupported("Unsupported scalar expression: ${expr.typeName}")
         }
     }
@@ -88,6 +92,51 @@ class KtormScalarTranslator(
         @Suppress("UNCHECKED_CAST")
         val sqlType = left.sqlType as SqlType<Any>
         return BinaryExpression(type, left, right, sqlType)
+    }
+
+    private fun translateFunction(expr: ScalarFunction<*>): KtormScalarExpression<*>? {
+        val arguments = expr.arguments.map { translate(it) ?: return null }
+        return when (expr.name.lowercase()) {
+            ScalarFunctionNames.Abs -> {
+                if (arguments.size != 1) {
+                    return unsupported("Function ${expr.name} expects exactly one argument")
+                }
+                @Suppress("UNCHECKED_CAST")
+                FunctionExpression("ABS", arguments, arguments[0].sqlType as SqlType<Any>)
+            }
+            ScalarFunctionNames.Lower -> {
+                if (arguments.size != 1) {
+                    return unsupported("Function ${expr.name} expects exactly one argument")
+                }
+                FunctionExpression("LOWER", arguments, VarcharSqlType)
+            }
+            ScalarFunctionNames.Upper -> {
+                if (arguments.size != 1) {
+                    return unsupported("Function ${expr.name} expects exactly one argument")
+                }
+                FunctionExpression("UPPER", arguments, VarcharSqlType)
+            }
+            ScalarFunctionNames.Trim -> {
+                if (arguments.size != 1) {
+                    return unsupported("Function ${expr.name} expects exactly one argument")
+                }
+                FunctionExpression("TRIM", arguments, VarcharSqlType)
+            }
+            ScalarFunctionNames.Length -> {
+                if (arguments.size != 1) {
+                    return unsupported("Function ${expr.name} expects exactly one argument")
+                }
+                FunctionExpression("LENGTH", arguments, IntSqlType)
+            }
+            ScalarFunctionNames.Coalesce -> {
+                if (arguments.isEmpty()) {
+                    return unsupported("Function coalesce expects at least one argument")
+                }
+                @Suppress("UNCHECKED_CAST")
+                FunctionExpression("COALESCE", arguments, arguments[0].sqlType as SqlType<Any>)
+            }
+            else -> unsupported("Unsupported scalar function: ${expr.name}")
+        }
     }
 
     private fun inferSqlType(value: Any): SqlType<*> {

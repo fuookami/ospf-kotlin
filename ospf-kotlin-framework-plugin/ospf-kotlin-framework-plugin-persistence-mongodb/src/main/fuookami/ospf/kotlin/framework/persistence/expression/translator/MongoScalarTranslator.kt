@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarUnary
 import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
@@ -39,6 +41,7 @@ class MongoScalarTranslator(
             is ScalarConstant<*> -> expr.value
             is ScalarUnary<*> -> translateUnary(expr)
             is ScalarBinary<*> -> translateBinary(expr)
+            is ScalarFunction<*> -> translateFunction(expr)
             else -> unsupported("Unsupported scalar expression: ${expr.typeName}")
         }
     }
@@ -64,6 +67,38 @@ class MongoScalarTranslator(
             BinaryOperator.Power -> return unsupported("POWER scalar expression is not supported")
         }
         return Document(operator, listOf(left, right))
+    }
+
+    private fun translateFunction(expr: ScalarFunction<*>): Any? {
+        val arguments = expr.arguments.map { translate(it) ?: return null }
+        return when (expr.name.lowercase()) {
+            ScalarFunctionNames.Abs -> translateUnaryFunction(expr.name, "\$abs", arguments)
+            ScalarFunctionNames.Lower -> translateUnaryFunction(expr.name, "\$toLower", arguments)
+            ScalarFunctionNames.Upper -> translateUnaryFunction(expr.name, "\$toUpper", arguments)
+            ScalarFunctionNames.Trim -> translateUnaryFunction(expr.name, "\$trim", arguments) { arg ->
+                Document("input", arg)
+            }
+            ScalarFunctionNames.Length -> translateUnaryFunction(expr.name, "\$strLenCP", arguments)
+            ScalarFunctionNames.Coalesce -> {
+                if (arguments.isEmpty()) return unsupported("Function coalesce expects at least one argument")
+                arguments.drop(1).fold(arguments.first()) { acc, value ->
+                    Document("\$ifNull", listOf(acc, value))
+                }
+            }
+            else -> unsupported("Unsupported scalar function: ${expr.name}")
+        }
+    }
+
+    private fun translateUnaryFunction(
+        logicalName: String,
+        mongoName: String,
+        arguments: List<Any?>,
+        argumentMapper: (Any?) -> Any? = { it }
+    ): Any? {
+        if (arguments.size != 1) {
+            return unsupported("Function $logicalName expects exactly one argument")
+        }
+        return Document(mongoName, argumentMapper(arguments[0]))
     }
 
     private fun unsupported(reason: String): Nothing? {

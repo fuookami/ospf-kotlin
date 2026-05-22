@@ -328,4 +328,31 @@ class NormalizeTest {
             assertTrue(normalized is Comparison<*>)
         }
     }
+
+    @Nested
+    @DisplayName("Scalar Function Normalize Tests / 标量函数规范化测试")
+    inner class ScalarFunctionNormalizeTests {
+
+        @Test
+        @DisplayName("Keep nested abs function structure / 保留嵌套 abs 函数结构")
+        fun testKeepNestedAbsFunctionStructure() {
+            val nestedAbs = ScalarFunction(
+                ScalarFunctionNames.Abs,
+                listOf(
+                    ScalarFunction(
+                        ScalarFunctionNames.Abs,
+                        listOf(ScalarReference<Int>(PropertyPath.parse("x")))
+                    )
+                )
+            )
+            val expr = Comparison(ComparisonOperator.Gt, nestedAbs, ScalarConstant(0))
+
+            val normalized = normalize(expr)
+
+            assertTrue(normalized is Comparison<*>)
+            val left = (normalized as Comparison<*>).left
+            assertTrue(left is ScalarFunction<*>)
+            assertTrue((left as ScalarFunction<*>).arguments.first() is ScalarFunction<*>)
+        }
+    }
 }

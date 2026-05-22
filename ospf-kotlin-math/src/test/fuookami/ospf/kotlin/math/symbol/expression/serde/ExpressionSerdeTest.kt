@@ -103,6 +103,24 @@ class ExpressionSerdeTest {
             assertEquals("{k=1}", custom.value)
             assertEquals("meta", custom.description)
         }
+
+        @Test
+        @DisplayName("Function round-trip / 函数往返测试")
+        fun testFunctionRoundTrip() {
+            val original: ScalarExpression<Int> = ScalarFunction(
+                ScalarFunctionNames.Abs,
+                listOf(ScalarReference(PropertyPath.parse("x")))
+            )
+
+            val json = original.toJsonString()
+            val restored = scalarExpressionFromJson(json)
+
+            assertTrue(restored is ScalarFunction<*>)
+            val function = restored as ScalarFunction<*>
+            assertEquals(ScalarFunctionNames.Abs, function.name)
+            assertEquals(1, function.arguments.size)
+            assertTrue(function.arguments.first() is ScalarReference<*>)
+        }
     }
 
     @Nested

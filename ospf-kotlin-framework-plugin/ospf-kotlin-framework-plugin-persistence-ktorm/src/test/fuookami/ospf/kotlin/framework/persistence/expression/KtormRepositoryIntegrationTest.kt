@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
 import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -168,9 +170,18 @@ class KtormRepositoryIntegrationTest {
             ),
             ScalarConstant<Int>(25)
         )
+        val function = Comparison(
+            ComparisonOperator.Gt,
+            ScalarFunction(
+                ScalarFunctionNames.Abs,
+                listOf(ScalarReference<Int>(PropertyPath.parse("age")))
+            ),
+            ScalarConstant(15)
+        )
 
         assertEquals(3, repository.find(columnColumn).size)
         assertEquals(2, repository.find(arithmetic).size)
+        assertEquals(2, repository.find(function).size)
     }
 
     @Test

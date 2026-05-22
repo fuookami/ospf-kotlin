@@ -78,6 +78,20 @@ class ExpressionASTTest {
         }
 
         @Test
+        @DisplayName("Standard abs function keeps symbolic boundary / 标准 abs 函数保持符号边界")
+        fun testStandardAbsFunctionBoundary() {
+            val x = ScalarReference<Int>(PropertyPath.parse("x"))
+            val constantAbs = ScalarFunction(ScalarFunctionNames.Abs, listOf(ScalarConstant(-3)))
+            val referenceAbs = ScalarFunction(ScalarFunctionNames.Abs, listOf(x))
+
+            assertEquals("Function", referenceAbs.typeName)
+            assertTrue(constantAbs.isConstant())
+            assertFalse(referenceAbs.isConstant())
+            assertTrue(referenceAbs.containsReference())
+            assertEquals(setOf(PropertyPath.parse("x")), referenceAbs.collectReferences())
+        }
+
+        @Test
         @DisplayName("Mixed expression with references / 包含引用的混合表达式")
         fun testMixedExpression() {
             val ref1 = ScalarReference<Double>(PropertyPath.parse("x"))

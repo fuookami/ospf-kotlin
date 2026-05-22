@@ -47,6 +47,15 @@ val columnComparison = path("startAt").lt(path("endAt"))
 val amountCheck = (path("price") * path("quantity")).gt(100)
 ```
 
+标量函数复用 `ospf-kotlin-math` 的 `ScalarFunction` 节点。它们是逻辑函数符号，不是原始 SQL 字符串：
+
+```kotlin
+val absoluteBalance = abs(path("balance")).gt(10)
+val normalizedName = lower(path("name")).eq("alice")
+```
+
+标准函数名集中定义在 `ScalarFunctionNames`。当前内置函数包括 `abs`、`lower`、`upper`、`trim`、`length` 与 `coalesce`。Ktorm、MyBatis-Plus 与 MongoDB translator 只下推已登记标准函数；未知函数继续遵循 `UnsupportedPredicatePolicy`，不会被输出为不受控 SQL 或 Mongo 表达式。
+
 ### Resolver 函数（当前映射机制）
 
 ```kotlin

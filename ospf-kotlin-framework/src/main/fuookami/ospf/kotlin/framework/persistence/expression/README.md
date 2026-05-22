@@ -47,6 +47,15 @@ val columnComparison = path("startAt").lt(path("endAt"))
 val amountCheck = (path("price") * path("quantity")).gt(100)
 ```
 
+Scalar functions reuse `ospf-kotlin-math` `ScalarFunction` nodes. They are logical function symbols, not raw SQL strings:
+
+```kotlin
+val absoluteBalance = abs(path("balance")).gt(10)
+val normalizedName = lower(path("name")).eq("alice")
+```
+
+Standard function names are centralized in `ScalarFunctionNames`. The current built-in functions are `abs`, `lower`, `upper`, `trim`, `length`, and `coalesce`. Ktorm, MyBatis-Plus, and MongoDB translators only push down registered standard functions; unknown functions follow `UnsupportedPredicatePolicy` and are never emitted as uncontrolled SQL or Mongo expressions.
+
 ### Resolver Functions (Current Mapping Mechanism)
 
 ```kotlin
