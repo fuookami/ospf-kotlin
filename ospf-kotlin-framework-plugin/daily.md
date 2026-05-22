@@ -85,16 +85,16 @@ data class PackagingMaterialPO(
 
 ### Phase P1：表达式 translator 行为补齐
 
-参考 `ospf-kotlin-framework/sql_expression.md` 中的未完成事项：
+状态：已在 SQL Expression P0-P9 工作中完成，原专项交接文档已归档删除。
 
-1. Ktorm 补 `InExpression` 与比较操作。
-2. MyBatis 修复 update where 丢失和分页 `last(...)` 覆盖。
-3. MongoDB 复核 null 语义。
-4. unsupported expression 统一为早失败或显式空条件策略。
+1. Ktorm 已补 `InExpression` 与比较操作。
+2. MyBatis 已修复 update where 丢失和分页 `last(...)` 覆盖。
+3. MongoDB 已复核并修正 null 语义。
+4. unsupported expression 已统一为显式策略，默认恒假或空结果，避免无条件查询。
 
 验收：
 
-- [ ] Ktorm/MyBatis/Mongo translator 都有行为测试，而不只是 AST 构造测试。
+- [x] Ktorm/MyBatis/Mongo translator 都有行为测试，而不只是 AST 构造测试。
 
 ### Phase P2：消息插件 serializer 策略
 

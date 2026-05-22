@@ -135,6 +135,11 @@
                 <artifactId>ospf-kotlin-framework-plugin-persistence-redis</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
