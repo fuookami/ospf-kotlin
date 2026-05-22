@@ -97,6 +97,80 @@ function Format-Delta {
     }
 }
 
+function Get-KtRegexMatches {
+    param(
+        [string]$Root,
+        [string]$Regex
+    )
+    $hits = @()
+    if (-not (Test-Path $Root)) {
+        return $hits
+    }
+    Get-ChildItem -Path $Root -Recurse -Filter "*.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $line = $_
+            $trimmed = $line.Trim()
+            if ($trimmed -match $Regex -and $trimmed -notmatch "^(//|\*|/\*\*)") {
+                $hits += [pscustomobject]@{
+                    Path = $relativePath
+                    LineNumber = $lineNumber
+                    Line = $trimmed
+                }
+            }
+        }
+    }
+    return $hits
+}
+
+function Split-MatchesByAllowlist {
+    param(
+        [object[]]$Matches,
+        [object[]]$Allowlist
+    )
+    $allowed = @()
+    $violations = @()
+
+    foreach ($match in $Matches) {
+        $isAllowed = $false
+        foreach ($rule in $Allowlist) {
+            if ($match.Path -ne $rule.Path) {
+                continue
+            }
+            if ($null -ne $rule.LineRegex -and $match.Line -notmatch $rule.LineRegex) {
+                continue
+            }
+            $isAllowed = $true
+            break
+        }
+        if ($isAllowed) {
+            $allowed += $match
+        } else {
+            $violations += $match
+        }
+    }
+
+    return [pscustomobject]@{
+        Allowed = $allowed
+        Violations = $violations
+    }
+}
+
+function Format-RegexHitPreview {
+    param([object[]]$Matches)
+    if ($null -eq $Matches -or $Matches.Count -eq 0) {
+        return ""
+    }
+    return ($Matches | Select-Object -First 8 | ForEach-Object {
+        "$($_.Path):$($_.LineNumber): $($_.Line)"
+    }) -join "; "
+}
+
 function Write-P7Whitelist {
     param(
         [string]$Label,
@@ -1058,6 +1132,77 @@ Write-Result "P17-4: No old SlackFunction constructor usage without converter in
 if (($Verbose -or $slackWithoutConverterViolations.Count -gt 0) -and $slackWithoutConverterViolations.Count -gt 0) {
     $preview = ($slackWithoutConverterViolations | Select-Object -First 8) -join "; "
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+# --- P34 Guards (framework warning backflow) / P34 防回流 Guard（framework warning 回流） ---
+
+$frameworkGanttRoot = "ospf-kotlin-framework-gantt-scheduling"
+$frameworkMainPathPattern = "/src/main/"
+
+# Guard P34-1-1: No shadow-price-key cast rollback in framework src/main.
+# 防止 framework src/main 回流 ShadowPriceKey 直接 cast。
+$shadowPriceKeyCastHits = Get-KtRegexMatches -Root $frameworkGanttRoot -Regex "constraint\.args\s+as\??\s+[^/\r\n]*ShadowPriceKey"
+$shadowPriceKeyCastHits = @($shadowPriceKeyCastHits | Where-Object { $_.Path -match $frameworkMainPathPattern })
+Write-Result "P34-1-1: No ShadowPriceKey direct cast rollback in framework src/main" ($shadowPriceKeyCastHits.Count -eq 0) "Found $($shadowPriceKeyCastHits.Count) violations"
+if (($Verbose -or $shadowPriceKeyCastHits.Count -gt 0) -and $shadowPriceKeyCastHits.Count -gt 0) {
+    Write-Host "      Violations: $(Format-RegexHitPreview -Matches $shadowPriceKeyCastHits)" -ForegroundColor DarkGray
+}
+
+# Guard P34-1-2: No scattered CapacityActionProduce cast outside allowlisted helper lines.
+# 防止 CapacityActionProduce cast 从 allowlist helper 行回流到散点业务路径。
+$capacityActionProduceCastHits = Get-KtRegexMatches -Root $frameworkGanttRoot -Regex "as\??\s+CapacityActionProduce<"
+$capacityActionProduceCastHits = @($capacityActionProduceCastHits | Where-Object { $_.Path -match $frameworkMainPathPattern })
+$capacityActionProduceAllowlist = @(
+    [pscustomobject]@{
+        Path = "ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/CapacityActionProduce.kt"
+        LineRegex = "action as\? CapacityActionProduce<\*, \*> \?: return null"
+    }
+)
+$capacityActionProduceSplit = Split-MatchesByAllowlist -Matches $capacityActionProduceCastHits -Allowlist $capacityActionProduceAllowlist
+Write-Result "P34-1-2: CapacityActionProduce cast stays in allowlisted helper lines" ($capacityActionProduceSplit.Violations.Count -eq 0) "Found $($capacityActionProduceSplit.Violations.Count) violations (allowed $($capacityActionProduceSplit.Allowed.Count))"
+if (($Verbose -or $capacityActionProduceSplit.Violations.Count -gt 0) -and $capacityActionProduceSplit.Violations.Count -gt 0) {
+    Write-Host "      Violations: $(Format-RegexHitPreview -Matches $capacityActionProduceSplit.Violations)" -ForegroundColor DarkGray
+}
+
+# Guard P34-1-3: ExpressionRange<Flt64> cast stays in allowlisted resource helper line.
+# 限制 ExpressionRange<Flt64> cast 只保留在资源 helper allowlist 行。
+$expressionRangeCastHits = Get-KtRegexMatches -Root $frameworkGanttRoot -Regex "as\s+ExpressionRange<Flt64>"
+$expressionRangeCastHits = @($expressionRangeCastHits | Where-Object { $_.Path -match $frameworkMainPathPattern })
+$expressionRangeCastAllowlist = @(
+    [pscustomobject]@{
+        Path = "ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/Resource.kt"
+        LineRegex = "range as ExpressionRange<Flt64>"
+    }
+)
+$expressionRangeCastSplit = Split-MatchesByAllowlist -Matches $expressionRangeCastHits -Allowlist $expressionRangeCastAllowlist
+Write-Result "P34-1-3: ExpressionRange<Flt64> cast stays in allowlisted resource helper" ($expressionRangeCastSplit.Violations.Count -eq 0) "Found $($expressionRangeCastSplit.Violations.Count) violations (allowed $($expressionRangeCastSplit.Allowed.Count))"
+if (($Verbose -or $expressionRangeCastSplit.Violations.Count -gt 0) -and $expressionRangeCastSplit.Violations.Count -gt 0) {
+    Write-Host "      Violations: $(Format-RegexHitPreview -Matches $expressionRangeCastSplit.Violations)" -ForegroundColor DarkGray
+}
+
+# Guard P34-1-4: Productivity generic P cast stays in allowlisted rebuilt helper line.
+# 限制生产率重建泛型 P cast 只保留在 allowlist helper 行。
+$productivityCastHits = Get-KtRegexMatches -Root $frameworkGanttRoot -Regex "as\s+P\b"
+$productivityCastHits = @($productivityCastHits | Where-Object { $_.Path -match $frameworkMainPathPattern })
+$productivityCastAllowlist = @(
+    [pscustomobject]@{
+        Path = "ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/WorkingCalendar.kt"
+        LineRegex = "source\.new\(timeWindow = timeWindow\) as P"
+    }
+)
+$productivityCastSplit = Split-MatchesByAllowlist -Matches $productivityCastHits -Allowlist $productivityCastAllowlist
+Write-Result "P34-1-4: Productivity cast stays in allowlisted rebuilt helper" ($productivityCastSplit.Violations.Count -eq 0) "Found $($productivityCastSplit.Violations.Count) violations (allowed $($productivityCastSplit.Allowed.Count))"
+if (($Verbose -or $productivityCastSplit.Violations.Count -gt 0) -and $productivityCastSplit.Violations.Count -gt 0) {
+    Write-Host "      Violations: $(Format-RegexHitPreview -Matches $productivityCastSplit.Violations)" -ForegroundColor DarkGray
+}
+
+# Guard P34-1-5: No rollback to raw Result error casts in framework src/main.
+# 防止 framework src/main 回流 result.error/result.errors 原始 Error cast。
+$resultErrorCastHits = Get-KtRegexMatches -Root $frameworkGanttRoot -Regex "result\.error\s+as\s+Error<ErrorCode>|result\.errors\s+as\s+List<Error<ErrorCode>>"
+$resultErrorCastHits = @($resultErrorCastHits | Where-Object { $_.Path -match $frameworkMainPathPattern })
+Write-Result "P34-1-5: No raw Result Error<ErrorCode> cast rollback in framework src/main" ($resultErrorCastHits.Count -eq 0) "Found $($resultErrorCastHits.Count) violations"
+if (($Verbose -or $resultErrorCastHits.Count -gt 0) -and $resultErrorCastHits.Count -gt 0) {
+    Write-Host "      Violations: $(Format-RegexHitPreview -Matches $resultErrorCastHits)" -ForegroundColor DarkGray
 }
 
 # --- P6/P7 Metric Guards ---
