@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toFlt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
@@ -12,7 +13,7 @@ class Scheme(
 
     init {
         val patternedItems = ArrayList<Pair<ItemPattern, MutableList<Triple<ActualItem, UInt64, ValueRange<UInt64>>>>>()
-        for (item in actualItems.sortedBy { it.first.weight }) {
+        for (item in actualItems.sortedBy { it.first.weight.toFlt64() }) {
             val thisPattern = item.first.pattern
 
             var flag = false

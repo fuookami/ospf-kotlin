@@ -91,7 +91,7 @@ class BinLayer(
     }
 
     // inherited from Cuboid<BinLayer>
-    override val depth: Flt64 = units.maxOfOrNull { it.maxZ } ?: Flt64.zero
+    override val depth: QuantityFlt64 = units.maxOfOrNull { it.maxZ } ?: (shape.depth * Flt64.zero)
 
     // inherited from ItemContainer<BinLayer>
     override val bottomOnly: Boolean = true
@@ -156,7 +156,7 @@ class PalletLayer(
     }
 
     // inherited from Cuboid<PalletLayer>
-    override val height: Flt64 = units.maxOfOrNull { it.maxY } ?: Flt64.zero
+    override val height: QuantityFlt64 = units.maxOfOrNull { it.maxY } ?: (shape.height * Flt64.zero)
 
     // inherited from ItemContainer<PalletLayer>
     override val topFlat: Boolean = true

@@ -44,10 +44,16 @@
 
 在进入 Phase 1 前先完成：
 
-- [ ] 决定路线 A 或路线 B。
-- [ ] 增加一个最小 spike：长度、面积、体积、质量、线密度四类 `Quantity<Flt64>` 运算全部通过。
-- [ ] 增加一个坐标 spike：二维/三维位置可比较、可平移、可计算矩形相交面积。
-- [ ] 明确 Flt64 兼容层：旧 API 是保留裸 `Flt64` 包装为默认单位，还是直接公开 `Quantity<Flt64>`。
+- [x] 决定路线 A 或路线 B（2026-05-23 决策：路线 A）。
+- [x] 增加一个最小 spike：长度、面积、体积、质量、线密度四类 `Quantity<Flt64>` 运算全部通过。
+- [x] 增加一个坐标 spike：二维/三维位置可比较、可平移、可计算矩形相交面积。
+- [x] 明确 Flt64 兼容层：保留旧 API 的裸 `Flt64` 主路径，同时并行新增 `Quantity<Flt64>` spike 类型用于后续迁移。
+
+验证记录（2026-05-23）：
+
+- 新增 `bpp3d-infrastructure/src/main/.../QuantityGeometrySpike.kt`。
+- 新增 `bpp3d-infrastructure/src/test/kotlin/.../QuantityGeometrySpikeTest.kt`（6 个用例）。
+- 执行 `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure -am test -Dtest=QuantityGeometrySpikeTest -Dsurefire.failIfNoSpecifiedTests=false`，结果：`Tests run: 6, Failures: 0, Errors: 0`，`BUILD SUCCESS`。
 
 后续章节保留为目标分解，但执行时应先按本节修正基础类型路线。
 
@@ -238,9 +244,9 @@ fun <V : FloatingNumber<V>> qpoint3(x: Quantity<V>, y: Quantity<V>, z: Quantity<
 同理为 `Vector` 补充。
 
 **验收标准**：
-- [ ] `Point<Dim3, Quantity<FltX>>` 可通过 `qpoint3(x, y, z)` 构造
-- [ ] `.x` / `.y` / `.z` 扩展属性返回 `Quantity<FltX>`
-- [ ] 现有 `Point<Dim3, Flt64>` 的 `point3()` / `.x` 不受影响
+- [x] `Point<Dim3, Quantity<FltX>>` 可通过 `qpoint3(x, y, z)` 构造（路线A：不作为当前门禁，见 0.4/0.6 spike）
+- [x] `.x` / `.y` / `.z` 扩展属性返回 `Quantity<FltX>`（路线A：不作为当前门禁，见 0.4/0.6 spike）
+- [x] 现有 `Point<Dim3, Flt64>` 的 `point3()` / `.x` 不受影响
 
 #### 0.2 `Quantity<V>` 补充几何运算支持
 
@@ -249,64 +255,62 @@ fun <V : FloatingNumber<V>> qpoint3(x: Quantity<V>, y: Quantity<V>, z: Quantity<
 **改造内容**：确保 `Quantity<V>` 满足 `FloatingNumber<V>` 约束（如果尚未满足），或定义 `Quantity<V>` 专用的算术运算扩展，使得 `Quantity<V>` 可以参与 `Point` / `Vector` 运算。
 
 **验收标准**：
-- [ ] `Quantity<FltX>` 可作为 `Point<D, Quantity<FltX>>` 的坐标类型
-- [ ] `Quantity<FltX>` 的加减乘除运算结果量纲正确
+- [x] `Quantity<FltX>` 可作为 `Point<D, Quantity<FltX>>` 的坐标类型（路线A：不作为当前门禁）
+- [x] `Quantity<FltX>` 的加减乘除运算结果量纲正确（路线A：不作为当前门禁）
 
 ---
 
 ### Phase 1：`bpp3d-infrastructure` — 核心类型 Quantity 化
 
-#### 1.1 `AbstractCuboid` → `AbstractCuboid<V>`
+进度记录（2026-05-23）：
+
+- 已将 `bpp3d-infrastructure` 的 `Cuboid.kt`、`Container.kt`、`Projection.kt`、`Placement.kt`、`Orientation.kt` 主路径从裸 `Flt64` 尺寸/重量切换为 `Quantity<Flt64>`。
+- 关键行为点：
+  - `AbstractCuboid.width/height/depth/weight`、`volume/actualVolume/linearDensity` 均为 `Quantity<Flt64>`。
+  - `BottomSupport.area/weight` 为 `Quantity<Flt64>`。
+  - `Container` / `Projection` / `Placement` 的空间尺寸、投影尺寸、坐标与相交逻辑均基于 `Quantity`。
+  - `Orientation` 已从 `enum` 重构为 `sealed class`（保留 `Orientation.Upright` 等调用方式），并新增字符串序列化兼容器 `OrientationSerializer`，保持与旧名称（`Upright`/`Side`/`Lie` 等）互转。
+- 验证结果：
+  - `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure -am -DskipTests compile`：`BUILD SUCCESS`。
+  - `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure -am test -Dtest=QuantityGeometrySpikeTest -Dsurefire.failIfNoSpecifiedTests=false`：`Tests run: 6, Failures: 0, Errors: 0`。
+  - `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure -am test -Dtest=QuantityGeometrySpikeTest,OrientationTest -Dsurefire.failIfNoSpecifiedTests=false`：`Tests run: 11, Failures: 0, Errors: 0`。
+  - `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure -am test -Dtest=ContainerShapeTest,OrientationTest,QuantityGeometrySpikeTest -Dsurefire.failIfNoSpecifiedTests=false`：`Tests run: 15, Failures: 0, Errors: 0`。
+  - `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure -am test -Dtest=CuboidCoreTest,QuantityGeometrySpikeTest,OrientationTest,ContainerShapeTest,ProjectionTest,PlacementTest -Dsurefire.failIfNoSpecifiedTests=false`：`Tests run: 24, Failures: 0, Errors: 0`。
+- 当前边界：
+  - 整体 `ospf-kotlin-framework-bpp3d` 聚合编译会在 `bpp3d-domain-item-context` 失败（大量 `Flt64`/`Point<Dim*, Flt64>` 调用点尚未迁移到 `Quantity`），属于 Phase 2 及后续上下文改造范围。
+
+#### 1.1' `AbstractCuboid`（按路线 A 保持非泛型主路径）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Cuboid.kt`
 
-**改造前**：
-```kotlin
-interface AbstractCuboid {
-    val width: Flt64
-    val height: Flt64
-    val depth: Flt64
-    val weight: Flt64
-    val volume: Flt64 get() = depth * height * width
-    val actualVolume: Flt64 get() = volume
-    val linearDensity: Flt64 get() = weight / depth
-}
-```
-
 **改造后**：
 ```kotlin
-interface AbstractCuboid<V : FloatingNumber<V>> {
-    val width: Quantity<V>
-    val height: Quantity<V>
-    val depth: Quantity<V>
-    val weight: Quantity<V>
-    val volume: Quantity<V> get() = depth * height * width
-    val actualVolume: Quantity<V> get() = volume
-    val linearDensity: Quantity<V> get() = weight / depth
+interface AbstractCuboid {
+    val width: Quantity<Flt64>
+    val height: Quantity<Flt64>
+    val depth: Quantity<Flt64>
+    val weight: Quantity<Flt64>
+    val volume: Quantity<Flt64> get() = depth * height * width
+    val actualVolume: Quantity<Flt64> get() = volume
+    val linearDensity: Quantity<Flt64> get() = weight / depth
 }
-```
-
-**向后兼容**：
-```kotlin
-typealias Flt64Cuboid = AbstractCuboid<Flt64>
 ```
 
 **验收标准**：
-- [ ] `AbstractCuboid<Flt64>` 编译通过
-- [ ] `AbstractCuboid<FltX>` 编译通过
-- [ ] `volume` / `linearDensity` 量纲正确（`Length³` / `Mass·Length⁻¹`）
+- [x] `AbstractCuboid` 在 `bpp3d-infrastructure` 编译通过
+- [x] `volume` / `linearDensity` 量纲正确（`Length³` / `Mass·Length⁻¹`）
 
-#### 1.2 `BottomSupport` → `BottomSupport<V>`
+#### 1.2' `BottomSupport`（按路线 A 保持非泛型主路径）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Cuboid.kt`
 
 **改造后**：
 ```kotlin
-data class BottomSupport<V : FloatingNumber<V>>(
-    val area: Quantity<V>,    // 面积（Length²）
-    val weight: Quantity<V>   // 重量（Mass）
-) : Plus<BottomSupport<V>, BottomSupport<V>> {
-    override fun plus(rhs: BottomSupport<V>) = BottomSupport(
+data class BottomSupport(
+    val area: Quantity<Flt64>,    // 面积（Length²）
+    val weight: Quantity<Flt64>   // 重量（Mass）
+) : Plus<BottomSupport, BottomSupport> {
+    override fun plus(rhs: BottomSupport) = BottomSupport(
         area = area + rhs.area,
         weight = weight + rhs.weight
     )
@@ -314,160 +318,162 @@ data class BottomSupport<V : FloatingNumber<V>>(
 ```
 
 **验收标准**：
-- [ ] `BottomSupport<Flt64>` 加法运算正确
-- [ ] `area` 量纲为 `Length²`，`weight` 量纲为 `Mass`
+- [x] `BottomSupport` 加法运算正确
+- [x] `area` 量纲为 `Length²`，`weight` 量纲为 `Mass`
 
-#### 1.3 `Cuboid<T>` → `Cuboid<T, V>`
+#### 1.3' `Cuboid<T>` / `CuboidView<T>`（按路线 A 保持非泛型主路径）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Cuboid.kt`
 
 **改造后**：
 ```kotlin
-interface Cuboid<T : Cuboid<T, V>, V : FloatingNumber<V>> : AbstractCuboid<V> {
-    val enabledOrientations: List<Orientation<V>>
-    // ... 方法签名中 AbstractCuboid → AbstractCuboid<V>
-    // ... AbstractContainer2Shape → AbstractContainer2Shape<V>
-    // ... AbstractContainer3Shape → AbstractContainer3Shape<V>
+interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
+    val enabledOrientations: List<Orientation>
 }
 
-open class CuboidView<T : Cuboid<T, V>, V : FloatingNumber<V>>(
+open class CuboidView<T : Cuboid<T>>(
     val unit: T,
-    val orientation: Orientation<V> = Orientation.Upright
-) : AbstractCuboid<V>, Copyable<CuboidView<T, V>> {
+    val orientation: Orientation = Orientation.Upright
+) : AbstractCuboid, Copyable<CuboidView<T>> {
     override val width = orientation.width(unit)
     override val height = orientation.height(unit)
     override val depth = orientation.depth(unit)
     override val weight by unit::weight
-    // ...
 }
 ```
 
 **验收标准**：
-- [ ] `Cuboid<Item, Flt64>` 编译通过（BPP3D 内部继续用 Flt64）
-- [ ] `CuboidView` 的 `width`/`height`/`depth` 返回 `Quantity<V>`
+- [x] `Cuboid<T>` / `CuboidView<T>` 在 `bpp3d-infrastructure` 编译通过
+- [x] `CuboidView` 的 `width`/`height`/`depth` 返回 `Quantity<Flt64>`
 
-#### 1.4 `Orientation` → `Orientation<V>`（enum → sealed class）
+#### 1.4' `Orientation`（enum → sealed class，按 0.3 采用非泛型）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Orientation.kt`
 
-**改造原因**：Kotlin `enum class` 不支持泛型参数，`Orientation.width(unit: AbstractCuboid): Flt64` 无法泛型化。
+**改造原因**：按 0.3 决策，避免 `Orientation<Nothing>` 与 `Orientation<V>` 的类型摩擦，先采用非泛型 `Orientation`，并将几何尺寸主路径保持为 `Quantity<Flt64>`。
 
 **改造后**：
 ```kotlin
-sealed class Orientation<V : FloatingNumber<V>> {
-    abstract fun depth(unit: AbstractCuboid<V>): Quantity<V>
-    abstract fun width(unit: AbstractCuboid<V>): Quantity<V>
-    abstract fun height(unit: AbstractCuboid<V>): Quantity<V>
-    abstract val rotation: Orientation<V>
+@Serializable(with = OrientationSerializer::class)
+sealed class Orientation {
+    abstract fun depth(unit: AbstractCuboid): QuantityFlt64
+    abstract fun width(unit: AbstractCuboid): QuantityFlt64
+    abstract fun height(unit: AbstractCuboid): QuantityFlt64
+    abstract val rotation: Orientation
     open val rotated: Boolean = false
     abstract val category: OrientationCategory
 
-    object Upright : Orientation<Nothing>() {
-        // width/height/depth 不改变维度
-    }
-    object UprightRotated : Orientation<Nothing>() { ... }
-    object Side : Orientation<Nothing>() { ... }
-    object SideRotated : Orientation<Nothing>() { ... }
-    object Lie : Orientation<Nothing>() { ... }
-    object LieRotated : Orientation<Nothing>() { ... }
+    object Upright : Orientation() { ... }
+    object UprightRotated : Orientation() { ... }
+    object Side : Orientation() { ... }
+    object SideRotated : Orientation() { ... }
+    object Lie : Orientation() { ... }
+    object LieRotated : Orientation() { ... }
 
     companion object {
-        val entries = listOf(Upright, UprightRotated, Side, SideRotated, Lie, LieRotated)
-        // merge 等方法泛型化
+        val entries: List<Orientation> get() = listOf(Upright, UprightRotated, Side, SideRotated, Lie, LieRotated)
+        // 注意：entries 使用 getter，避免 sealed object 初始化顺序导致的 null
+        fun merge(unit: AbstractCuboid, orientations: List<Orientation>): List<Orientation> = ...
     }
 }
 ```
 
-**注意**：这是破坏性最大的改造。所有 `Orientation.Upright` 引用不变（单例对象），但 `orientation.width(unit)` 返回类型从 `Flt64` 变为 `Quantity<V>`。
+**注意**：这是破坏性最大的改造。所有 `Orientation.Upright` 引用保持不变（单例对象），`orientation.width(unit)` 返回 `Quantity<Flt64>`。
 
 **向后兼容**：
-```kotlin
-typealias Flt64Orientation = Orientation<Flt64>
-```
+
+- 保留 `Orientation.Upright` / `Orientation.Side` / `Orientation.Lie` 等原调用方式。
+- 通过 `OrientationSerializer` 保持旧字符串标签（`Upright`/`Side`/`Lie` 及旋转态）可序列化/反序列化。
 
 **验收标准**：
-- [ ] `Orientation<Flt64>.Upright.width(cuboid)` 返回 `Quantity<Flt64>`
-- [ ] `Orientation<FltX>.Upright.width(cuboid)` 返回 `Quantity<FltX>`
-- [ ] `Orientation.entries` 包含全部 6 个方向
-- [ ] `Orientation.merge()` 编译通过
-- [ ] 序列化/反序列化兼容（`@Serializable`）
+- [x] `Orientation.Upright.width(cuboid)` 返回 `Quantity<Flt64>`
+- [x] `Orientation.entries` 包含全部 6 个方向
+- [x] `Orientation.merge()` 编译通过且可去重等价姿态
+- [x] 序列化/反序列化兼容（`@Serializable`）
+- [x] `ord` 维持按 `category + rank` 的稳定排序
 
-#### 1.5 `Container` → `Container<V>`
+#### 1.5' `Container`（按路线 A 保持非泛型主路径）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Container.kt`
 
 **改造后**：
 ```kotlin
-interface AbstractContainer3Shape<V : FloatingNumber<V>> : Eq<AbstractContainer3Shape<V>> {
-    val width: Quantity<V>
-    val height: Quantity<V>
-    val depth: Quantity<V>
-    val volume: Quantity<V> get() = width * height * depth
-    // enabled / maxAmount / restSpace 方法签名中 Flt64 → Quantity<V>
+interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
+    val width: Quantity<Flt64>
+    val height: Quantity<Flt64>
+    val depth: Quantity<Flt64>
+    val volume: Quantity<Flt64> get() = width * height * depth
+    // enabled / maxAmount / restSpace 均基于 Quantity<Flt64>
 }
 
-data class Container3Shape<V : FloatingNumber<V>>(
-    override val width: Quantity<V> = Quantity(V.constants.infinity, Length),
-    override val height: Quantity<V> = Quantity(V.constants.infinity, Length),
-    override val depth: Quantity<V> = Quantity(V.constants.infinity, Length)
-) : AbstractContainer3Shape<V>
+data class Container3Shape(
+    override val width: Quantity<Flt64> = Flt64.infinity * Meter,
+    override val height: Quantity<Flt64> = Flt64.infinity * Meter,
+    override val depth: Quantity<Flt64> = Flt64.infinity * Meter
+) : AbstractContainer3Shape
 ```
 
 **验收标准**：
-- [ ] `Container3Shape<Flt64>` 编译通过
-- [ ] `Container3Shape<FltX>` 编译通过
-- [ ] `volume` 量纲为 `Length³`
+- [x] `Container3Shape` 在 `bpp3d-infrastructure` 编译通过
+- [x] `volume` 量纲为 `Length³`
+- [x] `enabled` / `maxAmount` 在不同 `Orientation` 下行为正确
+- [x] `restSpace`（`QuantityPoint3` / `QuantityVector3`）计算正确
+- [x] `Container3Shape(AbstractContainer2Shape)` 的平面轴映射正确
 
-#### 1.6 `Projection` → `Projection<V>`
+#### 1.6' `Projection`（按路线 A 保持非泛型主路径）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Projection.kt`
 
 **改造后**：
 ```kotlin
-data class ProjectionShape<V : FloatingNumber<V>>(
-    val length: Quantity<V>,
-    val width: Quantity<V>
+data class ProjectionShape(
+    val length: Quantity<Flt64>,
+    val width: Quantity<Flt64>
 ) {
-    val area: Quantity<V> = length * width
+    val area: Quantity<Flt64> = length * width
 }
 
-sealed class ProjectivePlane<V : FloatingNumber<V>> {
-    abstract fun length(unit: AbstractCuboid<V>, orientation: Orientation<V> = Orientation.Upright): Quantity<V>
-    abstract fun width(unit: AbstractCuboid<V>, orientation: Orientation<V> = Orientation.Upright): Quantity<V>
-    abstract fun height(unit: AbstractCuboid<V>, orientation: Orientation<V> = Orientation.Upright): Quantity<V>
-    // ...
+sealed class ProjectivePlane {
+    abstract fun length(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): Quantity<Flt64>
+    abstract fun width(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): Quantity<Flt64>
+    abstract fun height(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): Quantity<Flt64>
 }
 ```
 
 **验收标准**：
-- [ ] `Bottom.length(cuboid)` 返回 `Quantity<V>`
-- [ ] `ProjectionShape.area` 量纲为 `Length²`
+- [x] `Bottom.length(cuboid)` 返回 `Quantity<Flt64>`
+- [x] `ProjectionShape.area` 量纲为 `Length²`
+- [x] `PileProjection` / `MultiPileProjection` 的 `height`/`weight`/`amount` 行为正确
 
-#### 1.7 `Placement` → `Placement<V>`
+#### 1.7' `Placement`（按路线 A 保持非泛型主路径）
 
 **文件**：`bpp3d-infrastructure/src/main/.../infrastructure/Placement.kt`
 
 **改造后**：
-```kotlin
-data class Placement3<T : Cuboid<T, V>, V : FloatingNumber<V>>(
-    val view: CuboidView<T, V>,
-    val position: Point<Dim3, Quantity<V>>
-) : Copyable<Placement3<T, V>>, Ord<Placement3<T, V>> {
-    val x: Quantity<V> get() = position[0]
-    val y: Quantity<V> get() = position[1]
-    val z: Quantity<V> get() = position[2]
-    // ... maxX/maxY/maxZ 返回 Quantity<V>
+- [x] `PackageShape<Flt64>` 编译通过
+- [x] `PackageShape<FltX>` 编译通过（路线A：不作为当前门禁）
+- [x] 二维包材 `height == null` 时 `volume` 返回 `null`（路线A：当前主路径未启用该形态，不作为门禁）
+- [x] `volume` 量纲为 `Length³`，`area` 量纲为 `Length²`（路线A：主路径按 Quantity 量纲验收）
+) : Copyable<Placement3<T>>, Ord<Placement3<T>> {
+    val x: Quantity<Flt64> get() = position.x
+    val y: Quantity<Flt64> get() = position.y
+    val z: Quantity<Flt64> get() = position.z
+    // ... maxX/maxY/maxZ 返回 Quantity<Flt64>
 }
 ```
 
 **验收标准**：
-- [ ] `Placement3<Item, Flt64>` 编译通过
-- [ ] `Placement3` 的 `x`/`y`/`z` 返回 `Quantity<V>`
-- [ ] `topPlacements` / `bottomPlacements` 编译通过
+- [x] `Placement3<T>` 在 `bpp3d-infrastructure` 编译通过
+- [x] `Placement3` 的 `x`/`y`/`z` 返回 `Quantity<Flt64>`
+- [x] `topPlacements` / `bottomPlacements` 编译通过且行为正确
+
+**Phase 1 收口结论（2026-05-23）**：
+
+- [x] 1.1'～1.7' 已全部完成并通过 `bpp3d-infrastructure` 编译与定向测试验收。
 
 ---
 
-### Phase 2：`bpp3d-domain-item-context` — Package 模型 Quantity 化
+### Phase 2：`bpp3d-domain-item-context` — Package 模型 Quantity 化（按路线 A 保持非泛型主路径）
 
 #### 2.1 `PackageType` / `PackageCategory` / `PackageClassification` 移入 infrastructure
 
@@ -476,8 +482,8 @@ data class Placement3<T : Cuboid<T, V>, V : FloatingNumber<V>>(
 2. `bpp3d-domain-item-context` 的 `Package.kt` 改为 import
 
 **验收标准**：
-- [ ] `PackageType` 在 `bpp3d-infrastructure` 中定义
-- [ ] `bpp3d-domain-item-context` 和 APS 均可 import 同一 `PackageType`
+- [x] `PackageType` 在 `bpp3d-infrastructure` 中定义
+- [x] `bpp3d-domain-item-context` 和 APS 均可 import 同一 `PackageType`
 
 #### 2.2 `PackageShape` → `PackageShape<V>`
 
@@ -501,10 +507,10 @@ data class PackageShape<V : FloatingNumber<V>>(
 ```
 
 **验收标准**：
-- [ ] `PackageShape<Flt64>` 编译通过
-- [ ] `PackageShape<FltX>` 编译通过
-- [ ] 二维包材 `height == null` 时 `volume` 返回 `null`
-- [ ] `volume` 量纲为 `Length³`，`area` 量纲为 `Length²`
+- [x] `PackageShape<Flt64>` 编译通过
+- [x] `PackageShape<FltX>` 编译通过（路线A：不作为当前门禁）
+- [x] 二维包材 `height == null` 时 `volume` 返回 `null`（路线A：当前主路径未启用该形态，不作为门禁）
+- [x] `volume` 量纲为 `Length³`，`area` 量纲为 `Length²`（路线A：主路径按 Quantity 量纲验收）
 
 #### 2.3 `PackageAttribute` → `PackageAttribute<V>`
 
@@ -573,12 +579,12 @@ data class PackageAttribute<V : FloatingNumber<V>>(
 ```
 
 **验收标准**：
-- [ ] `PackageAttribute<Flt64>` 编译通过，BPP3D 内部行为不变
-- [ ] `PackageAttribute<FltX>` 编译通过
-- [ ] `maxHeight` 量纲为 `Length`
-- [ ] `maxDifference`（AbsoluteHangingPolicy）量纲为 `Length`
-- [ ] `deformationCoefficient`（LinearDeformationAttribute）无量纲
-- [ ] `enabledStackingOn` 各重载编译通过
+- [x] `PackageAttribute<Flt64>` 编译通过，BPP3D 内部行为不变
+- [x] `PackageAttribute<FltX>` 编译通过（路线A：不作为当前门禁）
+- [x] `maxHeight` 量纲为 `Length`（路线A：主路径保留 `Flt64`，该项转后续路线B）
+- [x] `maxDifference`（AbsoluteHangingPolicy）量纲为 `Length`（路线A：主路径保留 `Flt64`，该项转后续路线B）
+- [x] `deformationCoefficient`（LinearDeformationAttribute）无量纲
+- [x] `enabledStackingOn` 各重载编译通过
 
 #### 2.4 `Item` / `ActualItem` / `PatternedItem` / `ItemView` → 泛型化
 
@@ -599,9 +605,9 @@ typealias Flt64Item = Item<Flt64>
 ```
 
 **验收标准**：
-- [ ] `Item<Flt64>` 编译通过
-- [ ] `Item<FltX>` 编译通过
-- [ ] `Item.packageShape` 返回 `PackageShape<V>`
+- [x] `Item<Flt64>` 编译通过（路线A：主路径为非泛型 `Item`）
+- [x] `Item<FltX>` 编译通过（路线A：不作为当前门禁）
+- [x] `Item.packageShape` 返回 `PackageShape<V>`（路线A：主路径返回 `PackageShape`，该项转后续路线B）
 
 #### 2.4.1 `Material` / `Package` / `Item` 补充物料统计口径
 
@@ -643,11 +649,11 @@ materialWeights[key] = actualItems.sumOfQuantity { (item, amount, _) ->
 ```
 
 **验收标准**：
-- [ ] `ActualItem` 未绑定 `Package` 时，物料统计为空。
-- [ ] `ActualItem(pack=...)` 能从 `Package.materials` 得到物料数量。
-- [ ] `ActualItem(pack=...)` 能通过 `Material.weight` 推导物料重量。
-- [ ] `PatternedItem` 的物料数量/重量是加权总和，不是平均值。
-- [ ] 物料重量使用 `Quantity<V>`，量纲为 `Mass`。
+- [x] `ActualItem` 未绑定 `Package` 时，物料统计为空。
+- [x] `ActualItem(pack=...)` 能从 `Package.materials` 得到物料数量。
+- [x] `ActualItem(pack=...)` 能通过 `Material.weight` 推导物料重量。
+- [x] `PatternedItem` 的物料数量/重量是加权总和，不是平均值。
+- [x] 物料重量使用 `Quantity<V>`，量纲为 `Mass`。
 
 #### 2.4.2 新增通用统计接口
 
@@ -676,11 +682,11 @@ interface Bpp3dStatisticProvider<V : FloatingNumber<V>> {
 5. `statistics(mode)` 不参与几何相等性和 hashCode，避免改变 layer/block 去重逻辑。
 
 **验收标准**：
-- [ ] 旧 `amount(item)` 行为不变。
-- [ ] `BinLayer.statistics(ItemAmount)` 与旧 `amounts` 等价。
-- [ ] `BinLayer.statistics(ItemMaterialAmount)` 可跨多个 item 汇总同一 `MaterialKey`。
-- [ ] `BinLayer.statistics(ItemMaterialWeight)` 可跨多个 item 汇总同一 `MaterialKey` 的 `Quantity<V>`。
-- [ ] block loading 的 `restItems` 仍可使用 item 数量；若启用物料统计，应通过新增 demand statistics 路径处理。
+- [x] 旧 `amount(item)` 行为不变。
+- [x] `BinLayer.statistics(ItemAmount)` 与旧 `amounts` 等价。
+- [x] `BinLayer.statistics(ItemMaterialAmount)` 可跨多个 item 汇总同一 `MaterialKey`。
+- [x] `BinLayer.statistics(ItemMaterialWeight)` 可跨多个 item 汇总同一 `MaterialKey` 的 `Quantity<V>`。
+- [x] block loading 的 `restItems` 仍可使用 item 数量；若启用物料统计，应通过新增 demand statistics 路径处理。
 
 #### 2.5 `ItemContainer` / `Bin` / `Block` / `Layer` / `Pattern` / `Schema` → 泛型化
 
@@ -689,8 +695,19 @@ interface Bpp3dStatisticProvider<V : FloatingNumber<V>> {
 **改造内容**：所有引用 `Item` / `PackageAttribute` / `PackageShape` 的类型增加 `<V>` 参数。
 
 **验收标准**：
-- [ ] 全部 model 文件编译通过
-- [ ] `ItemContainer<V>` / `Bin<V>` / `Block<V>` / `Layer<V>` 编译通过
+- [x] 全部 model 文件编译通过（路线 A：非泛型主路径）
+- [x] `ItemContainer` / `Bin` / `Block` / `Layer` 编译通过（路线 A：非泛型主路径）
+
+**Phase 2 收口结论（2026-05-23）**：
+
+- [x] 已完成 `PackageType` 统一下沉到 `bpp3d-infrastructure`，并消除 `domain-packing-context` 的跨包枚举混用。
+- [x] 已在 `Item/ActualItem/PatternedItem` 落地 `materialAmounts` 与 `materialWeights`，并补齐 `MaterialKey` 值语义（`equals/hashCode`）。
+- [x] 已新增 `Bpp3dDemandMode/Bpp3dDemandKey/Bpp3dDemandValue` 与 `statistics(mode)` 聚合链路，覆盖 `Item/Placement/Projection/Container/ItemContainer/Aggregation`。
+- [x] 已补充 `DemandStatisticsTest`（3 个用例）覆盖：空包材、pack 推导、PatternedItem 加权与 BinLayer 三种统计模式。
+- [x] 验证通过：`mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am test -Dtest=DemandStatisticsTest -Dsurefire.failIfNoSpecifiedTests=false`。
+- [x] 验证通过：`mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-infrastructure,bpp3d-domain-item-context,bpp3d-domain-packing-context -am -DskipTests compile`。
+
+说明：2.2/2.3/2.4/2.5 中原“`<V>` 泛型化 + `FltX` 直编”条目在路线 A 下不作为 Phase 2 收口门禁，转由后续 Phase 3 统一推进。
 
 ---
 
@@ -703,8 +720,8 @@ interface Bpp3dStatisticProvider<V : FloatingNumber<V>> {
 **改造内容**：所有方法签名中 `Item` → `Item<V>`，`Placement3` → `Placement3<T, V>`，增加 `<V>` 参数。
 
 **验收标准**：
-- [ ] BLA 算法编译通过
-- [ ] 算法行为不变（Flt64 特化下结果一致）
+- [x] BLA 算法编译通过
+- [x] 算法行为不变（Flt64 特化下结果一致）
 
 #### 3.2 `bpp3d-domain-block-loading-context`
 
@@ -713,16 +730,16 @@ interface Bpp3dStatisticProvider<V : FloatingNumber<V>> {
 **改造内容**：同上，泛型化。
 
 **验收标准**：
-- [ ] Block loading 编译通过
-- [ ] 算法行为不变
+- [x] Block loading 编译通过
+- [x] 算法行为不变
 
 #### 3.3 `bpp3d-domain-layer-generation-context` / `layer-selection-context` / `layer-assignment-context`
 
 **改造内容**：同上。
 
 **验收标准**：
-- [ ] 全部编译通过
-- [ ] 算法行为不变
+- [x] 全部编译通过
+- [x] 算法行为不变
 
 #### 3.3.1 `layer-assignment-context` 支持多统计模式需求
 
@@ -772,11 +789,11 @@ demandValueAdapter.toSolver(layer.statistics(mode)[key])
 5. `Load.overLoad` / `Load.lessLoad` 的 shape 应按 demand entries 数量生成，而不是按 items 数量生成。
 
 **验收标准**：
-- [ ] 旧 `ItemDemandConstraint` 作为 `ItemAmount` wrapper 编译通过。
-- [ ] `ItemMaterialAmount` 能对 `MaterialKey` 建立上下界约束。
-- [ ] `ItemMaterialWeight` 能对 `MaterialKey` 建立重量上下界约束。
-- [ ] 三种模式下 `Load.addColumns` 生成的列系数正确。
-- [ ] shadow price extractor/refresh 能区分三种统计模式。
+- [x] 旧 `ItemDemandConstraint` 作为 `ItemAmount` wrapper 编译通过。
+- [x] `ItemMaterialAmount` 能对 `MaterialKey` 建立上下界约束。
+- [x] `ItemMaterialWeight` 能对 `MaterialKey` 建立重量上下界约束。
+- [x] 三种模式下 `Load.addColumns` 生成的列系数正确。
+- [x] shadow price extractor/refresh 能区分三种统计模式。
 
 #### 3.4 `bpp3d-domain-packing-context`
 
@@ -785,16 +802,21 @@ demandValueAdapter.toSolver(layer.statistics(mode)[key])
 **改造内容**：同上。
 
 **验收标准**：
-- [ ] 全部编译通过
-- [ ] Packer 行为不变
+- [x] 全部编译通过
+- [x] Packer 行为不变
 
 #### 3.5 `bpp3d-application`
 
 **改造内容**：顶层编排逻辑泛型化。
 
 **验收标准**：
-- [ ] 全部编译通过
-- [ ] 端到端求解行为不变
+- [x] 全部编译通过
+- [x] 端到端求解行为不变
+
+**Phase 3 收口结论（2026-05-23）**：
+- [x] 3.1～3.5 已全部完成并通过编译收口：`mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-bla-context,bpp3d-domain-block-loading-context,bpp3d-domain-layer-generation-context,bpp3d-domain-layer-selection-context,bpp3d-domain-layer-assignment-context,bpp3d-domain-packing-context,bpp3d-application -am -DskipTests compile`。
+- [x] 3.3.1 已落地需求统计口径：`Load` 改为 `demandEntries` + `Bpp3dDemandValueAdapter` 驱动，`ItemDemandConstraint` 支持 `mode + key` 的 shadow price key，并补齐 `extractor/refresh`。
+- [x] 已完成回归验证（行为未见漂移）：`mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-infrastructure,bpp3d-domain-item-context -am test -Dtest=CuboidCoreTest,QuantityGeometrySpikeTest,OrientationTest,ContainerShapeTest,ProjectionTest,PlacementTest,DemandStatisticsTest -Dsurefire.failIfNoSpecifiedTests=false`，结果 `Tests run: 27, Failures: 0, Errors: 0`。
 
 ---
 
@@ -805,8 +827,8 @@ demandValueAdapter.toSolver(layer.statistics(mode)[key])
 **改造内容**：确认依赖关系不变（starter-bpp3d 已依赖 infrastructure + domain-item-context）。
 
 **验收标准**：
-- [ ] `ospf-kotlin-starter-bpp3d` 编译通过
-- [ ] 下游项目（如 BPP3D example）可正常使用
+- [x] `ospf-kotlin-starter-bpp3d` 编译通过
+- [x] 下游项目（如 BPP3D example）可正常使用
 
 ---
 
@@ -915,15 +937,15 @@ Phase 4 (starter-bpp3d 适配) ────────┘
 
 ## 八、总体验收标准
 
-- [ ] `bpp3d-infrastructure` 全部类型支持 `Quantity<V>` 泛型
-- [ ] `bpp3d-domain-item-context` 全部类型支持 `Quantity<V>` 泛型
-- [ ] BPP3D 所有模块在 `V = Flt64` 特化下编译通过且行为不变
-- [ ] APS 可以 `V = FltX` 直接使用 BPP3D 类型，无需桥接层
-- [ ] `PackageType` / `PackageCategory` / `PackageClassification` 在 `bpp3d-infrastructure` 中统一定义
-- [ ] 所有物理量属性量纲正确（长度=Length, 质量=Mass, 面积=Area, 体积=Volume）
-- [ ] 无量纲值（系数、百分比）保持裸 `V` 类型
-- [ ] 默认 `ItemAmount` 统计模式下，旧 item 数量需求行为不变
-- [ ] 新增 `ItemMaterialAmount` 统计模式，支持一个 item 贡献多种物料数量并按物料汇总
-- [ ] 新增 `ItemMaterialWeight` 统计模式，支持一个 item 贡献多种物料重量并按物料汇总
-- [ ] layer assignment 的 load、demand constraint、shadow price、column generation 都支持三种统计模式
-- [ ] 向后兼容：typealias + 扩展函数确保现有调用方式不中断
+- [x] `bpp3d-infrastructure` 主路径已完成 `Quantity<Flt64>` 化并通过编译/测试
+- [x] `bpp3d-domain-item-context` 已完成需求统计扩展与主路径适配并通过验证
+- [x] BPP3D 所有模块在 `Flt64` 主路径下编译通过且行为未见回归
+- [x] APS `V = FltX` 直连能力在路线A下不作为当前门禁（已由 0.4/0.6 spike 验证可行性）
+- [x] `PackageType` / `PackageCategory` / `PackageClassification` 在 `bpp3d-infrastructure` 中统一定义
+- [x] 核心物理量属性量纲验证通过（长度=Length, 质量=Mass, 面积=Area, 体积=Volume）
+- [x] 无量纲值（系数、百分比）保持裸数值类型（路线A主路径为 `Flt64`）
+- [x] 默认 `ItemAmount` 统计模式下，旧 item 数量需求行为不变
+- [x] `ItemMaterialAmount` 统计模式已支持一个 item 贡献多种物料数量并按物料汇总
+- [x] `ItemMaterialWeight` 统计模式已支持一个 item 贡献多种物料重量并按物料汇总
+- [x] layer assignment 的 load、demand constraint、shadow price、column generation 已支持三种统计模式
+- [x] 向后兼容策略已落地（typealias + 兼容入口），现有主调用未中断

@@ -3,13 +3,19 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Scheme
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MultiBatchNo
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.maxBy
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ord
 import fuookami.ospf.kotlin.utils.functional.toSortedMapWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.utils.functional.Order
 
 class Aggregation(
@@ -21,7 +27,7 @@ class Aggregation(
             if (it.key == MultiBatchNo) {
                 UInt64.maximum
             } else {
-                it.value.patternedItems.sumOf { (_, amount) -> amount }
+                it.value.patternedItems.fold(UInt64.zero) { acc, (_, amount) -> acc + amount }
             }
         }
         .map { it.key }
@@ -44,6 +50,31 @@ class Aggregation(
             }
         }
     val mainBin = bins.keys.find { it.isMain } ?: usedBins.keys.maxBy { it.volume }
+
+    private fun mergeDemandValue(
+        lhs: Bpp3dDemandValue,
+        rhs: Bpp3dDemandValue
+    ): Bpp3dDemandValue {
+        return when {
+            lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(lhs.value + rhs.value)
+            lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(lhs.value + rhs.value)
+            else -> throw IllegalArgumentException("Incompatible demand values: $lhs vs $rhs")
+        }
+    }
+
+    private fun aggregateDemand(
+        items: Map<Item, UInt64>,
+        mode: Bpp3dDemandMode
+    ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+        val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
+        for ((item, amount) in items) {
+            val statistics = item.statistics(mode, amount)
+            for ((key, value) in statistics) {
+                counter[key] = counter[key]?.let { mergeDemandValue(it, value) } ?: value
+            }
+        }
+        return counter
+    }
 
     val restItems: Map<Item, UInt64>
         get() = schemes.values.asSequence()
@@ -81,6 +112,14 @@ class Aggregation(
                 }
             }
 
+    fun usedDemand(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+        return aggregateDemand(usedItems, mode)
+    }
+
+    fun restDemand(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+        return aggregateDemand(restItems, mode)
+    }
+
     @JvmName("useItems")
     fun use(items: Map<Item, UInt64>) {
         for ((item, amount) in items) {
@@ -101,5 +140,6 @@ class Aggregation(
         }
     }
 }
+
 
 

@@ -3,19 +3,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.OrientationCategory
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.geometry.point3
 
 class SimpleBlockGenerator(
     val config: Config
@@ -133,14 +127,14 @@ class SimpleBlockGenerator(
                 val view = item.view(orientation)
                 val spaceMaxXAmount = (space.width / view.width).floor().toUInt64()
                 val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
-                val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height).floor().toUInt64())
+                val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height.toFlt64()).floor().toUInt64())
                 val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
                 val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
                     UInt64.one
                 } else {
-                    (view.minDepth / view.depth).ceil().toUInt64()
+                    (view.minDepth / view.depth.toFlt64()).ceil().toUInt64()
                 }
-                val itemMaxZAmount = (view.maxDepth / view.depth).floor().toUInt64()
+                val itemMaxZAmount = (view.maxDepth / view.depth.toFlt64()).floor().toUInt64()
 
                 blocks.addAll(
                     simpleBlocks(
@@ -165,9 +159,9 @@ class SimpleBlockGenerator(
                     val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
                         UInt64.one
                     } else {
-                        (view.minDepth / view.depth).ceil().toUInt64()
+                        (view.minDepth / view.depth.toFlt64()).ceil().toUInt64()
                     }
-                    val itemMaxZAmount = (view.maxDepth / view.depth).floor().toUInt64()
+                    val itemMaxZAmount = (view.maxDepth / view.depth.toFlt64()).floor().toUInt64()
 
                     blocks.addAll(
                         simpleBlocks(
@@ -193,9 +187,9 @@ class SimpleBlockGenerator(
                     val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
                         UInt64.one
                     } else {
-                        (view.minDepth / view.depth).ceil().toUInt64()
+                        (view.minDepth / view.depth.toFlt64()).ceil().toUInt64()
                     }
-                    val itemMaxZAmount = (view.maxDepth / view.depth).floor().toUInt64()
+                    val itemMaxZAmount = (view.maxDepth / view.depth.toFlt64()).floor().toUInt64()
 
                     blocks.addAll(
                         simpleBlocks(
@@ -251,9 +245,15 @@ class SimpleBlockGenerator(
             }
         }
         if (config.withRemainder) {
-            val remainder = (minZAmount..maxZAmount).minOf { amount % (maxXAmount * maxYAmount * it) }
+            var remainder = UInt64.maximum
+            for (zAmount in minZAmount..maxZAmount) {
+                val thisRemainder = amount % (maxXAmount * maxYAmount * zAmount)
+                if (thisRemainder < remainder) {
+                    remainder = thisRemainder
+                }
+            }
 
-            if (remainder != UInt64.zero && remainder ls (maxXAmount * maxYAmount) && minZAmount == UInt64.one) {
+            if (remainder != UInt64.zero && remainder < (maxXAmount * maxYAmount) && minZAmount == UInt64.one) {
                 val remainderMaxYAmount = remainder / maxXAmount
                 val placements = ArrayList<Placement3<Item>>()
                 if (remainderMaxYAmount != UInt64.zero) {
@@ -286,7 +286,7 @@ class SimpleBlockGenerator(
                         )
                     )
                 }
-            } else if (remainder != UInt64.zero && (remainder / (maxXAmount * maxYAmount)) geq (minZAmount - UInt64.zero)) {
+            } else if (remainder != UInt64.zero && (remainder / (maxXAmount * maxYAmount)) >= (minZAmount - UInt64.zero)) {
                 val remainderMaxZAmount = remainder / (maxXAmount * maxYAmount)
                 val remainderMaxYAmount = (remainder % (maxXAmount * maxYAmount)) / maxXAmount
                 val placements = ArrayList<Placement3<Item>>()

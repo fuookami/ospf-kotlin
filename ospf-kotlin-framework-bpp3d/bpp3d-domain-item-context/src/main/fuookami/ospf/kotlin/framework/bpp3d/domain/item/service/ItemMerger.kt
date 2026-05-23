@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
@@ -7,16 +7,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.functional.sumOf
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.geometry.point3
-import fuookami.ospf.kotlin.math.geometry.vector3
 
 data object ItemMerger {
     data class Config(
@@ -111,7 +104,7 @@ data object ItemMerger {
         return merge(
             items = items,
             space = binType,
-            restWeight = binType.capacity,
+            restWeight = binType.capacity.toFlt64(),
             patterns = patterns,
             predicate = predicate,
             fillerPredicate = fillerPredicate,
@@ -192,10 +185,13 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: Flt64 = Flt64.infinity
     ): Pair<List<Pile>, List<Item>> {
-        val averagePileBottomArea = items.sumOf { Bottom.shape(it).area } / Flt64(items.size.toDouble())
-        val averagePileWeight = restWeight / (Bottom.shape(space).area / averagePileBottomArea)
+        val averagePileBottomArea = items.fold(Flt64.zero) { acc, item -> acc + Bottom.shape(item).area.toFlt64() } / Flt64(items.size.toDouble())
+        val averagePileWeight = restWeight / (Bottom.shape(space).area.toFlt64() / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
-        val restItems = items.sortedByDescending { it.weight }.map { it.view() }.toMutableList()
+        val restItems = items
+            .sortedWith(compareByDescending<Item> { it.weight.toFlt64().toDouble() })
+            .map { it.view() }
+            .toMutableList()
         while (restItems.isNotEmpty()) {
             var flag = false
 
@@ -203,7 +199,7 @@ data object ItemMerger {
                 val thisBottomItem = restItems[i]
                 val enabledItems = restItems
                     .subList(i + 1, restItems.size)
-                    .sortedByDescending { it.weight }
+                    .sortedWith(compareByDescending<ItemView> { it.weight.toFlt64().toDouble() })
                 val visited = enabledItems.map { false }.toMutableList()
                 val pileItems = arrayListOf(thisBottomItem)
                 for (j in enabledItems.indices) {
@@ -217,7 +213,7 @@ data object ItemMerger {
                             layer = layer,
                             height = height,
                             space = space.restSpace(vector3(y = pileItems.sumOf { it.height }))
-                        ) && (abs(enabledItems[j].width - pileItems.last().width) + abs(enabledItems[j].depth - pileItems.last().depth) leq Flt64(50.0))
+                        ) && (((enabledItems[j].width - pileItems.last().width).abs() + (enabledItems[j].depth - pileItems.last().depth).abs()) leq Flt64(50.0))
                     ) {
                         visited[j] = true
                         pileItems.add(enabledItems[j])
@@ -235,7 +231,7 @@ data object ItemMerger {
                             height = height,
                             space = space.restSpace(vector3(y = pileItems.sumOf { it.height }))
                         )
-                        && (abs(enabledItems[j].width - pileItems.last().width) + abs(enabledItems[j].depth - pileItems.last().depth) leq Flt64(50.0))
+                        && (((enabledItems[j].width - pileItems.last().width).abs() + (enabledItems[j].depth - pileItems.last().depth).abs()) leq Flt64(50.0))
                     ) {
                         visited[j] = true
                         pileItems.add(enabledItems[j])
@@ -274,8 +270,8 @@ data object ItemMerger {
                         config.orientationOrder.ord(lhs, rhs)
                     } else {
                         val lhsView = item.view(lhs)
-                        val lhsItemMaxYAmount = min(lhsView.maxLayer, (lhsView.maxHeight / lhsView.height).floor().toUInt64())
-                        val lhsItemMaxZAmount = (lhsView.maxDepth / lhsView.depth).floor().toUInt64()
+                        val lhsItemMaxYAmount = min(lhsView.maxLayer, (lhsView.maxHeight / lhsView.height.toFlt64()).floor().toUInt64())
+                        val lhsItemMaxZAmount = (lhsView.maxDepth / lhsView.depth.toFlt64()).floor().toUInt64()
                         val lhsMaxAmount = space.maxAmount(
                             unit = lhsView,
                             maxYAmount = lhsItemMaxYAmount,
@@ -283,8 +279,8 @@ data object ItemMerger {
                         )
 
                         val rhsView = item.view(rhs)
-                        val rhsItemMaxYAmount = min(rhsView.maxLayer, (rhsView.maxHeight / rhsView.height).floor().toUInt64())
-                        val rhsItemMaxZAmount = (rhsView.maxDepth / rhsView.depth).floor().toUInt64()
+                        val rhsItemMaxYAmount = min(rhsView.maxLayer, (rhsView.maxHeight / rhsView.height.toFlt64()).floor().toUInt64())
+                        val rhsItemMaxZAmount = (rhsView.maxDepth / rhsView.depth.toFlt64()).floor().toUInt64()
                         val rhsMaxAmount = space.maxAmount(
                             unit = rhsView,
                             maxYAmount = rhsItemMaxYAmount,
@@ -308,18 +304,18 @@ data object ItemMerger {
                 val xAmount = (space.width / view.width).floor().toUInt64()
                 val yAmount = min(
                     item.maxLayer,
-                    (item.maxHeight / view.height).floor().toUInt64(),
+                    (item.maxHeight / view.height.toFlt64()).floor().toUInt64(),
                     (space.height / view.height).floor().toUInt64()
                 )
                 val zAmount = if (view.minDepth eq Flt64.zero) {
                     UInt64.one
                 } else {
-                    val minZAmount = (view.minDepth / view.depth).ceil().toUInt64()
+                    val minZAmount = (view.minDepth / view.depth.toFlt64()).ceil().toUInt64()
                     val availableZAmount = UInt64(list.size) / (xAmount * yAmount)
                     if (availableZAmount >= minZAmount) {
                         min(
                             availableZAmount,
-                            (view.maxDepth / view.depth).floor().toUInt64()
+                            (view.maxDepth / view.depth.toFlt64()).floor().toUInt64()
                         )
                     } else {
                         minZAmount
@@ -339,7 +335,7 @@ data object ItemMerger {
                         }
                     }
                     val block = SimpleBlock(placements)
-                    for (i in UInt64.zero until (restWeight / block.weight).floor().toUInt64()) {
+                    for (i in UInt64.zero until (restWeight / block.weight.toFlt64()).floor().toUInt64()) {
                         if (UInt64(list.size) ls maxAmount) {
                             break
                         }
@@ -474,7 +470,7 @@ data object ItemMerger {
                     val rotatedAmount = min((hollowSquareSpace.depth - depth) / width, depth / width).floor().toUInt64()
                     val heightAmount = min(
                         view.maxLayer,
-                        (view.maxHeight / view.height).floor().toUInt64(),
+                        (view.maxHeight / view.height.toFlt64()).floor().toUInt64(),
                         restAmount / ((amount + rotatedAmount) * UInt64.two),
                         (hollowSquareSpace.height / height).floor().toUInt64()
                     )
@@ -491,7 +487,7 @@ data object ItemMerger {
                     val rotationMinZAmount = if (rotationView.minDepth eq Flt64.zero) {
                         UInt64.one
                     } else {
-                        (rotationView.minDepth / rotationView.depth).ceil().toUInt64()
+                        (rotationView.minDepth / rotationView.depth.toFlt64()).ceil().toUInt64()
                     }
                     if (rotatedAmount < rotationMinZAmount) {
                         return@find false
@@ -525,7 +521,7 @@ data object ItemMerger {
                 val rotatedAmount = min((hollowSquareSpace.depth - depth) / width, depth / width).floor().toUInt64()
                 val heightAmount = min(
                     view.maxLayer,
-                    (view.maxHeight / view.height).floor().toUInt64(),
+                    (view.maxHeight / view.height.toFlt64()).floor().toUInt64(),
                     restAmount / ((amount + rotatedAmount) * UInt64.two),
                     (hollowSquareSpace.height / height).floor().toUInt64()
                 )
@@ -595,18 +591,19 @@ data object ItemMerger {
     @JvmName("dumpPlacements")
     fun dump(
         placements: List<Placement3<*>>,
-        offset: Vector<Dim3, Flt64> = vector3()
+        offset: QuantityVector3 = vector3()
     ): List<ItemPlacement3> {
         return placements.map {
             when (it.unit) {
                 is Item -> listOf(Placement3(it.view as ItemView, it.position + offset))
-                is Block -> (it as BlockPlacement3).dumpAbsolutely(point3(offset))
-                is BinLayer -> (it as BinLayerPlacement).dumpAbsolutely(point3(offset))
-                is PalletLayer -> (it as PalletLayerPlacement).dumpAbsolutely(point3(offset))
+                is Block -> (it as BlockPlacement3).dumpAbsolutely(point3(offset.x, offset.y, offset.z))
+                is BinLayer -> (it as BinLayerPlacement).dumpAbsolutely(point3(offset.x, offset.y, offset.z))
+                is PalletLayer -> (it as PalletLayerPlacement).dumpAbsolutely(point3(offset.x, offset.y, offset.z))
                 else -> emptyList()
             }
         }.flatten()
     }
 }
+
 
 

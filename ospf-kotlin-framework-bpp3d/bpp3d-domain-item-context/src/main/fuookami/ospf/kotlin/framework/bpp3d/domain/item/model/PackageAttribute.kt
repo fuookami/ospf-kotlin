@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -37,7 +36,7 @@ data class WeightAttribute(
 
 interface AbstractDeformationAttribute {
     fun deformationQuantity(volume: Flt64): Vector<Dim3, Flt64>
-    fun deformationQuantity(unit: AbstractCuboid) = deformationQuantity(unit.volume)
+    fun deformationQuantity(unit: AbstractCuboid) = deformationQuantity(unit.volume.toFlt64())
 }
 
 data class LinearDeformationAttribute(
@@ -80,7 +79,8 @@ data class AbsoluteHangingPolicy(
 
         val length = Bottom.length(unit)
         val width = Bottom.width(unit)
-        val maxHangingArea = maxDifference * min(length, width)
+        val minEdge = if (length leq width) length else width
+        val maxHangingArea = maxDifference * minEdge
         val hangingArea = length * width - bottomSupport.area
         return hangingArea leq maxHangingArea
     }
@@ -175,7 +175,7 @@ data class BoxStackingOnPolicy(
             }
         }
         if (bottomItem.packageCategory != PackageCategory.Filler && item.packageCategory != PackageCategory.Filler) {
-            val difference = abs(item.width - bottomItem.width) + abs(item.depth - bottomItem.depth)
+            val difference = (item.width - bottomItem.width).abs() + (item.depth - bottomItem.depth).abs()
             if (difference gr maxDifference) {
                 return false
             }
@@ -335,7 +335,13 @@ data class PackageAttribute(
                         })
                     }
                 }
-                val maxLayer = promises.maxOfOrNull { it.await() } ?: UInt64.zero
+                var maxLayer = UInt64.zero
+                for (promise in promises) {
+                    val value = promise.await()
+                    if (value gr maxLayer) {
+                        maxLayer = value
+                    }
+                }
                 maxLayer
             }
         }
@@ -354,14 +360,21 @@ data class PackageAttribute(
                             val thisBottomPlacement = Placement2(bottomItem, Bottom)
                             val thisBottomPlacements = indirectBottomItems.filter { Placement2(it, Bottom).overlapped(thisBottomPlacement) }
                             if (thisBottomPlacements.isNotEmpty()) {
-                                bottomItem.height + layerHeight(bottomItem, thisBottomPlacements)
+                                bottomItem.height.toFlt64() + layerHeight(bottomItem, thisBottomPlacements)
                             } else {
-                                bottomItem.height
+                                bottomItem.height.toFlt64()
                             }
                         })
                     }
                 }
-                promises.maxOfOrNull { it.await() } ?: Flt64.zero
+                var maxHeight = Flt64.zero
+                for (promise in promises) {
+                    val value = promise.await()
+                    if (value gr maxHeight) {
+                        maxHeight = value
+                    }
+                }
+                maxHeight
             }
         }
 

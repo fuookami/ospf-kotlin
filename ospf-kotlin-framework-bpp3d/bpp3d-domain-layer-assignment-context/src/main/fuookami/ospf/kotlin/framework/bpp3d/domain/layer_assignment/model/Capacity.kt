@@ -7,12 +7,22 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.div
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 interface Capacity {
     val loadWeight: LinearIntermediateSymbols1<Flt64>
@@ -141,10 +151,14 @@ class PreciseLoadCapacity(
                 name = "tail_loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->
-                MaskingFunction(
-                    x = loadingRate[i],
-                    mask = assignment.tail[i],
-                    name = "tail_loading_rate_${i}"
+                LinearFunctionSymbolAdapter(
+                    delegate = MaskingFunction.fromLinearIntermediateSymbol(
+                        x = loadingRate[i],
+                        mask = assignment.tail[i],
+                        converter = flt64Converter,
+                        name = "tail_loading_rate_${i}"
+                    ).delegate,
+                    converter = flt64Converter
                 )
             }
         }

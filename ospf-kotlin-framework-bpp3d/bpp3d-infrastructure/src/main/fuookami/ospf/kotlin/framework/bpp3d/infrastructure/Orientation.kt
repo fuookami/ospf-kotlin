@@ -2,11 +2,16 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.ord
-import fuookami.ospf.kotlin.utils.functional.orderBetween
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 enum class OrientationCategory {
     Upright,
@@ -14,71 +19,110 @@ enum class OrientationCategory {
     Lie
 }
 
-@Serializable
-enum class Orientation {
-    Upright {
+/**
+ * 方向类型（密封类版本）
+ * Orientation type (sealed class version)
+ *
+ * 从 enum 迁移为 sealed class，同时保持字符串序列化/反序列化与旧枚举名称兼容。
+ * Migrated from enum to sealed class while preserving string serialization/deserialization
+ * compatibility with legacy enum names.
+ */
+@Serializable(with = OrientationSerializer::class)
+sealed class Orientation {
+    object Upright : Orientation() {
+        override val label = "Upright"
+        override val rank = 0
         override val rotation get() = UprightRotated
         override val category = OrientationCategory.Upright
-    },
+    }
 
-    UprightRotated {
+    object UprightRotated : Orientation() {
+        override val label = "UprightRotated"
+        override val rank = 1
         override fun depth(unit: AbstractCuboid) = unit.width
         override fun width(unit: AbstractCuboid) = unit.depth
         override val rotation = Upright
         override val rotated = true
         override val category = OrientationCategory.Upright
-    },
+    }
 
-    Side {
+    object Side : Orientation() {
+        override val label = "Side"
+        override val rank = 2
         override val rotation get() = SideRotated
         override fun height(unit: AbstractCuboid) = unit.width
         override fun width(unit: AbstractCuboid) = unit.height
         override val category = OrientationCategory.Side
-    },
+    }
 
-    SideRotated {
+    object SideRotated : Orientation() {
+        override val label = "SideRotated"
+        override val rank = 3
         override fun depth(unit: AbstractCuboid) = unit.height
         override fun height(unit: AbstractCuboid) = unit.width
         override fun width(unit: AbstractCuboid) = unit.depth
         override val rotation = Side
         override val rotated = true
         override val category = OrientationCategory.Side
-    },
+    }
 
-    Lie {
+    object Lie : Orientation() {
+        override val label = "Lie"
+        override val rank = 4
         override fun depth(unit: AbstractCuboid) = unit.height
         override fun height(unit: AbstractCuboid) = unit.depth
         override val rotation get() = LieRotated
         override val category = OrientationCategory.Lie
-    },
+    }
 
-    LieRotated {
+    object LieRotated : Orientation() {
+        override val label = "LieRotated"
+        override val rank = 5
         override fun depth(unit: AbstractCuboid) = unit.width
         override fun height(unit: AbstractCuboid) = unit.depth
         override fun width(unit: AbstractCuboid) = unit.height
         override val rotation = Lie
         override val rotated = true
         override val category = OrientationCategory.Lie
-    };
+    }
 
-    open fun depth(unit: AbstractCuboid): Flt64 = unit.depth
-    open fun width(unit: AbstractCuboid): Flt64 = unit.width
-    open fun height(unit: AbstractCuboid): Flt64 = unit.height
+    abstract val label: String
+    protected abstract val rank: Int
+
+    open fun depth(unit: AbstractCuboid): QuantityFlt64 = unit.depth
+    open fun width(unit: AbstractCuboid): QuantityFlt64 = unit.width
+    open fun height(unit: AbstractCuboid): QuantityFlt64 = unit.height
 
     abstract val rotation: Orientation
     open val rotated: Boolean = false
     abstract val category: OrientationCategory
 
-    override fun toString() = this.name
+    fun orderValue(): Int = rank
+
+    override fun toString() = label
 
     companion object {
+        val entries: List<Orientation>
+            get() = listOf(
+                Upright,
+                UprightRotated,
+                Side,
+                SideRotated,
+                Lie,
+                LieRotated
+            )
+
         operator fun invoke(str: String): Orientation? {
-            return entries.find { it.name == str }
+            return entries.find { it.label == str }
+        }
+
+        fun require(str: String): Orientation {
+            return invoke(str) ?: throw IllegalArgumentException("Unsupported orientation: $str")
         }
 
         fun merge(unit: AbstractCuboid, orientations: List<Orientation>): List<Orientation> {
             return if (orientations.isEmpty()) {
-                merge(unit, Orientation.entries.toList())
+                merge(unit, entries)
             } else if (orientations.size == 1) {
                 orientations.toList()
             } else {
@@ -100,10 +144,22 @@ enum class Orientation {
     }
 }
 
+object OrientationSerializer : KSerializer<Orientation> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Orientation", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: Orientation) {
+        encoder.encodeString(value.label)
+    }
+
+    override fun deserialize(decoder: Decoder): Orientation {
+        return Orientation.require(decoder.decodeString())
+    }
+}
+
 infix fun Orientation.ord(rhs: Orientation): Order {
     return when (val value = this.category ord rhs.category) {
         Order.Equal -> {
-            orderBetween(this, rhs)
+            this.orderValue() ord rhs.orderValue()
         }
 
         else -> {
@@ -127,5 +183,3 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
         }
     }
 }
-
-

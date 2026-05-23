@@ -171,12 +171,14 @@ class LoadingOrderCalculator(
         for (placement in thisPlacements) {
             when (val unit = placement.unit) {
                 is Item -> {
-                    items.add(Placement3(placement.view as ItemView, placement.absolutePosition - origin))
+                    val offset = placement.absolutePosition - origin
+                    items.add(Placement3(placement.view as ItemView, point3(offset.x, offset.y, offset.z)))
                 }
 
                 is ItemContainer<*> -> {
                     for (item in unit.items) {
-                        items.add(Placement3(item.view, item.absolutePosition - origin))
+                        val offset = item.absolutePosition - origin
+                        items.add(Placement3(item.view, point3(offset.x, offset.y, offset.z)))
                     }
                 }
 

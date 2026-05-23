@@ -23,7 +23,7 @@ import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.math.geometry.point3
 
-internal fun fitness(space: Space, block: Block): Flt64 {
+internal fun fitness(space: Space, block: Block): QuantityFlt64 {
     return when (space.forwardLink?.first ?: Side) {
         is Front -> {
             space.width + space.depth - block.width - block.depth
@@ -39,7 +39,7 @@ internal fun fitness(space: Space, block: Block): Flt64 {
     }
 }
 
-internal fun compareWithFitness(space: Space, lhs: Block, rhs: Block, fitness: (Space, Block) -> Flt64): Order {
+internal fun compareWithFitness(space: Space, lhs: Block, rhs: Block, fitness: (Space, Block) -> QuantityFlt64): Order {
     val lhsValue = fitness(space, lhs)
     val rhsValue = fitness(space, rhs)
     return lhsValue ord rhsValue
@@ -528,7 +528,7 @@ class DepthFirstSearchAlgorithm(
     }
 
     private fun merge(spaces: List<Space>): List<Space> {
-        val mergedSpaces = spaces.sortedBy { it.z }.withIndex().toMutableList()
+        val mergedSpaces = spaces.sortedWith(compareBy { it.z.toDouble() }).withIndex().toMutableList()
         for ((i, space) in mergedSpaces.withIndex()) {
             var space1 = space
             for (j in (i + 1) until mergedSpaces.size) {
@@ -572,7 +572,7 @@ class DepthFirstSearchAlgorithm(
         }
         return mergedSpaces
             .filter { it.value.shape.volume neq Flt64.zero }
-            .sortedBy { it.index }
+            .sortedWith(compareBy { it.index })
             .map { it.value }
     }
 }

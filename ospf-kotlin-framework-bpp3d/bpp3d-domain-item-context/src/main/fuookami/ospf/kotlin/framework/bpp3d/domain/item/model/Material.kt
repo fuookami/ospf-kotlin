@@ -2,8 +2,11 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityFlt64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
 
 enum class MaterialType {
     RawMaterial,
@@ -16,7 +19,27 @@ open class MaterialKey(
     val type: MaterialType,
     val manufacturer: String? = null,
     val supplier: String? = null,
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is MaterialKey) return false
+
+        if (no != other.no) return false
+        if (type != other.type) return false
+        if (manufacturer != other.manufacturer) return false
+        if (supplier != other.supplier) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = no.hashCode()
+        result = 31 * result + type.hashCode()
+        result = 31 * result + (manufacturer?.hashCode() ?: 0)
+        result = 31 * result + (supplier?.hashCode() ?: 0)
+        return result
+    }
+}
 
 open class Material(
     val no: MaterialNo,
@@ -26,7 +49,7 @@ open class Material(
     val manufacturer: String? = null,
     val supplier: String? = null,
     val warehouse: String? = null,
-    val weight: Flt64 = Flt64.zero
+    val weight: QuantityFlt64 = Quantity(Flt64.zero, Kilogram)
 ) {
     open val key: MaterialKey
         get() = MaterialKey(

@@ -1,30 +1,41 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
 class BinLoadingOrderConstraint(
     private val bins: List<Bin<BinLayer>>,
     private val assignment: PreciseAssignment,
     private val capacity: Capacity,
-    override val name: String = "bin_loading_order_constraint"
-) : Pipeline<AbstractLinearMetaModel<Flt64>> {
-    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+    val name: String = "bin_loading_order_constraint"
+) {
+    fun invoke(model: MetaModel<Flt64>): Try {
+        val linearModel = model as AbstractLinearMetaModel<Flt64>
         for (i in bins.indices) {
             if (i == 0) {
                 continue
             }
 
             if (bins[i].shape == bins[i - 1].shape) {
-                when (val result = model.addConstraint(
-                    assignment.v[i - 1] geq assignment.v[i],
+                val assignLhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(Flt64.one, assignment.v[i - 1])),
+                    constant = Flt64.zero
+                )
+                val assignRhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(Flt64.one, assignment.v[i])),
+                    constant = Flt64.zero
+                )
+                when (val result = linearModel.addConstraint(
+                    relation = LinearInequality(assignLhs, assignRhs, Comparison.GE),
                     name = "${name}_${i - 1}_${i}"
                 )) {
                     is Ok -> {}
@@ -38,8 +49,16 @@ class BinLoadingOrderConstraint(
                     }
                 }
 
-                when (val result = model.addConstraint(
-                    capacity.loadVolume[i - 1] geq capacity.loadVolume[i],
+                val volumeLhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(Flt64.one, capacity.loadVolume[i - 1])),
+                    constant = Flt64.zero
+                )
+                val volumeRhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(Flt64.one, capacity.loadVolume[i])),
+                    constant = Flt64.zero
+                )
+                when (val result = linearModel.addConstraint(
+                    relation = LinearInequality(volumeLhs, volumeRhs, Comparison.GE),
                     name = "${name}_volume_${i - 1}_${i}"
                 )) {
                     is Ok -> {}

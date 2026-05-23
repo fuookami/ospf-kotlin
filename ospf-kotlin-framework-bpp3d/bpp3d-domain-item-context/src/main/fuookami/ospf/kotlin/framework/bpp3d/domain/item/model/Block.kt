@@ -1,16 +1,11 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.y
-import fuookami.ospf.kotlin.math.geometry.point3
 
 sealed class Block(
     // inherited from Container3<Block>
@@ -126,7 +121,7 @@ class Pile(
     companion object {
         private fun dump(items: List<ItemView>): List<ItemPlacement3> {
             val units = ArrayList<ItemPlacement3>()
-            var y = Flt64.zero
+            var y = Flt64.zero * items.first().height.unit
             for (item in items) {
                 units.add(Placement3(item, point3(y = y)))
                 y += item.height
@@ -137,14 +132,14 @@ class Pile(
         fun layer(
             item: Item,
             bottomItems: List<Item>,
-        ): Pair<UInt64, Flt64> {
+        ): Pair<UInt64, QuantityFlt64> {
             return layer(item.view(), bottomItems.map { ItemView(it) })
         }
 
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
-        ): Pair<UInt64, Flt64> {
+        ): Pair<UInt64, QuantityFlt64> {
             return if (bottomItems.isNotEmpty() && bottomItems.last().type == item.type) {
                 val notSameIndex = bottomItems.indexOfLast { it.type != item.type }
                 val sameItems = if (notSameIndex == -1) {
@@ -154,7 +149,7 @@ class Pile(
                 }
                 Pair(UInt64(sameItems.size), sameItems.sumOf { it.height })
             } else {
-                Pair(UInt64.zero, Flt64.zero)
+                Pair(UInt64.zero, item.height * Flt64.zero)
             }
         }
     }
@@ -202,7 +197,7 @@ class LayeredBlock(
 ) : Block(dump(blocks)) {
     companion object {
         private fun dump(blocks: List<SimpleBlock>): List<ItemPlacement3> {
-            var y = Flt64.zero
+            var y = Flt64.zero * blocks.first().height.unit
             val placements = ArrayList<ItemPlacement3>()
             for (block in blocks) {
                 placements.addAll(block.units.dump(point3(y = y)))
@@ -220,10 +215,10 @@ class LayeredBlock(
     val topItemOrientation: Orientation = blocks.last().itemOrientation
     val bottomLayer: UInt64 = blocks
         .takeWhile { it.item.type == bottomItem.type }
-        .sumOf { it.layer }
+        .fold(UInt64.zero) { acc, block -> acc + block.layer }
     val topLayer: UInt64 = blocks
         .takeLastWhile { it.item.type == topItem.type }
-        .sumOf { it.layer }
+        .fold(UInt64.zero) { acc, block -> acc + block.layer }
 
     // inherited from ItemContainer<LayeredBlock>
     override val bottomOnly: Boolean = bottomItemView.bottomOnly
@@ -254,5 +249,6 @@ class ComplexBlock(
 typealias BlockView = CuboidView<Block>
 typealias BlockPlacement2<P> = Placement2<Block, P>
 typealias BlockPlacement3 = Placement3<Block>
+
 
 

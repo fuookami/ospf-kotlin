@@ -4,20 +4,24 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.quantities.quantity.div
+import fuookami.ospf.kotlin.quantities.quantity.eq
+import fuookami.ospf.kotlin.quantities.quantity.geq
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.quantity.toFlt64
+import fuookami.ospf.kotlin.quantities.unit.Meter
 
 interface AbstractCuboid {
-    val width: Flt64
-    val height: Flt64
-    val depth: Flt64
+    val width: QuantityFlt64
+    val height: QuantityFlt64
+    val depth: QuantityFlt64
 
-    val weight: Flt64
-    val volume: Flt64 get() = depth * height * width
-    val actualVolume: Flt64 get() = volume
-    val linearDensity: Flt64 get() = weight / depth
+    val weight: QuantityFlt64
+    val volume: QuantityFlt64 get() = depth * height * width
+    val actualVolume: QuantityFlt64 get() = volume
+    val linearDensity: QuantityFlt64 get() = weight / depth
 }
 
 interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
@@ -28,8 +32,8 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
         withRotation: Boolean = true
     ): List<Orientation> {
         return enabledOrientations.filter {
-            space.length geq space.plane.length(this, it)
-                    && space.width geq space.plane.width(this, it)
+            (space.length geq space.plane.length(this, it)) == true
+                    && (space.width geq space.plane.width(this, it)) == true
                     && (withRotation || !it.rotated)
         }
     }
@@ -39,9 +43,9 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
         withRotation: Boolean = true
     ): List<Orientation> {
         return enabledOrientations.filter {
-            space.width geq it.width(this)
-                    && space.height geq it.height(this)
-                    && space.depth geq it.depth(this)
+            (space.width geq it.width(this)) == true
+                    && (space.height geq it.height(this)) == true
+                    && (space.depth geq it.depth(this)) == true
                     && (withRotation || !it.rotated)
         }
     }
@@ -51,8 +55,8 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
 }
 
 data class BottomSupport(
-    val area: Flt64,
-    val weight: Flt64
+    val area: QuantityFlt64,
+    val weight: QuantityFlt64
 ) : Plus<BottomSupport, BottomSupport> {
     override fun plus(rhs: BottomSupport) = BottomSupport(
         area = area + rhs.area,
@@ -98,18 +102,24 @@ open class CuboidView<T : Cuboid<T>>(
     }
 
     fun bottomSupport(bottomView: CuboidView<*>): BottomSupport {
-        val placement = Placement2(PlaneProjection(this, Bottom), point2())
-        val bottomPlacement = Placement2(PlaneProjection(bottomView, Bottom), point2())
+        val placement = Placement2(
+            projection = PlaneProjection(this, Bottom),
+            position = QuantityPoint2(Flt64.zero * Meter, Flt64.zero * Meter)
+        )
+        val bottomPlacement = Placement2(
+            projection = PlaneProjection(bottomView, Bottom),
+            position = QuantityPoint2(Flt64.zero * Meter, Flt64.zero * Meter)
+        )
         val intersect = placement.intersect(bottomPlacement)
         return if (intersect == null) {
             BottomSupport(
-                area = Flt64.zero,
-                weight = Flt64.zero
+                area = bottomPlacement.projection.area * Flt64.zero,
+                weight = bottomPlacement.weight * Flt64.zero
             )
         } else {
             BottomSupport(
                 area = intersect.area,
-                weight = intersect.area / bottomPlacement.projection.area * bottomPlacement.weight
+                weight = (intersect.area / bottomPlacement.projection.area).toFlt64() * bottomPlacement.weight
             )
         }
     }
@@ -143,8 +153,8 @@ fun bottomSupport(
     bottomUnits: List<Placement3<*>>
 ): BottomSupport {
     var support = BottomSupport(
-        area = Flt64.zero,
-        weight = Flt64.zero
+        area = unit.depth * unit.width * Flt64.zero,
+        weight = unit.weight * Flt64.zero
     )
 
     val bottomPlacement = Placement2(unit, Bottom)
@@ -155,7 +165,7 @@ fun bottomSupport(
             if (intersect != null) {
                 val thisSupport = BottomSupport(
                     area = intersect.area,
-                    weight = intersect.area / thisBottomPlacement.projection.area * thisBottomPlacement.weight
+                    weight = (intersect.area / thisBottomPlacement.projection.area).toFlt64() * thisBottomPlacement.weight
                 )
                 support += thisSupport
             }

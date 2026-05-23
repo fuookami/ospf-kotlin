@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -46,7 +47,7 @@ class ImpreciseAssignment(
 
     fun register(model: MetaModel<Flt64>): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(Flt64, name = "volume")
+            volume = LinearExpressionSymbol(Flt64.zero, name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}

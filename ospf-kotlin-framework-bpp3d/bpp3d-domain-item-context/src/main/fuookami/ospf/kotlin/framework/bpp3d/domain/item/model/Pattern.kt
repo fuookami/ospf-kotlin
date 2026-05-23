@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -11,20 +11,14 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim2
-import fuookami.ospf.kotlin.math.geometry.originPoint2
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.math.geometry.point2
 
 private data class PatternItemInfo(
     val item: Item,
@@ -33,7 +27,7 @@ private data class PatternItemInfo(
     override fun copy() = PatternItemInfo(item, amount)
 }
 
-private typealias NextPointExtractor = (projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> Point<Dim2, Flt64>
+private typealias NextPointExtractor = (projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> QuantityPoint2
 
 abstract class Pattern {
     data class Step(
@@ -46,7 +40,7 @@ abstract class Pattern {
             i: Int
         ): ItemPlacement2<Bottom> {
             val point = if (i == 0) {
-                originPoint2
+                point2()
             } else {
                 nextPointExtractor!!(projection, placements)
             }
@@ -166,17 +160,9 @@ abstract class Pattern {
         val leftUpper: NextPointExtractor = { projection, placements ->
             val y = placements.filter { it.y eq Flt64.zero }.maxOf { it.maxY }
             val maxY = max(placements.maxOf { it.maxY }, y + projection.height)
-            val yRange = ValueRange(y, maxY).value!!
-            var x = Flt64.zero
+            var x = y * Flt64.zero
             for (placement in placements) {
-                val range = ValueRange(
-                    lb = placement.y,
-                    ub = placement.maxY,
-                    lbInterval = Interval.Closed,
-                    ubInterval = Interval.Open,
-                    constants = Flt64
-                ).value!!
-                if (yRange.intersect(range) != null) {
+                if (!((placement.maxY leq y) || (placement.y geq maxY))) {
                     x = max(x, placement.maxX)
                 }
             }
@@ -201,7 +187,7 @@ abstract class Pattern {
         return this(
             originItems = originItems,
             space = binType,
-            restWeight = binType.capacity,
+            restWeight = binType.capacity.toFlt64(),
             patterns = listOf(pattern),
             predicate = predicate,
             config = config
@@ -219,7 +205,7 @@ abstract class Pattern {
         return this(
             originItems = originItems,
             space = binType,
-            restWeight = binType.capacity,
+            restWeight = binType.capacity.toFlt64(),
             patterns = patterns.ifEmpty { this.patterns },
             predicate = predicate,
             config = config
@@ -260,17 +246,19 @@ abstract class Pattern {
                 if (predicate?.let { pred -> pred(it.key) } == false) {
                     return@filter false
                 }
-                val length = max(Bottom.length(it.key), Bottom.width(it.key))
-                val width = min(Bottom.length(it.key), Bottom.width(it.key))
+                val length = max(Bottom.length(it.key), Bottom.width(it.key)).toFlt64()
+                val width = min(Bottom.length(it.key), Bottom.width(it.key)).toFlt64()
                 bottomLengthRange.contains(length) && bottomWidthRange.contains(width)
             }
             .sortedBy {
-                space.height - min(
+                (
+                    space.height.toFlt64() - min(
                     (space.height / it.key.height).floor(),
                     it.key.maxLayer.toFlt64(),
-                    it.key.maxHeight / it.key.height,
+                    it.key.maxHeight / it.key.height.toFlt64(),
                     it.value.toFlt64()
-                ) * it.key.height
+                ) * it.key.height.toFlt64()
+                ).toDouble()
             }
             .map { PatternItemInfo(it.key, it.value) }
             .toList()
@@ -281,13 +269,13 @@ abstract class Pattern {
             }
 
             UInt64.two -> {
-                val itemHeights = items.map { it.item.height }.toSet().toList().sorted()
-                Pair(ItemHeightCombinator.twoSum(space.height, itemHeights), emptyList())
+                val itemHeights = items.map { it.item.height.toFlt64() }.toSet().toList().sorted()
+                Pair(ItemHeightCombinator.twoSum(space.height.toFlt64(), itemHeights), emptyList())
             }
 
             else -> {
-                val itemHeights = items.map { it.item.height }.toSet().toList().sorted()
-                Pair(ItemHeightCombinator.twoSum(space.height, itemHeights), ItemHeightCombinator.threeSum(space.height, itemHeights))
+                val itemHeights = items.map { it.item.height.toFlt64() }.toSet().toList().sorted()
+                Pair(ItemHeightCombinator.twoSum(space.height.toFlt64(), itemHeights), ItemHeightCombinator.threeSum(space.height.toFlt64(), itemHeights))
             }
         }
 
@@ -295,7 +283,7 @@ abstract class Pattern {
             val placementsList = ArrayList<List<ItemPlacement3>>()
             val promise = generatePlanePlacements(
                 originItems = items,
-                itemsGroup = items.groupBy { it.item.height }.toSortedMap(),
+                itemsGroup = items.groupBy { it.item.height.toFlt64() }.toSortedMap(),
                 twoSumHeight = twoSumHeight,
                 threeSumHeight = threeSumHeight,
                 space = space,
@@ -308,8 +296,12 @@ abstract class Pattern {
                 when (planePlacement) {
                     is Ok -> {
                         val placements = planePlacement.value.flatMap { it.toPlacement3() }
+                        val maxZ = placements.fold(Double.NEGATIVE_INFINITY) { acc, placement ->
+                            val current = placement.maxZ.toDouble()
+                            if (current > acc) current else acc
+                        }
                         if (!placementsList.any { it.toTypedArray() contentEquals placements.toTypedArray() }
-                            && Flt64(placements.maxOf { it.maxZ.toDouble() }) leq space.depth
+                            && Flt64(maxZ) leq space.depth.toFlt64()
                         ) {
                             placementsList.add(placements)
                         }
@@ -385,7 +377,7 @@ abstract class Pattern {
             val itemsAmount = items.associate { Pair(it.item, it.amount) }.toMutableMap()
             // generate mixed stacks through the combination of heights stacked in threes, and place them at the specified position
             for (heights in threeSumHeight) {
-                val loadedWeight = placements.sumOf { it.weight }
+                val loadedWeight = placements.fold(Flt64.zero) { acc, placement -> acc + placement.weight.toFlt64() }
                 val thisRestWeight = restWeight - loadedWeight
                 val thisRestPile = UInt64(pattern.size - i)
                 val thisPileAverageWeight = if (i == 0) {
@@ -440,7 +432,7 @@ abstract class Pattern {
             // generate mixed stacks through the combination of heights stacked in pairs, and place them at the specified position
             if (i != pattern.size) {
                 for (heights in twoSumHeight) {
-                    val loadedWeight = placements.sumOf { it.weight }
+                    val loadedWeight = placements.fold(Flt64.zero) { acc, placement -> acc + placement.weight.toFlt64() }
                     val thisRestWeight = restWeight - loadedWeight
                     val thisRestPile = UInt64(pattern.size - i)
                     val thisPileAverageWeight = if (i == 0) {
@@ -495,7 +487,7 @@ abstract class Pattern {
             // generate stacks using a single material, and place them at the specified position
             if (i != pattern.size) {
                 while (true) {
-                    val loadedWeight = placements.sumOf { it.weight }
+                    val loadedWeight = placements.fold(Flt64.zero) { acc, placement -> acc + placement.weight.toFlt64() }
                     val thisRestWeight = restWeight - loadedWeight
                     val thisRestPile = UInt64(pattern.size - i)
                     val thisPileAverageWeight = if (i == 0) {
@@ -506,20 +498,22 @@ abstract class Pattern {
                     val thisRestPileAverageWeight = thisRestWeight / thisRestPile.toFlt64()
 
                     val thisSortedItems = if (thisPileAverageWeight geq (thisRestPileAverageWeight * Flt64.two)) {
-                        items.filter { (_, amount) -> amount != UInt64.zero }.sortedBy { (item, _) ->
-                            val heightAmount =
-                                min(
-                                    item.maxLayer,
-                                    (thisRestWeight / item.weight).floor().toUInt64(),
-                                    (item.maxHeight / Bottom.height(item)).floor().toUInt64(),
-                                    (space.height / Bottom.height(item)).floor().toUInt64()
-                                )
-                            return@sortedBy if (heightAmount == UInt64.zero) {
-                                Flt64.infinity
-                            } else {
-                                abs(heightAmount.toFlt64() * item.weight - thisRestPileAverageWeight)
-                            }
-                        }
+                        items.filter { (_, amount) -> amount != UInt64.zero }
+                            .sortedWith(compareBy<PatternItemInfo> { info ->
+                                val item = info.item
+                                val heightAmount =
+                                    min(
+                                        item.maxLayer,
+                                        (thisRestWeight / item.weight.toFlt64()).floor().toUInt64(),
+                                        (item.maxHeight / Bottom.height(item).toFlt64()).floor().toUInt64(),
+                                        (space.height / Bottom.height(item)).floor().toUInt64()
+                                    )
+                                if (heightAmount == UInt64.zero) {
+                                    Double.POSITIVE_INFINITY
+                                } else {
+                                    abs(heightAmount.toFlt64() * item.weight.toFlt64() - thisRestPileAverageWeight).toDouble()
+                                }
+                            })
                     } else {
                         items.filter { (_, amount) -> amount != UInt64.zero }
                     }
@@ -532,8 +526,8 @@ abstract class Pattern {
                                 config.withPiling,
                                 min(
                                     item.maxLayer,
-                                    (thisRestWeight / item.weight).floor().toUInt64(),
-                                    (item.maxHeight / Bottom.height(item)).floor().toUInt64(),
+                                    (thisRestWeight / item.weight.toFlt64()).floor().toUInt64(),
+                                    (item.maxHeight / Bottom.height(item).toFlt64()).floor().toUInt64(),
                                     (space.height / Bottom.height(item)).floor().toUInt64()
                                 )
                             )
@@ -541,7 +535,7 @@ abstract class Pattern {
                             continue
                         }
                         flag = true
-                        val pileAmount = (thisRestWeight / item.weight).floor().toUInt64() / heightAmount
+                        val pileAmount = (thisRestWeight / item.weight.toFlt64()).floor().toUInt64() / heightAmount
 
                         for (k in UInt64.zero until pileAmount) {
                             if (heightAmount gr amount || i == pattern.size) {
@@ -598,7 +592,7 @@ abstract class Pattern {
                 break
             }
             for (item in items) {
-                val thisAmount = placements.sumOf { it.projection.amount(item.item) }
+                val thisAmount = placements.fold(UInt64.zero) { acc, placement -> acc + placement.projection.amount(item.item) }
                 item.amount -= thisAmount
             }
             if (promise.trySend(Ok(placements)).isFailure) {
@@ -611,3 +605,4 @@ abstract class Pattern {
         }
     }
 }
+

@@ -2,70 +2,24 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.math.operator.abs
-
-enum class PackageClassification {
-    Outer,
-    Inner
-}
-
-enum class PackageCategory {
-    HardBox,
-    Pallet,
-    SoftBox,
-    Filler
-}
-
-enum class PackageType {
-    DutyCorrugatedBoardPedal {
-        override val category = PackageCategory.HardBox
-    },
-
-    WoodenContainer {
-        override val category = PackageCategory.HardBox
-    },
-
-    HoneycombBox {
-        override val category = PackageCategory.HardBox
-    },
-
-    Pallet {
-        override val category = PackageCategory.Pallet
-    },
-
-    CartonPallet {
-        override val category = PackageCategory.Pallet
-    },
-
-    CartonContainer {
-        override val category = PackageCategory.SoftBox
-    },
-
-    PackingFoam {
-        override val category = PackageCategory.Filler
-    };
-
-    abstract val category: PackageCategory
-}
 
 data class PackageBottomShape(
-    val width: Flt64,
-    val depth: Flt64,
-    val weight: Flt64,
+    val width: QuantityFlt64,
+    val depth: QuantityFlt64,
+    val weight: QuantityFlt64,
     val packageType: PackageType,
 ) : Eq<PackageBottomShape> {
     val packageCategory by packageType::category
-    val area: Flt64 = width * depth
+    val area: QuantityFlt64 = width * depth
 
     fun new(
-        width: Flt64? = null,
-        depth: Flt64? = null,
-        weight: Flt64? = null,
+        width: QuantityFlt64? = null,
+        depth: QuantityFlt64? = null,
+        weight: QuantityFlt64? = null,
         packageType: PackageType? = null
     ): PackageBottomShape {
         return PackageBottomShape(
@@ -83,7 +37,7 @@ data class PackageBottomShape(
     override fun eq(rhs: PackageBottomShape): Boolean {
         if (width neq rhs.width) return false
         if (depth neq rhs.depth) return false
-        if (abs(weight - rhs.weight) gr Flt64.two) return false
+        if ((weight - rhs.weight).abs() gr (Flt64.two * weight.unit)) return false
 
         return packageType == rhs.packageType
     }
@@ -105,10 +59,10 @@ data class PackageBottomShape(
 }
 
 data class PackageShape(
-    val width: Flt64,
-    val height: Flt64,
-    val depth: Flt64,
-    val weight: Flt64,
+    val width: QuantityFlt64,
+    val height: QuantityFlt64,
+    val depth: QuantityFlt64,
+    val weight: QuantityFlt64,
     val packageType: PackageType,
 ) : Eq<PackageShape> {
     val bottomShape = PackageBottomShape(
@@ -118,13 +72,13 @@ data class PackageShape(
         packageType = packageType
     )
     val packageCategory by packageType::category
-    val volume: Flt64 = width * height * depth
+    val volume: QuantityFlt64 = width * height * depth
 
     fun new(
-        width: Flt64? = null,
-        height: Flt64? = null,
-        depth: Flt64? = null,
-        weight: Flt64? = null,
+        width: QuantityFlt64? = null,
+        height: QuantityFlt64? = null,
+        depth: QuantityFlt64? = null,
+        weight: QuantityFlt64? = null,
         packageType: PackageType? = null
     ): PackageShape {
         return PackageShape(
@@ -144,7 +98,7 @@ data class PackageShape(
         if (width neq rhs.width) return false
         if (height neq rhs.height) return false
         if (depth neq rhs.depth) return false
-        if (abs(weight - rhs.weight) gr Flt64.two) return false
+        if ((weight - rhs.weight).abs() gr (Flt64.two * weight.unit)) return false
 
         return packageType == rhs.packageType
     }

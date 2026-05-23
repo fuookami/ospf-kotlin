@@ -2,11 +2,10 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.lim
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -14,10 +13,11 @@ class BinAmountMinimization(
     private val bins: List<Bin<BinLayer>>,
     private val assignment: PreciseAssignment,
     private val coefficient: (Bin<BinLayer>) -> Flt64,
-    override val name: String = "bin_amount_minimization"
-) : Pipeline<AbstractLinearMetaModel<Flt64>> {
-    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        when (val result = model.minimize(
+    val name: String = "bin_amount_minimization"
+) {
+    fun invoke(model: MetaModel<Flt64>): Try {
+        val linearModel = model as AbstractLinearMetaModel<Flt64>
+        when (val result = linearModel.minimize(
             polynomial = sum(bins.mapIndexed { i, bin ->
                 LinearMonomial(coefficient(bin), assignment.v[i])
             }),

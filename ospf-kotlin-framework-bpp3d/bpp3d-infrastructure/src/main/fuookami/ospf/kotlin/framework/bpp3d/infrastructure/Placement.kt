@@ -4,24 +4,75 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.*
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.Dim2
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.point3
-import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.quantities.quantity.eq
+import fuookami.ospf.kotlin.quantities.quantity.geq
+import fuookami.ospf.kotlin.quantities.quantity.gr
+import fuookami.ospf.kotlin.quantities.quantity.leq
+import fuookami.ospf.kotlin.quantities.quantity.ls
+import fuookami.ospf.kotlin.quantities.quantity.minus
+import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.Meter
+
+private fun quantityOrd(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): Order {
+    return lhs.partialOrd(rhs)
+        ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
+}
+
+private fun quantityMax(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
+    return when (quantityOrd(lhs, rhs, axis)) {
+        is Order.Greater, Order.Equal -> lhs
+        is Order.Less -> rhs
+    }
+}
+
+private fun quantityMin(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
+    return when (quantityOrd(lhs, rhs, axis)) {
+        is Order.Greater -> rhs
+        is Order.Equal, is Order.Less -> lhs
+    }
+}
+
+private fun containsInRange(
+    value: QuantityFlt64,
+    lb: QuantityFlt64,
+    ub: QuantityFlt64,
+    withLowerBound: Boolean,
+    withUpperBound: Boolean
+): Boolean {
+    val lower = quantityOrd(value, lb, "range")
+    val upper = quantityOrd(value, ub, "range")
+    val lowerOk = if (withLowerBound) {
+        lower is Order.Equal || lower is Order.Greater
+    } else {
+        lower is Order.Greater
+    }
+    val upperOk = if (withUpperBound) {
+        upper is Order.Equal || upper is Order.Less
+    } else {
+        upper is Order.Less
+    }
+    return lowerOk && upperOk
+}
 
 data class Placement2<
         T : Cuboid<T>,
         P : ProjectivePlane
         >(
     val projection: Projection<T, P>,
-    val position: Point<Dim2, Flt64>
+    val position: QuantityPoint2
 ) : Copyable<Placement2<T, P>> {
+    constructor(
+        projection: Projection<T, P>,
+        position: Point<Dim2, Flt64>
+    ) : this(projection, point2(position))
+
     constructor(placement3: Placement3<T>, plane: P) : this(
         projection = PlaneProjection(placement3.view, plane),
         position = plane.point2(placement3.position)
@@ -41,67 +92,47 @@ data class Placement2<
 
     val maxX = x + length
     val maxY = y + width
-    val maxPosition = point2(maxX, maxY)
+    val maxPosition = QuantityPoint2(maxX, maxY)
 
     fun contains(
-        point: Point<Dim2, Flt64>,
+        point: QuantityPoint2,
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
     ): Boolean {
-        val lowerInterval = if (withBorder && withLowerBound) {
-            Interval.Closed
-        } else {
-            Interval.Open
-        }
-        val upperInterval = if (withBorder && withUpperBound) {
-            Interval.Closed
-        } else {
-            Interval.Open
-        }
-        val xRange = ValueRange(
-            lb = x,
-            ub = maxX,
-            lbInterval = lowerInterval,
-            ubInterval = upperInterval,
-            constants = Flt64
-        ).value!!
-        val yRange = ValueRange(
-            lb = y,
-            ub = maxY,
-            lbInterval = lowerInterval,
-            ubInterval = upperInterval,
-            constants = Flt64
-        ).value!!
-        return xRange.contains(point.x) && yRange.contains(point.y)
+        val includeLower = withBorder && withLowerBound
+        val includeUpper = withBorder && withUpperBound
+        return containsInRange(point.x, x, maxX, includeLower, includeUpper)
+                && containsInRange(point.y, y, maxY, includeLower, includeUpper)
     }
 
     fun overlapped(rhs: Placement2<*, P>): Boolean {
-        if (maxX leq rhs.x || x geq rhs.maxX) {
+        if ((maxX leq rhs.x) == true || (x geq rhs.maxX) == true) {
             return false
         }
-        if (maxY leq rhs.y || y geq rhs.maxY) {
+        if ((maxY leq rhs.y) == true || (y geq rhs.maxY) == true) {
             return false
         }
         return true
     }
 
-    fun intersect(rhs: Placement2<*, P>): Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>? {
-        val minX = max(x, rhs.x)
-        val maxX = min(maxX, rhs.maxX)
-        val minY = max(y, rhs.y)
-        val maxY = min(maxY, rhs.maxY)
-        return if (minX ls maxX && minY ls maxY) {
-            Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>(
-                point2(x = minX, y = minY),
-                point2(x = minX, y = maxY),
-                point2(x = maxX, y = maxY),
-                point2(x = maxX, y = minY)
+    fun intersect(rhs: Placement2<*, P>): QuantityRectangle2? {
+        val minX = quantityMax(x, rhs.x, "x")
+        val maxX = quantityMin(this.maxX, rhs.maxX, "x")
+        val minY = quantityMax(y, rhs.y, "y")
+        val maxY = quantityMin(this.maxY, rhs.maxY, "y")
+        return if ((minX ls maxX) == true && (minY ls maxY) == true) {
+            QuantityRectangle2(
+                minX = minX,
+                minY = minY,
+                maxX = maxX,
+                maxY = maxY
             )
         } else {
             null
         }
     }
+
     fun toPlacement3(): List<Placement3<T>> {
         return when (projection) {
             is PlaneProjection<*, *> -> {
@@ -110,7 +141,7 @@ data class Placement2<
 
             is PileProjection<*, *> -> {
                 val depth = projection.view.depth
-                var z = Flt64.zero
+                var z = Flt64.zero * depth.unit
                 val units = ArrayList<Placement3<T>>()
                 for (i in 0 until projection.layer.toInt()) {
                     units.add(Placement3(projection.view, projection.plane.point3(position, distance = z)))
@@ -120,7 +151,7 @@ data class Placement2<
             }
 
             is MultiPileProjection<*, *> -> {
-                var z = Flt64.zero
+                var z = Flt64.zero * Meter
                 val units = ArrayList<Placement3<T>>()
                 for (view in projection.views) {
                     units.add(Placement3(view as CuboidView<T>, projection.plane.point3(position, distance = z)))
@@ -136,8 +167,13 @@ data class Placement2<
 
 data class Placement3<T : Cuboid<T>>(
     val view: CuboidView<T>,
-    val position: Point<Dim3, Flt64>
+    val position: QuantityPoint3
 ) : Copyable<Placement3<T>>, Ord<Placement3<T>> {
+    constructor(
+        view: CuboidView<T>,
+        position: Point<Dim3, Flt64>
+    ) : this(view, point3(position))
+
     private var _parent: Placement3<*>? = null
 
     val unit by view::unit
@@ -150,10 +186,19 @@ data class Placement3<T : Cuboid<T>>(
     val y by position::y
     val z by position::z
 
-    val absolutePosition: Point<Dim3, Flt64> get() = position + (parent?.absolutePosition ?: point3())
-    val absoluteX: Flt64 get() = x + (parent?.absoluteX ?: Flt64.zero)
-    val absoluteY: Flt64 get() = y + (parent?.absoluteY ?: Flt64.zero)
-    val absoluteZ: Flt64 get() = z + (parent?.absoluteZ ?: Flt64.zero)
+    val absolutePosition: QuantityPoint3
+        get() = if (parent == null) {
+            position
+        } else {
+            QuantityPoint3(
+                x = x + parent!!.absoluteX,
+                y = y + parent!!.absoluteY,
+                z = z + parent!!.absoluteZ
+            )
+        }
+    val absoluteX: QuantityFlt64 get() = x + (parent?.absoluteX ?: (Flt64.zero * x.unit))
+    val absoluteY: QuantityFlt64 get() = y + (parent?.absoluteY ?: (Flt64.zero * y.unit))
+    val absoluteZ: QuantityFlt64 get() = z + (parent?.absoluteZ ?: (Flt64.zero * z.unit))
 
     val absolutePlacement get() = Placement3(view, absolutePosition)
 
@@ -161,15 +206,15 @@ data class Placement3<T : Cuboid<T>>(
     val height by view::height
     val depth by view::depth
 
-    val maxX: Flt64 = x + width
-    val maxY: Flt64 = y + height
-    val maxZ: Flt64 = z + depth
-    val maxPosition: Point<Dim3, Flt64> = position + vector3(x = width, y = height, z = depth)
+    val maxX: QuantityFlt64 = x + width
+    val maxY: QuantityFlt64 = y + height
+    val maxZ: QuantityFlt64 = z + depth
+    val maxPosition: QuantityPoint3 = position + QuantityVector3(x = width, y = height, z = depth)
 
-    val maxAbsoluteX: Flt64 get() = absoluteX + width
-    val maxAbsoluteY: Flt64 get() = absoluteY + height
-    val maxAbsoluteZ: Flt64 get() = absoluteZ + depth
-    val maxAbsolutePosition: Point<Dim3, Flt64> get() = absolutePosition + vector3(x = width, y = height, z = depth)
+    val maxAbsoluteX: QuantityFlt64 get() = absoluteX + width
+    val maxAbsoluteY: QuantityFlt64 get() = absoluteY + height
+    val maxAbsoluteZ: QuantityFlt64 get() = absoluteZ + depth
+    val maxAbsolutePosition: QuantityPoint3 get() = absolutePosition + QuantityVector3(x = width, y = height, z = depth)
 
     init {
         if (unit is Container3<*>) {
@@ -180,53 +225,26 @@ data class Placement3<T : Cuboid<T>>(
     }
 
     fun contains(
-        point: Point<Dim3, Flt64>,
+        point: QuantityPoint3,
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
     ): Boolean {
-        val lowerInterval = if (withBorder && withLowerBound) {
-            Interval.Closed
-        } else {
-            Interval.Open
-        }
-        val upperInterval = if (withBorder && withUpperBound) {
-            Interval.Closed
-        } else {
-            Interval.Open
-        }
-        val xRange = ValueRange(
-            lb = absoluteX,
-            ub = maxAbsoluteX,
-            lbInterval = lowerInterval,
-            ubInterval = upperInterval,
-            constants = Flt64
-        ).value!!
-        val yRange = ValueRange(
-            lb = absoluteY,
-            ub = maxAbsoluteY,
-            lbInterval = lowerInterval,
-            ubInterval = upperInterval,
-            constants = Flt64
-        ).value!!
-        val zRange = ValueRange(
-            lb = absoluteZ,
-            ub = maxAbsoluteZ,
-            lbInterval = lowerInterval,
-            ubInterval = upperInterval,
-            constants = Flt64
-        ).value!!
-        return xRange.contains(point.x) && yRange.contains(point.y) && zRange.contains(point.z)
+        val includeLower = withBorder && withLowerBound
+        val includeUpper = withBorder && withUpperBound
+        return containsInRange(point.x, absoluteX, maxAbsoluteX, includeLower, includeUpper)
+                && containsInRange(point.y, absoluteY, maxAbsoluteY, includeLower, includeUpper)
+                && containsInRange(point.z, absoluteZ, maxAbsoluteZ, includeLower, includeUpper)
     }
 
     infix fun overlapped(rhs: Placement3<*>): Boolean {
-        if (maxAbsoluteX leq rhs.absoluteX || absoluteX geq rhs.maxAbsoluteX) {
+        if ((maxAbsoluteX leq rhs.absoluteX) == true || (absoluteX geq rhs.maxAbsoluteX) == true) {
             return false
         }
-        if (maxAbsoluteY leq rhs.absoluteY || absoluteY geq rhs.maxAbsoluteY) {
+        if ((maxAbsoluteY leq rhs.absoluteY) == true || (absoluteY geq rhs.maxAbsoluteY) == true) {
             return false
         }
-        if (maxAbsoluteZ leq rhs.absoluteZ || absoluteZ geq rhs.maxAbsoluteZ) {
+        if ((maxAbsoluteZ leq rhs.absoluteZ) == true || (absoluteZ geq rhs.maxAbsoluteZ) == true) {
             return false
         }
         return true
@@ -235,21 +253,21 @@ data class Placement3<T : Cuboid<T>>(
     override fun copy() = Placement3(view.copy(), position)
 
     override fun partialOrd(rhs: Placement3<T>): Order {
-        when (val value = z ord rhs.z) {
+        when (val value = quantityOrd(z, rhs.z, "z")) {
             Order.Equal -> {}
 
             else -> {
                 return value
             }
         }
-        when (val value = y ord rhs.y) {
+        when (val value = quantityOrd(y, rhs.y, "y")) {
             Order.Equal -> {}
 
             else -> {
                 return value
             }
         }
-        return x ord rhs.x
+        return quantityOrd(x, rhs.x, "x")
     }
 
     override fun hashCode(): Int {
@@ -275,9 +293,9 @@ fun topPlacements(placements: List<Placement3<*>>): List<Placement3<*>> {
         val bottom1 = Placement2(placement1, Bottom)
         var flag = true
         for (placement2 in placements) {
-            val bottom2 = Placement2(placement1, Bottom)
+            val bottom2 = Placement2(placement2, Bottom)
             if (bottom1.overlapped(bottom2)
-                && placement1.maxY ls placement2.maxY
+                && (placement1.maxY ls placement2.maxY) == true
             ) {
                 flag = false
                 break
@@ -296,9 +314,9 @@ fun bottomPlacements(placements: List<Placement3<*>>): List<Placement3<*>> {
         val bottom1 = Placement2(placement1, Bottom)
         var flag = true
         for (placement2 in placements) {
-            val bottom2 = Placement2(placement1, Bottom)
+            val bottom2 = Placement2(placement2, Bottom)
             if (bottom1.overlapped(bottom2)
-                && placement1.y gr placement2.y
+                && (placement1.y gr placement2.y) == true
             ) {
                 flag = false
                 break
@@ -310,6 +328,3 @@ fun bottomPlacements(placements: List<Placement3<*>>): List<Placement3<*>> {
     }
     return bottomPlacements
 }
-
-
-

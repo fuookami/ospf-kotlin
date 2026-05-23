@@ -6,49 +6,51 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.*
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.point3
-import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.quantities.quantity.eq
+import fuookami.ospf.kotlin.quantities.quantity.geq
+import fuookami.ospf.kotlin.quantities.quantity.gr
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
+import fuookami.ospf.kotlin.quantities.unit.Meter
+
+private fun maxQuantity(values: Iterable<QuantityFlt64>): QuantityFlt64? {
+    var maximum: QuantityFlt64? = null
+    for (value in values) {
+        maximum = if (maximum == null || (value gr maximum) == true) {
+            value
+        } else {
+            maximum
+        }
+    }
+    return maximum
+}
 
 data class ProjectionShape(
-    val length: Flt64,
-    val width: Flt64
+    val length: QuantityFlt64,
+    val width: QuantityFlt64
 ) {
     companion object {
-        operator fun invoke(length: Flt64, width: Flt64): ProjectionShape {
-            return ProjectionShape(maxOf(length, width), min(length, width))
+        operator fun invoke(length: QuantityFlt64, width: QuantityFlt64): ProjectionShape {
+            return if ((length geq width) == true) {
+                ProjectionShape(length, width)
+            } else {
+                ProjectionShape(width, length)
+            }
         }
     }
 
-    val area: Flt64 = length * width
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ProjectionShape
-
-        if (length != other.length) return false
-        if (width != other.width) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return length.hashCode() or width.hashCode()
-    }
+    val area: QuantityFlt64 = length * width
 }
 
 sealed class ProjectivePlane {
-    abstract fun length(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): Flt64
-    abstract fun width(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): Flt64
-    abstract fun height(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): Flt64
+    abstract fun length(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): QuantityFlt64
+    abstract fun width(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): QuantityFlt64
+    abstract fun height(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright): QuantityFlt64
 
-    abstract fun length(space: AbstractContainer3Shape): Flt64
-    abstract fun width(space: AbstractContainer3Shape): Flt64
-    abstract fun height(space: AbstractContainer3Shape): Flt64
+    abstract fun length(space: AbstractContainer3Shape): QuantityFlt64
+    abstract fun width(space: AbstractContainer3Shape): QuantityFlt64
+    abstract fun height(space: AbstractContainer3Shape): QuantityFlt64
 
     fun shape(unit: AbstractCuboid, orientation: Orientation = Orientation.Upright) = ProjectionShape.invoke(
         length = this.length(unit, orientation),
@@ -60,10 +62,10 @@ sealed class ProjectivePlane {
         width = this.width(space)
     )
 
-    abstract fun distance(point: Point<Dim3, Flt64>): Flt64
-    abstract fun point2(point: Point<Dim3, Flt64>): Point<Dim2, Flt64>
-    abstract fun point3(point: Point<Dim2, Flt64>, distance: Flt64 = Flt64.zero): Point<Dim3, Flt64>
-    abstract fun vector(distance: Flt64 = Flt64.one): Vector<Dim3, Flt64>
+    abstract fun distance(point: QuantityPoint3): QuantityFlt64
+    abstract fun point2(point: QuantityPoint3): QuantityPoint2
+    abstract fun point3(point: QuantityPoint2, distance: QuantityFlt64 = Flt64.zero * Meter): QuantityPoint3
+    abstract fun vector(distance: QuantityFlt64 = Flt64.one * Meter): QuantityVector3
 }
 
 typealias Direction = ProjectivePlane
@@ -80,10 +82,10 @@ object Bottom : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.width
     override fun height(space: AbstractContainer3Shape) = space.height
 
-    override fun distance(point: Point<Dim3, Flt64>) = point.y
-    override fun point2(point: Point<Dim3, Flt64>) = point2(x = point.z, y = point.x)
-    override fun point3(point: Point<Dim2, Flt64>, distance: Flt64) = point3(x = point.y, y = distance, z = point.x)
-    override fun vector(distance: Flt64) = vector3(y = distance)
+    override fun distance(point: QuantityPoint3) = point.y
+    override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.z, y = point.x)
+    override fun point3(point: QuantityPoint2, distance: QuantityFlt64) = QuantityPoint3(x = point.y, y = distance, z = point.x)
+    override fun vector(distance: QuantityFlt64) = QuantityVector3(y = distance, x = Flt64.zero * distance.unit, z = Flt64.zero * distance.unit)
 
     override fun toString(): String {
         return "Bottom-ZOX"
@@ -104,10 +106,10 @@ object Side : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.height
     override fun height(space: AbstractContainer3Shape) = space.depth
 
-    override fun distance(point: Point<Dim3, Flt64>) = point.z
-    override fun point2(point: Point<Dim3, Flt64>) = point2(x = point.x, y = point.y)
-    override fun point3(point: Point<Dim2, Flt64>, distance: Flt64) = point3(x = point.x, y = point.y, z = distance)
-    override fun vector(distance: Flt64) = vector3(z = distance)
+    override fun distance(point: QuantityPoint3) = point.z
+    override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.x, y = point.y)
+    override fun point3(point: QuantityPoint2, distance: QuantityFlt64) = QuantityPoint3(x = point.x, y = point.y, z = distance)
+    override fun vector(distance: QuantityFlt64) = QuantityVector3(z = distance, x = Flt64.zero * distance.unit, y = Flt64.zero * distance.unit)
 
     override fun toString(): String {
         return "Side-XOY"
@@ -128,10 +130,10 @@ object Front : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.height
     override fun height(space: AbstractContainer3Shape) = space.width
 
-    override fun distance(point: Point<Dim3, Flt64>) = point.x
-    override fun point2(point: Point<Dim3, Flt64>) = point2(x = point.y, y = point.z)
-    override fun point3(point: Point<Dim2, Flt64>, distance: Flt64) = point3(x = distance, y = point.x, z = point.y)
-    override fun vector(distance: Flt64) = vector3(x = distance)
+    override fun distance(point: QuantityPoint3) = point.x
+    override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.y, y = point.z)
+    override fun point3(point: QuantityPoint2, distance: QuantityFlt64) = QuantityPoint3(x = distance, y = point.x, z = point.y)
+    override fun vector(distance: QuantityFlt64) = QuantityVector3(x = distance, y = Flt64.zero * distance.unit, z = Flt64.zero * distance.unit)
 
     override fun toString(): String {
         return "Front-ZOY"
@@ -148,11 +150,11 @@ sealed interface Projection<
     val plane: P
     val unit: T get() = view.unit
     val orientation: Orientation get() = view.orientation
-    val length: Flt64 get() = plane.length(view)
-    val width: Flt64 get() = plane.width(view)
-    val height: Flt64 get() = plane.height(view)
-    val area: Flt64 get() = length * width
-    val weight: Flt64 get() = unit.weight
+    val length: QuantityFlt64 get() = plane.length(view)
+    val width: QuantityFlt64 get() = plane.width(view)
+    val height: QuantityFlt64 get() = plane.height(view)
+    val area: QuantityFlt64 get() = length * width
+    val weight: QuantityFlt64 get() = unit.weight
 
     fun amount(unit: AbstractCuboid): UInt64
 }
@@ -208,13 +210,16 @@ data class MultiPileProjection<
 ) : Projection<T, P> {
     override val view = views.first()
 
-    override val length = views.maxOf { plane.length(it) }
-    override val width = views.maxOf { plane.width(it) }
-    override val height = views.sumOf { plane.height(it) }
-    override val weight = views.sumOf { it.weight }
+    override val length = maxQuantity(views.map { plane.length(it) }) ?: (Flt64.zero * Meter)
+    override val width = maxQuantity(views.map { plane.width(it) }) ?: (Flt64.zero * Meter)
+    override val height = views.asSequence().fold(Flt64.zero * length.unit) { acc, item ->
+        acc + plane.height(item)
+    }
+    override val weight = views.asSequence().fold(Flt64.zero * Kilogram) { acc, item ->
+        acc + item.weight
+    }
 
     override fun amount(unit: AbstractCuboid) = UInt64(views.count { it.unit == unit })
 
     override fun copy() = MultiPileProjection(views.map { it.copy() }, plane)
 }
-

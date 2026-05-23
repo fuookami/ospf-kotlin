@@ -6,13 +6,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.math.geometry.point3
 
 data class PriorityAttribute(
     val key: String,
@@ -89,6 +87,10 @@ interface Item : Cuboid<Item>, Indexed {
     val priorities: Map<String, UInt64>
     val warehouse: String?
     val packageAttribute: PackageAttribute
+    val materialAmounts: Map<MaterialKey, UInt64>
+        get() = emptyMap()
+    val materialWeights: Map<MaterialKey, QuantityFlt64>
+        get() = emptyMap()
 
     val packageType get() = packageAttribute.packageType
     val packageBottomShape get() = packageShape.bottomShape
@@ -134,14 +136,14 @@ interface Item : Cuboid<Item>, Indexed {
     fun enabledStackingOn(
         bottomItem: Item,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
+        height: QuantityFlt64 = width * Flt64.zero,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return packageAttribute.enabledStackingOn(
             item = this,
             bottomItem = bottomItem,
             layer = layer,
-            height = height,
+            height = height.toFlt64(),
             space = space
         )
     }
@@ -158,10 +160,10 @@ open class ActualItem(
     val pack: Package? = null,
     val priorityAttribute: List<PriorityAttribute> = emptyList(),
     // inherited from Cuboid<Item>
-    override val width: Flt64,
-    override val height: Flt64,
-    override val depth: Flt64,
-    override val weight: Flt64,
+    override val width: QuantityFlt64,
+    override val height: QuantityFlt64,
+    override val depth: QuantityFlt64,
+    override val weight: QuantityFlt64,
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
@@ -170,6 +172,23 @@ open class ActualItem(
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
     override val priorities = priorityAttribute.mapNotNull { it(this)?.let { value -> Pair(it.key, value) } }.toMap()
+    override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
+        val counter = HashMap<MaterialKey, UInt64>()
+        for ((material, amount) in pack?.materials ?: emptyMap()) {
+            val key = material.key
+            counter[key] = (counter[key] ?: UInt64.zero) + amount
+        }
+        counter
+    }
+    override val materialWeights: Map<MaterialKey, QuantityFlt64> by lazy {
+        val counter = HashMap<MaterialKey, QuantityFlt64>()
+        for ((material, amount) in pack?.materials ?: emptyMap()) {
+            val key = material.key
+            val weight = material.weight * amount.toFlt64()
+            counter[key] = (counter[key] ?: (weight * Flt64.zero)) + weight
+        }
+        counter
+    }
 
     constructor(
         id: String,
@@ -204,10 +223,10 @@ open class ActualItem(
 open class PatternedItem(
     private val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>,
     // inherited from Cuboid<Item>
-    override val width: Flt64,
-    override val height: Flt64,
-    override val depth: Flt64,
-    override val weight: Flt64,
+    override val width: QuantityFlt64,
+    override val height: QuantityFlt64,
+    override val depth: QuantityFlt64,
+    override val weight: QuantityFlt64,
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
@@ -216,17 +235,43 @@ open class PatternedItem(
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
-    override val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / actualItems.sumOf { it.second.toFlt64() }
+    override val volume: QuantityFlt64 = run {
+        val totalAmount = actualItems.fold(Flt64.zero) { acc, (_, amount, _) -> acc + amount.toFlt64() }
+        if (totalAmount eq Flt64.zero) {
+            width * height * depth * Flt64.zero
+        } else {
+            actualItems.sumOf { it.first.volume * it.second.toFlt64() } / totalAmount
+        }
+    }
+    override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
+        val counter = HashMap<MaterialKey, UInt64>()
+        for ((item, amount, _) in actualItems) {
+            for ((material, thisAmount) in item.materialAmounts) {
+                counter[material] = (counter[material] ?: UInt64.zero) + thisAmount * amount
+            }
+        }
+        counter
+    }
+    override val materialWeights: Map<MaterialKey, QuantityFlt64> by lazy {
+        val counter = HashMap<MaterialKey, QuantityFlt64>()
+        for ((item, amount, _) in actualItems) {
+            for ((material, weight) in item.materialWeights) {
+                val thisWeight = weight * amount.toFlt64()
+                counter[material] = (counter[material] ?: (thisWeight * Flt64.zero)) + thisWeight
+            }
+        }
+        counter
+    }
 
     companion object {
         operator fun invoke(
             pattern: ItemPattern,
             actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>
         ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
-            val amount = actualItems.sumOf { it.second }
+            val amount = actualItems.fold(UInt64.zero) { acc, (_, thisAmount, _) -> acc + thisAmount }
             val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
             val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
-            val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume)
+            val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume.toFlt64())
             return Triple(
                 PatternedItem(
                     actualItems = actualItems,
@@ -382,14 +427,14 @@ open class ItemView(
     fun enabledStackingOn(
         bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
+        height: QuantityFlt64 = this.height * Flt64.zero,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItem = bottomItem,
             layer = layer,
-            height = height,
+            height = height.toFlt64(),
             space = space
         )
     }
@@ -678,27 +723,32 @@ fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
 }
 
 fun Map<Item, UInt64>.totalCount(): UInt64 {
-    return this.values.sumOf { it }
+    return this.values.fold(UInt64.zero) { acc, value -> acc + value }
 }
 
 fun Iterable<Pair<Item, UInt64>>.totalCount(): UInt64 {
-    return this.sumOf { it.second }
+    return this.fold(UInt64.zero) { acc, (_, value) -> acc + value }
 }
 
 fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
-fun List<Placement3<*>>.dump(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
+fun List<Placement3<*>>.dump(offset: Point<Dim3, Flt64>): List<ItemPlacement3> {
+    return dump(point3(offset))
+}
+
+fun List<Placement3<*>>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+    val offsetVector = QuantityVector3(offset.x, offset.y, offset.z)
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
         when (val unit = placement.unit) {
             is Container3<*> -> {
-                items.addAll(unit.units.dump(placement.position + offset))
+                items.addAll(unit.units.dump(placement.position + offsetVector))
             }
 
             is Item -> {
-                items.add(Placement3(placement.view as ItemView, placement.position + offset))
+                items.add(Placement3(placement.view as ItemView, placement.position + offsetVector))
             }
 
             else -> {}
@@ -707,16 +757,21 @@ fun List<Placement3<*>>.dump(offset: Point<Dim3, Flt64> = point3()): List<ItemPl
     return items
 }
 
-fun List<Placement3<*>>.dumpAbsolutely(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
+fun List<Placement3<*>>.dumpAbsolutely(offset: Point<Dim3, Flt64>): List<ItemPlacement3> {
+    return dumpAbsolutely(point3(offset))
+}
+
+fun List<Placement3<*>>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+    val offsetVector = QuantityVector3(offset.x, offset.y, offset.z)
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
         when (val unit = placement.unit) {
             is Container3<*> -> {
-                items.addAll(unit.units.dump(placement.absolutePosition + offset))
+                items.addAll(unit.units.dump(placement.absolutePosition + offsetVector))
             }
 
             is Item -> {
-                items.add(Placement3(placement.view as ItemView, placement.absolutePosition + offset))
+                items.add(Placement3(placement.view as ItemView, placement.absolutePosition + offsetVector))
             }
 
             else -> {}
@@ -864,6 +919,7 @@ val Placement3<*>.topFlat: Boolean
     get() {
         return unit.topFlat
     }
+
 
 
 

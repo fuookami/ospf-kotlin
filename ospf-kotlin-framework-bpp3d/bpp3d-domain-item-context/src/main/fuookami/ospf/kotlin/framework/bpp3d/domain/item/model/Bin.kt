@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -6,26 +6,22 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.ord
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import fuookami.ospf.kotlin.math.geometry.point3
 
 class BinType(
     // inherited from Container3Shape
-    override val width: Flt64,
-    override val height: Flt64,
-    override val depth: Flt64,
-    val capacity: Flt64,
+    override val width: QuantityFlt64,
+    override val height: QuantityFlt64,
+    override val depth: QuantityFlt64,
+    val capacity: QuantityFlt64,
     val longitudinalBalance: Flt64?,
     val lateralBalance: Flt64?,
     val typeCode: String,
@@ -33,10 +29,10 @@ class BinType(
     val extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
 ) : AbstractContainer3Shape {
     fun new(
-        width: Flt64? = null,
-        height: Flt64? = null,
-        depth: Flt64? = null,
-        capacity: Flt64? = null,
+        width: QuantityFlt64? = null,
+        height: QuantityFlt64? = null,
+        depth: QuantityFlt64? = null,
+        capacity: QuantityFlt64? = null,
         longitudinalBalance: Flt64? = null,
         lateralBalance: Flt64? = null,
         typeCode: String? = null,
@@ -70,11 +66,14 @@ class BinType(
     }
 
     fun estimateAmount(
-        totalVolume: Flt64,
-        totalWeight: Flt64,
+        totalVolume: QuantityFlt64,
+        totalWeight: QuantityFlt64,
         estimatedLoadingRate: Flt64 = Flt64.one
     ): Flt64 {
-        return max((totalVolume / volume) / estimatedLoadingRate, totalWeight / capacity)
+        return max(
+            ((totalVolume / volume).value / estimatedLoadingRate),
+            (totalWeight / capacity).value
+        )
     }
 
     suspend fun program(
@@ -109,7 +108,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                Flt64.zero
+                                it.y * Flt64.zero
                             }
                         }
 
@@ -118,7 +117,7 @@ class BinType(
                         }
 
                         else -> {
-                            Flt64.zero
+                            it.y * Flt64.zero
                         }
                     }
                 }
@@ -128,7 +127,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                Flt64.zero
+                                it.y * Flt64.zero
                             }
                         }
 
@@ -137,7 +136,7 @@ class BinType(
                         }
 
                         else -> {
-                            Flt64.zero
+                            it.y * Flt64.zero
                         }
                     }
                 }
@@ -159,7 +158,7 @@ class BinType(
                     scope = this
                 )
                 for (thisLayers in layersPromise) {
-                    var z = Flt64.zero
+                    var z = Flt64.zero * depth.unit
                     val thisPlacements = thisLayers.map {
                         val ret = Placement3(BinLayerView(it.copy()), point3(z = z))
                         z += it.depth
@@ -205,7 +204,9 @@ fun List<Bin<*>>.unpack(): Map<Item, UInt64> {
     for (bin in this) {
         items.addAll(bin.amounts.keys as Set<Item>)
     }
-    return items.associateWith { item -> this.sumOf { bin -> bin.amount(item) } }
+    return items.associateWith { item ->
+        this.fold(UInt64.zero) { acc, bin -> acc + bin.amount(item) }
+    }
 }
 
 infix fun Collection<Bin<*>>.ord(rhs: Collection<Bin<*>>): Order {
@@ -214,7 +215,23 @@ infix fun Collection<Bin<*>>.ord(rhs: Collection<Bin<*>>): Order {
             if (this.isEmpty() || rhs.isEmpty()) {
                 Order.Equal
             } else {
-                this.minOf { it.loadingRate } ord rhs.minOf { it.loadingRate }
+                var lhsMin = this.first().loadingRate
+                for (bin in this.drop(1)) {
+                    if (bin.loadingRate ord lhsMin is Order.Less) {
+                        lhsMin = bin.loadingRate
+                    }
+                }
+                var rhsMin = rhs.first().loadingRate
+                for (bin in rhs.drop(1)) {
+                    if (bin.loadingRate ord rhsMin is Order.Less) {
+                        rhsMin = bin.loadingRate
+                    }
+                }
+                when (lhsMin ord rhsMin) {
+                    is Order.Less -> Order.Less()
+                    is Order.Greater -> Order.Greater()
+                    Order.Equal -> Order.Equal
+                }
             }
         }
 
@@ -230,5 +247,6 @@ typealias ItemBin = Bin<Item>
 fun LayerBin.dump(): ItemBin {
     return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
 }
+
 
 
