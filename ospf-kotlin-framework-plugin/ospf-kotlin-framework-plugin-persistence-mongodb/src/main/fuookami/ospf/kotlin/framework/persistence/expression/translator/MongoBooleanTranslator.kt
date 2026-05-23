@@ -18,7 +18,7 @@ import org.bson.Document
  * 字段名解析器
  * Field Name Resolver
  */
-typealias MongoFieldNameResolver = (String) -> String?
+typealias MongoFieldNameResolver = PersistenceFieldResolver<String>
 
 /**
  * MongoDB 布尔表达式翻译器

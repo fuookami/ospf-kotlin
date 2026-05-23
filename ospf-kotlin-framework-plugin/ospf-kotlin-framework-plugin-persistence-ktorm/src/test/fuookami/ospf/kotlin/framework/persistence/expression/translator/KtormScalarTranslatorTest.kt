@@ -33,7 +33,7 @@ class KtormScalarTranslatorTest {
         val quantity = int("quantity")
     }
 
-    private val resolver: KtormColumnResolver = { path ->
+    private val resolver: KtormColumnResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "price" -> Items.price
             "quantity" -> Items.quantity
@@ -111,3 +111,4 @@ class KtormScalarTranslatorTest {
         assertEquals(ArgumentExpression::class, expr!!::class)
     }
 }
+

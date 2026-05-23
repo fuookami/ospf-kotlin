@@ -119,7 +119,7 @@ abstract class KtormRepository<E : Any>(
          * 从 Table 自动创建列解析器
          * Create column resolver from Table
          */
-        fun tableColumnResolver(table: Table<*>): KtormColumnResolver = { path ->
+        fun tableColumnResolver(table: Table<*>): KtormColumnResolver = { path: String ->
             val columnName = path.substringAfterLast(".")
             table.columns.find { it.name == columnName } as? ColumnDeclaring<*>
         }

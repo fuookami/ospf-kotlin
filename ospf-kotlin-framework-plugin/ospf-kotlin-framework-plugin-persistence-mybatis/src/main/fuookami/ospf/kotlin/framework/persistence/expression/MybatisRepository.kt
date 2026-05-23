@@ -99,7 +99,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
          * 简单列名解析器：直接使用路径最后一部分作为列名
          * Simple column resolver: use last part of path as column name
          */
-        fun simpleColumnResolver(): MybatisColumnNameResolver = { path ->
+        fun simpleColumnResolver(): MybatisColumnNameResolver = { path: String ->
             path.substringAfterLast(".")
         }
     }

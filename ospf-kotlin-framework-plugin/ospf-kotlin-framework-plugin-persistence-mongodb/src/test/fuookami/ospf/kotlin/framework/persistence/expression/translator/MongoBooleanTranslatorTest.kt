@@ -21,9 +21,11 @@ import org.junit.jupiter.api.Test
 class MongoBooleanTranslatorTest {
     data class Entity(val age: Int)
 
-    private val resolver: MongoFieldNameResolver = { path ->
+    private val resolver: MongoFieldNameResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "id", "name", "age", "status", "price", "quantity" -> path.substringAfterLast(".")
+            "widthValue" -> "width_value"
+            "widthUnitSymbol" -> "width_unit_symbol"
             else -> null
         }
     }
@@ -108,6 +110,29 @@ class MongoBooleanTranslatorTest {
     }
 
     @Test
+    @DisplayName("should require explicit PO field path / 应仅接受显式 PO 字段路径")
+    fun shouldRequireExplicitPoFieldPath() {
+        val poExpr = Comparison(
+            ComparisonOperator.Gt,
+            ScalarReference(PropertyPath.parse("widthValue")),
+            ScalarConstant(10)
+        )
+        val domainExpr = Comparison(
+            ComparisonOperator.Gt,
+            ScalarReference(PropertyPath.parse("width")),
+            ScalarConstant(10)
+        )
+
+        val poJson = json(translator.translate(poExpr))
+        val domainJson = json(translator.translate(domainExpr))
+
+        assertTrue(poJson.contains("\"width_value\""))
+        assertTrue(poJson.contains("\"\$gt\""))
+        assertTrue(domainJson.contains("\"_id\""))
+        assertTrue(domainJson.contains("\"\$exists\""))
+    }
+
+    @Test
     @DisplayName("column-column comparison should use expr / 列-列比较应使用 expr")
     fun columnColumnComparisonShouldUseExpr() {
         val expr = Comparison<Int>(
@@ -181,3 +206,4 @@ class MongoBooleanTranslatorTest {
         }
     }
 }
+

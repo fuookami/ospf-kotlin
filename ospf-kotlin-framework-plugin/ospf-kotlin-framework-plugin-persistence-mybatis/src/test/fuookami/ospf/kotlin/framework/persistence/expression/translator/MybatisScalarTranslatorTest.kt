@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test
 
 @DisplayName("MybatisScalarTranslator Tests / MyBatis 标量翻译器测试")
 class MybatisScalarTranslatorTest {
-    private val resolver: MybatisColumnNameResolver = { path ->
+    private val resolver: MybatisColumnNameResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "price" -> "price"
             "quantity" -> "quantity"
@@ -101,3 +101,4 @@ class MybatisScalarTranslatorTest {
         }
     }
 }
+

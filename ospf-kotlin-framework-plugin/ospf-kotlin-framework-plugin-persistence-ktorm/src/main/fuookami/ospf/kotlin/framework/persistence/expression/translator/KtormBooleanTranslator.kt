@@ -28,7 +28,7 @@ import org.ktorm.schema.SqlType
  * 将 PropertyPath 解析为 Ktorm Column。
  * Resolves PropertyPath to Ktorm Column.
  */
-typealias KtormColumnResolver = (String) -> ColumnDeclaring<*>?
+typealias KtormColumnResolver = PersistenceFieldResolver<ColumnDeclaring<*>>
 
 /**
  * Ktorm 布尔表达式翻译器

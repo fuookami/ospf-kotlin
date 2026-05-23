@@ -29,7 +29,7 @@ class KtormUpdateTranslatorTest {
         val status = varchar("status")
     }
 
-    private val resolver: KtormColumnResolver = { path ->
+    private val resolver: KtormColumnResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "id" -> Users.id
             "name" -> Users.name
@@ -105,3 +105,4 @@ class KtormUpdateTranslatorTest {
         assertEquals("updated", row[Users.name])
     }
 }
+

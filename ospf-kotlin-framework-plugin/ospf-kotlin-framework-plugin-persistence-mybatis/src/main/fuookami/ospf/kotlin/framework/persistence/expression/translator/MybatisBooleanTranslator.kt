@@ -18,7 +18,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
  * 列名解析器
  * Column Name Resolver
  */
-typealias MybatisColumnNameResolver = (String) -> String?
+typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
 
 /**
  * MyBatis 布尔表达式翻译器

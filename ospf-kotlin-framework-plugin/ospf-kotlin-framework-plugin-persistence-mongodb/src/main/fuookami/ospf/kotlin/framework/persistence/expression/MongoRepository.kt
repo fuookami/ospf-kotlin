@@ -111,7 +111,7 @@ abstract class MongoRepository<E : Any>(
          * 简单字段名解析器：直接使用路径最后一部分作为字段名
          * Simple field resolver: use last part of path as field name
          */
-        fun simpleFieldResolver(): MongoFieldNameResolver = { path ->
+        fun simpleFieldResolver(): MongoFieldNameResolver = { path: String ->
             path.substringAfterLast(".")
         }
     }

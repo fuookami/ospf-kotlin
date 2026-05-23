@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 @DisplayName("MongoUpdateTranslator Tests / MongoDB 更新翻译器测试")
 class MongoUpdateTranslatorTest {
-    private val resolver: MongoFieldNameResolver = { it.substringAfterLast(".") }
+    private val resolver: MongoFieldNameResolver = { path: String -> path.substringAfterLast(".") }
     private val codec = MongoClientSettings.getDefaultCodecRegistry()
 
     @Test
@@ -37,3 +37,4 @@ class MongoUpdateTranslatorTest {
         assertTrue(json.contains("\"age\""))
     }
 }
+

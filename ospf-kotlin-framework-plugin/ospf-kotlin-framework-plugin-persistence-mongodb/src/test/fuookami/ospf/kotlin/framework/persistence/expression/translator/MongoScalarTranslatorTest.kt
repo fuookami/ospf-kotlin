@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test
 
 @DisplayName("MongoScalarTranslator Tests / MongoDB 标量翻译器测试")
 class MongoScalarTranslatorTest {
-    private val resolver: MongoFieldNameResolver = { path ->
+    private val resolver: MongoFieldNameResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "price" -> "price"
             "quantity" -> "quantity"
@@ -102,3 +102,4 @@ class MongoScalarTranslatorTest {
         }
     }
 }
+

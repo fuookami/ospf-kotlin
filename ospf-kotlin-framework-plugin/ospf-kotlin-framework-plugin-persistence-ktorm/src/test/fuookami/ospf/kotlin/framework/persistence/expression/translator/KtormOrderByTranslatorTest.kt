@@ -31,7 +31,7 @@ class KtormOrderByTranslatorTest {
         val name = varchar("name")
     }
 
-    private val resolver: KtormColumnResolver = { path ->
+    private val resolver: KtormColumnResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "id" -> Users.id
             "name" -> Users.name
@@ -90,3 +90,4 @@ class KtormOrderByTranslatorTest {
         assertEquals(OrderType.DESCENDING, selectExpr.orderBy[2].orderType)
     }
 }
+

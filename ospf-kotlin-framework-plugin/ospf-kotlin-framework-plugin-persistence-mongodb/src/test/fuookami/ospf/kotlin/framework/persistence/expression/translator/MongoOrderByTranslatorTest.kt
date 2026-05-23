@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 
 @DisplayName("MongoOrderByTranslator Tests / MongoDB 排序翻译器测试")
 class MongoOrderByTranslatorTest {
-    private val resolver: MongoFieldNameResolver = { it.substringAfterLast(".") }
+    private val resolver: MongoFieldNameResolver = { path: String -> path.substringAfterLast(".") }
     private val codec = MongoClientSettings.getDefaultCodecRegistry()
 
     @Test
@@ -31,3 +31,4 @@ class MongoOrderByTranslatorTest {
         assertTrue(json.contains("1"))
     }
 }
+

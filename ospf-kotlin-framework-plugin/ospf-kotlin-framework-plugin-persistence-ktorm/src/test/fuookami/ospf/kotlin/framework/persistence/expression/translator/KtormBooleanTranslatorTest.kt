@@ -34,14 +34,18 @@ class KtormBooleanTranslatorTest {
         val age = int("age")
         val name = varchar("name")
         val status = varchar("status")
+        val widthValue = int("width_value")
+        val widthUnitSymbol = varchar("width_unit_symbol")
     }
 
-    private val resolver: KtormColumnResolver = { path ->
+    private val resolver: KtormColumnResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "id" -> Users.id
             "age" -> Users.age
             "name" -> Users.name
             "status" -> Users.status
+            "widthValue" -> Users.widthValue
+            "widthUnitSymbol" -> Users.widthUnitSymbol
             else -> null
         }
     }
@@ -166,6 +170,27 @@ class KtormBooleanTranslatorTest {
     @DisplayName("Fallback Tests / 降级策略测试")
     inner class FallbackTests {
         @Test
+        @DisplayName("should require explicit PO field path / 应仅接受显式 PO 字段路径")
+        fun shouldRequireExplicitPoFieldPath() {
+            val poExpr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarReference(PropertyPath.parse("widthValue")),
+                ScalarConstant(10)
+            )
+            val domainExpr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarReference(PropertyPath.parse("width")),
+                ScalarConstant(10)
+            )
+
+            val poTranslated = translator.translate(poExpr) as BinaryExpression<Boolean>
+            val domainTranslated = translator.translate(domainExpr) as BinaryExpression<Boolean>
+
+            assertEquals(BinaryExpressionType.GREATER_THAN, poTranslated.type)
+            assertEquals(BinaryExpressionType.EQUAL, domainTranslated.type)
+        }
+
+        @Test
         @DisplayName("unsupported path should become always false / 未知路径应转为恒假条件")
         fun unsupportedPathShouldBecomeAlwaysFalse() {
             val expr = Comparison(
@@ -246,3 +271,4 @@ class KtormBooleanTranslatorTest {
         }
     }
 }
+

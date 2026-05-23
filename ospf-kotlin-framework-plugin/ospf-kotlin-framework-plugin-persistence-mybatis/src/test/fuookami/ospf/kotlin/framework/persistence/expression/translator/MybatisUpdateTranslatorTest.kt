@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 class MybatisUpdateTranslatorTest {
     data class TestEntity(val id: Long, val name: String?)
 
-    private val resolver: MybatisColumnNameResolver = { it.substringAfterLast(".") }
+    private val resolver: MybatisColumnNameResolver = { path: String -> path.substringAfterLast(".") }
 
     @Test
     @DisplayName("should translate set setNull setExpr / 应翻译 set setNull setExpr")
@@ -36,3 +36,4 @@ class MybatisUpdateTranslatorTest {
         assertTrue(sqlSet.contains("age"))
     }
 }
+

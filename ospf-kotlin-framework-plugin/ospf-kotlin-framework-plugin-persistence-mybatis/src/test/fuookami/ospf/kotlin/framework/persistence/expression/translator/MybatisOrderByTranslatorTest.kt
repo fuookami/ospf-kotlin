@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test
 class MybatisOrderByTranslatorTest {
     data class TestEntity(val id: Long, val name: String?)
 
-    private val resolver: MybatisColumnNameResolver = { it.substringAfterLast(".") }
+    private val resolver: MybatisColumnNameResolver = { path: String -> path.substringAfterLast(".") }
 
     @Test
     @DisplayName("should translate multi-field order by / 应翻译多字段排序")
@@ -32,3 +32,4 @@ class MybatisOrderByTranslatorTest {
         assertTrue(sql.contains("NAME"))
     }
 }
+

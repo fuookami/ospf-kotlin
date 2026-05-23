@@ -20,9 +20,11 @@ import org.junit.jupiter.api.Assertions.*
 class MybatisBooleanTranslatorTest {
     data class TestEntity(val id: Long, val age: Int, val name: String?)
 
-    private val resolver: MybatisColumnNameResolver = { path ->
+    private val resolver: MybatisColumnNameResolver = { path: String ->
         when (path.substringAfterLast(".")) {
             "id", "age", "status", "name", "a", "b", "c", "d", "x", "price", "quantity" -> path.substringAfterLast(".")
+            "widthValue" -> "width_value"
+            "widthUnitSymbol" -> "width_unit_symbol"
             else -> null
         }
     }
@@ -216,6 +218,27 @@ class MybatisBooleanTranslatorTest {
         }
 
         @Test
+        @DisplayName("should require explicit PO field path / 应仅接受显式 PO 字段路径")
+        fun shouldRequireExplicitPoFieldPath() {
+            val poExpr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarReference(PropertyPath.parse("widthValue")),
+                ScalarConstant(10)
+            )
+            val domainExpr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarReference(PropertyPath.parse("width")),
+                ScalarConstant(10)
+            )
+
+            val poWrapper = translator.translate(QueryWrapper(), poExpr)
+            val domainWrapper = translator.translate(QueryWrapper(), domainExpr)
+
+            assertTrue(poWrapper.customSqlSegment.contains("width_value >"))
+            assertTrue(domainWrapper.customSqlSegment.contains("1 = 0"))
+        }
+
+        @Test
         @DisplayName("regex should become impossible condition / regex 应转不可能条件")
         fun regexShouldBecomeImpossibleCondition() {
             val expr = PatternMatch(
@@ -327,3 +350,4 @@ class MybatisBooleanTranslatorTest {
         }
     }
 }
+
