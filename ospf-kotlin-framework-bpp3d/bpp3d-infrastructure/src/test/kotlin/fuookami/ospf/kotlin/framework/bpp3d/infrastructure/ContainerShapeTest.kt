@@ -79,12 +79,12 @@ class ContainerShapeTest {
             height = 6.0 * Meter,
             depth = 5.0 * Meter
         )
-        val pointOffset = QuantityPoint3(
+        val pointOffset = QuantityPoint3G(
             x = 3.0 * Meter,
             y = 2.0 * Meter,
             z = 1.0 * Meter
         )
-        val vectorOffset = QuantityVector3(
+        val vectorOffset = QuantityVector3G(
             x = 1.0 * Meter,
             y = 1.5 * Meter,
             z = 2.0 * Meter

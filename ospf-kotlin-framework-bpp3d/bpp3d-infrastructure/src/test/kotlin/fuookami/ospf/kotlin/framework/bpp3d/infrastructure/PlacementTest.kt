@@ -27,7 +27,7 @@ class PlacementTest {
         )
         val placement = Placement3(
             view = box.view()!!,
-            position = QuantityPoint3(
+            position = QuantityPoint3G(
                 x = 1.0 * Meter,
                 y = 2.0 * Meter,
                 z = 3.0 * Meter
@@ -56,7 +56,7 @@ class PlacementTest {
         )
         val placement2 = Placement2(
             projection = projection,
-            position = QuantityPoint2(
+            position = QuantityPoint2G(
                 x = 0.0 * Meter,
                 y = 0.0 * Meter
             )
@@ -79,10 +79,10 @@ class PlacementTest {
             weight = 1.0 * Kilogram
         )
         val view = box.view()!!
-        val p0 = Placement3(view, QuantityPoint3(0.0 * Meter, 0.0 * Meter, 0.0 * Meter))
-        val p1 = Placement3(view, QuantityPoint3(0.0 * Meter, 1.0 * Meter, 0.0 * Meter))
-        val p2 = Placement3(view, QuantityPoint3(0.0 * Meter, 2.0 * Meter, 0.0 * Meter))
-        val isolated = Placement3(view, QuantityPoint3(10.0 * Meter, 0.0 * Meter, 0.0 * Meter))
+        val p0 = Placement3(view, QuantityPoint3G(0.0 * Meter, 0.0 * Meter, 0.0 * Meter))
+        val p1 = Placement3(view, QuantityPoint3G(0.0 * Meter, 1.0 * Meter, 0.0 * Meter))
+        val p2 = Placement3(view, QuantityPoint3G(0.0 * Meter, 2.0 * Meter, 0.0 * Meter))
+        val isolated = Placement3(view, QuantityPoint3G(10.0 * Meter, 0.0 * Meter, 0.0 * Meter))
 
         val placements = listOf(p0, p1, p2, isolated)
         val top = topPlacements(placements)

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.CubicMeter
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -133,5 +134,38 @@ class QuantityGeometrySpikeTest {
         assertFailsWith<IllegalArgumentException> {
             lhs ord rhs
         }
+    }
+
+    @Test
+    fun quantityGeometryShouldSupportFltX() {
+        val base = point2(
+            x = Quantity(FltX(1.0), Meter),
+            y = Quantity(FltX(2.0), Meter)
+        )
+        val offset = vector2(
+            x = Quantity(FltX(0.5), Meter),
+            y = Quantity(FltX(1.0), Meter)
+        )
+        val moved = base + offset
+
+        assertTrue(moved.x eq Quantity(FltX(1.5), Meter))
+        assertTrue(moved.y eq Quantity(FltX(3.0), Meter))
+
+        val lhs = QuantityRectangle2G(
+            minX = Quantity(FltX.zero, Meter),
+            minY = Quantity(FltX.zero, Meter),
+            maxX = Quantity(FltX(4.0), Meter),
+            maxY = Quantity(FltX(3.0), Meter)
+        )
+        val rhs = QuantityRectangle2G(
+            minX = Quantity(FltX(2.0), Meter),
+            minY = Quantity(FltX(1.0), Meter),
+            maxX = Quantity(FltX(6.0), Meter),
+            maxY = Quantity(FltX(5.0), Meter)
+        )
+
+        val intersect = lhs.intersect(rhs)
+        assertNotNull(intersect)
+        assertTrue(intersect.area eq Quantity(FltX(4.0), SquareMeter))
     }
 }
