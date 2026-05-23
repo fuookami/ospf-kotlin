@@ -24,8 +24,13 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-interface Bpp3dDemandValueAdapter {
+interface Bpp3dSolverValueAdapter {
     fun amountToSolver(value: UInt64): Flt64
+    fun amountRangeToSolver(value: ValueRange<UInt64>): ValueRange<Flt64> = value.toFlt64()
+    fun lengthToSolver(value: QuantityFlt64): Flt64
+    fun areaToSolver(value: QuantityFlt64): Flt64
+    fun volumeToSolver(value: QuantityFlt64): Flt64
+    fun depthToSolver(value: QuantityFlt64): Flt64 = lengthToSolver(value)
     fun weightToSolver(value: QuantityFlt64): Flt64
 
     fun toSolver(value: Bpp3dDemandValue): Flt64 {
@@ -36,10 +41,17 @@ interface Bpp3dDemandValueAdapter {
     }
 }
 
-data object DefaultBpp3dDemandValueAdapter : Bpp3dDemandValueAdapter {
+typealias Bpp3dDemandValueAdapter = Bpp3dSolverValueAdapter
+
+data object DefaultBpp3dDemandValueAdapter : Bpp3dSolverValueAdapter {
     override fun amountToSolver(value: UInt64): Flt64 = value.toFlt64()
+    override fun lengthToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
+    override fun areaToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
+    override fun volumeToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
     override fun weightToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
 }
+
+val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dDemandValueAdapter
 
 data class Bpp3dDemandEntry(
     val mode: Bpp3dDemandMode,
@@ -80,7 +92,7 @@ fun demandEntriesFromItemRanges(
             mode = Bpp3dDemandMode.ItemAmount,
             key = Bpp3dDemandKey.Item(item),
             demand = demandValueAdapter.amountToSolver(demand),
-            demandRange = demandRange.toFlt64()
+            demandRange = demandValueAdapter.amountRangeToSolver(demandRange)
         )
     }
 }
@@ -309,4 +321,3 @@ class PreciseLoad(
         return super.register(model)
     }
 }
-

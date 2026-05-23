@@ -35,7 +35,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,
-    private val aggregation: LayerAggregation
+    private val aggregation: LayerAggregation,
+    private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ) {
     val layers: List<BinLayer> by aggregation::layers
     val lastIterationLayers: List<BinLayer> by aggregation::lastIterationLayers
@@ -103,7 +104,7 @@ class ImpreciseAssignment(
 
         volume.flush()
         volume.asMutable() += sum(unduplicatedLayers.map {
-            LinearMonomial(it.volume.toFlt64(), xi[it])
+            LinearMonomial(solverValueAdapter.volumeToSolver(it.volume), xi[it])
         })
 
         return Ok(unduplicatedLayers)

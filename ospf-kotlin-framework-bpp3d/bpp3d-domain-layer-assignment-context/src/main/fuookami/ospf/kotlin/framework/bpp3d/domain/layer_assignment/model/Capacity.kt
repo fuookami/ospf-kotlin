@@ -36,7 +36,8 @@ interface Capacity {
 class PreciseLoadCapacity(
     private val bins: List<Bin<BinLayer>>,
     private val layers: List<BinLayer>,
-    private val assignment: PreciseAssignment
+    private val assignment: PreciseAssignment,
+    private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ) : Capacity {
     override lateinit var loadWeight: LinearIntermediateSymbols1<Flt64>
     override lateinit var loadVolume: LinearIntermediateSymbols1<Flt64>
@@ -53,7 +54,7 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(layer.weight.toFlt64(), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.weightToSolver(layer.weight), assignment.x[i, j])), Flt64.zero)
                     }),
                     name = "load_weight_${i}"
                 )
@@ -78,7 +79,7 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(layer.volume.toFlt64(), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), Flt64.zero)
                     }),
                     name = "load_volume_${i}"
                 )
@@ -103,7 +104,7 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(layer.depth.toFlt64(), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.depthToSolver(layer.depth), assignment.x[i, j])), Flt64.zero)
                     }),
                     name = "load_depth_${i}"
                 )
@@ -128,8 +129,8 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(layer.volume.toFlt64(), assignment.x[i, j])), Flt64.zero)
-                    }) / bins[i].volume.toFlt64(),
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), Flt64.zero)
+                    }) / solverValueAdapter.volumeToSolver(bins[i].volume),
                     name = "loading_rate_${i}"
                 )
             }
