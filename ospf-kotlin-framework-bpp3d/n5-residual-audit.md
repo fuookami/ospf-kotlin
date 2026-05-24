@@ -1,42 +1,119 @@
-﻿# N5 残留审计（2026-05-24，三次更新）
+# N5 残留审计（R 轮深层重构版）
 
-## 统计口径
+日期：2026-05-24
+
+## 1. 审计口径
+
 - 范围：`ospf-kotlin-framework-bpp3d/**/src/main/**/*.kt`
-- 关键字：`QuantityFlt64`、`Flt64`、`toFlt64()`
 - 不含测试目录
+- 关键字：
+  - `toLegacy(`
+  - `asScalarF64(`
+  - `toFlt64(`
+  - `QuantityFlt64`
+  - `\bFlt64\b`
+  - `UNCHECKED_CAST`
 
-## 统计结果
-- `QuantityFlt64` 命中：`86`
-- `toFlt64()` 命中：`13`
-- `Flt64`（token）命中：`599`
+命令：
 
-## `toFlt64()` 归类（逐项）
-### 兼容转换层（允许）
+```powershell
+rg -n "toLegacy\(|asScalarF64\(|toFlt64\(|QuantityFlt64|\bFlt64\b|UNCHECKED_CAST" ospf-kotlin-framework-bpp3d -g "**/src/main/**/*.kt" -S
+```
+
+## 2. 统计结果（当前基线）
+
+- `toLegacy(`：17
+- `asScalarF64(`：130
+- `toFlt64(`：13
+- `QuantityFlt64`：86
+- `Flt64`（token）：599
+- `UNCHECKED_CAST`：5
+
+说明：
+
+- 以上计数是“残留计数”，不是“问题计数”。
+- 口径允许兼容层、solver 边界、已登记兼容算法保留。
+
+## 3. toLegacy 残留分类
+
+### 3.1 兼容 API 层（允许）
+
+- `bpp3d-domain-item-context/.../api/QuantityDomainApi.kt`（13）
+  - 用于 Quantity 主模型到 Legacy 主模型的兼容导出。
+
+### 3.2 layer-assignment 兼容桥（允许）
+
+- `bpp3d-domain-layer-assignment-context/.../model/Load.kt`（4）
+  - 用于对接 legacy layer assignment 负载路径，属于兼容桥而非新主链路。
+
+结论：`toLegacy(` 残留全部位于允许分类。
+
+## 4. 数值降级边界分类
+
+### 4.1 toFlt64（允许）
+
 - `bpp3d-infrastructure/.../QuantityLegacyScalarAdapter.kt`
 - `bpp3d-infrastructure/.../QuantityCompatibility.kt`
-
-### solver adapter（允许）
 - `bpp3d-domain-layer-assignment-context/.../model/Load.kt`
 - `bpp3d-domain-layer-assignment-context/.../model/SolverValueAdapterExample.kt`
 
-### 业务主链路（不再出现）
-- 复核结果：`0`。
-- 说明：`Cuboid.kt`、`Projection.kt`、`Container.kt` 的历史 `.toFlt64()` 已替换为兼容层 `asScalarF64()`。
+结论：`.toFlt64()` 已限定在兼容转换层与 solver adapter。
 
-## 裸 `Flt64` 有量纲字段复核
-使用以下规则复核字段签名：
+### 4.2 asScalarF64（允许）
 
-```powershell
-rg -n "\b(val|var)\s+(width|height|depth|weight|area|volume|actualVolume|linearDensity|maxHeight|minDepth|maxDepth|maxWeight|maxVolume|maxArea|maxLength|maxWidth|restWeight|loadedWeight)\w*\s*:\s*Flt64\b" ospf-kotlin-framework-bpp3d -g "**/src/main/**/*.kt" -S
-```
+主要分布：
 
-结果：无命中。
+- `bpp3d-infrastructure`：几何/投影/容器的 Flt64 兼容计算路径
+- `bpp3d-domain-item-context`：兼容算法与历史启发式（如 ItemMerger/Pattern/ItemHeightCombinator）
+- `bpp3d-domain-block-loading-context`：legacy block loading 启发式计算
+- `bpp3d-domain-item-context/api/QuantityDomainApi.kt`：兼容导出路径
+
+结论：当前 `asScalarF64(` 残留均属于“兼容层 + 历史算法保留”范围，未发现新增“泛型新主链路直降级”路径。
+
+## 5. UNCHECKED_CAST 审计（与 daily 勾选对齐）
+
+### 5.1 代码中显式 `@Suppress("UNCHECKED_CAST")`（5处，均为局部 suppress）
+
+- `bpp3d-infrastructure/.../api/QuantityInfrastructureApi.kt:22`
+- `bpp3d-infrastructure/.../QuantityGeometryGeneric.kt:13`
+- `bpp3d-infrastructure/.../Cuboid.kt:54`
+- `bpp3d-domain-item-context/.../api/QuantityDemandStatistics.kt:36`
+- `bpp3d-domain-item-context/.../api/QuantityDemandStatistics.kt:48`
 
 说明：
-- `bpp3d-domain-packing-context/.../MaterialAttribute.kt` 中 `maxHeight: Flt64` 已提升为 `Quantity<Flt64>`。
 
-## 结论
-N5 收口验收通过（按当前口径）：
-- `.toFlt64()` 已限定在 solver adapter 或兼容转换层。
-- 未发现新的“有量纲领域字段使用裸 `Flt64`”。
-- `QuantityFlt64` 未出现在新增领域主模型字段中（残留在兼容层/别名路径）。
+- 均为“最小作用域 suppress”，未使用文件级大范围压制。
+
+### 5.2 编译 warning 残留（`mvn -f ospf-kotlin-framework-bpp3d/pom.xml -am -DskipTests compile`）
+
+本次复验提取到 `Unchecked cast` warning 共 27 条，分布：
+
+- `bpp3d-domain-item-context`：14 条
+  - 主要在 `Bin.kt`、`Item.kt`、`ItemContainer.kt`、`PackageAttribute.kt`、`ItemMerger.kt`、`LoadingOrderCalculator.kt`
+  - 类型多为 `Placement3<*>` / `List<Placement3<*>>` 到具体实体类型的窄化
+- `bpp3d-domain-bla-context`：13 条
+  - 主要在 `BottomUpLeftJustifiedAlgorithm.kt`
+  - 类型多为 `Placement2<*, P>`、`Container2Shape<P>` 到 `Side/Front` 具体投影类型窄化
+
+说明：
+
+- 这些 warning 来自历史泛型桥接和投影方向特化，不是本轮新增语义回退。
+- 本轮已在 infrastructure 新增最小范围 suppress（如 `Cuboid.view`），避免 warning 向外扩散。
+
+## 6. 行为口径复核
+
+- `daily.md`：`- [ ]` 为 0（无未勾选）
+- `layer-assignment` 测试目录：`toLegacy(` 为 0
+- 关键定向测试通过：
+  - infrastructure：13/13
+  - domain-item：6/6
+  - layer-assignment：6/6
+- 三条编译闭环均 `BUILD SUCCESS`
+
+## 7. 结论
+
+N5 审计口径与 R 轮验收状态已一致：
+
+- 数值降级边界（`toFlt64`/`asScalarF64`）均在允许范围。
+- `toLegacy` 残留仅在兼容 API 与兼容桥。
+- `UNCHECKED_CAST` 已补充“代码 suppress + 编译 warning”双维说明，并与 `daily.md` 勾选口径一致。
