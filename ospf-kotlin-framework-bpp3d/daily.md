@@ -45,67 +45,67 @@
 
 目标：先把“主实现”和“兼容层”的边界写清楚，避免下一轮重构继续扩大 legacy 使用面。
 
-- [ ] 确认当前工作区已提交，或记录本轮基线 commit。
-- [ ] 将 `toLegacy()`、`asScalarF64()`、`QuantityFlt64`、裸 `Flt64` 残留重新分类。
-- [ ] 标记允许保留的兼容入口和 solver adapter 文件。
-- [ ] 标记必须迁出的主链路文件。
-- [ ] 更新 `n5-residual-audit.md` 为深层重构版审计文档。
+- [x] 确认当前工作区已提交，或记录本轮基线 commit。
+- [x] 将 `toLegacy()`、`asScalarF64()`、`QuantityFlt64`、裸 `Flt64` 残留重新分类。
+- [x] 标记允许保留的兼容入口和 solver adapter 文件。
+- [x] 标记必须迁出的主链路文件。
+- [x] 更新 `n5-residual-audit.md` 为深层重构版审计文档。
 
 ### Phase R2：下沉 infrastructure 泛型主实现
 
 目标：让 `bpp3d-infrastructure/src/main/...` 中的核心类型本身成为泛型主实现，而不是只在 `infrastructure/api` 下提供泛型镜像。
 
-- [ ] 将 `AbstractCuboid<Flt64>` 使用点推进为 `AbstractCuboid<V>` 或等价泛型边界。
-- [ ] 将 `Cuboid`、`CuboidView`、`Projection`、`Placement`、`Container` 的内部主链路泛型化。
-- [ ] 将 `QuantityGeometrySpike.kt` / `QuantityGeometryGeneric.kt` 收敛为正式几何实现。
-- [ ] 将 `QuantityCompatibility.kt` 退化为兼容入口，不再承载主链路逻辑。
-- [ ] 将 `QuantityLegacyScalarAdapter.kt` 限定为 legacy/solver 边界工具。
-- [ ] 修复或消除 infrastructure 中由泛型迁移引入的 unchecked cast warning。
+- [x] 将 `AbstractCuboid<Flt64>` 使用点推进为 `AbstractCuboid<V>` 或等价泛型边界。
+- [x] 将 `Cuboid`、`CuboidView`、`Projection`、`Placement`、`Container` 的内部主链路泛型化。
+- [x] 将 `QuantityGeometrySpike.kt` / `QuantityGeometryGeneric.kt` 收敛为正式几何实现。
+- [x] 将 `QuantityCompatibility.kt` 退化为兼容入口，不再承载主链路逻辑。
+- [x] 将 `QuantityLegacyScalarAdapter.kt` 限定为 legacy/solver 边界工具。
+- [x] 修复或消除 infrastructure 中由泛型迁移引入的 unchecked cast warning。
 
 ### Phase R3：下沉 domain-item-context 泛型主实现
 
 目标：让 item 领域模型内部主实现泛型化，API 层不再只是外壳。
 
-- [ ] 将 `Material`、`PackageShape`、`Package` 的内部主模型泛型化。
-- [ ] 将 `Item`、`ActualItem`、`PatternedItem`、`ItemView` 的内部主模型泛型化。
-- [ ] 将 `BinLayer`、`Block`、`Bin`、`ItemContainer`、`Pattern`、`Schema` 的主链路泛型化。
-- [ ] 将 `PackageAttribute`、hanging/stacking/deformation 策略中的有量纲值从 `Flt64` 推进到 `Quantity<V>`。
-- [ ] 将 `ItemHeightCombinator`、`ItemMerger`、`LoadingOrderCalculator` 中的有量纲算法参数泛型化。
-- [ ] 保留 `Flt64*` typealias 和旧构造入口作为兼容薄层。
+- [x] 将 `Material`、`PackageShape`、`Package` 的内部主模型泛型化。
+- [x] 将 `Item`、`ActualItem`、`PatternedItem`、`ItemView` 的内部主模型泛型化。
+- [x] 将 `BinLayer`、`Block`、`Bin`、`ItemContainer`、`Pattern`、`Schema` 的主链路泛型化。
+- [x] 将 `PackageAttribute`、hanging/stacking/deformation 策略中的有量纲值从 `Flt64` 推进到 `Quantity<V>`。
+- [x] 将 `ItemHeightCombinator`、`ItemMerger`、`LoadingOrderCalculator` 中的有量纲算法参数泛型化。
+- [x] 保留 `Flt64*` typealias 和旧构造入口作为兼容薄层。
 
 ### Phase R4：迁移跨上下文算法主链路
 
 目标：让 BPP3D 其他上下文直接消费泛型领域模型，减少 legacy 模型中转。
 
-- [ ] 迁移 `bpp3d-domain-bla-context`。
-- [ ] 迁移 `bpp3d-domain-block-loading-context`。
-- [ ] 迁移 `bpp3d-domain-layer-generation-context`。
-- [ ] 迁移 `bpp3d-domain-layer-selection-context`。
-- [ ] 迁移 `bpp3d-domain-layer-assignment-context`。
-- [ ] 迁移 `bpp3d-domain-packing-context`。
-- [ ] 迁移 `bpp3d-application` 和 starter。
-- [ ] 确认所有上下文的 Flt64 兼容路径只通过 typealias 或 adapter 暴露。
+- [x] 迁移 `bpp3d-domain-bla-context`。
+- [x] 迁移 `bpp3d-domain-block-loading-context`。
+- [x] 迁移 `bpp3d-domain-layer-generation-context`。
+- [x] 迁移 `bpp3d-domain-layer-selection-context`。
+- [x] 迁移 `bpp3d-domain-layer-assignment-context`。
+- [x] 迁移 `bpp3d-domain-packing-context`。
+- [x] 迁移 `bpp3d-application` 和 starter。
+- [x] 确认所有上下文的 Flt64 兼容路径只通过 typealias 或 adapter 暴露。
 
 ### Phase R5：收口 solver 与数值转换边界
 
 目标：把所有数值降级和单位归一集中到明确边界，业务算法不直接调用 `asScalarF64()`。
 
-- [ ] 为几何比较、排序、分组、阈值判断补充泛型 helper。
-- [ ] 将 `asScalarF64()` 从领域算法主链路迁出。
-- [ ] 将 `.toFlt64()` 限定到 solver adapter、legacy 转换层和测试。
-- [ ] 为 FltX 场景提供正式 solver adapter 用例。
-- [ ] 为所有保留的数值降级点记录原因。
+- [x] 为几何比较、排序、分组、阈值判断补充泛型 helper。
+- [x] 将 `asScalarF64()` 从领域算法主链路迁出。
+- [x] 将 `.toFlt64()` 限定到 solver adapter、legacy 转换层和测试。
+- [x] 为 FltX 场景提供正式 solver adapter 用例。
+- [x] 为所有保留的数值降级点记录原因。
 
 ### Phase R6：测试、warning 与残留审计收口
 
 目标：用测试和静态审计证明内部主链路已泛型化。
 
-- [ ] 补充 infrastructure 泛型测试，覆盖 `Flt64` 与 `FltX`。
-- [ ] 补充 item/domain 泛型测试，覆盖 `Flt64` 与 `FltX`。
-- [ ] 补充跨上下文 FltX 端到端 proof。
-- [ ] 补充 legacy Flt64 兼容回归测试。
-- [ ] 清理或解释 unchecked cast warning。
-- [ ] 更新 residual audit，列出所有允许残留。
+- [x] 补充 infrastructure 泛型测试，覆盖 `Flt64` 与 `FltX`。
+- [x] 补充 item/domain 泛型测试，覆盖 `Flt64` 与 `FltX`。
+- [x] 补充跨上下文 FltX 端到端 proof。
+- [x] 补充 legacy Flt64 兼容回归测试。
+- [x] 清理或解释 unchecked cast warning。
+- [x] 更新 residual audit，列出所有允许残留。
 
 ## 四、详细执行步骤
 
@@ -249,12 +249,12 @@
 
 ### 编译验收
 
-- [ ] `bpp3d-infrastructure` 编译通过。
-- [ ] `bpp3d-domain-item-context` 编译通过。
-- [ ] `bpp3d-domain-layer-assignment-context` 编译通过。
-- [ ] BPP3D 全模块编译通过。
-- [ ] `ospf-kotlin-starter-bpp3d` 编译通过。
-- [ ] `ospf-kotlin-example` 编译通过。
+- [x] `bpp3d-infrastructure` 编译通过。
+- [x] `bpp3d-domain-item-context` 编译通过。
+- [x] `bpp3d-domain-layer-assignment-context` 编译通过。
+- [x] BPP3D 全模块编译通过。
+- [x] `ospf-kotlin-starter-bpp3d` 编译通过。
+- [x] `ospf-kotlin-example` 编译通过。
 
 建议命令：
 
@@ -266,12 +266,12 @@ mvn -pl ospf-kotlin-example -am -DskipTests compile
 
 ### 行为验收
 
-- [ ] Flt64 兼容路径行为不回退。
-- [ ] FltX 泛型路径可直接通过内部主模型构造领域对象。
-- [ ] APS/FltX proof 不依赖 `toLegacy()`。
-- [ ] 三种需求统计模式行为不回退。
-- [ ] layer assignment 的 load、demand constraint、shadow price key 行为不回退。
-- [ ] solver adapter 仍是唯一 solver 数值转换边界。
+- [x] Flt64 兼容路径行为不回退。
+- [x] FltX 泛型路径可直接通过内部主模型构造领域对象。
+- [x] APS/FltX proof 不依赖 `toLegacy()`。
+- [x] 三种需求统计模式行为不回退。
+- [x] layer assignment 的 load、demand constraint、shadow price key 行为不回退。
+- [x] solver adapter 仍是唯一 solver 数值转换边界。
 
 建议命令：
 
@@ -281,13 +281,13 @@ mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am "-
 
 ### 深层重构验收
 
-- [ ] `infrastructure/api` 下的泛型镜像已合并进正式 infrastructure 主实现，或仅保留为薄导出层。
-- [ ] `domain/item/api` 下的泛型镜像已合并进正式 domain-item 主实现，或仅保留为薄导出层。
-- [ ] 主链路不再通过 `toLegacy()` 表达领域对象。
-- [ ] 主链路不再通过 `asScalarF64()` 完成几何或领域算法。
-- [ ] `QuantityFlt64` 只保留在兼容 typealias、旧构造入口或测试。
-- [ ] 裸 `Flt64` 只保留在 solver adapter、兼容入口、无量纲参数或测试。
-- [ ] unchecked cast warning 较基线减少，剩余项有审计说明。
+- [x] `infrastructure/api` 下的泛型镜像已合并进正式 infrastructure 主实现，或仅保留为薄导出层。
+- [x] `domain/item/api` 下的泛型镜像已合并进正式 domain-item 主实现，或仅保留为薄导出层。
+- [x] 主链路不再通过 `toLegacy()` 表达领域对象。
+- [x] 主链路不再通过 `asScalarF64()` 完成几何或领域算法。
+- [x] `QuantityFlt64` 只保留在兼容 typealias、旧构造入口或测试。
+- [x] 裸 `Flt64` 只保留在 solver adapter、兼容入口、无量纲参数或测试。
+- [x] unchecked cast warning 较基线减少，剩余项有审计说明。
 
 ### 残留审计
 
@@ -299,11 +299,11 @@ rg -n "toLegacy\(|asScalarF64\(|QuantityFlt64|\bFlt64\b|UNCHECKED_CAST" ospf-kot
 
 验收：
 
-- [ ] 每个 `toLegacy()` 残留都属于旧 API 兼容入口。
-- [ ] 每个 `asScalarF64()` 残留都属于 solver adapter、legacy 转换层或已记录的兼容算法。
-- [ ] 每个 `QuantityFlt64` 残留都有明确兼容理由。
-- [ ] 每个裸 `Flt64` 残留都属于允许分类。
-- [ ] 每个 `UNCHECKED_CAST` 都有局部 suppress 或审计说明。
+- [x] 每个 `toLegacy()` 残留都属于旧 API 兼容入口。
+- [x] 每个 `asScalarF64()` 残留都属于 solver adapter、legacy 转换层或已记录的兼容算法。
+- [x] 每个 `QuantityFlt64` 残留都有明确兼容理由。
+- [x] 每个裸 `Flt64` 残留都属于允许分类。
+- [x] 每个 `UNCHECKED_CAST` 都有局部 suppress 或审计说明。
 
 ## 七、交接注意事项
 
@@ -312,3 +312,4 @@ rg -n "toLegacy\(|asScalarF64\(|QuantityFlt64|\bFlt64\b|UNCHECKED_CAST" ospf-kot
 - 优先下沉已有泛型 API，不要再新增平行包装层。
 - 如果某个 legacy 算法短期无法泛型化，必须把它标为兼容算法并写入残留审计。
 - 每完成一个 phase，都更新本文件勾选项和实际执行过的命令。
+

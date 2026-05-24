@@ -136,11 +136,11 @@ data class Placement2<
 
     fun toPlacement3(): List<Placement3<T>> {
         return when (projection) {
-            is PlaneProjection<*, *> -> {
+            is PlaneProjection<T, *> -> {
                 listOf(Placement3(view, plane.point3(position)))
             }
 
-            is PileProjection<*, *> -> {
+            is PileProjection<T, *> -> {
                 val depth = projection.view.depth
                 var z = Flt64.zero * depth.unit
                 val units = ArrayList<Placement3<T>>()
@@ -151,11 +151,11 @@ data class Placement2<
                 units
             }
 
-            is MultiPileProjection<*, *> -> {
+            is MultiPileProjection<T, *> -> {
                 var z = Flt64.zero * Meter
                 val units = ArrayList<Placement3<T>>()
                 for (view in projection.views) {
-                    units.add(Placement3(view as CuboidView<T>, projection.plane.point3(position, distance = z)))
+                    units.add(Placement3(view, projection.plane.point3(position, distance = z)))
                     z += view.depth
                 }
                 units

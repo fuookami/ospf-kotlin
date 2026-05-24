@@ -1,6 +1,8 @@
 ﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -18,6 +20,13 @@ class OrientationTest {
         override val depth: QuantityFlt64,
         override val weight: QuantityFlt64
     ) : AbstractCuboid<Flt64>
+
+    private data class StubCuboidX(
+        override val width: Quantity<FltX>,
+        override val height: Quantity<FltX>,
+        override val depth: Quantity<FltX>,
+        override val weight: Quantity<FltX>
+    ) : AbstractCuboid<FltX>
 
     private val unit = StubCuboid(
         width = 2.0 * Meter,
@@ -100,5 +109,26 @@ class OrientationTest {
         assertTrue((Orientation.Side ord Orientation.Lie) is Order.Less)
         assertTrue((Orientation.LieRotated ord Orientation.Lie) is Order.Greater)
     }
-}
 
+    @Test
+    fun orientationDimensionMappingShouldSupportFltX() {
+        val unit = StubCuboidX(
+            width = Quantity(FltX(2.0), Meter),
+            height = Quantity(FltX(2.0), Meter),
+            depth = Quantity(FltX(3.0), Meter),
+            weight = Quantity(FltX(5.0), Kilogram)
+        )
+
+        assertTrue(Orientation.Upright.width(unit) eq Quantity(FltX(2.0), Meter))
+        assertTrue(Orientation.UprightRotated.width(unit) eq Quantity(FltX(3.0), Meter))
+        assertTrue(Orientation.Lie.height(unit) eq Quantity(FltX(3.0), Meter))
+        assertEquals(
+            listOf(
+                Orientation.Upright,
+                Orientation.UprightRotated,
+                Orientation.Lie
+            ),
+            Orientation.merge(unit, Orientation.entries)
+        )
+    }
+}
