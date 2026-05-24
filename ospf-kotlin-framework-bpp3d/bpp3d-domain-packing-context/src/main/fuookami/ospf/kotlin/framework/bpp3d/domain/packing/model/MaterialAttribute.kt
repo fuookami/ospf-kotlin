@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 data class MaterialAttributeValue(
     val deformationCoefficient: Flt64?,
@@ -17,7 +18,7 @@ data class MaterialAttributeValue(
     val isBottomOnly: Boolean,
     val isTopFlat: Boolean,
     val maxLayer: UInt64,
-    val maxHeight: Flt64
+    val maxHeight: Quantity<Flt64>
 )
 
 open class MaterialAttributeKey(

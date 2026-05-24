@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -8,6 +8,8 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -36,7 +38,7 @@ data class WeightAttribute(
 
 interface AbstractDeformationAttribute {
     fun deformationQuantity(volume: Flt64): Vector<Dim3, Flt64>
-    fun deformationQuantity(unit: AbstractCuboid) = deformationQuantity(unit.volume.toFlt64())
+    fun deformationQuantity(unit: AbstractCuboid<Flt64>) = deformationQuantity(unit.volume.asScalarF64())
 }
 
 data class LinearDeformationAttribute(
@@ -60,7 +62,7 @@ data class LinearDeformationAttribute(
 
 interface AbstractHangingPolicy {
     fun enabledStackingOn(
-        unit: AbstractCuboid,
+        unit: AbstractCuboid<Flt64>,
         bottomSupport: BottomSupport
     ): Boolean
 }
@@ -70,7 +72,7 @@ data class AbsoluteHangingPolicy(
     private val withWeight: Boolean = true
 ) : AbstractHangingPolicy {
     override fun enabledStackingOn(
-        unit: AbstractCuboid,
+        unit: AbstractCuboid<Flt64>,
         bottomSupport: BottomSupport
     ): Boolean {
         if (withWeight && bottomSupport.weight ls unit.weight) {
@@ -109,7 +111,7 @@ data class RelativeHangingPolicy(
     private val withWeight: Boolean = true
 ) : AbstractHangingPolicy {
     override fun enabledStackingOn(
-        unit: AbstractCuboid,
+        unit: AbstractCuboid<Flt64>,
         bottomSupport: BottomSupport
     ): Boolean {
         if (withWeight && bottomSupport.weight ls unit.weight) {
@@ -148,7 +150,7 @@ interface AbstractStackingOnPolicy {
         item: ItemView,
         bottomItem: ItemView,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero
+        height: Quantity<Flt64> = Flt64.zero * Meter
     ): Boolean
 }
 
@@ -161,7 +163,7 @@ data class BoxStackingOnPolicy(
         item: ItemView,
         bottomItem: ItemView,
         layer: UInt64,
-        height: Flt64
+        height: Quantity<Flt64>
     ): Boolean {
         if (!bottomItem.overPackageTypes.contains(item.packageType)) {
             return false
@@ -176,11 +178,11 @@ data class BoxStackingOnPolicy(
         }
         if (bottomItem.packageCategory != PackageCategory.Filler && item.packageCategory != PackageCategory.Filler) {
             val difference = (item.width - bottomItem.width).abs() + (item.depth - bottomItem.depth).abs()
-            if (difference gr maxDifference) {
+            if (difference gr (maxDifference * difference.unit)) {
                 return false
             }
         }
-        if ((item.weight - bottomItem.weight) gr maxOverWeight) {
+        if ((item.weight - bottomItem.weight) gr (maxOverWeight * item.weight.unit)) {
             return false
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
@@ -213,7 +215,7 @@ data class CartonContainerStackingOnPolicy(
         item: ItemView,
         bottomItem: ItemView,
         layer: UInt64,
-        height: Flt64
+        height: Quantity<Flt64>
     ): Boolean {
         if (!bottomItem.overPackageTypes.contains(item.packageType)) {
             return false
@@ -223,11 +225,11 @@ data class CartonContainerStackingOnPolicy(
         }
         if (bottomItem.packageCategory == PackageCategory.SoftBox && item.packageCategory == PackageCategory.SoftBox) {
             val difference = item.unit.width + item.unit.depth - bottomItem.unit.width - bottomItem.unit.depth
-            if (difference gr maxDifference) {
+            if (difference gr (maxDifference * difference.unit)) {
                 return false
             }
         }
-        if ((item.weight - bottomItem.weight) gr maxOverWeight) {
+        if ((item.weight - bottomItem.weight) gr (maxOverWeight * item.weight.unit)) {
             return false
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
@@ -254,7 +256,7 @@ data class FilterStackingOnPolicy(
         item: ItemView,
         bottomItem: ItemView,
         layer: UInt64,
-        height: Flt64
+        height: Quantity<Flt64>
     ): Boolean {
         if (!bottomItem.overPackageTypes.contains(item.packageType)) {
             return false
@@ -262,7 +264,7 @@ data class FilterStackingOnPolicy(
         if (extraStackingOnRule?.invoke(item, bottomItem) == false) {
             return false
         }
-        if ((item.weight - bottomItem.weight) gr Flt64(10.0)) {
+        if ((item.weight - bottomItem.weight) gr (maxOverWeight * item.weight.unit)) {
             return false
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
@@ -286,9 +288,9 @@ interface AbstractCargoAttribute
 data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
-    val maxHeight: Flt64 = Flt64.infinity,
-    val minDepth: Flt64 = Flt64.zero,
-    val maxDepth: Flt64 = Flt64.infinity,
+    val maxHeight: Quantity<Flt64> = Flt64.infinity * Meter,
+    val minDepth: Quantity<Flt64> = Flt64.zero * Meter,
+    val maxDepth: Quantity<Flt64> = Flt64.infinity * Meter,
     val overPackageTypes: List<PackageType> = PackageType.entries.toList(),
     val bottomOnly: Boolean = false,
     val topFlat: Boolean = true,
@@ -348,26 +350,26 @@ data class PackageAttribute(
         private suspend fun layerHeight(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
-        ): Flt64 {
+        ): Quantity<Flt64> {
             return coroutineScope {
                 val directBottomItems = topPlacements(bottomItems) as List<ItemPlacement3>
                 val indirectBottomItems = bottomItems.filter { !directBottomItems.contains(it) }
 
-                val promises = ArrayList<Deferred<Flt64>>()
+                val promises = ArrayList<Deferred<Quantity<Flt64>>>()
                 for (bottomItem in directBottomItems) {
                     if (bottomItem.type == item.type) {
                         promises.add(async(Dispatchers.Default) {
                             val thisBottomPlacement = Placement2(bottomItem, Bottom)
                             val thisBottomPlacements = indirectBottomItems.filter { Placement2(it, Bottom).overlapped(thisBottomPlacement) }
                             if (thisBottomPlacements.isNotEmpty()) {
-                                bottomItem.height.toFlt64() + layerHeight(bottomItem, thisBottomPlacements)
+                                bottomItem.height + layerHeight(bottomItem, thisBottomPlacements)
                             } else {
-                                bottomItem.height.toFlt64()
+                                bottomItem.height
                             }
                         })
                     }
                 }
-                var maxHeight = Flt64.zero
+                var maxHeight = Flt64.zero * item.height.unit
                 for (promise in promises) {
                     val value = promise.await()
                     if (value gr maxHeight) {
@@ -381,7 +383,7 @@ data class PackageAttribute(
         suspend fun layer(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
-        ): Pair<UInt64, Flt64> {
+        ): Pair<UInt64, Quantity<Flt64>> {
             return coroutineScope {
                 val layer = async(Dispatchers.Default) {
                     layerLayer(item, bottomItems)
@@ -395,7 +397,7 @@ data class PackageAttribute(
     }
 
     fun enabledStackingOn(
-        unit: AbstractCuboid,
+        unit: AbstractCuboid<Flt64>,
         bottomSupport: BottomSupport
     ): Boolean {
         return hangingPolicy.enabledStackingOn(
@@ -408,7 +410,7 @@ data class PackageAttribute(
         item: Item,
         bottomItem: Item?,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
+        height: Quantity<Flt64> = Flt64.zero * Meter,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return enabledStackingOn(
@@ -424,7 +426,7 @@ data class PackageAttribute(
         item: ItemView,
         bottomItem: ItemView? = null,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
+        height: Quantity<Flt64> = Flt64.zero * Meter,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         if (bottomItem != null) {
@@ -558,5 +560,7 @@ data class PackageAttribute(
         return result
     }
 }
+
+
 
 

@@ -153,12 +153,12 @@ class PreciseLoadCapacity(
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearFunctionSymbolAdapter(
-                    delegate = MaskingFunction.fromLinearIntermediateSymbol(
-                        x = loadingRate[i],
+                    delegate = MaskingFunction(
+                        input = loadingRate[i].toLinearPolynomial(),
                         mask = assignment.tail[i],
                         converter = flt64Converter,
                         name = "tail_loading_rate_${i}"
-                    ).delegate,
+                    ),
                     converter = flt64Converter
                 )
             }

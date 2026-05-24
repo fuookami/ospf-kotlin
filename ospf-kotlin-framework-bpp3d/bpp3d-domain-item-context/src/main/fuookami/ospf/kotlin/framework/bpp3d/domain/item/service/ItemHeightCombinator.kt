@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toFlt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asScalarF64
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -117,11 +117,11 @@ data object ItemHeightCombinator {
                         itemsAmount = itemsAmount,
                         height = heights.second,
                         mapper = mapper,
-                        restWeight = restWeight - mapper(firstItem).weight.toFlt64(),
-                        averageWeight = averageWeight?.let { it - mapper(firstItem).weight.toFlt64() },
+                        restWeight = restWeight - mapper(firstItem).weight.asScalarF64(),
+                        averageWeight = averageWeight?.let { it - mapper(firstItem).weight.asScalarF64() },
                         scope = this
                     )) {
-                        val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending { it.weight.toFlt64().toDouble() }
+                        val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending { it.weight.asScalarF64().toDouble() }
                         var flag = true
                         for (i in thisItems.indices) {
                             if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -190,11 +190,11 @@ data object ItemHeightCombinator {
                             itemsAmount = itemsAmount,
                             height = heights.third,
                             mapper = mapper,
-                            restWeight = restWeight - mapper(firstItem).weight.toFlt64() - mapper(secondItem).weight.toFlt64(),
-                            averageWeight = averageWeight?.let { it - mapper(firstItem).weight.toFlt64() - mapper(secondItem).weight.toFlt64() },
+                            restWeight = restWeight - mapper(firstItem).weight.asScalarF64() - mapper(secondItem).weight.asScalarF64(),
+                            averageWeight = averageWeight?.let { it - mapper(firstItem).weight.asScalarF64() - mapper(secondItem).weight.asScalarF64() },
                             scope = this
                         )) {
-                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.toFlt64().toDouble() }
+                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.asScalarF64().toDouble() }
                             var flag = true
                             for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -223,11 +223,11 @@ data object ItemHeightCombinator {
                             itemsAmount = itemsAmount,
                             height = heights.second,
                             mapper = mapper,
-                            restWeight = restWeight - mapper(firstItem).weight.toFlt64(),
-                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.toFlt64()) / Flt64.two },
+                            restWeight = restWeight - mapper(firstItem).weight.asScalarF64(),
+                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.asScalarF64()) / Flt64.two },
                             scope = this
                         )) {
-                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.toFlt64().toDouble() }
+                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.asScalarF64().toDouble() }
                             var flag = true
                             for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -256,8 +256,8 @@ data object ItemHeightCombinator {
                             itemsAmount = itemsAmount,
                             height = heights.second,
                             mapper = mapper,
-                            restWeight = restWeight - mapper(firstItem).weight.toFlt64(),
-                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.toFlt64()) * heights.second / (heights.second + heights.third) },
+                            restWeight = restWeight - mapper(firstItem).weight.asScalarF64(),
+                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.asScalarF64()) * heights.second / (heights.second + heights.third) },
                             scope = this
                         )) {
                             for (thirdItem in getItem(
@@ -265,11 +265,11 @@ data object ItemHeightCombinator {
                                 itemsAmount = itemsAmount,
                                 height = heights.third,
                                 mapper = mapper,
-                                restWeight = restWeight - mapper(firstItem).weight.toFlt64() - mapper(secondItem).weight.toFlt64(),
-                                averageWeight = averageWeight?.let { it - mapper(firstItem).weight.toFlt64() - mapper(secondItem).weight.toFlt64() },
+                                restWeight = restWeight - mapper(firstItem).weight.asScalarF64() - mapper(secondItem).weight.asScalarF64(),
+                                averageWeight = averageWeight?.let { it - mapper(firstItem).weight.asScalarF64() - mapper(secondItem).weight.asScalarF64() },
                                 scope = this
                             )) {
-                                val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.toFlt64().toDouble() }
+                                val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.asScalarF64().toDouble() }
                                 var flag = true
                                 for (i in thisItems.indices) {
                                     if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -311,11 +311,11 @@ data object ItemHeightCombinator {
                     val items = itemsGroup[height]?.toMutableList()
                     if (items != null) {
                         if (averageWeight != null) {
-                            items.sortBy { abs(mapper(it).weight.toFlt64() - averageWeight).toDouble() }
+                            items.sortBy { abs(mapper(it).weight.asScalarF64() - averageWeight).toDouble() }
                         }
                         for (item in items) {
                             if (itemsAmount[mapper(item)]?.let { it >= UInt64.one } == true
-                            && mapper(item).weight.toFlt64() leq restWeight
+                            && mapper(item).weight.asScalarF64() leq restWeight
                         ) {
                             if (promise.trySend(item).isFailure) {
                                 break
@@ -360,11 +360,11 @@ data object ItemHeightCombinator {
                         }
                     }.flatten().toMutableList()
                     if (averageWeight != null) {
-                        list.sortBy { abs(mapper(it).weight.toFlt64() - averageWeight).toDouble() }
+                        list.sortBy { abs(mapper(it).weight.asScalarF64() - averageWeight).toDouble() }
                     }
                     for (i in list.indices) {
                         for (j in (i + 1) until list.size) {
-                            if ((mapper(list[i]).weight.toFlt64() + mapper(list[j]).weight.toFlt64()) gr restWeight) {
+                            if ((mapper(list[i]).weight.asScalarF64() + mapper(list[j]).weight.asScalarF64()) gr restWeight) {
                                 continue
                             }
                             if (promise.trySend(Pair(list[i], list[j])).isFailure) {
@@ -384,3 +384,4 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 }
+

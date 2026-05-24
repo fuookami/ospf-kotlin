@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -91,7 +92,7 @@ class BinLayer(
     }
 
     // inherited from Cuboid<BinLayer>
-    override val depth: QuantityFlt64 = units.maxOfOrNull { it.maxZ } ?: (shape.depth * Flt64.zero)
+    override val depth: Quantity<Flt64> = units.maxOfOrNull { it.maxZ } ?: (shape.depth * Flt64.zero)
 
     // inherited from ItemContainer<BinLayer>
     override val bottomOnly: Boolean = true
@@ -156,7 +157,7 @@ class PalletLayer(
     }
 
     // inherited from Cuboid<PalletLayer>
-    override val height: QuantityFlt64 = units.maxOfOrNull { it.maxY } ?: (shape.height * Flt64.zero)
+    override val height: Quantity<Flt64> = units.maxOfOrNull { it.maxY } ?: (shape.height * Flt64.zero)
 
     // inherited from ItemContainer<PalletLayer>
     override val topFlat: Boolean = true

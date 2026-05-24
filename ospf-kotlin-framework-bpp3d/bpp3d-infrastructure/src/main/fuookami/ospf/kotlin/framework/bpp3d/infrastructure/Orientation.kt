@@ -1,7 +1,10 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.ord
@@ -39,8 +42,8 @@ sealed class Orientation {
     object UprightRotated : Orientation() {
         override val label = "UprightRotated"
         override val rank = 1
-        override fun depth(unit: AbstractCuboid) = unit.width
-        override fun width(unit: AbstractCuboid) = unit.depth
+        override fun <V : FloatingNumber<V>> depth(unit: AbstractCuboid<V>) = unit.width
+        override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>) = unit.depth
         override val rotation = Upright
         override val rotated = true
         override val category = OrientationCategory.Upright
@@ -50,17 +53,17 @@ sealed class Orientation {
         override val label = "Side"
         override val rank = 2
         override val rotation get() = SideRotated
-        override fun height(unit: AbstractCuboid) = unit.width
-        override fun width(unit: AbstractCuboid) = unit.height
+        override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>) = unit.width
+        override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>) = unit.height
         override val category = OrientationCategory.Side
     }
 
     object SideRotated : Orientation() {
         override val label = "SideRotated"
         override val rank = 3
-        override fun depth(unit: AbstractCuboid) = unit.height
-        override fun height(unit: AbstractCuboid) = unit.width
-        override fun width(unit: AbstractCuboid) = unit.depth
+        override fun <V : FloatingNumber<V>> depth(unit: AbstractCuboid<V>) = unit.height
+        override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>) = unit.width
+        override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>) = unit.depth
         override val rotation = Side
         override val rotated = true
         override val category = OrientationCategory.Side
@@ -69,8 +72,8 @@ sealed class Orientation {
     object Lie : Orientation() {
         override val label = "Lie"
         override val rank = 4
-        override fun depth(unit: AbstractCuboid) = unit.height
-        override fun height(unit: AbstractCuboid) = unit.depth
+        override fun <V : FloatingNumber<V>> depth(unit: AbstractCuboid<V>) = unit.height
+        override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>) = unit.depth
         override val rotation get() = LieRotated
         override val category = OrientationCategory.Lie
     }
@@ -78,9 +81,9 @@ sealed class Orientation {
     object LieRotated : Orientation() {
         override val label = "LieRotated"
         override val rank = 5
-        override fun depth(unit: AbstractCuboid) = unit.width
-        override fun height(unit: AbstractCuboid) = unit.depth
-        override fun width(unit: AbstractCuboid) = unit.height
+        override fun <V : FloatingNumber<V>> depth(unit: AbstractCuboid<V>) = unit.width
+        override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>) = unit.depth
+        override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>) = unit.height
         override val rotation = Lie
         override val rotated = true
         override val category = OrientationCategory.Lie
@@ -89,9 +92,9 @@ sealed class Orientation {
     abstract val label: String
     protected abstract val rank: Int
 
-    open fun depth(unit: AbstractCuboid): QuantityFlt64 = unit.depth
-    open fun width(unit: AbstractCuboid): QuantityFlt64 = unit.width
-    open fun height(unit: AbstractCuboid): QuantityFlt64 = unit.height
+    open fun <V : FloatingNumber<V>> depth(unit: AbstractCuboid<V>): Quantity<V> = unit.depth
+    open fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>): Quantity<V> = unit.width
+    open fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>): Quantity<V> = unit.height
 
     abstract val rotation: Orientation
     open val rotated: Boolean = false
@@ -120,7 +123,7 @@ sealed class Orientation {
             return invoke(str) ?: throw IllegalArgumentException("Unsupported orientation: $str")
         }
 
-        fun merge(unit: AbstractCuboid, orientations: List<Orientation>): List<Orientation> {
+        fun <V : FloatingNumber<V>> merge(unit: AbstractCuboid<V>, orientations: List<Orientation>): List<Orientation> {
             return if (orientations.isEmpty()) {
                 merge(unit, entries)
             } else if (orientations.size == 1) {
@@ -183,3 +186,5 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
         }
     }
 }
+
+

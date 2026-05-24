@@ -1,5 +1,6 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.CubicMeter
@@ -16,7 +17,7 @@ class ContainerShapeTest {
         override val height: QuantityFlt64,
         override val depth: QuantityFlt64,
         override val weight: QuantityFlt64
-    ) : AbstractCuboid
+    ) : AbstractCuboid<Flt64>
 
     @Test
     fun volumeShouldKeepLengthCubeDimension() {
@@ -79,12 +80,12 @@ class ContainerShapeTest {
             height = 6.0 * Meter,
             depth = 5.0 * Meter
         )
-        val pointOffset = QuantityPoint3G(
+        val pointOffset = QuantityPoint3(
             x = 3.0 * Meter,
             y = 2.0 * Meter,
             z = 1.0 * Meter
         )
-        val vectorOffset = QuantityVector3G(
+        val vectorOffset = QuantityVector3(
             x = 1.0 * Meter,
             y = 1.5 * Meter,
             z = 2.0 * Meter
@@ -134,3 +135,4 @@ class ContainerShapeTest {
         assertTrue(front3.height eq (3.0 * Meter))
     }
 }
+

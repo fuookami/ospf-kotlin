@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
@@ -18,10 +19,10 @@ import kotlinx.coroutines.coroutineScope
 
 class BinType(
     // inherited from Container3Shape
-    override val width: QuantityFlt64,
-    override val height: QuantityFlt64,
-    override val depth: QuantityFlt64,
-    val capacity: QuantityFlt64,
+    override val width: Quantity<Flt64>,
+    override val height: Quantity<Flt64>,
+    override val depth: Quantity<Flt64>,
+    val capacity: Quantity<Flt64>,
     val longitudinalBalance: Flt64?,
     val lateralBalance: Flt64?,
     val typeCode: String,
@@ -29,10 +30,10 @@ class BinType(
     val extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
 ) : AbstractContainer3Shape {
     fun new(
-        width: QuantityFlt64? = null,
-        height: QuantityFlt64? = null,
-        depth: QuantityFlt64? = null,
-        capacity: QuantityFlt64? = null,
+        width: Quantity<Flt64>? = null,
+        height: Quantity<Flt64>? = null,
+        depth: Quantity<Flt64>? = null,
+        capacity: Quantity<Flt64>? = null,
         longitudinalBalance: Flt64? = null,
         lateralBalance: Flt64? = null,
         typeCode: String? = null,
@@ -53,7 +54,7 @@ class BinType(
     }
 
     // inherited from Container3Shape
-    override fun enabled(unit: AbstractCuboid, orientation: Orientation): Boolean {
+    override fun enabled(unit: AbstractCuboid<Flt64>, orientation: Orientation): Boolean {
         return super.enabled(unit, orientation) && unit.weight leq capacity
     }
 
@@ -66,8 +67,8 @@ class BinType(
     }
 
     fun estimateAmount(
-        totalVolume: QuantityFlt64,
-        totalWeight: QuantityFlt64,
+        totalVolume: Quantity<Flt64>,
+        totalWeight: Quantity<Flt64>,
         estimatedLoadingRate: Flt64 = Flt64.one
     ): Flt64 {
         return max(
@@ -247,6 +248,7 @@ typealias ItemBin = Bin<Item>
 fun LayerBin.dump(): ItemBin {
     return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
 }
+
 
 
 

@@ -12,18 +12,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asScalarF64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.quantity.toFlt64
 import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer as LegacyBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem as LegacyItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material as LegacyMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3 as LegacyItemPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package as LegacyPackage
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape as LegacyPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3 as LegacyPlacement3
@@ -47,7 +46,7 @@ data class Material<V : FloatingNumber<V>>(
             manufacturer = manufacturer,
             supplier = supplier,
             warehouse = warehouse,
-            weight = weight.toFlt64()
+            weight = weight.asScalarF64()
         )
     }
 }
@@ -63,10 +62,10 @@ data class PackageShape<V : FloatingNumber<V>>(
 
     fun toLegacy(): LegacyPackageShape {
         return LegacyPackageShape(
-            width = width.toFlt64(),
-            height = height.toFlt64(),
-            depth = depth.toFlt64(),
-            weight = weight.toFlt64(),
+            width = width.asScalarF64(),
+            height = height.asScalarF64(),
+            depth = depth.asScalarF64(),
+            weight = weight.asScalarF64(),
             packageType = packageType
         )
     }
@@ -199,23 +198,26 @@ data class Item<V : FloatingNumber<V>>(
     )
 
     fun toLegacy(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap()
+        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap(),
+        itemCache: MutableMap<Item<V>, LegacyItem> = LinkedHashMap()
     ): LegacyItem {
-        val legacyPack = pack?.toLegacy(materialCache)
-        return LegacyItem(
-            id = id,
-            name = name,
-            packageCode = packageCode ?: legacyPack?.code,
-            pack = legacyPack,
-            width = width.toFlt64(),
-            height = height.toFlt64(),
-            depth = depth.toFlt64(),
-            weight = weight.toFlt64(),
-            enabledOrientations = enabledOrientations,
-            batchNo = batchNo,
-            warehouse = warehouse,
-            packageAttribute = packageAttribute
-        )
+        return itemCache.getOrPut(this) {
+            val legacyPack = pack?.toLegacy(materialCache)
+            LegacyItem(
+                id = id,
+                name = name,
+                packageCode = packageCode ?: legacyPack?.code,
+                pack = legacyPack,
+                width = width.asScalarF64(),
+                height = height.asScalarF64(),
+                depth = depth.asScalarF64(),
+                weight = weight.asScalarF64(),
+                enabledOrientations = enabledOrientations,
+                batchNo = batchNo,
+                warehouse = warehouse,
+                packageAttribute = packageAttribute
+            )
+        }
     }
 }
 
@@ -227,15 +229,16 @@ data class ItemPlacement<V : FloatingNumber<V>>(
     val orientation: Orientation = Orientation.Upright
 ) {
     fun toLegacy(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap()
-    ): LegacyItemPlacement3 {
-        val legacyItem = item.toLegacy(materialCache)
+        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap(),
+        itemCache: MutableMap<Item<V>, LegacyItem> = LinkedHashMap()
+    ): LegacyPlacement3<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item> {
+        val legacyItem = item.toLegacy(materialCache, itemCache)
         return LegacyPlacement3(
             view = legacyItem.view(orientation),
             position = point3(
-                x = x.toFlt64(),
-                y = y.toFlt64(),
-                z = z.toFlt64()
+                x = x.asScalarF64(),
+                y = y.asScalarF64(),
+                z = z.asScalarF64()
             )
         )
     }
@@ -250,17 +253,19 @@ data class BinLayer<V : FloatingNumber<V>>(
     val units: List<ItemPlacement<V>>
 ) {
     fun toLegacy(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap()
+        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap(),
+        itemCache: MutableMap<Item<V>, LegacyItem> = LinkedHashMap()
     ): LegacyBinLayer {
         return LegacyBinLayer(
             iteration = iteration,
             from = from,
             shape = Container3Shape(
-                width = width.toFlt64(),
-                height = height.toFlt64(),
-                depth = depth.toFlt64()
+                width = width.asScalarF64(),
+                height = height.asScalarF64(),
+                depth = depth.asScalarF64()
             ),
-            units = units.map { it.toLegacy(materialCache) }
+            units = units.map { it.toLegacy(materialCache, itemCache) }
         )
     }
 }
+

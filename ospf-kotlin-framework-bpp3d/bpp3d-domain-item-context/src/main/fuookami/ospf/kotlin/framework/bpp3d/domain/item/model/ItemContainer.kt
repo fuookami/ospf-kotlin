@@ -1,8 +1,9 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Eq
@@ -23,7 +24,7 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
     val packageCategory get() = packageType.category
 
     val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }
-    val bottomOnlyHeight: QuantityFlt64
+    val bottomOnlyHeight: Quantity<Flt64>
         get() = items.maxOfOrNull { item ->
             if (item.bottomOnly) {
                 item.maxY

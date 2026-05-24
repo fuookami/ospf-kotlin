@@ -3,23 +3,24 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Eq
 
 data class PackageBottomShape(
-    val width: QuantityFlt64,
-    val depth: QuantityFlt64,
-    val weight: QuantityFlt64,
+    val width: Quantity<Flt64>,
+    val depth: Quantity<Flt64>,
+    val weight: Quantity<Flt64>,
     val packageType: PackageType,
 ) : Eq<PackageBottomShape> {
     val packageCategory by packageType::category
-    val area: QuantityFlt64 = width * depth
+    val area: Quantity<Flt64> = width * depth
 
     fun new(
-        width: QuantityFlt64? = null,
-        depth: QuantityFlt64? = null,
-        weight: QuantityFlt64? = null,
+        width: Quantity<Flt64>? = null,
+        depth: Quantity<Flt64>? = null,
+        weight: Quantity<Flt64>? = null,
         packageType: PackageType? = null
     ): PackageBottomShape {
         return PackageBottomShape(
@@ -59,10 +60,10 @@ data class PackageBottomShape(
 }
 
 data class PackageShape(
-    val width: QuantityFlt64,
-    val height: QuantityFlt64,
-    val depth: QuantityFlt64,
-    val weight: QuantityFlt64,
+    val width: Quantity<Flt64>,
+    val height: Quantity<Flt64>,
+    val depth: Quantity<Flt64>,
+    val weight: Quantity<Flt64>,
     val packageType: PackageType,
 ) : Eq<PackageShape> {
     val bottomShape = PackageBottomShape(
@@ -72,13 +73,13 @@ data class PackageShape(
         packageType = packageType
     )
     val packageCategory by packageType::category
-    val volume: QuantityFlt64 = width * height * depth
+    val volume: Quantity<Flt64> = width * height * depth
 
     fun new(
-        width: QuantityFlt64? = null,
-        height: QuantityFlt64? = null,
-        depth: QuantityFlt64? = null,
-        weight: QuantityFlt64? = null,
+        width: Quantity<Flt64>? = null,
+        height: Quantity<Flt64>? = null,
+        depth: Quantity<Flt64>? = null,
+        weight: Quantity<Flt64>? = null,
         packageType: PackageType? = null
     ): PackageShape {
         return PackageShape(

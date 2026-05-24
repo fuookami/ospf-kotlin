@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
@@ -10,12 +11,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityFlt64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toFlt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -27,11 +33,11 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 interface Bpp3dSolverValueAdapter {
     fun amountToSolver(value: UInt64): Flt64
     fun amountRangeToSolver(value: ValueRange<UInt64>): ValueRange<Flt64> = value.toFlt64()
-    fun lengthToSolver(value: QuantityFlt64): Flt64
-    fun areaToSolver(value: QuantityFlt64): Flt64
-    fun volumeToSolver(value: QuantityFlt64): Flt64
-    fun depthToSolver(value: QuantityFlt64): Flt64 = lengthToSolver(value)
-    fun weightToSolver(value: QuantityFlt64): Flt64
+    fun lengthToSolver(value: Quantity<Flt64>): Flt64
+    fun areaToSolver(value: Quantity<Flt64>): Flt64
+    fun volumeToSolver(value: Quantity<Flt64>): Flt64
+    fun depthToSolver(value: Quantity<Flt64>): Flt64 = lengthToSolver(value)
+    fun weightToSolver(value: Quantity<Flt64>): Flt64
 
     fun toSolver(value: Bpp3dDemandValue): Flt64 {
         return when (value) {
@@ -45,10 +51,10 @@ typealias Bpp3dDemandValueAdapter = Bpp3dSolverValueAdapter
 
 data object DefaultBpp3dDemandValueAdapter : Bpp3dSolverValueAdapter {
     override fun amountToSolver(value: UInt64): Flt64 = value.toFlt64()
-    override fun lengthToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
-    override fun areaToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
-    override fun volumeToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
-    override fun weightToSolver(value: QuantityFlt64): Flt64 = value.toFlt64()
+    override fun lengthToSolver(value: Quantity<Flt64>): Flt64 = value.toFlt64()
+    override fun areaToSolver(value: Quantity<Flt64>): Flt64 = value.toFlt64()
+    override fun volumeToSolver(value: Quantity<Flt64>): Flt64 = value.toFlt64()
+    override fun weightToSolver(value: Quantity<Flt64>): Flt64 = value.toFlt64()
 }
 
 val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dDemandValueAdapter
@@ -83,6 +89,20 @@ fun demandEntriesFromItems(
     }
 }
 
+fun <V : FloatingNumber<V>> demandEntriesFromItems(
+    items: List<Pair<QuantityItem<V>, UInt64>>,
+    legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+    materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromItems(
+        items = items.map { (item, demand) ->
+            Pair(item.toLegacy(materialCache, legacyItemCache), demand)
+        },
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
 fun demandEntriesFromItemRanges(
     items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
@@ -95,6 +115,20 @@ fun demandEntriesFromItemRanges(
             demandRange = demandValueAdapter.amountRangeToSolver(demandRange)
         )
     }
+}
+
+fun <V : FloatingNumber<V>> demandEntriesFromItemRanges(
+    items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
+    legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+    materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromItemRanges(
+        items = items.map { (item, demand, demandRange) ->
+            Triple(item.toLegacy(materialCache, legacyItemCache), demand, demandRange)
+        },
+        demandValueAdapter = demandValueAdapter
+    )
 }
 
 interface Load {
@@ -189,6 +223,29 @@ class ImpreciseLoad(
             )
         }
 
+        fun <V : FloatingNumber<V>> fromItems(
+            items: List<Pair<QuantityItem<V>, UInt64>>,
+            assignment: ImpreciseAssignment,
+            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
+            overEnabled: Boolean = true,
+            lessEnabled: Boolean = true,
+            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+        ): ImpreciseLoad {
+            return ImpreciseLoad(
+                demandEntries = demandEntriesFromItems(
+                    items = items,
+                    legacyItemCache = legacyItemCache,
+                    materialCache = materialCache,
+                    demandValueAdapter = demandValueAdapter
+                ),
+                assignment = assignment,
+                overEnabled = overEnabled,
+                lessEnabled = lessEnabled,
+                demandValueAdapter = demandValueAdapter
+            )
+        }
+
         fun fromItemRanges(
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
             assignment: ImpreciseAssignment,
@@ -198,6 +255,29 @@ class ImpreciseLoad(
         ): ImpreciseLoad {
             return ImpreciseLoad(
                 demandEntries = demandEntriesFromItemRanges(items, demandValueAdapter),
+                assignment = assignment,
+                overEnabled = overEnabled,
+                lessEnabled = lessEnabled,
+                demandValueAdapter = demandValueAdapter
+            )
+        }
+
+        fun <V : FloatingNumber<V>> fromItemRanges(
+            items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
+            assignment: ImpreciseAssignment,
+            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
+            overEnabled: Boolean = true,
+            lessEnabled: Boolean = true,
+            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+        ): ImpreciseLoad {
+            return ImpreciseLoad(
+                demandEntries = demandEntriesFromItemRanges(
+                    items = items,
+                    legacyItemCache = legacyItemCache,
+                    materialCache = materialCache,
+                    demandValueAdapter = demandValueAdapter
+                ),
                 assignment = assignment,
                 overEnabled = overEnabled,
                 lessEnabled = lessEnabled,
@@ -277,6 +357,32 @@ class PreciseLoad(
             )
         }
 
+        fun <V : FloatingNumber<V>> fromItems(
+            items: List<Pair<QuantityItem<V>, UInt64>>,
+            layers: List<QuantityBinLayer<V>>,
+            assignment: PreciseAssignment,
+            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
+            overEnabled: Boolean = false,
+            lessEnabled: Boolean = true,
+            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+        ): PreciseLoad {
+            val legacyLayers = layers.map { it.toLegacy(materialCache, legacyItemCache) }
+            return PreciseLoad(
+                demandEntries = demandEntriesFromItems(
+                    items = items,
+                    legacyItemCache = legacyItemCache,
+                    materialCache = materialCache,
+                    demandValueAdapter = demandValueAdapter
+                ),
+                layers = legacyLayers,
+                assignment = assignment,
+                overEnabled = overEnabled,
+                lessEnabled = lessEnabled,
+                demandValueAdapter = demandValueAdapter
+            )
+        }
+
         fun fromItemRanges(
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
             layers: List<BinLayer>,
@@ -288,6 +394,32 @@ class PreciseLoad(
             return PreciseLoad(
                 demandEntries = demandEntriesFromItemRanges(items, demandValueAdapter),
                 layers = layers,
+                assignment = assignment,
+                overEnabled = overEnabled,
+                lessEnabled = lessEnabled,
+                demandValueAdapter = demandValueAdapter
+            )
+        }
+
+        fun <V : FloatingNumber<V>> fromItemRanges(
+            items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
+            layers: List<QuantityBinLayer<V>>,
+            assignment: PreciseAssignment,
+            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
+            overEnabled: Boolean = false,
+            lessEnabled: Boolean = true,
+            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+        ): PreciseLoad {
+            val legacyLayers = layers.map { it.toLegacy(materialCache, legacyItemCache) }
+            return PreciseLoad(
+                demandEntries = demandEntriesFromItemRanges(
+                    items = items,
+                    legacyItemCache = legacyItemCache,
+                    materialCache = materialCache,
+                    demandValueAdapter = demandValueAdapter
+                ),
+                layers = legacyLayers,
                 assignment = assignment,
                 overEnabled = overEnabled,
                 lessEnabled = lessEnabled,

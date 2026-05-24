@@ -1,9 +1,10 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -132,14 +133,14 @@ class Pile(
         fun layer(
             item: Item,
             bottomItems: List<Item>,
-        ): Pair<UInt64, QuantityFlt64> {
+        ): Pair<UInt64, Quantity<Flt64>> {
             return layer(item.view(), bottomItems.map { ItemView(it) })
         }
 
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
-        ): Pair<UInt64, QuantityFlt64> {
+        ): Pair<UInt64, Quantity<Flt64>> {
             return if (bottomItems.isNotEmpty() && bottomItems.last().type == item.type) {
                 val notSameIndex = bottomItems.indexOfLast { it.type != item.type }
                 val sameItems = if (notSameIndex == -1) {

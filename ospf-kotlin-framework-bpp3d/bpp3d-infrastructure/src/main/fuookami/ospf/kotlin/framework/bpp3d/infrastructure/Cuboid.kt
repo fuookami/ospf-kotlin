@@ -3,28 +3,29 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.div
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.quantity.geq
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.quantity.toFlt64
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
-interface AbstractCuboid {
-    val width: QuantityFlt64
-    val height: QuantityFlt64
-    val depth: QuantityFlt64
+interface AbstractCuboid<V : FloatingNumber<V>> {
+    val width: Quantity<V>
+    val height: Quantity<V>
+    val depth: Quantity<V>
 
-    val weight: QuantityFlt64
-    val volume: QuantityFlt64 get() = depth * height * width
-    val actualVolume: QuantityFlt64 get() = volume
-    val linearDensity: QuantityFlt64 get() = weight / depth
+    val weight: Quantity<V>
+    val volume: Quantity<V> get() = depth * height * width
+    val actualVolume: Quantity<V> get() = volume
+    val linearDensity: Quantity<V> get() = weight / depth
 }
 
-interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
+interface Cuboid<T : Cuboid<T>> : AbstractCuboid<Flt64> {
     val enabledOrientations: List<Orientation>
 
     fun enabledOrientationsAt(
@@ -55,8 +56,8 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
 }
 
 data class BottomSupport(
-    val area: QuantityFlt64,
-    val weight: QuantityFlt64
+    val area: Quantity<Flt64>,
+    val weight: Quantity<Flt64>
 ) : Plus<BottomSupport, BottomSupport> {
     override fun plus(rhs: BottomSupport) = BottomSupport(
         area = area + rhs.area,
@@ -67,7 +68,7 @@ data class BottomSupport(
 open class CuboidView<T : Cuboid<T>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
-) : AbstractCuboid, Copyable<CuboidView<T>> {
+) : AbstractCuboid<Flt64>, Copyable<CuboidView<T>> {
     // inherited from Cuboid<T>
     override val width = orientation.width(unit)
     override val height = orientation.height(unit)
@@ -119,7 +120,7 @@ open class CuboidView<T : Cuboid<T>>(
         } else {
             BottomSupport(
                 area = intersect.area,
-                weight = (intersect.area / bottomPlacement.projection.area).toFlt64() * bottomPlacement.weight
+                weight = (intersect.area / bottomPlacement.projection.area).asScalarF64() * bottomPlacement.weight
             )
         }
     }
@@ -165,7 +166,7 @@ fun bottomSupport(
             if (intersect != null) {
                 val thisSupport = BottomSupport(
                     area = intersect.area,
-                    weight = (intersect.area / thisBottomPlacement.projection.area).toFlt64() * thisBottomPlacement.weight
+                    weight = (intersect.area / thisBottomPlacement.projection.area).asScalarF64() * thisBottomPlacement.weight
                 )
                 support += thisSupport
             }
@@ -173,5 +174,6 @@ fun bottomSupport(
     }
     return support
 }
+
 
 

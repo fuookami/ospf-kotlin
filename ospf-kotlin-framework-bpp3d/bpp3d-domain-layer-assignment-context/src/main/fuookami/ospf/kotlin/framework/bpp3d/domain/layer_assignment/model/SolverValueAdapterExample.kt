@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityFlt64
 import fuookami.ospf.kotlin.quantities.quantity.convertTo
 import fuookami.ospf.kotlin.quantities.unit.CubicMeter
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -49,28 +49,28 @@ class ScaledBpp3dSolverValueAdapter(
         ).value!!
     }
 
-    override fun lengthToSolver(value: QuantityFlt64): Flt64 {
+    override fun lengthToSolver(value: Quantity<Flt64>): Flt64 {
         return quantityToSolver(value, unitSystem.lengthUnit, scale.length)
     }
 
-    override fun areaToSolver(value: QuantityFlt64): Flt64 {
+    override fun areaToSolver(value: Quantity<Flt64>): Flt64 {
         return quantityToSolver(value, unitSystem.areaUnit, scale.area)
     }
 
-    override fun volumeToSolver(value: QuantityFlt64): Flt64 {
+    override fun volumeToSolver(value: Quantity<Flt64>): Flt64 {
         return quantityToSolver(value, unitSystem.volumeUnit, scale.volume)
     }
 
-    override fun depthToSolver(value: QuantityFlt64): Flt64 {
+    override fun depthToSolver(value: Quantity<Flt64>): Flt64 {
         return quantityToSolver(value, unitSystem.lengthUnit, scale.depth)
     }
 
-    override fun weightToSolver(value: QuantityFlt64): Flt64 {
+    override fun weightToSolver(value: Quantity<Flt64>): Flt64 {
         return quantityToSolver(value, unitSystem.weightUnit, scale.weight)
     }
 
     private fun quantityToSolver(
-        value: QuantityFlt64,
+        value: Quantity<Flt64>,
         targetUnit: PhysicalUnit,
         factor: FltX
     ): Flt64 {

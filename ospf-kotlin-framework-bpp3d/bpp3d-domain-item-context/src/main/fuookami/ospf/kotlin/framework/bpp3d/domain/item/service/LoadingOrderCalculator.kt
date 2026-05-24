@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
@@ -93,7 +93,7 @@ class LoadingOrderCalculator(
         }
     }
 
-    private fun isSameType(lhs: AbstractCuboid, rhs: AbstractCuboid): Boolean {
+    private fun isSameType(lhs: AbstractCuboid<Flt64>, rhs: AbstractCuboid<Flt64>): Boolean {
         return if (lhs is Item && rhs is Item) {
             return sameTypeJudger(lhs, rhs)
         } else if (lhs is ItemContainer<*> && rhs is ItemContainer<*>) {
@@ -242,5 +242,6 @@ class LoadingOrderCalculator(
         return ret
     }
 }
+
 
 

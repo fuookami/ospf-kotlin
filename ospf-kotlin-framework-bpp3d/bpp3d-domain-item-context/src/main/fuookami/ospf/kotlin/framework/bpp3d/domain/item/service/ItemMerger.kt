@@ -104,7 +104,7 @@ data object ItemMerger {
         return merge(
             items = items,
             space = binType,
-            restWeight = binType.capacity.toFlt64(),
+            restWeight = binType.capacity.asScalarF64(),
             patterns = patterns,
             predicate = predicate,
             fillerPredicate = fillerPredicate,
@@ -185,11 +185,11 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: Flt64 = Flt64.infinity
     ): Pair<List<Pile>, List<Item>> {
-        val averagePileBottomArea = items.fold(Flt64.zero) { acc, item -> acc + Bottom.shape(item).area.toFlt64() } / Flt64(items.size.toDouble())
-        val averagePileWeight = restWeight / (Bottom.shape(space).area.toFlt64() / averagePileBottomArea)
+        val averagePileBottomArea = items.fold(Flt64.zero) { acc, item -> acc + Bottom.shape(item).area.asScalarF64() } / Flt64(items.size.toDouble())
+        val averagePileWeight = restWeight / (Bottom.shape(space).area.asScalarF64() / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
         val restItems = items
-            .sortedWith(compareByDescending<Item> { it.weight.toFlt64().toDouble() })
+            .sortedWith(compareByDescending<Item> { it.weight.asScalarF64().toDouble() })
             .map { it.view() }
             .toMutableList()
         while (restItems.isNotEmpty()) {
@@ -199,7 +199,7 @@ data object ItemMerger {
                 val thisBottomItem = restItems[i]
                 val enabledItems = restItems
                     .subList(i + 1, restItems.size)
-                    .sortedWith(compareByDescending<ItemView> { it.weight.toFlt64().toDouble() })
+                    .sortedWith(compareByDescending<ItemView> { it.weight.asScalarF64().toDouble() })
                 val visited = enabledItems.map { false }.toMutableList()
                 val pileItems = arrayListOf(thisBottomItem)
                 for (j in enabledItems.indices) {
@@ -270,8 +270,8 @@ data object ItemMerger {
                         config.orientationOrder.ord(lhs, rhs)
                     } else {
                         val lhsView = item.view(lhs)
-                        val lhsItemMaxYAmount = min(lhsView.maxLayer, (lhsView.maxHeight / lhsView.height.toFlt64()).floor().toUInt64())
-                        val lhsItemMaxZAmount = (lhsView.maxDepth / lhsView.depth.toFlt64()).floor().toUInt64()
+                        val lhsItemMaxYAmount = min(lhsView.maxLayer, (lhsView.maxHeight / lhsView.height.asScalarF64()).floor().toUInt64())
+                        val lhsItemMaxZAmount = (lhsView.maxDepth / lhsView.depth.asScalarF64()).floor().toUInt64()
                         val lhsMaxAmount = space.maxAmount(
                             unit = lhsView,
                             maxYAmount = lhsItemMaxYAmount,
@@ -279,8 +279,8 @@ data object ItemMerger {
                         )
 
                         val rhsView = item.view(rhs)
-                        val rhsItemMaxYAmount = min(rhsView.maxLayer, (rhsView.maxHeight / rhsView.height.toFlt64()).floor().toUInt64())
-                        val rhsItemMaxZAmount = (rhsView.maxDepth / rhsView.depth.toFlt64()).floor().toUInt64()
+                        val rhsItemMaxYAmount = min(rhsView.maxLayer, (rhsView.maxHeight / rhsView.height.asScalarF64()).floor().toUInt64())
+                        val rhsItemMaxZAmount = (rhsView.maxDepth / rhsView.depth.asScalarF64()).floor().toUInt64()
                         val rhsMaxAmount = space.maxAmount(
                             unit = rhsView,
                             maxYAmount = rhsItemMaxYAmount,
@@ -304,18 +304,18 @@ data object ItemMerger {
                 val xAmount = (space.width / view.width).floor().toUInt64()
                 val yAmount = min(
                     item.maxLayer,
-                    (item.maxHeight / view.height.toFlt64()).floor().toUInt64(),
+                    (item.maxHeight / view.height.asScalarF64()).floor().toUInt64(),
                     (space.height / view.height).floor().toUInt64()
                 )
                 val zAmount = if (view.minDepth eq Flt64.zero) {
                     UInt64.one
                 } else {
-                    val minZAmount = (view.minDepth / view.depth.toFlt64()).ceil().toUInt64()
+                    val minZAmount = (view.minDepth / view.depth.asScalarF64()).ceil().toUInt64()
                     val availableZAmount = UInt64(list.size) / (xAmount * yAmount)
                     if (availableZAmount >= minZAmount) {
                         min(
                             availableZAmount,
-                            (view.maxDepth / view.depth.toFlt64()).floor().toUInt64()
+                            (view.maxDepth / view.depth.asScalarF64()).floor().toUInt64()
                         )
                     } else {
                         minZAmount
@@ -325,17 +325,17 @@ data object ItemMerger {
                 if (maxAmount != UInt64.zero && maxAmount != UInt64.one && UInt64(list.size) >= maxAmount) {
                     val placements = ArrayList<ItemPlacement3>()
                     for (i in UInt64.zero until xAmount) {
-                        val x = i.toFlt64() * view.width
+                        val x = i.asScalarF64() * view.width
                         for (j in UInt64.zero until yAmount) {
-                            val y = j.toFlt64() * view.height
+                            val y = j.asScalarF64() * view.height
                             for (k in UInt64.zero until zAmount) {
-                                val z = k.toFlt64() * view.depth
+                                val z = k.asScalarF64() * view.depth
                                 placements.add(Placement3(view, point3(x = x, y = y, z = z)))
                             }
                         }
                     }
                     val block = SimpleBlock(placements)
-                    for (i in UInt64.zero until (restWeight / block.weight.toFlt64()).floor().toUInt64()) {
+                    for (i in UInt64.zero until (restWeight / block.weight.asScalarF64()).floor().toUInt64()) {
                         if (UInt64(list.size) ls maxAmount) {
                             break
                         }
@@ -470,7 +470,7 @@ data object ItemMerger {
                     val rotatedAmount = min((hollowSquareSpace.depth - depth) / width, depth / width).floor().toUInt64()
                     val heightAmount = min(
                         view.maxLayer,
-                        (view.maxHeight / view.height.toFlt64()).floor().toUInt64(),
+                        (view.maxHeight / view.height.asScalarF64()).floor().toUInt64(),
                         restAmount / ((amount + rotatedAmount) * UInt64.two),
                         (hollowSquareSpace.height / height).floor().toUInt64()
                     )
@@ -487,13 +487,13 @@ data object ItemMerger {
                     val rotationMinZAmount = if (rotationView.minDepth eq Flt64.zero) {
                         UInt64.one
                     } else {
-                        (rotationView.minDepth / rotationView.depth.toFlt64()).ceil().toUInt64()
+                        (rotationView.minDepth / rotationView.depth.asScalarF64()).ceil().toUInt64()
                     }
                     if (rotatedAmount < rotationMinZAmount) {
                         return@find false
                     }
 
-                    if ((hollowSquareAmount.toFlt64() * item.weight) gr restWeight) {
+                    if ((hollowSquareAmount.asScalarF64() * item.weight) gr restWeight) {
                         return@find false
                     }
 
@@ -521,7 +521,7 @@ data object ItemMerger {
                 val rotatedAmount = min((hollowSquareSpace.depth - depth) / width, depth / width).floor().toUInt64()
                 val heightAmount = min(
                     view.maxLayer,
-                    (view.maxHeight / view.height.toFlt64()).floor().toUInt64(),
+                    (view.maxHeight / view.height.asScalarF64()).floor().toUInt64(),
                     restAmount / ((amount + rotatedAmount) * UInt64.two),
                     (hollowSquareSpace.height / height).floor().toUInt64()
                 )
@@ -531,7 +531,7 @@ data object ItemMerger {
                     (UInt64.zero until amount)
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
-                                .map { j -> Placement3(item.view(orientation).copy(), point3(x = i.toFlt64() * width, y = j.toFlt64() * height)) }
+                                .map { j -> Placement3(item.view(orientation).copy(), point3(x = i.asScalarF64() * width, y = j.asScalarF64() * height)) }
                         }
                 )
                 placements.addAll(
@@ -541,7 +541,7 @@ data object ItemMerger {
                                 .map { j ->
                                     Placement3(
                                         item.view(orientation.rotation).copy(),
-                                        point3(x = amount.toFlt64() * width, y = j.toFlt64() * height, z = i.toFlt64() * width)
+                                        point3(x = amount.asScalarF64() * width, y = j.asScalarF64() * height, z = i.asScalarF64() * width)
                                     )
                                 }
                         }
@@ -550,7 +550,7 @@ data object ItemMerger {
                     (UInt64.zero until rotatedAmount)
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
-                                .map { j -> Placement3(item.view(orientation.rotation).copy(), point3(y = j.toFlt64() * height, z = depth + i.toFlt64() * width)) }
+                                .map { j -> Placement3(item.view(orientation.rotation).copy(), point3(y = j.asScalarF64() * height, z = depth + i.asScalarF64() * width)) }
                         }
                 )
                 placements.addAll(
@@ -560,7 +560,7 @@ data object ItemMerger {
                                 .map { j ->
                                     Placement3(
                                         item.view(orientation).copy(),
-                                        point3(x = depth + i.toFlt64() * width, y = j.toFlt64() * height, z = rotatedAmount.toFlt64() * width)
+                                        point3(x = depth + i.asScalarF64() * width, y = j.asScalarF64() * height, z = rotatedAmount.asScalarF64() * width)
                                     )
                                 }
                         }
@@ -604,6 +604,7 @@ data object ItemMerger {
         }.flatten()
     }
 }
+
 
 
 

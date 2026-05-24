@@ -1,6 +1,5 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.minus
@@ -11,40 +10,40 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 typealias QuantityFlt64 = Quantity<Flt64>
 
-data class QuantityVector2G<V : FloatingNumber<V>>(
-    val x: Quantity<V>,
-    val y: Quantity<V>
+data class QuantityVector2(
+    val x: QuantityFlt64,
+    val y: QuantityFlt64
 ) {
-    operator fun plus(rhs: QuantityVector2G<V>): QuantityVector2G<V> {
-        return QuantityVector2G(
+    operator fun plus(rhs: QuantityVector2): QuantityVector2 {
+        return QuantityVector2(
             x = x + rhs.x,
             y = y + rhs.y
         )
     }
 
-    operator fun minus(rhs: QuantityVector2G<V>): QuantityVector2G<V> {
-        return QuantityVector2G(
+    operator fun minus(rhs: QuantityVector2): QuantityVector2 {
+        return QuantityVector2(
             x = x - rhs.x,
             y = y - rhs.y
         )
     }
 }
 
-data class QuantityVector3G<V : FloatingNumber<V>>(
-    val x: Quantity<V>,
-    val y: Quantity<V>,
-    val z: Quantity<V>
+data class QuantityVector3(
+    val x: QuantityFlt64,
+    val y: QuantityFlt64,
+    val z: QuantityFlt64
 ) {
-    operator fun plus(rhs: QuantityVector3G<V>): QuantityVector3G<V> {
-        return QuantityVector3G(
+    operator fun plus(rhs: QuantityVector3): QuantityVector3 {
+        return QuantityVector3(
             x = x + rhs.x,
             y = y + rhs.y,
             z = z + rhs.z
         )
     }
 
-    operator fun minus(rhs: QuantityVector3G<V>): QuantityVector3G<V> {
-        return QuantityVector3G(
+    operator fun minus(rhs: QuantityVector3): QuantityVector3 {
+        return QuantityVector3(
             x = x - rhs.x,
             y = y - rhs.y,
             z = z - rhs.z
@@ -52,25 +51,25 @@ data class QuantityVector3G<V : FloatingNumber<V>>(
     }
 }
 
-data class QuantityPoint2G<V : FloatingNumber<V>>(
-    val x: Quantity<V>,
-    val y: Quantity<V>
+data class QuantityPoint2(
+    val x: QuantityFlt64,
+    val y: QuantityFlt64
 ) {
-    operator fun plus(offset: QuantityVector2G<V>): QuantityPoint2G<V> {
-        return QuantityPoint2G(
+    operator fun plus(offset: QuantityVector2): QuantityPoint2 {
+        return QuantityPoint2(
             x = x + offset.x,
             y = y + offset.y
         )
     }
 
-    operator fun minus(offset: QuantityVector2G<V>): QuantityPoint2G<V> {
-        return QuantityPoint2G(
+    operator fun minus(offset: QuantityVector2): QuantityPoint2 {
+        return QuantityPoint2(
             x = x - offset.x,
             y = y - offset.y
         )
     }
 
-    infix fun ord(rhs: QuantityPoint2G<V>): Order {
+    infix fun ord(rhs: QuantityPoint2): Order {
         when (val yOrder = quantityOrd(y, rhs.y, "y")) {
             Order.Equal -> {}
             else -> return yOrder
@@ -79,28 +78,28 @@ data class QuantityPoint2G<V : FloatingNumber<V>>(
     }
 }
 
-data class QuantityPoint3G<V : FloatingNumber<V>>(
-    val x: Quantity<V>,
-    val y: Quantity<V>,
-    val z: Quantity<V>
+data class QuantityPoint3(
+    val x: QuantityFlt64,
+    val y: QuantityFlt64,
+    val z: QuantityFlt64
 ) {
-    operator fun plus(offset: QuantityVector3G<V>): QuantityPoint3G<V> {
-        return QuantityPoint3G(
+    operator fun plus(offset: QuantityVector3): QuantityPoint3 {
+        return QuantityPoint3(
             x = x + offset.x,
             y = y + offset.y,
             z = z + offset.z
         )
     }
 
-    operator fun minus(offset: QuantityVector3G<V>): QuantityPoint3G<V> {
-        return QuantityPoint3G(
+    operator fun minus(offset: QuantityVector3): QuantityPoint3 {
+        return QuantityPoint3(
             x = x - offset.x,
             y = y - offset.y,
             z = z - offset.z
         )
     }
 
-    infix fun ord(rhs: QuantityPoint3G<V>): Order {
+    infix fun ord(rhs: QuantityPoint3): Order {
         when (val zOrder = quantityOrd(z, rhs.z, "z")) {
             Order.Equal -> {}
             else -> return zOrder
@@ -113,22 +112,22 @@ data class QuantityPoint3G<V : FloatingNumber<V>>(
     }
 }
 
-data class QuantityRectangle2G<V : FloatingNumber<V>>(
-    val minX: Quantity<V>,
-    val minY: Quantity<V>,
-    val maxX: Quantity<V>,
-    val maxY: Quantity<V>
+data class QuantityRectangle2(
+    val minX: QuantityFlt64,
+    val minY: QuantityFlt64,
+    val maxX: QuantityFlt64,
+    val maxY: QuantityFlt64
 ) {
     init {
         require(quantityOrd(minX, maxX, "x") !is Order.Greater) { "minX should be <= maxX" }
         require(quantityOrd(minY, maxY, "y") !is Order.Greater) { "minY should be <= maxY" }
     }
 
-    val width: Quantity<V> get() = maxX - minX
-    val height: Quantity<V> get() = maxY - minY
-    val area: Quantity<V> get() = width * height
+    val width: QuantityFlt64 get() = maxX - minX
+    val height: QuantityFlt64 get() = maxY - minY
+    val area: QuantityFlt64 get() = width * height
 
-    fun intersect(rhs: QuantityRectangle2G<V>): QuantityRectangle2G<V>? {
+    fun intersect(rhs: QuantityRectangle2): QuantityRectangle2? {
         val left = quantityMax(minX, rhs.minX, "x")
         val right = quantityMin(maxX, rhs.maxX, "x")
         val bottom = quantityMax(minY, rhs.minY, "y")
@@ -136,36 +135,30 @@ data class QuantityRectangle2G<V : FloatingNumber<V>>(
         return if (quantityOrd(left, right, "x") is Order.Less
             && quantityOrd(bottom, top, "y") is Order.Less
         ) {
-            QuantityRectangle2G(left, bottom, right, top)
+            QuantityRectangle2(left, bottom, right, top)
         } else {
             null
         }
     }
 
-    fun intersectArea(rhs: QuantityRectangle2G<V>): Quantity<V>? {
+    fun intersectArea(rhs: QuantityRectangle2): QuantityFlt64? {
         return intersect(rhs)?.area
     }
 }
 
-typealias QuantityVector2 = QuantityVector2G<Flt64>
-typealias QuantityVector3 = QuantityVector3G<Flt64>
-typealias QuantityPoint2 = QuantityPoint2G<Flt64>
-typealias QuantityPoint3 = QuantityPoint3G<Flt64>
-typealias QuantityRectangle2 = QuantityRectangle2G<Flt64>
-
-private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
+private fun quantityOrd(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): Order {
     return lhs.partialOrd(rhs)
         ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
 }
 
-private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
+private fun quantityMax(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
     return when (quantityOrd(lhs, rhs, axis)) {
         is Order.Greater, Order.Equal -> lhs
         is Order.Less -> rhs
     }
 }
 
-private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
+private fun quantityMin(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
     return when (quantityOrd(lhs, rhs, axis)) {
         is Order.Greater -> rhs
         is Order.Equal, is Order.Less -> lhs

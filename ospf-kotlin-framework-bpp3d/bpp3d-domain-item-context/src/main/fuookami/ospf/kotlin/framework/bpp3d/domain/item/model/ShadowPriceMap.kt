@@ -16,12 +16,12 @@ fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): Flt64 {
         is Container3<*> -> cuboid.units.fold(Flt64.zero) { acc, placement ->
             acc + when (val unit = placement.unit) {
                 is Container3<*> -> reducedCost(unit)
-                is Item -> unit.volume.toFlt64() - this(BPP3DShadowPriceArguments(unit))
+                is Item -> unit.volume.asScalarF64() - this(BPP3DShadowPriceArguments(unit))
                 else -> Flt64.zero
             }
         }
 
-        is Item -> cuboid.volume.toFlt64() - this(BPP3DShadowPriceArguments(cuboid))
+        is Item -> cuboid.volume.asScalarF64() - this(BPP3DShadowPriceArguments(cuboid))
         else -> Flt64.zero
     }
 }
@@ -29,6 +29,7 @@ fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): Flt64 {
 typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>;
+
 
 
 

@@ -138,11 +138,11 @@ class QuantityGeometrySpikeTest {
 
     @Test
     fun quantityGeometryShouldSupportFltX() {
-        val base = point2(
+        val base = point2G(
             x = Quantity(FltX(1.0), Meter),
             y = Quantity(FltX(2.0), Meter)
         )
-        val offset = vector2(
+        val offset = vector2G(
             x = Quantity(FltX(0.5), Meter),
             y = Quantity(FltX(1.0), Meter)
         )

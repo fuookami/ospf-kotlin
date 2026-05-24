@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityFlt64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -49,7 +48,7 @@ open class Material(
     val manufacturer: String? = null,
     val supplier: String? = null,
     val warehouse: String? = null,
-    val weight: QuantityFlt64 = Quantity(Flt64.zero, Kilogram)
+    val weight: Quantity<Flt64> = Quantity(Flt64.zero, Kilogram)
 ) {
     open val key: MaterialKey
         get() = MaterialKey(

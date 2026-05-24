@@ -1,180 +1,215 @@
-# BPP3D Quantity<V> 全链路交接计划
+# BPP3D Quantity<V> 深层重构交接计划
 
-日期：2026-05-23
+日期：2026-05-24
 
 ## 一、已完成事项摘要
 
-当前代码已经完成路线 A 的阶段性收口，但尚未完成原始理想目标。
+当前代码已经完成路线 A 的全链路收口，可作为下一轮深层重构的基线。
 
-- [x] BPP3D 主链路已完成 `Quantity<Flt64>` 阶段迁移。
-- [x] `Orientation` 已完成 sealed class 改造并保留兼容入口。
-- [x] item 领域已补齐三种需求统计模式。
-- [x] layer assignment 已接入三种统计模式和 shadow price key 区分。
-- [x] solver 数值转换边界已初步集中到 adapter。
-- [x] 已提供 `FltX` / APS 最小直连 proof。
-- [x] public/domain API 已能构造最小 `Material<FltX>`、`PackageShape<FltX>`、`Item<FltX>`、`BinLayer<FltX>` 等对象。
-- [x] starter 与 example 当前编译闭环已通过。
+- [x] BPP3D 已具备 `Quantity<V>` 泛型 API 主路径。
+- [x] `Flt64` 旧路径、兼容入口和 starter/example 编译闭环已保留。
+- [x] APS/FltX proof 已能不依赖 `toLegacy()` 表达领域对象。
+- [x] solver 数值转换已通过 adapter 收口。
+- [x] 需求统计、layer assignment 和残留审计已完成当前口径验收。
+- [x] 关键定向测试与三条编译闭环已通过。
 
 说明：
 
-- 以上只代表阶段态可用，不代表 `Quantity<V>` 全链路完成。
-- 当前仍存在 `QuantityFlt64` / 裸 `Flt64` 领域字段残留。
-- 剩余工作需要按跨模块泛型化任务重新执行。
+- 当前状态是“泛型 API 主路径 + legacy 兼容层并存”。
+- 下一轮目标不是继续补外层 API，而是让内部主实现也逐步泛型化。
+- 未提交文件较多，开始前必须先确认当前工作区是否已作为基线提交。
 
 ## 二、新目标
 
-目标：把 BPP3D 从阶段态 `Quantity<Flt64>` 推进到正式 `Quantity<V>` 全链路能力。
+目标：把 BPP3D 从“泛型 API 包装层”推进到“泛型内部主实现”，让 legacy `Flt64` 模型退到薄兼容层。
 
 最终状态：
 
-- public/domain API 支持 `V : FloatingNumber<V>`。
-- 所有有物理量纲的领域字段使用 `Quantity<V>`。
-- `Flt64` 只允许保留在兼容入口、默认 typealias、测试回归样例和 solver adapter 边界。
-- APS 可以直接以 `Quantity<FltX>` 复用 BPP3D 类型。
-- 旧 `Flt64` 调用路径继续可编译、行为不回退。
+- infrastructure 内部核心模型以 `Quantity<V>` / `V : FloatingNumber<V>` 为主实现。
+- domain-item-context 内部主模型以泛型类型承载物理量字段。
+- BPP3D 各上下文不再通过 `toLegacy()`、`asScalarF64()` 或 `QuantityFlt64` 完成主链路逻辑。
+- `Flt64` 只保留在兼容 typealias、旧构造入口、solver adapter 和测试回归样例中。
+- unchecked cast warning 大幅减少，剩余 warning 有明确设计理由。
+- APS/FltX 能走一条正式端到端领域链路，而不是只在 API 层 proof 中成立。
 
-路线约束：
+非目标：
 
-- 继续采用路线 A：保留 BPP3D 专用几何类型，并将其泛型化为 `Quantity<V>`。
-- 不让 `Quantity<V>` 实现 `FloatingNumber<Quantity<V>>`。
-- 不改动 `ospf-kotlin-math` 的 `Point<D, V>` / `Vector<D, V>` 核心约束。
-- solver 仍以 `Flt64` 为数值边界，所有单位归一和数值转换集中在 adapter。
+- 不要求删除所有旧 API。
+- 不要求改动 `ospf-kotlin-math` 的 `Point<D, V>` / `Vector<D, V>` 约束。
+- 不要求让 `Quantity<V>` 实现 `FloatingNumber<Quantity<V>>`。
+- 不要求 solver 改用 `FltX`；solver 边界仍然保持 `Flt64`。
 
-## 三、剩余事项
+## 三、后续事项
 
-### Phase N1：泛型化几何与兼容层
+### Phase R1：冻结兼容边界与重构基线
 
-目标：把 BPP3D 专用几何类型从 `QuantityFlt64` 推进到 `Quantity<V>`。
+目标：先把“主实现”和“兼容层”的边界写清楚，避免下一轮重构继续扩大 legacy 使用面。
 
-- [ ] 将 `QuantityPoint2` / `QuantityPoint3` 泛型化。
-- [ ] 将 `QuantityVector2` / `QuantityVector3` 泛型化。
-- [ ] 将几何加减、比较、投影、相交面积、体积计算泛型化。
-- [ ] 保留 `QuantityFlt64` typealias 作为兼容入口。
-- [ ] 保留裸 `Flt64` 工厂函数，但返回值必须进入 `Quantity<Flt64>` 兼容路径。
+- [ ] 确认当前工作区已提交，或记录本轮基线 commit。
+- [ ] 将 `toLegacy()`、`asScalarF64()`、`QuantityFlt64`、裸 `Flt64` 残留重新分类。
+- [ ] 标记允许保留的兼容入口和 solver adapter 文件。
+- [ ] 标记必须迁出的主链路文件。
+- [ ] 更新 `n5-residual-audit.md` 为深层重构版审计文档。
 
-### Phase N2：泛型化 infrastructure 主模型
+### Phase R2：下沉 infrastructure 泛型主实现
 
-目标：`bpp3d-infrastructure` 的有量纲主模型支持 `Quantity<V>`。
+目标：让 `bpp3d-infrastructure/src/main/...` 中的核心类型本身成为泛型主实现，而不是只在 `infrastructure/api` 下提供泛型镜像。
 
-- [ ] 将 `AbstractCuboid` 泛型化为 `AbstractCuboid<V>`。
-- [ ] 将 `Cuboid<T>` 泛型化为 `Cuboid<T, V>`。
-- [ ] 将 `CuboidView`、`BottomSupport`、`Container2`、`Container3`、`Projection`、`Placement` 等类型泛型化。
-- [ ] `width`、`height`、`depth`、`weight`、`area`、`volume`、`actualVolume`、`linearDensity` 均返回 `Quantity<V>`。
-- [ ] `Orientation` 保持非泛型 sealed class，但其计算方法支持泛型 cuboid。
+- [ ] 将 `AbstractCuboid<Flt64>` 使用点推进为 `AbstractCuboid<V>` 或等价泛型边界。
+- [ ] 将 `Cuboid`、`CuboidView`、`Projection`、`Placement`、`Container` 的内部主链路泛型化。
+- [ ] 将 `QuantityGeometrySpike.kt` / `QuantityGeometryGeneric.kt` 收敛为正式几何实现。
+- [ ] 将 `QuantityCompatibility.kt` 退化为兼容入口，不再承载主链路逻辑。
+- [ ] 将 `QuantityLegacyScalarAdapter.kt` 限定为 legacy/solver 边界工具。
+- [ ] 修复或消除 infrastructure 中由泛型迁移引入的 unchecked cast warning。
 
-### Phase N3：泛型化 domain-item-context
+### Phase R3：下沉 domain-item-context 泛型主实现
 
-目标：item 领域主模型支持 `Quantity<V>`，并保留 `Flt64` 兼容入口。
+目标：让 item 领域模型内部主实现泛型化，API 层不再只是外壳。
 
-- [ ] 将 `Material.weight` 推进到 `Quantity<V>`。
-- [ ] 将 `PackageShape`、`PackageAttribute`、`Package` 泛型化。
-- [ ] 将 `Item`、`ActualItem`、`PatternedItem`、`ItemView` 泛型化。
-- [ ] 将 `BinLayer`、`Block`、`Bin`、`ItemContainer`、`Pattern`、`Schema` 泛型化。
-- [ ] 将 `DemandStatistics`、`Bpp3dDemandValue.Weight` 推进到 `Quantity<V>`。
-- [ ] 保留 `Flt64Item`、`Flt64PackageShape` 等兼容 typealias。
+- [ ] 将 `Material`、`PackageShape`、`Package` 的内部主模型泛型化。
+- [ ] 将 `Item`、`ActualItem`、`PatternedItem`、`ItemView` 的内部主模型泛型化。
+- [ ] 将 `BinLayer`、`Block`、`Bin`、`ItemContainer`、`Pattern`、`Schema` 的主链路泛型化。
+- [ ] 将 `PackageAttribute`、hanging/stacking/deformation 策略中的有量纲值从 `Flt64` 推进到 `Quantity<V>`。
+- [ ] 将 `ItemHeightCombinator`、`ItemMerger`、`LoadingOrderCalculator` 中的有量纲算法参数泛型化。
+- [ ] 保留 `Flt64*` typealias 和旧构造入口作为兼容薄层。
 
-### Phase N4：泛型化其他 BPP3D 上下文
+### Phase R4：迁移跨上下文算法主链路
 
-目标：所有 BPP3D 上下文能接受 `V : FloatingNumber<V>` 主路径。
+目标：让 BPP3D 其他上下文直接消费泛型领域模型，减少 legacy 模型中转。
 
-- [ ] 适配 `bpp3d-domain-bla-context`。
-- [ ] 适配 `bpp3d-domain-block-loading-context`。
-- [ ] 适配 `bpp3d-domain-layer-generation-context`。
-- [ ] 适配 `bpp3d-domain-layer-selection-context`。
-- [ ] 适配 `bpp3d-domain-layer-assignment-context`。
-- [ ] 适配 `bpp3d-domain-packing-context`。
-- [ ] 适配 `bpp3d-application`。
-- [ ] 适配 `ospf-kotlin-starter-bpp3d`。
+- [ ] 迁移 `bpp3d-domain-bla-context`。
+- [ ] 迁移 `bpp3d-domain-block-loading-context`。
+- [ ] 迁移 `bpp3d-domain-layer-generation-context`。
+- [ ] 迁移 `bpp3d-domain-layer-selection-context`。
+- [ ] 迁移 `bpp3d-domain-layer-assignment-context`。
+- [ ] 迁移 `bpp3d-domain-packing-context`。
+- [ ] 迁移 `bpp3d-application` 和 starter。
+- [ ] 确认所有上下文的 Flt64 兼容路径只通过 typealias 或 adapter 暴露。
 
-### Phase N5：收紧残留边界
+### Phase R5：收口 solver 与数值转换边界
 
-目标：清理 `QuantityFlt64` / 裸 `Flt64` 的领域残留，只保留明确允许的位置。
+目标：把所有数值降级和单位归一集中到明确边界，业务算法不直接调用 `asScalarF64()`。
 
-- [ ] 审计 `QuantityFlt64` 残留，并为每个残留标注兼容理由。
-- [ ] 审计裸 `Flt64` 残留，并确认其只属于 solver、兼容入口、默认值工厂或测试。
-- [ ] 清退领域物理量字段中的裸 `Flt64`。
-- [ ] 清退领域主模型字段中的 `QuantityFlt64`。
-- [ ] 将新增代码中的 `.toFlt64()` 限定到 solver adapter 或兼容转换层。
+- [ ] 为几何比较、排序、分组、阈值判断补充泛型 helper。
+- [ ] 将 `asScalarF64()` 从领域算法主链路迁出。
+- [ ] 将 `.toFlt64()` 限定到 solver adapter、legacy 转换层和测试。
+- [ ] 为 FltX 场景提供正式 solver adapter 用例。
+- [ ] 为所有保留的数值降级点记录原因。
+
+### Phase R6：测试、warning 与残留审计收口
+
+目标：用测试和静态审计证明内部主链路已泛型化。
+
+- [ ] 补充 infrastructure 泛型测试，覆盖 `Flt64` 与 `FltX`。
+- [ ] 补充 item/domain 泛型测试，覆盖 `Flt64` 与 `FltX`。
+- [ ] 补充跨上下文 FltX 端到端 proof。
+- [ ] 补充 legacy Flt64 兼容回归测试。
+- [ ] 清理或解释 unchecked cast warning。
+- [ ] 更新 residual audit，列出所有允许残留。
 
 ## 四、详细执行步骤
 
-1. 确认当前工作区和基线。
+1. 固化当前基线。
 
    ```powershell
    git status --short
-   mvn -pl ospf-kotlin-starters/ospf-kotlin-starter-bpp3d -am -DskipTests compile
-   mvn -pl ospf-kotlin-example -am -DskipTests compile
+   git rev-parse --abbrev-ref HEAD
+   git log -1 --oneline
    ```
 
-2. 建立残留清单。
+   如果当前大批文件尚未提交，先完成提交或明确基线，否则后续重构难以审查。
+
+2. 复跑当前验收命令，确认从已知绿色状态开始。
 
    ```powershell
-   git grep -n "QuantityFlt64\|Flt64\|toFlt64()" -- ospf-kotlin-framework-bpp3d
+   mvn -f ospf-kotlin-framework-bpp3d/pom.xml -am -DskipTests compile
+   mvn -pl ospf-kotlin-starters/ospf-kotlin-starter-bpp3d -am -DskipTests compile
+   mvn -pl ospf-kotlin-example -am -DskipTests compile
+   mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am "-Dtest=FltXDirectCompileProofTest,SolverAdapterBoundaryTest,ItemDemandConstraintModeKeyTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+   ```
+
+3. 建立深层残留清单。
+
+   ```powershell
+   rg -n "toLegacy\(|asScalarF64\(|QuantityFlt64|\bFlt64\b|UNCHECKED_CAST" ospf-kotlin-framework-bpp3d -g "**/src/main/**/*.kt" -S
    ```
 
    分类规则：
 
-   - 允许：solver adapter、旧 API 兼容入口、默认 typealias、Flt64 回归测试。
-   - 不允许：领域物理量字段、几何主模型字段、需求统计主模型、物料重量主模型。
+   - 允许：兼容 typealias、旧构造入口、solver adapter、legacy 转换层、测试。
+   - 待迁移：领域算法、几何算法、上下文服务、主模型字段、主模型方法签名。
+   - 禁止新增：新主链路中的 `toLegacy()`、直接 `.toFlt64()`、无解释的 unchecked cast。
 
-3. 先迁移几何层。
+4. 先做 infrastructure 下沉。
 
-   - 从 `QuantityGeometrySpike.kt`、`QuantityCompatibility.kt` 开始。
-   - 先让 `QuantityPoint*` / `QuantityVector*` 接收 `V : FloatingNumber<V>`。
-   - 保持 `QuantityFlt64` 兼容别名和旧工厂函数可用。
-   - 每完成一组几何类型就运行 infrastructure 相关测试。
+   - 以现有 `infrastructure/api/QuantityInfrastructureApi.kt` 为目标形态。
+   - 将正式实现逐步迁入 `Cuboid.kt`、`Projection.kt`、`Placement.kt`、`Container.kt`。
+   - 每迁移一个核心类型，保留 Flt64 typealias 并运行 infrastructure test-compile。
+   - 避免同时迁移 domain-item-context，降低泛型错误扩散。
 
-4. 再迁移 infrastructure 主模型。
+5. 再做 domain-item-context 下沉。
 
-   - 从 `AbstractCuboid<V>` 和 `Cuboid<T, V>` 开始。
-   - 继续推进 view、projection、placement、container。
-   - `Orientation` 不泛型化，只让它的计算入口支持泛型 cuboid。
-   - 保持旧 `Cuboid<T>` 或等价 `Flt64` typealias 可编译。
+   - 先迁移低依赖模型：`Material`、`PackageShape`、`Package`。
+   - 再迁移 item 和 view：`Item`、`ActualItem`、`PatternedItem`、`ItemView`。
+   - 最后迁移容器和组合模型：`BinLayer`、`Block`、`Bin`、`ItemContainer`、`Pattern`、`Schema`。
+   - 每完成一组模型，补一个 Flt64 兼容测试和一个 FltX 泛型测试。
 
-5. 迁移 domain-item-context。
+6. 迁移领域算法服务。
 
-   - 优先迁移 `Material`、`PackageShape`、`Package`、`Item`。
-   - 再迁移 `BinLayer`、`Block`、`Bin`、`ItemContainer`、`Pattern`、`Schema`。
-   - 最后迁移 `DemandStatistics` 和需求值模型。
-   - 每个公开类型迁移后补一个 `Flt64` 兼容用例和一个 `FltX` 泛型用例。
+   - 优先处理 `PackageAttribute`、`ItemHeightCombinator`、`ItemMerger`、`LoadingOrderCalculator`。
+   - 将有量纲参数改为 `Quantity<V>`。
+   - 将无量纲比例、排序权重、计数继续保持裸数值。
+   - 对必须降级到 `Flt64` 的算法点抽取 adapter 或 comparator。
 
-6. 迁移 layer assignment。
+7. 逐个迁移其他上下文。
 
-   - 保留 solver adapter 作为 `Quantity<V>` 到 `Flt64` 的唯一数值边界。
-   - 检查 `Load`、`Capacity`、限制器、目标函数、shadow price 读取路径。
-   - 禁止在业务模型中新增 `.toFlt64()`。
+   - 按依赖顺序处理 BLA、block-loading、layer-generation、layer-selection、layer-assignment、packing。
+   - 每个模块完成后运行该模块 compile 或相关测试。
+   - 不要在多个上下文中重复创建桥接逻辑。
 
-7. 迁移其余上下文。
+8. 收口 solver 边界。
 
-   - 按依赖顺序逐个处理 BLA、block loading、layer generation、layer selection、packing、application、starter。
-   - 每迁移一个模块就运行该模块 compile，避免最后集中爆炸。
+   - 保持 solver 输入为 `Flt64`。
+   - 所有 `Quantity<V>` 到 solver 数值转换都必须经过 `Bpp3dSolverValueAdapter` 或等价 adapter。
+   - 禁止领域模型自行做单位归一。
 
-8. 强化 APS/FltX proof。
+9. 清理 warning。
 
-   - 保留现有最小 proof。
-   - 增加一条不经过 `toLegacy()` 的正式 API proof。
-   - 若暂时仍需要 `toLegacy()`，必须在测试名或注释中明确其为过渡桥接。
+   - 先处理因泛型迁移新增的 unchecked cast。
+   - 对无法消除的 cast 加最小范围 `@Suppress`，并在审计文档说明原因。
+   - 不接受文件级大范围 suppress 掩盖新问题。
 
-9. 做最终残留审计。
+10. 更新文档和验收状态。
 
-   - 对所有 `QuantityFlt64`、裸 `Flt64`、`.toFlt64()` 残留逐条归类。
-   - 对无法清理的残留写入兼容理由。
-   - 不允许用注释掩盖新的领域字段残留。
-
-10. 执行完整验收命令并更新本文件勾选状态。
+   - 每完成一个 phase，更新本文件勾选状态。
+   - 更新 `n5-residual-audit.md` 或新增深层审计章节。
+   - 最后执行完整验收命令。
 
 ## 五、修改清单
 
-### 重点主代码
+### 基线与审计
 
+- `ospf-kotlin-framework-bpp3d/daily.md`
+- `ospf-kotlin-framework-bpp3d/n5-residual-audit.md`
+
+### infrastructure
+
+- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../api/QuantityInfrastructureApi.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../QuantityGeometryGeneric.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../QuantityGeometrySpike.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../QuantityCompatibility.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../QuantityLegacyScalarAdapter.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../Cuboid.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../Container.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../Projection.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../Placement.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/main/.../Orientation.kt`
+
+### domain-item-context
+
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../api/QuantityDomainApi.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../api/QuantityDomainAliases.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../api/QuantityDemandStatistics.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Material.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Package.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/PackageAttribute.kt`
@@ -183,31 +218,29 @@
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Bin.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Block.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Layer.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Pattern.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/Schema.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/DemandStatistics.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/.../model/Load.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/.../model/Capacity.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/.../model/Assignment.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/.../model/SolverValueAdapterExample.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/.../service/limits/ItemDemandConstraint.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/.../service/limits/*.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../model/ShadowPriceMap.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../service/ItemHeightCombinator.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../service/ItemMerger.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/.../service/LoadingOrderCalculator.kt`
+
+### other contexts
+
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-bla-context/src/main/...`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context/src/main/...`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-generation-context/src/main/...`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-selection-context/src/main/...`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/...`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-packing-context/src/main/...`
 - `ospf-kotlin-framework-bpp3d/bpp3d-application/src/main/...`
 - `ospf-kotlin-starters/ospf-kotlin-starter-bpp3d/src/main/...`
-- `ospf-kotlin-example/src/main/...`
 
-### 重点测试
+### tests
 
-- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/.../QuantityGeometrySpikeTest.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/.../CuboidCoreTest.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/.../ContainerShapeTest.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/.../ProjectionTest.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/.../PlacementTest.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/.../OrientationTest.kt`
-- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/test/.../DemandStatisticsTest.kt`
+- `ospf-kotlin-framework-bpp3d/bpp3d-infrastructure/src/test/...`
+- `ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/test/...`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/test/.../FltXDirectCompileProofTest.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/test/.../SolverAdapterBoundaryTest.kt`
 - `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/test/.../ItemDemandConstraintModeKeyTest.kt`
@@ -233,13 +266,12 @@ mvn -pl ospf-kotlin-example -am -DskipTests compile
 
 ### 行为验收
 
-- [ ] Flt64 旧主路径行为不回退。
-- [ ] `Orientation` 兼容调用和序列化行为不回退。
+- [ ] Flt64 兼容路径行为不回退。
+- [ ] FltX 泛型路径可直接通过内部主模型构造领域对象。
+- [ ] APS/FltX proof 不依赖 `toLegacy()`。
 - [ ] 三种需求统计模式行为不回退。
-- [ ] layer assignment 的 load、demand constraint、shadow price 在三种统计模式下仍可区分 key。
-- [ ] solver adapter 负责所有 `Quantity<V>` 到 `Flt64` 的数值转换。
-- [ ] 新增 `FltX` proof 不依赖手写 `Flt64` 中间 DTO。
-- [ ] 正式 public/domain API 可直接构造 `Quantity<FltX>` 主链路对象。
+- [ ] layer assignment 的 load、demand constraint、shadow price key 行为不回退。
+- [ ] solver adapter 仍是唯一 solver 数值转换边界。
 
 建议命令：
 
@@ -247,35 +279,36 @@ mvn -pl ospf-kotlin-example -am -DskipTests compile
 mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am "-Dtest=FltXDirectCompileProofTest,SolverAdapterBoundaryTest,ItemDemandConstraintModeKeyTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
-### 原始目标验收
+### 深层重构验收
 
-- [ ] public/domain API 能直接构造 `Material<FltX>`。
-- [ ] public/domain API 能直接构造 `PackageShape<FltX>` / `Package<FltX>`。
-- [ ] public/domain API 能直接构造 `Item<FltX>`。
-- [ ] public/domain API 能直接构造 `BinLayer<FltX>`、`Block<FltX>`、`Bin<FltX>` 或等价正式装载对象。
-- [ ] APS/FltX proof 不依赖 `toLegacy()` 才能表达领域对象。
-- [ ] `QuantityFlt64` 不再出现在领域主模型字段中，只保留在兼容层、默认 typealias 或测试中。
-- [ ] 裸 `Flt64` 不再出现在有量纲领域字段中，只保留在 solver adapter、兼容入口或测试中。
+- [ ] `infrastructure/api` 下的泛型镜像已合并进正式 infrastructure 主实现，或仅保留为薄导出层。
+- [ ] `domain/item/api` 下的泛型镜像已合并进正式 domain-item 主实现，或仅保留为薄导出层。
+- [ ] 主链路不再通过 `toLegacy()` 表达领域对象。
+- [ ] 主链路不再通过 `asScalarF64()` 完成几何或领域算法。
+- [ ] `QuantityFlt64` 只保留在兼容 typealias、旧构造入口或测试。
+- [ ] 裸 `Flt64` 只保留在 solver adapter、兼容入口、无量纲参数或测试。
+- [ ] unchecked cast warning 较基线减少，剩余项有审计说明。
 
 ### 残留审计
 
 执行：
 
 ```powershell
-git grep -n "QuantityFlt64\|Flt64\|toFlt64()" -- ospf-kotlin-framework-bpp3d
+rg -n "toLegacy\(|asScalarF64\(|QuantityFlt64|\bFlt64\b|UNCHECKED_CAST" ospf-kotlin-framework-bpp3d -g "**/src/main/**/*.kt" -S
 ```
 
 验收：
 
+- [ ] 每个 `toLegacy()` 残留都属于旧 API 兼容入口。
+- [ ] 每个 `asScalarF64()` 残留都属于 solver adapter、legacy 转换层或已记录的兼容算法。
 - [ ] 每个 `QuantityFlt64` 残留都有明确兼容理由。
-- [ ] 每个裸 `Flt64` 残留都属于 solver、兼容入口、默认值工厂或测试。
-- [ ] 每个 `.toFlt64()` 残留都属于 solver adapter、兼容转换层或测试。
-- [ ] 不存在新的领域物理量字段使用裸 `Flt64`。
-- [ ] 不存在新的领域主模型字段使用 `QuantityFlt64`。
+- [ ] 每个裸 `Flt64` 残留都属于允许分类。
+- [ ] 每个 `UNCHECKED_CAST` 都有局部 suppress 或审计说明。
 
 ## 七、交接注意事项
 
-- 当前任务规模较大，不建议一次性跨所有模块改完；应按 Phase N1 到 N5 顺序推进。
-- 每完成一个 phase，都需要更新本文件勾选状态和实际验证命令结果。
-- 若必须保留 `Flt64` / `QuantityFlt64`，需要在代码或测试命名中体现兼容边界。
-- 不要把 APS/FltX proof 停留在 `toLegacy()` 桥接层；它只能作为过渡验收。
+- 这轮重构会触及核心类型，必须按 phase 小步提交。
+- 不要在未提交基线上继续扩大修改范围。
+- 优先下沉已有泛型 API，不要再新增平行包装层。
+- 如果某个 legacy 算法短期无法泛型化，必须把它标为兼容算法并写入残留审计。
+- 每完成一个 phase，都更新本文件勾选项和实际执行过的命令。

@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.quantity.geq
 import fuookami.ospf.kotlin.quantities.quantity.gr
@@ -20,19 +21,19 @@ import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
-private fun quantityOrd(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): Order {
+private fun quantityOrd(lhs: Quantity<Flt64>, rhs: Quantity<Flt64>, axis: String): Order {
     return lhs.partialOrd(rhs)
         ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
 }
 
-private fun quantityMax(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
+private fun quantityMax(lhs: Quantity<Flt64>, rhs: Quantity<Flt64>, axis: String): Quantity<Flt64> {
     return when (quantityOrd(lhs, rhs, axis)) {
         is Order.Greater, Order.Equal -> lhs
         is Order.Less -> rhs
     }
 }
 
-private fun quantityMin(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
+private fun quantityMin(lhs: Quantity<Flt64>, rhs: Quantity<Flt64>, axis: String): Quantity<Flt64> {
     return when (quantityOrd(lhs, rhs, axis)) {
         is Order.Greater -> rhs
         is Order.Equal, is Order.Less -> lhs
@@ -40,9 +41,9 @@ private fun quantityMin(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): Q
 }
 
 private fun containsInRange(
-    value: QuantityFlt64,
-    lb: QuantityFlt64,
-    ub: QuantityFlt64,
+    value: Quantity<Flt64>,
+    lb: Quantity<Flt64>,
+    ub: Quantity<Flt64>,
     withLowerBound: Boolean,
     withUpperBound: Boolean
 ): Boolean {
@@ -196,9 +197,9 @@ data class Placement3<T : Cuboid<T>>(
                 z = z + parent!!.absoluteZ
             )
         }
-    val absoluteX: QuantityFlt64 get() = x + (parent?.absoluteX ?: (Flt64.zero * x.unit))
-    val absoluteY: QuantityFlt64 get() = y + (parent?.absoluteY ?: (Flt64.zero * y.unit))
-    val absoluteZ: QuantityFlt64 get() = z + (parent?.absoluteZ ?: (Flt64.zero * z.unit))
+    val absoluteX: Quantity<Flt64> get() = x + (parent?.absoluteX ?: (Flt64.zero * x.unit))
+    val absoluteY: Quantity<Flt64> get() = y + (parent?.absoluteY ?: (Flt64.zero * y.unit))
+    val absoluteZ: Quantity<Flt64> get() = z + (parent?.absoluteZ ?: (Flt64.zero * z.unit))
 
     val absolutePlacement get() = Placement3(view, absolutePosition)
 
@@ -206,14 +207,14 @@ data class Placement3<T : Cuboid<T>>(
     val height by view::height
     val depth by view::depth
 
-    val maxX: QuantityFlt64 = x + width
-    val maxY: QuantityFlt64 = y + height
-    val maxZ: QuantityFlt64 = z + depth
+    val maxX: Quantity<Flt64> = x + width
+    val maxY: Quantity<Flt64> = y + height
+    val maxZ: Quantity<Flt64> = z + depth
     val maxPosition: QuantityPoint3 = position + QuantityVector3(x = width, y = height, z = depth)
 
-    val maxAbsoluteX: QuantityFlt64 get() = absoluteX + width
-    val maxAbsoluteY: QuantityFlt64 get() = absoluteY + height
-    val maxAbsoluteZ: QuantityFlt64 get() = absoluteZ + depth
+    val maxAbsoluteX: Quantity<Flt64> get() = absoluteX + width
+    val maxAbsoluteY: Quantity<Flt64> get() = absoluteY + height
+    val maxAbsoluteZ: Quantity<Flt64> get() = absoluteZ + depth
     val maxAbsolutePosition: QuantityPoint3 get() = absolutePosition + QuantityVector3(x = width, y = height, z = depth)
 
     init {
@@ -328,3 +329,4 @@ fun bottomPlacements(placements: List<Placement3<*>>): List<Placement3<*>> {
     }
     return bottomPlacements
 }
+

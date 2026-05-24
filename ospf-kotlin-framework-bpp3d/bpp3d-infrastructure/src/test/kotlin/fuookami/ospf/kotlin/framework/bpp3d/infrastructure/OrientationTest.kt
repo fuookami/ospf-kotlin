@@ -1,5 +1,6 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -16,7 +17,7 @@ class OrientationTest {
         override val height: QuantityFlt64,
         override val depth: QuantityFlt64,
         override val weight: QuantityFlt64
-    ) : AbstractCuboid
+    ) : AbstractCuboid<Flt64>
 
     private val unit = StubCuboid(
         width = 2.0 * Meter,
@@ -100,3 +101,4 @@ class OrientationTest {
         assertTrue((Orientation.LieRotated ord Orientation.Lie) is Order.Greater)
     }
 }
+

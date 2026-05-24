@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
@@ -86,7 +86,7 @@ data class Space(
                         if (parentShape.width gr block.width) {
                             links.add(
                                 Space(
-                                    position = position + vector3(x = block.width.toFlt64()),
+                                    position = position + vector3(x = block.width.asScalarF64()),
                                     shape = Container3Shape(
                                         width = parentShape.width - block.width,
                                         height = parentShape.height,
@@ -99,7 +99,7 @@ data class Space(
                         if (block.topFlat && parentShape.height gr block.height) {
                             links.add(
                                 Space(
-                                    position = position + vector3(y = block.height.toFlt64()),
+                                    position = position + vector3(y = block.height.asScalarF64()),
                                     shape = Container3Shape(
                                         width = block.width,
                                         height = parentShape.height - block.height,
@@ -112,7 +112,7 @@ data class Space(
                         if (parentShape.depth gr block.depth) {
                             links.add(
                                 Space(
-                                    position = position + vector3(z = block.depth.toFlt64()),
+                                    position = position + vector3(z = block.depth.asScalarF64()),
                                     shape = Container3Shape(
                                         width = parentShape.width,
                                         height = parentShape.height,
@@ -193,7 +193,7 @@ data class Space(
                 }
             }
             var layer = thisLayer - UInt64.one
-            var height = (thisLayer - UInt64.one).toFlt64() * thisItem.height
+            var height = (thisLayer - UInt64.one).asScalarF64() * thisItem.height
             for (space in thisBottomSpaces) {
                 when (val bottomBlock = space.block!!) {
                     is SimpleBlock -> {
@@ -286,5 +286,6 @@ data class Space(
         }
     }
 }
+
 
 
