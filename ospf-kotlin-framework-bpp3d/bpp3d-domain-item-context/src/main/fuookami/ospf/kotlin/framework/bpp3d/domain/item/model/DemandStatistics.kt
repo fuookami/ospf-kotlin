@@ -35,7 +35,7 @@ private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3
 private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3dDemandValue {
     return when (value) {
         is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(value.value * multiplier)
-        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * multiplier.asScalarF64())
+        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * Flt64(multiplier.toULong().toDouble()))
     }
 }
 

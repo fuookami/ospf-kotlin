@@ -1,11 +1,8 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.utils.functional.Order
 
 typealias QuantityFlt64 = Quantity<Flt64>
@@ -15,17 +12,11 @@ data class QuantityVector2(
     val y: QuantityFlt64
 ) {
     operator fun plus(rhs: QuantityVector2): QuantityVector2 {
-        return QuantityVector2(
-            x = x + rhs.x,
-            y = y + rhs.y
-        )
+        return (asGeneric() + rhs.asGeneric()).toCompat()
     }
 
     operator fun minus(rhs: QuantityVector2): QuantityVector2 {
-        return QuantityVector2(
-            x = x - rhs.x,
-            y = y - rhs.y
-        )
+        return (asGeneric() - rhs.asGeneric()).toCompat()
     }
 }
 
@@ -35,19 +26,11 @@ data class QuantityVector3(
     val z: QuantityFlt64
 ) {
     operator fun plus(rhs: QuantityVector3): QuantityVector3 {
-        return QuantityVector3(
-            x = x + rhs.x,
-            y = y + rhs.y,
-            z = z + rhs.z
-        )
+        return (asGeneric() + rhs.asGeneric()).toCompat()
     }
 
     operator fun minus(rhs: QuantityVector3): QuantityVector3 {
-        return QuantityVector3(
-            x = x - rhs.x,
-            y = y - rhs.y,
-            z = z - rhs.z
-        )
+        return (asGeneric() - rhs.asGeneric()).toCompat()
     }
 }
 
@@ -56,25 +39,15 @@ data class QuantityPoint2(
     val y: QuantityFlt64
 ) {
     operator fun plus(offset: QuantityVector2): QuantityPoint2 {
-        return QuantityPoint2(
-            x = x + offset.x,
-            y = y + offset.y
-        )
+        return (asGeneric() + offset.asGeneric()).toCompat()
     }
 
     operator fun minus(offset: QuantityVector2): QuantityPoint2 {
-        return QuantityPoint2(
-            x = x - offset.x,
-            y = y - offset.y
-        )
+        return (asGeneric() - offset.asGeneric()).toCompat()
     }
 
     infix fun ord(rhs: QuantityPoint2): Order {
-        when (val yOrder = quantityOrd(y, rhs.y, "y")) {
-            Order.Equal -> {}
-            else -> return yOrder
-        }
-        return quantityOrd(x, rhs.x, "x")
+        return asGeneric() ord rhs.asGeneric()
     }
 }
 
@@ -84,31 +57,15 @@ data class QuantityPoint3(
     val z: QuantityFlt64
 ) {
     operator fun plus(offset: QuantityVector3): QuantityPoint3 {
-        return QuantityPoint3(
-            x = x + offset.x,
-            y = y + offset.y,
-            z = z + offset.z
-        )
+        return (asGeneric() + offset.asGeneric()).toCompat()
     }
 
     operator fun minus(offset: QuantityVector3): QuantityPoint3 {
-        return QuantityPoint3(
-            x = x - offset.x,
-            y = y - offset.y,
-            z = z - offset.z
-        )
+        return (asGeneric() - offset.asGeneric()).toCompat()
     }
 
     infix fun ord(rhs: QuantityPoint3): Order {
-        when (val zOrder = quantityOrd(z, rhs.z, "z")) {
-            Order.Equal -> {}
-            else -> return zOrder
-        }
-        when (val yOrder = quantityOrd(y, rhs.y, "y")) {
-            Order.Equal -> {}
-            else -> return yOrder
-        }
-        return quantityOrd(x, rhs.x, "x")
+        return asGeneric() ord rhs.asGeneric()
     }
 }
 
@@ -119,26 +76,16 @@ data class QuantityRectangle2(
     val maxY: QuantityFlt64
 ) {
     init {
-        require(quantityOrd(minX, maxX, "x") !is Order.Greater) { "minX should be <= maxX" }
-        require(quantityOrd(minY, maxY, "y") !is Order.Greater) { "minY should be <= maxY" }
+        require((asGeneric().minX.partialOrd(asGeneric().maxX) ?: error("Incomparable x")) !is Order.Greater) { "minX should be <= maxX" }
+        require((asGeneric().minY.partialOrd(asGeneric().maxY) ?: error("Incomparable y")) !is Order.Greater) { "minY should be <= maxY" }
     }
 
-    val width: QuantityFlt64 get() = maxX - minX
-    val height: QuantityFlt64 get() = maxY - minY
-    val area: QuantityFlt64 get() = width * height
+    val width: QuantityFlt64 get() = asGeneric().width
+    val height: QuantityFlt64 get() = asGeneric().height
+    val area: QuantityFlt64 get() = asGeneric().area
 
     fun intersect(rhs: QuantityRectangle2): QuantityRectangle2? {
-        val left = quantityMax(minX, rhs.minX, "x")
-        val right = quantityMin(maxX, rhs.maxX, "x")
-        val bottom = quantityMax(minY, rhs.minY, "y")
-        val top = quantityMin(maxY, rhs.maxY, "y")
-        return if (quantityOrd(left, right, "x") is Order.Less
-            && quantityOrd(bottom, top, "y") is Order.Less
-        ) {
-            QuantityRectangle2(left, bottom, right, top)
-        } else {
-            null
-        }
+        return asGeneric().intersect(rhs.asGeneric())?.toCompat()
     }
 
     fun intersectArea(rhs: QuantityRectangle2): QuantityFlt64? {
@@ -146,21 +93,52 @@ data class QuantityRectangle2(
     }
 }
 
-private fun quantityOrd(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): Order {
-    return lhs.partialOrd(rhs)
-        ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
+private fun QuantityVector2.asGeneric(): QuantityVector2G<Flt64> {
+    return QuantityVector2G(x = x, y = y)
 }
 
-private fun quantityMax(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
-    return when (quantityOrd(lhs, rhs, axis)) {
-        is Order.Greater, Order.Equal -> lhs
-        is Order.Less -> rhs
-    }
+private fun QuantityVector3.asGeneric(): QuantityVector3G<Flt64> {
+    return QuantityVector3G(x = x, y = y, z = z)
 }
 
-private fun quantityMin(lhs: QuantityFlt64, rhs: QuantityFlt64, axis: String): QuantityFlt64 {
-    return when (quantityOrd(lhs, rhs, axis)) {
-        is Order.Greater -> rhs
-        is Order.Equal, is Order.Less -> lhs
-    }
+private fun QuantityPoint2.asGeneric(): QuantityPoint2G<Flt64> {
+    return QuantityPoint2G(x = x, y = y)
+}
+
+private fun QuantityPoint3.asGeneric(): QuantityPoint3G<Flt64> {
+    return QuantityPoint3G(x = x, y = y, z = z)
+}
+
+private fun QuantityRectangle2.asGeneric(): QuantityRectangle2G<Flt64> {
+    return QuantityRectangle2G(
+        minX = minX,
+        minY = minY,
+        maxX = maxX,
+        maxY = maxY
+    )
+}
+
+private fun QuantityVector2G<Flt64>.toCompat(): QuantityVector2 {
+    return QuantityVector2(x = x, y = y)
+}
+
+private fun QuantityVector3G<Flt64>.toCompat(): QuantityVector3 {
+    return QuantityVector3(x = x, y = y, z = z)
+}
+
+private fun QuantityPoint2G<Flt64>.toCompat(): QuantityPoint2 {
+    return QuantityPoint2(x = x, y = y)
+}
+
+private fun QuantityPoint3G<Flt64>.toCompat(): QuantityPoint3 {
+    return QuantityPoint3(x = x, y = y, z = z)
+}
+
+private fun QuantityRectangle2G<Flt64>.toCompat(): QuantityRectangle2 {
+    return QuantityRectangle2(
+        minX = minX,
+        minY = minY,
+        maxX = maxX,
+        maxY = maxY
+    )
 }

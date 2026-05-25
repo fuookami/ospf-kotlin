@@ -124,10 +124,10 @@ suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
             val promises = ArrayList<Deferred<Boolean>>()
             for (item in bottomPlacements(toPlacement3().dump())) {
                 promises.add(async(Dispatchers.Default) {
-                    item as ItemPlacement3
-                    item.enabledStackingOn(
+                    val itemPlacement = item.toItemPlacementOrNull() ?: return@async false
+                    itemPlacement.enabledStackingOn(
                         bottomItems = bottomPlacements,
-                        space = Container3Shape(space).restSpace(item.position)
+                        space = Container3Shape(space).restSpace(itemPlacement.position)
                     )
                 })
             }
@@ -153,10 +153,10 @@ suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
             val promises = ArrayList<Deferred<Boolean>>()
             for (item in bottomPlacements(toPlacement3().dump())) {
                 promises.add(async(Dispatchers.Default) {
-                    item as ItemPlacement3
-                    item.enabledStackingOn(
+                    val itemPlacement = item.toItemPlacementOrNull() ?: return@async false
+                    itemPlacement.enabledStackingOn(
                         bottomItems = bottomPlacements,
-                        space = Container3Shape(space).restSpace(item.position)
+                        space = Container3Shape(space).restSpace(itemPlacement.position)
                     )
                 })
             }
@@ -176,7 +176,7 @@ suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
     bottomItems: List<Placement3<*>>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
-    val thisBottomItems = bottomPlacements(this.dump()) as List<ItemPlacement3>
+    val thisBottomItems = bottomItemPlacements(this.dump())
     return try {
         coroutineScope {
             val promises = ArrayList<Deferred<Boolean>>()

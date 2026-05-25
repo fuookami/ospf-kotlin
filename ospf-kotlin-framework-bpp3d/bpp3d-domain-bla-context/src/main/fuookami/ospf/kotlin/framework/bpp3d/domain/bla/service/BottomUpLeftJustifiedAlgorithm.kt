@@ -157,7 +157,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             )
             try {
                 for (result in promise) {
-                    if (promiseWrapper.trySend(result as List<Placement2<T, P>?>).isFailure) {
+                    val typedResult = result.mapIndexed { index, placement ->
+                        placement?.let {
+                            Placement2(
+                                projection = projections[index],
+                                position = it.position
+                            )
+                        }
+                    }
+                    if (promiseWrapper.trySend(typedResult).isFailure) {
                         break
                     }
                 }
@@ -431,14 +439,9 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             when (val unit = placement.unit) {
                 is Item -> {
                     if (!when (plane) {
-                            is Side -> (placement as ItemPlacement2<Side>).enabledStackingOn(
-                                bottomItems = fixedPlacements.filterNotNull().map { it as Placement2<*, Side> },
-                                space = space.restSpace(placement.position) as Container2Shape<Side>
-                            )
-
-                            is Front -> (placement as ItemPlacement2<Front>).enabledStackingOn(
-                                fixedPlacements.filterNotNull().map { it as Placement2<*, Front> },
-                                space = space.restSpace(placement.position) as Container2Shape<Front>
+                            is Side, is Front -> placement.enabledItemStackingOnPlane(
+                                bottomItems = fixedPlacements,
+                                space = space
                             )
 
                             else -> true
@@ -450,14 +453,9 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 
                 is Block -> {
                     if (!when (plane) {
-                            is Side -> (placement as BlockPlacement2<Side>).enabledStackingOn(
-                                bottomItems = fixedPlacements.filterNotNull().map { it as Placement2<*, Side> },
-                                space = space.restSpace(placement.position) as Container2Shape<Side>
-                            )
-
-                            is Front -> (placement as BlockPlacement2<Front>).enabledStackingOn(
-                                fixedPlacements.filterNotNull().map { it as Placement2<*, Front> },
-                                space = space.restSpace(placement.position) as Container2Shape<Front>
+                            is Side, is Front -> placement.enabledBlockStackingOnPlane(
+                                bottomItems = fixedPlacements,
+                                space = space
                             )
 
                             else -> true

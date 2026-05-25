@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 interface Cuboid<T : Cuboid<T, V>, V : FloatingNumber<V>> {
+    val self: T
     val width: Quantity<V>
     val height: Quantity<V>
     val depth: Quantity<V>
@@ -19,10 +20,9 @@ interface Cuboid<T : Cuboid<T, V>, V : FloatingNumber<V>> {
     val linearDensity: Quantity<V>
     val enabledOrientations: List<Orientation>
 
-    @Suppress("UNCHECKED_CAST")
     fun view(orientation: Orientation = Orientation.Upright): CuboidView<T, V>? {
         return if (enabledOrientations.contains(orientation)) {
-            CuboidView(this as T, orientation)
+            CuboidView(self, orientation)
         } else {
             null
         }

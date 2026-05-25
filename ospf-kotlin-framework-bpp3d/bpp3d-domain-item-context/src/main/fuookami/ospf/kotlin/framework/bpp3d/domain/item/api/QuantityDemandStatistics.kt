@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asScalarF64
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -50,9 +49,10 @@ private fun <V : FloatingNumber<V>> quantityScale(
     value: Quantity<V>,
     amount: UInt64
 ): Quantity<V> {
+    val scalarF64 = Flt64(amount.toULong().toDouble())
     return when (value.value) {
-        is Flt64 -> ((value as Quantity<Flt64>) * amount.asScalarF64()) as Quantity<V>
-        is FltX -> ((value as Quantity<FltX>) * amount.asScalarF64().toFltX()) as Quantity<V>
+        is Flt64 -> ((value as Quantity<Flt64>) * scalarF64) as Quantity<V>
+        is FltX -> ((value as Quantity<FltX>) * scalarF64.toFltX()) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported numeric type: ${value.value::class.simpleName}")
     }
 }

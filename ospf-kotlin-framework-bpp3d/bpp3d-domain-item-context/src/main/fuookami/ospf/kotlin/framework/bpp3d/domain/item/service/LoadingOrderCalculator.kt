@@ -7,10 +7,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.functional.Order
 
+private typealias LoadingDepthLimit = Quantity<Flt64>
+
 class LoadingOrderCalculator(
-    private val maxBlockDepth: Flt64?,
+    private val maxBlockDepth: LoadingDepthLimit?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
     operator fun invoke(placements: List<Placement3<*>>): List<Pair<ItemPlacement3, UInt64>> {
@@ -93,7 +96,7 @@ class LoadingOrderCalculator(
         }
     }
 
-    private fun isSameType(lhs: AbstractCuboid<Flt64>, rhs: AbstractCuboid<Flt64>): Boolean {
+    private fun isSameType(lhs: AbstractCuboid<*>, rhs: AbstractCuboid<*>): Boolean {
         return if (lhs is Item && rhs is Item) {
             return sameTypeJudger(lhs, rhs)
         } else if (lhs is ItemContainer<*> && rhs is ItemContainer<*>) {
@@ -227,7 +230,10 @@ class LoadingOrderCalculator(
         for ((placement, sequence) in placements) {
             when (val unit = placement.unit) {
                 is Item -> {
-                    ret.add(Pair(placement as ItemPlacement3, sequence))
+                    val itemPlacement = placement.toItemPlacementOrNull()
+                    if (itemPlacement != null) {
+                        ret.add(Pair(itemPlacement, sequence))
+                    }
                 }
 
                 is Block -> {

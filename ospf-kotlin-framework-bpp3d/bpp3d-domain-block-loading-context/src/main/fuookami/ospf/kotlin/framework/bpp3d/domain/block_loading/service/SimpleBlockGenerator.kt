@@ -127,14 +127,14 @@ class SimpleBlockGenerator(
                 val view = item.view(orientation)
                 val spaceMaxXAmount = (space.width / view.width).floor().toUInt64()
                 val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
-                val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height.asScalarF64()).floor().toUInt64())
+                val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height.value).floor().toUInt64())
                 val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
                 val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
                     UInt64.one
                 } else {
-                    (view.minDepth / view.depth.asScalarF64()).ceil().toUInt64()
+                    (view.minDepth / view.depth.value).ceil().toUInt64()
                 }
-                val itemMaxZAmount = (view.maxDepth / view.depth.asScalarF64()).floor().toUInt64()
+                val itemMaxZAmount = (view.maxDepth / view.depth.value).floor().toUInt64()
 
                 blocks.addAll(
                     simpleBlocks(
@@ -159,9 +159,9 @@ class SimpleBlockGenerator(
                     val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
                         UInt64.one
                     } else {
-                        (view.minDepth / view.depth.asScalarF64()).ceil().toUInt64()
+                        (view.minDepth / view.depth.value).ceil().toUInt64()
                     }
-                    val itemMaxZAmount = (view.maxDepth / view.depth.asScalarF64()).floor().toUInt64()
+                    val itemMaxZAmount = (view.maxDepth / view.depth.value).floor().toUInt64()
 
                     blocks.addAll(
                         simpleBlocks(
@@ -187,9 +187,9 @@ class SimpleBlockGenerator(
                     val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
                         UInt64.one
                     } else {
-                        (view.minDepth / view.depth.asScalarF64()).ceil().toUInt64()
+                        (view.minDepth / view.depth.value).ceil().toUInt64()
                     }
-                    val itemMaxZAmount = (view.maxDepth / view.depth.asScalarF64()).floor().toUInt64()
+                    val itemMaxZAmount = (view.maxDepth / view.depth.value).floor().toUInt64()
 
                     blocks.addAll(
                         simpleBlocks(
@@ -227,11 +227,11 @@ class SimpleBlockGenerator(
                 for (k in minZAmount..maxZAmount) {
                     val placements = ArrayList<Placement3<Item>>()
                     for (p in UInt64.zero until i) {
-                        val x = orientation.width(item) * p.asScalarF64()
+                        val x = orientation.width(item) * p.toFlt64Scalar()
                         for (q in UInt64.zero until j) {
-                            val y = orientation.height(item) * q.asScalarF64()
+                            val y = orientation.height(item) * q.toFlt64Scalar()
                             for (m in UInt64.zero until k) {
-                                val z = orientation.depth(item) * m.asScalarF64()
+                                val z = orientation.depth(item) * m.toFlt64Scalar()
                                 placements.add(Placement3(item.view(orientation), point3(x, y, z)))
                             }
                         }
@@ -258,9 +258,9 @@ class SimpleBlockGenerator(
                 val placements = ArrayList<Placement3<Item>>()
                 if (remainderMaxYAmount != UInt64.zero) {
                     for (i in UInt64.zero until maxXAmount) {
-                        val x = orientation.width(item) * i.asScalarF64()
+                        val x = orientation.width(item) * i.toFlt64Scalar()
                         for (j in UInt64.zero until remainderMaxYAmount) {
-                            val y = orientation.height(item) * j.asScalarF64()
+                            val y = orientation.height(item) * j.toFlt64Scalar()
                             placements.add(Placement3(item.view(orientation), point3(x = x, y = y)))
                         }
                     }
@@ -268,7 +268,7 @@ class SimpleBlockGenerator(
                 val remainderPlacements = ArrayList<Placement3<Item>>()
                 if ((remainder % maxXAmount) != UInt64.zero) {
                     for (i in UInt64.zero until (remainder % maxXAmount)) {
-                        val x = orientation.width(item) * i.asScalarF64()
+                        val x = orientation.width(item) * i.toFlt64Scalar()
                         remainderPlacements.add(Placement3(item.view(orientation), point3(x = x)))
                     }
                 }
@@ -281,7 +281,7 @@ class SimpleBlockGenerator(
                         ComplexBlock(
                             listOf(
                                 Placement3(SimpleBlock(placements).view()!!, point3()),
-                                Placement3(SimpleBlock(remainderPlacements).view()!!, point3(y = orientation.height(item) * remainderMaxYAmount.asScalarF64()))
+                                Placement3(SimpleBlock(remainderPlacements).view()!!, point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64Scalar()))
                             )
                         )
                     )
@@ -291,11 +291,11 @@ class SimpleBlockGenerator(
                 val remainderMaxYAmount = (remainder % (maxXAmount * maxYAmount)) / maxXAmount
                 val placements = ArrayList<Placement3<Item>>()
                 for (i in UInt64.zero until maxXAmount) {
-                    val x = orientation.width(item) * i.asScalarF64()
+                    val x = orientation.width(item) * i.toFlt64Scalar()
                     for (j in UInt64.zero until maxYAmount) {
-                        val y = orientation.height(item) * j.asScalarF64()
+                        val y = orientation.height(item) * j.toFlt64Scalar()
                         for (k in UInt64.zero until remainderMaxZAmount) {
-                            val z = orientation.depth(item) * k.asScalarF64()
+                            val z = orientation.depth(item) * k.toFlt64Scalar()
                             placements.add(Placement3(item.view(orientation), point3(x = x, y = y, z = z)))
                         }
                     }
@@ -303,9 +303,9 @@ class SimpleBlockGenerator(
                 val remainderPlacements = ArrayList<Placement3<Item>>()
                 if (remainderMaxYAmount != UInt64.zero) {
                     for (i in UInt64.zero until maxXAmount) {
-                        val x = orientation.width(item) * i.asScalarF64()
+                        val x = orientation.width(item) * i.toFlt64Scalar()
                         for (j in UInt64.zero until remainderMaxYAmount) {
-                            val y = orientation.height(item) * j.asScalarF64()
+                            val y = orientation.height(item) * j.toFlt64Scalar()
                             remainderPlacements.add(Placement3(item.view(orientation), point3(x = x, y = y)))
                         }
                     }
@@ -313,7 +313,7 @@ class SimpleBlockGenerator(
                 val remainderRemainderPlacements = ArrayList<Placement3<Item>>()
                 if (((remainder % (maxXAmount * maxYAmount)) % maxXAmount) != UInt64.zero) {
                     for (i in UInt64.zero until ((remainder % (maxXAmount * maxYAmount)) % maxXAmount)) {
-                        val x = orientation.width(item) * i.asScalarF64()
+                        val x = orientation.width(item) * i.toFlt64Scalar()
                         remainderRemainderPlacements.add(Placement3(item.view(orientation), point3(x = x)))
                     }
                 }
@@ -323,7 +323,7 @@ class SimpleBlockGenerator(
                     remainderBlocks.add(
                         Placement3(
                             SimpleBlock(remainderPlacements).view()!!,
-                            point3(z = orientation.depth(item) * remainderMaxZAmount.asScalarF64())
+                            point3(z = orientation.depth(item) * remainderMaxZAmount.toFlt64Scalar())
                         )
                     )
                 }
@@ -331,7 +331,7 @@ class SimpleBlockGenerator(
                     remainderBlocks.add(
                         Placement3(
                             SimpleBlock(remainderRemainderPlacements).view()!!,
-                            point3(y = orientation.height(item) * remainderMaxYAmount.asScalarF64(), z = orientation.depth(item) * remainderMaxZAmount.asScalarF64())
+                            point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64Scalar(), z = orientation.depth(item) * remainderMaxZAmount.toFlt64Scalar())
                         )
                     )
                 }
@@ -339,6 +339,10 @@ class SimpleBlockGenerator(
             }
         }
         return blocks
+    }
+
+    private fun UInt64.toFlt64Scalar(): Flt64 {
+        return Flt64(this.toULong().toDouble())
     }
 }
 

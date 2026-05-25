@@ -1,0 +1,12 @@
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dDemandValueAdapter as CompatBpp3dDemandValueAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dSolverValueAdapter as CompatBpp3dSolverValueAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.DefaultBpp3dDemandValueAdapter as CompatDefaultBpp3dDemandValueAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.DefaultBpp3dSolverValueAdapter as CompatDefaultBpp3dSolverValueAdapter
+
+typealias Bpp3dSolverValueAdapter = CompatBpp3dSolverValueAdapter
+typealias Bpp3dDemandValueAdapter = CompatBpp3dDemandValueAdapter
+
+val DefaultBpp3dDemandValueAdapter: Bpp3dDemandValueAdapter = CompatDefaultBpp3dDemandValueAdapter
+val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = CompatDefaultBpp3dSolverValueAdapter

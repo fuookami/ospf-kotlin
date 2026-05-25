@@ -26,6 +26,7 @@ interface AbstractCuboid<V : FloatingNumber<V>> {
 }
 
 interface Cuboid<T : Cuboid<T>> : AbstractCuboid<Flt64> {
+    val self: T
     val enabledOrientations: List<Orientation>
 
     fun enabledOrientationsAt(
@@ -51,9 +52,8 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid<Flt64> {
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     fun view(orientation: Orientation = Orientation.Upright): CuboidView<T>? {
-        return CuboidView(this as T, orientation)
+        return CuboidView(self, orientation)
     }
 }
 
@@ -122,7 +122,7 @@ open class CuboidView<T : Cuboid<T>>(
         } else {
             BottomSupport(
                 area = intersect.area,
-                weight = (intersect.area / bottomPlacement.projection.area).asScalarF64() * bottomPlacement.weight
+                weight = (intersect.area / bottomPlacement.projection.area).value * bottomPlacement.weight
             )
         }
     }
@@ -168,7 +168,7 @@ fun bottomSupport(
             if (intersect != null) {
                 val thisSupport = BottomSupport(
                     area = intersect.area,
-                    weight = (intersect.area / thisBottomPlacement.projection.area).asScalarF64() * thisBottomPlacement.weight
+                    weight = (intersect.area / thisBottomPlacement.projection.area).value * thisBottomPlacement.weight
                 )
                 support += thisSupport
             }

@@ -105,7 +105,10 @@ class SolverAdapterBoundaryTest {
 
     @Test
     fun toFlt64ShouldOnlyExistInAdapterBoundary() {
-        val allowedFiles = setOf("Load.kt", "SolverValueAdapterExample.kt")
+        val allowedFiles = setOf(
+            "Bpp3dSolverValueAdapter.kt",
+            "ScaledBpp3dSolverValueAdapter.kt"
+        )
         val sourceDir = moduleRoot().resolve("src").resolve("main")
         val offenders = ArrayList<String>()
         val paths = Files.walk(sourceDir)

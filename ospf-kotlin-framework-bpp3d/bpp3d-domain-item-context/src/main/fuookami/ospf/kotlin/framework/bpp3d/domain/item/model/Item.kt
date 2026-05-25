@@ -84,6 +84,8 @@ open class ItemPattern(
 }
 
 interface Item : Cuboid<Item>, Indexed {
+    override val self: Item
+        get() = this
     val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
     val warehouse: String?
@@ -185,7 +187,7 @@ open class ActualItem(
         val counter = HashMap<MaterialKey, Quantity<Flt64>>()
         for ((material, amount) in pack?.materials ?: emptyMap()) {
             val key = material.key
-            val weight = material.weight * amount.asScalarF64()
+            val weight = material.weight * Flt64(amount.toULong().toDouble())
             counter[key] = (counter[key] ?: (weight * Flt64.zero)) + weight
         }
         counter
@@ -237,11 +239,11 @@ open class PatternedItem(
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
     override val volume: Quantity<Flt64> = run {
-        val totalAmount = actualItems.fold(Flt64.zero) { acc, (_, amount, _) -> acc + amount.asScalarF64() }
+        val totalAmount = actualItems.fold(Flt64.zero) { acc, (_, amount, _) -> acc + Flt64(amount.toULong().toDouble()) }
         if (totalAmount eq Flt64.zero) {
             width * height * depth * Flt64.zero
         } else {
-            actualItems.sumOf { it.first.volume * it.second.asScalarF64() } / totalAmount
+            actualItems.sumOf { it.first.volume * Flt64(it.second.toULong().toDouble()) } / totalAmount
         }
     }
     override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
@@ -257,7 +259,7 @@ open class PatternedItem(
         val counter = HashMap<MaterialKey, Quantity<Flt64>>()
         for ((item, amount, _) in actualItems) {
             for ((material, weight) in item.materialWeights) {
-                val thisWeight = weight * amount.asScalarF64()
+                val thisWeight = weight * Flt64(amount.toULong().toDouble())
                 counter[material] = (counter[material] ?: (thisWeight * Flt64.zero)) + thisWeight
             }
         }
@@ -271,15 +273,15 @@ open class PatternedItem(
         ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
             val amount = actualItems.fold(UInt64.zero) { acc, (_, thisAmount, _) -> acc + thisAmount }
             val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
-            val volume = actualItems.sumOf { it.first.volume * it.second.asScalarF64() } / amount.asScalarF64()
-            val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume.asScalarF64())
+            val volume = actualItems.sumOf { it.first.volume * Flt64(it.second.toULong().toDouble()) } / Flt64(amount.toULong().toDouble())
+            val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume.value)
             return Triple(
                 PatternedItem(
                     actualItems = actualItems,
                 width = pattern.shape.width + deformation.x,
                 height = pattern.shape.height + deformation.y,
                 depth = pattern.shape.depth + deformation.z,
-                weight = actualItems.sumOf { it.first.weight * it.second.asScalarF64() } / amount.asScalarF64(),
+                weight = actualItems.sumOf { it.first.weight * Flt64(it.second.toULong().toDouble()) } / Flt64(amount.toULong().toDouble()),
                 enabledOrientations = Orientation.merge(actualItems.first().first, pattern.enabledOrientations),
                 batchNo = pattern.batchNo,
                 priorities = pattern.priorities,
@@ -578,7 +580,9 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                         bottomItems = thisBottomPlacements.flatMap {
                             when (val unit = it.unit) {
                                 is Item -> {
-                                    listOf(it as ItemPlacement3)
+                                    it.toItemPlacementOrNull()?.let { placement3 ->
+                                        listOf(placement3)
+                                    } ?: emptyList()
                                 }
 
                                 is ItemContainer<*> -> {
@@ -630,7 +634,9 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                         bottomItems = thisBottomPlacements.flatMap {
                             when (val unit = it.unit) {
                                 is Item -> {
-                                    listOf(it as ItemPlacement3)
+                                    it.toItemPlacementOrNull()?.let { placement3 ->
+                                        listOf(placement3)
+                                    } ?: emptyList()
                                 }
 
                                 is ItemContainer<*> -> {
@@ -684,7 +690,9 @@ suspend fun ItemPlacement3.enabledStackingOn(
             }.flatMap {
                 when (val unit = it.unit) {
                     is Item -> {
-                        listOf(it as ItemPlacement3)
+                        it.toItemPlacementOrNull()?.let { placement3 ->
+                            listOf(placement3)
+                        } ?: emptyList()
                     }
 
                     is ItemContainer<*> -> {

@@ -203,7 +203,7 @@ fun List<Bin<*>>.group(): Map<BinType, UInt64> {
 fun List<Bin<*>>.unpack(): Map<Item, UInt64> {
     val items = HashSet<Item>()
     for (bin in this) {
-        items.addAll(bin.amounts.keys as Set<Item>)
+        items.addAll(bin.amounts.keys.filterIsInstance<Item>())
     }
     return items.associateWith { item ->
         this.fold(UInt64.zero) { acc, bin -> acc + bin.amount(item) }

@@ -27,15 +27,15 @@ private fun <V : FloatingNumber<V>> quantityBinary(
     }
 }
 
-private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
+private fun <V : FloatingNumber<V>> plusQuantity(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return quantityBinary(lhs, rhs, { l, r -> l.quantityPlus(r) }, { l, r -> l.quantityPlus(r) }, "+")
 }
 
-private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
+private fun <V : FloatingNumber<V>> minusQuantity(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return quantityBinary(lhs, rhs, { l, r -> l.quantityMinus(r) }, { l, r -> l.quantityMinus(r) }, "-")
 }
 
-private fun <V : FloatingNumber<V>> quantityTimes(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
+private fun <V : FloatingNumber<V>> timesQuantity(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return quantityBinary(lhs, rhs, { l, r -> l.quantityTimes(r) }, { l, r -> l.quantityTimes(r) }, "*")
 }
 
@@ -45,15 +45,15 @@ data class QuantityVector2G<V : FloatingNumber<V>>(
 ) {
     operator fun plus(rhs: QuantityVector2G<V>): QuantityVector2G<V> {
         return QuantityVector2G(
-            x = quantityPlus(x, rhs.x),
-            y = quantityPlus(y, rhs.y)
+            x = plusQuantity(x, rhs.x),
+            y = plusQuantity(y, rhs.y)
         )
     }
 
     operator fun minus(rhs: QuantityVector2G<V>): QuantityVector2G<V> {
         return QuantityVector2G(
-            x = quantityMinus(x, rhs.x),
-            y = quantityMinus(y, rhs.y)
+            x = minusQuantity(x, rhs.x),
+            y = minusQuantity(y, rhs.y)
         )
     }
 }
@@ -65,17 +65,17 @@ data class QuantityVector3G<V : FloatingNumber<V>>(
 ) {
     operator fun plus(rhs: QuantityVector3G<V>): QuantityVector3G<V> {
         return QuantityVector3G(
-            x = quantityPlus(x, rhs.x),
-            y = quantityPlus(y, rhs.y),
-            z = quantityPlus(z, rhs.z)
+            x = plusQuantity(x, rhs.x),
+            y = plusQuantity(y, rhs.y),
+            z = plusQuantity(z, rhs.z)
         )
     }
 
     operator fun minus(rhs: QuantityVector3G<V>): QuantityVector3G<V> {
         return QuantityVector3G(
-            x = quantityMinus(x, rhs.x),
-            y = quantityMinus(y, rhs.y),
-            z = quantityMinus(z, rhs.z)
+            x = minusQuantity(x, rhs.x),
+            y = minusQuantity(y, rhs.y),
+            z = minusQuantity(z, rhs.z)
         )
     }
 }
@@ -86,15 +86,15 @@ data class QuantityPoint2G<V : FloatingNumber<V>>(
 ) {
     operator fun plus(offset: QuantityVector2G<V>): QuantityPoint2G<V> {
         return QuantityPoint2G(
-            x = quantityPlus(x, offset.x),
-            y = quantityPlus(y, offset.y)
+            x = plusQuantity(x, offset.x),
+            y = plusQuantity(y, offset.y)
         )
     }
 
     operator fun minus(offset: QuantityVector2G<V>): QuantityPoint2G<V> {
         return QuantityPoint2G(
-            x = quantityMinus(x, offset.x),
-            y = quantityMinus(y, offset.y)
+            x = minusQuantity(x, offset.x),
+            y = minusQuantity(y, offset.y)
         )
     }
 
@@ -114,17 +114,17 @@ data class QuantityPoint3G<V : FloatingNumber<V>>(
 ) {
     operator fun plus(offset: QuantityVector3G<V>): QuantityPoint3G<V> {
         return QuantityPoint3G(
-            x = quantityPlus(x, offset.x),
-            y = quantityPlus(y, offset.y),
-            z = quantityPlus(z, offset.z)
+            x = plusQuantity(x, offset.x),
+            y = plusQuantity(y, offset.y),
+            z = plusQuantity(z, offset.z)
         )
     }
 
     operator fun minus(offset: QuantityVector3G<V>): QuantityPoint3G<V> {
         return QuantityPoint3G(
-            x = quantityMinus(x, offset.x),
-            y = quantityMinus(y, offset.y),
-            z = quantityMinus(z, offset.z)
+            x = minusQuantity(x, offset.x),
+            y = minusQuantity(y, offset.y),
+            z = minusQuantity(z, offset.z)
         )
     }
 
@@ -152,9 +152,9 @@ data class QuantityRectangle2G<V : FloatingNumber<V>>(
         require(quantityOrd(minY, maxY, "y") !is Order.Greater) { "minY should be <= maxY" }
     }
 
-    val width: Quantity<V> get() = quantityMinus(maxX, minX)
-    val height: Quantity<V> get() = quantityMinus(maxY, minY)
-    val area: Quantity<V> get() = quantityTimes(width, height)
+    val width: Quantity<V> get() = minusQuantity(maxX, minX)
+    val height: Quantity<V> get() = minusQuantity(maxY, minY)
+    val area: Quantity<V> get() = timesQuantity(width, height)
 
     fun intersect(rhs: QuantityRectangle2G<V>): QuantityRectangle2G<V>? {
         val left = quantityMax(minX, rhs.minX, "x")

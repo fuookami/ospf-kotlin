@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.Dim3
@@ -19,31 +20,30 @@ import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Meter
 
-private fun quantityOrd(lhs: Quantity<Flt64>, rhs: Quantity<Flt64>, axis: String): Order {
+private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
     return lhs.partialOrd(rhs)
         ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
 }
 
-private fun quantityMax(lhs: Quantity<Flt64>, rhs: Quantity<Flt64>, axis: String): Quantity<Flt64> {
+private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return when (quantityOrd(lhs, rhs, axis)) {
         is Order.Greater, Order.Equal -> lhs
         is Order.Less -> rhs
     }
 }
 
-private fun quantityMin(lhs: Quantity<Flt64>, rhs: Quantity<Flt64>, axis: String): Quantity<Flt64> {
+private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return when (quantityOrd(lhs, rhs, axis)) {
         is Order.Greater -> rhs
         is Order.Equal, is Order.Less -> lhs
     }
 }
 
-private fun containsInRange(
-    value: Quantity<Flt64>,
-    lb: Quantity<Flt64>,
-    ub: Quantity<Flt64>,
+private fun <V : FloatingNumber<V>> containsInRange(
+    value: Quantity<V>,
+    lb: Quantity<V>,
+    ub: Quantity<V>,
     withLowerBound: Boolean,
     withUpperBound: Boolean
 ): Boolean {
@@ -135,32 +135,7 @@ data class Placement2<
     }
 
     fun toPlacement3(): List<Placement3<T>> {
-        return when (projection) {
-            is PlaneProjection<T, *> -> {
-                listOf(Placement3(view, plane.point3(position)))
-            }
-
-            is PileProjection<T, *> -> {
-                val depth = projection.view.depth
-                var z = Flt64.zero * depth.unit
-                val units = ArrayList<Placement3<T>>()
-                for (i in 0 until projection.layer.toInt()) {
-                    units.add(Placement3(projection.view, projection.plane.point3(position, distance = z)))
-                    z += depth
-                }
-                units
-            }
-
-            is MultiPileProjection<T, *> -> {
-                var z = Flt64.zero * Meter
-                val units = ArrayList<Placement3<T>>()
-                for (view in projection.views) {
-                    units.add(Placement3(view, projection.plane.point3(position, distance = z)))
-                    z += view.depth
-                }
-                units
-            }
-        }
+        return projection.toPlacement3At(position)
     }
 
     override fun copy() = Placement2(projection.copy(), position)

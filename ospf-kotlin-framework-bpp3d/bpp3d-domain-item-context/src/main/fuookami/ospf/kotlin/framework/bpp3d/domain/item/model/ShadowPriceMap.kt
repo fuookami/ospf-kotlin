@@ -5,24 +5,26 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+typealias ShadowPriceScalar = Flt64
+
 open class BPP3DShadowPriceArguments(
     override val cuboid: Item
 ) : AbstractBPP3DShadowPriceArguments<Item>
 
 typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, Item>;
 
-fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): Flt64 {
+fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): ShadowPriceScalar {
     return when (cuboid) {
-        is Container3<*> -> cuboid.units.fold(Flt64.zero) { acc, placement ->
+        is Container3<*> -> cuboid.units.fold(ShadowPriceScalar.zero) { acc, placement ->
             acc + when (val unit = placement.unit) {
                 is Container3<*> -> reducedCost(unit)
-                is Item -> unit.volume.asScalarF64() - this(BPP3DShadowPriceArguments(unit))
-                else -> Flt64.zero
+                is Item -> unit.volume.value - this(BPP3DShadowPriceArguments(unit))
+                else -> ShadowPriceScalar.zero
             }
         }
 
-        is Item -> cuboid.volume.asScalarF64() - this(BPP3DShadowPriceArguments(cuboid))
-        else -> Flt64.zero
+        is Item -> cuboid.volume.value - this(BPP3DShadowPriceArguments(cuboid))
+        else -> ShadowPriceScalar.zero
     }
 }
 

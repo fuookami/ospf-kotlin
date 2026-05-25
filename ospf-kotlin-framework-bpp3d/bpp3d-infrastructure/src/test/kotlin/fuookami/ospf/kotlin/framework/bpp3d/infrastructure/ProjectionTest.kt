@@ -16,7 +16,10 @@ class ProjectionTest {
         override val depth: QuantityFlt64,
         override val weight: QuantityFlt64,
         override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : Cuboid<Box>
+    ) : Cuboid<Box> {
+        override val self: Box
+            get() = this
+    }
 
     @Test
     fun bottomPlaneLengthShouldReturnQuantityFlt64() {

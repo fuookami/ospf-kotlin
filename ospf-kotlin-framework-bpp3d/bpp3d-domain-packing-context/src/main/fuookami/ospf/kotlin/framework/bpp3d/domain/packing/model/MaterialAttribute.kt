@@ -6,19 +6,19 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttri
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
-data class MaterialAttributeValue(
-    val deformationCoefficient: Flt64?,
+data class MaterialAttributeValue<V : FloatingNumber<V>>(
+    val deformationCoefficient: V?,
     val overTypes: List<PackageType>,
     val enabledOrientations: List<Orientation>,
     val sideOnTopLayer: UInt64?,
     val isBottomOnly: Boolean,
     val isTopFlat: Boolean,
     val maxLayer: UInt64,
-    val maxHeight: Quantity<Flt64>
+    val maxHeight: Quantity<V>
 )
 
 open class MaterialAttributeKey(

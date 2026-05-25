@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Predicate
 import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
@@ -48,8 +49,8 @@ private fun merge(
     }
 }
 
-private fun maxQuantity(values: Iterable<Quantity<Flt64>>): Quantity<Flt64>? {
-    var maximum: Quantity<Flt64>? = null
+private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): Quantity<V>? {
+    var maximum: Quantity<V>? = null
     for (value in values) {
         maximum = if (maximum == null || (value gr maximum) == true) {
             value
@@ -58,6 +59,16 @@ private fun maxQuantity(values: Iterable<Quantity<Flt64>>): Quantity<Flt64>? {
         }
     }
     return maximum
+}
+
+private fun quantityWeightedSum(
+    amounts: Map<AbstractCuboid<Flt64>, UInt64>,
+    zero: Quantity<Flt64>,
+    selector: (AbstractCuboid<Flt64>) -> Quantity<Flt64>
+): Quantity<Flt64> {
+    return amounts.asSequence().fold(zero) { acc, (unit, amount) ->
+        acc + (selector(unit) * Flt64(amount.toULong().toDouble()))
+    }
 }
 
 interface AbstractContainer2Shape<P : ProjectivePlane> {
@@ -249,14 +260,16 @@ interface Container3<S : Container3<S>> : AbstractCuboid<Flt64>, Copyable<S> {
     override val depth: Quantity<Flt64> get() = shape.depth
 
     override val weight
-        get() = amounts.asSequence().fold(Flt64.zero * Kilogram) { acc, entry ->
-            acc + (entry.key.weight * entry.value.asScalarF64())
-        }
+        get() = quantityWeightedSum(
+            amounts = amounts,
+            zero = Flt64.zero * Kilogram
+        ) { it.weight }
     override val volume get() = depth * height * width
     override val actualVolume: Quantity<Flt64>
-        get() = amounts.asSequence().fold(volume * Flt64.zero) { acc, entry ->
-            acc + (entry.key.actualVolume * entry.value.asScalarF64())
-        }
+        get() = quantityWeightedSum(
+            amounts = amounts,
+            zero = volume * Flt64.zero
+        ) { it.actualVolume }
     val loadingRate: Flt64 get() = (actualVolume / (volume + (Flt64.epsilon * volume.unit))).value
 
     companion object {
@@ -276,6 +289,9 @@ interface Container3<S : Container3<S>> : AbstractCuboid<Flt64>, Copyable<S> {
     fun contains(predicate: Predicate<AbstractCuboid<Flt64>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
-interface Container3CuboidUnit<S> : Container3<S>, Cuboid<S> where S : Container3<S>, S : Cuboid<S>
+interface Container3CuboidUnit<S> : Container3<S>, Cuboid<S> where S : Container3<S>, S : Cuboid<S> {
+    override val self: S
+        get() = copy()
+}
 
 

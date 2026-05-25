@@ -3,11 +3,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.quantity.geq
 import fuookami.ospf.kotlin.quantities.quantity.gr
 import fuookami.ospf.kotlin.quantities.quantity.plus
@@ -15,8 +14,8 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
-private fun maxQuantity(values: Iterable<Quantity<Flt64>>): Quantity<Flt64>? {
-    var maximum: Quantity<Flt64>? = null
+private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): Quantity<V>? {
+    var maximum: Quantity<V>? = null
     for (value in values) {
         maximum = if (maximum == null || (value gr maximum) == true) {
             value
@@ -27,33 +26,35 @@ private fun maxQuantity(values: Iterable<Quantity<Flt64>>): Quantity<Flt64>? {
     return maximum
 }
 
-data class ProjectionShape(
-    val length: Quantity<Flt64>,
-    val width: Quantity<Flt64>
+data class ProjectionShapeG<V : FloatingNumber<V>>(
+    val length: Quantity<V>,
+    val width: Quantity<V>
 ) {
     companion object {
-        operator fun invoke(length: Quantity<Flt64>, width: Quantity<Flt64>): ProjectionShape {
+        operator fun <V : FloatingNumber<V>> invoke(length: Quantity<V>, width: Quantity<V>): ProjectionShapeG<V> {
             return if ((length geq width) == true) {
-                ProjectionShape(length, width)
+                ProjectionShapeG(length, width)
             } else {
-                ProjectionShape(width, length)
+                ProjectionShapeG(width, length)
             }
         }
     }
 
-    val area: Quantity<Flt64> = length * width
+    val area: Quantity<V> = length * width
 }
 
+typealias ProjectionShape = ProjectionShapeG<Flt64>
+
 sealed class ProjectivePlane {
-    abstract fun length(unit: AbstractCuboid<Flt64>, orientation: Orientation = Orientation.Upright): Quantity<Flt64>
-    abstract fun width(unit: AbstractCuboid<Flt64>, orientation: Orientation = Orientation.Upright): Quantity<Flt64>
-    abstract fun height(unit: AbstractCuboid<Flt64>, orientation: Orientation = Orientation.Upright): Quantity<Flt64>
+    abstract fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
+    abstract fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
+    abstract fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
 
     abstract fun length(space: AbstractContainer3Shape): Quantity<Flt64>
     abstract fun width(space: AbstractContainer3Shape): Quantity<Flt64>
     abstract fun height(space: AbstractContainer3Shape): Quantity<Flt64>
 
-    fun shape(unit: AbstractCuboid<Flt64>, orientation: Orientation = Orientation.Upright) = ProjectionShape.invoke(
+    fun <V : FloatingNumber<V>> shape(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright) = ProjectionShapeG.invoke(
         length = this.length(unit, orientation),
         width = this.width(unit, orientation)
     )
@@ -75,9 +76,9 @@ typealias Direction = ProjectivePlane
  * ZOX
  */
 object Bottom : ProjectivePlane() {
-    override fun length(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.depth(unit)
-    override fun width(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.width(unit)
-    override fun height(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.height(unit)
+    override fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.depth(unit)
+    override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.width(unit)
+    override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.height(unit)
 
     override fun length(space: AbstractContainer3Shape) = space.depth
     override fun width(space: AbstractContainer3Shape) = space.width
@@ -99,9 +100,9 @@ typealias ZOX = Bottom
  * XOY
  */
 object Side : ProjectivePlane() {
-    override fun length(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.width(unit)
-    override fun width(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.height(unit)
-    override fun height(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.depth(unit)
+    override fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.width(unit)
+    override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.height(unit)
+    override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.depth(unit)
 
     override fun length(space: AbstractContainer3Shape) = space.width
     override fun width(space: AbstractContainer3Shape) = space.height
@@ -123,9 +124,9 @@ typealias XOY = Side
  * ZOY
  */
 object Front : ProjectivePlane() {
-    override fun length(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.depth(unit)
-    override fun width(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.height(unit)
-    override fun height(unit: AbstractCuboid<Flt64>, orientation: Orientation) = orientation.width(unit)
+    override fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.depth(unit)
+    override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.height(unit)
+    override fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.width(unit)
 
     override fun length(space: AbstractContainer3Shape) = space.depth
     override fun width(space: AbstractContainer3Shape) = space.height
@@ -157,7 +158,8 @@ sealed interface Projection<
     val area: Quantity<Flt64> get() = length * width
     val weight: Quantity<Flt64> get() = unit.weight
 
-    fun amount(unit: AbstractCuboid<Flt64>): UInt64
+    fun amount(unit: AbstractCuboid<*>): UInt64
+    fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>>
 }
 
 data class PlaneProjection<
@@ -167,12 +169,16 @@ data class PlaneProjection<
     override val view: CuboidView<T>,
     override val plane: P
 ) : Projection<T, P> {
-    override fun amount(unit: AbstractCuboid<Flt64>): UInt64 {
+    override fun amount(unit: AbstractCuboid<*>): UInt64 {
         return if (unit == this.unit) {
             UInt64.one
         } else {
             UInt64.zero
         }
+    }
+
+    override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
+        return listOf(Placement3(view, plane.point3(position)))
     }
 
     override fun copy() = PlaneProjection(view.copy(), plane)
@@ -186,17 +192,28 @@ data class PileProjection<
     override val plane: P,
     val layer: UInt64,
 ) : Projection<T, P> {
-    override val height = plane.height(view) * layer.asScalarF64()
-    override val weight = unit.weight * layer.asScalarF64()
+    override val height = plane.height(view) * Flt64(layer.toULong().toDouble())
+    override val weight = unit.weight * Flt64(layer.toULong().toDouble())
 
     constructor(plane: PlaneProjection<T, P>, layer: UInt64 = UInt64.one) : this(plane.view, plane.plane, layer)
 
-    override fun amount(unit: AbstractCuboid<Flt64>): UInt64 {
+    override fun amount(unit: AbstractCuboid<*>): UInt64 {
         return if (unit == this.unit) {
             layer
         } else {
             UInt64.zero
         }
+    }
+
+    override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
+        val depth = view.depth
+        var z = Flt64.zero * depth.unit
+        val units = ArrayList<Placement3<T>>(layer.toInt())
+        for (i in 0 until layer.toInt()) {
+            units.add(Placement3(view, plane.point3(position, distance = z)))
+            z += depth
+        }
+        return units
     }
 
     override fun copy() = PileProjection(view.copy(), plane, layer)
@@ -220,7 +237,20 @@ data class MultiPileProjection<
         acc + item.weight
     }
 
-    override fun amount(unit: AbstractCuboid<Flt64>) = UInt64(views.count { it.unit == unit })
+    override fun amount(unit: AbstractCuboid<*>) = UInt64(views.count { it.unit == unit })
+
+    override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
+        if (views.isEmpty()) {
+            return emptyList()
+        }
+        var z = Flt64.zero * views.first().depth.unit
+        val units = ArrayList<Placement3<T>>(views.size)
+        for (itemView in views) {
+            units.add(Placement3(itemView, plane.point3(position, distance = z)))
+            z += itemView.depth
+        }
+        return units
+    }
 
     override fun copy() = MultiPileProjection(views.map { it.copy() }, plane)
 }
