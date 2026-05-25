@@ -80,3 +80,34 @@ git grep -n "Flt64\\|FltX\\|Double\\|Point<Dim2, Quantity" -- ospf-kotlin-framew
 ```
 
 允许 `Flt64` 只出现在兼容层、adapter 和测试里。
+
+## 6. 真实消费者落盘（2026-05-25）
+
+本轮按 geometry N17-N21 要求，先在 bpp2d 落地最小真实业务消费者：
+
+1. 新增生产模型 `RectangularPackingDemand.kt`：
+   - `RectangleItem2` / `Sheet2` / `PlannedRectangle2`
+   - `Projection2Need` / `Placement2Need` / `Box2Need`
+   - `PackingScene2`（边界校验与重叠对判）
+2. 映射关系：
+   - `Projection2Need` 对应未来 `Projection2` 的最小矩形表达。
+   - `Placement2Need` 对应未来 `Placement2` 的放置表达。
+   - `Box2Need` 对应未来 `Box2` 的边界与相交表达。
+3. 说明：
+   - 当前未引入 bpp3d-infrastructure 依赖，保持 bpp2d 生产代码独立。
+   - 待 `quantity-geometry` 模块出现后，`*Need` 模型可迁移为模块外部 API 的直接消费者。
+
+## 7. 稳定性迭代（2026-05-25）
+
+本轮按 geometry N22-N26 要求，验证第二个迭代继续复用同一套 `*Need` API：
+
+1. API 冻结范围（无破坏变更）：
+   - `Projection2Need(width, height, area)`
+   - `Placement2Need(x, y, projection, maxX, maxY, toBox2Need())`
+   - `Box2Need(minX, minY, maxX, maxY, width, height, area, overlaps/intersect/inside)`
+2. 第二个真实业务场景：
+   - 在 `PackingScene2` 增加 `usedArea/remainingArea/utilization/illegalOverlaps`。
+   - 场景聚焦“非法重叠报告 + 已用面积 + 剩余面积”，仍基于同一套 `*Need` 模型。
+3. 契约测试：
+   - 新增 `RectangularPackingContractTest`。
+   - 覆盖未来 `Projection2/Placement2/Box2` 映射契约、单位转换和 `FltX` 路径。

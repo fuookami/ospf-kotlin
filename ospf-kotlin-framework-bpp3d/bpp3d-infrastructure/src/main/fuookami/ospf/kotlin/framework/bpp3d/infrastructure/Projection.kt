@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -83,10 +83,10 @@ object Bottom : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.width
     override fun height(space: AbstractContainer3Shape) = space.height
 
-    override fun distance(point: QuantityPoint3) = point.y
-    override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.z, y = point.x)
-    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = QuantityPoint3(x = point.y, y = distance, z = point.x)
-    override fun vector(distance: Quantity<InfraScalar>) = QuantityVector3(y = distance, x = infraZero() * distance.unit, z = infraZero() * distance.unit)
+    override fun distance(point: QuantityPoint3) = distanceByGeometry(point)
+    override fun point2(point: QuantityPoint3) = point2ByGeometry(point)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = point3ByGeometry(point, distance)
+    override fun vector(distance: Quantity<InfraScalar>) = vectorByGeometry(distance)
 
     override fun toString(): String {
         return "Bottom-ZOX"
@@ -107,10 +107,10 @@ object Side : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.height
     override fun height(space: AbstractContainer3Shape) = space.depth
 
-    override fun distance(point: QuantityPoint3) = point.z
-    override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.x, y = point.y)
-    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = QuantityPoint3(x = point.x, y = point.y, z = distance)
-    override fun vector(distance: Quantity<InfraScalar>) = QuantityVector3(z = distance, x = infraZero() * distance.unit, y = infraZero() * distance.unit)
+    override fun distance(point: QuantityPoint3) = distanceByGeometry(point)
+    override fun point2(point: QuantityPoint3) = point2ByGeometry(point)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = point3ByGeometry(point, distance)
+    override fun vector(distance: Quantity<InfraScalar>) = vectorByGeometry(distance)
 
     override fun toString(): String {
         return "Side-XOY"
@@ -131,10 +131,10 @@ object Front : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.height
     override fun height(space: AbstractContainer3Shape) = space.width
 
-    override fun distance(point: QuantityPoint3) = point.x
-    override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.y, y = point.z)
-    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = QuantityPoint3(x = distance, y = point.x, z = point.y)
-    override fun vector(distance: Quantity<InfraScalar>) = QuantityVector3(x = distance, y = infraZero() * distance.unit, z = infraZero() * distance.unit)
+    override fun distance(point: QuantityPoint3) = distanceByGeometry(point)
+    override fun point2(point: QuantityPoint3) = point2ByGeometry(point)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = point3ByGeometry(point, distance)
+    override fun vector(distance: Quantity<InfraScalar>) = vectorByGeometry(distance)
 
     override fun toString(): String {
         return "Front-ZOY"
@@ -158,7 +158,7 @@ sealed interface Projection<
     val weight: Quantity<InfraScalar> get() = unit.weight
 
     fun amount(unit: AbstractCuboid<*>): UInt64
-    fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>>
+    fun toPlacement3At(position: QuantityPoint2): List<QuantityPlacement3<T>>
 }
 
 data class PlaneProjection<
@@ -176,8 +176,8 @@ data class PlaneProjection<
         }
     }
 
-    override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
-        return listOf(Placement3(view, plane.point3(position)))
+    override fun toPlacement3At(position: QuantityPoint2): List<QuantityPlacement3<T>> {
+        return listOf(QuantityPlacement3(view, plane.point3(position)))
     }
 
     override fun copy() = PlaneProjection(view.copy(), plane)
@@ -204,12 +204,12 @@ data class PileProjection<
         }
     }
 
-    override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
+    override fun toPlacement3At(position: QuantityPoint2): List<QuantityPlacement3<T>> {
         val depth = view.depth
         var z = infraZero() * depth.unit
-        val units = ArrayList<Placement3<T>>(layer.toInt())
+        val units = ArrayList<QuantityPlacement3<T>>(layer.toInt())
         for (i in 0 until layer.toInt()) {
-            units.add(Placement3(view, plane.point3(position, distance = z)))
+            units.add(QuantityPlacement3(view, plane.point3(position, distance = z)))
             z += depth
         }
         return units
@@ -238,14 +238,14 @@ data class MultiPileProjection<
 
     override fun amount(unit: AbstractCuboid<*>) = UInt64(views.count { it.unit == unit })
 
-    override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
+    override fun toPlacement3At(position: QuantityPoint2): List<QuantityPlacement3<T>> {
         if (views.isEmpty()) {
             return emptyList()
         }
         var z = infraZero() * views.first().depth.unit
-        val units = ArrayList<Placement3<T>>(views.size)
+        val units = ArrayList<QuantityPlacement3<T>>(views.size)
         for (itemView in views) {
-            units.add(Placement3(itemView, plane.point3(position, distance = z)))
+            units.add(QuantityPlacement3(itemView, plane.point3(position, distance = z)))
             z += itemView.depth
         }
         return units

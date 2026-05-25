@@ -64,7 +64,7 @@ class BinLayer(
     val bin: BinType? = null,
     // inherited from Container3<BinLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<Placement3<*>>,
+    override val units: List<QuantityPlacement3<*>>,
 ) : ItemContainer<BinLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
@@ -132,7 +132,7 @@ class PalletLayer(
     val from: KClass<*>,
     // inherited from Container3<PalletLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<Placement3<*>>,
+    override val units: List<QuantityPlacement3<*>>,
 ) : ItemContainer<PalletLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
@@ -193,6 +193,6 @@ class PalletLayer(
 }
 
 typealias BinLayerView = CuboidView<BinLayer>
-typealias BinLayerPlacement = Placement3<BinLayer>
+typealias BinLayerPlacement = QuantityPlacement3<BinLayer>
 typealias PalletLayerView = CuboidView<PalletLayer>
-typealias PalletLayerPlacement = Placement3<PalletLayer>
+typealias PalletLayerPlacement = QuantityPlacement3<PalletLayer>

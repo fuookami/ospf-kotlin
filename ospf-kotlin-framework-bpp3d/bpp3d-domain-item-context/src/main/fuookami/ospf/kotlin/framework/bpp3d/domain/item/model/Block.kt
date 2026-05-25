@@ -133,7 +133,7 @@ class Pile(
             val units = ArrayList<ItemPlacement3>()
             var y = legacyZero() * items.first().height.unit
             for (item in items) {
-                units.add(Placement3(item, point3(y = y)))
+                units.add(QuantityPlacement3(item, point3(y = y)))
                 y += item.height
             }
             return units
@@ -257,5 +257,5 @@ class ComplexBlock(
 }
 
 typealias BlockView = CuboidView<Block>
-typealias BlockPlacement2<P> = Placement2<Block, P>
-typealias BlockPlacement3 = Placement3<Block>
+typealias BlockPlacement2<P> = QuantityPlacement2<Block, P>
+typealias BlockPlacement3 = QuantityPlacement3<Block>

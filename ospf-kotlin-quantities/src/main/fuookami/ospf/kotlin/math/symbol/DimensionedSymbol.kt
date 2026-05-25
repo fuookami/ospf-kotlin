@@ -17,9 +17,8 @@
  * val speedDimension = distance.divideBy(time)  // DerivedQuantity.Speed
  * ```
  */
-package fuookami.ospf.kotlin.quantities.quantity
+package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
 import fuookami.ospf.kotlin.quantities.dimension.div
 import fuookami.ospf.kotlin.quantities.dimension.times

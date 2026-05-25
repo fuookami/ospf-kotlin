@@ -67,11 +67,11 @@ class BinType(
         return super.enabled(unit, orientation) && unit.weight leq capacity
     }
 
-    override fun enabled(unit: Placement3<*>): Boolean {
+    override fun enabled(unit: QuantityPlacement3<*>): Boolean {
         return super.enabled(unit) && unit.weight leq capacity
     }
 
-    override fun enabled(units: List<Placement3<*>>): Boolean {
+    override fun enabled(units: List<QuantityPlacement3<*>>): Boolean {
         return super.enabled(units) && units.sumOf { it.weight } leq capacity
     }
 
@@ -170,7 +170,7 @@ class BinType(
                 for (thisLayers in layersPromise) {
                     var z = legacyZero() * depth.unit
                     val thisPlacements = thisLayers.map {
-                        val ret = Placement3(BinLayerView(it.copy()), point3(z = z))
+                        val ret = QuantityPlacement3(BinLayerView(it.copy()), point3(z = z))
                         z += it.depth
                         ret
                     }
@@ -197,7 +197,7 @@ class BinType(
 class Bin<T : Cuboid<T>>(
     // inherited from Container3<Bin<T>>
     override val shape: BinType,
-    override val units: List<Placement3<T>>,
+    override val units: List<QuantityPlacement3<T>>,
     val batchNo: BatchNo? = null
 ) : Container3<Bin<T>>, AutoIndexed(Bin::class) {
     val capacity by shape::capacity

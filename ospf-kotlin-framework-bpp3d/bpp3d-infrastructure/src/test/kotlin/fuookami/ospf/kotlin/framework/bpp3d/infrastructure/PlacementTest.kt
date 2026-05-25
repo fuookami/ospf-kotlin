@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -28,7 +28,7 @@ class PlacementTest {
             depth = 4.0 * Meter,
             weight = 1.0 * Kilogram
         )
-        val placement = Placement3(
+        val placement = QuantityPlacement3(
             view = box.view()!!,
             position = QuantityPoint3(
                 x = 1.0 * Meter,
@@ -57,7 +57,7 @@ class PlacementTest {
             plane = PlaneProjection(box.view()!!, Bottom),
             layer = UInt64(3)
         )
-        val placement2 = Placement2(
+        val QuantityPlacement2 = QuantityPlacement2(
             projection = projection,
             position = QuantityPoint2(
                 x = 0.0 * Meter,
@@ -65,7 +65,7 @@ class PlacementTest {
             )
         )
 
-        val expanded = placement2.toPlacement3()
+        val expanded = QuantityPlacement2.toPlacement3()
 
         assertEquals(3, expanded.size)
         assertTrue(expanded[0].y eq (0.0 * Meter))
@@ -82,10 +82,10 @@ class PlacementTest {
             weight = 1.0 * Kilogram
         )
         val view = box.view()!!
-        val p0 = Placement3(view, QuantityPoint3(0.0 * Meter, 0.0 * Meter, 0.0 * Meter))
-        val p1 = Placement3(view, QuantityPoint3(0.0 * Meter, 1.0 * Meter, 0.0 * Meter))
-        val p2 = Placement3(view, QuantityPoint3(0.0 * Meter, 2.0 * Meter, 0.0 * Meter))
-        val isolated = Placement3(view, QuantityPoint3(10.0 * Meter, 0.0 * Meter, 0.0 * Meter))
+        val p0 = QuantityPlacement3(view, QuantityPoint3(0.0 * Meter, 0.0 * Meter, 0.0 * Meter))
+        val p1 = QuantityPlacement3(view, QuantityPoint3(0.0 * Meter, 1.0 * Meter, 0.0 * Meter))
+        val p2 = QuantityPlacement3(view, QuantityPoint3(0.0 * Meter, 2.0 * Meter, 0.0 * Meter))
+        val isolated = QuantityPlacement3(view, QuantityPoint3(10.0 * Meter, 0.0 * Meter, 0.0 * Meter))
 
         val placements = listOf(p0, p1, p2, isolated)
         val top = topPlacements(placements)

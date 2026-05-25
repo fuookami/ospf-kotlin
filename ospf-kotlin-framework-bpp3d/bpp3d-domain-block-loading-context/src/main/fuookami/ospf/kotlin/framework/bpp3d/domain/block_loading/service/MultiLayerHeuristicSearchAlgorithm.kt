@@ -90,7 +90,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                         break
                     }
 
-                    val bin = Bin(binType, spaces.map { Placement3(it.block!!.view()!!, it.position) })
+                    val bin = Bin(binType, spaces.map { QuantityPlacement3(it.block!!.view()!!, it.position) })
                     for ((item, amount) in bin.amounts) {
                         restItems[item as Item] = restItems[item]!! - amount
                     }

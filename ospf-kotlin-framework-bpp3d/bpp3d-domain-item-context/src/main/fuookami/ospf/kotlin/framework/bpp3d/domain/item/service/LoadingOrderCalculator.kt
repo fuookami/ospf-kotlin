@@ -25,7 +25,7 @@ class LoadingOrderCalculator(
     private val maxBlockDepth: LoadingDepthLimit?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
-    operator fun invoke(placements: List<Placement3<*>>): List<Pair<ItemPlacement3, UInt64>> {
+    operator fun invoke(placements: List<QuantityPlacement3<*>>): List<Pair<ItemPlacement3, UInt64>> {
         val thisPlacements = merge(placements)
             .sortedWithThreeWayComparator { lhs, rhs ->
                 when (val ret = lhs.z ord rhs.z) {
@@ -44,7 +44,7 @@ class LoadingOrderCalculator(
                 }
                 lhs.x ord rhs.x
             }
-        val ret = ArrayList<Pair<Placement3<*>, UInt64>>()
+        val ret = ArrayList<Pair<QuantityPlacement3<*>, UInt64>>()
         val forwardMatrix = tidyForwardMatrix(thisPlacements)
         var visited = thisPlacements.map { _ -> false }
         var sequence = UInt64.zero
@@ -82,7 +82,7 @@ class LoadingOrderCalculator(
         return dump(ret)
     }
 
-    private fun merge(oldPlacements: List<Placement3<*>>): List<Placement3<*>> {
+    private fun merge(oldPlacements: List<QuantityPlacement3<*>>): List<QuantityPlacement3<*>> {
         return merge(
             merge(
             merge(oldPlacements)
@@ -120,11 +120,11 @@ class LoadingOrderCalculator(
     }
 
     private fun merge(
-        oldPlacements: List<Placement3<*>>,
+        oldPlacements: List<QuantityPlacement3<*>>,
         checkDepth: Boolean = false,
-        predicate: (Placement3<*>, Placement3<*>, List<Placement3<*>>) -> Boolean
-    ): List<Placement3<*>> {
-        val newPlacements = ArrayList<Placement3<*>>()
+        predicate: (QuantityPlacement3<*>, QuantityPlacement3<*>, List<QuantityPlacement3<*>>) -> Boolean
+    ): List<QuantityPlacement3<*>> {
+        val newPlacements = ArrayList<QuantityPlacement3<*>>()
         val visited = oldPlacements.map { false }.toMutableList()
         for (i in oldPlacements.indices) {
             if (visited[i]) {
@@ -136,7 +136,7 @@ class LoadingOrderCalculator(
                 if (currentDepth gr maxBlockDepth) {
                     ArrayList()
                 } else {
-                    val thisPlacements = ArrayList<Placement3<*>>()
+                    val thisPlacements = ArrayList<QuantityPlacement3<*>>()
                     for (j in (i + 1) until oldPlacements.size) {
                         if (predicate(oldPlacements[i], oldPlacements[j], thisPlacements)) {
                             thisPlacements.add(oldPlacements[j])
@@ -151,7 +151,7 @@ class LoadingOrderCalculator(
                     thisPlacements
                 }
             } else {
-                val thisPlacements = ArrayList<Placement3<*>>()
+                val thisPlacements = ArrayList<QuantityPlacement3<*>>()
                 for (j in (i + 1) until oldPlacements.size) {
                     if (predicate(oldPlacements[i], oldPlacements[j], thisPlacements)) {
                         thisPlacements.add(oldPlacements[j])
@@ -165,7 +165,7 @@ class LoadingOrderCalculator(
                 newPlacements.add(oldPlacements[i])
             } else {
                 val block = mergeToBlock(oldPlacements[i], thisPlacements)
-                newPlacements.add(Placement3(block.view()!!, oldPlacements[i].absolutePosition))
+                newPlacements.add(QuantityPlacement3(block.view()!!, oldPlacements[i].absolutePosition))
             }
 
             visited[i] = true
@@ -174,8 +174,8 @@ class LoadingOrderCalculator(
     }
 
     private fun mergeToBlock(
-        thisPlacement: Placement3<*>,
-        thisPlacements: MutableList<Placement3<*>>
+        thisPlacement: QuantityPlacement3<*>,
+        thisPlacements: MutableList<QuantityPlacement3<*>>
     ): CommonBlock {
         val items = ArrayList<ItemPlacement3>()
         val origin = thisPlacement.absolutePosition
@@ -184,13 +184,13 @@ class LoadingOrderCalculator(
             when (val unit = placement.unit) {
                 is Item -> {
                     val offset = placement.absolutePosition - origin
-                    items.add(Placement3(placement.view as ItemView, point3(offset.x, offset.y, offset.z)))
+                    items.add(QuantityPlacement3(placement.view as ItemView, point3(offset.x, offset.y, offset.z)))
                 }
 
                 is ItemContainer<*> -> {
                     for (item in unit.items) {
                         val offset = item.absolutePosition - origin
-                        items.add(Placement3(item.view, point3(offset.x, offset.y, offset.z)))
+                        items.add(QuantityPlacement3(item.view, point3(offset.x, offset.y, offset.z)))
                     }
                 }
 
@@ -200,7 +200,7 @@ class LoadingOrderCalculator(
         return CommonBlock(items)
     }
 
-    private fun tidyForwardMatrix(placements: List<Placement3<*>>): List<List<Int>> {
+    private fun tidyForwardMatrix(placements: List<QuantityPlacement3<*>>): List<List<Int>> {
         val forwardMatrix = placements.map { _ -> ArrayList<Int>() }
         for (i in placements.indices) {
             for (j in placements.indices) {
@@ -212,7 +212,7 @@ class LoadingOrderCalculator(
         return forwardMatrix
     }
 
-    private fun forward(lhs: Placement3<*>, rhs: Placement3<*>): Boolean {
+    private fun forward(lhs: QuantityPlacement3<*>, rhs: QuantityPlacement3<*>): Boolean {
         val planes = listOf(Bottom, Side, Front)
         for (plane in planes) {
             if (forwardAt(lhs, rhs, plane)) {
@@ -225,16 +225,16 @@ class LoadingOrderCalculator(
         return false
     }
 
-    private fun <P : ProjectivePlane> forwardAt(lhs: Placement3<*>, rhs: Placement3<*>, plane: P): Boolean {
-        val lhsProjection = Placement2(lhs, plane)
-        val rhsProjection = Placement2(rhs, plane)
+    private fun <P : ProjectivePlane> forwardAt(lhs: QuantityPlacement3<*>, rhs: QuantityPlacement3<*>, plane: P): Boolean {
+        val lhsProjection = QuantityPlacement2(lhs, plane)
+        val rhsProjection = QuantityPlacement2(rhs, plane)
         return if (!lhsProjection.overlapped(rhsProjection)) {
             false
         } else {
             plane.distance(lhs.position) leq plane.distance(rhs.position)
         }
     }
-    private fun dump(placements: List<Pair<Placement3<*>, UInt64>>): List<Pair<ItemPlacement3, UInt64>> {
+    private fun dump(placements: List<Pair<QuantityPlacement3<*>, UInt64>>): List<Pair<ItemPlacement3, UInt64>> {
         val ret = ArrayList<Pair<ItemPlacement3, UInt64>>()
         for ((placement, sequence) in placements) {
             when (val unit = placement.unit) {
@@ -247,7 +247,7 @@ class LoadingOrderCalculator(
 
                 is Block -> {
                     for (item in unit.units) {
-                        ret.add(Pair(Placement3(item.view, item.absolutePosition), sequence))
+                        ret.add(Pair(QuantityPlacement3(item.view, item.absolutePosition), sequence))
                     }
                 }
 

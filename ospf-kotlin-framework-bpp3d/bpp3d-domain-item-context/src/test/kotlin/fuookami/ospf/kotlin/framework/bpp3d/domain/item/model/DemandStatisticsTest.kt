@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -172,11 +172,11 @@ class DemandStatisticsTest {
         assertTrue(patterned.materialWeights[materialB.key]!! eq (9.0 * Kilogram))
 
         val placements = listOf(
-            Placement3(item1.view(), point3(x = 0.0 * Meter)),
-            Placement3(item1.view(), point3(x = 1.0 * Meter)),
-            Placement3(item1.view(), point3(x = 2.0 * Meter)),
-            Placement3(item2.view(), point3(x = 3.0 * Meter)),
-            Placement3(item2.view(), point3(x = 4.0 * Meter))
+            QuantityPlacement3(item1.view(), point3(x = 0.0 * Meter)),
+            QuantityPlacement3(item1.view(), point3(x = 1.0 * Meter)),
+            QuantityPlacement3(item1.view(), point3(x = 2.0 * Meter)),
+            QuantityPlacement3(item2.view(), point3(x = 3.0 * Meter)),
+            QuantityPlacement3(item2.view(), point3(x = 4.0 * Meter))
         )
         val layer = BinLayer(
             iteration = Int64(0),

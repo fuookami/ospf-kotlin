@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem as Lega
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material as LegacyMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package as LegacyPackage
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape as LegacyPackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3 as LegacyPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3 as LegacyPlacement3
 
 data class Material<V : FloatingNumber<V>>(
     val no: MaterialNo,

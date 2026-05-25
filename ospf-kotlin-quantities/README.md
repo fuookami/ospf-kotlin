@@ -18,7 +18,8 @@ A comprehensive physical quantities and units library for OSPF Kotlin. Provides 
 | Package | Description | Key Types |
 |---------|-------------|-----------|
 | `dimension` | Physical dimensions and quantities | `FundamentalQuantity`, `DerivedQuantity`, `Dimensions` |
-| `quantity` | Quantity types and operations | `Quantity<V>`, `SymbolQuantity`, `DurationExtensions` |
+| `quantity` | Quantity types and operations | `Quantity<V>`, `DurationExtensions` |
+| `math/symbol` | Quantity-aware symbol helpers | `SymbolQuantity`, `DimensionedSymbol`, `SymbolDimensionRegistry` |
 | `unit` | Physical units definitions | `PhysicalUnit`, `UnitSystem`, 300+ predefined units |
 
 ## Architecture Design

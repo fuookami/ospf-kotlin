@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.quantities
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.DimensionedSymbol
+import fuookami.ospf.kotlin.math.symbol.Operation
+import fuookami.ospf.kotlin.math.symbol.SymbolDimensionRegistry
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.dimension.*
 import fuookami.ospf.kotlin.quantities.unit.*

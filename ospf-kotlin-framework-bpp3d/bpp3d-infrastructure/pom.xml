@@ -12,6 +12,14 @@
     <name>ospf-kotlin-framework-bpp3d-infrastructure</name>
     <artifactId>ospf-kotlin-framework-bpp3d-infrastructure</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-quantities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <sourceDirectory>src/main</sourceDirectory>
     </build>

@@ -15,12 +15,11 @@
  * - Flt64: 64位浮点数 / 64-bit floating-point
  * - FltX: 高精度浮点数 / High-precision floating-point
  */
-package fuookami.ospf.kotlin.quantities.quantity
+package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
@@ -33,6 +32,9 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.times
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
+import fuookami.ospf.kotlin.quantities.quantity.DimensionMismatchException
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.UnitConversionException
 import fuookami.ospf.kotlin.quantities.unit.*
 
 // ============================================================================

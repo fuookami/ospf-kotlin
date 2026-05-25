@@ -14,13 +14,14 @@
  * - Flt64: 64位浮点数 / 64-bit floating-point
  * - FltX: 高精度浮点数 / High-precision floating-point
  */
-package fuookami.ospf.kotlin.quantities.quantity
+package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 // ============================================================================
 // 符号多项式物理量类型别名

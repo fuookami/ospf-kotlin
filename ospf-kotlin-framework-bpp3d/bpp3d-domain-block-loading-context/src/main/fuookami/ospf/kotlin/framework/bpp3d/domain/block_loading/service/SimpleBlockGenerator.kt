@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
@@ -228,14 +228,14 @@ class SimpleBlockGenerator(
         for (i in UInt64.one..maxXAmount) {
             for (j in UInt64.one..maxYAmount) {
                 for (k in minZAmount..maxZAmount) {
-                    val placements = ArrayList<Placement3<Item>>()
+                    val placements = ArrayList<QuantityPlacement3<Item>>()
                     for (p in UInt64.zero until i) {
                         val x = orientation.width(item) * p.toFlt64Scalar()
                         for (q in UInt64.zero until j) {
                             val y = orientation.height(item) * q.toFlt64Scalar()
                             for (m in UInt64.zero until k) {
                                 val z = orientation.depth(item) * m.toFlt64Scalar()
-                                placements.add(Placement3(item.view(orientation), point3(x, y, z)))
+                                placements.add(QuantityPlacement3(item.view(orientation), point3(x, y, z)))
                             }
                         }
                     }
@@ -258,21 +258,21 @@ class SimpleBlockGenerator(
 
             if (remainder != UInt64.zero && remainder < (maxXAmount * maxYAmount) && minZAmount == UInt64.one) {
                 val remainderMaxYAmount = remainder / maxXAmount
-                val placements = ArrayList<Placement3<Item>>()
+                val placements = ArrayList<QuantityPlacement3<Item>>()
                 if (remainderMaxYAmount != UInt64.zero) {
                     for (i in UInt64.zero until maxXAmount) {
                         val x = orientation.width(item) * i.toFlt64Scalar()
                         for (j in UInt64.zero until remainderMaxYAmount) {
                             val y = orientation.height(item) * j.toFlt64Scalar()
-                            placements.add(Placement3(item.view(orientation), point3(x = x, y = y)))
+                            placements.add(QuantityPlacement3(item.view(orientation), point3(x = x, y = y)))
                         }
                     }
                 }
-                val remainderPlacements = ArrayList<Placement3<Item>>()
+                val remainderPlacements = ArrayList<QuantityPlacement3<Item>>()
                 if ((remainder % maxXAmount) != UInt64.zero) {
                     for (i in UInt64.zero until (remainder % maxXAmount)) {
                         val x = orientation.width(item) * i.toFlt64Scalar()
-                        remainderPlacements.add(Placement3(item.view(orientation), point3(x = x)))
+                        remainderPlacements.add(QuantityPlacement3(item.view(orientation), point3(x = x)))
                     }
                 }
                 if (placements.isEmpty()) {
@@ -283,8 +283,8 @@ class SimpleBlockGenerator(
                     blocks.add(
                         ComplexBlock(
                             listOf(
-                                Placement3(SimpleBlock(placements).view()!!, point3()),
-                                Placement3(SimpleBlock(remainderPlacements).view()!!, point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64Scalar()))
+                                QuantityPlacement3(SimpleBlock(placements).view()!!, point3()),
+                                QuantityPlacement3(SimpleBlock(remainderPlacements).view()!!, point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64Scalar()))
                             )
                         )
                     )
@@ -292,39 +292,39 @@ class SimpleBlockGenerator(
             } else if (remainder != UInt64.zero && (remainder / (maxXAmount * maxYAmount)) >= (minZAmount - UInt64.zero)) {
                 val remainderMaxZAmount = remainder / (maxXAmount * maxYAmount)
                 val remainderMaxYAmount = (remainder % (maxXAmount * maxYAmount)) / maxXAmount
-                val placements = ArrayList<Placement3<Item>>()
+                val placements = ArrayList<QuantityPlacement3<Item>>()
                 for (i in UInt64.zero until maxXAmount) {
                     val x = orientation.width(item) * i.toFlt64Scalar()
                     for (j in UInt64.zero until maxYAmount) {
                         val y = orientation.height(item) * j.toFlt64Scalar()
                         for (k in UInt64.zero until remainderMaxZAmount) {
                             val z = orientation.depth(item) * k.toFlt64Scalar()
-                            placements.add(Placement3(item.view(orientation), point3(x = x, y = y, z = z)))
+                            placements.add(QuantityPlacement3(item.view(orientation), point3(x = x, y = y, z = z)))
                         }
                     }
                 }
-                val remainderPlacements = ArrayList<Placement3<Item>>()
+                val remainderPlacements = ArrayList<QuantityPlacement3<Item>>()
                 if (remainderMaxYAmount != UInt64.zero) {
                     for (i in UInt64.zero until maxXAmount) {
                         val x = orientation.width(item) * i.toFlt64Scalar()
                         for (j in UInt64.zero until remainderMaxYAmount) {
                             val y = orientation.height(item) * j.toFlt64Scalar()
-                            remainderPlacements.add(Placement3(item.view(orientation), point3(x = x, y = y)))
+                            remainderPlacements.add(QuantityPlacement3(item.view(orientation), point3(x = x, y = y)))
                         }
                     }
                 }
-                val remainderRemainderPlacements = ArrayList<Placement3<Item>>()
+                val remainderRemainderPlacements = ArrayList<QuantityPlacement3<Item>>()
                 if (((remainder % (maxXAmount * maxYAmount)) % maxXAmount) != UInt64.zero) {
                     for (i in UInt64.zero until ((remainder % (maxXAmount * maxYAmount)) % maxXAmount)) {
                         val x = orientation.width(item) * i.toFlt64Scalar()
-                        remainderRemainderPlacements.add(Placement3(item.view(orientation), point3(x = x)))
+                        remainderRemainderPlacements.add(QuantityPlacement3(item.view(orientation), point3(x = x)))
                     }
                 }
                 val remainderBlocks = ArrayList<BlockPlacement3>()
-                remainderBlocks.add(Placement3(SimpleBlock(placements).view()!!, point3()))
+                remainderBlocks.add(QuantityPlacement3(SimpleBlock(placements).view()!!, point3()))
                 if (remainderPlacements.isEmpty()) {
                     remainderBlocks.add(
-                        Placement3(
+                        QuantityPlacement3(
                             SimpleBlock(remainderPlacements).view()!!,
                             point3(z = orientation.depth(item) * remainderMaxZAmount.toFlt64Scalar())
                         )
@@ -332,7 +332,7 @@ class SimpleBlockGenerator(
                 }
                 if (remainderRemainderPlacements.isEmpty()) {
                     remainderBlocks.add(
-                        Placement3(
+                        QuantityPlacement3(
                             SimpleBlock(remainderRemainderPlacements).view()!!,
                             point3(y = orientation.height(item) * remainderMaxYAmount.toFlt64Scalar(), z = orientation.depth(item) * remainderMaxZAmount.toFlt64Scalar())
                         )

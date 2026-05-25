@@ -343,7 +343,7 @@ data object ItemMerger {
                             val y = scalar(j.toULong()) * view.height
                             for (k in UInt64.zero until zAmount) {
                                 val z = scalar(k.toULong()) * view.depth
-                                placements.add(Placement3(view, point3(x = x, y = y, z = z)))
+                                placements.add(QuantityPlacement3(view, point3(x = x, y = y, z = z)))
                             }
                         }
                     }
@@ -544,7 +544,7 @@ data object ItemMerger {
                     (UInt64.zero until amount)
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
-                                .map { j -> Placement3(item.view(orientation).copy(), point3(x = scalar(i.toULong()) * width, y = scalar(j.toULong()) * height)) }
+                                .map { j -> QuantityPlacement3(item.view(orientation).copy(), point3(x = scalar(i.toULong()) * width, y = scalar(j.toULong()) * height)) }
                         }
                 )
                 placements.addAll(
@@ -552,7 +552,7 @@ data object ItemMerger {
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
                                 .map { j ->
-                                    Placement3(
+                                    QuantityPlacement3(
                                         item.view(orientation.rotation).copy(),
                                         point3(x = scalar(amount.toULong()) * width, y = scalar(j.toULong()) * height, z = scalar(i.toULong()) * width)
                                     )
@@ -563,7 +563,7 @@ data object ItemMerger {
                     (UInt64.zero until rotatedAmount)
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
-                                .map { j -> Placement3(item.view(orientation.rotation).copy(), point3(y = scalar(j.toULong()) * height, z = depth + scalar(i.toULong()) * width)) }
+                                .map { j -> QuantityPlacement3(item.view(orientation.rotation).copy(), point3(y = scalar(j.toULong()) * height, z = depth + scalar(i.toULong()) * width)) }
                         }
                 )
                 placements.addAll(
@@ -571,7 +571,7 @@ data object ItemMerger {
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
                                 .map { j ->
-                                    Placement3(
+                                    QuantityPlacement3(
                                         item.view(orientation).copy(),
                                         point3(x = depth + scalar(i.toULong()) * width, y = scalar(j.toULong()) * height, z = scalar(rotatedAmount.toULong()) * width)
                                     )
@@ -603,7 +603,7 @@ data object ItemMerger {
 
     @JvmName("dumpPlacements")
     fun dump(
-        placements: List<Placement3<*>>,
+        placements: List<QuantityPlacement3<*>>,
         offset: QuantityVector3 = vector3()
     ): List<ItemPlacement3> {
         return placements.map {
@@ -611,7 +611,7 @@ data object ItemMerger {
                 is Item -> {
                     it.toItemPlacementOrNull()?.let { itemPlacement ->
                         listOf(
-                            Placement3(
+                            QuantityPlacement3(
                                 itemPlacement.view,
                                 itemPlacement.position + offset
                             )

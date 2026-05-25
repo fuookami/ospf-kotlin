@@ -104,7 +104,7 @@ data class MultiPileProjection<T : Cuboid<T, V>, V : FloatingNumber<V>>(
     override fun amount(unit: Cuboid<*, V>) = UInt64(views.count { it.unit == unit })
 }
 
-data class Placement2<T : Cuboid<T, V>, V : FloatingNumber<V>>(
+data class QuantityPlacement2<T : Cuboid<T, V>, V : FloatingNumber<V>>(
     val projection: Projection<T, V>,
     val position: QuantityPoint2G<V>,
     val maxX: Quantity<V>,
@@ -122,7 +122,7 @@ data class Placement2<T : Cuboid<T, V>, V : FloatingNumber<V>>(
     val width by projection::width
 }
 
-data class Placement3<T : Cuboid<T, V>, V : FloatingNumber<V>>(
+data class QuantityPlacement3<T : Cuboid<T, V>, V : FloatingNumber<V>>(
     val view: CuboidView<T, V>,
     val position: QuantityPoint3G<V>,
     val maxX: Quantity<V>,
@@ -146,7 +146,7 @@ data class Placement3<T : Cuboid<T, V>, V : FloatingNumber<V>>(
 data class Container2<V : FloatingNumber<V>>(
     val length: Quantity<V>,
     val width: Quantity<V>,
-    val units: List<Placement2<*, V>>,
+    val units: List<QuantityPlacement2<*, V>>,
     val amounts: Map<Cuboid<*, V>, UInt64>
 )
 
@@ -154,7 +154,7 @@ data class Container3<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val height: Quantity<V>,
     val depth: Quantity<V>,
-    val units: List<Placement3<*, V>>,
+    val units: List<QuantityPlacement3<*, V>>,
     val volume: Quantity<V>,
     val actualVolume: Quantity<V>,
     val weight: Quantity<V>,

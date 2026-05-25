@@ -104,27 +104,27 @@ fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: QuantityPoint3 =
 }
 
 @get:JvmName("itemContainerPlacementPackageType")
-val <S : ItemContainer<S>> Placement3<S>.packageType: PackageType
+val <S : ItemContainer<S>> QuantityPlacement3<S>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemContainerPlacementPackageCategory")
-val <S : ItemContainer<S>> Placement3<S>.packageCategory: PackageCategory
+val <S : ItemContainer<S>> QuantityPlacement3<S>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
-fun <S : ItemContainer<S>> Placement3<S>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> QuantityPlacement3<S>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
     return unit.dump(position + QuantityVector3(offset.x, offset.y, offset.z))
 }
 
-fun <S : ItemContainer<S>> Placement3<S>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> QuantityPlacement3<S>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
     return unit.dump(absolutePosition + QuantityVector3(offset.x, offset.y, offset.z))
 }
 @JvmName("itemContainerPlacement2SideEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Side>>,
+suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, Side>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, Side>>,
     space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -152,8 +152,8 @@ suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
     }
 }
 @JvmName("itemContainerPlacement2FrontEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Front>>,
+suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, Front>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, Front>>,
     space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -181,8 +181,8 @@ suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
     }
 }
 @JvmName("itemContainerPlacement3EnabledStackingOn")
-suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
-    bottomItems: List<Placement3<*>>,
+suspend fun <S : ItemContainer<S>> QuantityPlacement3<S>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement3<*>>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val thisBottomItems = bottomItemPlacements(this.dump())

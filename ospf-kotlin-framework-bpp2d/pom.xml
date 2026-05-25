@@ -13,7 +13,7 @@
     <name>ospf-kotlin-framework-bpp2d</name>
     <groupId>io.github.fuookami.ospf.kotlin.framework.bpp2d</groupId>
     <artifactId>ospf-kotlin-framework-bpp2d</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
@@ -29,6 +29,16 @@
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-math</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-quantities</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

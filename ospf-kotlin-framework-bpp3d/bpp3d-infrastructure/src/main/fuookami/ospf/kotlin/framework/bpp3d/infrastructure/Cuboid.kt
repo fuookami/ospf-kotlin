@@ -2,6 +2,9 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.geometry.QuantityBox3
+import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
+import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3View
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.operator.Plus
@@ -27,6 +30,21 @@ interface AbstractCuboid<V : FloatingNumber<V>> {
 interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraScalar> {
     val self: T
     val enabledOrientations: List<Orientation>
+
+    fun geometryView(orientation: Orientation = Orientation.Upright): QuantityCuboid3View<InfraScalar> {
+        return QuantityCuboid3View(
+            origin = QuantityCuboid3(
+                width = width,
+                height = height,
+                depth = depth
+            ),
+            permutation = orientation.toAxisPermutation3()
+        )
+    }
+
+    fun geometry(orientation: Orientation = Orientation.Upright): QuantityCuboid3<InfraScalar> {
+        return geometryView(orientation).cuboid
+    }
 
     fun enabledOrientationsAt(
         space: AbstractContainer2Shape<*>,
@@ -70,10 +88,11 @@ open class CuboidView<T : Cuboid<T>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
 ) : AbstractCuboid<InfraScalar>, Copyable<CuboidView<T>> {
-    // inherited from Cuboid<T>
-    override val width = orientation.width(unit)
-    override val height = orientation.height(unit)
-    override val depth = orientation.depth(unit)
+    private val geometryView: QuantityCuboid3View<InfraScalar> by lazy { unit.geometryView(orientation) }
+
+    override val width get() = geometryView.width
+    override val height get() = geometryView.height
+    override val depth get() = geometryView.depth
     override val weight by unit::weight
 
     val rotatedOrientation by orientation::rotation
@@ -104,11 +123,11 @@ open class CuboidView<T : Cuboid<T>>(
     }
 
     fun bottomSupport(bottomView: CuboidView<*>): BottomSupport {
-        val placement = Placement2(
+        val placement = QuantityPlacement2(
             projection = PlaneProjection(this, Bottom),
             position = QuantityPoint2(infraZero() * Meter, infraZero() * Meter)
         )
-        val bottomPlacement = Placement2(
+        val bottomPlacement = QuantityPlacement2(
             projection = PlaneProjection(bottomView, Bottom),
             position = QuantityPoint2(infraZero() * Meter, infraZero() * Meter)
         )
@@ -131,6 +150,12 @@ open class CuboidView<T : Cuboid<T>>(
         orientation = orientation
     )
 
+    fun toGeometryCuboid3View(): QuantityCuboid3View<InfraScalar> = geometryView
+
+    fun toGeometryCuboid3(): QuantityCuboid3<InfraScalar> = geometryView.cuboid
+
+    fun toGeometryBox3AtOrigin(): QuantityBox3<InfraScalar> = QuantityBox3.atOrigin(geometryView.cuboid)
+
     override fun hashCode(): Int {
         var result = unit.hashCode()
         result = 31 * result + orientation.hashCode()
@@ -151,18 +176,18 @@ open class CuboidView<T : Cuboid<T>>(
 }
 
 fun bottomSupport(
-    unit: Placement3<*>,
-    bottomUnits: List<Placement3<*>>
+    unit: QuantityPlacement3<*>,
+    bottomUnits: List<QuantityPlacement3<*>>
 ): BottomSupport {
     var support = BottomSupport(
         area = unit.depth * unit.width * infraZero(),
         weight = unit.weight * infraZero()
     )
 
-    val bottomPlacement = Placement2(unit, Bottom)
+    val bottomPlacement = QuantityPlacement2(unit, Bottom)
     for (fixedPlacement in bottomUnits) {
         if (fixedPlacement.maxY eq unit.y) {
-            val thisBottomPlacement = Placement2(fixedPlacement, Bottom)
+            val thisBottomPlacement = QuantityPlacement2(fixedPlacement, Bottom)
             val intersect = bottomPlacement.intersect(thisBottomPlacement)
             if (intersect != null) {
                 val thisSupport = BottomSupport(
@@ -175,6 +200,3 @@ fun bottomSupport(
     }
     return support
 }
-
-
-

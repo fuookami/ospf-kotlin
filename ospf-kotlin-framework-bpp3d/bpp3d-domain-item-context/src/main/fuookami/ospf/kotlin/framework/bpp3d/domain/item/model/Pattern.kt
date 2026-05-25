@@ -61,7 +61,7 @@ abstract class Pattern {
             } else {
                 nextPointExtractor!!(projection, placements)
             }
-            return Placement2(projection, point)
+            return QuantityPlacement2(projection, point)
         }
 
         fun generateMultiPileProjection(items: List<Item>): Result<MultipleItemProjection<Bottom>?, ErrorCode, Error<ErrorCode>> {

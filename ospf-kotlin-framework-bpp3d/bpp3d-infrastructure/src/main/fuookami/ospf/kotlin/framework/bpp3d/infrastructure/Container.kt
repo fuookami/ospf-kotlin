@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -113,14 +113,14 @@ interface Container2<
         P : ProjectivePlane
         > : Copyable<S> {
     val shape: AbstractContainer2Shape<P>
-    val units: List<Placement2<*, P>>
+    val units: List<QuantityPlacement2<*, P>>
     val amounts: Map<AbstractCuboid<InfraScalar>, UInt64> get() = count(units)
 
     val length: Quantity<InfraScalar> get() = shape.length
     val width: Quantity<InfraScalar> get() = shape.width
 
     companion object {
-        fun <P : ProjectivePlane> count(units: List<Placement2<*, P>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+        fun <P : ProjectivePlane> count(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
             val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
             for (placement in units) {
                 merge(counter, placement.unit)
@@ -150,7 +150,7 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
                 && (depth geq orientation.depth(unit)) == true
     }
 
-    fun enabled(unit: Placement3<*>): Boolean {
+    fun enabled(unit: QuantityPlacement3<*>): Boolean {
         if ((unit.maxX gr width) == true) {
             return false
         }
@@ -163,7 +163,7 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
         return true
     }
 
-    fun enabled(units: List<Placement3<*>>): Boolean {
+    fun enabled(units: List<QuantityPlacement3<*>>): Boolean {
         val maxX = maxQuantity(units.map { it.maxX })
         if (maxX != null && (maxX gr width) == true) {
             return false
@@ -251,7 +251,7 @@ data class Container3Shape(
 
 interface Container3<S : Container3<S>> : AbstractCuboid<InfraScalar>, Copyable<S> {
     val shape: AbstractContainer3Shape get() = Container3Shape()
-    val units: List<Placement3<*>>
+    val units: List<QuantityPlacement3<*>>
     val amounts: Map<AbstractCuboid<InfraScalar>, UInt64> get() = count(units)
 
     override val width: Quantity<InfraScalar> get() = shape.width
@@ -272,7 +272,7 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraScalar>, Copyable<
     val loadingRate: InfraScalar get() = (actualVolume / (volume + (infraEpsilon() * volume.unit))).value
 
     companion object {
-        fun count(units: List<Placement3<*>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+        fun count(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
             val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
             for (placement in units) {
                 merge(counter, placement.unit)
