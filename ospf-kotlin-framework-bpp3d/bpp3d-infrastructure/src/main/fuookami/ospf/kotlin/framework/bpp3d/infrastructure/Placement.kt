@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
@@ -71,7 +70,7 @@ data class Placement2<
 ) : Copyable<Placement2<T, P>> {
     constructor(
         projection: Projection<T, P>,
-        position: Point<Dim2, Flt64>
+        position: Point<Dim2, InfraScalar>
     ) : this(projection, point2(position))
 
     constructor(placement3: Placement3<T>, plane: P) : this(
@@ -147,7 +146,7 @@ data class Placement3<T : Cuboid<T>>(
 ) : Copyable<Placement3<T>>, Ord<Placement3<T>> {
     constructor(
         view: CuboidView<T>,
-        position: Point<Dim3, Flt64>
+        position: Point<Dim3, InfraScalar>
     ) : this(view, point3(position))
 
     private var _parent: Placement3<*>? = null
@@ -172,9 +171,9 @@ data class Placement3<T : Cuboid<T>>(
                 z = z + parent!!.absoluteZ
             )
         }
-    val absoluteX: Quantity<Flt64> get() = x + (parent?.absoluteX ?: (Flt64.zero * x.unit))
-    val absoluteY: Quantity<Flt64> get() = y + (parent?.absoluteY ?: (Flt64.zero * y.unit))
-    val absoluteZ: Quantity<Flt64> get() = z + (parent?.absoluteZ ?: (Flt64.zero * z.unit))
+    val absoluteX: Quantity<InfraScalar> get() = x + (parent?.absoluteX ?: (infraZero() * x.unit))
+    val absoluteY: Quantity<InfraScalar> get() = y + (parent?.absoluteY ?: (infraZero() * y.unit))
+    val absoluteZ: Quantity<InfraScalar> get() = z + (parent?.absoluteZ ?: (infraZero() * z.unit))
 
     val absolutePlacement get() = Placement3(view, absolutePosition)
 
@@ -182,14 +181,14 @@ data class Placement3<T : Cuboid<T>>(
     val height by view::height
     val depth by view::depth
 
-    val maxX: Quantity<Flt64> = x + width
-    val maxY: Quantity<Flt64> = y + height
-    val maxZ: Quantity<Flt64> = z + depth
+    val maxX: Quantity<InfraScalar> = x + width
+    val maxY: Quantity<InfraScalar> = y + height
+    val maxZ: Quantity<InfraScalar> = z + depth
     val maxPosition: QuantityPoint3 = position + QuantityVector3(x = width, y = height, z = depth)
 
-    val maxAbsoluteX: Quantity<Flt64> get() = absoluteX + width
-    val maxAbsoluteY: Quantity<Flt64> get() = absoluteY + height
-    val maxAbsoluteZ: Quantity<Flt64> get() = absoluteZ + depth
+    val maxAbsoluteX: Quantity<InfraScalar> get() = absoluteX + width
+    val maxAbsoluteY: Quantity<InfraScalar> get() = absoluteY + height
+    val maxAbsoluteZ: Quantity<InfraScalar> get() = absoluteZ + depth
     val maxAbsolutePosition: QuantityPoint3 get() = absolutePosition + QuantityVector3(x = width, y = height, z = depth)
 
     init {

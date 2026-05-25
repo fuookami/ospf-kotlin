@@ -27,6 +27,8 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 
+typealias QuantityFlt64 = Quantity<Flt64>
+
 private fun QuantityFlt64.toScalar(unit: PhysicalUnit): Flt64 {
     return if (this.unit == unit) {
         this.value

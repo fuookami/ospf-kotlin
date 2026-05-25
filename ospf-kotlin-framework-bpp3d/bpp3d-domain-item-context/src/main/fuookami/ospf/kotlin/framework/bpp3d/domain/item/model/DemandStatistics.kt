@@ -1,10 +1,19 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 
@@ -21,7 +30,7 @@ sealed interface Bpp3dDemandKey {
 
 sealed interface Bpp3dDemandValue {
     data class Amount(val value: UInt64) : Bpp3dDemandValue
-    data class Weight(val value: Quantity<Flt64>) : Bpp3dDemandValue
+    data class Weight(val value: LegacyQuantity) : Bpp3dDemandValue
 }
 
 private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3dDemandValue {
@@ -35,7 +44,7 @@ private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3
 private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3dDemandValue {
     return when (value) {
         is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(value.value * multiplier)
-        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * Flt64(multiplier.toULong().toDouble()))
+        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * legacyScalar(multiplier.toULong().toDouble()))
     }
 }
 
@@ -64,7 +73,7 @@ private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
 }
 
 private fun statisticsOf(
-    unit: AbstractCuboid<Flt64>,
+    unit: LegacyCuboid,
     mode: Bpp3dDemandMode
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (unit) {
@@ -157,6 +166,4 @@ fun Iterable<Placement3<*>>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKe
     return counter
 }
 
-fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(Flt64.zero * Kilogram)
-
-
+fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(legacyZero() * Kilogram)

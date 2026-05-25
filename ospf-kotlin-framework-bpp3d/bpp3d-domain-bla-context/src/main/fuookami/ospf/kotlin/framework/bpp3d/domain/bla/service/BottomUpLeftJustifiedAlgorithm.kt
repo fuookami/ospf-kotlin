@@ -3,11 +3,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.not
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -83,7 +85,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 ) {
     private val logger = logger()
 
-    constructor(length: Flt64, width: Flt64, plane: P, config: Config<P> = Config()) : this(
+    constructor(length: LegacyScalar, width: LegacyScalar, plane: P, config: Config<P> = Config()) : this(
         space = Container2Shape(length * Meter, width * Meter, plane),
         plane = plane,
         config = config
@@ -373,11 +375,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         placement: Placement2<*, *>,
         fixedPlacements: List<Placement2<*, *>?>
     ): QuantityPoint2? {
-        if (point.x eq Flt64.zero) {
+        if (point.x eq legacyZero()) {
             return null
         }
 
-        var maxX = Flt64.negativeInfinity * point.x.unit
+        var maxX = legacyNegativeInfinity() * point.x.unit
         for (fixedPlacement in fixedPlacements.filterNotNull()) {
             if (fixedPlacement == placement) {
                 continue
@@ -392,7 +394,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             }
         }
         return if (maxX.value.isNegativeInfinity()) {
-            point2(x = Flt64.zero * point.x.unit, y = point.y)
+            point2(x = legacyZero() * point.x.unit, y = point.y)
         } else {
             point2(x = maxX, y = point.y)
         }
@@ -403,11 +405,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         placement: Placement2<*, *>,
         fixedPlacements: List<Placement2<*, *>?>
     ): QuantityPoint2? {
-        if (point.y eq Flt64.zero) {
+        if (point.y eq legacyZero()) {
             return null
         }
 
-        var maxY = Flt64.negativeInfinity * point.y.unit
+        var maxY = legacyNegativeInfinity() * point.y.unit
         for (fixedPlacement in fixedPlacements.filterNotNull()) {
             if (fixedPlacement == placement) {
                 continue
@@ -422,7 +424,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             }
         }
         return if (maxY.value.isNegativeInfinity()) {
-            point2(x = point.x, y = Flt64.zero * point.y.unit)
+            point2(x = point.x, y = legacyZero() * point.y.unit)
         } else {
             point2(x = point.x, y = maxY)
         }

@@ -311,6 +311,72 @@
 - `bpp3d-infrastructure/src/test/.../OrientationTest.kt`
 - `bpp3d-domain-layer-assignment-context/src/test/.../FltXDirectCompileProofTest.kt`
 
+### 测试用例描述（交接执行版）
+
+下个会话实现几何核时，优先按以下用例落测试；每组测试都应至少覆盖 `Flt64` 与一个 `FltX` 路径，除非该类型明确是无单位、无数值泛型的纯枚举或置换模型。
+
+1. `AxisPermutation2Test`
+   - `rotateRectangleShouldSwapWidthAndHeight`：二维矩形横竖旋转后 `width/height` 对调，面积不变。
+   - `identityPermutationShouldKeepRectangleSize`：恒等置换不改变尺寸和坐标范围。
+   - `circleShouldRemainSameAfter2DRotation`：圆旋转后半径、直径、面积和包围盒不变。
+
+2. `AxisPermutation3Test`
+   - `sixCuboidPermutationsShouldMapDimensionsExactly`：三维长方体六种主轴置换分别映射到期望的 `width/height/depth`。
+   - `permutationInverseShouldRestoreCuboidSize`：任意置换接反置换后恢复原尺寸。
+   - `cylinderAxisShouldFollowPermutation`：圆柱体轴向随置换从 `X/Y/Z` 正确迁移，半径不变，高度沿新轴。
+
+3. `Rectangle2GeometryTest`
+   - `rectangleAreaShouldUseWidthTimesHeight`：矩形面积维度和数值正确。
+   - `rectangleRangeShouldExposeMinAndMaxCoordinates`：带位置矩形的 `minX/maxX/minY/maxY` 正确。
+   - `rectangleContainsPointShouldRespectBoundaryMode`：点包含测试覆盖闭区间、开区间和边界点。
+   - `rectangleOverlapAndIntersectionShouldHandleTouchingEdges`：相交、仅接边、完全分离三种情况结果明确。
+
+4. `Circle2GeometryTest`
+   - `circleAreaAndDiameterShouldUseRadius`：圆的直径、面积和单位维度正确。
+   - `circleBoundingBoxShouldMatchDiameter`：圆的包围盒宽高均为直径，中心位置正确。
+   - `circleContainsPointShouldHandleCenterBoundaryAndOutside`：中心点、圆周点、外部点覆盖。
+   - `circleCircleRelationShouldCoverOverlapTouchAndSeparate`：圆圆重叠、外切、内含、分离覆盖。
+   - `circleRectangleRelationShouldUseBoundingOrExactPolicyExplicitly`：圆矩关系必须明确是包围盒桥接还是精确几何判断，并据此断言。
+
+5. `Box2GeometryTest`
+   - `box2ShouldCombinePositionAndShape`：二维带位置对象组合 `Point2 + Rectangle2/Circle2` 后坐标范围正确。
+   - `box2ContainsShouldDelegateToShapeAndPosition`：包含逻辑由 shape 和 position 共同决定。
+   - `box2IntersectionShouldReturnExpectedRectangleForRectangles`：矩形盒交集返回正确尺寸和位置。
+
+6. `CuboidGeometryTest`
+   - `cuboidVolumeShouldUseWidthHeightDepth`：长方体体积维度和数值正确。
+   - `box3RangeShouldExposeAllAxisBounds`：三维带位置盒的 `min/max X/Y/Z` 正确。
+   - `box3ContainsPointShouldRespectBoundaryMode`：三维点包含覆盖边界和外部点。
+   - `box3OverlapAndIntersectionShouldHandleTouchingFaces`：重叠、仅贴面、仅贴边、完全分离结果明确。
+
+7. `CylinderGeometryTest`
+   - `cylinderVolumeShouldUseBaseAreaTimesHeight`：圆柱体体积维度和数值正确。
+   - `axisAlignedCylinderBoundingBoxShouldDependOnAxis`：轴向为 `X/Y/Z` 时包围盒尺寸分别正确。
+   - `cylinderProjectionShouldReturnCircleOrRectangleByPlane`：投影到垂直于轴的平面为圆，投影到含轴平面为矩形。
+   - `cylinderCuboidRelationShouldUseBoundingOrExactPolicyExplicitly`：圆柱与长方体关系必须明确是包围盒桥接还是精确几何判断，并据此断言。
+
+8. `ProjectionGeometryTest`
+   - `planeShouldConvertPoint3ToPoint2AndBack`：`XY/XZ/YZ` 平面完成 `Point3 -> Point2 -> Point3` 往返，保留指定距离坐标。
+   - `cuboidFootprintShouldMatchPlaneDimensions`：长方体在三个平面的 footprint 尺寸正确。
+   - `bpp3dBottomSideFrontShouldDelegateToAxisPlane`：BPP3D `Bottom/Side/Front` 的现有结果与几何平面委托结果一致。
+
+9. `PlacementGeometryTest`
+   - `placement2ShouldReportMaxCoordinates`：二维放置的最大坐标由 position 和 shape 决定。
+   - `placement3ShouldReportMaxCoordinates`：三维放置的最大坐标由 position 和 shape 决定。
+   - `placementContainsShouldWorkForRectangleCircleCuboidCylinder`：矩形、圆、长方体、圆柱体放置均覆盖包含判断。
+   - `placementOverlapShouldNotDependOnBusinessUnit`：几何放置重叠测试不引用 `unit`、`weight`、`amount`、`bottomSupport` 等业务字段。
+
+10. `Bpp3dGeometryWrapperCompatibilityTest`
+    - `cuboidViewShouldKeepExistingOrientationBehavior`：`CuboidView<T>` 的 `unit`、`orientation`、旋转后尺寸保持现有行为。
+    - `projectionShouldKeepWeightAndAmountAggregation`：BPP3D `Projection<T, P>` 保留重量、数量、堆叠统计，不下沉到几何核。
+    - `placementShouldKeepParentAndSupportSemantics`：BPP3D `Placement2/3<T>` 保留 parent、层关系、支撑语义。
+    - `solverBoundaryShouldRemainUnchanged`：layer-assignment solver adapter 的 `Flt64` 边界不因几何核拆分扩散。
+
+11. 架构审计测试或脚本
+    - `geometryPackageShouldNotImportBpp3dDomain`：通用几何目录不得引用 `bpp3d`、`bpp2d`、`csp2d` 包。
+    - `geometryPackageShouldNotContainBusinessTerms`：通用几何目录不得出现 `weight`、`amount`、`loadingRate`、`bottomSupport`、`kerf`、`cuttingPattern` 等业务术语。
+    - `mathModuleShouldNotDependOnQuantitiesUnlessExplicitlyApproved`：若几何核进入 `math`，确认 `ospf-kotlin-math/pom.xml` 未新增 `ospf-kotlin-quantities` 依赖。
+
 ### 后续 BPP2D / CSP2D 预计新增
 
 当前 `ospf-kotlin-framework-bpp2d` 和 `ospf-kotlin-framework-csp2d` 尚未展开源码目录。后续创建源码时，建议直接按以下 wrapper 边界落地：

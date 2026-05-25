@@ -38,7 +38,7 @@ class ProjectionTest {
 
     @Test
     fun projectionShapeAreaShouldKeepLengthSquareDimension() {
-        val shape = ProjectionShape.invoke(
+        val shape = ProjectionShapeG.invoke(
             length = 2.0 * Meter,
             width = 4.0 * Meter
         )

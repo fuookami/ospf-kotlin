@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -12,7 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.geometry.vector3
 
 data class Space(
-    val position: Point<Dim3, Flt64>,
+    val position: Point<Dim3, InfraScalar>,
     val shape: AbstractContainer3Shape,
     val parentShape: AbstractContainer3Shape = shape,
     val block: Block? = null,
@@ -26,7 +25,7 @@ data class Space(
         fun from(
             blocks: List<BlockPlacement3>,
             shape: AbstractContainer3Shape = Container3Shape(),
-            offset: Point<Dim3, Flt64> = point3()
+            offset: Point<Dim3, InfraScalar> = point3()
         ): List<Space>? {
             val absoluteBlocks = blocks.map { BlockPlacement3(it.view.copy(), it.position + offset) }
             val spaces = ArrayList<Space>()
@@ -135,7 +134,7 @@ data class Space(
             val spaces = ArrayList<Space>()
             var forwardSpace = forwardLink
             while (forwardSpace != null) {
-                if (forwardSpace.second.position.y eq Flt64.zero && forwardSpace.first != Bottom) {
+                if (forwardSpace.second.position.y eq infraZero() && forwardSpace.first != Bottom) {
                     break
                 }
                 if (forwardSpace.first == Bottom) {
@@ -193,7 +192,7 @@ data class Space(
                 }
             }
             var layer = thisLayer - UInt64.one
-            var height = Flt64((thisLayer - UInt64.one).toULong().toDouble()) * thisItem.height
+            var height = infraScalar((thisLayer - UInt64.one).toULong().toDouble()) * thisItem.height
             for (space in thisBottomSpaces) {
                 when (val bottomBlock = space.block!!) {
                     is SimpleBlock -> {

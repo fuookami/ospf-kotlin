@@ -2,25 +2,34 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Eq
 
 data class PackageBottomShape(
-    val width: Quantity<Flt64>,
-    val depth: Quantity<Flt64>,
-    val weight: Quantity<Flt64>,
+    val width: LegacyQuantity,
+    val depth: LegacyQuantity,
+    val weight: LegacyQuantity,
     val packageType: PackageType,
 ) : Eq<PackageBottomShape> {
     val packageCategory by packageType::category
-    val area: Quantity<Flt64> = width * depth
+    val area: LegacyQuantity = width * depth
 
     fun new(
-        width: Quantity<Flt64>? = null,
-        depth: Quantity<Flt64>? = null,
-        weight: Quantity<Flt64>? = null,
+        width: LegacyQuantity? = null,
+        depth: LegacyQuantity? = null,
+        weight: LegacyQuantity? = null,
         packageType: PackageType? = null
     ): PackageBottomShape {
         return PackageBottomShape(
@@ -38,7 +47,7 @@ data class PackageBottomShape(
     override fun eq(rhs: PackageBottomShape): Boolean {
         if (width neq rhs.width) return false
         if (depth neq rhs.depth) return false
-        if ((weight - rhs.weight).abs() gr (Flt64.two * weight.unit)) return false
+        if ((weight - rhs.weight).abs() gr (legacyTwo() * weight.unit)) return false
 
         return packageType == rhs.packageType
     }
@@ -60,10 +69,10 @@ data class PackageBottomShape(
 }
 
 data class PackageShape(
-    val width: Quantity<Flt64>,
-    val height: Quantity<Flt64>,
-    val depth: Quantity<Flt64>,
-    val weight: Quantity<Flt64>,
+    val width: LegacyQuantity,
+    val height: LegacyQuantity,
+    val depth: LegacyQuantity,
+    val weight: LegacyQuantity,
     val packageType: PackageType,
 ) : Eq<PackageShape> {
     val bottomShape = PackageBottomShape(
@@ -73,13 +82,13 @@ data class PackageShape(
         packageType = packageType
     )
     val packageCategory by packageType::category
-    val volume: Quantity<Flt64> = width * height * depth
+    val volume: LegacyQuantity = width * height * depth
 
     fun new(
-        width: Quantity<Flt64>? = null,
-        height: Quantity<Flt64>? = null,
-        depth: Quantity<Flt64>? = null,
-        weight: Quantity<Flt64>? = null,
+        width: LegacyQuantity? = null,
+        height: LegacyQuantity? = null,
+        depth: LegacyQuantity? = null,
+        weight: LegacyQuantity? = null,
         packageType: PackageType? = null
     ): PackageShape {
         return PackageShape(
@@ -99,7 +108,7 @@ data class PackageShape(
         if (width neq rhs.width) return false
         if (height neq rhs.height) return false
         if (depth neq rhs.depth) return false
-        if ((weight - rhs.weight).abs() gr (Flt64.two * weight.unit)) return false
+        if ((weight - rhs.weight).abs() gr (legacyTwo() * weight.unit)) return false
 
         return packageType == rhs.packageType
     }
@@ -414,5 +423,3 @@ open class Package(
         return materialType != null && materials.keys.any { it.type == materialType }
     }
 }
-
-

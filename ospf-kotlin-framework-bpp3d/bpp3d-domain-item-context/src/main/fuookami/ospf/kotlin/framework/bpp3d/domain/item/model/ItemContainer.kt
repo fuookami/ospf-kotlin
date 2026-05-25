@@ -2,10 +2,19 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.functional.ord
 import kotlinx.coroutines.*
@@ -24,14 +33,14 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
     val packageCategory get() = packageType.category
 
     val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }
-    val bottomOnlyHeight: Quantity<Flt64>
+    val bottomOnlyHeight: LegacyQuantity
         get() = items.maxOfOrNull { item ->
             if (item.bottomOnly) {
                 item.maxY
             } else {
-                shape.height * Flt64.zero
+                shape.height * legacyZero()
             }
-        } ?: (shape.height * Flt64.zero)
+        } ?: (shape.height * legacyZero())
 
     val topFlat: Boolean get() = topPlacements(units).all { (it.view as ItemView).topFlat }
 
@@ -199,6 +208,3 @@ suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
         return false
     }
 }
-
-
-

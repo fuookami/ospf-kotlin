@@ -2,12 +2,15 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.min
 
@@ -78,7 +81,7 @@ class SimpleBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         patterns: List<Pattern>,
-        restWeight: Flt64 = Flt64.infinity
+        restWeight: LegacyScalar = legacyInfinity()
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
@@ -129,7 +132,7 @@ class SimpleBlockGenerator(
                 val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                 val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height.value).floor().toUInt64())
                 val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
+                val itemMinZAmount = if (view.minDepth eq legacyZero()) {
                     UInt64.one
                 } else {
                     (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -156,7 +159,7 @@ class SimpleBlockGenerator(
                     val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                     val itemMaxYAmount = item.sideOnTopLayer
                     val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                    val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
+                    val itemMinZAmount = if (view.minDepth eq legacyZero()) {
                         UInt64.one
                     } else {
                         (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -184,7 +187,7 @@ class SimpleBlockGenerator(
                     val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                     val itemMaxYAmount = item.lieOnTopLayer
                     val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                    val itemMinZAmount = if (view.minDepth eq Flt64.zero) {
+                    val itemMinZAmount = if (view.minDepth eq legacyZero()) {
                         UInt64.one
                     } else {
                         (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -341,8 +344,8 @@ class SimpleBlockGenerator(
         return blocks
     }
 
-    private fun UInt64.toFlt64Scalar(): Flt64 {
-        return Flt64(this.toULong().toDouble())
+    private fun UInt64.toFlt64Scalar(): LegacyScalar {
+        return legacyScalar(this)
     }
 }
 

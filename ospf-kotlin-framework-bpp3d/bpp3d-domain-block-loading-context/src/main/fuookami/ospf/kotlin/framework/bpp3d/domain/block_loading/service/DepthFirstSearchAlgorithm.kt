@@ -3,11 +3,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
@@ -24,7 +25,7 @@ import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.math.geometry.point3
 
-internal fun fitness(space: Space, block: Block): Quantity<Flt64> {
+internal fun fitness(space: Space, block: Block): LegacyQuantity {
     return when (space.forwardLink?.first ?: Side) {
         is Front -> {
             space.width + space.depth - block.width - block.depth
@@ -40,7 +41,7 @@ internal fun fitness(space: Space, block: Block): Quantity<Flt64> {
     }
 }
 
-internal fun compareWithFitness(space: Space, lhs: Block, rhs: Block, fitness: (Space, Block) -> Quantity<Flt64>): Order {
+internal fun compareWithFitness(space: Space, lhs: Block, rhs: Block, fitness: (Space, Block) -> LegacyQuantity): Order {
     val lhsValue = fitness(space, lhs)
     val rhsValue = fitness(space, rhs)
     return lhsValue ord rhsValue
@@ -572,7 +573,7 @@ class DepthFirstSearchAlgorithm(
             mergedSpaces[i] = space1
         }
         return mergedSpaces
-            .filter { it.value.shape.volume neq Flt64.zero }
+            .filter { it.value.shape.volume neq legacyZero() }
             .sortedWith(compareBy { it.index })
             .map { it.value }
     }

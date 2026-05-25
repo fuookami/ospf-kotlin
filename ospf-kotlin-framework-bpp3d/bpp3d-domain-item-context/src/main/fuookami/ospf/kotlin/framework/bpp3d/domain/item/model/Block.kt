@@ -2,10 +2,19 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 sealed class Block(
@@ -110,8 +119,8 @@ class HollowSquareBlock(
     override fun copy() = HollowSquareBlock(units.map { it.copy() })
 
     override fun toString(): String {
-        val amount = units.count { it.view == itemView && it.position.y eq Flt64.zero }
-        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq Flt64.zero }.size
+        val amount = units.count { it.view == itemView && it.position.y eq legacyZero() }
+        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq legacyZero() }.size
         return "$item (${amount} + ${rotationAmount})*$layer"
     }
 }
@@ -122,7 +131,7 @@ class Pile(
     companion object {
         private fun dump(items: List<ItemView>): List<ItemPlacement3> {
             val units = ArrayList<ItemPlacement3>()
-            var y = Flt64.zero * items.first().height.unit
+            var y = legacyZero() * items.first().height.unit
             for (item in items) {
                 units.add(Placement3(item, point3(y = y)))
                 y += item.height
@@ -133,14 +142,14 @@ class Pile(
         fun layer(
             item: Item,
             bottomItems: List<Item>,
-        ): Pair<UInt64, Quantity<Flt64>> {
+        ): Pair<UInt64, LegacyQuantity> {
             return layer(item.view(), bottomItems.map { ItemView(it) })
         }
 
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
-        ): Pair<UInt64, Quantity<Flt64>> {
+        ): Pair<UInt64, LegacyQuantity> {
             return if (bottomItems.isNotEmpty() && bottomItems.last().type == item.type) {
                 val notSameIndex = bottomItems.indexOfLast { it.type != item.type }
                 val sameItems = if (notSameIndex == -1) {
@@ -150,7 +159,7 @@ class Pile(
                 }
                 Pair(UInt64(sameItems.size), sameItems.sumOf { it.height })
             } else {
-                Pair(UInt64.zero, item.height * Flt64.zero)
+                Pair(UInt64.zero, item.height * legacyZero())
             }
         }
     }
@@ -198,7 +207,7 @@ class LayeredBlock(
 ) : Block(dump(blocks)) {
     companion object {
         private fun dump(blocks: List<SimpleBlock>): List<ItemPlacement3> {
-            var y = Flt64.zero * blocks.first().height.unit
+            var y = legacyZero() * blocks.first().height.unit
             val placements = ArrayList<ItemPlacement3>()
             for (block in blocks) {
                 placements.addAll(block.units.dump(point3(y = y)))
@@ -250,6 +259,3 @@ class ComplexBlock(
 typealias BlockView = CuboidView<Block>
 typealias BlockPlacement2<P> = Placement2<Block, P>
 typealias BlockPlacement3 = Placement3<Block>
-
-
-

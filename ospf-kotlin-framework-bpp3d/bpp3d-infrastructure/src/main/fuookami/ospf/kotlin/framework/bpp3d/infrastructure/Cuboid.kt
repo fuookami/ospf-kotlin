@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.operator.Plus
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.div
@@ -25,7 +24,7 @@ interface AbstractCuboid<V : FloatingNumber<V>> {
     val linearDensity: Quantity<V> get() = weight / depth
 }
 
-interface Cuboid<T : Cuboid<T>> : AbstractCuboid<Flt64> {
+interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraScalar> {
     val self: T
     val enabledOrientations: List<Orientation>
 
@@ -58,8 +57,8 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid<Flt64> {
 }
 
 data class BottomSupport(
-    val area: Quantity<Flt64>,
-    val weight: Quantity<Flt64>
+    val area: Quantity<InfraScalar>,
+    val weight: Quantity<InfraScalar>
 ) : Plus<BottomSupport, BottomSupport> {
     override fun plus(rhs: BottomSupport) = BottomSupport(
         area = area + rhs.area,
@@ -70,7 +69,7 @@ data class BottomSupport(
 open class CuboidView<T : Cuboid<T>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
-) : AbstractCuboid<Flt64>, Copyable<CuboidView<T>> {
+) : AbstractCuboid<InfraScalar>, Copyable<CuboidView<T>> {
     // inherited from Cuboid<T>
     override val width = orientation.width(unit)
     override val height = orientation.height(unit)
@@ -107,17 +106,17 @@ open class CuboidView<T : Cuboid<T>>(
     fun bottomSupport(bottomView: CuboidView<*>): BottomSupport {
         val placement = Placement2(
             projection = PlaneProjection(this, Bottom),
-            position = QuantityPoint2(Flt64.zero * Meter, Flt64.zero * Meter)
+            position = QuantityPoint2(infraZero() * Meter, infraZero() * Meter)
         )
         val bottomPlacement = Placement2(
             projection = PlaneProjection(bottomView, Bottom),
-            position = QuantityPoint2(Flt64.zero * Meter, Flt64.zero * Meter)
+            position = QuantityPoint2(infraZero() * Meter, infraZero() * Meter)
         )
         val intersect = placement.intersect(bottomPlacement)
         return if (intersect == null) {
             BottomSupport(
-                area = bottomPlacement.projection.area * Flt64.zero,
-                weight = bottomPlacement.weight * Flt64.zero
+                area = bottomPlacement.projection.area * infraZero(),
+                weight = bottomPlacement.weight * infraZero()
             )
         } else {
             BottomSupport(
@@ -156,8 +155,8 @@ fun bottomSupport(
     bottomUnits: List<Placement3<*>>
 ): BottomSupport {
     var support = BottomSupport(
-        area = unit.depth * unit.width * Flt64.zero,
-        weight = unit.weight * Flt64.zero
+        area = unit.depth * unit.width * infraZero(),
+        weight = unit.weight * infraZero()
     )
 
     val bottomPlacement = Placement2(unit, Bottom)

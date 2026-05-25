@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.geq
@@ -43,16 +42,16 @@ data class ProjectionShapeG<V : FloatingNumber<V>>(
     val area: Quantity<V> = length * width
 }
 
-typealias ProjectionShape = ProjectionShapeG<Flt64>
+typealias ProjectionShape = ProjectionShapeG<InfraScalar>
 
 sealed class ProjectivePlane {
     abstract fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
     abstract fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
     abstract fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
 
-    abstract fun length(space: AbstractContainer3Shape): Quantity<Flt64>
-    abstract fun width(space: AbstractContainer3Shape): Quantity<Flt64>
-    abstract fun height(space: AbstractContainer3Shape): Quantity<Flt64>
+    abstract fun length(space: AbstractContainer3Shape): Quantity<InfraScalar>
+    abstract fun width(space: AbstractContainer3Shape): Quantity<InfraScalar>
+    abstract fun height(space: AbstractContainer3Shape): Quantity<InfraScalar>
 
     fun <V : FloatingNumber<V>> shape(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright) = ProjectionShapeG.invoke(
         length = this.length(unit, orientation),
@@ -64,10 +63,10 @@ sealed class ProjectivePlane {
         width = this.width(space)
     )
 
-    abstract fun distance(point: QuantityPoint3): Quantity<Flt64>
+    abstract fun distance(point: QuantityPoint3): Quantity<InfraScalar>
     abstract fun point2(point: QuantityPoint3): QuantityPoint2
-    abstract fun point3(point: QuantityPoint2, distance: Quantity<Flt64> = Flt64.zero * Meter): QuantityPoint3
-    abstract fun vector(distance: Quantity<Flt64> = Flt64.one * Meter): QuantityVector3
+    abstract fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar> = infraZero() * Meter): QuantityPoint3
+    abstract fun vector(distance: Quantity<InfraScalar> = infraOne() * Meter): QuantityVector3
 }
 
 typealias Direction = ProjectivePlane
@@ -86,8 +85,8 @@ object Bottom : ProjectivePlane() {
 
     override fun distance(point: QuantityPoint3) = point.y
     override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.z, y = point.x)
-    override fun point3(point: QuantityPoint2, distance: Quantity<Flt64>) = QuantityPoint3(x = point.y, y = distance, z = point.x)
-    override fun vector(distance: Quantity<Flt64>) = QuantityVector3(y = distance, x = Flt64.zero * distance.unit, z = Flt64.zero * distance.unit)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = QuantityPoint3(x = point.y, y = distance, z = point.x)
+    override fun vector(distance: Quantity<InfraScalar>) = QuantityVector3(y = distance, x = infraZero() * distance.unit, z = infraZero() * distance.unit)
 
     override fun toString(): String {
         return "Bottom-ZOX"
@@ -110,8 +109,8 @@ object Side : ProjectivePlane() {
 
     override fun distance(point: QuantityPoint3) = point.z
     override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.x, y = point.y)
-    override fun point3(point: QuantityPoint2, distance: Quantity<Flt64>) = QuantityPoint3(x = point.x, y = point.y, z = distance)
-    override fun vector(distance: Quantity<Flt64>) = QuantityVector3(z = distance, x = Flt64.zero * distance.unit, y = Flt64.zero * distance.unit)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = QuantityPoint3(x = point.x, y = point.y, z = distance)
+    override fun vector(distance: Quantity<InfraScalar>) = QuantityVector3(z = distance, x = infraZero() * distance.unit, y = infraZero() * distance.unit)
 
     override fun toString(): String {
         return "Side-XOY"
@@ -134,8 +133,8 @@ object Front : ProjectivePlane() {
 
     override fun distance(point: QuantityPoint3) = point.x
     override fun point2(point: QuantityPoint3) = QuantityPoint2(x = point.y, y = point.z)
-    override fun point3(point: QuantityPoint2, distance: Quantity<Flt64>) = QuantityPoint3(x = distance, y = point.x, z = point.y)
-    override fun vector(distance: Quantity<Flt64>) = QuantityVector3(x = distance, y = Flt64.zero * distance.unit, z = Flt64.zero * distance.unit)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = QuantityPoint3(x = distance, y = point.x, z = point.y)
+    override fun vector(distance: Quantity<InfraScalar>) = QuantityVector3(x = distance, y = infraZero() * distance.unit, z = infraZero() * distance.unit)
 
     override fun toString(): String {
         return "Front-ZOY"
@@ -152,11 +151,11 @@ sealed interface Projection<
     val plane: P
     val unit: T get() = view.unit
     val orientation: Orientation get() = view.orientation
-    val length: Quantity<Flt64> get() = plane.length(view)
-    val width: Quantity<Flt64> get() = plane.width(view)
-    val height: Quantity<Flt64> get() = plane.height(view)
-    val area: Quantity<Flt64> get() = length * width
-    val weight: Quantity<Flt64> get() = unit.weight
+    val length: Quantity<InfraScalar> get() = plane.length(view)
+    val width: Quantity<InfraScalar> get() = plane.width(view)
+    val height: Quantity<InfraScalar> get() = plane.height(view)
+    val area: Quantity<InfraScalar> get() = length * width
+    val weight: Quantity<InfraScalar> get() = unit.weight
 
     fun amount(unit: AbstractCuboid<*>): UInt64
     fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>>
@@ -192,8 +191,8 @@ data class PileProjection<
     override val plane: P,
     val layer: UInt64,
 ) : Projection<T, P> {
-    override val height = plane.height(view) * Flt64(layer.toULong().toDouble())
-    override val weight = unit.weight * Flt64(layer.toULong().toDouble())
+    override val height = plane.height(view) * infraScalar(layer)
+    override val weight = unit.weight * infraScalar(layer)
 
     constructor(plane: PlaneProjection<T, P>, layer: UInt64 = UInt64.one) : this(plane.view, plane.plane, layer)
 
@@ -207,7 +206,7 @@ data class PileProjection<
 
     override fun toPlacement3At(position: QuantityPoint2): List<Placement3<T>> {
         val depth = view.depth
-        var z = Flt64.zero * depth.unit
+        var z = infraZero() * depth.unit
         val units = ArrayList<Placement3<T>>(layer.toInt())
         for (i in 0 until layer.toInt()) {
             units.add(Placement3(view, plane.point3(position, distance = z)))
@@ -228,12 +227,12 @@ data class MultiPileProjection<
 ) : Projection<T, P> {
     override val view = views.first()
 
-    override val length = maxQuantity(views.map { plane.length(it) }) ?: (Flt64.zero * Meter)
-    override val width = maxQuantity(views.map { plane.width(it) }) ?: (Flt64.zero * Meter)
-    override val height = views.asSequence().fold(Flt64.zero * length.unit) { acc, item ->
+    override val length = maxQuantity(views.map { plane.length(it) }) ?: (infraZero() * Meter)
+    override val width = maxQuantity(views.map { plane.width(it) }) ?: (infraZero() * Meter)
+    override val height = views.asSequence().fold(infraZero() * length.unit) { acc, item ->
         acc + plane.height(item)
     }
-    override val weight = views.asSequence().fold(Flt64.zero * Kilogram) { acc, item ->
+    override val weight = views.asSequence().fold(infraZero() * Kilogram) { acc, item ->
         acc + item.weight
     }
 
@@ -243,7 +242,7 @@ data class MultiPileProjection<
         if (views.isEmpty()) {
             return emptyList()
         }
-        var z = Flt64.zero * views.first().depth.unit
+        var z = infraZero() * views.first().depth.unit
         val units = ArrayList<Placement3<T>>(views.size)
         for (itemView in views) {
             units.add(Placement3(itemView, plane.point3(position, distance = z)))

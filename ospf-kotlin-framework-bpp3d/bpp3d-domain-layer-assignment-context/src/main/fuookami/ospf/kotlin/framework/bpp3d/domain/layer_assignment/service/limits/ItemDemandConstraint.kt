@@ -8,7 +8,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAssignmentScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItemRanges
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeline
@@ -20,7 +23,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -35,14 +37,14 @@ data class ItemDemandShadowPriceKey(
     val key: Bpp3dDemandKey
 ) : ShadowPriceKey(ItemDemandShadowPriceKey::class)
 
-private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<Flt64> {
+private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<LayerAssignmentScalar> {
     return LinearPolynomial(
-        monomials = listOf(LinearMonomial(Flt64.one, symbol)),
-        constant = Flt64.zero
+        monomials = listOf(LinearMonomial(layerAssignmentOne(), symbol)),
+        constant = layerAssignmentZero()
     )
 }
 
-private fun constantPolynomial(value: Flt64): LinearPolynomial<Flt64> {
+private fun constantPolynomial(value: LayerAssignmentScalar): LinearPolynomial<LayerAssignmentScalar> {
     return LinearPolynomial(emptyList(), value)
 }
 
@@ -72,7 +74,7 @@ class ItemDemandConstraint<
         >(
     private val load: Load,
     private val demandEntries: List<Bpp3dDemandEntry> = load.demandEntries,
-    private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
+    private val shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
     override val name: String = "item_demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
     companion object {
@@ -82,7 +84,7 @@ class ItemDemandConstraint<
                 > fromItems(
             load: Load,
             items: List<Pair<Item, UInt64>>,
-            shadowPriceExtractor: ((Args) -> Flt64?)? = null,
+            shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
             name: String = "item_demand"
         ): ItemDemandConstraint<Args, T> {
             val demands = if (load.demandEntries.isNotEmpty()) {
@@ -99,7 +101,7 @@ class ItemDemandConstraint<
                 > fromItemRanges(
             load: Load,
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
-            shadowPriceExtractor: ((Args) -> Flt64?)? = null,
+            shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
             name: String = "item_demand"
         ): ItemDemandConstraint<Args, T> {
             val demands = if (load.demandEntries.isNotEmpty()) {
@@ -124,7 +126,7 @@ class ItemDemandConstraint<
         return runCatching { load.lessLoad[index] as Symbol }.getOrDefault(symbolAt(index))
     }
 
-    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<LayerAssignmentScalar>): Try {
         for ((i, demand) in demandEntries.withIndex()) {
             val upperBound = demand.demandRange.upperBound.value.unwrap()
             val lowerBound = demand.demandRange.lowerBound.value.unwrap()
@@ -197,7 +199,7 @@ class ItemDemandConstraint<
 
     override fun extractor(): AbstractBPP3DShadowPriceExtractor<Args, T>? {
         if (shadowPriceExtractor != null) {
-            return { _, args -> shadowPriceExtractor.invoke(args) ?: Flt64.zero }
+            return { _, args -> shadowPriceExtractor.invoke(args) ?: layerAssignmentZero() }
         }
 
         val modes = demandEntries.asSequence().map { it.mode }.toSet()
@@ -206,12 +208,12 @@ class ItemDemandConstraint<
         }
 
         return { map, args ->
-            var price = Flt64.zero
+            var price = layerAssignmentZero()
             for (mode in modes) {
                 val statistics = demandStatistics(args.cuboid, mode)
                 for ((key, value) in statistics) {
-                    val shadow = map[ItemDemandShadowPriceKey(mode, key)]?.price ?: Flt64.zero
-                    if (shadow neq Flt64.zero) {
+                    val shadow = map[ItemDemandShadowPriceKey(mode, key)]?.price ?: layerAssignmentZero()
+                    if (shadow neq layerAssignmentZero()) {
                         price += shadow * load.demandValueAdapter.toSolver(value)
                     }
                 }
@@ -222,7 +224,7 @@ class ItemDemandConstraint<
 
     override fun refresh(
         shadowPriceMap: AbstractBPP3DShadowPriceMap<Args, T>,
-        model: AbstractLinearMetaModel<Flt64>,
+        model: AbstractLinearMetaModel<LayerAssignmentScalar>,
         shadowPrices: MetaDualSolution
     ): Try {
         return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
