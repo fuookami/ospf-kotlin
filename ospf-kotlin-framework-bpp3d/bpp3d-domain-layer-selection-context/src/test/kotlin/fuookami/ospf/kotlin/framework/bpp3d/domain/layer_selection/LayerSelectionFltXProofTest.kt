@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationA
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_selection.service.ColumnGenerationAlgorithm
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
@@ -50,9 +49,7 @@ class LayerSelectionFltXProofTest {
     @Test
     fun fltXStatisticsShouldBeAvailableInLayerSelectionContext() {
         val context = LayerSelectionContext()
-        val algorithm = ColumnGenerationAlgorithm()
         assertNotNull(context)
-        assertNotNull(algorithm)
 
         val material = GenericMaterial(
             no = MaterialNo("M-LS"),
