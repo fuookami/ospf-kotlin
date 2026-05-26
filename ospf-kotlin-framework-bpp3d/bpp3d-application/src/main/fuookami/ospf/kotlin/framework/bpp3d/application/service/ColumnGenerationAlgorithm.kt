@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
@@ -21,6 +22,7 @@ data class ColumnGenerationConfig(
 data class ColumnGenerationState<V>(
     val iteration: Int,
     val columns: List<BinLayer>,
+    val bins: List<LayerBin> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap()
 )
 
@@ -32,6 +34,7 @@ data class ColumnGenerationLpResult<V>(
 
 data class ColumnGenerationFinalResult<V>(
     val columns: List<BinLayer>,
+    val bins: List<LayerBin> = emptyList(),
     val objective: V? = null,
     val info: Map<String, String> = emptyMap()
 )
@@ -116,6 +119,7 @@ class ColumnGenerationAlgorithm<V>(
             val state = ColumnGenerationState<V>(
                 iteration = iterations,
                 columns = columns,
+                bins = emptyList(),
                 shadowPrices = latestShadowPrices
             )
             val lpResult = when {
@@ -133,6 +137,7 @@ class ColumnGenerationAlgorithm<V>(
             val shadowPriceRefreshedState = ColumnGenerationState(
                 iteration = iterations,
                 columns = columns,
+                bins = emptyList(),
                 shadowPrices = shadowPrices
             )
             val request = layerRequestBuilder?.build(
@@ -160,6 +165,7 @@ class ColumnGenerationAlgorithm<V>(
                 ColumnGenerationState<V>(
                     iteration = iterations,
                     columns = columns,
+                    bins = emptyList(),
                     shadowPrices = shadowPrices
                 )
             )
@@ -167,6 +173,7 @@ class ColumnGenerationAlgorithm<V>(
                 ColumnGenerationState<V>(
                     iteration = iterations,
                     columns = columns,
+                    bins = emptyList(),
                     shadowPrices = shadowPrices
                 )
             )
@@ -180,6 +187,7 @@ class ColumnGenerationAlgorithm<V>(
         var finalState = ColumnGenerationState<V>(
             iteration = iterations,
             columns = columns,
+            bins = emptyList(),
             shadowPrices = latestShadowPrices
         )
         if (config.finalMilpEnabled) {
@@ -191,7 +199,10 @@ class ColumnGenerationAlgorithm<V>(
             if (finalResult != null) {
                 columns = deduplicateColumns(finalResult.columns)
                 finalObjective = finalResult.objective
-                finalState = finalState.copy(columns = columns)
+                finalState = finalState.copy(
+                    columns = columns,
+                    bins = finalResult.bins
+                )
             } else {
                 solveFinalMilp(finalState)
             }

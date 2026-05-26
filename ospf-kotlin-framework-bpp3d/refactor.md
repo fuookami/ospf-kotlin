@@ -406,3 +406,121 @@ application CG 只调用接口，不直接依赖某个具体算法。
 1. application CG 尚未接入真实 LP/RMP 与 final IP/MIP 求解执行器。
 2. `BlockLayerGenerator` / `BLLocalLayerGenerator` / `BLGlobalLayerGenerator` / `PatternLayerGenerator` / `PileLayerGenerator` / `CirclePackingLayerGenerator` 仍为占位策略。
 3. final IP/MIP solution analyzer -> packing service 的完整业务闭环尚未接通。
+
+## 13. 2026-05-26 续作更新（本次会话二）
+
+已完成：
+
+1. `ColumnGenerationAlgorithm` 状态与 final 结果新增 `bins` 承载能力：
+   - `ColumnGenerationState.bins`
+   - `ColumnGenerationFinalResult.bins`
+2. 新增 `ColumnGenerationPackingAnalyzer`，可直接消费 final 状态并形成：
+   - `PackingResult`
+   - `SchemaDTO`
+3. 新增测试：
+   - `ColumnGenerationAlgorithmTest.finalSolverReturnedBinsShouldReachPackingAnalyzer`
+
+验证状态（更新到 2026-05-26 20:17, Asia/Shanghai）：
+
+1. `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test "-Dgpg.skip=true"` 失败，阻塞点为 `bpp3d-infrastructure` 既有未解析符号。
+2. `mvn -f ospf-kotlin-framework-bpp3d/bpp3d-application/pom.xml test "-Dgpg.skip=true"` 失败，出现依赖链未解析（与上游模块状态相关）。
+
+仍未完成：
+
+1. application CG 尚未接入真实 LP/RMP 与 final IP/MIP 求解执行器。
+2. `BlockLayerGenerator` / `BLLocalLayerGenerator` / `BLGlobalLayerGenerator` / `PatternLayerGenerator` / `PileLayerGenerator` / `CirclePackingLayerGenerator` 仍为占位策略。
+3. 真实 final IP/MIP 解到 `bins` 的业务映射尚未接入（当前仅完成 `final bins -> packing -> schema` 链路）。
+
+## 14. 2026-05-26 续作更新（本次会话三）
+
+已完成：
+
+1. 新增 `ColumnGenerationStandardExecutors`（application）：
+   - `rmpSolver()`：基于 `ImpreciseAssignment/ImpreciseLoad/DemandConstraint/VolumeMinimization` 构建并执行 LP（RMP）。
+   - `finalSolver()`：基于 `PreciseAssignment/PreciseLoad` 构建并执行 MILP（final），并映射回 `columns + bins`。
+   - `requestBuilder()`：统一构造带 `demandEntries` 与 `shadowPriceAwareLayerScore` 的 layer generation request。
+2. 新增测试 `ColumnGenerationAlgorithmTest.standardExecutorsShouldBridgeSolverToRmpAndFinal`，覆盖：
+   - LP dual -> `DemandModeKey` shadow price 回传；
+   - final MILP 解 -> `bins` 回传。
+
+验证状态（更新到 2026-05-26 20:50, Asia/Shanghai）：
+
+1. 运行 `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context,bpp3d-application -am test "-Dgpg.skip=true"` 失败，阻塞点为 `bpp3d-infrastructure` 既有未解析符号（与本次新增无关）。
+
+仍未完成：
+
+1. `ColumnGenerationStandardExecutors` 已打通标准求解适配，但尚未完成真实业务参数与外部求解器联调验证。
+2. `BlockLayerGenerator` / `BLLocalLayerGenerator` / `BLGlobalLayerGenerator` / `PatternLayerGenerator` / `PileLayerGenerator` / `CirclePackingLayerGenerator` 仍为占位策略。
+3. final IP/MIP -> packing 的真实业务闭环仍待进一步对接与验证。
+
+## 2026-05-26 续作更新（本次会话四）
+已完成：
+
+1. 修复 `ColumnGenerationAlgorithmTest.standardExecutorsShouldBridgeSolverToRmpAndFinal` 的稳定性问题：
+   - 根因：测试构造的 `seedLayer` 来自 `view/copy` 路径，`BinLayer.copy()` 未保留 `bin` 字段，导致 `seedLayer.bin == null`，`PreciseAssignment` 不会将 `x` 变量纳入 solver。
+   - 修复：在测试中显式重建带 `bin` 的 `seedLayer`（绑定到 `seedBin.shape`），并使用空载 `finalBin` 参与 final MILP 分配。
+   - 同时将 MILP stub 解向量改为对全部 token 赋 `1`，避免依赖变量命名细节。
+2. 完成回归验证：
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am '-Dtest=ColumnGenerationAlgorithmTest#standardExecutorsShouldBridgeSolverToRmpAndFinal' "-Dsurefire.failIfNoSpecifiedTests=false" test "-Dgpg.skip=true"` 通过。
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test "-Dgpg.skip=true"` 通过（9 个模块全部 SUCCESS）。
+
+仍未完成：
+
+1. application CG 尚未接入真实 LP/RMP 与 final IP/MIP 求解执行器联调。
+2. `BlockLayerGenerator` / `BLLocalLayerGenerator` / `BLGlobalLayerGenerator` / `PatternLayerGenerator` / `PileLayerGenerator` / `CirclePackingLayerGenerator` 仍为占位策略。
+3. final IP/MIP analyzer 到 packing 的真实业务闭环仍待接通。
+补充验证：
+
+- `scripts/geometry-boundary-check.ps1`：`GEOMETRY_BOUNDARY_PASS`。
+- `scripts/geometry-module-dry-run.ps1`：`GEOMETRY_MODULE_DRY_RUN_PASS`（warnings=8，internal baseline ok=8）。
+
+增量修复（23:53 后）：
+
+1. 修复 `bpp3d-domain-item-context` 中 `BinLayer.copy()` 未复制 `bin` 字段的问题（现已保留 `bin = bin`）。
+2. 复验通过：
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test "-Dgpg.skip=true"`
+   - `scripts/geometry-boundary-check.ps1` -> `GEOMETRY_BOUNDARY_PASS`
+   - `scripts/geometry-module-dry-run.ps1` -> `GEOMETRY_MODULE_DRY_RUN_PASS`（warnings=8，internal baseline ok=8）
+
+## 15. 2026-05-27 续作更新（Gurobi 委托测试交接）
+
+已完成：
+
+1. 在 `bpp3d-application` 增加测试专用 profile：`gurobi-cg-test`。
+2. 仅在测试侧引入 Gurobi 委托实现与测试：
+   - `src/gurobi-test/.../GurobiDelegatingColumnGenerationSolver.kt`
+   - `src/gurobi-test/.../GurobiColumnGenerationTest.kt`
+3. `gurobi-cg-test` profile 中仅新增 test 依赖：
+   - `io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:${project.version}`
+   - `gurobi:gurobi:1.0.0`
+4. profile 下新增 surefire system properties：
+   - `bpp3d.gurobi.cg.test.enabled=true`
+   - `ospf.kotlin.math.enableCompanionReflectionFallback=true`
+5. 为避免默认流程受历史构建产物影响，`bpp3d-application` 默认 surefire 增加排除：
+   - `**/GurobiColumnGenerationTest.*`
+
+验证状态（更新到 2026-05-27 00:32, Asia/Shanghai）：
+
+1. `mvn -f pom.xml -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi -am install -DskipTests "-Dgpg.skip=true"` 通过。
+2. `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest "-Dsurefire.failIfNoSpecifiedTests=false" test "-Dgpg.skip=true"` 通过（9 个模块 SUCCESS）。
+3. `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test "-Dgpg.skip=true"` 通过（9 个模块 SUCCESS，主干未执行 Gurobi 测试）。
+
+交接给下一环境：
+
+1. 若遇到 `NoSuchMethodError`（`FeasibleSolverOutput` 构造签名不匹配），先执行：
+   - `mvn -f pom.xml -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi -am install -DskipTests "-Dgpg.skip=true"`
+2. 之后再执行 Gurobi 委托测试：
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest "-Dsurefire.failIfNoSpecifiedTests=false" test "-Dgpg.skip=true"`
+
+仍未完成（与重构主目标一致）：
+
+1. application CG 的真实 LP/RMP 与 final IP/MIP 业务求解联调尚未完成。
+2. 各 layer generator（block/BLA/pattern/pile/circle）仍为占位策略。
+3. final IP/MIP analyzer 到 packing 的真实业务闭环尚未打通。
+
+## 16. 2026-05-27 续作更新（文档交接提交）
+
+已完成：
+
+1. 对 `daily.md` 与 `refactor.md` 进行最终交接核对与补充。
+2. 本次提交将仅包含文档更新，不包含新增业务代码改动。

@@ -109,6 +109,7 @@ class BinLayer(
     override fun copy() = BinLayer(
         iteration = iteration,
         from = from,
+        bin = bin,
         shape = shape,
         units = units.map { it.copy() }
     )
