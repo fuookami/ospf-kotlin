@@ -348,17 +348,17 @@ application CG 只调用接口，不直接依赖某个具体算法。
 
 ## 10. 验收标准
 
-- [ ] `ColumnGenerationAlgorithm` 位于 application service。
-- [ ] domain layer-selection 不再承载 application 编排逻辑。
-- [ ] `bpp3d-domain-layer-selection-context` 已从根 `pom.xml` 移除。
-- [ ] `bpp3d-domain-layer-selection-context` 目录已删除。
-- [ ] application 不再依赖 layer-selection 模块。
-- [ ] material-only demand 可建模、可提取 shadow price、可计算 reduced cost。
-- [ ] layer generation 通过委托接口接入。
-- [ ] block / BLA / pattern / pile placer 至少有基础实现或明确未实现接口。
+- [x] `ColumnGenerationAlgorithm` 位于 application service。
+- [x] domain layer-selection 不再承载 application 编排逻辑。
+- [x] `bpp3d-domain-layer-selection-context` 已从根 `pom.xml` 移除。
+- [x] `bpp3d-domain-layer-selection-context` 目录已删除。
+- [x] application 不再依赖 layer-selection 模块。
+- [x] material-only demand 可建模、可提取 shadow price、可计算 reduced cost。
+- [x] layer generation 通过委托接口接入。
+- [x] block / BLA / pattern / pile placer 至少有基础实现或明确未实现接口。
 - [ ] application CG 可完成：初始列、LP、SP、加列、最终 IP/MIP。
-- [ ] BPP3D 全模块测试通过。
-- [ ] `geometry-boundary-check.ps1` 和 `geometry-module-dry-run.ps1` 通过。
+- [x] BPP3D 全模块测试通过。
+- [x] `geometry-boundary-check.ps1` 和 `geometry-module-dry-run.ps1` 通过。
 
 ## 11. 当前工作区交接备注
 
@@ -377,15 +377,32 @@ application CG 只调用接口，不直接依赖某个具体算法。
 
 注意：当前 application POM 中对 `bpp3d-domain-layer-selection-context` 的依赖只能视为临时迁移痕迹。按最新原则，最终必须移除该依赖，并删除整个 layer-selection 模块。
 
-验证状态：
+验证状态（更新到 2026-05-26 18:14, Asia/Shanghai）：
 
-1. 在迁移 `asScalarF64()` 和删除 infrastructure api/compat 后，曾运行 `mvn -f ospf-kotlin-framework-bpp3d/pom.xml test "-Dgpg.skip=true"`，结果通过。
-2. 后续开始迁移 `ColumnGenerationAlgorithm` 后，测试命令被中断，尚未完成新的全量验证。
-3. `git diff --check` 此前通过，但有 CRLF 提示。
+1. 已运行 `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context,bpp3d-application -am test "-Dgpg.skip=true"`，9 个模块全部通过（BUILD SUCCESS）。
+2. 已运行 `scripts/geometry-boundary-check.ps1`，结果 `GEOMETRY_BOUNDARY_PASS`。
+3. 已运行 `scripts/geometry-module-dry-run.ps1`，结果 `GEOMETRY_MODULE_DRY_RUN_PASS`（warnings=8，internal baseline ok=8）。
+4. `git diff --check` 与 CRLF 风险仍需在最终提交前统一处理（若团队要求 LF）。
 
 接手建议：
 
 1. 先运行 `git status --short` 确认当前改动。
-2. 决定是否保留已经开始的 application CG 空壳迁移。
-3. 若保留，先跑 `mvn -f ospf-kotlin-framework-bpp3d/pom.xml test "-Dgpg.skip=true"`。
-4. 再按本计划继续推进 material-only demand 和 layer generation 委托机制。
+2. 基于当前已完成的接口化骨架，优先推进 application CG 与真实 imprecise/precise 求解链路对接（RMP + final IP/MIP）。
+3. 将 layer generation 占位策略替换为可调用 block-loading / BLA / pattern / pile 的真实实现。
+4. 补齐 final IP/MIP solution analyzer 到 packing service 的闭环。
+
+## 12. 2026-05-26 续作更新（本次会话）
+
+已完成：
+
+1. `ColumnGenerationAlgorithm` 新增标准扩展点接口：`ColumnGenerationRmpSolver`、`ColumnGenerationFinalSolver`、`ColumnGenerationSolutionAnalyzer`、`ColumnGenerationHeartbeat`、`ColumnGenerationLayerRequestBuilder`。
+2. `LayerGenerationContext` 新增 shadow-price-aware 选列能力：`scoreByShadowPrice`、`shadowPriceAwareLayerScore(...)`、`numericScore`。
+3. 新增测试：
+   - `ColumnGenerationAlgorithmTest.rmpSolverAndRequestBuilderShouldBePreferredWhenProvided`
+   - `LayerGenerationFltXProofTest.generatedLayersShouldBeRankedByShadowPriceWhenEvaluatorProvided`
+
+仍未完成：
+
+1. application CG 尚未接入真实 LP/RMP 与 final IP/MIP 求解执行器。
+2. `BlockLayerGenerator` / `BLLocalLayerGenerator` / `BLGlobalLayerGenerator` / `PatternLayerGenerator` / `PileLayerGenerator` / `CirclePackingLayerGenerator` 仍为占位策略。
+3. final IP/MIP solution analyzer -> packing service 的完整业务闭环尚未接通。

@@ -21,7 +21,6 @@
         <module>bpp3d-domain-block-loading-context</module>
         <module>bpp3d-domain-layer-assignment-context</module>
         <module>bpp3d-domain-layer-generation-context</module>
-        <module>bpp3d-domain-layer-selection-context</module>
         <module>bpp3d-domain-packing-context</module>
         <module>bpp3d-application</module>
     </modules>

@@ -25,7 +25,27 @@
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context</artifactId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-bla-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-block-loading-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-generation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-assignment-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-packing-context</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

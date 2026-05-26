@@ -2,5 +2,63 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
-class Packer {
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.MaterialSummary
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+
+class Packer(
+    private val loadingOrderCalculator: LoadingOrderCalculator = LoadingOrderCalculator(
+        maxBlockDepth = null,
+        sameTypeJudger = { lhs, rhs -> lhs.pattern == rhs.pattern }
+    )
+) {
+    suspend operator fun invoke(
+        bins: List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin>,
+        context: PackingContext = PackingContext()
+    ): PackingResult {
+        val packedBins = bins.mapIndexed { index, bin ->
+            val itemPlacements = bin.dump().units
+            val loadingOrders = loadingOrderCalculator(itemPlacements).toMap()
+            PackedBin(
+                name = "bin-${index + 1}",
+                type = bin.shape,
+                batchNo = bin.batchNo,
+                items = itemPlacements.map { placement ->
+                    PackedItem(
+                        placement = placement,
+                        loadingOrder = loadingOrders[placement] ?: UInt64.zero
+                    )
+                }
+            )
+        }
+
+        return PackingResult(
+            aggregation = PackingAggregation(packedBins),
+            materialSummary = summarizeMaterials(packedBins),
+            info = context.info
+        )
+    }
+
+    private fun summarizeMaterials(bins: List<PackedBin>): List<MaterialSummary> {
+        val summary = LinkedHashMap<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey, UInt64>()
+        for (bin in bins) {
+            for (item in bin.items) {
+                for ((material, amount) in item.placement.unit.materialAmounts) {
+                    summary[material] = (summary[material] ?: UInt64.zero) + amount
+                }
+            }
+        }
+        return summary.map { (material, amount) ->
+            MaterialSummary(
+                material = material,
+                amount = amount
+            )
+        }
+    }
 }

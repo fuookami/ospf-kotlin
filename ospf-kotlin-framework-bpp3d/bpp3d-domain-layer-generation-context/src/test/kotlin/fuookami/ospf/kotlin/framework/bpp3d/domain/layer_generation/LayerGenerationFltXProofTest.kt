@@ -25,9 +25,11 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class LayerGenerationFltXProofTest {
     private val cargo = object : AbstractCargoAttribute {}
@@ -48,7 +50,7 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun fltXStatisticsShouldBeAvailableInLayerGenerationContext() {
-        val context = LayerGenerationContext()
+        val context = LayerGenerationContext<Flt64>()
         assertNotNull(context)
 
         val material = GenericMaterial(
@@ -83,6 +85,162 @@ class LayerGenerationFltXProofTest {
             amount = UInt64(3)
         )
         assertEquals(1, stats.size)
+
+        val generated = runBlocking {
+            context.generate(
+                Bpp3dLayerGenerationRequest(
+                    iteration = 0,
+                    items = emptyList()
+                )
+            )
+        }
+        assertTrue(generated.isEmpty())
+    }
+
+    @Test
+    fun delegatedGeneratorsShouldProvideNonEmptyResultWhenHistoricalLayersExist() = runBlocking {
+        val context = LayerGenerationContext<Flt64>(
+            generators = listOf(
+                BlockLayerGenerator(),
+                BLLocalLayerGenerator(),
+                BLGlobalLayerGenerator(),
+                PatternLayerGenerator(),
+                PileLayerGenerator(),
+                CirclePackingLayerGenerator()
+            )
+        )
+
+        val material = GenericMaterial(
+            no = MaterialNo("M-LG2"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-LG2",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(0.5, Meter),
+            depth = q(0.5, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val pack = GenericPackage.innerPackage(
+            shape = shape,
+            materials = mapOf(material to UInt64.one)
+        )
+        val item = GenericItem(
+            id = "item-lg2",
+            name = "item-lg2",
+            pack = pack,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-LG2"),
+            packageAttribute = defaultPackageAttribute()
+        )
+        val layer = fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer(
+            iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
+            from = LayerGenerationFltXProofTest::class,
+            width = q(3.0, Meter),
+            height = q(3.0, Meter),
+            depth = q(3.0, Meter),
+            units = listOf(
+                fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemPlacement(
+                    item = item,
+                    x = q(0.0, Meter),
+                    y = q(0.0, Meter),
+                    z = q(0.0, Meter)
+                )
+            )
+        ).toLegacy()
+
+        val generated = context.generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 1,
+                items = listOf(item.toLegacy()),
+                existingLayers = listOf(layer),
+                maxCandidates = 8
+            )
+        )
+        assertTrue(generated.isNotEmpty())
+        assertEquals(1, generated.map { it.layer }.distinct().size)
+    }
+
+    @Test
+    fun generatedLayersShouldBeRankedByShadowPriceWhenEvaluatorProvided() = runBlocking {
+        val materialHigh = GenericMaterial(
+            no = MaterialNo("M-HIGH"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-HIGH",
+            weight = q(0.2, Kilogram)
+        )
+        val materialLow = GenericMaterial(
+            no = MaterialNo("M-LOW"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-LOW",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(0.5, Meter),
+            depth = q(0.5, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+
+        val lowItem = GenericItem(
+            id = "item-low",
+            name = "item-low",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(materialLow to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-LOW"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val highItem = GenericItem(
+            id = "item-high",
+            name = "item-high",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(materialHigh to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-HIGH"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val highMaterialKey = highItem.materialAmounts.keys.first()
+        val lowMaterialKey = lowItem.materialAmounts.keys.first()
+
+        val generator = BlockLayerGenerator<Flt64>()
+        val generated = generator.generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                items = listOf(lowItem, highItem),
+                demandEntries = listOf(
+                    LayerGenerationDemandEntry(
+                        mode = Bpp3dDemandMode.ItemMaterialAmount,
+                        key = fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(highMaterialKey)
+                    ),
+                    LayerGenerationDemandEntry(
+                        mode = Bpp3dDemandMode.ItemMaterialAmount,
+                        key = fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(lowMaterialKey)
+                    )
+                ),
+                shadowPrices = linkedMapOf(
+                    DemandModeKey(
+                        Bpp3dDemandMode.ItemMaterialAmount,
+                        fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(highMaterialKey)
+                    ) to Flt64(10.0),
+                    DemandModeKey(
+                        Bpp3dDemandMode.ItemMaterialAmount,
+                        fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(lowMaterialKey)
+                    ) to Flt64(1.0)
+                ),
+                scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToDouble = { it.toDouble() }),
+                maxCandidates = 2
+            )
+        )
+
+        assertEquals(2, generated.size)
+        assertEquals(10.0, generated.first().numericScore ?: Double.NaN, 1e-10)
+        assertEquals(1.0, generated.last().numericScore ?: Double.NaN, 1e-10)
+        assertTrue((generated.first().numericScore ?: 0.0) > (generated.last().numericScore ?: 0.0))
     }
 }
 

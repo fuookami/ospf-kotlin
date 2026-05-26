@@ -13,9 +13,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat.asScalarF64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItemRanges
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyLayers
@@ -30,6 +32,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -99,6 +102,103 @@ fun <V : FloatingNumber<V>> demandEntriesFromItemRanges(
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromItemRanges(
         items = toLegacyItemRanges(items, legacyItemCache, materialCache),
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
+private fun <V : FloatingNumber<V>> toLegacyMaterialKey(material: QuantityMaterial<V>): MaterialKey {
+    return MaterialKey(
+        no = material.no,
+        type = material.type,
+        manufacturer = material.manufacturer,
+        supplier = material.supplier
+    )
+}
+
+private fun demandEntriesFromMaterialAmountsByKey(
+    materials: List<Pair<MaterialKey, UInt64>>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return materials.map { (material, demand) ->
+        val demandValue = demandValueAdapter.amountToSolver(demand)
+        Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.ItemMaterialAmount,
+            key = Bpp3dDemandKey.Material(material),
+            demand = demandValue,
+            demandRange = ValueRange(
+                demandValue,
+                demandValue,
+                Interval.Closed,
+                Interval.Closed,
+                Flt64
+            ).value!!
+        )
+    }
+}
+
+fun demandEntriesFromMaterialAmounts(
+    materials: List<Pair<Material, UInt64>>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromMaterialAmountsByKey(
+        materials = materials.map { (material, demand) -> Pair(material.key, demand) },
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
+@JvmName("demandEntriesFromGenericMaterialAmounts")
+fun <V : FloatingNumber<V>> demandEntriesFromMaterialAmounts(
+    materials: List<Pair<QuantityMaterial<V>, UInt64>>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromMaterialAmountsByKey(
+        materials = materials.map { (material, demand) ->
+            Pair(toLegacyMaterialKey(material), demand)
+        },
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
+private fun demandEntriesFromMaterialWeightsByKey(
+    materials: List<Pair<MaterialKey, Quantity<Flt64>>>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return materials.map { (material, demand) ->
+        val demandValue = demandValueAdapter.weightToSolver(demand)
+        Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.ItemMaterialWeight,
+            key = Bpp3dDemandKey.Material(material),
+            demand = demandValue,
+            demandRange = ValueRange(
+                demandValue,
+                demandValue,
+                Interval.Closed,
+                Interval.Closed,
+                Flt64
+            ).value!!
+        )
+    }
+}
+
+fun demandEntriesFromMaterialWeights(
+    materials: List<Pair<Material, Quantity<Flt64>>>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromMaterialWeightsByKey(
+        materials = materials.map { (material, demand) -> Pair(material.key, demand) },
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
+@JvmName("demandEntriesFromGenericMaterialWeights")
+fun <V : FloatingNumber<V>> demandEntriesFromMaterialWeights(
+    materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromMaterialWeightsByKey(
+        materials = materials.map { (material, demand) ->
+            Pair(toLegacyMaterialKey(material), demand.asScalarF64())
+        },
         demandValueAdapter = demandValueAdapter
     )
 }

@@ -80,9 +80,9 @@ class ItemDemandConstraintModeKeyTest {
             packageAttribute = defaultPackageAttribute()
         )
 
-        val amountKey = ItemDemandShadowPriceKey(Bpp3dDemandMode.ItemAmount, Bpp3dDemandKey.Item(item))
-        val materialAmountKey = ItemDemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))
-        val materialWeightKey = ItemDemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialWeight, Bpp3dDemandKey.Material(material.key))
+        val amountKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemAmount, Bpp3dDemandKey.Item(item))
+        val materialAmountKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))
+        val materialWeightKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialWeight, Bpp3dDemandKey.Material(material.key))
 
         assertNotEquals(amountKey, materialAmountKey)
         assertNotEquals(materialAmountKey, materialWeightKey)
@@ -120,7 +120,7 @@ class ItemDemandConstraintModeKeyTest {
             override val lessEnabled: Boolean = true
         }
 
-        val constraint = ItemDemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
         val extractor = constraint.extractor()!!
 
         val map = BPP3DShadowPriceMap()

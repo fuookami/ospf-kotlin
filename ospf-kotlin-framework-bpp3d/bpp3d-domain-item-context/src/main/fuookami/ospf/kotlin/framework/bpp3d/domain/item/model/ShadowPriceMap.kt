@@ -37,6 +37,29 @@ fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): ShadowPriceScalar {
     }
 }
 
+fun BPP3DShadowPriceMap.reducedCost(
+    cuboid: Cuboid<*>,
+    demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>
+): ShadowPriceScalar {
+    return reducedCost(
+        cuboid = cuboid,
+        demandEntries = demandEntries,
+        shadowPriceOf = { mode, key ->
+            this.map.entries.firstOrNull { entry ->
+                val thisKey = entry.key
+                runCatching { thisKey::class.members.firstOrNull { it.name == "mode" }?.call(thisKey) == mode }.getOrDefault(false) &&
+                        runCatching { thisKey::class.members.firstOrNull { it.name == "key" }?.call(thisKey) == key }.getOrDefault(false)
+            }?.value?.price ?: ShadowPriceScalar.zero
+        },
+        demandValueToScalar = { demand ->
+            when (demand) {
+                is Bpp3dDemandValue.Amount -> legacyScalar(demand.value.toULong().toDouble())
+                is Bpp3dDemandValue.Weight -> demand.value.value
+            }
+        }
+    )
+}
+
 typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>;

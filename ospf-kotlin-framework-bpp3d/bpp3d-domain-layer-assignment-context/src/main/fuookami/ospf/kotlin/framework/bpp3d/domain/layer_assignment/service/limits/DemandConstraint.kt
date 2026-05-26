@@ -32,10 +32,10 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.*
 
-data class ItemDemandShadowPriceKey(
+data class DemandShadowPriceKey(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey
-) : ShadowPriceKey(ItemDemandShadowPriceKey::class)
+) : ShadowPriceKey(DemandShadowPriceKey::class)
 
 private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<LayerAssignmentScalar> {
     return LinearPolynomial(
@@ -68,14 +68,14 @@ private fun demandStatistics(
     }
 }
 
-class ItemDemandConstraint<
+open class DemandConstraint<
         Args : AbstractBPP3DShadowPriceArguments<T>,
         T : Cuboid<T>
         >(
     private val load: Load,
     private val demandEntries: List<Bpp3dDemandEntry> = load.demandEntries,
     private val shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
-    override val name: String = "item_demand"
+    override val name: String = "demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
     companion object {
         fun <
@@ -85,14 +85,14 @@ class ItemDemandConstraint<
             load: Load,
             items: List<Pair<Item, UInt64>>,
             shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
-            name: String = "item_demand"
-        ): ItemDemandConstraint<Args, T> {
+            name: String = "demand"
+        ): DemandConstraint<Args, T> {
             val demands = if (load.demandEntries.isNotEmpty()) {
                 load.demandEntries
             } else {
                 demandEntriesFromItems(items, load.demandValueAdapter)
             }
-            return ItemDemandConstraint(load, demands, shadowPriceExtractor, name)
+            return DemandConstraint(load, demands, shadowPriceExtractor, name)
         }
 
         fun <
@@ -102,14 +102,14 @@ class ItemDemandConstraint<
             load: Load,
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
             shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
-            name: String = "item_demand"
-        ): ItemDemandConstraint<Args, T> {
+            name: String = "demand"
+        ): DemandConstraint<Args, T> {
             val demands = if (load.demandEntries.isNotEmpty()) {
                 load.demandEntries
             } else {
                 demandEntriesFromItemRanges(items, load.demandValueAdapter)
             }
-            return ItemDemandConstraint(load, demands, shadowPriceExtractor, name)
+            return DemandConstraint(load, demands, shadowPriceExtractor, name)
         }
     }
 
@@ -130,7 +130,7 @@ class ItemDemandConstraint<
         for ((i, demand) in demandEntries.withIndex()) {
             val upperBound = demand.demandRange.upperBound.value.unwrap()
             val lowerBound = demand.demandRange.lowerBound.value.unwrap()
-            val priceKey = ItemDemandShadowPriceKey(demand.mode, demand.key)
+            val priceKey = DemandShadowPriceKey(demand.mode, demand.key)
             val tag = modeTag(demand.mode)
 
             if (load.overEnabled && !demand.demandRange.fixed && upperBound neq demand.demand) {
@@ -202,20 +202,19 @@ class ItemDemandConstraint<
             return { _, args -> shadowPriceExtractor.invoke(args) ?: layerAssignmentZero() }
         }
 
-        val modes = demandEntries.asSequence().map { it.mode }.toSet()
-        if (modes.isEmpty()) {
+        val activeDemands = demandEntries.map { Pair(it.mode, it.key) }.toSet()
+        if (activeDemands.isEmpty()) {
             return null
         }
 
         return { map, args ->
             var price = layerAssignmentZero()
-            for (mode in modes) {
+            for ((mode, key) in activeDemands) {
                 val statistics = demandStatistics(args.cuboid, mode)
-                for ((key, value) in statistics) {
-                    val shadow = map[ItemDemandShadowPriceKey(mode, key)]?.price ?: layerAssignmentZero()
-                    if (shadow neq layerAssignmentZero()) {
-                        price += shadow * load.demandValueAdapter.toSolver(value)
-                    }
+                val value = statistics[key] ?: continue
+                val shadow = map[DemandShadowPriceKey(mode, key)]?.price ?: layerAssignmentZero()
+                if (shadow neq layerAssignmentZero()) {
+                    price += shadow * load.demandValueAdapter.toSolver(value)
                 }
             }
             price
@@ -231,3 +230,14 @@ class ItemDemandConstraint<
     }
 }
 
+@Deprecated(
+    message = "Use DemandConstraint instead.",
+    replaceWith = ReplaceWith("DemandConstraint<Args, T>")
+)
+typealias ItemDemandConstraint<Args, T> = DemandConstraint<Args, T>
+
+@Deprecated(
+    message = "Use DemandShadowPriceKey instead.",
+    replaceWith = ReplaceWith("DemandShadowPriceKey(mode, key)")
+)
+typealias ItemDemandShadowPriceKey = DemandShadowPriceKey
