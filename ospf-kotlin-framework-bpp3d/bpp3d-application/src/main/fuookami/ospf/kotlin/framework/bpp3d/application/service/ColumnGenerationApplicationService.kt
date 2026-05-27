@@ -2,9 +2,19 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingDemand
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingPlan
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.ExhaustiveMaterialPackingSolverExecutor
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPacker
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPackingSolverExecutor
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BLLocalLayerGenerator
@@ -20,8 +30,19 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
+enum class MaterialPackingMixedDemandPolicy {
+    Reject,
+    ReplaceItemDemands,
+    Merge
+}
+
 data class ColumnGenerationApplicationRequest(
     val itemDemands: List<Pair<Item, UInt64>>,
+    val materialAmountDemands: List<Pair<Material, UInt64>> = emptyList(),
+    val materialWeightDemands: List<Pair<Material, LegacyQuantity>> = emptyList(),
+    val materialPackingCandidates: List<MaterialPackingProgramCandidate> = emptyList(),
+    val materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
+    val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     val demandEntries: List<Bpp3dDemandEntry>? = null,
     val initialColumns: List<BinLayer> = emptyList(),
     val finalBins: List<LayerBin> = emptyList(),
@@ -32,11 +53,13 @@ data class ColumnGenerationApplicationRequest(
 
 data class ColumnGenerationApplicationResponse(
     val result: ColumnGenerationResult<Flt64>,
-    val packingSnapshot: ColumnGenerationPackingSnapshot?
+    val packingSnapshot: ColumnGenerationPackingSnapshot?,
+    val materialPackingPlan: MaterialPackingPlan? = null
 )
 
 class ColumnGenerationApplicationService(
-    private val solver: ColumnGenerationSolver
+    private val solver: ColumnGenerationSolver,
+    private val materialPackingSolverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
 ) {
     companion object {
         fun defaultLayerGenerators(): List<Bpp3dLayerGenerator<Flt64>> {
@@ -57,10 +80,55 @@ class ColumnGenerationApplicationService(
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
         solutionAnalyzer: ColumnGenerationSolutionAnalyzer<Flt64>? = null
     ): ColumnGenerationApplicationResponse {
-        val entries = request.demandEntries ?: demandEntriesFromItems(request.itemDemands)
+        val hasMaterialDemands = request.materialAmountDemands.isNotEmpty() || request.materialWeightDemands.isNotEmpty()
+        val materialPackingPlan = if (hasMaterialDemands) {
+            val materialDemands = ArrayList<MaterialPackingDemand>()
+            materialDemands.addAll(
+                request.materialAmountDemands.map { (material, amount) ->
+                    MaterialPackingDemand(
+                        material = material,
+                        amount = amount
+                    )
+                }
+            )
+            materialDemands.addAll(
+                request.materialWeightDemands.map { (material, weight) ->
+                    MaterialPackingDemand(
+                        material = material,
+                        weight = weight
+                    )
+                }
+            )
+            MaterialPacker(materialPackingSolverExecutor).plan(
+                demands = materialDemands,
+                candidates = request.materialPackingCandidates,
+                objective = request.materialPackingObjectiveConfig
+            )
+        } else {
+            null
+        }
+        if (materialPackingPlan != null) {
+            if (materialPackingPlan.solveInfo.status != MaterialPackingStatus.Optimal ||
+                materialPackingPlan.restMaterials.values.any { it != UInt64.zero }
+            ) {
+                throw IllegalStateException("material packing infeasible: ${materialPackingPlan.solveInfo.rawStatus ?: "unknown"}")
+            }
+        }
+
+        val packagedItemDemands = materialPackingPlan?.packagedItems?.map { packagedItem ->
+            Pair(packagedItem.item as Item, packagedItem.amount)
+        } ?: emptyList()
+        val resolvedItemDemands = when {
+            packagedItemDemands.isEmpty() -> request.itemDemands
+            request.itemDemands.isEmpty() -> packagedItemDemands
+            request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.ReplaceItemDemands -> packagedItemDemands
+            request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.Merge -> mergeItemDemands(request.itemDemands, packagedItemDemands)
+            else -> throw IllegalArgumentException("both itemDemands and materialDemands are present, set mixedDemandPolicy explicitly.")
+        }
+        val entries = request.demandEntries ?: demandEntriesFromItems(resolvedItemDemands)
         val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
             solver = solver,
-            itemDemands = request.itemDemands,
+            itemDemands = resolvedItemDemands,
             demandEntries = entries,
             finalBins = request.finalBins,
             config = request.executorConfig
@@ -89,12 +157,27 @@ class ColumnGenerationApplicationService(
             initialColumns = { request.initialColumns }
         )
         val result = algorithm.solve(
-            items = request.itemDemands.map { it.first },
+            items = resolvedItemDemands.map { it.first },
             config = request.cgConfig
         )
         return ColumnGenerationApplicationResponse(
             result = result,
-            packingSnapshot = packingAnalyzer?.latest
+            packingSnapshot = packingAnalyzer?.latest,
+            materialPackingPlan = materialPackingPlan
         )
+    }
+
+    private fun mergeItemDemands(
+        base: List<Pair<Item, UInt64>>,
+        extra: List<Pair<Item, UInt64>>
+    ): List<Pair<Item, UInt64>> {
+        val merged = LinkedHashMap<Item, UInt64>()
+        for ((item, amount) in base) {
+            merged[item] = (merged[item] ?: UInt64.zero) + amount
+        }
+        for ((item, amount) in extra) {
+            merged[item] = (merged[item] ?: UInt64.zero) + amount
+        }
+        return merged.toList()
     }
 }

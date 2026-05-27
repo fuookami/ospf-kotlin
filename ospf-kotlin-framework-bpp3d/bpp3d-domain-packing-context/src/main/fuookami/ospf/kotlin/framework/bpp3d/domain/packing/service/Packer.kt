@@ -18,6 +18,10 @@ class Packer(
         sameTypeJudger = { lhs, rhs -> lhs.pattern == rhs.pattern }
     )
 ) {
+    /**
+     * 终态装箱分析：将 final bins 转为 PackingResult/SchemaDTO 所需结构。
+     * Final packing analyzer: converts final bins into PackingResult-ready structures.
+     */
     suspend operator fun invoke(
         bins: List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin>,
         context: PackingContext = PackingContext()
