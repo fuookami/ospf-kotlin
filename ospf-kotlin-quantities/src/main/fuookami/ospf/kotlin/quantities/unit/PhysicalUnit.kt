@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
+import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
 import fuookami.ospf.kotlin.quantities.dimension.div
 import fuookami.ospf.kotlin.quantities.dimension.times
 
@@ -59,6 +60,12 @@ abstract class PhysicalUnit {
      * Unit quantity (dimension)
      */
     abstract val quantity: DerivedQuantity
+
+    /**
+     * 单位取值域
+     * Unit value domain
+     */
+    open val domain: QuantityDomain get() = quantity.domain
 
     /**
      * 单位比例（相对于标准单位）
@@ -120,6 +127,7 @@ abstract class PhysicalUnit {
 
         if (quantity != other.quantity) return false
         if (scale != other.scale) return false
+        if (domain != other.domain) return false
 
         return true
     }
@@ -127,6 +135,7 @@ abstract class PhysicalUnit {
     override fun hashCode(): Int {
         var result = quantity.hashCode()
         result = 31 * result + scale.hashCode()
+        result = 31 * result + domain.hashCode()
         return result
     }
 
@@ -148,6 +157,7 @@ abstract class DerivedPhysicalUnit(
     private val unit: PhysicalUnit,
 ) : PhysicalUnit() {
     override val quantity by unit::quantity
+    override val domain by unit::domain
     override val scale by unit::scale
 }
 
@@ -167,7 +177,8 @@ data class AnonymousPhysicalUnit(
     override val quantity: DerivedQuantity,
     override val scale: Scale,
     override val name: String? = null,
-    override val symbol: String? = null
+    override val symbol: String? = null,
+    override val domain: QuantityDomain = quantity.domain
 ) : PhysicalUnit() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -175,6 +186,7 @@ data class AnonymousPhysicalUnit(
 
         if (quantity != other.quantity) return false
         if (scale != other.scale) return false
+        if (domain != other.domain) return false
 
         return true
     }
@@ -182,6 +194,7 @@ data class AnonymousPhysicalUnit(
     override fun hashCode(): Int {
         var result = quantity.hashCode()
         result = 31 * result + scale.hashCode()
+        result = 31 * result + domain.hashCode()
         return result
     }
 
@@ -233,7 +246,8 @@ data class QuantityUnit(
 operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale)
+        scale = this.scale * Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -244,7 +258,8 @@ operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
 operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale)
+        scale = this.scale / Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -255,7 +270,8 @@ operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
 operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale)
+        scale = this.scale * Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -266,7 +282,8 @@ operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
 operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale)
+        scale = this.scale / Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -277,7 +294,8 @@ operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
 operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale)
+        scale = this.scale * Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -288,7 +306,8 @@ operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
 operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale)
+        scale = this.scale / Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -299,7 +318,8 @@ operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
 operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale)
+        scale = this.scale * Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -310,7 +330,8 @@ operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
 operator fun PhysicalUnit.div(scale: RtnX): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale)
+        scale = this.scale / Scale(scale),
+        domain = this.domain
     )
 }
 
@@ -322,6 +343,7 @@ operator fun PhysicalUnit.times(scale: Scale): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
         scale = this.scale * scale,
+        domain = this.domain
     )
 }
 
@@ -333,6 +355,7 @@ operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
         scale = this.scale / scale,
+        domain = this.domain
     )
 }
 

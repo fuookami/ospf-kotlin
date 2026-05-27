@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.quantities.dimension.CustomFundamentalQuantityDimension
 import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
 import fuookami.ospf.kotlin.quantities.dimension.Mass
+import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
 import fuookami.ospf.kotlin.quantities.dimension.div
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -78,11 +79,17 @@ class QuantityTest {
     fun testCustomDimension() {
         // 1. 定义"�?的量纲（使用自定义基础量纲�?
         val tomeDimension = CustomFundamentalQuantityDimension("T", "tome")
-        val tome = DerivedQuantity(tomeDimension, "tome", "T")
+        val tome = DerivedQuantity(
+            dimension = tomeDimension,
+            name = "tome",
+            symbol = "T",
+            domain = QuantityDomain.Discrete
+        )
 
         // 验证自定义量纲的符号
         assertEquals("T", tome.dimensionSymbol())
         assertEquals("tome", tome.name)
+        assertEquals(QuantityDomain.Discrete, tome.domain)
 
         // 2. 定义"�?单位（使用匿名对象）
         val tomeUnit = object : PhysicalUnit() {
@@ -138,7 +145,13 @@ class QuantityTest {
         // 1. 定义"�?量纲（自定义基础量纲�?
         // Define "Tome" dimension (custom fundamental dimension)
         val tomeDimension = CustomFundamentalQuantityDimension("T", "tome")
-        val tomeQuantity = DerivedQuantity(tomeDimension, "tome", "T")
+        val tomeQuantity = DerivedQuantity(
+            dimension = tomeDimension,
+            name = "tome",
+            symbol = "T",
+            domain = QuantityDomain.Discrete
+        )
+        assertEquals(QuantityDomain.Discrete, tomeQuantity.domain)
 
         // 2. 定义"�?单位（卷量纲的标准单位）
         // Define "Tome" unit (standard unit for tome dimension)
@@ -222,12 +235,24 @@ class QuantityTest {
         // 1. 定义"�?量纲（自定义基础量纲�?
         // Define "Zhang" dimension (custom fundamental dimension)
         val zhangDimension = CustomFundamentalQuantityDimension("Z", "zhang")
-        val zhangQuantity = DerivedQuantity(zhangDimension, "zhang", "Z")
+        val zhangQuantity = DerivedQuantity(
+            dimension = zhangDimension,
+            name = "zhang",
+            symbol = "Z",
+            domain = QuantityDomain.Discrete
+        )
 
         // 2. 定义"�?量纲（自定义基础量纲�?
         // Define "Ling" dimension (custom fundamental dimension)
         val lingDimension = CustomFundamentalQuantityDimension("L", "ling")
-        val lingQuantity = DerivedQuantity(lingDimension, "ling", "L")
+        val lingQuantity = DerivedQuantity(
+            dimension = lingDimension,
+            name = "ling",
+            symbol = "L",
+            domain = QuantityDomain.Discrete
+        )
+        assertEquals(QuantityDomain.Discrete, zhangQuantity.domain)
+        assertEquals(QuantityDomain.Discrete, lingQuantity.domain)
 
         // 3. 定义"�?单位（张量纲的标准单位）
         // Define "Zhang" unit (standard unit for zhang dimension)
@@ -307,7 +332,13 @@ class QuantityTest {
     fun testCustomDimensionArithmetic() {
         // 1. 定义"�?的量纲（使用自定义基础量纲�?
         val tomeDimension = CustomFundamentalQuantityDimension("T", "tome")
-        val tome = DerivedQuantity(tomeDimension, "tome", "T")
+        val tome = DerivedQuantity(
+            dimension = tomeDimension,
+            name = "tome",
+            symbol = "T",
+            domain = QuantityDomain.Discrete
+        )
+        assertEquals(QuantityDomain.Discrete, tome.domain)
 
         // 2. 定义"�?单位
         val tomeUnit = object : PhysicalUnit() {

@@ -14,6 +14,7 @@ package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.Information
+import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
 
 /**
  * 比特（基本单位） / Bit (base unit)
@@ -53,6 +54,8 @@ object Kilobit : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10³ / Scale factor: 10³ */
     override val scale = Scale.kilo
 }
@@ -74,6 +77,8 @@ object Megabit : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁶ / Scale factor: 10⁶ */
     override val scale = Scale.mega
 }
@@ -95,6 +100,8 @@ object Gigabit : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁹ / Scale factor: 10⁹ */
     override val scale = Scale.giga
 }
@@ -116,6 +123,8 @@ object Terabit : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹² / Scale factor: 10¹² */
     override val scale = Scale.tera
 }
@@ -137,6 +146,8 @@ object Petabit : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁵ / Scale factor: 10¹⁵ */
     override val scale = Scale.peta
 }
@@ -158,6 +169,8 @@ object Exabit : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁸ / Scale factor: 10¹⁸ */
     override val scale = Scale.exa
 }
@@ -200,6 +213,8 @@ object Kilobyte : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10³ × 8 = 8000 / Scale factor: 10³ × 8 = 8000 */
     override val scale = Scale.kilo * Scale(8)
 }
@@ -221,6 +236,8 @@ object Megabyte : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁶ × 8 / Scale factor: 10⁶ × 8 */
     override val scale = Scale.mega * Scale(8)
 }
@@ -242,6 +259,8 @@ object Gigabyte : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁹ × 8 / Scale factor: 10⁹ × 8 */
     override val scale = Scale.giga * Scale(8)
 }
@@ -263,6 +282,8 @@ object Terabyte : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹² × 8 / Scale factor: 10¹² × 8 */
     override val scale = Scale.tera * Scale(8)
 }
@@ -284,6 +305,8 @@ object Petabyte : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁵ × 8 / Scale factor: 10¹⁵ × 8 */
     override val scale = Scale.peta * Scale(8)
 }
@@ -305,6 +328,8 @@ object Exabyte : PhysicalUnit() {
 
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁸ × 8 / Scale factor: 10¹⁸ × 8 */
     override val scale = Scale.exa * Scale(8)
 }

@@ -17,7 +17,9 @@ class DerivedQuantity(
     /** 量纲名称 / Name of the quantity */
     val name: String? = null,
     /** 量纲符号 / Symbol of the quantity */
-    val symbol: String? = null
+    val symbol: String? = null,
+    /** 取值域 / Value domain */
+    val domain: QuantityDomain = QuantityDomain.Continuous
 ) {
     /**
      * 排序后的量纲列表
@@ -32,11 +34,13 @@ class DerivedQuantity(
     constructor(
         dimension: FundamentalQuantityDimension,
         name: String? = null,
-        symbol: String? = null
+        symbol: String? = null,
+        domain: QuantityDomain = QuantityDomain.Continuous
     ) : this(
         quantities = listOf(FundamentalQuantity(dimension)),
         name = name,
-        symbol = symbol
+        symbol = symbol,
+        domain = domain
     )
 
     /**
@@ -46,11 +50,13 @@ class DerivedQuantity(
     constructor(
         quantity: FundamentalQuantity,
         name: String? = null,
-        symbol: String? = null
+        symbol: String? = null,
+        domain: QuantityDomain = QuantityDomain.Continuous
     ) : this(
         quantities = listOf(quantity),
         name = name,
-        symbol = symbol
+        symbol = symbol,
+        domain = domain
     )
 
     /**
@@ -60,11 +66,13 @@ class DerivedQuantity(
     constructor(
         quantity: DerivedQuantity,
         name: String? = null,
-        symbol: String? = null
+        symbol: String? = null,
+        domain: QuantityDomain = quantity.domain
     ) : this(
         quantities = quantity.quantities.toList(),
         name = name,
-        symbol = symbol
+        symbol = symbol,
+        domain = domain
     )
 
     /**
@@ -72,7 +80,10 @@ class DerivedQuantity(
      * Negation operator (inverts all powers)
      */
     operator fun unaryMinus(): DerivedQuantity {
-        return DerivedQuantity(quantities.map { -it })
+        return DerivedQuantity(
+            quantities = quantities.map { -it },
+            domain = QuantityDomain.Continuous
+        )
     }
 
     /**
@@ -107,9 +118,19 @@ class DerivedQuantity(
             } else {
                 newQuantities[existingIndex] = FundamentalQuantity(dimension, newIndex)
             }
-            DerivedQuantity(newQuantities, name, symbol)
+            DerivedQuantity(
+                quantities = newQuantities,
+                name = name,
+                symbol = symbol,
+                domain = QuantityDomain.Continuous
+            )
         } else {
-            DerivedQuantity(quantities + FundamentalQuantity(dimension, power), name, symbol)
+            DerivedQuantity(
+                quantities = quantities + FundamentalQuantity(dimension, power),
+                name = name,
+                symbol = symbol,
+                domain = QuantityDomain.Continuous
+            )
         }
     }
 
@@ -146,9 +167,21 @@ class DerivedQuantity(
      * @return 幂运算后的导出量纲 / The derived quantity after power operation
      */
     fun pow(index: Int): DerivedQuantity {
-        if (index == 0) return DerivedQuantity(emptyList(), name, "1")
+        if (index == 0) {
+            return DerivedQuantity(
+                quantities = emptyList(),
+                name = name,
+                symbol = "1",
+                domain = QuantityDomain.Continuous
+            )
+        }
         if (index == 1) return this
-        return DerivedQuantity(quantities.map { it * index }, name, symbol)
+        return DerivedQuantity(
+            quantities = quantities.map { it * index },
+            name = name,
+            symbol = symbol,
+            domain = domain.pow(index)
+        )
     }
 
     /**
@@ -247,7 +280,10 @@ operator fun DerivedQuantity.times(other: Int): DerivedQuantity {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index * other
     }
     // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
-    return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
+    return DerivedQuantity(
+        quantities = indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) },
+        domain = this.domain.pow(other)
+    )
 }
 
 /**
@@ -304,7 +340,10 @@ operator fun DerivedQuantity.times(other: DerivedQuantity): DerivedQuantity {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index
     }
     // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
-    return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
+    return DerivedQuantity(
+        quantities = indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) },
+        domain = this.domain * other.domain
+    )
 }
 
 /**
@@ -320,5 +359,8 @@ operator fun DerivedQuantity.div(other: DerivedQuantity): DerivedQuantity {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) - quantity.index
     }
     // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
-    return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
+    return DerivedQuantity(
+        quantities = indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) },
+        domain = this.domain / other.domain
+    )
 }

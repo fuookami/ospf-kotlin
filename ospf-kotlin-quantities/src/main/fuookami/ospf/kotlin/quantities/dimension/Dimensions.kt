@@ -78,7 +78,8 @@ val SolidAngle = DerivedQuantity(
 val Information = DerivedQuantity(
     dimension = B,
     name = "information",
-    symbol = "i"
+    symbol = "i",
+    domain = QuantityDomain.Discrete
 )
 
 // ============================================================================
