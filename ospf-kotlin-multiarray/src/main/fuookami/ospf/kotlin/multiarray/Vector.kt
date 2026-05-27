@@ -211,12 +211,18 @@ sealed class DummyIndex {
         /**
          * 从整数值创建单索引
          * Create single index from integer value
+         *
+         * @param value 索引值 / Index value
+         * @return 单索引 / Single index
          */
         fun from(value: Int): DummyIndex = Index(value)
 
         /**
          * 从 IntRange 创建范围索引
          * Create range index from IntRange
+         *
+         * @param range 整数范围 / Integer range
+         * @return 范围索引 / Range index
          */
         fun from(range: IntRange): DummyIndex = Range(object : DummyIndexRange {
             override fun start() = range.first
@@ -227,12 +233,17 @@ sealed class DummyIndex {
         /**
          * 从整数列表创建索引数组
          * Create index array from integer list
+         *
+         * @param indices 索引列表 / Index list
+         * @return 索引数组 / Index array
          */
         fun from(indices: List<Int>): DummyIndex = IndexArray(indices)
 
         /**
          * 创建全范围索引
          * Create full range index
+         *
+         * @return 全范围索引 / Full range index
          */
         fun all(): DummyIndex = All
     }
@@ -324,12 +335,18 @@ sealed class MapIndex {
         /**
          * 从 DummyIndex 创建 MapIndex
          * Create MapIndex from DummyIndex
+         *
+         * @param dummy 虚拟索引 / Dummy index
+         * @return 映射索引 / Map index
          */
         fun from(dummy: DummyIndex): MapIndex = Dummy(dummy)
 
         /**
          * 创建映射占位符
          * Create map placeholder
+         *
+         * @param index 目标维度索引 / Target dimension index
+         * @return 映射索引 / Map index
          */
         fun map(index: Int): MapIndex = Map(index)
     }

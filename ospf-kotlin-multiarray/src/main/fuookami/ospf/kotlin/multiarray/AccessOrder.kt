@@ -77,6 +77,9 @@ enum class AccessOrder {
  *
  * 用于跟踪多维迭代的状态。
  * Used to track the state of multi-dimensional iteration.
+ *
+ * @param positions 各维度的当前位置 / Current position of each dimension
+ * @param exhausted 是否已耗尽 / Whether exhausted
  */
 data class IteratorPosition(
     val positions: IntArray,
@@ -100,6 +103,9 @@ data class IteratorPosition(
  *
  * 按照指定的访问顺序迭代多维索引。
  * Iterates over multi-dimensional indices in the specified access order.
+ *
+ * @param shape 数组形状 / Array shape
+ * @param accessOrder 访问顺序 / Access order
  */
 class MultiIndexIterator(
     private val shape: Shape,
@@ -218,6 +224,9 @@ private fun <T : Any, S : Shape> reorderToStorageOrder(
 /**
  * 多维索引序列
  * Multi-dimensional index sequence
+ *
+ * @param shape 数组形状 / Array shape
+ * @param accessOrder 访问顺序 / Access order
  */
 class MultiIndexSequence(
     private val shape: Shape,
@@ -231,6 +240,9 @@ class MultiIndexSequence(
 /**
  * 创建多维索引序列
  * Create multi-dimensional index sequence
+ *
+ * @param order 访问顺序 / Access order
+ * @return 多维索引序列 / Multi-dimensional index sequence
  */
 fun Shape.indices(order: AccessOrder = AccessOrder.Default): MultiIndexSequence {
     return MultiIndexSequence(this, order)
@@ -239,6 +251,9 @@ fun Shape.indices(order: AccessOrder = AccessOrder.Default): MultiIndexSequence 
 /**
  * 使用指定访问顺序迭代形状
  * Iterate over shape with specified access order
+ *
+ * @param order 访问顺序 / Access order
+ * @return 索引序列 / Index sequence
  */
 fun Shape.iterate(order: AccessOrder = AccessOrder.Default): Sequence<IntArray> {
     return MultiIndexSequence(this, order)
@@ -247,6 +262,10 @@ fun Shape.iterate(order: AccessOrder = AccessOrder.Default): Sequence<IntArray> 
 /**
  * 使用指定访问顺序迭代虚拟向量
  * Iterate over dummy vector with specified access order
+ *
+ * @param shape 数组形状 / Array shape
+ * @param accessOrder 访问顺序 / Access order
+ * @return 索引序列 / Index sequence
  */
 fun DummyVector.iterateWithOrder(
     shape: Shape,
@@ -315,6 +334,9 @@ fun DummyVector.iterateWithOrder(
 /**
  * 使用指定访问顺序迭代 MultiArrayView
  * Iterate over MultiArrayView with specified access order
+ *
+ * @param accessOrder 访问顺序 / Access order
+ * @return 元素序列 / Element sequence
  */
 fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
@@ -327,6 +349,9 @@ fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
 /**
  * 使用指定访问顺序迭代 AbstractMultiArray
  * Iterate over AbstractMultiArray with specified access order
+ *
+ * @param accessOrder 访问顺序 / Access order
+ * @return 元素序列 / Element sequence
  */
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
@@ -339,6 +364,9 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.iterWithOrder(
 /**
  * 使用指定访问顺序进行枚举迭代
  * Enumerate iteration with specified access order
+ *
+ * @param accessOrder 访问顺序 / Access order
+ * @return (线性索引, 向量坐标, 元素) 三元组序列 / (linear index, vector, element) triple sequence
  */
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.enumerateWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
@@ -352,6 +380,9 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.enumerateWithOrder(
 /**
  * 多维数组展平为列表
  * Flatten multi-dimensional array to list
+ *
+ * @param accessOrder 访问顺序 / Access order
+ * @return 展平后的元素列表 / Flattened element list
  */
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.flatten(
     accessOrder: AccessOrder = AccessOrder.Default
@@ -362,6 +393,11 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.flatten(
 /**
  * 从列表创建多维数组
  * Create multi-dimensional array from list
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 不可变多维数组 / Immutable multi-array
  */
 fun <T : Any, S : Shape> MultiArray.Companion.fromList(
     shape: S,
@@ -386,6 +422,11 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
 /**
  * 从列表创建可变多维数组
  * Create mutable multi-dimensional array from list
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 可变多维数组 / Mutable multi-array
  */
 fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
     shape: S,

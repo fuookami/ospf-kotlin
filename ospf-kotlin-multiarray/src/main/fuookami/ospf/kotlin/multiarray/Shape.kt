@@ -57,9 +57,9 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
-import fuookami.ospf.kotlin.utils.concept.Indexed
 import kotlin.ConsistentCopyVisibility
 import kotlin.reflect.KClass
+import fuookami.ospf.kotlin.utils.concept.Indexed
 
 /**
  * 维度不匹配异常
@@ -339,11 +339,16 @@ data class Shape1 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
+        /** 使用默认行主序创建一维形状 / Create 1D shape with default row-major order */
         operator fun invoke(d1: Int): Shape1 = Shape1(d1, StorageOrder.Default)
+        /** 使用默认行主序从 ULong 创建一维形状 / Create 1D shape from ULong with default row-major order */
         operator fun invoke(d1: ULong): Shape1 = Shape1(d1.toInt(), StorageOrder.Default)
+        /** 使用默认行主序从集合大小创建一维形状 / Create 1D shape from collection size with default row-major order */
         operator fun invoke(d1: Collection<*>): Shape1 = Shape1(d1.size, StorageOrder.Default)
 
+        /** 使用指定存储顺序创建一维形状 / Create 1D shape with specified storage order */
         fun withOrder(d1: Int, order: StorageOrder): Shape1 = Shape1(d1, order)
+        /** 使用指定存储顺序从 ULong 创建一维形状 / Create 1D shape from ULong with specified storage order */
         fun withOrder(d1: ULong, order: StorageOrder): Shape1 = Shape1(d1.toInt(), order)
     }
 
@@ -389,6 +394,7 @@ data class Shape1 private constructor(
         }
     }
 
+    /** 使用指定存储顺序创建一维形状副本 / Create 1D shape copy with specified storage order */
     fun withStorageOrder(order: StorageOrder): Shape1 = Shape1(d1, order)
 }
 
@@ -403,11 +409,16 @@ data class Shape2 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
+        /** 使用默认行主序创建二维形状 / Create 2D shape with default row-major order */
         operator fun invoke(d1: Int, d2: Int): Shape2 = Shape2(d1, d2, StorageOrder.Default)
+        /** 使用默认行主序从 ULong 创建二维形状 / Create 2D shape from ULong with default row-major order */
         operator fun invoke(d1: ULong, d2: ULong): Shape2 = Shape2(d1.toInt(), d2.toInt(), StorageOrder.Default)
+        /** 使用默认行主序从集合大小创建二维形状 / Create 2D shape from collection sizes with default row-major order */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>): Shape2 = Shape2(d1.size, d2.size, StorageOrder.Default)
 
+        /** 使用指定存储顺序创建二维形状 / Create 2D shape with specified storage order */
         fun withOrder(d1: Int, d2: Int, order: StorageOrder): Shape2 = Shape2(d1, d2, order)
+        /** 使用指定存储顺序从 ULong 创建二维形状 / Create 2D shape from ULong with specified storage order */
         fun withOrder(d1: ULong, d2: ULong, order: StorageOrder): Shape2 = Shape2(d1.toInt(), d2.toInt(), order)
     }
 
@@ -476,6 +487,7 @@ data class Shape2 private constructor(
         }
     }
 
+    /** 使用指定存储顺序创建二维形状副本 / Create 2D shape copy with specified storage order */
     fun withStorageOrder(order: StorageOrder): Shape2 = Shape2(d1, d2, order)
 }
 
@@ -491,11 +503,16 @@ data class Shape3 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
+        /** 使用默认行主序创建三维形状 / Create 3D shape with default row-major order */
         operator fun invoke(d1: Int, d2: Int, d3: Int): Shape3 = Shape3(d1, d2, d3, StorageOrder.Default)
+        /** 使用默认行主序从 ULong 创建三维形状 / Create 3D shape from ULong with default row-major order */
         operator fun invoke(d1: ULong, d2: ULong, d3: ULong): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt(), StorageOrder.Default)
+        /** 使用默认行主序从集合大小创建三维形状 / Create 3D shape from collection sizes with default row-major order */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>): Shape3 = Shape3(d1.size, d2.size, d3.size, StorageOrder.Default)
 
+        /** 使用指定存储顺序创建三维形状 / Create 3D shape with specified storage order */
         fun withOrder(d1: Int, d2: Int, d3: Int, order: StorageOrder): Shape3 = Shape3(d1, d2, d3, order)
+        /** 使用指定存储顺序从 ULong 创建三维形状 / Create 3D shape from ULong with specified storage order */
         fun withOrder(d1: ULong, d2: ULong, d3: ULong, order: StorageOrder): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt(), order)
     }
 
@@ -579,6 +596,7 @@ data class Shape3 private constructor(
         }
     }
 
+    /** 使用指定存储顺序创建三维形状副本 / Create 3D shape copy with specified storage order */
     fun withStorageOrder(order: StorageOrder): Shape3 = Shape3(d1, d2, d3, order)
 }
 
@@ -595,11 +613,16 @@ data class Shape4 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
+        /** 使用默认行主序创建四维形状 / Create 4D shape with default row-major order */
         operator fun invoke(d1: Int, d2: Int, d3: Int, d4: Int): Shape4 = Shape4(d1, d2, d3, d4, StorageOrder.Default)
+        /** 使用默认行主序从 ULong 创建四维形状 / Create 4D shape from ULong with default row-major order */
         operator fun invoke(d1: ULong, d2: ULong, d3: ULong, d4: ULong): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt(), StorageOrder.Default)
+        /** 使用默认行主序从集合大小创建四维形状 / Create 4D shape from collection sizes with default row-major order */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>, d4: Collection<*>): Shape4 = Shape4(d1.size, d2.size, d3.size, d4.size, StorageOrder.Default)
 
+        /** 使用指定存储顺序创建四维形状 / Create 4D shape with specified storage order */
         fun withOrder(d1: Int, d2: Int, d3: Int, d4: Int, order: StorageOrder): Shape4 = Shape4(d1, d2, d3, d4, order)
+        /** 使用指定存储顺序从 ULong 创建四维形状 / Create 4D shape from ULong with specified storage order */
         fun withOrder(d1: ULong, d2: ULong, d3: ULong, d4: ULong, order: StorageOrder): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt(), order)
     }
 
@@ -693,6 +716,7 @@ data class Shape4 private constructor(
         }
     }
 
+    /** 使用指定存储顺序创建四维形状副本 / Create 4D shape copy with specified storage order */
     fun withStorageOrder(order: StorageOrder): Shape4 = Shape4(d1, d2, d3, d4, order)
 }
 
@@ -738,25 +762,31 @@ data class DynShape private constructor(
             return offsets
         }
 
+        /** 使用默认行主序从 IntArray 创建动态形状 / Create dynamic shape from IntArray with default row-major order */
         operator fun invoke(shape: IntArray): DynShape {
             // Defensive copy to prevent external mutation
             return DynShape(shape.copyOf(), StorageOrder.Default)
         }
 
+        /** 使用默认行主序从 ULong 迭代创建动态形状 / Create dynamic shape from ULong iterable with default row-major order */
         @JvmName("constructByULongList")
         operator fun invoke(shape: Iterable<ULong>): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), StorageOrder.Default)
 
+        /** 使用默认行主序从集合大小迭代创建动态形状 / Create dynamic shape from collection sizes iterable with default row-major order */
         @JvmName("constructByCollectionList")
         operator fun invoke(shape: Iterable<Collection<*>>): DynShape = DynShape(shape.map { it.size }.toIntArray(), StorageOrder.Default)
 
+        /** 使用指定存储顺序从 IntArray 创建动态形状 / Create dynamic shape from IntArray with specified storage order */
         fun withOrder(shape: IntArray, order: StorageOrder): DynShape {
             // Defensive copy
             return DynShape(shape.copyOf(), order)
         }
 
+        /** 使用指定存储顺序从 ULong 迭代创建动态形状 / Create dynamic shape from ULong iterable with specified storage order */
         @JvmName("withOrderFromULongList")
         fun withOrder(shape: Iterable<ULong>, order: StorageOrder): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), order)
 
+        /** 使用指定存储顺序从集合大小迭代创建动态形状 / Create dynamic shape from collection sizes iterable with specified storage order */
         @JvmName("withOrderFromCollectionList")
         fun withOrder(shape: Iterable<Collection<*>>, order: StorageOrder): DynShape = DynShape(shape.map { it.size }.toIntArray(), order)
     }
@@ -825,6 +855,7 @@ data class DynShape private constructor(
         }
     }
 
+    /** 使用指定存储顺序创建动态形状副本 / Create dynamic shape copy with specified storage order */
     fun withStorageOrder(order: StorageOrder): DynShape = DynShape(shape.copyOf(), order)
 
     override fun equals(other: Any?): Boolean {

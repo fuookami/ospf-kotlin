@@ -364,28 +364,34 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         }
     }
 
+    /** 通过线性索引获取元素 / Get element by linear index */
     operator fun get(i: Int): T {
         return origin[mapVector(shape.vector(i))]
     }
 
+    /** 通过 ULong 线性索引获取元素 / Get element by ULong linear index */
     operator fun get(i: ULong): T {
         return get(i.toInt())
     }
 
+    /** 通过 Indexed 接口获取元素 / Get element by Indexed interface */
     operator fun get(e: Indexed): T {
         return origin[mapVector(shape.vector(e.index))]
     }
 
+    /** 通过 IntArray 向量索引获取元素 / Get element by IntArray vector index */
     @JvmName("getByIntArray")
     operator fun get(v: IntArray): T {
         return origin[mapVector(v)]
     }
 
+    /** 通过 vararg Int 向量索引获取元素 / Get element by vararg Int vector index */
     @JvmName("getByInts")
     operator fun get(vararg v: Int): T {
         return origin[mapVector(v)]
     }
 
+    /** 通过 vararg Any 创建子映射视图 / Create sub-mapped view by vararg Any indices */
     operator fun get(vararg v: Any): MappedMultiArrayView<T, S> {
         val newMapVector = ArrayList<MapIndex>()
         val subDummyVector = shape.dummyVector(*v)

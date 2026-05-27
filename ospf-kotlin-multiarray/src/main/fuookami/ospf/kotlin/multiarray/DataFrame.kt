@@ -42,7 +42,8 @@ package fuookami.ospf.kotlin.multiarray
  * 用于在 MultiArray 中存储可能为空的值。
  * Used to store potentially null values in MultiArray.
  *
- * @param T 值类型
+ * @param T 值类型 / Value type
+ * @param value 包装的值 / Wrapped value
  */
 data class NullableValue<T>(val value: T?) {
     override fun toString(): String = value?.toString() ?: "null"
@@ -98,7 +99,6 @@ class DataFrame<T>(
      */
     fun getNCols(): Int = ncols
 
-
     /**
      * 通过列名获取列索引
      * Get column index by column name
@@ -108,6 +108,10 @@ class DataFrame<T>(
     /**
      * 获取指定位置的值
      * Get value at specified position
+     *
+     * @param row 行索引 / Row index
+     * @param col 列索引 / Column index
+     * @return 值 / Value
      */
     fun get(row: Int, col: Int): T? {
         require(row in 0 until nrows && col in 0 until ncols) {
@@ -119,6 +123,10 @@ class DataFrame<T>(
     /**
      * 通过行和列名获取值
      * Get value by row and column name
+     *
+     * @param row 行索引 / Row index
+     * @param columnName 列名 / Column name
+     * @return 值 / Value
      */
     fun getByName(row: Int, columnName: String): T? {
         val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
@@ -128,6 +136,10 @@ class DataFrame<T>(
     /**
      * 设置指定位置的值
      * Set value at specified position
+     *
+     * @param row 行索引 / Row index
+     * @param col 列索引 / Column index
+     * @param value 要设置的值 / Value to set
      */
     fun set(row: Int, col: Int, value: T?) {
         require(row in 0 until nrows && col in 0 until ncols) {
@@ -139,6 +151,10 @@ class DataFrame<T>(
     /**
      * 通过行和列名设置值
      * Set value by row and column name
+     *
+     * @param row 行索引 / Row index
+     * @param columnName 列名 / Column name
+     * @param value 要设置的值 / Value to set
      */
     fun setByName(row: Int, columnName: String, value: T?) {
         val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
@@ -148,6 +164,9 @@ class DataFrame<T>(
     /**
      * 获取指定行的所有值
      * Get all values in a row
+     *
+     * @param row 行索引 / Row index
+     * @return 行数据 / Row data
      */
     fun getRow(row: Int): List<T?> {
         require(row in 0 until nrows) { "行索引越界：$row / Row index out of bounds" }
@@ -157,6 +176,9 @@ class DataFrame<T>(
     /**
      * 获取指定列的所有值
      * Get all values in a column
+     *
+     * @param col 列索引 / Column index
+     * @return 列数据 / Column data
      */
     fun getColumn(col: Int): List<T?> {
         require(col in 0 until ncols) { "列索引越界：$col / Column index out of bounds" }
@@ -166,6 +188,9 @@ class DataFrame<T>(
     /**
      * 通过列名获取列
      * Get column by column name
+     *
+     * @param columnName 列名 / Column name
+     * @return 列数据 / Column data
      */
     fun getColumnByName(columnName: String): List<T?> {
         val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
@@ -178,6 +203,8 @@ class DataFrame<T>(
      *
      * 使用包装类 NullableValue 来存储可能为空的值。
      * Uses wrapper class NullableValue to store potentially null values.
+     *
+     * @return 包含可空值的二维多维数组 / 2D multi-array with nullable values
      */
     fun toNullableMultiArray(): MultiArray2<NullableValue<T>> {
         val array = MutableMultiArray2<NullableValue<T>>(Shape2(nrows, ncols)) { _, _ -> NullableValue(null) }
@@ -192,6 +219,10 @@ class DataFrame<T>(
     /**
      * 获取指定范围的视图
      * Get view of specified range
+     *
+     * @param rows 行范围 / Row range
+     * @param cols 列范围 / Column range
+     * @return 子 DataFrame / Sub DataFrame
      */
     fun subDataFrame(
         rows: IntRange = 0 until nrows,
@@ -213,6 +244,9 @@ class DataFrame<T>(
     /**
      * 选择指定列
      * Select specified columns
+     *
+     * @param columnNames 要选择的列名 / Column names to select
+     * @return 包含指定列的 DataFrame / DataFrame with selected columns
      */
     fun select(vararg columnNames: String): DataFrame<T> {
         val colIndices = columnNames.map { name ->
@@ -234,6 +268,9 @@ class DataFrame<T>(
     /**
      * 过滤行
      * Filter rows
+     *
+     * @param predicate 行过滤谓词 / Row filter predicate
+     * @return 过滤后的 DataFrame / Filtered DataFrame
      */
     fun filter(predicate: (List<T?>) -> Boolean): DataFrame<T> {
         val selectedRows = (0 until nrows).filter { row ->
@@ -255,6 +292,9 @@ class DataFrame<T>(
     /**
      * 复制并添加行
      * Copy and add a row
+     *
+     * @param values 新行的值 / Values for the new row
+     * @return 添加行后的新 DataFrame / New DataFrame with added row
      */
     fun copyWithAddedRow(values: List<T?>): DataFrame<T> {
         require(values.size == ncols) {
@@ -281,6 +321,8 @@ class DataFrame<T>(
     /**
      * 转换为 Map 表示
      * Convert to Map representation
+     *
+     * @return 列名到列数据的映射 / Mapping from column name to column data
      */
     fun toMap(): Map<String, List<T?>> {
         return columnNames.associateWith { name -> getColumnByName(name) }
@@ -342,6 +384,9 @@ class DataFrame<T>(
         /**
          * 从 Map 创建 DataFrame
          * Create DataFrame from Map
+         *
+         * @param data 列名到列数据的映射 / Mapping from column name to column data
+         * @return DataFrame 实例 / DataFrame instance
          */
         fun <T> fromMap(data: Map<String, List<T?>>): DataFrame<T> {
             val columnNames = data.keys.toList()
@@ -367,6 +412,9 @@ class DataFrame<T>(
         /**
          * 创建空 DataFrame
          * Create empty DataFrame
+         *
+         * @param columnNames 列名 / Column names
+         * @return 空 DataFrame / Empty DataFrame
          */
         fun <T> empty(vararg columnNames: String): DataFrame<T> {
             return DataFrame(0, columnNames.size, columnNames.toList())
@@ -375,6 +423,10 @@ class DataFrame<T>(
         /**
          * 使用构建器创建 DataFrame
          * Create DataFrame using builder
+         *
+         * @param columnNames 列名 / Column names
+         * @param block 构建器块 / Builder block
+         * @return DataFrame 实例 / DataFrame instance
          */
         inline fun <T> build(
             vararg columnNames: String,
@@ -390,12 +442,21 @@ class DataFrame<T>(
 /**
  * DataFrame 构建器
  * DataFrame builder
+ *
+ * @param T 元素类型 / Element type
+ * @param columnNames 列名列表 / List of column names
  */
 class DataFrameBuilder<T>(
     private val columnNames: List<String>
 ) {
     private val rows = mutableListOf<List<T?>>()
 
+    /**
+     * 添加一行数据
+     * Add a row of data
+     *
+     * @param values 行数据 / Row data
+     */
     fun row(vararg values: T?) {
         require(values.size == columnNames.size) {
             "值的数量 (${values.size}) 必须等于列数 (${columnNames.size}) / Value count must equal column count"
@@ -403,6 +464,12 @@ class DataFrameBuilder<T>(
         rows.add(values.toList())
     }
 
+    /**
+     * 添加多行数据
+     * Add multiple rows of data
+     *
+     * @param values 多行数据 / Multiple rows of data
+     */
     fun rows(values: List<List<T?>>) {
         for (row in values) {
             require(row.size == columnNames.size) {
@@ -412,6 +479,10 @@ class DataFrameBuilder<T>(
         rows.addAll(values)
     }
 
+    /**
+     * 构建 DataFrame
+     * Build DataFrame
+     */
     fun build(): DataFrame<T> {
         val df = DataFrame<T>(rows.size, columnNames.size, columnNames)
         for ((rowIdx, row) in rows.withIndex()) {
@@ -426,6 +497,9 @@ class DataFrameBuilder<T>(
 /**
  * 便捷函数：创建 DataFrame
  * Convenience function: Create DataFrame
+ *
+ * @param columns 列名到列数据的键值对 / Pairs of column name to column data
+ * @return DataFrame 实例 / DataFrame instance
  */
 fun <T> dataFrameOf(
     vararg columns: Pair<String, List<T?>>
@@ -437,6 +511,10 @@ fun <T> dataFrameOf(
 /**
  * 便捷函数：从行创建 DataFrame
  * Convenience function: Create DataFrame from rows
+ *
+ * @param columnNames 列名列表 / List of column names
+ * @param rows 行数据列表 / List of row data
+ * @return DataFrame 实例 / DataFrame instance
  */
 fun <T> dataFrameFromRows(
     columnNames: List<String>,
@@ -454,5 +532,5 @@ fun <T> dataFrameFromRows(
     return df
 }
 
-// 类型别名 / Type aliases
+/** DataFrame 类型别名（与 DataFrame 等价）/ DataFrame type alias (equivalent to DataFrame) */
 typealias DataFrame2<T> = DataFrame<T>

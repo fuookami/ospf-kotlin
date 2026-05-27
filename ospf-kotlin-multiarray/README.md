@@ -1,21 +1,18 @@
 # OSPF Kotlin Multiarray
 
-[English](#english) | [中文](#中文)
+[中文](README.zh-CN.md)
 
----
-
-<a name="english"></a>
-## English
-
-A high-performance multi-dimensional array library for Kotlin, supporting various storage orders, views, and block-based sparse arrays.
+A high-performance multi-dimensional array library for Kotlin, supporting various storage orders, views, block-based sparse arrays, and tabular data structures.
 
 ### Features
 
-- **Multi-dimensional Arrays**: Support for 1D to N-dimensional arrays with type-safe shapes
+- **Multi-dimensional Arrays**: Type-safe 1D to N-dimensional arrays with compile-time shape checking
 - **Storage Orders**: Row-major (C-style) and Column-major (Fortran-style) storage orders
-- **Shape System**: Compile-time shapes (Shape1, Shape2, Shape3, Shape4) and dynamic shapes (DynShape)
-- **Views**: Slicing, indexing, and mapping views without data copying
+- **Shape System**: Compile-time shapes (Shape1-4) and dynamic shapes (DynShape)
+- **Views**: Slicing, indexing, and dimension-mapping views without data copying
 - **Block Arrays**: Sparse array support with block-based storage
+- **DataFrame**: 2D tabular data structure with named columns
+- **Extension Operators**: Multi-dimensional access operators for List and Map types
 - **Iterator Protocol**: Access order-aware iteration with proper snapshot semantics
 
 ### Installation
@@ -35,35 +32,32 @@ Add dependency to your `pom.xml`:
 ```kotlin
 import fuookami.ospf.kotlin.multiarray.*
 
-// Create a 2x3 array with default values
-val array = MultiArray.newWith(Shape2(2, 3), 0)
+// Create a 2x3 array filled with zeros
+val array = MutableMultiArray.newWith(Shape2(2, 3), 0)
 
-// Set values
+// Set and get values
 array[0, 1] = 10
 array[1, 2] = 20
-
-// Get values
-println(array[0, 1])  // Output: 10
-println(array[1, 0])  // Output: 0
+println(array[0, 1])  // 10
 
 // Create with generator
-val matrix = MultiArray.newBy(Shape3(2, 3, 4)) { i, vec ->
-    i * 10  // Linear index times 10
-}
+val matrix = MultiArray.newBy(Shape3(2, 3, 4)) { i, vec -> i * 10 }
 
-// Iterate over elements
+// Iterate with (linearIndex, vectorIndex, value)
 for ((linearIdx, vectorIdx, value) in matrix.enumerate()) {
     println("[$linearIdx] ${vectorIdx.toList()} = $value")
 }
 
-// Create a view (slice)
-val view = array[_a, 1]  // Get column 1 from all rows
+// Slice using dummy indices
+val view = array[_a, 1]  // All rows, column 1
 
 // Convert storage order
 val columnMajor = matrix.toStorageOrder(StorageOrder.ColumnMajor)
 ```
 
-### Shape Types
+### Core Components
+
+#### Shape System
 
 | Type | Description | Use Case |
 |------|-------------|----------|
@@ -73,35 +67,81 @@ val columnMajor = matrix.toStorageOrder(StorageOrder.ColumnMajor)
 | `Shape4` | 4-dimensional shape | Batch tensors |
 | `DynShape` | Dynamic dimension shape | Runtime-determined shapes |
 
-### Storage Orders
-
 ```kotlin
-// Row-major (default): last dimension varies fastest
-val rowMajor = Shape3.withOrder(2, 3, 4, StorageOrder.RowMajor)
-
-// Column-major: first dimension varies fastest
+// Create shapes with specific storage order
+val rowMajor = Shape3(2, 3, 4)
 val columnMajor = Shape3.withOrder(2, 3, 4, StorageOrder.ColumnMajor)
 
-// Convert between orders
-val converted = array.toStorageOrder(StorageOrder.ColumnMajor)
+// Shape operations
+val shape = Shape2(3, 4)
+println(shape.dimension)   // 2
+println(shape.size)         // 12
+val vec = shape.vector(5)   // [1, 1] (linear index to vector)
+val idx = shape.index(intArrayOf(1, 1))  // 5 (vector to linear index)
 ```
 
-### Views and Slicing
+#### MultiArray and MutableMultiArray
+
+`MultiArray` is immutable; `MutableMultiArray` allows element mutation.
 
 ```kotlin
-// Slice using dummy indices
-val slice = array[_a, 1]           // All rows, column 1
-val range = array[0..1, _a]        // Rows 0-1, all columns
-val specific = array[0, 1..2]      // Row 0, columns 1-2
+// Factory methods
+val arr1 = MultiArray.new(Shape2(3, 3))                    // Default values
+val arr2 = MultiArray.newWith(Shape2(3, 3), 42)            // Fill with value
+val arr3 = MultiArray.newBy(Shape2(3, 3)) { i, v -> i }    // Generator
+val arr4 = MultiArray.fromList(Shape2(2, 2), listOf(1, 2, 3, 4))  // From list
 
-// Create mapped view (transpose-like operations)
+// Mutable array
+val mutable = MutableMultiArray.newWith(Shape2(2, 2), 0)
+mutable[0, 0] = 1
+mutable[1, 1] = 2
+val immutable = mutable.toImmutable()
+
+// Convenience functions
+val v = multiArrayOf(5, 0)           // 1D array of 5 zeros
+val m = multiArrayOf(3, 3, 0)        // 3x3 matrix of zeros
+```
+
+#### Views and Slicing
+
+Views provide zero-copy access to sub-arrays.
+
+```kotlin
+val array = MultiArray.newBy(Shape3(2, 3, 4)) { i, _ -> i }
+
+// Slice view using dummy indices
+val slice = array[_a, 1, _a]      // All rows, column 1, all depths
+val range = array[0..1, _a, 0]    // Rows 0-1, all columns, depth 0
+
+// Mapped view (transpose)
 val transposed = MappedMultiArrayView(array, listOf(
-    MapIndex.Map(1),  // Map dimension 1 to position 0
-    MapIndex.Map(0)   // Map dimension 0 to position 1
+    MapIndex.Map(2),  // dimension 2 -> position 0
+    MapIndex.Map(0),  // dimension 0 -> position 1
+    MapIndex.Map(1)   // dimension 1 -> position 2
 ))
 ```
 
-### Block Arrays (Sparse)
+#### DummyIndex and MapIndex
+
+`DummyIndex` types for slicing:
+
+| Type | Example | Description |
+|------|---------|-------------|
+| `DummyIndex.All` | `_a` | All elements in dimension |
+| `DummyIndex.Index(n)` | `1` | Single index |
+| `DummyIndex.Range(r)` | `0..2` | Continuous range |
+| `DummyIndex.IndexArray(list)` | `[0, 2, 4]` | Discrete indices |
+
+`MapIndex` types for dimension remapping:
+
+| Type | Example | Description |
+|------|---------|-------------|
+| `MapIndex.Map(i)` | `MapIndex.Map(0)` | Map dimension to position |
+| `MapIndex.Dummy(d)` | `MapIndex.Dummy(_a)` | Keep as dummy index |
+
+#### BlockMultiArray (Sparse)
+
+Sparse array that only stores non-default values.
 
 ```kotlin
 // Create sparse array
@@ -113,6 +153,105 @@ sparse[intArrayOf(50, 50, 50)] = 2
 
 // Convert to dense array
 val dense = sparse.toMultiArray(defaultValue = 0)
+
+// Create from existing array (with filter)
+val sparseFromDense = BlockMultiArray.fromMultiArray(dense) { it != 0 }
+```
+
+#### DataFrame
+
+2D tabular data structure with named columns, similar to pandas DataFrame.
+
+```kotlin
+// Create from column data
+val df = dataFrameOf(
+    "name" to listOf("Alice", "Bob", "Charlie"),
+    "age" to listOf(25, 30, 35),
+    "city" to listOf("NYC", "LA", "Chicago")
+)
+
+// Access data
+println(df.getByName(0, "name"))  // Alice
+println(df.getColumnByName("age"))  // [25, 30, 35]
+
+// Filter and select
+val filtered = df.filter { row -> (row[1] as Int) > 25 }
+val selected = df.select("name", "city")
+
+// Builder pattern
+val df2 = DataFrame.build<String>("x", "y") {
+    row("a", "b")
+    row("c", "d")
+}
+
+// Convert to MultiArray
+val multiArray = df.toNullableMultiArray()
+```
+
+#### List Extensions
+
+Multi-dimensional access operators for nested List types.
+
+```kotlin
+val matrix: List2<Int> = listOf(
+    listOf(1, 2, 3),
+    listOf(4, 5, 6)
+)
+
+// Get column from all rows
+val col = matrix[_a, 1]  // [2, 5]
+
+// Get all columns from row
+val row = matrix[0, _a]  // [1, 2, 3]
+
+// 3D list access
+val cube: List3<Int> = listOf(
+    listOf(listOf(1, 2), listOf(3, 4)),
+    listOf(listOf(5, 6), listOf(7, 8))
+)
+val val = cube[0, 1, 0]  // 3
+val allFirst = cube[_a, 0, 0]  // [1, 5]
+```
+
+#### Map Extensions
+
+Multi-dimensional access operators for Map types containing MultiArray values.
+
+```kotlin
+val map = mapOf(
+    "a" to MultiArray.newWith(Shape2(2, 2), 1),
+    "b" to MultiArray.newWith(Shape2(2, 2), 2)
+)
+
+// Access by key and index
+val v = map["a", 0, 1]       // Get element from MultiArray value
+val all = map[_a]             // Get all values (Iterable)
+map["b", 0, 1] = 42          // Set element in MutableMultiArray value
+
+// Works with MultiMap2, MultiMap3, MultiMap4 as well
+```
+
+#### Access Order and Iteration
+
+```kotlin
+// Row-major iteration (default, C-style)
+for (idx in shape.indices(AccessOrder.RowMajor)) {
+    println(idx.toList())
+}
+
+// Column-major iteration (Fortran-style)
+for (idx in shape.indices(AccessOrder.ColumnMajor)) {
+    println(idx.toList())
+}
+
+// Flatten with specific order
+val rowFlat = array.flatten(AccessOrder.RowMajor)
+val colFlat = array.flatten(AccessOrder.ColumnMajor)
+
+// Enumerate with order
+for ((i, vec, value) in array.enumerateWithOrder(AccessOrder.ColumnMajor)) {
+    // ...
+}
 ```
 
 ### API Reference
@@ -120,21 +259,23 @@ val dense = sparse.toMultiArray(defaultValue = 0)
 #### Factory Methods
 
 - `MultiArray.new(shape)` - Create with default values
-- `MultiArray.newWith(shape, value)` - Create with specific value
-- `MultiArray.newBy(shape, generator)` - Create with generator function
-- `MultiArray.fromList(shape, list, accessOrder)` - Create from list
+- `MultiArray.newWith(shape, value)` - Create with specific fill value
+- `MultiArray.newBy(shape, generator)` - Create with generator function `(linearIndex, vectorIndex) -> T`
+- `MultiArray.fromList(shape, list, accessOrder)` - Create from flat list
+- `MutableMultiArray.new(...)` / `newWith(...)` / `newBy(...)` / `fromList(...)` - Mutable variants
 
 #### Access Methods
 
 - `array[i]` - Linear index access
 - `array[i, j, k]` - Vector index access
 - `array[vec]` - IntArray vector access
-- `array[_a, 1]` - Slice/view access
+- `array[_a, 1]` - Slice/view access (returns `MultiArrayView`)
 
 #### Iteration
 
 - `array.iterate(order)` - Iterate with specified access order
-- `array.enumerate()` - Iterate with (index, vector, value)
+- `array.enumerate()` - Iterate as `(linearIndex, vectorIndex, value)` triples
+- `array.enumerateWithOrder(order)` - Enumerate with specific access order
 - `array.flatten(order)` - Convert to flat list
 
 ### Testing
@@ -148,154 +289,5 @@ mvn test -Dtest=ShapeColumnMajorInverseTest
 ```
 
 ### License
-
-MIT License
-
----
-
-<a name="中文"></a>
-## 中文
-
-高性能 Kotlin 多维数组库，支持多种存储顺序、视图和基于分块的稀疏数组。
-
-### 特性
-
-- **多维数组**: 支持 1 维到 N 维数组的类型安全形状
-- **存储顺序**: 行主序（C 风格）和列主序（Fortran 风格）存储顺序
-- **形状系统**: 编译期形状（Shape1-4）和动态形状（DynShape）
-- **视图**: 切片、索引和映射视图，无需数据复制
-- **分块数组**: 基于分块存储的稀疏数组支持
-- **迭代器协议**: 支持访问顺序感知的迭代，具有正确的快照语义
-
-### 安装
-
-在 `pom.xml` 中添加依赖：
-
-```xml
-<dependency>
-    <groupId>fuookami.ospf.kotlin</groupId>
-    <artifactId>ospf-kotlin-multiarray</artifactId>
-    <version>1.0.0</version>
-</dependency>
-```
-
-### 快速开始
-
-```kotlin
-import fuookami.ospf.kotlin.multiarray.*
-
-// 创建 2x3 数组，默认值为 0
-val array = MultiArray.newWith(Shape2(2, 3), 0)
-
-// 设置值
-array[0, 1] = 10
-array[1, 2] = 20
-
-// 获取值
-println(array[0, 1])  // 输出: 10
-println(array[1, 0])  // 输出: 0
-
-// 使用生成器创建
-val matrix = MultiArray.newBy(Shape3(2, 3, 4)) { i, vec ->
-    i * 10  // 线性索引乘以 10
-}
-
-// 遍历元素
-for ((linearIdx, vectorIdx, value) in matrix.enumerate()) {
-    println("[$linearIdx] ${vectorIdx.toList()} = $value")
-}
-
-// 创建视图（切片）
-val view = array[_a, 1]  // 获取所有行的第 1 列
-
-// 转换存储顺序
-val columnMajor = matrix.toStorageOrder(StorageOrder.ColumnMajor)
-```
-
-### 形状类型
-
-| 类型 | 描述 | 用途 |
-|------|------|------|
-| `Shape1` | 一维形状 | 向量 |
-| `Shape2` | 二维形状 | 矩阵 |
-| `Shape3` | 三维形状 | 张量 |
-| `Shape4` | 四维形状 | 批量张量 |
-| `DynShape` | 动态维度形状 | 运行时确定的形状 |
-
-### 存储顺序
-
-```kotlin
-// 行主序（默认）：最后一维变化最快
-val rowMajor = Shape3.withOrder(2, 3, 4, StorageOrder.RowMajor)
-
-// 列主序：第一维变化最快
-val columnMajor = Shape3.withOrder(2, 3, 4, StorageOrder.ColumnMajor)
-
-// 在顺序间转换
-val converted = array.toStorageOrder(StorageOrder.ColumnMajor)
-```
-
-### 视图与切片
-
-```kotlin
-// 使用虚拟索引切片
-val slice = array[_a, 1]           // 所有行，第 1 列
-val range = array[0..1, _a]        // 第 0-1 行，所有列
-val specific = array[0, 1..2]      // 第 0 行，第 1-2 列
-
-// 创建映射视图（类似转置操作）
-val transposed = MappedMultiArrayView(array, listOf(
-    MapIndex.Map(1),  // 将维度 1 映射到位置 0
-    MapIndex.Map(0)   // 将维度 0 映射到位置 1
-))
-```
-
-### 分块数组（稀疏）
-
-```kotlin
-// 创建稀疏数组
-val sparse = BlockMultiArray.empty<Int, Shape3>(Shape3(100, 100, 100))
-
-// 只设置非零值
-sparse[intArrayOf(0, 0, 0)] = 1
-sparse[intArrayOf(50, 50, 50)] = 2
-
-// 转换为稠密数组
-val dense = sparse.toMultiArray(defaultValue = 0)
-```
-
-### API 参考
-
-#### 工厂方法
-
-- `MultiArray.new(shape)` - 使用默认值创建
-- `MultiArray.newWith(shape, value)` - 使用指定值创建
-- `MultiArray.newBy(shape, generator)` - 使用生成器函数创建
-- `MultiArray.fromList(shape, list, accessOrder)` - 从列表创建
-
-#### 访问方法
-
-- `array[i]` - 线性索引访问
-- `array[i, j, k]` - 向量索引访问
-- `array[vec]` - IntArray 向量访问
-- `array[_a, 1]` - 切片/视图访问
-
-#### 迭代
-
-- `array.iterate(order)` - 按指定访问顺序迭代
-- `array.enumerate()` - 带索引、向量、值的迭代
-- `array.flatten(order)` - 转换为扁平列表
-
-### 测试
-
-```bash
-# 运行所有测试
-mvn test
-
-# 运行特定测试
-mvn test -Dtest=ShapeColumnMajorInverseTest
-```
-
-### 许可证
 
 MIT License
