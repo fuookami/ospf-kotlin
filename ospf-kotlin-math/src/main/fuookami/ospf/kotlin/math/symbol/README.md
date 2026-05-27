@@ -40,13 +40,16 @@ interface Symbol {
 ### Inequalities
 
 ```kotlin
-data class LinearInequality<T>(
-    val polynomial: LinearPolynomial<T>,
-    val comparison: Comparison  // Lt, Le, Eq, Ne, Ge, Gt
+data class LinearInequality<T : Ring<T>>(
+    val lhs: LinearPolynomial<T>,
+    val rhs: LinearPolynomial<T>,
+    val comparison: Comparison,  // LT, LE, EQ, NE, GE, GT
+    val name: String = "",
+    val displayName: String = ""
 )
 
-data class QuadraticInequality<T>(...)
-data class CanonicalInequality<T>(...)
+data class QuadraticInequality<T : Ring<T>>(...)
+data class CanonicalInequality<T : Ring<T>>(...)
 ```
 
 ## Usage Examples
@@ -141,19 +144,19 @@ import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 val symbolOf = ::symbolOfSerializedIdentifier
 
 // Parse linear polynomial
-val lp = parseLinear("2*x + 3*y + 1", symbolOf)
+val lp = parseLinearTypedOrNull("2*x + 3*y + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 
 // Parse quadratic polynomial
-val qp = parseQuadratic("x^2 + 2*x + 1", symbolOf)
+val qp = parseQuadraticTypedOrNull("x^2 + 2*x + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 
-// Parse canonical inequality
-val ineq = parseCanonicalInequality("x^2 + y^2 <= 1", symbolOf)
+// Parse linear inequality
+val ineq = parseLinearInequalityTypedOrNull("2*x + 3*y <= 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 ```
 
 ### Serialization
 
 ```kotlin
-import fuookami.ospf.kotlin.math.symbol.serde.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 
 // To JSON
 val json = canonical.toJsonString()
@@ -205,16 +208,16 @@ val equations = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
 }
 
 // Sum along axis 0: result is a 1D array (shape [4])
-val sum0 = equations.sumAxis(0, LinearPolynomial.fromConstant(Flt64.zero))
+val sum0 = equations.sumAxis(0, LinearPolynomial(emptyList(), Flt64.zero))
 
 // Sum along axis 1: result is a 1D array (shape [3])
-val sum1 = equations.sumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+val sum1 = equations.sumAxis(1, LinearPolynomial(emptyList(), Flt64.zero))
 
 // Sum all elements: result is a single polynomial
-val total = equations.sumAll(LinearPolynomial.fromConstant(Flt64.zero))
+val total = equations.sumAll(LinearPolynomial(emptyList(), Flt64.zero))
 
 // Cumulative sum along axis 1
-val cumsum = equations.cumsumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+val cumsum = equations.cumsumAxis(1, LinearPolynomial(emptyList(), Flt64.zero))
 ```
 
 #### FastSum Pattern with Mutable Polynomials
@@ -276,7 +279,7 @@ val quadraticEquations = MultiArray.newBy(Shape2(2, 3)) { i, _ ->
 // Sum along axis 0 with quadratic polynomial zero
 val sumQ = quadraticEquations.sumAxis(
     0,
-    QuadraticPolynomial.fromConstant(Flt64.zero)
+    QuadraticPolynomial(emptyList(), Flt64.zero)
 )
 ```
 
@@ -289,8 +292,8 @@ val sumQ = quadraticEquations.sumAxis(
 | `addAssignAndCombine` | `operation/MutableCombineOps.kt` | Add + combine in one step |
 | `minusAssignAndCombine` | `operation/MutableCombineOps.kt` | Subtract + combine in one step |
 | `evaluate` | `operation/Evaluate.kt` | Compute value |
-| `compileEval` | `generic/CompileGeneric.kt` | Compile to function |
-| `compileGradient` | `generic/CompileGeneric.kt` | Compile gradient |
+| `compileEval` | `operation/Compile.kt` (Flt64 overloads), `operation/CompileOps.kt` (generic Ring-based) | Compile to function |
+| `compileGradient` | `operation/Compile.kt` (Flt64 overloads), `operation/CompileOps.kt` (generic Ring-based) | Compile gradient |
 | `differentiate` | `operation/Differentiate.kt` | Symbolic differentiation |
 | `integrate` | `operation/IntegrateOps.kt` | Symbolic integration |
 | `factorize` | `operation/Factorization.kt` | Quadratic factorization |
@@ -298,15 +301,6 @@ val sumQ = quadraticEquations.sumAxis(
 | `toFlt64MatrixForm` | `operation/Flt64MatrixForm.kt` | Flt64 matrix form extraction |
 | `toLatex` | `operation/Latex.kt` | LaTeX rendering |
 | `convert` | `operation/Convert.kt` | Type conversion |
-
-### MultiArray FastSum Operations
-
-| Operation | File | Description |
-|-----------|------|-------------|
-| `sumAll` | `multi_array/FastSum.kt` | Sum all elements |
-| `sumAxis` | `multi_array/FastSum.kt` | Sum along single axis |
-| `sumAxes` | `multi_array/FastSum.kt` | Sum along multiple axes |
-| `cumsumAxis` | `multi_array/FastSum.kt` | Cumulative sum along axis |
 
 ## Performance Notes
 

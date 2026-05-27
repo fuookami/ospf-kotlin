@@ -1,13 +1,15 @@
+/**
+ * 机制模型基础层
+ * Mechanism model base layer
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 
 /**
+ * 机制模型层级结构的基础层：展开的变量和约束（无目标函数）。
  * Base layer of the mechanism model hierarchy: expanded variables + constraints (no objective).
  *
  * This corresponds to `BasicMechanismModel<V>` in the Rust implementation.

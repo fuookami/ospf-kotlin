@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput

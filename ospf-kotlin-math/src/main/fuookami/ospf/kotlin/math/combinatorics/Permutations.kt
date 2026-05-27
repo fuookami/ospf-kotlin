@@ -20,17 +20,16 @@
  */
 package fuookami.ospf.kotlin.math.combinatorics
 
+import java.util.Collections.swap
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
-import java.util.Collections.swap
 
-// A Counting QuickPerm Algorithm
+/** 使用 QuickPerm 算法生成输入列表的所有全排列 / Generate all full permutations of input list using QuickPerm algorithm */
 fun <T> permute(
     input: List<T>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -66,6 +65,7 @@ fun <T> permute(
     return perms
 }
 
+/** 计算排列数 P(n, choose) / Calculate permutation count P(n, choose) */
 fun permuteCount(n: Int, choose: Int = n): Long {
     if (choose < 0 || choose > n) {
         return 0L
@@ -77,10 +77,12 @@ fun permuteCount(n: Int, choose: Int = n): Long {
     return value
 }
 
+/** 惰性序列生成所有全排列 / Lazy sequence generation of all full permutations */
 fun <T> permuteSequence(input: List<T>): Sequence<List<T>> = sequence {
     yieldAll(permuteSequence(input, input.size))
 }
 
+/** 惰性序列生成指定大小的排列 / Lazy sequence generation of permutations of specified size */
 fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
     if (choose < 0 || choose > input.size) {
         return@sequence
@@ -112,6 +114,7 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     dfs()
 }
 
+/** 生成指定大小的所有排列 / Generate all permutations of specified size */
 fun <T> permute(
     input: List<T>,
     choose: Int,
@@ -129,6 +132,7 @@ fun <T> permute(
     return result
 }
 
+/** 异步生成所有排列，通过协程通道返回 / Async permutation generation via coroutine channel */
 fun <T> permuteAsync(
     input: List<T>,
     scope: CoroutineScope = combinatoricsAsyncScope
@@ -167,6 +171,3 @@ fun <T> permuteAsync(
     }
     return ChannelGuard(promise)
 }
-
-
-

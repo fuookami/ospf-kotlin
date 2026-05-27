@@ -1,3 +1,7 @@
+/**
+ * 求解器建模数据准备工具
+ * Solver modeling data preparation utilities
+ */
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.model.basic.Variable

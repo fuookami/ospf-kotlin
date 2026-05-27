@@ -15,7 +15,6 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -25,6 +24,8 @@ import kotlin.random.Random
 /**
  * 切比雪夫映射
  * Chebyshev Map
+ *
+ * @property a 切比雪夫多项式阶数参数 / Chebyshev polynomial order parameter
  */
 data class ChebyshevMap<V : FloatingNumber<V>>(
     val a: V

@@ -22,8 +22,8 @@ import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.intermediate_symbol.castLinearMetaModelForSolver
-import fuookami.ospf.kotlin.core.intermediate_symbol.castQuadraticMetaModelForSolver
+import fuookami.ospf.kotlin.core.symbol.castLinearMetaModelForSolver
+import fuookami.ospf.kotlin.core.symbol.castQuadraticMetaModelForSolver
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.convertTo
 import fuookami.ospf.kotlin.core.solver.value.IntoValue

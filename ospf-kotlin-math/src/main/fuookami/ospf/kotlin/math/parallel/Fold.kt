@@ -64,6 +64,7 @@ internal fun <T> exResultOf(value: T, errors: List<Error<ErrorCode>>): ExRet<T> 
     }
 }
 
+/** 并行计算集合元素之和，使用 suspend 提取器提取值 / Compute sum of collection elements in parallel using suspend extractor */
 suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
     chunkSize: Int = 100,
@@ -88,6 +89,7 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     }
 }
 
+/** 并行计算集合元素之和（自动解析常量） / Compute sum of collection elements in parallel (auto-resolve constants) */
 suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendExtractor<U, T>
@@ -95,6 +97,7 @@ suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
     return sumOfParallelly(resolveArithmeticConstants<U>("Fold"), chunkSize, extractor)
 }
 
+/** 并行计算集合元素之和（带错误处理），遇到错误时立即中止 / Compute sum in parallel with error handling, aborts on first error */
 suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
     constants: ArithmeticConstants<U>,
     chunkSize: Int = 100,
@@ -131,6 +134,7 @@ suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
     }
 }
 
+/** 并行计算集合元素之和（带错误处理，自动解析常量） / Compute sum in parallel with error handling (auto-resolve constants) */
 suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendTryExtractor<U, T>
@@ -138,6 +142,7 @@ suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
     return trySumOfParallelly(resolveArithmeticConstants<U>("Fold"), chunkSize, extractor)
 }
 
+/** 并行计算集合元素之和（收集所有错误），继续计算并收集所有错误 / Compute sum in parallel collecting all errors, continues computation */
 suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
     constants: ArithmeticConstants<U>,
     chunkSize: Int = 100,
@@ -173,6 +178,7 @@ suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
     }
 }
 
+/** 并行计算集合元素之和（收集所有错误，自动解析常量） / Compute sum in parallel collecting all errors (auto-resolve constants) */
 suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendTryExtractor<U, T>

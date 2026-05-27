@@ -12,13 +12,9 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.math.operator.ExpP
-import fuookami.ospf.kotlin.math.operator.LogP
-import fuookami.ospf.kotlin.math.operator.PowFP
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import java.math.BigDecimal
+import java.math.RoundingMode
+import kotlin.math.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -28,9 +24,13 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import java.math.BigDecimal
-import java.math.RoundingMode
-import kotlin.math.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.math.operator.ExpP
+import fuookami.ospf.kotlin.math.operator.LogP
+import fuookami.ospf.kotlin.math.operator.PowFP
 
 /**
  * 将浮点数转换为有理数
@@ -915,7 +915,6 @@ data object FltXJsonSerializer : KSerializer<FltX> {
  */
 interface FltXInterface {
 
-
     /**
      * 转换为 BigDecimal 值
      * Convert to BigDecimal value
@@ -1415,9 +1414,3 @@ fun String.toFltX() = FltX(toBigDecimal())
  *         The FltX value or null
  */
 fun String.toFltXOrNull() = toBigDecimalOrNull()?.let { FltX(it) }
-
-
-
-
-
-

@@ -1,15 +1,26 @@
+/**
+ * 选择模式接口与实现
+ * Selection mode interface and implementations
+ */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.operator.pow
 import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.operator.pow
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
+/**
+ * 选择模式接口，定义如何从种群中选择个体数量。
+ * Selection mode interface, defining how to select the number of individuals from the population.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ */
 interface SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -18,6 +29,13 @@ interface SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V>
     ): UInt64
 }
 
+/**
+ * 静态选择模式，使用密度范围下界作为选择数量。
+ * Static selection mode, using density range lower bound as selection count.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ */
 class StaticSelectionMode<ObjValue, V>() : SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -28,6 +46,10 @@ class StaticSelectionMode<ObjValue, V>() : SelectionMode<ObjValue, V> where V : 
     }
 }
 
+/**
+ * 自适应动态选择模式，根据适应度和密度动态调整选择数量。
+ * Adaptive dynamic selection mode, dynamically adjusting selection count based on fitness and density.
+ */
 data object AdaptiveDynamicSelectionMode : SelectionMode<Flt64, Flt64> {
     override operator fun <T : Individual<Flt64, Flt64>> invoke(
         iteration: Iteration,
@@ -86,5 +108,3 @@ data object AdaptiveDynamicSelectionMode : SelectionMode<Flt64, Flt64> {
         }
     }
 }
-
-

@@ -6,10 +6,10 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.AndFunction
+import fuookami.ospf.kotlin.core.symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy

@@ -16,6 +16,8 @@ package fuookami.ospf.kotlin.math.symbol.expression.parser
  *
  * 支持的标识符：单个标识符或点分隔路径（如 a.b.c，
  * Supported identifiers: single identifiers or dot-separated paths (e.g., a.b.c)
+ *
+ * @param input 要分析的输入字符串 / Input string to tokenize
  */
 class Lexer(private val input: String) {
     private var position = 0
@@ -24,6 +26,8 @@ class Lexer(private val input: String) {
     /**
      * 分析整个输入，返回词法单元列行
      * Tokenize the entire input, returning a list of tokens
+     *
+     * @return 词法单元列表（包含 EOF） / List of tokens (including EOF)
      */
     fun tokenize(): List<Token> {
         val tokens = mutableListOf<Token>()
@@ -37,8 +41,10 @@ class Lexer(private val input: String) {
     }
 
     /**
-     * 获取下一个词法单兌
+     * 获取下一个词法单元
      * Get the next token
+     *
+     * @return 下一个词法单元 / Next token
      */
     fun nextToken(): Token {
         skipWhitespace()
@@ -276,7 +282,9 @@ class Lexer(private val input: String) {
 }
 
 /**
- * 扩展函数：字符串转词法单元列行
+ * 扩展函数：字符串转词法单元列表
  * Extension function: String to token list
+ *
+ * @return 词法单元列表 / List of tokens
  */
 fun String.tokenize(): List<Token> = Lexer(this).tokenize()

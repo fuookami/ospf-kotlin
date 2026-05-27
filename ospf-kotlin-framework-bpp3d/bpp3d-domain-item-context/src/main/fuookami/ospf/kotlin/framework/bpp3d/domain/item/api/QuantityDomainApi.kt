@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
@@ -17,7 +18,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer as LegacyBinLayer
@@ -26,6 +26,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material as Legacy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package as LegacyPackage
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape as LegacyPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3 as LegacyPlacement3
+
+
+
+
 
 data class Material<V : FloatingNumber<V>>(
     val no: MaterialNo,

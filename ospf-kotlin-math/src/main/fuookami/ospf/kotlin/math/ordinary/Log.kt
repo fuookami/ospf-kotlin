@@ -20,11 +20,10 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import java.math.RoundingMode
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import java.math.RoundingMode
 
 @Suppress("UNCHECKED_CAST")
 private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {
@@ -37,6 +36,7 @@ private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T
     }
 }
 
+/** 计算自然对数 ln(x)，使用泰勒级数展开 / Compute natural logarithm ln(x) using Taylor series expansion */
 fun <T : FloatingNumber<T>> ln(
     x: T,
     constants: FloatingNumberConstants<T>,
@@ -78,6 +78,7 @@ fun <T : FloatingNumber<T>> ln(
         ln(m, constants)!! + k * constants.lg2
     }
 }
+/** 计算自然对数 ln(x)（自动解析常量） / Compute natural logarithm ln(x) (auto-resolve constants) */
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
     digits: Int = x.constants.decimalDigits!!,
@@ -91,6 +92,7 @@ inline fun <reified T : FloatingNumber<T>> ln(
     )
 }
 
+/** 计算任意底数对数 log(x, base)，使用换底公式 / Compute arbitrary-base logarithm log(x, base) using change-of-base formula */
 fun <T : FloatingNumber<T>> log(
     x: T,
     base: T,
@@ -114,6 +116,7 @@ fun <T : FloatingNumber<T>> log(
         }
     } ?: constants.nan
 }
+/** 计算任意底数对数 log(x, base)（自动解析常量） / Compute arbitrary-base logarithm log(x, base) (auto-resolve constants) */
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,

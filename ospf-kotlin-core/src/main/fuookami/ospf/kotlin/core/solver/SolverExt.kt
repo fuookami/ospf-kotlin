@@ -1,40 +1,59 @@
+/**
+ * 求解器扩展函数
+ * Solver extension functions
+ */
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.iis.computeIIS
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.resolveInfeasibleUnifiedFields
-import fuookami.ospf.kotlin.core.solver.output.SolverOutput
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
-import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
-import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
-import fuookami.ospf.kotlin.core.model.intermediate.toModelBuildingStatus
+import java.util.concurrent.CompletableFuture
+import kotlin.time.TimeSource
+import kotlinx.coroutines.future.future
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import kotlinx.coroutines.future.future
-import java.util.concurrent.CompletableFuture
-import kotlin.time.TimeSource
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.toModelBuildingStatus
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.iis.IISConfig
+import fuookami.ospf.kotlin.core.solver.iis.computeIIS
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.solver.output.resolveInfeasibleUnifiedFields
+import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
+import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
+import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
 
+/**
+ * 使用默认选项求解线性模型。
+ * Solve a linear model with default options.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @return 求解结果 / Solve result
+ */
 suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
+/**
+ * 使用指定选项求解线性模型。
+ * Solve a linear model with specified options.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param options 求解选项 / Solve options
+ * @return 求解结果 / Solve result
+ */
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearTriadModelView,
     options: SolveOptions
@@ -59,10 +78,25 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
+/**
+ * 使用默认选项求解二次模型。
+ * Solve a quadratic model with default options.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @return 求解结果 / Solve result
+ */
 suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
+/**
+ * 使用指定选项求解二次模型。
+ * Solve a quadratic model with specified options.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param options 求解选项 / Solve options
+ * @return 求解结果 / Solve result
+ */
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticTetradModelView,
     options: SolveOptions
@@ -87,6 +121,15 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
     }
 }
 
+/**
+ * 使用选项和 IIS 配置求解线性模型，失败时计算不可行子系统。
+ * Solve a linear model with options and IIS configuration; compute IIS on infeasibility.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param options 求解选项 / Solve options
+ * @param iisConfig IIS 配置 / IIS configuration
+ * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
+ */
 @Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     model: LinearTriadModelView,
@@ -149,6 +192,15 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     }
 }
 
+/**
+ * 使用选项和 IIS 配置从解池求解线性模型。
+ * Solve a linear model from solution pool with options and IIS configuration.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param options 求解选项 / Solve options
+ * @param iisConfig IIS 配置 / IIS configuration
+ * @return 求解结果与解列表 / Solve result with solution list
+ */
 @Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearTriadModelView,
@@ -241,6 +293,15 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+/**
+ * 使用选项和 IIS 配置求解二次模型，失败时计算不可行子系统。
+ * Solve a quadratic model with options and IIS configuration; compute IIS on infeasibility.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param options 求解选项 / Solve options
+ * @param iisConfig IIS 配置 / IIS configuration
+ * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
+ */
 @Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticTetradModelView,
@@ -303,6 +364,15 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     }
 }
 
+/**
+ * 使用选项和 IIS 配置从解池求解二次模型。
+ * Solve a quadratic model from solution pool with options and IIS configuration.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param options 求解选项 / Solve options
+ * @param iisConfig IIS 配置 / IIS configuration
+ * @return 求解结果与解列表 / Solve result with solution list
+ */
 @Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticTetradModelView,
@@ -411,6 +481,15 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.k
     }
 }
 
+/**
+ * 异步求解线性模型。
+ * Asynchronously solve a linear model.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param options 求解选项 / Solve options
+ * @param callBack 可选的回调函数 / Optional callback function
+ * @return 异步求解结果 / Async solve result
+ */
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -423,6 +502,15 @@ fun AbstractLinearSolver.solveAsync(
     }
 }
 
+/**
+ * 异步求解二次模型。
+ * Asynchronously solve a quadratic model.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param options 求解选项 / Solve options
+ * @param callBack 可选的回调函数 / Optional callback function
+ * @return 异步求解结果 / Async solve result
+ */
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -434,4 +522,3 @@ fun AbstractQuadraticSolver.solveAsync(
         result
     }
 }
-

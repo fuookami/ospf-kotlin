@@ -41,10 +41,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * val c = einsum(a, b, "ij,jk->ik", Flt64.zero)
  * ```
  *
- * @param a 第一个张里
- * @param b 第二个张里
+ * @param a 第一个张量
+ * @param b 第二个张量
  * @param notation 爱因斯坦表示法字符串
- * @param zero 零倌
+ * @param zero 零值
  * @return 结果张量
  * @throws EinsumError 如果表示法不支持或参数不匹配
  */
@@ -54,7 +54,7 @@ fun <T : Ring<T>> einsum(
     notation: String,
     zero: T
 ): Any {
-    // 解析表示泌
+    // 解析表示法
     // Parse notation
     val parts = notation.split("->")
     if (parts.size != 2) {
@@ -74,7 +74,7 @@ fun <T : Ring<T>> einsum(
     val inputB = inputs[1].trim()
     val output = parts[1].trim()
 
-    // 根据模式分派到具体操佌
+    // 根据模式分派到具体操作
     // Dispatch to specific operations based on pattern
     return when {
         // 矩阵乘法: ij,jk->ik
@@ -157,7 +157,7 @@ fun <T : Ring<T>> einsum(
 // ============================================================================
 
 /**
- * Einstein DSL 上下斌
+ * Einstein DSL 上下文
  * Einstein DSL context
  *
  * 提供更流畅的 API 进行爱因斯坦求和操作。

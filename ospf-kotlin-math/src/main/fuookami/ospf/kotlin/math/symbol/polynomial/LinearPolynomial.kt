@@ -16,8 +16,6 @@ package fuookami.ospf.kotlin.math.symbol.polynomial
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -30,7 +28,6 @@ import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.toCanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-
 import kotlin.jvm.JvmName
 
 /**
@@ -51,15 +48,40 @@ data class LinearPolynomial<T : Ring<T>>(
     val monomials: List<LinearMonomial<T>> = emptyList(),
     val constant: T
 ) : ToLinearPolynomial<T>, ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T> {
+    /**
+     * 表达式类型分类
+     * Expression type category
+     *
+     * 线性多项式始终属于线性类型。
+     * Linear polynomials always belong to the Linear category.
+     */
     val category: Category
         get() = Linear
 
+    /**
+     * 转换为线性多项式（自身）
+     * Converts to a linear polynomial (self)
+     *
+     * @return 自身 / Self
+     */
     override fun toLinearPolynomial(): LinearPolynomial<T> = this
 
+    /**
+     * 转换为二次多项式
+     * Converts to a quadratic polynomial
+     *
+     * @return 二次多项式 / Quadratic polynomial
+     */
     override fun toQuadraticPolynomial(): QuadraticPolynomial<T> {
         return QuadraticPolynomial(monomials.map { it.toQuadraticMonomial() }, constant)
     }
 
+    /**
+     * 转换为规范多项式
+     * Converts to a canonical polynomial
+     *
+     * @return 规范多项式 / Canonical polynomial
+     */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
         return CanonicalPolynomial(monomials.map { it.toCanonicalMonomial() }, constant)
     }

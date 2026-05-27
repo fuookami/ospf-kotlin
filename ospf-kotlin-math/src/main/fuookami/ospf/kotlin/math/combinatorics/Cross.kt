@@ -21,12 +21,12 @@ package fuookami.ospf.kotlin.math.combinatorics
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.parallel.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.apache.logging.log4j.kotlin.*
 
+/** 计算多个集合的笛卡尔积 / Calculate Cartesian product of multiple sets */
 fun <T> cross(
     input: List<List<T>>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -65,6 +65,7 @@ fun <T> cross(
     return result
 }
 
+/** 计算笛卡尔积的元素总数 / Calculate total count of Cartesian product elements */
 fun <T> crossCount(input: List<List<T>>): Long {
     if (input.isEmpty()) {
         return 0L
@@ -79,6 +80,7 @@ fun <T> crossCount(input: List<List<T>>): Long {
     return value
 }
 
+/** 惰性序列生成笛卡尔积 / Lazy sequence generation of Cartesian product */
 fun <T> crossSequence(input: List<List<T>>): Sequence<List<T>> = sequence {
     if (input.isEmpty() || input.any { it.isEmpty() }) {
         return@sequence
@@ -101,10 +103,12 @@ fun <T> crossSequence(input: List<List<T>>): Sequence<List<T>> = sequence {
     }
 }
 
+/** 计算两个集合的笛卡尔积，返回 Pair 列表 / Calculate Cartesian product of two sets, returning list of Pairs */
 fun <A, B> cross2(lhs: List<A>, rhs: List<B>): List<Pair<A, B>> {
     return lhs.flatMap { l -> rhs.map { r -> l to r } }
 }
 
+/** 惰性序列生成两个集合的笛卡尔积 / Lazy sequence generation of Cartesian product of two sets */
 fun <A, B> cross2Sequence(lhs: List<A>, rhs: List<B>): Sequence<Pair<A, B>> = sequence {
     for (l in lhs) {
         for (r in rhs) {
@@ -113,6 +117,7 @@ fun <A, B> cross2Sequence(lhs: List<A>, rhs: List<B>): Sequence<Pair<A, B>> = se
     }
 }
 
+/** 计算三个集合的笛卡尔积，返回 Triple 列表 / Calculate Cartesian product of three sets, returning list of Triples */
 fun <A, B, C> cross3(a: List<A>, b: List<B>, c: List<C>): List<Triple<A, B, C>> {
     return a.flatMap { x ->
         b.flatMap { y ->
@@ -121,6 +126,7 @@ fun <A, B, C> cross3(a: List<A>, b: List<B>, c: List<C>): List<Triple<A, B, C>> 
     }
 }
 
+/** 惰性序列生成三个集合的笛卡尔积 / Lazy sequence generation of Cartesian product of three sets */
 fun <A, B, C> cross3Sequence(a: List<A>, b: List<B>, c: List<C>): Sequence<Triple<A, B, C>> = sequence {
     for (x in a) {
         for (y in b) {
@@ -131,6 +137,7 @@ fun <A, B, C> cross3Sequence(a: List<A>, b: List<B>, c: List<C>): Sequence<Tripl
     }
 }
 
+/** 异步生成笛卡尔积，通过协程通道返回 / Async Cartesian product generation via coroutine channel */
 fun <T> crossAsync(
     input: List<List<T>>,
     scope: CoroutineScope = combinatoricsAsyncScope,
@@ -173,6 +180,3 @@ fun <T> crossAsync(
     }
     return ChannelGuard(promise)
 }
-
-
-

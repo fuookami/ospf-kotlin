@@ -1,14 +1,31 @@
+/**
+ * 二维包围盒
+ * 2D Bounding Box
+ *
+ * 定义二维几何空间中的包围盒，由位置 (x, y) 和投影形状定义。
+ * Defines bounding box in 2D geometric space, defined by position (x, y) and projection shape.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 二维包围盒，由位置 (x, y) 和形状定义。
+ * 2D bounding box defined by position (x, y) and shape.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property x X 坐标 / X coordinate
+ * @property y Y 坐标 / Y coordinate
+ * @property shape 包围的二维形状 / The enclosed 2D shape
+ */
 data class Box2<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
     val shape: Shape2<V>
 ) {
     companion object {
+        /** 在原点处创建包围盒 / Create a bounding box at the origin */
         fun <V : FloatingNumber<V>> atOrigin(shape: Shape2<V>): Box2<V> {
             return when (shape) {
                 is Rectangle2 -> Box2(
@@ -29,19 +46,23 @@ data class Box2<V : FloatingNumber<V>>(
         }
     }
 
+    /** 宽度 / Width */
     val width: V
         get() = when (shape) {
             is Rectangle2 -> shape.width
             is Circle2 -> shape.diameter
         }
 
+    /** 高度 / Height */
     val height: V
         get() = when (shape) {
             is Rectangle2 -> shape.height
             is Circle2 -> shape.diameter
         }
 
+    /** X 轴最大值 / Maximum X value */
     val maxX: V get() = quantityPlus(x, width)
+    /** Y 轴最大值 / Maximum Y value */
     val maxY: V get() = quantityPlus(y, height)
 
     private val centerX: V
@@ -56,6 +77,7 @@ data class Box2<V : FloatingNumber<V>>(
             is Circle2 -> quantityPlus(y, s.radius)
         }
 
+    /** 判断指定点是否在包围盒内 / Check whether a point is inside the bounding box */
     fun contains(
         x: V,
         y: V,
@@ -84,6 +106,7 @@ data class Box2<V : FloatingNumber<V>>(
         }
     }
 
+    /** 判断两个包围盒是否重叠 / Check whether two bounding boxes overlap */
     fun overlapped(rhs: Box2<V>): Boolean {
         return when (val lhsShape = shape) {
             is Rectangle2 -> when (val rhsShape = rhs.shape) {
@@ -98,6 +121,7 @@ data class Box2<V : FloatingNumber<V>>(
         }
     }
 
+    /** 计算两个包围盒的交集，无交集返回 null / Compute intersection of two boxes, returns null if no overlap */
     fun intersect(rhs: Box2<V>): Box2<V>? {
         val minX = quantityMax(x, rhs.x, "x")
         val maxX = quantityMin(this.maxX, rhs.maxX, "x")
@@ -159,5 +183,5 @@ data class Box2<V : FloatingNumber<V>>(
     }
 }
 
+/** @see Box2 */
 typealias AxisAlignedBox2<V> = Box2<V>
-

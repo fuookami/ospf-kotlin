@@ -23,12 +23,12 @@ class LinearFunctionBuildOnlyStructureTest {
             monomials = listOf(LinearMonomial(Flt64.one, x)),
             constant = Flt64.zero
         )
-        val abs = fuookami.ospf.kotlin.core.intermediate_symbol.function.AbsFunction(
+        val abs = fuookami.ospf.kotlin.core.symbol.function.AbsFunction(
             polynomial = xPoly,
             converter = flt64TestConverter,
             name = "example_abs_build"
         )
-        val slackRange = fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction(
+        val slackRange = fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction(
             x = xPoly,
             lb = LinearPolynomial(emptyList(), -Flt64.two),
             ub = LinearPolynomial(emptyList(), Flt64.two),

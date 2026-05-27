@@ -2,11 +2,11 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingDemand
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingPlan
@@ -17,6 +17,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPacke
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPackingSolverExecutor
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BLLocalLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BLGlobalLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BlockLayerGenerator
@@ -29,6 +31,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PileLayerGen
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 enum class MaterialPackingMixedDemandPolicy {
     Reject,
@@ -39,8 +42,10 @@ enum class MaterialPackingMixedDemandPolicy {
 data class ColumnGenerationApplicationRequest(
     val itemDemands: List<Pair<Item, UInt64>>,
     val materialAmountDemands: List<Pair<Material, UInt64>> = emptyList(),
-    val materialWeightDemands: List<Pair<Material, LegacyQuantity>> = emptyList(),
+    val materialWeightDemands: List<Pair<Material, Quantity<Flt64>>> = emptyList(),
     val materialPackingCandidates: List<MaterialPackingProgramCandidate> = emptyList(),
+    val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate, UInt64>> = emptyList(),
+    val programMaterialCatalog: Map<MaterialKey, Material> = emptyMap(),
     val materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     val demandEntries: List<Bpp3dDemandEntry>? = null,
@@ -81,7 +86,8 @@ class ColumnGenerationApplicationService(
         solutionAnalyzer: ColumnGenerationSolutionAnalyzer<Flt64>? = null
     ): ColumnGenerationApplicationResponse {
         val hasMaterialDemands = request.materialAmountDemands.isNotEmpty() || request.materialWeightDemands.isNotEmpty()
-        val materialPackingPlan = if (hasMaterialDemands) {
+        val shouldRunMaterialPacking = hasMaterialDemands && request.materialPackingCandidates.isNotEmpty()
+        val materialPackingPlan = if (shouldRunMaterialPacking) {
             val materialDemands = ArrayList<MaterialPackingDemand>()
             materialDemands.addAll(
                 request.materialAmountDemands.map { (material, amount) ->
@@ -118,14 +124,36 @@ class ColumnGenerationApplicationService(
         val packagedItemDemands = materialPackingPlan?.packagedItems?.map { packagedItem ->
             Pair(packagedItem.item as Item, packagedItem.amount)
         } ?: emptyList()
+        val materialCatalog = buildProgramMaterialCatalog(request)
+        val programCandidateItemDemands = request.layerGenerationProgramDemands.mapIndexed { index, entry ->
+            val candidate = entry.first
+            val amount = entry.second
+            Pair(
+                candidate.toLayerGenerationItem(
+                    sequence = index + 1,
+                    materialCatalog = materialCatalog
+                ),
+                amount
+            )
+        }
+        val baseItemDemands = mergeItemDemands(
+            base = request.itemDemands,
+            extra = programCandidateItemDemands
+        )
         val resolvedItemDemands = when {
-            packagedItemDemands.isEmpty() -> request.itemDemands
-            request.itemDemands.isEmpty() -> packagedItemDemands
+            packagedItemDemands.isEmpty() -> baseItemDemands
+            baseItemDemands.isEmpty() -> packagedItemDemands
             request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.ReplaceItemDemands -> packagedItemDemands
-            request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.Merge -> mergeItemDemands(request.itemDemands, packagedItemDemands)
+            request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.Merge -> mergeItemDemands(baseItemDemands, packagedItemDemands)
             else -> throw IllegalArgumentException("both itemDemands and materialDemands are present, set mixedDemandPolicy explicitly.")
         }
-        val entries = request.demandEntries ?: demandEntriesFromItems(resolvedItemDemands)
+        val entries = request.demandEntries ?: if (hasMaterialDemands && !shouldRunMaterialPacking) {
+            demandEntriesFromItems(resolvedItemDemands) +
+                    demandEntriesFromMaterialAmounts(request.materialAmountDemands) +
+                    demandEntriesFromMaterialWeights(request.materialWeightDemands)
+        } else {
+            demandEntriesFromItems(resolvedItemDemands)
+        }
         val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
             solver = solver,
             itemDemands = resolvedItemDemands,
@@ -179,5 +207,21 @@ class ColumnGenerationApplicationService(
             merged[item] = (merged[item] ?: UInt64.zero) + amount
         }
         return merged.toList()
+    }
+
+    private fun buildProgramMaterialCatalog(
+        request: ColumnGenerationApplicationRequest
+    ): Map<MaterialKey, Material> {
+        val catalog = LinkedHashMap<MaterialKey, Material>()
+        for ((material, _) in request.materialAmountDemands) {
+            catalog.putIfAbsent(material.key, material)
+        }
+        for ((material, _) in request.materialWeightDemands) {
+            catalog.putIfAbsent(material.key, material)
+        }
+        for ((key, material) in request.programMaterialCatalog) {
+            catalog.putIfAbsent(key, material)
+        }
+        return catalog
     }
 }

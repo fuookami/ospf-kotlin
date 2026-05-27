@@ -1,26 +1,34 @@
+/**
+ * 元约束组与数学约束
+ * Meta-constraint group and math constraints
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
+/**
+ * 元约束组接口，提供在 MetaModel 上注册和查询约束组的能力。
+ * Meta-constraint group interface providing constraint group registration and querying on MetaModel.
+ */
 interface MetaConstraintGroup {
     val lazy: Boolean get() = false
     val name: String
@@ -226,6 +234,10 @@ fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathCo
 /**
  * Common interface for math-based constraints.
  */
+/**
+ * 数学约束通用接口。
+ * Common interface for math-based constraints.
+ */
 interface MathConstraint {
     val group: MetaConstraintGroup?
     val lazy: Boolean
@@ -240,7 +252,8 @@ interface MathConstraint {
 }
 
 /**
- * LinearInequalityConstraint - Constraint using math LinearInequality<V>
+ * 线性不等式约束，使用数学 LinearInequality<V>。
+ * Linear inequality constraint using math LinearInequality<V>.
  */
 data class LinearInequalityConstraint<V>(
     val inequality: LinearInequality<V>,
@@ -275,7 +288,8 @@ data class LinearInequalityConstraint<V>(
 }
 
 /**
- * QuadraticInequalityConstraint - Constraint using math QuadraticInequalityOf<V>
+ * 二次不等式约束，使用数学 QuadraticInequalityOf<V>。
+ * Quadratic inequality constraint using math QuadraticInequalityOf<V>.
  */
 data class QuadraticInequalityConstraint<V>(
     val inequality: QuadraticInequalityOf<V>,
@@ -311,12 +325,9 @@ data class QuadraticInequalityConstraint<V>(
 
 // ========== NEW FlattenData-based SubObject Types ==========
 
-
 /**
- * QuadraticFlattenSubObject - SubObject using QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API)
- *
- * This type uses QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> directly for objective functions,
- * avoiding dependency on frontend/expression types.
+ * 二次展平子目标，直接使用 QuadraticFlattenData<V> 作为目标函数。
+ * Quadratic flatten sub-objective using QuadraticFlattenData<V> directly for objective functions.
  */
 data class QuadraticFlattenSubObject<V>(
     val category: ObjectCategory,
@@ -324,6 +335,3 @@ data class QuadraticFlattenSubObject<V>(
     val name: String = "",
     val displayName: String? = null
 ) where V : RealNumber<V>, V : NumberField<V>
-
-
-

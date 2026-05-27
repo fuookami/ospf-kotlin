@@ -1,21 +1,36 @@
+/**
+ * 变量组合项及其多维数组视图，支持各数值类型的维度化变量组合。
+ * Variable combination items and their multi-array views, supporting dimensional variable combinations for all numeric types.
+ */
 package fuookami.ospf.kotlin.core.variable
 
+import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
+/**
+ * 组合变量项的父级接口，提供维度、标识符和形状信息。
+ * Parent interface for combination variable items, providing dimension, identifier, and shape information.
+ */
 interface CombinationVariableItemParent<S : Shape> {
     val dimension: Int
     val identifier: UInt64
     val shape: Shape
 }
 
+/**
+ * 组合变量中的单个变量项，通过父级组合获取维度和标识符。
+ * Individual variable item within a combination, obtaining dimension and identifier from the parent combination.
+ *
+ * @property parent 父级组合变量 / Parent combination variable
+ * @property index 在组合中的索引 / Index within the combination
+ */
 class CombinationVariableItem<T, Type : VariableType<T>>(
     private val parent: CombinationVariableItemParent<*>,
     type: Type,
@@ -28,6 +43,13 @@ class CombinationVariableItem<T, Type : VariableType<T>>(
     override val vectorView by lazy { parent.shape.vector(index) }
 }
 
+/**
+ * 变量组合的密封基类，将多个 CombinationVariableItem 组织为多维数组。
+ * Sealed base class for variable combinations, organizing multiple CombinationVariableItems as a multi-array.
+ *
+ * @property type 变量类型 / Variable type
+ * @property name 组合名称 / Combination name
+ */
 sealed class VariableCombination<T, Type : VariableType<T>, S : Shape>(
     val type: Type,
     val name: String,
@@ -45,6 +67,13 @@ sealed class VariableCombination<T, Type : VariableType<T>, S : Shape>(
     }
 }
 
+/**
+ * 带物理单位的变量组合密封基类。
+ * Sealed base class for variable combinations with physical units.
+ *
+ * @property type 变量类型 / Variable type
+ * @property name 组合名称 / Combination name
+ */
 sealed class QuantityVariableCombination<T, Type : VariableType<T>, S : Shape>(
     val type: Type,
     val name: String,

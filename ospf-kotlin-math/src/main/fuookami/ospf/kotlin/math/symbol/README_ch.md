@@ -40,13 +40,16 @@ interface Symbol {
 ### 不等式
 
 ```kotlin
-data class LinearInequality<T>(
-    val polynomial: LinearPolynomial<T>,
-    val comparison: Comparison  // Lt, Le, Eq, Ne, Ge, Gt
+data class LinearInequality<T : Ring<T>>(
+    val lhs: LinearPolynomial<T>,
+    val rhs: LinearPolynomial<T>,
+    val comparison: Comparison,  // LT, LE, EQ, NE, GE, GT
+    val name: String = "",
+    val displayName: String = ""
 )
 
-data class QuadraticInequality<T>(...)
-data class CanonicalInequality<T>(...)
+data class QuadraticInequality<T : Ring<T>>(...)
+data class CanonicalInequality<T : Ring<T>>(...)
 ```
 
 ## 使用示例
@@ -141,19 +144,19 @@ import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 val symbolOf = ::symbolOfSerializedIdentifier
 
 // 解析线性多项式
-val lp = parseLinear("2*x + 3*y + 1", symbolOf)
+val lp = parseLinearTypedOrNull("2*x + 3*y + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 
 // 解析二次多项式
-val qp = parseQuadratic("x^2 + 2*x + 1", symbolOf)
+val qp = parseQuadraticTypedOrNull("x^2 + 2*x + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 
-// 解析规范不等式
-val ineq = parseCanonicalInequality("x^2 + y^2 <= 1", symbolOf)
+// 解析线性不等式
+val ineq = parseLinearInequalityTypedOrNull("2*x + 3*y <= 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 ```
 
 ### 序列化
 
 ```kotlin
-import fuookami.ospf.kotlin.math.symbol.serde.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 
 // 转 JSON
 val json = canonical.toJsonString()
@@ -164,7 +167,6 @@ val restored = canonicalPolynomialFromJson(json)
 // 不等式序列化
 val ineqJson = linearInequality.toJsonString()
 val restoredIneq = linearInequalityFromJson(ineqJson)
-
 ```
 
 ### 矩阵形式
@@ -206,16 +208,16 @@ val equations = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
 }
 
 // 沿轴 0 求和：结果是 1D 数组（形状 [4])
-val sum0 = equations.sumAxis(0, LinearPolynomial.fromConstant(Flt64.zero))
+val sum0 = equations.sumAxis(0, LinearPolynomial(emptyList(), Flt64.zero))
 
 // 沿轴 1 求和：结果是 1D 数组（形状 [3])
-val sum1 = equations.sumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+val sum1 = equations.sumAxis(1, LinearPolynomial(emptyList(), Flt64.zero))
 
 // 全局求和：结果是单个多项式
-val total = equations.sumAll(LinearPolynomial.fromConstant(Flt64.zero))
+val total = equations.sumAll(LinearPolynomial(emptyList(), Flt64.zero))
 
 // 沿轴 1 累积求和
-val cumsum = equations.cumsumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+val cumsum = equations.cumsumAxis(1, LinearPolynomial(emptyList(), Flt64.zero))
 ```
 
 #### 使用 Mutable 多项式的 FastSum 模式
@@ -277,7 +279,7 @@ val quadraticEquations = MultiArray.newBy(Shape2(2, 3)) { i, _ ->
 // 沿轴 0 求和
 val sumQ = quadraticEquations.sumAxis(
     0,
-    QuadraticPolynomial.fromConstant(Flt64.zero)
+    QuadraticPolynomial(emptyList(), Flt64.zero)
 )
 ```
 
@@ -290,8 +292,8 @@ val sumQ = quadraticEquations.sumAxis(
 | `addAssignAndCombine` | `operation/MutableCombineOps.kt` | 加法 + 合并一步完成 |
 | `minusAssignAndCombine` | `operation/MutableCombineOps.kt` | 减法 + 合并一步完成 |
 | `evaluate` | `operation/Evaluate.kt` | 计算值 |
-| `compileEval` | `generic/CompileGeneric.kt` | 编译为函数 |
-| `compileGradient` | `generic/CompileGeneric.kt` | 编译梯度 |
+| `compileEval` | `operation/Compile.kt`（Flt64 重载）、`operation/CompileOps.kt`（泛型 Ring） | 编译为函数 |
+| `compileGradient` | `operation/Compile.kt`（Flt64 重载）、`operation/CompileOps.kt`（泛型 Ring） | 编译梯度 |
 | `differentiate` | `operation/Differentiate.kt` | 符号求导 |
 | `integrate` | `operation/IntegrateOps.kt` | 符号积分 |
 | `factorize` | `operation/Factorization.kt` | 二次因式分解 |
@@ -299,15 +301,6 @@ val sumQ = quadraticEquations.sumAxis(
 | `toFlt64MatrixForm` | `operation/Flt64MatrixForm.kt` | Flt64 矩阵形式提取 |
 | `toLatex` | `operation/Latex.kt` | LaTeX 渲染 |
 | `convert` | `operation/Convert.kt` | 类型转换 |
-
-### MultiArray FastSum 操作
-
-| 操作 | 文件 | 描述 |
-|------|------|------|
-| `sumAll` | `multi_array/FastSum.kt` | 全局求和 |
-| `sumAxis` | `multi_array/FastSum.kt` | 沿单轴求和 |
-| `sumAxes` | `multi_array/FastSum.kt` | 沿多轴求和 |
-| `cumsumAxis` | `multi_array/FastSum.kt` | 沿轴累积求和 |
 
 ## 性能建议
 

@@ -1,8 +1,17 @@
+/**
+ * Token 数据结构，持有变量求解结果的双视图访问。
+ * Token data structure holding dual-view access to variable solve results.
+ *
+ * 内部存储为 Flt64?（求解器后端始终产出 Flt64），公开 API 通过 IntoValue<V> 转换器
+ * 提供类型安全的 V? 视图，同时保留 resultFlt64 供求解器内部使用。
+ * Internally stores Flt64? (solver backends always produce Flt64); the public API
+ * provides a type-safe V? view via IntoValue<V> converter while retaining resultFlt64
+ * for solver-internal use.
+ */
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.VariableCombination
-import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import kotlin.random.Random
+import kotlin.random.nextULong
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -10,8 +19,9 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import kotlin.random.Random
-import kotlin.random.nextULong
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.VariableCombination
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /**
  * Generic Token<V> - V is a real type parameter with dual-view access.

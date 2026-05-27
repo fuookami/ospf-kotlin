@@ -2,8 +2,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor

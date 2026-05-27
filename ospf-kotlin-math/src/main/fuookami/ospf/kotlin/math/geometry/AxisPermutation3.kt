@@ -1,3 +1,10 @@
+/**
+ * 三维轴置换
+ * 3D Axis Permutation
+ *
+ * 定义三维几何空间中的轴置换，为纯几何概念，支持宽高深轴的交换与映射。
+ * Defines axis permutation in 3D geometric space, a pure geometry concept supporting width/height/depth axis swapping and mapping.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -18,14 +25,21 @@ data class AxisPermutation3(
     }
 
     companion object {
+        /** 恒等置换 / Identity permutation */
         val XYZ = AxisPermutation3(Axis3.X, Axis3.Y, Axis3.Z)
+        /** 完全反转 / Full reversal */
         val ZYX = AxisPermutation3(Axis3.Z, Axis3.Y, Axis3.X)
+        /** Y-X-Z 置换 / Y-X-Z permutation */
         val YXZ = AxisPermutation3(Axis3.Y, Axis3.X, Axis3.Z)
+        /** Z-X-Y 置换 / Z-X-Y permutation */
         val ZXY = AxisPermutation3(Axis3.Z, Axis3.X, Axis3.Y)
+        /** X-Z-Y 置换 / X-Z-Y permutation */
         val XZY = AxisPermutation3(Axis3.X, Axis3.Z, Axis3.Y)
+        /** Y-Z-X 置换 / Y-Z-X permutation */
         val YZX = AxisPermutation3(Axis3.Y, Axis3.Z, Axis3.X)
     }
 
+    /** 按轴置换成方体的宽、高、深 / Permute the width, height, and depth of a cuboid by axes */
     fun <V : FloatingNumber<V>> apply(cuboid: Cuboid3<V>): Cuboid3<V> {
         return Cuboid3(
             width = cuboid.along(widthAxis),
@@ -34,10 +48,12 @@ data class AxisPermutation3(
         )
     }
 
+    /** 按轴置换圆柱的轴方向 / Permute the axis direction of a cylinder */
     fun <V : FloatingNumber<V>> apply(cylinder: Cylinder3<V>): Cylinder3<V> {
         return cylinder.copy(axis = mapAxis(cylinder.axis))
     }
 
+    /** 将原始轴映射到置换后的标准轴 / Map an original axis to its permuted standard axis */
     fun mapAxis(axis: Axis3): Axis3 {
         return if (axis == widthAxis) {
             Axis3.X
@@ -50,4 +66,3 @@ data class AxisPermutation3(
         }
     }
 }
-

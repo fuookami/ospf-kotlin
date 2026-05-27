@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField

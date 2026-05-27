@@ -139,6 +139,8 @@ sealed interface BooleanExpression {
  *
  * 表示布尔常量值，支持三值逻辑（True/False/Unknown）。
  * Represents a boolean constant value, supporting three-valued logic (True/False/Unknown).
+ *
+ * @property value 三值逻辑的值 / Three-valued logic value
  */
 data class BooleanConstant(
     val value: Trivalent
@@ -171,8 +173,25 @@ data class BooleanConstant(
     }
 
     companion object {
+        /**
+         * 创建 true 常量 / Create true constant
+         *
+         * @return true 布尔常量 / True boolean constant
+         */
         fun true_(): BooleanConstant = BooleanConstant(Trivalent.True)
+
+        /**
+         * 创建 false 常量 / Create false constant
+         *
+         * @return false 布尔常量 / False boolean constant
+         */
         fun false_(): BooleanConstant = BooleanConstant(Trivalent.False)
+
+        /**
+         * 创建 unknown 常量 / Create unknown constant
+         *
+         * @return unknown 布尔常量 / Unknown boolean constant
+         */
         fun unknown(): BooleanConstant = BooleanConstant(Trivalent.Unknown)
     }
 }
@@ -183,6 +202,10 @@ data class BooleanConstant(
  *
  * 表示两个标量值之间的比较操作。
  * Represents a comparison operation between two scalar values.
+ *
+ * @property operator 比较操作符 / Comparison operator
+ * @property left 左操作数（标量表达式） / Left operand (scalar expression)
+ * @property right 右操作数（标量表达式） / Right operand (scalar expression)
  */
 data class Comparison<T>(
     val operator: ComparisonOperator,
@@ -202,6 +225,10 @@ data class Comparison<T>(
  *
  * 判断值是否在候选集合中。
  * Checks if a value is in a candidate set.
+ *
+ * @property value 要检查的标量表达式 / Scalar expression to check
+ * @property candidates 候选值列表 / List of candidate values
+ * @property negated 是否取反（not in） / Whether negated (not in)
  */
 data class InExpression<T>(
     val value: ScalarExpression<T>,
@@ -230,6 +257,11 @@ data class InExpression<T>(
  *
  * 判断值是否匹配指定模式。
  * Checks if a value matches a specified pattern.
+ *
+ * @property value 要匹配的标量表达式 / Scalar expression to match
+ * @property pattern 模式标量表达式 / Pattern scalar expression
+ * @property mode 匹配模式 / Match mode
+ * @property negated 是否取反 / Whether negated
  */
 data class PatternMatch<T>(
     val value: ScalarExpression<T>,
@@ -253,6 +285,10 @@ data class PatternMatch<T>(
  *
  * 判断属性路径是否为空值或非空值。
  * Checks if a property path is null or not null.
+ *
+ * @property path 属性路径 / Property path
+ * @property type 空值检查类型 / Null check type
+ * @property symbol 路径符号，默认从 path 转换 / Path symbol, defaults to conversion from path
  */
 data class NullCheck(
     val path: PropertyPath,
@@ -283,6 +319,8 @@ data class NullCheck(
  *
  * 表示多个布尔表达式的逻辑与组合。
  * Represents logical AND combination of multiple boolean expressions.
+ *
+ * @property operands 操作数列表（至少一个） / List of operands (at least one)
  */
 data class AndExpression(
     val operands: List<BooleanExpression>
@@ -303,6 +341,8 @@ data class AndExpression(
  *
  * 表示多个布尔表达式的逻辑或组合。
  * Represents logical OR combination of multiple boolean expressions.
+ *
+ * @property operands 操作数列表（至少一个） / List of operands (at least one)
  */
 data class OrExpression(
     val operands: List<BooleanExpression>
@@ -323,6 +363,8 @@ data class OrExpression(
  *
  * 表示布尔表达式的逻辑非。
  * Represents logical NOT of a boolean expression.
+ *
+ * @property operand 被取反的布尔表达式 / Boolean expression to negate
  */
 data class NotExpression(
     val operand: BooleanExpression
@@ -339,6 +381,9 @@ data class NotExpression(
  *
  * 表示自定义布尔表达式，用于扩展。
  * Represents a custom boolean expression for extension.
+ *
+ * @property value 自定义值 / Custom value
+ * @property description 可选描述 / Optional description
  */
 data class BooleanCustom(
     val value: Any,
@@ -361,6 +406,9 @@ object BooleanExpressionFactory {
     /**
      * 创建布尔常量
      * Create boolean constant
+     *
+     * @param value 三值逻辑值 / Three-valued logic value
+     * @return 布尔常量 / Boolean constant
      */
     fun constant(value: Trivalent): BooleanConstant = BooleanConstant(value)
 
@@ -385,6 +433,11 @@ object BooleanExpressionFactory {
     /**
      * 创建比较表达弌
      * Create comparison expression
+     *
+     * @param operator 比较操作符 / Comparison operator
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 比较表达式 / Comparison expression
      */
     fun <T> comparison(
         operator: ComparisonOperator,
@@ -395,6 +448,10 @@ object BooleanExpressionFactory {
     /**
      * 创建等于表达弌
      * Create equals expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 等于比较表达式 / Equal comparison expression
      */
     fun <T> eq(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Eq, left, right)
@@ -402,6 +459,10 @@ object BooleanExpressionFactory {
     /**
      * 创建不等于表达式
      * Create not equals expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 不等于比较表达式 / Not equal comparison expression
      */
     fun <T> ne(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Ne, left, right)
@@ -409,6 +470,10 @@ object BooleanExpressionFactory {
     /**
      * 创建小于表达弌
      * Create less than expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 小于比较表达式 / Less than comparison expression
      */
     fun <T> lt(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Lt, left, right)
@@ -416,6 +481,10 @@ object BooleanExpressionFactory {
     /**
      * 创建小于等于表达弌
      * Create less than or equal expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 小于等于比较表达式 / Less than or equal comparison expression
      */
     fun <T> le(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Le, left, right)
@@ -423,6 +492,10 @@ object BooleanExpressionFactory {
     /**
      * 创建大于表达弌
      * Create greater than expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 大于比较表达式 / Greater than comparison expression
      */
     fun <T> gt(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Gt, left, right)
@@ -430,6 +503,10 @@ object BooleanExpressionFactory {
     /**
      * 创建大于等于表达弌
      * Create greater than or equal expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 大于等于比较表达式 / Greater than or equal comparison expression
      */
     fun <T> ge(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Ge, left, right)
@@ -437,6 +514,11 @@ object BooleanExpressionFactory {
     /**
      * 创建 In 表达弌
      * Create In expression
+     *
+     * @param value 要检查的表达式 / Expression to check
+     * @param candidates 候选值列表 / List of candidate values
+     * @param negated 是否取反 / Whether negated
+     * @return In 表达式 / In expression
      */
     fun <T> inExpr(
         value: ScalarExpression<T>,
@@ -447,6 +529,10 @@ object BooleanExpressionFactory {
     /**
      * 创建 Not In 表达弌
      * Create Not In expression
+     *
+     * @param value 要检查的表达式 / Expression to check
+     * @param candidates 候选值列表 / List of candidate values
+     * @return Not In 表达式 / Not In expression
      */
     fun <T> notIn(
         value: ScalarExpression<T>,
@@ -456,6 +542,12 @@ object BooleanExpressionFactory {
     /**
      * 创建模式匹配表达弌
      * Create pattern match expression
+     *
+     * @param value 要匹配的表达式 / Expression to match
+     * @param pattern 模式表达式 / Pattern expression
+     * @param mode 匹配模式 / Match mode
+     * @param negated 是否取反 / Whether negated
+     * @return 模式匹配表达式 / Pattern match expression
      */
     fun <T> patternMatch(
         value: ScalarExpression<T>,
@@ -467,24 +559,38 @@ object BooleanExpressionFactory {
     /**
      * 创建空值检查表达式
      * Create null check expression
+     *
+     * @param path 属性路径 / Property path
+     * @return 空值检查表达式 / Null check expression
      */
     fun isNull(path: PropertyPath): NullCheck = NullCheck(path, NullCheckType.IsNull)
 
     /**
      * 创建非空检查表达式
      * Create not null check expression
+     *
+     * @param path 属性路径 / Property path
+     * @return 非空检查表达式 / Not null check expression
      */
     fun isNotNull(path: PropertyPath): NullCheck = NullCheck(path, NullCheckType.IsNotNull)
 
     /**
      * 创建逻辑与表达式
      * Create logical AND expression
+     *
+     * @param operands 操作数列表 / List of operands
+     * @return 逻辑与表达式 / Logical AND expression
      */
     fun and(operands: List<BooleanExpression>): AndExpression = AndExpression(operands)
 
     /**
      * 创建逻辑与表达式（可变参数）
      * Create logical AND expression (vararg)
+     *
+     * @param first 第一个操作数 / First operand
+     * @param second 第二个操作数 / Second operand
+     * @param rest 其余操作数 / Remaining operands
+     * @return 逻辑与表达式 / Logical AND expression
      */
     fun and(first: BooleanExpression, second: BooleanExpression, vararg rest: BooleanExpression): AndExpression =
         AndExpression(listOf(first, second) + rest.toList())
@@ -492,12 +598,20 @@ object BooleanExpressionFactory {
     /**
      * 创建逻辑或表达式
      * Create logical OR expression
+     *
+     * @param operands 操作数列表 / List of operands
+     * @return 逻辑或表达式 / Logical OR expression
      */
     fun or(operands: List<BooleanExpression>): OrExpression = OrExpression(operands)
 
     /**
      * 创建逻辑或表达式（可变参数）
      * Create logical OR expression (vararg)
+     *
+     * @param first 第一个操作数 / First operand
+     * @param second 第二个操作数 / Second operand
+     * @param rest 其余操作数 / Remaining operands
+     * @return 逻辑或表达式 / Logical OR expression
      */
     fun or(first: BooleanExpression, second: BooleanExpression, vararg rest: BooleanExpression): OrExpression =
         OrExpression(listOf(first, second) + rest.toList())
@@ -505,6 +619,9 @@ object BooleanExpressionFactory {
     /**
      * 创建逻辑非表达式
      * Create logical NOT expression
+     *
+     * @param operand 被取反的表达式 / Expression to negate
+     * @return 逻辑非表达式 / Logical NOT expression
      */
     fun not(operand: BooleanExpression): NotExpression = NotExpression(operand)
 }

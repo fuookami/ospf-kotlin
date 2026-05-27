@@ -28,12 +28,12 @@ class ConditionalFunctionBuildOnlyStructureTest {
             constant = Flt64.zero
         )
 
-        val ifFunction = fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction(
+        val ifFunction = fuookami.ospf.kotlin.core.symbol.function.IfFunction(
             condition = xPoly,
             converter = flt64TestConverter,
             name = "example_if_build"
         )
-        val oneOfFunction = fuookami.ospf.kotlin.core.intermediate_symbol.function.OneOfFunction(
+        val oneOfFunction = fuookami.ospf.kotlin.core.symbol.function.OneOfFunction(
             polynomials = listOf(xPoly, yPoly, LinearPolynomial<Flt64>(emptyList(), Flt64.two)),
             converter = flt64TestConverter,
             name = "example_oneof_build"

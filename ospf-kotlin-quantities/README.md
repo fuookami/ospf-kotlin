@@ -17,9 +17,10 @@ A comprehensive physical quantities and units library for OSPF Kotlin. Provides 
 
 | Package | Description | Key Types |
 |---------|-------------|-----------|
-| `dimension` | Physical dimensions and quantities | `FundamentalQuantity`, `DerivedQuantity`, `Dimensions` |
-| `quantity` | Quantity types and operations | `Quantity<V>`, `DurationExtensions` |
-| `math/symbol` | Quantity-aware symbol helpers | `SymbolQuantity`, `DimensionedSymbol`, `SymbolDimensionRegistry` |
+| `dimension` | Physical dimensions and quantities | `FundamentalQuantity`, `DerivedQuantity`, `Dimensions`, `QuantityDomain` |
+| `quantity` | Quantity types and operations | `Quantity<V>`, `DurationExtensions`, `MinMax`, `ValueRange` |
+| `math/symbol` | Quantity-aware symbol helpers | `SymbolQuantity`, `DimensionedSymbol`, `SymbolDimensionRegistry`, `SymbolQuantityOps` |
+| `math/geometry` | Geometry primitives with quantity support | `Axis2`, `Axis3`, `Box2`, `Box3`, `Cuboid3`, `Cylinder3`, `Placement3`, `Shape3` |
 | `unit` | Physical units definitions | `PhysicalUnit`, `UnitSystem`, 300+ predefined units |
 
 ## Architecture Design
@@ -27,26 +28,34 @@ A comprehensive physical quantities and units library for OSPF Kotlin. Provides 
 ### Dimension Hierarchy
 
 ```
-FundamentalQuantity (SI base quantities)
+FundamentalQuantity (SI base quantities + supplementary)
 ├── Length, Mass, Time, Current
-├── Temperature, Amount, LuminousIntensity
-└── PlaneAngle, SolidAngle
+├── Temperature, SubstanceAmount, LuminousIntensity
+├── PlaneAngle, SolidAngle
+└── Information
 
 DerivedQuantity (derived from fundamentals)
 ├── Area, Volume, Velocity, Acceleration
 ├── Force, Energy, Power, Pressure
 ├── Frequency, Momentum, Torque
-└── Many more...
+├── Voltage, Resistance, ElectricCharge, Capacitance
+├── Bandwidth, FlowRate, MassDensity, SurfaceDensity
+└── Many more (50+ predefined in Dimensions.kt)...
 ```
 
 ### Unit System
 
 ```
-PhysicalUnit
+PhysicalUnit (abstract class)
 ├── Base units (Meter, Kilogram, Second, ...)
 ├── Derived units (Newton, Joule, Watt, ...)
 ├── SI prefixed units (Kilometer, Megahertz, ...)
 └── Non-SI units (Foot, Pound, Horsepower, ...)
+
+UnitSystem (interface)
+├── SI  - International System of Units (7 base + 3 supplementary)
+├── MKS - Meter-Kilogram-Second (mechanical subset)
+└── CGS - Centimeter-Gram-Second (mechanical subset)
 ```
 
 ## Core Features
@@ -135,16 +144,17 @@ val bestFit = duration.toQuantityBestFit<Flt64>()  // Auto-selects best unit
 ### Symbol Quantity Support
 
 ```kotlin
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 
 // Quantities with symbolic values
-val x = symbolOf("x")
-val quantity: Quantity<LinearPolynomial<Flt64>> = 
+val x = Symbol("x")
+val quantity: Quantity<LinearPolynomial<Flt64>> =
     (LinearMonomial(Flt64(2.0), x) + Flt64(3.0)) * Meter
 
 // Evaluate at specific value
 val result = quantity.evaluate(mapOf(x to Flt64(5.0)))
-// (2×5 + 3) m = 13 m
+// (2*5 + 3) m = 13 m
 ```
 
 ### Supported Quantities and Units
@@ -161,8 +171,9 @@ val result = quantity.evaluate(mapOf(x to Flt64(5.0)))
 | Luminous Intensity | Candela (cd) | Millicandela |
 | Plane Angle | Radian (rad) | Degree, ArcMinute, ArcSecond |
 | Solid Angle | Steradian (sr) | - |
+| Information | Bit (bit) | Byte, Kilobit, Megabit, Gigabit |
 
-#### Derived Quantities (30+)
+#### Derived Quantities (50+)
 | Quantity | SI Unit | Examples |
 |----------|---------|----------|
 | Area | m² | Hectare, Acre, SquareFoot |
@@ -179,6 +190,16 @@ val result = quantity.evaluate(mapOf(x to Flt64(5.0)))
 | Angular Velocity | rad/s | deg/s |
 | Angular Acceleration | rad/s² | deg/s² |
 | Catalytic Activity | Katal (kat) | Enzyme Unit |
+| Voltage | Volt (V) | Millivolt, Kilovolt |
+| Resistance | Ohm | Milliohm, Kiloohm |
+| Electric Charge | Coulomb (C) | Ampere-hour |
+| Capacitance | Farad (F) | Microfarad, Picofarad |
+| Bandwidth | bit/s | Kbit/s, Mbit/s, Gbit/s |
+| Flow Rate | m³/s | Liter/s, Gallon/min |
+| Mass Density | kg/m³ | g/cm³ |
+| Surface Density | kg/m² | - |
+| Stress | Pascal (Pa) | Megapascal, Gigapascal |
+| Wavenumber | m⁻¹ | cm⁻¹ |
 
 ### Error Handling
 

@@ -8,11 +8,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.math.abs
+import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
  * 求值上下文
@@ -32,8 +32,11 @@ interface EvaluationContext {
     operator fun get(path: PropertyPath): Any?
 
     /**
-     * 检查指定路径是否存圌
+     * 检查指定路径是否存在
      * Check if specified path exists
+     *
+     * @param path 属性路径 / Property path
+     * @return 是否存在 / Whether exists
      */
     fun contains(path: PropertyPath): Boolean
 }
@@ -46,7 +49,20 @@ class MapEvaluationContext private constructor(
     private val values: Map<PropertyPath, Any?>
 ) : EvaluationContext {
     companion object {
+        /**
+         * 从 PropertyPath 映射创建上下文 / Create context from PropertyPath map
+         *
+         * @param values 属性路径到值的映射 / Property path to value mapping
+         * @return 求值上下文 / Evaluation context
+         */
         fun fromPathMap(values: Map<PropertyPath, Any?>): MapEvaluationContext = MapEvaluationContext(values)
+
+        /**
+         * 从字符串映射创建上下文 / Create context from string map
+         *
+         * @param values 字符串路径到值的映射 / String path to value mapping
+         * @return 求值上下文 / Evaluation context
+         */
         fun fromStringMap(values: Map<String, Any?>): MapEvaluationContext = MapEvaluationContext(
             values.mapKeys { PropertyPath.parse(it.key) }
         )
@@ -109,6 +125,10 @@ fun evaluateBoolean(expr: BooleanExpression, context: EvaluationContext): Evalua
 /**
  * 求值布尔表达式（返回可空布尔）
  * Evaluate boolean expression (returning nullable boolean)
+ *
+ * @param expr 要求值的表达式 / Expression to evaluate
+ * @param context 求值上下文 / Evaluation context
+ * @return 求值结果（true/false/null 表示未知） / Evaluation result (true/false/null for unknown)
  */
 fun evaluateBooleanOrNull(expr: BooleanExpression, context: EvaluationContext): Boolean? {
     return when (evaluateBoolean(expr, context)) {
@@ -449,6 +469,9 @@ private fun matchLike(value: String, pattern: String): Boolean {
 /**
  * 使用 Map 上下文求值布尔表达式
  * Evaluate boolean expression with Map context
+ *
+ * @param values 字符串路径到值的映射 / String path to value mapping
+ * @return 求值结果（三值逻辑） / Evaluation result (three-valued logic)
  */
 fun BooleanExpression.evaluateWith(values: Map<String, Any?>): Trivalent {
     return evaluateBoolean(this, MapEvaluationContext.fromStringMap(values))
@@ -457,6 +480,9 @@ fun BooleanExpression.evaluateWith(values: Map<String, Any?>): Trivalent {
 /**
  * 使用 Map 上下文求值布尔表达式（返回可空布尔）
  * Evaluate boolean expression with Map context (returning nullable boolean)
+ *
+ * @param values 字符串路径到值的映射 / String path to value mapping
+ * @return 求值结果（true/false/null 表示未知） / Evaluation result (true/false/null for unknown)
  */
 fun BooleanExpression.evaluateWithOrNull(values: Map<String, Any?>): Boolean? {
     return evaluateBooleanOrNull(this, MapEvaluationContext.fromStringMap(values))

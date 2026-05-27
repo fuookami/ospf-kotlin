@@ -1,15 +1,28 @@
+/**
+ * 机制模型转储状态
+ * Mechanism model dumping status
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
+import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/**
+ * 机制模型转储进度状态，跟踪约束和符号的准备进度。
+ * Mechanism model dumping progress status tracking constraint and symbol readiness.
+ *
+ * @property readyConstraintAmount 已就绪约束数量 / Number of ready constraints
+ * @property totalConstraintAmount 约束总数 / Total number of constraints
+ * @property readySymbolAmount     已就绪符号数量 / Number of ready symbols
+ * @property totalSymbolAmount     符号总数 / Total number of symbols
+ */
 data class MechanismModelDumpingStatus(
     val readyConstraintAmount: UInt64,
     val totalConstraintAmount: UInt64,
@@ -51,8 +64,13 @@ data class MechanismModelDumpingStatus(
     }
 }
 
+/** 机制模型转储状态回调 / Mechanism model dumping status callback */
 typealias MechanismModelDumpingStatusCallBack = (MechanismModelDumpingStatus) -> Try
 
+/**
+ * 将机制模型转储状态转换为模型构建状态。
+ * Convert mechanism model dumping status to model building status.
+ */
 fun MechanismModelDumpingStatus.toModelBuildingStatus(
     modelName: String,
     quadratic: Boolean = false
@@ -78,5 +96,3 @@ fun MechanismModelDumpingStatus.toModelBuildingStatus(
         )
     }
 }
-
-

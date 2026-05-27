@@ -4,11 +4,11 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue

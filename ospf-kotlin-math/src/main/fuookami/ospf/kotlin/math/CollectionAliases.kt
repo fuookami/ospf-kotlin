@@ -11,11 +11,10 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
+/** 无符号大小 / Unsigned size */
 val Collection<*>.usize: UInt64
     get() = UInt64(size)
 
+/** 无符号索引范围 / Unsigned index range */
 val Collection<*>.uIndices: IntegerRange<UInt64>
     get() = UInt64.zero until usize
-
-
-

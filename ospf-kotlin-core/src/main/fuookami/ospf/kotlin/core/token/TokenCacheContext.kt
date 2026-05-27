@@ -1,32 +1,52 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * Token 缓存上下文，管理 flatten/value/range 缓存及符号绑定关系。
+ * Token cache contexts managing flatten/value/range caches and symbol binding relationships.
+ */
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import java.util.Collections
+import java.util.WeakHashMap
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import java.util.Collections
-import java.util.WeakHashMap
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
+/**
+ * 线性展开缓存数据。
+ * Linear flatten cache data.
+ *
+ * @property monomials 线性单项式列表 / List of linear monomials
+ * @property constant 常数项 / Constant term
+ */
 data class LinearFlattenData<T : Ring<T>>(
     val monomials: List<LinearMonomial<T>>,
     val constant: T
 )
 
-
+/**
+ * 二次展开缓存数据。
+ * Quadratic flatten cache data.
+ *
+ * @property monomials 二次单项式列表 / List of quadratic monomials
+ * @property constant 常数项 / Constant term
+ */
 data class QuadraticFlattenData<T : Ring<T>>(
     val monomials: List<QuadraticMonomial<T>>,
     val constant: T
 )
 
-
+/**
+ * 线性展开缓存上下文。
+ * Linear flatten cache context.
+ */
 class LinearFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, LinearFlattenData<V>?> = HashMap()
 ) {
@@ -55,7 +75,10 @@ class LinearFlattenContext<V : Ring<V>>(
     }
 }
 
-
+/**
+ * 二次展开缓存上下文。
+ * Quadratic flatten cache context.
+ */
 class QuadraticFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
 ) {
@@ -84,7 +107,10 @@ class QuadraticFlattenContext<V : Ring<V>>(
     }
 }
 
-
+/**
+ * 值缓存上下文，按 solution 或 fixedValues 维度分别缓存求解结果。
+ * Value cache context, caching solve results separately by solution and fixedValues dimensions.
+ */
 class ValueCacheContext<V : RealNumber<V>>(
     private val solutionCache: MutableMap<Pair<Any, List<V>?>, V?> = HashMap(),
     private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, V>>, V?> = HashMap()
@@ -176,7 +202,10 @@ class ValueCacheContext<V : RealNumber<V>>(
     }
 }
 
-
+/**
+ * 范围缓存上下文。
+ * Range cache context.
+ */
 class RangeCacheContext<V>(
     private val cache: MutableMap<Any, ExpressionRange<V>?> = HashMap()
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -205,7 +234,15 @@ class RangeCacheContext<V>(
     }
 }
 
-
+/**
+ * 聚合所有 token 缓存上下文的容器。
+ * Container aggregating all token cache contexts.
+ *
+ * @property linearFlatten 线性展开缓存 / Linear flatten cache
+ * @property quadraticFlatten 二次展开缓存 / Quadratic flatten cache
+ * @property value 值缓存 / Value cache
+ * @property range 范围缓存 / Range cache
+ */
 data class TokenCacheContexts<V>(
     val linearFlatten: LinearFlattenContext<V> = LinearFlattenContext(),
     val quadraticFlatten: QuadraticFlattenContext<V> = QuadraticFlattenContext(),
@@ -248,7 +285,6 @@ data class TokenCacheContexts<V>(
     }
 }
 
-
 private val symbolTokenTableContext = Collections.synchronizedMap(
     WeakHashMap<IntermediateSymbol<*>, AbstractTokenTable<*>>()
 )
@@ -288,4 +324,3 @@ internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlatten
         constant = this.constant
     )
 }
-

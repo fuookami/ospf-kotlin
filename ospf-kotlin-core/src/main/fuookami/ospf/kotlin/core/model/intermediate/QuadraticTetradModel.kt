@@ -1,45 +1,30 @@
+/**
+ * 二次四元模型
+ * Quadratic tetrad model
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
-import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.model.basic.ModelConstraint
-import fuookami.ospf.kotlin.core.model.basic.ModelCell
-import fuookami.ospf.kotlin.core.model.basic.ConstraintCell
-import fuookami.ospf.kotlin.core.model.basic.Objective
-import fuookami.ospf.kotlin.core.model.basic.BasicModelView
-import fuookami.ospf.kotlin.core.model.basic.ModelView
-import fuookami.ospf.kotlin.core.model.basic.VariableSlack
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.Binary
-import fuookami.ospf.kotlin.core.variable.BalancedTernary
-import fuookami.ospf.kotlin.core.variable.Continuous
-import fuookami.ospf.kotlin.core.variable.Integer
-import fuookami.ospf.kotlin.core.variable.Percentage
-import fuookami.ospf.kotlin.core.variable.Ternary
-import fuookami.ospf.kotlin.core.variable.UContinuous
-import fuookami.ospf.kotlin.core.variable.UInteger
-import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.operator.abs
+import java.io.OutputStreamWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
-import java.io.OutputStreamWriter
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.*
 
 private fun QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isBound(): Boolean {
     return lhs.size == 1

@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
@@ -11,16 +10,18 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
  * 物料包装目标权重配置。
  * Material packing objective weights.
  */
 data class MaterialPackingObjectiveConfig(
-    val packageCountWeight: Double = 1_000_000.0,
-    val volumeWeight: Double = 1_000.0,
-    val slackWeight: Double = 1.0
+    val packageCountWeight: Flt64 = Flt64(1_000_000.0),
+    val volumeWeight: Flt64 = Flt64(1_000.0),
+    val slackWeight: Flt64 = Flt64.one
 )
 
 /**
@@ -30,7 +31,7 @@ data class MaterialPackingObjectiveConfig(
 data class MaterialPackingDemand(
     val material: Material,
     val amount: UInt64 = UInt64.zero,
-    val weight: LegacyQuantity? = null
+    val weight: Quantity<Flt64>? = null
 )
 
 /**
@@ -87,8 +88,8 @@ enum class MaterialPackingStatus {
  */
 data class MaterialPackingSolveInfo(
     val status: MaterialPackingStatus,
-    val objective: Double? = null,
-    val gap: Double? = null,
+    val objective: Flt64? = null,
+    val gap: Flt64? = null,
     val timeMillis: Long = 0L,
     val selectedPackageCount: UInt64 = UInt64.zero,
     val rawStatus: String? = null
@@ -107,4 +108,3 @@ data class MaterialPackingPlan(
     val normalizedDemands: Map<MaterialKey, UInt64> = emptyMap(),
     val solveInfo: MaterialPackingSolveInfo
 )
-

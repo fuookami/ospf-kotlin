@@ -1,13 +1,24 @@
+/**
+ * 变异模式接口与实现
+ * Mutation mode interface and implementations
+ */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.algebra.value_range.coerceIn
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
+/**
+ * 变异模式接口，定义如何为种群中的个体计算变异率。
+ * Mutation mode interface, defining how to calculate mutation rates for individuals in the population.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ */
 interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -18,6 +29,14 @@ interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> 
     ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 }
 
+/**
+ * 静态变异模式，使用固定变异率。
+ * Static mutation mode, using a fixed mutation rate.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property mutationRate 固定变异率（可选）/ Fixed mutation rate (optional)
+ */
 data class StaticMutationMode<ObjValue, V>(
     val mutationRate: Flt64? = null
 ) : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -34,6 +53,14 @@ data class StaticMutationMode<ObjValue, V>(
     }
 }
 
+/**
+ * 随机变异模式，在范围内随机生成变异率。
+ * Random mutation mode, randomly generating mutation rates within range.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property randomGenerator 随机数生成器 / Random number generator
+ */
 data class RandomMutationMode<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -50,6 +77,13 @@ data class RandomMutationMode<ObjValue, V>(
     }
 }
 
+/**
+ * 自适应动态变异模式，根据权重差异动态调整变异率。
+ * Adaptive dynamic mutation mode, dynamically adjusting mutation rate based on weight differences.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ */
 class AdaptiveDynamicMutationMode<ObjValue, V> : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -64,6 +98,3 @@ class AdaptiveDynamicMutationMode<ObjValue, V> : MutationMode<ObjValue, V> where
         }
     }
 }
-
-
-

@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.functional.sum
-import fuookami.ospf.kotlin.core.intermediate_symbol.*
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch

@@ -7,30 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.value_range
 
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Flt32
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int8
-import fuookami.ospf.kotlin.math.algebra.number.Int16
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.IntX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.math.operator.Times
-import fuookami.ospf.kotlin.math.operator.Contains
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.Eq
+import java.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -40,7 +17,27 @@ import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import java.util.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt32
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.Int16
+import fuookami.ospf.kotlin.math.algebra.number.Int32
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.Int8
+import fuookami.ospf.kotlin.math.algebra.number.IntX
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.operator.Contains
+import fuookami.ospf.kotlin.math.operator.Div
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.Times
 
 /**
  * 值范围序列化噌

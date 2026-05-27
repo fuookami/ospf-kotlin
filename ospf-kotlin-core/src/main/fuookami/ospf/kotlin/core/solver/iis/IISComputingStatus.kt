@@ -1,12 +1,25 @@
+/**
+ * IIS 计算状态
+ * IIS computing status
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.iis
 
+import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlin.time.Duration
 
+/**
+ * IIS 计算进度状态，包含边界和约束的剩余/总量信息。
+ * IIS computing progress status, containing remaining/total information for bounds and constraints.
+ *
+ * @property restBoundAmount 剩余边界数量 / Remaining bound amount
+ * @property totalBoundAmount 总边界数量 / Total bound amount
+ * @property restConstraintAmount 剩余约束数量 / Remaining constraint amount
+ * @property totalConstraintAmount 总约束数量 / Total constraint amount
+ */
 data class IISComputingStatus(
     val restBoundAmount: UInt64,
     val totalBoundAmount: UInt64,
@@ -19,5 +32,3 @@ data class IISComputingStatus(
 }
 
 typealias IISComputingStatusCallBack = (Boolean, Duration, IISComputingStatus) -> Try
-
-

@@ -1,9 +1,21 @@
+/**
+ * 机制模型 Flt64 转换
+ * Mechanism model Flt64 conversion
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticMathFunctionSymbolBase
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
@@ -13,19 +25,11 @@ import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.token.TokenList
 import fuookami.ospf.kotlin.core.token.TokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.symbol.function.QuadraticMathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
 
 // 求解器边界转换：在星投影函数符号上注册约束。 / Solver-boundary conversion: register constraints on star-projected function symbols.
 // 委托给 SolverBoundaryCasts，集中唯一的 UNCHECKED_CAST 位置。 / Delegates to SolverBoundaryCasts as the single UNCHECKED_CAST location.

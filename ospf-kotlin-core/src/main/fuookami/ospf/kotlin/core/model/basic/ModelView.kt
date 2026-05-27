@@ -1,25 +1,49 @@
+/**
+ * 模型视图
+ * Model view
+ */
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.VariableType
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import java.io.FileWriter
 import java.io.OutputStreamWriter
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.VariableType
 
-
+/**
+ * 变量松弛信息，关联变量与其约束或界限。
+ * Variable slack information associating a variable with its constraint or bounds.
+ *
+ * @property constraint 关联的约束（可为 null） / The associated constraint (nullable)
+ * @property lowerBound 下界变量（可为 null） / Lower bound variable (nullable)
+ * @property upperBound 上界变量（可为 null） / Upper bound variable (nullable)
+ */
 data class VariableSlack(
     val constraint: Constraint<Flt64, *>? = null,
     val lowerBound: Variable? = null,
     val upperBound: Variable? = null
 )
 
+/**
+ * 求解器中的变量，封装变量的界限、类型和初始值等属性。
+ * Variable in the solver, encapsulating bounds, type, and initial value properties.
+ *
+ * @property index         变量在求解器中的索引 / Variable index in the solver
+ * @property lowerBound    下界 / Lower bound
+ * @property upperBound    上界 / Upper bound
+ * @property type          变量类型 / Variable type
+ * @property origin        原始抽象变量项 / The originating abstract variable item
+ * @property dualOrigin    对偶约束来源 / The dual constraint origin
+ * @property slack         松弛信息 / Slack information
+ * @property name          变量名 / Variable name
+ * @property initialResult 初始值（可为 null） / Initial value (nullable)
+ */
 class Variable(
     val index: Int,
     lowerBound: Flt64,
@@ -75,16 +99,28 @@ class Variable(
     override fun toString() = name
 }
 
+/**
+ * 模型单元格接口，持有系数值。
+ * Model cell interface holding a coefficient value.
+ */
 interface ModelCell<Self : ModelCell<Self>> {
     val coefficient: Flt64
 
     operator fun unaryMinus(): Self
 }
 
+/**
+ * 约束单元格接口，扩展 ModelCell 增加行索引。
+ * Constraint cell interface extending ModelCell with a row index.
+ */
 interface ConstraintCell<Self : ConstraintCell<Self>> : ModelCell<Self> {
     val rowIndex: Int
 }
 
+/**
+ * 约束来源枚举，标识约束的产生途径。
+ * Constraint source enumeration indicating how a constraint was produced.
+ */
 enum class ConstraintSource {
     Origin,
     LowerBound,
@@ -99,6 +135,12 @@ enum class ConstraintSource {
     ElasticSlackMinmax
 }
 
+/**
+ * 模型约束的抽象基类，管理约束的左端、符号、右端、名称和来源。
+ * Abstract base class for model constraints, managing LHS, signs, RHS, names, and sources.
+ *
+ * @property constraintCount 约束数量 / Number of constraints
+ */
 abstract class ModelConstraint<ConCell>(
     val constraintCount: Int,
     signs: List<ConstraintRelation>,
@@ -131,6 +173,14 @@ abstract class ModelConstraint<ConCell>(
     }
 }
 
+/**
+ * 目标函数，包含优化方向、目标单元格列表和常数项。
+ * Objective function containing optimization direction, objective cell list, and constant.
+ *
+ * @property category  优化方向 / Optimization direction
+ * @property objective 目标单元格列表 / List of objective cells
+ * @property constant  常数项 / Constant term
+ */
 class Objective<C : Copyable<C>>(
     val category: ObjectCategory,
     val objective: List<C>,
@@ -140,6 +190,10 @@ class Objective<C : Copyable<C>>(
     override fun clone() = copy()
 }
 
+/**
+ * 基本模型视图接口，提供变量、约束、名称及导出能力。
+ * Basic model view interface providing variables, constraints, name, and export capability.
+ */
 interface BasicModelView<ConCell> : AutoCloseable
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell> {
     val variables: List<Variable>
@@ -201,9 +255,11 @@ interface BasicModelView<ConCell> : AutoCloseable
     }
 }
 
+/**
+ * 完整模型视图接口，在 BasicModelView 基础上增加目标函数。
+ * Full model view interface adding an objective function on top of BasicModelView.
+ */
 interface ModelView<ConCell, ObjCell> : BasicModelView<ConCell>
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell>, ObjCell : ModelCell<ObjCell>, ObjCell : Copyable<ObjCell> {
     val objective: Objective<ObjCell>
 }
-
-

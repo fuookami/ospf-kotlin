@@ -3,16 +3,16 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.abs
-import kotlin.math.ceil
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
     private data class CandidateScore(
-        val objective: Double,
+        val objective: Flt64,
         val packageCount: Long,
         val slack: Long,
-        val volume: Double
+        val volume: Flt64
     )
 
     override suspend fun solve(request: MaterialPackingMipRequest): MaterialPackingMipResult {
@@ -22,8 +22,8 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
             return MaterialPackingMipResult(
                 status = MaterialPackingMipStatus.Optimal,
                 selections = emptyMap(),
-                objective = 0.0,
-                gap = 0.0,
+                objective = Flt64.zero,
+                gap = Flt64.zero,
                 timeMillis = System.currentTimeMillis() - startedAt,
                 rawStatus = "empty_demand"
             )
@@ -39,9 +39,9 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
             )
         }
 
-        require(request.objective.packageCountWeight >= 0.0) { "packageCountWeight must be non-negative." }
-        require(request.objective.volumeWeight >= 0.0) { "volumeWeight must be non-negative." }
-        require(request.objective.slackWeight >= 0.0) { "slackWeight must be non-negative." }
+        require(request.objective.packageCountWeight.toDouble() >= 0.0) { "packageCountWeight must be non-negative." }
+        require(request.objective.volumeWeight.toDouble() >= 0.0) { "volumeWeight must be non-negative." }
+        require(request.objective.slackWeight.toDouble() >= 0.0) { "slackWeight must be non-negative." }
 
         val materials = demands.keys.toList()
         val demandedAmount = materials.map { key ->
@@ -49,13 +49,12 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         }.toLongArray()
         val candidateCount = request.candidates.size
         val capacity = Array(candidateCount) { LongArray(materials.size) }
-        val volume = DoubleArray(candidateCount)
+        val volume = Array(candidateCount) { Flt64.zero }
         for ((candidateIndex, candidate) in request.candidates.withIndex()) {
-            val programMaterials = candidate.program.materials
             for ((materialIndex, material) in materials.withIndex()) {
-                capacity[candidateIndex][materialIndex] = programMaterials[material]?.toULong()?.toLong() ?: 0L
+                capacity[candidateIndex][materialIndex] = candidate.program.materialAmount(material).toULong().toLong()
             }
-            volume[candidateIndex] = candidate.program.volume.value.toDouble()
+            volume[candidateIndex] = candidate.program.volume.value
         }
 
         for (materialIndex in materials.indices) {
@@ -82,7 +81,7 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
                 if (cap <= 0L || demand <= 0L) {
                     continue
                 }
-                val required = ceil(demand.toDouble() / cap.toDouble()).toInt()
+                val required = ((demand + cap - 1L) / cap).toInt()
                 if (required > bound) {
                     bound = required
                 }
@@ -111,19 +110,19 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         val currentSelection = IntArray(candidateCount)
         val currentCovered = LongArray(materials.size)
         var currentPackageCount = 0L
-        var currentVolume = 0.0
+        var currentVolume = Flt64.zero
 
         var bestSelection: IntArray? = null
         var bestScore: CandidateScore? = null
 
-        fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: Double): CandidateScore {
+        fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: Flt64): CandidateScore {
             var slack = 0L
             for (materialIndex in materials.indices) {
                 slack += maxOf(covered[materialIndex] - demandedAmount[materialIndex], 0L)
             }
-            val objective = request.objective.packageCountWeight * packageCount.toDouble() +
+            val objective = request.objective.packageCountWeight * Flt64(packageCount.toDouble()) +
                 request.objective.volumeWeight * volumeValue +
-                request.objective.slackWeight * slack.toDouble()
+                request.objective.slackWeight * Flt64(slack.toDouble())
             return CandidateScore(
                 objective = objective,
                 packageCount = packageCount,
@@ -137,10 +136,12 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
                 return true
             }
             val eps = 1e-9
-            if (candidate.objective < best.objective - eps) {
+            val candidateObjective = candidate.objective.toDouble()
+            val bestObjective = best.objective.toDouble()
+            if (candidateObjective < bestObjective - eps) {
                 return true
             }
-            if (abs(candidate.objective - best.objective) > eps) {
+            if (abs(candidateObjective - bestObjective) > eps) {
                 return false
             }
             if (candidate.packageCount != best.packageCount) {
@@ -149,8 +150,10 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
             if (candidate.slack != best.slack) {
                 return candidate.slack < best.slack
             }
-            if (abs(candidate.volume - best.volume) > eps) {
-                return candidate.volume < best.volume
+            val candidateVolume = candidate.volume.toDouble()
+            val bestVolume = best.volume.toDouble()
+            if (abs(candidateVolume - bestVolume) > eps) {
+                return candidateVolume < bestVolume
             }
             return false
         }
@@ -191,22 +194,22 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
                 currentSelection[candidateIndex] = selectedCount
                 if (selectedCount > 0) {
                     currentPackageCount += selectedCount.toLong()
-                    currentVolume += volume[candidateIndex] * selectedCount.toDouble()
+                    currentVolume += volume[candidateIndex] * Flt64(selectedCount.toDouble())
                     for (materialIndex in materials.indices) {
                         currentCovered[materialIndex] += capacity[candidateIndex][materialIndex] * selectedCount.toLong()
                     }
                 }
 
-                val lowerBoundObjective = request.objective.packageCountWeight * currentPackageCount.toDouble() +
+                val lowerBoundObjective = request.objective.packageCountWeight * Flt64(currentPackageCount.toDouble()) +
                     request.objective.volumeWeight * currentVolume
                 val bestObjective = bestScore?.objective
-                if (bestObjective == null || lowerBoundObjective <= bestObjective + 1e-9) {
+                if (bestObjective == null || lowerBoundObjective.toDouble() <= bestObjective.toDouble() + 1e-9) {
                     search(candidateIndex + 1)
                 }
 
                 if (selectedCount > 0) {
                     currentPackageCount -= selectedCount.toLong()
-                    currentVolume -= volume[candidateIndex] * selectedCount.toDouble()
+                    currentVolume -= volume[candidateIndex] * Flt64(selectedCount.toDouble())
                     for (materialIndex in materials.indices) {
                         currentCovered[materialIndex] -= capacity[candidateIndex][materialIndex] * selectedCount.toLong()
                     }
@@ -236,7 +239,7 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
             status = MaterialPackingMipStatus.Optimal,
             selections = selectionMap,
             objective = bestScore?.objective,
-            gap = 0.0,
+            gap = Flt64.zero,
             timeMillis = System.currentTimeMillis() - startedAt,
             rawStatus = "enumeration_optimal"
         )

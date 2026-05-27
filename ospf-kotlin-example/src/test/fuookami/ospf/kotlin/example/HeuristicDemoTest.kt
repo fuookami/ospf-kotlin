@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example
 
 import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction
+import fuookami.ospf.kotlin.core.symbol.function.MaskingFunction
+import fuookami.ospf.kotlin.core.symbol.function.MaxFunction
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

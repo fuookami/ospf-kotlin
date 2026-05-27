@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.example
 
 import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

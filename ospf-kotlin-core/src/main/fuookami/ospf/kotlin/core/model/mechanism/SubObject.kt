@@ -1,22 +1,30 @@
+/**
+ * 子目标对象
+ * Sub-objective object
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
- * Generic SubObject<V> with V-typed public evaluation.
- * Flt64 evaluation is handled by the solver adapter, not the core chain.
+ * 子目标密封基类，持有优化方向、名称、单元格和常数项。
+ * Sealed base class for sub-objectives holding category, name, cells, and constant.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property category 目标分类 / The objective category
+ * @property name     子目标名称 / The sub-objective name
  */
 sealed class SubObject<V : RealNumber<V>>(
     val category: ObjectCategory,
@@ -29,6 +37,10 @@ sealed class SubObject<V : RealNumber<V>>(
     abstract fun evaluate(results: List<V>): V?
 }
 
+/**
+ * 线性子目标，包含线性单元格列表和常数项。
+ * Linear sub-objective containing a list of linear cells and a constant.
+ */
 class LinearSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<LinearCell<V>>,
@@ -80,6 +92,10 @@ class LinearSubObject<V : RealNumber<V>>(
     }
 }
 
+/**
+ * 二次子目标，包含二次单元格列表和常数项。
+ * Quadratic sub-objective containing a list of quadratic cells and a constant.
+ */
 class QuadraticSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<QuadraticCell<V>>,

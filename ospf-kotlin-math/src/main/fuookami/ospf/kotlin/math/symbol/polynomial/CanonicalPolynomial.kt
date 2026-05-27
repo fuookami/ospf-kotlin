@@ -14,8 +14,6 @@ package fuookami.ospf.kotlin.math.symbol.polynomial
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
@@ -70,8 +68,23 @@ data class CanonicalPolynomial<T : Ring<T>>(
             else -> Nonlinear
         }
 
+    /**
+     * 转换为规范多项式（自身）
+     * Converts to a canonical polynomial (self)
+     *
+     * @return 自身 / Self
+     */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> = this
 
+    /**
+     * 尝试转换为线性多项式
+     * Tries to convert to a linear polynomial
+     *
+     * 若所有单项式的次数不超过 1，返回对应的线性多项式；否则返回 null。
+     * Returns the corresponding linear polynomial if all monomials have degree at most 1; otherwise returns null.
+     *
+     * @return 线性多项式或 null / Linear polynomial or null
+     */
     override fun toLinearPolynomialOrNull(): LinearPolynomial<T>? {
         val linearMonomials = ArrayList<LinearMonomial<T>>(monomials.size)
         var canonicalConstant = constant
@@ -89,6 +102,15 @@ data class CanonicalPolynomial<T : Ring<T>>(
         return LinearPolynomial(linearMonomials, canonicalConstant).combineLinearTerms(zero, { it == zero })
     }
 
+    /**
+     * 尝试转换为二次多项式
+     * Tries to convert to a quadratic polynomial
+     *
+     * 若所有单项式的次数不超过 2，返回对应的二次多项式；否则返回 null。
+     * Returns the corresponding quadratic polynomial if all monomials have degree at most 2; otherwise returns null.
+     *
+     * @return 二次多项式或 null / Quadratic polynomial or null
+     */
     override fun toQuadraticPolynomialOrNull(): QuadraticPolynomial<T>? {
         val quadraticMonomials = ArrayList<QuadraticMonomial<T>>(monomials.size)
         var canonicalConstant = constant

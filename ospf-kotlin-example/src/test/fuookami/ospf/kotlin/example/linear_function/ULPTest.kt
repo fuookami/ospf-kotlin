@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.UnivariateLinearPiecewiseFunction
+import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

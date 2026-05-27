@@ -1,3 +1,11 @@
+/**
+ * Flt64 乘除运算符重载
+ * Flt64 Multiplication and Division Operator Overloads
+ *
+ * 提供 Flt64/Int/Double 与符号和线性单项式之间的乘除运算符重载。
+ * Provides multiplication and division operator overloads between
+ * Flt64/Int/Double and symbols/linear monomials.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.operation

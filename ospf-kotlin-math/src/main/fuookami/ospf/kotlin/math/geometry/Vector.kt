@@ -9,14 +9,14 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.concept.InnerProductSpace
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.vector2
+import fuookami.ospf.kotlin.math.geometry.vector3
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.math.geometry.vector2
-import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.concept.InnerProductSpace
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> castVectorValue(value: Any): V {
@@ -106,18 +106,22 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
             return Dim3 as D
         }
 
+        /** 通过二维坐标创建泛型向量 / Create a generic vector from 2D coordinates */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Vector<D, V> {
             return Vector(listOf(x, y), dim2AsType())
         }
 
+        /** 通过三维坐标创建泛型向量 / Create a generic vector from 3D coordinates */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Vector<D, V> {
             return Vector(listOf(x, y, z), dim3AsType())
         }
 
+        /** 通过 Flt64 二维坐标创建向量 / Create a vector from Flt64 2D coordinates */
         operator fun invoke(x: Flt64, y: Flt64): Vector<Dim2, Flt64> {
             return Vector(listOf(x, y), Dim2)
         }
 
+        /** 通过 Flt64 三维坐标创建向量 / Create a vector from Flt64 3D coordinates */
         operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Vector<Dim3, Flt64> {
             return Vector(listOf(x, y, z), Dim3)
         }
@@ -155,10 +159,12 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
         return castNullableVectorValue<V>(super<InnerProductSpace>.angle(rhs))
     }
 
+    /** 计算在另一向量上的投影 / Compute projection onto another vector */
     fun projectionOn(rhs: Vector<D, V>): Vector<D, V>? {
         return project(rhs)
     }
 
+    /** 计算相对于另一向量的正交分量 / Compute orthogonal component relative to another vector */
     fun orthogonalComponentTo(rhs: Vector<D, V>): Vector<D, V>? {
         return orthogonalComponent(rhs)
     }
@@ -166,38 +172,47 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = vector.joinToString(",", "[", "]")
 }
 
-
+/** 二维向量 X 分量 / 2D vector X component */
 @get:JvmName("Vector2X")
 val Vector<Dim2, Flt64>.x get() = this[0]
 
+/** 二维向量 Y 分量 / 2D vector Y component */
 @get:JvmName("Vector2Y")
 val Vector<Dim2, Flt64>.y get() = this[1]
 
+/** 创建二维向量 / Create a 2D vector */
 fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector<Dim2, Flt64> {
     return Vector(listOf(x, y), Dim2)
 }
 
+/** 三维向量 X 分量 / 3D vector X component */
 @get:JvmName("Vector3X")
 val Vector<Dim3, Flt64>.x get() = this[0]
 
+/** 三维向量 Y 分量 / 3D vector Y component */
 @get:JvmName("Vector3Y")
 val Vector<Dim3, Flt64>.y get() = this[1]
 
+/** 三维向量 Z 分量 / 3D vector Z component */
 @get:JvmName("Vector3Z")
 val Vector<Dim3, Flt64>.z get() = this[2]
 
+/** 创建三维向量 / Create a 3D vector */
 fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector<Dim3, Flt64> {
     return Vector(listOf(x, y, z), Dim3)
 }
 
+/** 标量乘向量（左乘） / Scalar times vector (left multiplication) */
 operator fun <D : Dimension, V : FloatingNumber<V>> V.times(rhs: Vector<D, V>): Vector<D, V> {
     return rhs * this
 }
 
+/** 二维向量叉积（返回标量） / 2D vector cross product (returns scalar) */
 infix fun Vector<Dim2, Flt64>.cross(rhs: Vector<Dim2, Flt64>): Flt64 {
     return this.x * rhs.y - this.y * rhs.x
 }
 
+/** 三维向量叉积（返回向量） / 3D vector cross product (returns vector) */
 infix fun Vector<Dim3, Flt64>.cross(rhs: Vector<Dim3, Flt64>): Vector<Dim3, Flt64> {
     return vector3(
         x = this.y * rhs.z - this.z * rhs.y,

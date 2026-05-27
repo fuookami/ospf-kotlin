@@ -6,34 +6,38 @@ OSPF Kotlin 的分形生成算法。
 
 ## 算法
 
-| 算法 | 文件 | 描述 |
-|------|------|------|
-| `MandelbrotSet` | `MandelbrotSet.kt` | Mandelbrot 集迭代 z -> z^2 + c |
-| `MandelbrotSet.Generator` | `MandelbrotSet.kt` | 惰性 Mandelbrot 序列生成器 |
+| 类 | 文件 | 描述 |
+|----|------|------|
+| `MandelbrotSet<V>` | `MandelbrotSet.kt` | Mandelbrot 集迭代函数 z -> z^2 + c，泛型参数为 `FloatingNumber<V>` |
+| `MandelbrotSetGenerator` | `MandelbrotSet.kt` | Mandelbrot 集序列生成器，实现 `Generator<Point<Dim2, Flt64>>` |
 
 ## 使用示例
 
 ```kotlin
 import fuookami.ospf.kotlin.math.fractal_operator.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.point2
 
 // 创建 Mandelbrot 集，复数常量 c = -0.5 + 0.5i
-val mandelbrot = MandelbrotSet(
-    c = Point2(Flt64(-0.5), Flt64(0.5))
-)
+val mandelbrot = MandelbrotSet(Flt64(-0.5), Flt64(0.5))
+
+// 或使用 Point 直接构造
+val mandelbrotFromPoint = MandelbrotSet(point2(Flt64(-0.5), Flt64(0.5)))
 
 // 从原点迭代
-var z = Point2(Flt64.zero, Flt64.zero)
+var z = point2(Flt64.zero, Flt64.zero)
 repeat(100) {
     z = mandelbrot(z)
 }
 
-// 使用 Generator 惰性序列
-val generator = MandelbrotSet.Generator(
-    c = Point2(Flt64(-0.5), Flt64(0.5)),
-    initial = Point2(Flt64.zero, Flt64.zero)
+// 使用 MandelbrotSetGenerator 进行迭代生成
+val generator = MandelbrotSetGenerator(
+    real = Flt64(-0.5),
+    imag = Flt64(0.5),
+    z = point2(Flt64.zero, Flt64.zero)
 )
-val sequence = generator.asSequence().take(50).toList()
+// 反复调用 invoke() 获取序列中的连续点
+val points = List(50) { generator.invoke() }
 ```
 
 ## 相关链接

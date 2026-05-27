@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticLinearFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SemiFunction
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.symbol.function.QuadraticLinearFunction
+import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel

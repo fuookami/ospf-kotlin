@@ -1,16 +1,20 @@
+/**
+ * 三元/四元对偶求解支持
+ * Triad/Tetrad dual solver support
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.solver.LinearSolver
-import fuookami.ospf.kotlin.core.solver.QuadraticSolver
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.LinearSolver
+import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 
 /**
- * Triad dual solver helpers.
- * Triad dual 求解辅助函数。
+ * 求解线性三元模型的对偶问题。
+ * Solve the dual problem of a linear triad model.
  */
 suspend fun solveDual(
     model: LinearTriadModel,

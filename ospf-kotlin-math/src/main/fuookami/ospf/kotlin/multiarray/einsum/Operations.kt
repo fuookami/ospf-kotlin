@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * 矩阵乘法
  * Matrix multiplication
  *
- * 计算 C = A @ B，其丌A 的形状为 [m, k]，B 的形状为 [k, n]，结枌C 的形状为 [m, n]。
+ * 计算 C = A @ B，其中 A 的形状为 [m, k]，B 的形状为 [k, n]，结果 C 的形状为 [m, n]。
  * Computes C = A @ B, where A has shape [m, k], B has shape [k, n], and result C has shape [m, n].
  *
  * 爱因斯坦表示法：A_ij * B_jk -> C_ik
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * @param a 左矩阵，形状 [m, k]
  * @param b 右矩阵，形状 [k, n]
  * @param zero 零值（用于初始化）
- * @return 结果矩阵，形犌[m, n]
+ * @return 结果矩阵，形状[m, n]
  * @throws EinsumError 如果维度不匹配或形状不兼完
  */
 fun <T : Ring<T>> matmul(
@@ -152,9 +152,9 @@ inline fun <reified T : Ring<T>> matmul(
  * // Result: 1*1 + 2*2 + 3*3 = 14.0
  * ```
  *
- * @param a 第一个向里
- * @param b 第二个向里
- * @param zero 零倌
+ * @param a 第一个向量
+ * @param b 第二个向量
+ * @param zero 零值
  * @return 点积结果（标量）
  * @throws EinsumError 如果不是向量或长度不匹配
  */
@@ -241,7 +241,7 @@ inline fun <reified T : Ring<T>> dot(
  * ```
  *
  * @param a 方阵
- * @param zero 零倌
+ * @param zero 零值
  * @return 迹（标量，
  * @throws EinsumError 如果不是方阵
  */
@@ -318,9 +318,9 @@ inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): T {
  * // 内容: [[1, 2, 3], [2, 4, 6]]
  * ```
  *
- * @param a 第一个向里
- * @param b 第二个向里
- * @param zero 零倌
+ * @param a 第一个向量
+ * @param b 第二个向量
+ * @param zero 零值
  * @return 外积矩阵
  * @throws EinsumError 如果不是向量
  */
@@ -424,10 +424,10 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
 
     val transposedShape = DynShape(intArrayOf(shape[1], shape[0]))
 
-    // 空矩阵安全处理：如果任一维度丌，直接返回空数组
+    // 空矩阵安全处理：如果任一维度为 0，直接返回空数组
     // Empty matrix safety: if any dimension is 0, return empty array directly
     if (shape[0] == 0 || shape[1] == 0) {
-        // 空矩阵不需要初始化值，lambda不会被调甌
+        // 空矩阵不需要初始化值，lambda不会被调用
         // Empty matrices don't need initialization value, lambda won't be called
         return MutableMultiArray.newBy<T, DynShape>(transposedShape) { _, _ ->
             throw IllegalStateException("Empty matrix should not call initialization lambda")
@@ -452,7 +452,7 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
 // ============================================================================
 
 /**
- * 沿指定轴的张量缩幌
+ * 沿指定轴的张量缩并
  * Tensor contraction along specified axes
  *
  * 爱因斯坦表示法中，缩并是对公共索引进行求和的操作。
@@ -470,11 +470,11 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
  * // Equivalent to matmul
  * ```
  *
- * @param a 第一个张里
- * @param axisA 第一个张量的缩并轌
- * @param b 第二个张里
- * @param axisB 第二个张量的缩并轌
- * @param zero 零倌
+ * @param a 第一个张量
+ * @param axisA 第一个张量的缩并轴
+ * @param b 第二个张量
+ * @param axisB 第二个张量的缩并轴
+ * @param zero 零值
  * @return 缩并结果
  * @throws EinsumError 如果轴越界或维度不匹酌
  */
@@ -533,7 +533,7 @@ fun <T : Ring<T>> contract(
     val aNonContractDims = aShape.indices.filter { it != axisA }.toList()
     val bNonContractDims = bShape.indices.filter { it != axisB }.toList()
 
-    // 输出驱动迭代：遍历输出位置，然后遍历缩并轌
+    // 输出驱动迭代：遍历输出位置，然后遍历缩并轴
     // Output-driven iteration: iterate over output positions, then contraction axis
     val outSize = result.size
     val aNonContractSize = a.size / contractionSize
@@ -549,7 +549,7 @@ fun <T : Ring<T>> contract(
     for (outLinear in 0 until outSize) {
         var sum = zero
 
-        // 遍历缩并轌
+        // 遍历缩并轴
         // Iterate over contraction axis
         for (k in 0 until contractionSize) {
             // 将输出索引分解为坐标
@@ -613,7 +613,7 @@ inline fun <reified T : Ring<T>> contract(
  * 线性索引转坐标
  * Convert linear index to coordinates
  *
- * @param linear 线性索弌
+ * @param linear 线性索引
  * @param shape 形状列表
  * @return 坐标列表
  */
@@ -638,12 +638,12 @@ internal fun linearToCoords(linear: Int, shape: List<Int>): List<Int> {
 }
 
 /**
- * 坐标转线性索弌
+ * 坐标转线性索引
  * Convert coordinates to linear index
  *
  * @param coords 坐标列表
  * @param shape 形状列表
- * @return 线性索弌
+ * @return 线性索引
  */
 internal fun coordsToLinear(coords: List<Int>, shape: List<Int>): Int {
     if (coords.isEmpty() || shape.isEmpty()) return 0
@@ -663,7 +663,7 @@ internal fun coordsToLinear(coords: List<Int>, shape: List<Int>): Int {
 }
 
 /**
- * 预计箌stride
+ * 预计算stride
  * Pre-compute strides for shape
  *
  * strides[i] = shape[i+1] * shape[i+2] * ... * shape[n-1]

@@ -108,12 +108,19 @@ data class Token(
         /**
          * 创建 EOF 词法单元
          * Create EOF token
+         *
+         * @param position 位置索引 / Position index
+         * @return EOF 词法单元 / EOF token
          */
         fun eof(position: Int = 0): Token = Token(TokenType.EOF, "", position)
 
         /**
          * 创建未知词法单元
          * Create unknown token
+         *
+         * @param value 未知值 / Unknown value
+         * @param position 位置索引 / Position index
+         * @return 未知词法单元 / Unknown token
          */
         fun unknown(value: String, position: Int = 0): Token = Token(TokenType.UNKNOWN, value, position)
     }
@@ -122,6 +129,8 @@ data class Token(
 /**
  * 判断词法单元是否是比较操作符
  * Check if token is a comparison operator
+ *
+ * @return 是否是比较操作符 / Whether it is a comparison operator
  */
 fun Token.isComparisonOperator(): Boolean = type in listOf(
     TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE
@@ -130,14 +139,18 @@ fun Token.isComparisonOperator(): Boolean = type in listOf(
 /**
  * 判断词法单元是否是模式匹配操作符
  * Check if token is a pattern match operator
+ *
+ * @return 是否是模式匹配操作符 / Whether it is a pattern match operator
  */
 fun Token.isPatternOperator(): Boolean = type in listOf(
     TokenType.LIKE, TokenType.CONTAINS, TokenType.PREFIX, TokenType.SUFFIX, TokenType.REGEX, TokenType.EXACT
 )
 
 /**
- * 将词法单元类型转换为比较操作笌
+ * 将词法单元类型转换为比较操作符
  * Convert token type to comparison operator
+ *
+ * @return 比较操作符，不支持时返回 null / Comparison operator, null if not supported
  */
 fun TokenType.toComparisonOperator(): ComparisonOperator? = when (this) {
     TokenType.EQ -> ComparisonOperator.Eq
@@ -152,6 +165,8 @@ fun TokenType.toComparisonOperator(): ComparisonOperator? = when (this) {
 /**
  * 将词法单元类型转换为模式匹配模式
  * Convert token type to pattern match mode
+ *
+ * @return 模式匹配模式，不支持时返回 null / Pattern match mode, null if not supported
  */
 fun TokenType.toPatternMatchMode(): PatternMatchMode? = when (this) {
     TokenType.LIKE -> PatternMatchMode.Like

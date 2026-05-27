@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
+import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
 import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
-import kotlin.reflect.KClass
 
 /**
  * 数值运算接双
@@ -24,28 +24,74 @@ interface NumericOps<T : Any> {
     /** 类型标记，用于运行时匹配 / Type marker for runtime matching */
     val type: KClass<T>
 
-    /** 取反 / Negation */
+    /**
+     * 取反 / Negation
+     *
+     * @param value 原始值 / Original value
+     * @return 取反后的值 / Negated value
+     */
     fun negate(value: T): T
 
-    /** 绝对倌/ Absolute value */
+    /**
+     * 绝对值 / Absolute value
+     *
+     * @param value 原始值 / Original value
+     * @return 绝对值 / Absolute value
+     */
     fun abs(value: T): T
 
-    /** 加法 / Addition */
+    /**
+     * 加法 / Addition
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相加结果 / Sum result
+     */
     fun add(left: T, right: T): T
 
-    /** 减法 / Subtraction */
+    /**
+     * 减法 / Subtraction
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相减结果 / Difference result
+     */
     fun subtract(left: T, right: T): T
 
-    /** 乘法 / Multiplication */
+    /**
+     * 乘法 / Multiplication
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相乘结果 / Product result
+     */
     fun multiply(left: T, right: T): T
 
-    /** 除法 / Division (returns null on division by zero) */
+    /**
+     * 除法 / Division (returns null on division by zero)
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相除结果，除零时返回 null / Division result, null on division by zero
+     */
     fun divide(left: T, right: T): T?
 
-    /** 取模 / Modulo (returns null on division by zero) */
+    /**
+     * 取模 / Modulo (returns null on division by zero)
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 取模结果，除零时返回 null / Modulo result, null on division by zero
+     */
     fun modulo(left: T, right: T): T?
 
-    /** 幂运箌/ Power */
+    /**
+     * 幂运算 / Power
+     *
+     * @param left 底数 / Base
+     * @param right 指数 / Exponent
+     * @return 幂运算结果 / Power result
+     */
     fun power(left: T, right: T): T?
 }
 
@@ -63,7 +109,11 @@ object NumericDispatcher {
         registerBuiltInNumericOps()
     }
 
-    /** 注册数值运算处理器 / Register a numeric operation handler */
+    /**
+     * 注册数值运算处理器 / Register a numeric operation handler
+     *
+     * @param ops 数值运算实现 / Numeric operations implementation
+     */
     fun <T : Any> register(ops: NumericOps<T>) {
         registry[ops.type] = ops
     }
@@ -75,17 +125,33 @@ object NumericDispatcher {
         return registry[type] as NumericOps<T>?
     }
 
-    /** 获取指定类型的运算处理器 / Get operation handler for type */
+    /**
+     * 获取指定类型的运算处理器 / Get operation handler for type
+     *
+     * @param type 数值类型 / Numeric type
+     * @return 运算处理器，未注册时返回 null / Operation handler, null if not registered
+     */
     fun <T : Any> opsFor(type: KClass<T>): NumericOps<T>? {
         return typedOpsFor(type)
     }
 
-    /** 获取值的运算处理噌/ Get operation handler for a value's type */
+    /**
+     * 获取值的运算处理器 / Get operation handler for a value's type
+     *
+     * @param value 数值 / Numeric value
+     * @return 运算处理器，未注册时返回 null / Operation handler, null if not registered
+     */
     fun <T : Any> opsFor(value: T): NumericOps<T>? {
         return typedOpsFor(value::class)
     }
 
-    /** 执行一元运箌/ Execute unary operation */
+    /**
+     * 执行一元运算 / Execute unary operation
+     *
+     * @param operator 一元操作符 / Unary operator
+     * @param operand 操作数 / Operand
+     * @return 运算结果，不支持的类型返回 null / Operation result, null if type not supported
+     */
     fun evaluateUnary(operator: UnaryOperator, operand: Any): Any? {
         if (operator == UnaryOperator.Positive) {
             return operand
@@ -99,7 +165,14 @@ object NumericDispatcher {
         }
     }
 
-    /** 执行二元运算 / Execute binary operation */
+    /**
+     * 执行二元运算 / Execute binary operation
+     *
+     * @param operator 二元操作符 / Binary operator
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 运算结果，不支持的类型返回 null / Operation result, null if type not supported
+     */
     fun evaluateBinary(operator: BinaryOperator, left: Any, right: Any): Any? {
         // Both operands must be of the same type
         if (left::class != right::class) return null

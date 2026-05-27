@@ -1,5 +1,5 @@
 /**
- * 带索引标记的张量表达弌
+ * 带索引标记的张量表达式
  * Tensor expression with index labels
  *
  * 提供带编译期索引标记的张量包装类型。
@@ -10,7 +10,7 @@ package fuookami.ospf.kotlin.multiarray.einsum
 import fuookami.ospf.kotlin.multiarray.*
 
 /**
- * 带索引标记的张量表达弌/ Tensor expression with index labels
+ * 带索引标记的张量表达式/ Tensor expression with index labels
  *
  * 尌MultiArray 与索引列表关联，用于爱因斯坦求和操作。
  * Associates a MultiArray with an index list for Einstein summation operations.
@@ -20,10 +20,10 @@ import fuookami.ospf.kotlin.multiarray.*
  * ```kotlin
  * import fuookami.ospf.kotlin.math.multiarray.einsum.*
  *
- * // 创建一丌2x3 矩阵 / Create a 2x3 matrix
+ * // 创建一个 2x3 矩阵 / Create a 2x3 matrix
  * val matrix = MultiArray.newWith(Shape2(2, 3), 1.0)
  *
- * // 创建带索引标记的张量表达弌
+ * // 创建带索引标记的张量表达式
  * // Create tensor expression with index labels
  * val expr = TensorExpr(matrix, IndexList.of(IndexLabel.I, IndexLabel.J))
  *
@@ -72,7 +72,7 @@ data class TensorExpr<T : Any, S : Shape>(
     val size: Int = data.size
 
     /**
-     * 获取维度敌
+     * 获取维度数
      * Get number of dimensions
      */
     val dimension: Int = data.shape.dimension
@@ -91,12 +91,12 @@ data class TensorExpr<T : Any, S : Shape>(
 
     companion object {
         /**
-         * 创建带索引的张量表达弌
+         * 创建带索引的张量表达式
          * Create tensor expression with indices
          *
          * @param data 多维数组
          * @param indices 索引标签数组
-         * @return 张量表达弌
+         * @return 张量表达式
          */
         fun <T : Any, S : Shape> new(
             data: AbstractMultiArray<T, S>,
@@ -111,7 +111,7 @@ data class TensorExpr<T : Any, S : Shape>(
          *
          * @param data 多维数组
          * @param labels 索引标签数组
-         * @return 张量表达弌
+         * @return 张量表达式
          */
         fun <T : Any, S : Shape> new(
             data: AbstractMultiArray<T, S>,
@@ -125,7 +125,7 @@ data class TensorExpr<T : Any, S : Shape>(
          * Create tensor expression with default indices (auto-assign I, J, K, ...)
          *
          * @param data 多维数组
-         * @return 张量表达弌
+         * @return 张量表达式
          */
         fun <T : Any, S : Shape> withDefaultIndices(
             data: AbstractMultiArray<T, S>
@@ -152,7 +152,7 @@ data class TensorExpr<T : Any, S : Shape>(
  * ```
  *
  * @param data 多维数组
- * @return 带默认索引的张量表达弌
+ * @return 带默认索引的张量表达式
  */
 fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): TensorExpr<T, S> {
     return TensorExpr.withDefaultIndices(data)
@@ -171,7 +171,7 @@ fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): TensorExpr<
  *
  * @param data 多维数组
  * @param indices 索引标签数组
- * @return 带指定索引的张量表达弌
+ * @return 带指定索引的张量表达式
  */
 fun <T : Any, S : Shape> tensorExpr(
     data: AbstractMultiArray<T, S>,

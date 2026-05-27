@@ -242,6 +242,9 @@ data class QuantityUnit(
 /**
  * 单位与整数比例相乘
  * Multiply unit by integer scale
+ *
+ * @param scale 整数比例因子 / Integer scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -254,6 +257,9 @@ operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
 /**
  * 单位除以整数比例
  * Divide unit by integer scale
+ *
+ * @param scale 整数比例因子 / Integer scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -266,6 +272,9 @@ operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
 /**
  * 单位与双精度浮点比例相乘
  * Multiply unit by double scale
+ *
+ * @param scale 双精度浮点比例因子 / Double scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -278,6 +287,9 @@ operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
 /**
  * 单位除以双精度浮点比例
  * Divide unit by double scale
+ *
+ * @param scale 双精度浮点比例因子 / Double scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -290,6 +302,9 @@ operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
 /**
  * 单位与扩展精度浮点比例相乘
  * Multiply unit by FltX scale
+ *
+ * @param scale 扩展精度浮点比例因子 / Extended precision float scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -302,6 +317,9 @@ operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
 /**
  * 单位除以扩展精度浮点比例
  * Divide unit by FltX scale
+ *
+ * @param scale 扩展精度浮点比例因子 / Extended precision float scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -314,6 +332,9 @@ operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
 /**
  * 单位与有理数比例相乘
  * Multiply unit by RtnX scale
+ *
+ * @param scale 有理数比例因子 / Rational number scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -326,6 +347,9 @@ operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
 /**
  * 单位除以有理数比例
  * Divide unit by RtnX scale
+ *
+ * @param scale 有理数比例因子 / Rational number scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: RtnX): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -338,6 +362,9 @@ operator fun PhysicalUnit.div(scale: RtnX): PhysicalUnit {
 /**
  * 单位与比例相乘
  * Multiply unit by scale
+ *
+ * @param scale 比例因子 / Scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: Scale): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -350,6 +377,9 @@ operator fun PhysicalUnit.times(scale: Scale): PhysicalUnit {
 /**
  * 单位除以比例
  * Divide unit by scale
+ *
+ * @param scale 比例因子 / Scale factor
+ * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -362,6 +392,9 @@ operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
 /**
  * 两个单位相乘
  * Multiply two units
+ *
+ * @param other 另一个单位 / Another unit
+ * @return 相乘后的新单位 / New unit resulting from multiplication
  */
 operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
     return AnonymousPhysicalUnit(
@@ -373,6 +406,9 @@ operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
 /**
  * 两个单位相除
  * Divide two units
+ *
+ * @param other 另一个单位 / Another unit
+ * @return 相除后的新单位 / New unit resulting from division
  */
 operator fun PhysicalUnit.div(other: PhysicalUnit): PhysicalUnit {
     return AnonymousPhysicalUnit(

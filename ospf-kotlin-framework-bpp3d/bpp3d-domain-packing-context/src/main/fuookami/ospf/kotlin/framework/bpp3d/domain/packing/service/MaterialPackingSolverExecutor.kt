@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class MaterialPackingMipRequest(
@@ -21,8 +22,8 @@ enum class MaterialPackingMipStatus {
 data class MaterialPackingMipResult(
     val status: MaterialPackingMipStatus,
     val selections: Map<Int, UInt64> = emptyMap(),
-    val objective: Double? = null,
-    val gap: Double? = null,
+    val objective: Flt64? = null,
+    val gap: Flt64? = null,
     val timeMillis: Long = 0L,
     val rawStatus: String? = null
 )
@@ -30,4 +31,3 @@ data class MaterialPackingMipResult(
 interface MaterialPackingSolverExecutor {
     suspend fun solve(request: MaterialPackingMipRequest): MaterialPackingMipResult
 }
-

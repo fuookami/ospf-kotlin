@@ -182,17 +182,26 @@ data class FundamentalQuantity(val dimension: FundamentalQuantityDimension, val 
 /**
  * 基础量纲与整数相乘，创建基础量纲值
  * Multiplies a dimension by an integer to create a fundamental quantity
+ *
+ * @param index 幂次指数 / The power exponent
+ * @return 基础量纲值 / The fundamental quantity
  */
 operator fun FundamentalQuantityDimension.times(index: Int) = FundamentalQuantity(this, index)
 
 /**
  * 基础量纲值与整数相乘
  * Multiplies a fundamental quantity by an integer
+ *
+ * @param index 乘数 / The multiplier
+ * @return 基础量纲值 / The fundamental quantity
  */
 operator fun FundamentalQuantity.times(index: Int) = FundamentalQuantity(dimension, index * this.index)
 
 /**
  * 基础量纲值除以整数
  * Divides a fundamental quantity by an integer
+ *
+ * @param index 除数 / The divisor
+ * @return 基础量纲值 / The fundamental quantity
  */
 operator fun FundamentalQuantity.div(index: Int) = FundamentalQuantity(dimension, this.index / index)

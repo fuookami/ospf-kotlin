@@ -13,7 +13,6 @@ package fuookami.ospf.kotlin.math.symbol.operation
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -124,7 +123,12 @@ private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Map<S
 // ============================================================================
 
 /**
+ * 合并线性多项式中的同类项
  * Combine like terms in a linear polynomial.
+ *
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @return 合并同类项后的线性多项式 / Linear polynomial with like terms combined
  */
 fun <T> LinearPolynomial<T>.combineLinearTerms(
     zero: T,
@@ -135,7 +139,12 @@ fun <T> LinearPolynomial<T>.combineLinearTerms(
 }
 
 /**
+ * 使用给定值对线性多项式求值
  * Evaluate a linear polynomial with given values.
+ *
+ * @param values 符号到值的映射 / Map of symbol to value
+ * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
+ * @return 求值结果，若存在未提供值的符号则返回 null / Evaluation result, or null if a symbol has no value
  */
 fun <T> LinearPolynomial<T>.evaluateLinear(
     values: Map<Symbol, T>,
@@ -152,7 +161,12 @@ fun <T> LinearPolynomial<T>.evaluateLinear(
 }
 
 /**
+ * 使用有序符号和值对线性多项式求值
  * Evaluate a linear polynomial with ordered symbols and values.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
+ * @return 求值结果 / Evaluation result
  */
 fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
     order: List<Symbol>,
@@ -169,7 +183,16 @@ fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
 }
 
 /**
+ * 对线性多项式进行部分求值
  * Partially evaluate a linear polynomial.
+ *
+ * 将已知符号的值代入，返回仅包含未知符号的线性多项式。
+ * Substitutes known symbol values, returning a linear polynomial with only unknown symbols.
+ *
+ * @param values 已知符号到值的映射 / Map of known symbol to value
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
  */
 fun <T> LinearPolynomial<T>.partialEvaluateLinear(
     values: Map<Symbol, T>,
@@ -197,7 +220,13 @@ fun <T> LinearPolynomial<T>.partialEvaluateLinear(
 // ============================================================================
 
 /**
+ * 合并二次多项式中的同类项
  * Combine like terms in a quadratic polynomial.
+ *
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @return 合并同类项后的二次多项式 / Quadratic polynomial with like terms combined
  */
 fun <T> QuadraticPolynomial<T>.combineQuadraticTerms(
     zero: T,
@@ -213,7 +242,12 @@ fun <T> QuadraticPolynomial<T>.combineQuadraticTerms(
 }
 
 /**
+ * 使用给定值对二次多项式求值
  * Evaluate a quadratic polynomial with given values.
+ *
+ * @param values 符号到值的映射 / Map of symbol to value
+ * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
+ * @return 求值结果，若存在未提供值的符号则返回 null / Evaluation result, or null if a symbol has no value
  */
 fun <T> QuadraticPolynomial<T>.evaluateQuadratic(
     values: Map<Symbol, T>,
@@ -233,7 +267,12 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadratic(
 }
 
 /**
+ * 使用有序符号和值对二次多项式求值
  * Evaluate a quadratic polynomial with ordered symbols and values.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
+ * @return 求值结果 / Evaluation result
  */
 fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
     order: List<Symbol>,
@@ -256,7 +295,17 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
 }
 
 /**
+ * 对二次多项式进行部分求值
  * Partially evaluate a quadratic polynomial.
+ *
+ * 将已知符号的值代入，返回仅包含未知符号的二次多项式。
+ * Substitutes known symbol values, returning a quadratic polynomial with only unknown symbols.
+ *
+ * @param values 已知符号到值的映射 / Map of known symbol to value
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @return 部分求值后的二次多项式 / Partially evaluated quadratic polynomial
  */
 fun <T> QuadraticPolynomial<T>.partialEvaluateQuadratic(
     values: Map<Symbol, T>,

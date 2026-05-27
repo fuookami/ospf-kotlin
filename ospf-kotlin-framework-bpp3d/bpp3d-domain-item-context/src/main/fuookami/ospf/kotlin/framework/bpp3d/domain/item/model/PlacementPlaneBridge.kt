@@ -12,6 +12,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ProjectivePlane
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Side
 
+
+
+
+
 private fun <T : Cuboid<T>, P : ProjectivePlane> PlaneProjection<T, P>.asSideProjectionOrNull(): PlaneProjection<T, Side>? {
     return if (plane == Side) {
         PlaneProjection(view = view, plane = Side)

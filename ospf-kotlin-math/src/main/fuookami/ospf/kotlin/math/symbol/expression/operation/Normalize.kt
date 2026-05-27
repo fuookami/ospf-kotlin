@@ -15,6 +15,13 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 /**
  * 规范化配罌
  * Normalization Configuration
+ *
+ * @property flatten 是否扁平化 And/Or / Whether to flatten And/Or
+ * @property constantFolding 是否进行常量折叠 / Whether to perform constant folding
+ * @property deduplicate 是否去重 / Whether to deduplicate
+ * @property eliminateDoubleNegation 是否消除双重否定 / Whether to eliminate double negation
+ * @property applyDeMorgan 是否应用德摩根定律 / Whether to apply De Morgan's laws
+ * @property sortOperands 是否排序操作数（用于去重比较） / Whether to sort operands (for deduplication comparison)
  */
 data class NormalizeConfig(
     /** 是否扁平匌And/Or / Whether to flatten And/Or */
@@ -131,6 +138,9 @@ private fun normalizeChildren(expr: BooleanExpression, config: NormalizeConfig):
  * 例如 / Example:
  * - And(A, And(B, C)) -> And(A, B, C)
  * - Or(A, Or(B, C)) -> Or(A, B, C)
+ *
+ * @param expr 要扁平化的表达式 / Expression to flatten
+ * @return 扁平化后的表达式 / Flattened expression
  */
 fun flatten(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -185,6 +195,9 @@ fun flatten(expr: BooleanExpression): BooleanExpression {
  * - A or false -> A
  * - not true -> false
  * - not false -> true
+ *
+ * @param expr 要进行常量折叠的表达式 / Expression to constant-fold
+ * @return 常量折叠后的表达式 / Constant-folded expression
  */
 fun constantFold(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -258,6 +271,9 @@ fun constantFold(expr: BooleanExpression): BooleanExpression {
  * 例如 / Example:
  * - And(A, A, B) -> And(A, B)
  * - Or(X, X, Y) -> Or(X, Y)
+ *
+ * @param expr 要去重的表达式 / Expression to deduplicate
+ * @return 去重后的表达式 / Deduplicated expression
  */
 fun deduplicate(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -289,6 +305,9 @@ fun deduplicate(expr: BooleanExpression): BooleanExpression {
  *
  * 规则 / Rule:
  * - not(not(x)) -> x
+ *
+ * @param expr 要消除双重否定的表达式 / Expression to eliminate double negation
+ * @return 消除双重否定后的表达式 / Expression with double negation eliminated
  */
 fun eliminateDoubleNegation(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -312,6 +331,9 @@ fun eliminateDoubleNegation(expr: BooleanExpression): BooleanExpression {
  * 规则 / Rules:
  * - not(A and B) -> not(A) or not(B)
  * - not(A or B) -> not(A) and not(B)
+ *
+ * @param expr 要应用德摩根定律的表达式 / Expression to apply De Morgan's laws
+ * @return 应用德摩根定律后的表达式 / Expression after applying De Morgan's laws
  */
 fun applyDeMorgan(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -335,6 +357,9 @@ fun applyDeMorgan(expr: BooleanExpression): BooleanExpression {
  *
  * 富And/Or 的操作数按结构键排序，便于比较。
  * Sort operands of And/Or by structural key for easier comparison.
+ *
+ * @param expr 要排序操作数的表达式 / Expression whose operands to sort
+ * @return 操作数排序后的表达式 / Expression with sorted operands
  */
 fun sortOperands(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -356,6 +381,8 @@ fun sortOperands(expr: BooleanExpression): BooleanExpression {
 /**
  * 获取表达式的结构键（用于去重和排序）
  * Get structural key of expression (for deduplication and sorting)
+ *
+ * @return 结构键字符串 / Structural key string
  */
 fun BooleanExpression.structuralKey(): String {
     return when (this) {
@@ -374,6 +401,8 @@ fun BooleanExpression.structuralKey(): String {
 /**
  * 获取标量表达式的结构锌
  * Get structural key of scalar expression
+ *
+ * @return 结构键字符串 / Structural key string
  */
 fun ScalarExpression<*>.structuralKey(): String {
     return when (this) {

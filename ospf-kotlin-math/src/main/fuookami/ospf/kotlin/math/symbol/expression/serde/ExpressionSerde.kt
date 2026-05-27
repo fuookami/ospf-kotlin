@@ -343,6 +343,8 @@ internal fun BooleanExpressionData.toBooleanExpression(): BooleanExpression = wh
 /**
  * 将布尔表达式序列化为 JSON 字符串
  * Serialize boolean expression to JSON string
+ *
+ * @return JSON 字符串 / JSON string
  */
 fun BooleanExpression.toJsonString(): String {
     return json.encodeToString(BooleanExpressionData.serializer(), this.toData())
@@ -351,6 +353,9 @@ fun BooleanExpression.toJsonString(): String {
 /**
  * 从 JSON 字符串反序列化布尔表达式
  * Deserialize boolean expression from JSON string
+ *
+ * @param jsonString JSON 字符串 / JSON string
+ * @return 反序列化后的布尔表达式 / Deserialized boolean expression
  */
 fun booleanExpressionFromJson(jsonString: String): BooleanExpression {
     val data = json.decodeFromString(BooleanExpressionData.serializer(), jsonString)
@@ -360,6 +365,9 @@ fun booleanExpressionFromJson(jsonString: String): BooleanExpression {
 /**
  * 尝试从 JSON 字符串反序列化布尔表达式
  * Try to deserialize boolean expression from JSON string
+ *
+ * @param jsonString JSON 字符串 / JSON string
+ * @return 反序列化后的布尔表达式，失败时返回 null / Deserialized boolean expression, null on failure
  */
 fun booleanExpressionFromJsonOrNull(jsonString: String): BooleanExpression? {
     return try {
@@ -372,6 +380,8 @@ fun booleanExpressionFromJsonOrNull(jsonString: String): BooleanExpression? {
 /**
  * 将标量表达式序列化为 JSON 字符串
  * Serialize scalar expression to JSON string
+ *
+ * @return JSON 字符串 / JSON string
  */
 fun ScalarExpression<*>.toJsonString(): String {
     return json.encodeToString(ScalarExpressionData.serializer(), this.toData())
@@ -380,6 +390,9 @@ fun ScalarExpression<*>.toJsonString(): String {
 /**
  * 从 JSON 字符串反序列化标量表达式
  * Deserialize scalar expression from JSON string
+ *
+ * @param jsonString JSON 字符串 / JSON string
+ * @return 反序列化后的标量表达式 / Deserialized scalar expression
  */
 fun scalarExpressionFromJson(jsonString: String): ScalarExpression<Any> {
     val data = json.decodeFromString(ScalarExpressionData.serializer(), jsonString)
@@ -389,6 +402,9 @@ fun scalarExpressionFromJson(jsonString: String): ScalarExpression<Any> {
 /**
  * 尝试从 JSON 字符串反序列化标量表达式
  * Try to deserialize scalar expression from JSON string
+ *
+ * @param jsonString JSON 字符串 / JSON string
+ * @return 反序列化后的标量表达式，失败时返回 null / Deserialized scalar expression, null on failure
  */
 fun scalarExpressionFromJsonOrNull(jsonString: String): ScalarExpression<Any>? {
     return try {

@@ -1,8 +1,25 @@
+/**
+ * 三维包围盒
+ * 3D Bounding Box
+ *
+ * 定义三维几何空间中的包围盒，由位置 (x, y, z) 和长方体形状定义。
+ * Defines bounding box in 3D geometric space, defined by position (x, y, z) and cuboid shape.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 三维包围盒，由位置 (x, y, z) 和长方体形状定义。
+ * 3D bounding box defined by position (x, y, z) and cuboid shape.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property x X 坐标 / X coordinate
+ * @property y Y 坐标 / Y coordinate
+ * @property z Z 坐标 / Z coordinate
+ * @property cuboid 包围的长方体 / The enclosed cuboid
+ */
 data class Box3<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
@@ -10,6 +27,7 @@ data class Box3<V : FloatingNumber<V>>(
     val cuboid: Cuboid3<V>
 ) {
     companion object {
+        /** 在原点处创建包围盒 / Create a bounding box at the origin */
         fun <V : FloatingNumber<V>> atOrigin(cuboid: Cuboid3<V>): Box3<V> {
             return Box3(
                 x = quantityZeroOf(cuboid.width),
@@ -20,14 +38,21 @@ data class Box3<V : FloatingNumber<V>>(
         }
     }
 
+    /** 宽度 / Width */
     val width get() = cuboid.width
+    /** 高度 / Height */
     val height get() = cuboid.height
+    /** 深度 / Depth */
     val depth get() = cuboid.depth
 
+    /** X 轴最大值 / Maximum X value */
     val maxX: V get() = quantityPlus(x, width)
+    /** Y 轴最大值 / Maximum Y value */
     val maxY: V get() = quantityPlus(y, height)
+    /** Z 轴最大值 / Maximum Z value */
     val maxZ: V get() = quantityPlus(z, depth)
 
+    /** 判断指定点是否在包围盒内 / Check whether a point is inside the bounding box */
     fun contains(
         x: V,
         y: V,
@@ -43,6 +68,7 @@ data class Box3<V : FloatingNumber<V>>(
                 && quantityContainsInRange(z, this.z, maxZ, includeLower, includeUpper, "z")
     }
 
+    /** 判断两个包围盒是否重叠 / Check whether two bounding boxes overlap */
     fun overlapped(rhs: Box3<V>): Boolean {
         if (quantityOrd(maxX, rhs.x, "x") !is Order.Greater) {
             return false
@@ -65,6 +91,7 @@ data class Box3<V : FloatingNumber<V>>(
         return true
     }
 
+    /** 计算两个包围盒的交集，无交集返回 null / Compute intersection of two boxes, returns null if no overlap */
     fun intersect(rhs: Box3<V>): Box3<V>? {
         val minX = quantityMax(x, rhs.x, "x")
         val maxX = quantityMin(this.maxX, rhs.maxX, "x")
@@ -94,5 +121,5 @@ data class Box3<V : FloatingNumber<V>>(
     }
 }
 
+/** @see Box3 */
 typealias AxisAlignedBox3<V> = Box3<V>
-

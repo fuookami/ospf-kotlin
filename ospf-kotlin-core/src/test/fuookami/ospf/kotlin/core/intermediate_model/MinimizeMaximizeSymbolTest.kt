@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.QuadraticExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel

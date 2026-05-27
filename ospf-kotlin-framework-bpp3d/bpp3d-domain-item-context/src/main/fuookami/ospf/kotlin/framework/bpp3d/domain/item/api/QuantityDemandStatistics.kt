@@ -1,17 +1,21 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
+
+
+
+
 
 sealed interface GenericBpp3dDemandKey<V : FloatingNumber<V>> {
     data class Item<V : FloatingNumber<V>>(val item: fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item<V>) : GenericBpp3dDemandKey<V>
@@ -104,8 +108,23 @@ private fun <V : FloatingNumber<V>> Map<GenericBpp3dDemandKey<V>, GenericBpp3dDe
 
 fun <V : FloatingNumber<V>> Item<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
     return when (mode) {
+        is Bpp3dDemandMode.Item -> {
+            mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Amount(UInt64.one))
+        }
+
+        is Bpp3dDemandMode.Material -> {
+            val materials = pack?.materials ?: emptyMap()
+            materials
+                .mapKeys { (material, _) -> GenericBpp3dDemandKey.Material<V>(material.materialKey()) }
+                .mapValues { (_, value) -> GenericBpp3dDemandValue.Amount<V>(value) }
+        }
+
         is Bpp3dDemandMode.ItemAmount -> {
             mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Amount(UInt64.one))
+        }
+
+        is Bpp3dDemandMode.ItemWeight -> {
+            mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Weight(weight))
         }
 
         is Bpp3dDemandMode.ItemMaterialAmount -> {

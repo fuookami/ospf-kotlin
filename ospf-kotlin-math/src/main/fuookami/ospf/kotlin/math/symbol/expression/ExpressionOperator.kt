@@ -206,12 +206,24 @@ enum class NullCheckType {
  * Provides mapping from operators to string symbols.
  */
 object OperatorSymbols {
+    /**
+     * 获取一元操作符的符号 / Get symbol for unary operator
+     *
+     * @param op 一元操作符 / Unary operator
+     * @return 操作符符号字符串 / Operator symbol string
+     */
     fun unary(op: UnaryOperator): String = when (op) {
         UnaryOperator.Negate -> "-"
         UnaryOperator.Positive -> "+"
         UnaryOperator.Abs -> "abs"
     }
 
+    /**
+     * 获取二元操作符的符号 / Get symbol for binary operator
+     *
+     * @param op 二元操作符 / Binary operator
+     * @return 操作符符号字符串 / Operator symbol string
+     */
     fun binary(op: BinaryOperator): String = when (op) {
         BinaryOperator.Add -> "+"
         BinaryOperator.Subtract -> "-"
@@ -221,6 +233,12 @@ object OperatorSymbols {
         BinaryOperator.Power -> "^"
     }
 
+    /**
+     * 获取比较操作符的符号 / Get symbol for comparison operator
+     *
+     * @param op 比较操作符 / Comparison operator
+     * @return 操作符符号字符串 / Operator symbol string
+     */
     fun comparison(op: ComparisonOperator): String = when (op) {
         ComparisonOperator.Eq -> "="
         ComparisonOperator.Ne -> "<>"
@@ -230,12 +248,24 @@ object OperatorSymbols {
         ComparisonOperator.Ge -> ">="
     }
 
+    /**
+     * 获取布尔操作符的符号 / Get symbol for boolean operator
+     *
+     * @param op 布尔操作符 / Boolean operator
+     * @return 操作符符号字符串 / Operator symbol string
+     */
     fun boolean(op: BooleanOperator): String = when (op) {
         BooleanOperator.And -> "and"
         BooleanOperator.Or -> "or"
         BooleanOperator.Not -> "not"
     }
 
+    /**
+     * 获取空值检查类型的符号 / Get symbol for null check type
+     *
+     * @param type 空值检查类型 / Null check type
+     * @return 操作符符号字符串 / Operator symbol string
+     */
     fun nullCheck(type: NullCheckType): String = when (type) {
         NullCheckType.IsNull -> "is null"
         NullCheckType.IsNotNull -> "is not null"
@@ -248,6 +278,8 @@ object OperatorSymbols {
  *
  * 返回比较操作符的反向操作符（妌< 变为 >）。
  * Returns the inverse of a comparison operator (e.g., < becomes >).
+ *
+ * @return 反向比较操作符 / Inverse comparison operator
  */
 fun ComparisonOperator.inverse(): ComparisonOperator = when (this) {
     ComparisonOperator.Eq -> ComparisonOperator.Ne

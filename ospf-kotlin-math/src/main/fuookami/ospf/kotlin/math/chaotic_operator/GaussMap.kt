@@ -15,7 +15,6 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -25,6 +24,8 @@ import kotlin.random.Random
 /**
  * 高斯映射
  * Gauss Map
+ *
+ * @property mu 系统参数 mu / System parameter mu
  */
 data class GaussMap<V : FloatingNumber<V>>(
     val mu: V

@@ -26,12 +26,17 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 /**
  * 解析异常
  * Parse Exception
+ *
+ * @param message 异常消息 / Exception message
+ * @param position 错误位置（输入中的索引），默认 -1 表示未知 / Error position (index in input), -1 if unknown
  */
 class ParseException(message: String, val position: Int = -1) : Exception(message)
 
 /**
  * 布尔表达式解析器
  * Boolean Expression Parser
+ *
+ * @param tokens 词法单元列表 / List of tokens
  */
 class Parser(private val tokens: List<Token>) {
     private var position = 0
@@ -39,6 +44,9 @@ class Parser(private val tokens: List<Token>) {
     /**
      * 解析布尔表达式
      * Parse boolean expression
+     *
+     * @return 解析后的布尔表达式 AST / Parsed boolean expression AST
+     * @throws ParseException 解析失败时 / When parsing fails
      */
     fun parse(): BooleanExpression {
         if (tokens.isEmpty() || (tokens.size == 1 && tokens[0].type == TokenType.EOF)) {
@@ -407,6 +415,10 @@ class Parser(private val tokens: List<Token>) {
 /**
  * 解析布尔表达式字符串
  * Parse boolean expression string
+ *
+ * @param input 布尔表达式字符串 / Boolean expression string
+ * @return 解析后的布尔表达式 / Parsed boolean expression
+ * @throws ParseException 解析失败时 / When parsing fails
  */
 fun parseBooleanExpression(input: String): BooleanExpression {
     val lexer = Lexer(input)
@@ -418,6 +430,9 @@ fun parseBooleanExpression(input: String): BooleanExpression {
 /**
  * 尝试解析布尔表达式字符串
  * Try to parse boolean expression string
+ *
+ * @param input 布尔表达式字符串 / Boolean expression string
+ * @return 解析后的布尔表达式，失败时返回 null / Parsed boolean expression, null on failure
  */
 fun parseBooleanExpressionOrNull(input: String): BooleanExpression? {
     return try {

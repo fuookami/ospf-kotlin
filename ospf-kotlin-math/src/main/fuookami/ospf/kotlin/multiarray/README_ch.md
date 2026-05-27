@@ -26,7 +26,6 @@ OSPF Kotlin 的多维数组运算，包括快速求和与爱因斯坦求和（ei
 ## 使用示例
 
 ```kotlin
-import fuookami.ospf.kotlin.math.multiarray.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -49,7 +48,7 @@ val cumsum = arr.cumsumAxis(1, Flt64.zero)
 ### 爱因斯坦求和
 
 ```kotlin
-import fuookami.ospf.kotlin.math.multiarray.einsum.*
+import fuookami.ospf.kotlin.multiarray.einsum.*
 
 // 矩阵乘法
 val c = einsumDouble(a, b, "ij,jk->ik")

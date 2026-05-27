@@ -10,26 +10,45 @@ It provides:
 3. Unified model-building status callback model.
 4. Unified solver output model with common runtime statistics.
 
+## Module Structure
+
+```
+core/
+├── error/                  - Error handling types (ErrorCode, ErrorKind)
+├── model/
+│   ├── basic/              - Basic model types (Constraint, Expression, Model, ModelView)
+│   ├── callback/           - Model building status callbacks
+│   ├── intermediate/       - Intermediate model layer (LinearTriadModel, QuadraticTetradModel)
+│   └── mechanism/          - Mechanism model layer (MetaModel, constraint registration)
+├── solver/
+│   ├── config/             - Solver configuration (SolverConfig)
+│   ├── heuristic/          - Heuristic solver implementations
+│   ├── iis/                - Irreducible Infeasible Set analysis
+│   ├── output/             - Solver output models (FeasibleSolverOutput)
+│   └── value/              - Solver value types
+├── symbol/
+│   ├── flatten/            - Symbol flattening utilities
+│   └── function/           - Function symbols (BigM, Binaryization, Piecewise, etc.)
+├── token/                  - Token types for model building (TokenList, TokenTable)
+└── variable/               - Variable types and collections (VariableItem, VariableRange)
+```
+
 ## Unified Solve Entry
 
-You can use the new extension entrypoints from `backend/solver/SolverExt.kt`:
+You can use the new extension entrypoints from `core/solver/SolverExt.kt`:
 
 ```kotlin
-import fuookami.ospf.kotlin.core.backend.solver.SolveOptions
-import fuookami.ospf.kotlin.core.backend.solver.solveWithOptions
+import fuookami.ospf.kotlin.core.solver.SolveOptions
+import fuookami.ospf.kotlin.core.solver.solveWithOptions
 
 suspend fun solveWithUnifiedEntry(
     solver: AbstractLinearSolver,
-    model: LinearMetaModel
+    model: LinearTriadModelView
 ) {
     val result = solver.solveWithOptions(
         model = model,
         options = SolveOptions.build {
             solutionAmount = UInt64.one
-            modelBuildingStatusCallBack = { status ->
-                println("${status.modelName} ${status.stage} ${status.ready}/${status.total}")
-                ok
-            }
             solvingStatusCallBack = { status ->
                 println("obj=${status.obj}, gap=${status.gap}")
                 ok
@@ -66,59 +85,54 @@ The core module has been migrated from `Flt64`-specific APIs to generic `V : Rea
 
 ### Removed Typealiases
 
-The following `Flt64` convenience typealiases have been removed. Use the V-typed equivalent instead:
+The following `Flt64` convenience typealiases have been removed. Use the generic form directly instead:
 
 | Removed alias | Replacement |
 |---|---|
-| `CallBackModelInterface` | `CallBackModelInterfaceV<Flt64>` (or your V type) |
-| `MultiObjectiveModelInterface` | `MultiObjectiveModelInterfaceV<Flt64>` (or your V type) |
+| `CallBackModelInterface` (Flt64 typealias) | `CallBackModelInterface<Flt64>` (or your V type) |
+| `MultiObjectiveModelInterface` (Flt64 typealias) | `MultiObjectiveModelInterface<Flt64>` (or your V type) |
 
 ### Internalized Methods
 
 The following methods were previously public but are now `internal` (module-private):
 
-- `LinearInequality<Flt64>.sign`, `QuadraticInequality.sign`
-- `LinearInequality<Flt64>.flattenData`, `QuadraticInequality.flattenData`
+- `LinearInequality<Flt64>.sign`, `QuadraticInequalityOf<Flt64>.sign`
+- `LinearInequality<Flt64>.flattenData`, `QuadraticInequalityOf<Flt64>.flattenData`
 - `LinearPolynomial<Flt64>.toFlattenData()`, `QuadraticPolynomial<Flt64>.toFlattenData()`
 - `LinearRelation.toConstraint()`, `QuadraticRelation.toConstraint()`, `LinearRelation.toQuadraticConstraint()`
 - `LinearPolynomial<Flt64>.toFrontendPolynomial()` (deleted — was identity function)
 
 ### SolverBoundaryCasts
 
-All `@Suppress("UNCHECKED_CAST")` annotations are now centralized in `SolverBoundaryCasts.kt`. If you previously used type-erased bridge methods like `registerAuxiliaryTokensAny` or `registerConstraintsAny`, use the V-typed methods directly instead. The framework internally delegates to `SolverBoundaryCasts` for star-projected generic calls.
+All `@Suppress("UNCHECKED_CAST")` annotations are now centralized in `SolverBoundaryCasts.kt`. If you previously used type-erased bridge methods like `registerAuxiliaryTokensStar` or `registerConstraintsLinearStar` / `registerConstraintsQuadraticStar`, use the V-typed methods directly instead. The framework internally delegates to `SolverBoundaryCasts` for star-projected generic calls.
 
-### Legacy Typealiases (Still Available)
+### Token Types
 
-The following `Flt64` typealiases in `token/TokenList.kt` remain as legacy convenience aliases:
+The token types in `token/TokenList.kt` are now fully generic. Use them with an explicit type parameter:
 
-- `AbstractTokenList` → `AbstractTokenList<Flt64>`
-- `TokenList` → `TokenList<Flt64>`
-- `AddableTokenCollection` → `AddableTokenCollection<Flt64>`
-- `AbstractMutableTokenList` → `AbstractMutableTokenList<Flt64>`
-- `MutableTokenList` → `MutableTokenList<Flt64>`
-- `AutoTokenList` → `AutoTokenList<Flt64>`
-- `ManualTokenList` → `ManualTokenList<Flt64>`
+- `AbstractTokenList<V>`
+- `TokenList<V>`
+- `AddableTokenCollection<V>`
+- `AbstractMutableTokenList<V>`
+- `MutableTokenList<V>`
+- `AutoTokenList<V>`
+- `ManualTokenList<V>`
 
-New code should prefer the generic form directly.
+New code should use the generic form directly (e.g. `TokenList<Flt64>`).
 
-### adapter/flt64 Compatibility Layer
+### QuadraticInequalityOf
 
-The `math.symbol.adapter.flt64` package provides Flt64-specialized convenience functions and a `QuadraticInequality` typealias. This layer is a **compatibility boundary** — it is not part of the main-chain V-typed API.
+The quadratic inequality type is now fully generic: `QuadraticInequalityOf<V>`. Use it directly with your V type parameter (e.g. `QuadraticInequalityOf<Flt64>`). No compatibility alias is provided.
 
-**Deprecation policy:**
+## Package Naming Migration
 
-- `QuadraticInequality` is now `@Deprecated(WARNING)`. Use `QuadraticInequalityOf<Flt64>` directly.
-- The remaining adapter functions (evaluate, parse, serde, DSL, etc.) are retained for backward compatibility but new code should prefer the generic V-typed equivalents where available.
-- This adapter layer will be removed in a future major version. No timeline is committed yet, but the deprecation signals the intent.
+`core.intermediate_symbol.*` has been renamed to `core.symbol.*`. Update your imports accordingly:
 
-### Scan Gate Enforcement (I5)
-
-The genericization scan gate (`scripts/scan-full-genericization.ps1`) enforces:
-
-1. `public_api_blocking = 0` for all check items (no Flt64 in non-adapter public API signatures).
-2. `UNCHECKED_CAST` blocking = 0 (all casts centralized in `SolverBoundaryCasts.kt`).
-3. Non-adapter public API signature Flt64 = 0 (I5 signature-level check, catches nested generics and multi-line signatures that regex-only scans miss).
-4. Boundary items classified into three tiers: **permanent** (solver-inherent), **deprecated** (planned removal), **must_decrease** (tracked for reduction).
+| Old import | New import |
+|---|---|
+| `fuookami.ospf.kotlin.core.intermediate_symbol.*` | `fuookami.ospf.kotlin.core.symbol.*` |
+| `fuookami.ospf.kotlin.core.intermediate_symbol.function.*` | `fuookami.ospf.kotlin.core.symbol.function.*` |
+| `fuookami.ospf.kotlin.core.intermediate_symbol.flatten.*` | `fuookami.ospf.kotlin.core.symbol.flatten.*` |
 
 ## Scope Relation to Root README
 

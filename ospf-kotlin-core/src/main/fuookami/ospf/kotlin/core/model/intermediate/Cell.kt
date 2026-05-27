@@ -1,16 +1,20 @@
+/**
+ * 中间模型单元格
+ * Intermediate model cells
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.variable.VariableItemKey
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.VariableItemKey
 
 /**
- * Generic Cell<V> with typed public evaluation.
- * Flt64 evaluation is handled by the solver adapter, not the core chain.
+ * 通用单元格接口，支持多种求值方式。
+ * Generic cell interface supporting multiple evaluation modes.
  */
 interface Cell<V : RealNumber<V>> {
     fun evaluate(): V?
@@ -18,20 +22,29 @@ interface Cell<V : RealNumber<V>> {
     fun evaluate(solution: Map<VariableItemKey, V>): V?
 }
 
-
+/**
+ * 线性单元格接口，持有系数和标记。
+ * Linear cell interface holding coefficient and token.
+ */
 interface LinearCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
     val token: Token<V>
 }
 
-
+/**
+ * 二次单元格接口，持有系数和两个标记。
+ * Quadratic cell interface holding coefficient and two tokens.
+ */
 interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
     val token1: Token<V>
     val token2: Token<V>?
 }
 
-
+/**
+ * 线性单元格实现，使用 Flt64 系数和 IntoValue 转换器。
+ * Linear cell implementation using Flt64 coefficient and IntoValue converter.
+ */
 class LinearCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
     private val _coefficientFlt64: Flt64,
@@ -63,7 +76,10 @@ class LinearCellImpl<V>(
     }
 }
 
-
+/**
+ * 二次单元格实现，使用 Flt64 系数和 IntoValue 转换器。
+ * Quadratic cell implementation using Flt64 coefficient and IntoValue converter.
+ */
 class QuadraticCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
     private val _coefficientFlt64: Flt64,

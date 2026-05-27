@@ -15,16 +15,23 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
+/**
+ * Burke-Shaw 吸引子
+ * Burke-Shaw Attractor
+ *
+ * @property zeta 系统参数 zeta / System parameter zeta
+ * @property nu 系统参数 nu / System parameter nu
+ * @property h 时间步长 / Time step size
+ */
 data class BurkeShawAttractor<V : FloatingNumber<V>>(
     val zeta: V,
     val nu: V,

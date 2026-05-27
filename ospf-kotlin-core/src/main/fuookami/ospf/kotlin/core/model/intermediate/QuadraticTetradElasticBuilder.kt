@@ -1,10 +1,14 @@
+/**
+ * 二次四元模型弹性构建器
+ * Quadratic tetrad model elastic builder
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.Continuous
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 internal fun QuadraticTetradModel.buildElasticModel(): QuadraticTetradModel {
     var colIndex = this.variables.size

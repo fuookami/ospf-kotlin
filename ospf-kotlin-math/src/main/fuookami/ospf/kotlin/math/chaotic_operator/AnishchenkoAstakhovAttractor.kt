@@ -15,19 +15,22 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
 /**
- * Anishchenko-Astakhov 吸引孌
+ * Anishchenko-Astakhov 吸引子
  * Anishchenko-Astakhov Attractor
+ *
+ * @property mu 系统参数 mu / System parameter mu
+ * @property eta 系统参数 eta / System parameter eta
+ * @property h 时间步长 / Time step size
  */
 data class AnishchenkoAstakhovAttractor<V : FloatingNumber<V>>(
     val mu: V,

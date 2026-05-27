@@ -40,6 +40,8 @@ value class PropertyPath(val value: String) {
     /**
      * 路径是否为空
      * Whether path is empty
+     *
+     * @return 是否为空 / Whether empty
      */
     val isEmpty: Boolean
         get() = value.isEmpty()
@@ -47,6 +49,8 @@ value class PropertyPath(val value: String) {
     /**
      * 路径是否非空
      * Whether path is non-empty
+     *
+     * @return 是否非空 / Whether non-empty
      */
     val isNotEmpty: Boolean
         get() = value.isNotEmpty()
@@ -54,6 +58,8 @@ value class PropertyPath(val value: String) {
     /**
      * 获取分段数量
      * Get number of segments
+     *
+     * @return 分段数量 / Number of segments
      */
     val depth: Int
         get() = segments.size
@@ -137,7 +143,7 @@ value class PropertyPath(val value: String) {
      * Concatenate paths
      *
      * @param other 要拼接的路径 / Path to concatenate
-     * @return 拼接后的新路後/ New concatenated path
+     * @return 拼接后的新路径 / New concatenated path
      */
     fun concat(other: PropertyPath): PropertyPath {
         return if (isEmpty) other
@@ -150,7 +156,7 @@ value class PropertyPath(val value: String) {
      * Concatenate segment
      *
      * @param segment 要追加的分段 / Segment to append
-     * @return 拼接后的新路後/ New concatenated path
+     * @return 拼接后的新路径 / New concatenated path
      */
     fun concat(segment: String): PropertyPath {
         return if (isEmpty) PropertyPath(segment)

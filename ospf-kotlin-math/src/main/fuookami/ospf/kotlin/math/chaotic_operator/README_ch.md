@@ -12,42 +12,41 @@ OSPF Kotlin 的混沌系统吸引子和迭代映射。提供 27+ 著名混沌系
 |------|------|------|
 | `LorenzSystem` | a, b, c, h | 经典洛伦兹吸引子（蝴蝶效应），1963 |
 | `ChenSystem` | a, b, c, h | 陈氏吸引子，洛伦兹的对偶 |
-| `RosslerAttractor` | a, b, c, h | 罗斯勒吸引子，比洛伦兹更简单 |
-| `ChenCelikovskyAttractor` | a, b, c, d, h | 广义陈氏系统 |
-| `ChenLeeAttractor` | a, b, c, h | 陈-李变体 |
-| `CoulletAttractor` | a, b, c, h | 库莱特系统 |
-| `BurkeShawAttractor` | a, b, c, h | 伯克-肖系统 |
-| `BoualiAttractor` | a, b, c, d, h | 布阿里系统 |
-| `AizawaAttractor` | a, b, c, d, e, f, h | 相泽吸引子 |
-| `AnishchenkoAstakhovAttractor` | a, b, c, d, h | 阿尼先科-阿斯塔霍夫系统 |
-| `ArneodoAttractor` | a, b, c, d, h | 阿内奥多吸引子 |
-| `ChuaAttractor` | a, b, c, d, e, h | 蔡氏电路吸引子 |
-| `Brusselator` | a, b, h | 布鲁塞尔子化学模型 |
+| `ChenCelikovskyAttractor` | alpha, beta, delta, h | 广义陈氏系统 |
+| `ChenLeeAttractor` | alpha, beta, delta, h | 陈-李变体 |
+| `CoulletAttractor` | alpha, beta, delta, zeta, h | 库莱特系统 |
+| `BurkeShawAttractor` | zeta, nu, h | 伯克-肖系统 |
+| `BoualiAttractor` | alpha, zeta, h | 布阿里系统 |
+| `AizawaAttractor` | alpha, beta, gamma, delta, epsilon, zeta, h | 相泽吸引子 |
+| `AnishchenkoAstakhovAttractor` | mu, eta, h | 阿尼先科-阿斯塔霍夫系统 |
+| `ArneodoAttractor` | alpha, beta, delta, h | 阿内奥多吸引子 |
+| `ChuaAttractor` | alpha, beta, delta, epsilon, zeta, h | 蔡氏电路吸引子 |
+| `Brusselator` | a, b, h | 布鲁塞尔振子化学模型 |
 
 ### 2D/3D 离散映射
 
 | 系统 | 参数 | 描述 |
 |------|------|------|
-| `ArnoldsCatMap` | h | 阿诺德猫映射 |
+| `ArnoldsCatMap` | - | 阿诺德猫映射 |
 | `BakersMap` | - | 面包师映射 |
-| `BogdanovMap` | a, b, c, d | 波格丹诺夫映射 |
-| `CircleMap` | K, Omega | 圆映射 |
-| `ArnoldTongue` | - | 阿诺德舌可视化 |
-| `ChebyshevMap` | n | 切比雪夫多项式映射 |
-| `GaussMap` | a, q | 高斯映射 |
-| `ComplexQuadraticPolynomial` | c | 复二次映射（曼德博/朱利亚） |
+| `BogdanovMap` | epsilon, kappa, mu | 波格丹诺夫映射 |
+| `CircleMap` | alpha, beta | 圆映射 |
+| `ArnoldTongue` | omega, kappa | 阿诺德舌可视化 |
+| `ChebyshevMap` | a | 切比雪夫多项式映射 |
+| `GaussMap` | mu | 高斯映射 |
+| `ComplexQuadraticPolynomial` | c, d | 复二次映射（曼德博/朱利亚） |
 | `ComplexSquaringMap` | - | 复平方映射 |
 
 ### 物理和生物模型
 
 | 系统 | 参数 | 描述 |
 |------|------|------|
-| `BiologyChaoticModel` | a, b, c, d, h | 生物混沌模型 |
-| `CapacitanceEquation` | a, b, c, d, h | 电容混沌方程 |
-| `CircuitChaotic` | a, b, c, h | 电子电路混沌 |
-| `ChuaCircuit` | alpha, beta, m0, m1, h | 蔡氏电路模型 |
-| `DoublePendulumSystem` | g, l1, l2, m1, m2, h | 双摆系统 |
-| `CoupledLorenzAttractor` | a, b, c, k, h | 耦合洛伦兹系统 |
+| `BiologyChaoticModel` | a, b, c, r | 生物混沌模型 |
+| `CapacitanceEquation` | a, b, c, d, e, h | 电容混沌方程 |
+| `CircuitChaotic` | a, b, c, d | 电子电路混沌 |
+| `ChuaCircuit` | a, b, c, d, h | 蔡氏电路模型 |
+| `DoublePendulumSystem` | m, l, g, h | 双摆系统 |
+| `CoupledLorenzAttractor` | beta, gamma1, gamma2, epsilon, omicron, h | 耦合洛伦兹系统 |
 
 ## 使用示例
 

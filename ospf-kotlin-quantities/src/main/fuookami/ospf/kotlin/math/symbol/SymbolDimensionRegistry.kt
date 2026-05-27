@@ -23,10 +23,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.quantities.quantity.DimensionMismatchException
 import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
 import fuookami.ospf.kotlin.quantities.dimension.div
 import fuookami.ospf.kotlin.quantities.dimension.times
+import fuookami.ospf.kotlin.quantities.quantity.DimensionMismatchException
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -110,7 +110,7 @@ class SymbolDimensionRegistry {
      *
      * 确保所有符号具有相同的量纲，否则抛出异常。
      * Ensures all symbols have the same dimension, otherwise throws exception.
- *
+     *
      * 示例 / Example:
      * ```kotlin
      * val x = DimensionedSymbol("x", null, DerivedQuantity.Length, Meter)

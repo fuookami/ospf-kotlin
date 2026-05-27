@@ -1,23 +1,14 @@
+/**
+ * 二次模型 IIS 计算
+ * Quadratic model IIS computation
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.iis
 
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
-import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintCell
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjectiveCell
-import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
-import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticVector
-import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -26,10 +17,32 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.associateNotNull
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
+import fuookami.ospf.kotlin.core.model.basic.Variable
+import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintCell
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjectiveCell
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
+import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticVector
+import fuookami.ospf.kotlin.core.model.mechanism.eq
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
 
+/**
+ * 计算二次模型的不可行子系统（IIS）。
+ * Compute the Irreducible Infeasible Subsystem (IIS) for a quadratic model.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param solver 二次求解器 / Quadratic solver
+ * @param config IIS 配置 / IIS configuration
+ * @return IIS 模型 / IIS model
+ */
 @OptIn(ExperimentalTime::class)
 suspend fun computeIIS(
     model: QuadraticTetradModelView,

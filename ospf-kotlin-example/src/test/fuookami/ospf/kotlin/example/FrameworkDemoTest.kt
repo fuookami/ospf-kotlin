@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.example
 
 import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction
+import fuookami.ospf.kotlin.core.symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol

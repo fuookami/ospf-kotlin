@@ -15,19 +15,22 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point2
+import kotlin.random.Random
 
 /**
  * 布鲁塞尔振子
  * Brusselator
+ *
+ * @property a 系统参数 a / System parameter a
+ * @property b 系统参数 b / System parameter b
+ * @property h 时间步长 / Time step size
  */
 data class Brusselator<V : FloatingNumber<V>>(
     val a: V,

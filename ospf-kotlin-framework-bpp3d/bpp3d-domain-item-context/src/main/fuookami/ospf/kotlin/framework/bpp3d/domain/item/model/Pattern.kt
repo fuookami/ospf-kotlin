@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
@@ -11,7 +10,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
-
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -28,6 +26,11 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+
+
+
+
+
 
 private typealias PatternScalar = LegacyScalar
 private typealias PatternRange = ValueRange<PatternScalar>
@@ -313,12 +316,12 @@ abstract class Pattern {
                 when (planePlacement) {
                     is Ok -> {
                         val placements = planePlacement.value.flatMap { it.toPlacement3() }
-                        val maxZ = placements.fold(Double.NEGATIVE_INFINITY) { acc, placement ->
-                            val current = placement.maxZ.toDouble()
-                            if (current > acc) current else acc
+                        val maxZ = placements.fold(PatternScalar.negativeInfinity) { acc, placement ->
+                            val current = PatternScalar(placement.maxZ.toDouble())
+                            if (current gr acc) current else acc
                         }
                         if (!placementsList.any { it.toTypedArray() contentEquals placements.toTypedArray() }
-                            && PatternScalar(maxZ) leq space.depth.value
+                            && maxZ leq space.depth.value
                         ) {
                             placementsList.add(placements)
                         }
@@ -526,9 +529,9 @@ abstract class Pattern {
                                         (space.height / Bottom.height(item)).floor().toUInt64()
                                     )
                                 if (heightAmount == UInt64.zero) {
-                                    Double.POSITIVE_INFINITY
+                                    PatternScalar.infinity
                                 } else {
-                                    abs(PatternScalar(heightAmount.toULong().toDouble()) * item.weight.value - thisRestPileAverageWeight).toDouble()
+                                    abs(PatternScalar(heightAmount.toULong().toDouble()) * item.weight.value - thisRestPileAverageWeight)
                                 }
                             })
                     } else {

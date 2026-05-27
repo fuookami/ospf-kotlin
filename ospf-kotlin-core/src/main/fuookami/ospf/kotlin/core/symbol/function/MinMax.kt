@@ -1,0 +1,176 @@
+/**
+ * 最小-最大值函数符号 / MinMax function symbols
+ *
+ * 提供 [MinMaxFunction] 和 [MaxMinFunction]，用于优化上下文中的最小-最大值建模。
+ *
+ * Provides [MinMaxFunction] and [MaxMinFunction] for min-max value modeling in optimization contexts.
+ */
+@file:Suppress("unused")
+
+package fuookami.ospf.kotlin.core.symbol.function
+
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.URealVar
+
+/**
+ * MinMax function: result = max(polynomials[0], polynomials[1], ...).
+ *
+ * Named "MinMax" because it computes the minimum of the maximum values
+ * in optimization contexts. Delegates to MaxFunction internally.
+ */
+class MinMaxFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
+    private val converter: IntoValue<V>,
+    override var name: String,
+    override var displayName: String? = null
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val inner = MaxFunction(polynomials, bigM, converter, name)
+
+    val resultVar: AbstractVariableItem<*, *>
+        get() = inner.resultVar
+    val selectorVars: List<AbstractVariableItem<*, *>>
+        get() = inner.selectorVars
+
+    override val helperVariables: List<AbstractVariableItem<*, *>>
+        get() = inner.helperVariables
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = inner.resultPolynomial
+
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        return inner.evaluate(values)
+    }
+
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
+        return inner.registerAuxiliaryTokens(tokens)
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
+        return inner.registerConstraints(model)
+    }
+    companion object {
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): MinMaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            MinMaxFunction(polynomials, bigM, converter, name, displayName)
+
+        /**
+         * 类型化符号工厂：将中间符号列表转换为线性多项式。
+         * Typed symbol factory: converts intermediate symbols to linear polynomials.
+         */
+        @JvmStatic
+        @JvmName("fromSymbols")
+        fun <V> fromSymbols(
+            polynomials: List<LinearIntermediateSymbol<V>>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
+            MinMaxFunction(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                bigM = bigM,
+                converter = converter,
+                name = name,
+                displayName = displayName
+            ),
+            converter = converter
+        )
+    }
+}
+
+/**
+ * MaxMin function: result = min(polynomials[0], polynomials[1], ...).
+ *
+ * Named "MaxMin" because it computes the maximum of the minimum values
+ * in optimization contexts. Delegates to MinFunction internally.
+ */
+class MaxMinFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
+    private val converter: IntoValue<V>,
+    override var name: String,
+    override var displayName: String? = null
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val inner = MinFunction(polynomials, bigM, converter, name)
+
+    val resultVar: AbstractVariableItem<*, *>
+        get() = inner.resultVar
+    val selectorVars: List<AbstractVariableItem<*, *>>
+        get() = inner.selectorVars
+
+    override val helperVariables: List<AbstractVariableItem<*, *>>
+        get() = inner.helperVariables
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = inner.resultPolynomial
+
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        return inner.evaluate(values)
+    }
+
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
+        return inner.registerAuxiliaryTokens(tokens)
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
+        return inner.registerConstraints(model)
+    }
+    companion object {
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): MaxMinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            MaxMinFunction(polynomials, bigM, converter, name, displayName)
+
+        /**
+         * 类型化符号工厂：将中间符号列表转换为线性多项式。
+         * Typed symbol factory: converts intermediate symbols to linear polynomials.
+         */
+        @JvmStatic
+        @JvmName("fromSymbols")
+        fun <V> fromSymbols(
+            polynomials: List<LinearIntermediateSymbol<V>>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
+            MaxMinFunction(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                bigM = bigM,
+                converter = converter,
+                name = name,
+                displayName = displayName
+            ),
+            converter = converter
+        )
+    }
+}

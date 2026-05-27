@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.symbol_regression.quadratic_regression
 
 import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic

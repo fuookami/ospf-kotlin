@@ -15,16 +15,26 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
+/**
+ * 电容方程
+ * Capacitance Equation
+ *
+ * @property a 系统参数 a / System parameter a
+ * @property b 系统参数 b / System parameter b
+ * @property c 系统参数 c / System parameter c
+ * @property d 分段线性参数 d / Piecewise linear parameter d
+ * @property e 分段线性参数 e / Piecewise linear parameter e
+ * @property h 时间步长 / Time step size
+ */
 data class CapacitanceEquation<V : FloatingNumber<V>>(
     val a: V,
     val b: V,

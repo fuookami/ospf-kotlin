@@ -38,6 +38,7 @@ enum class Comparison {
     GE,
     GT;
 
+    /** 运算符的符号表示 / Symbol representation of the operator */
     val symbol: String
         get() = when (this) {
             LT -> "<"
@@ -48,18 +49,28 @@ enum class Comparison {
             GT -> ">"
         }
 
+    /** 是否为严格比较（不含等于）/ Whether this is a strict comparison (excludes equality) */
     val isStrict: Boolean
         get() = this == LT || this == GT || this == NE
 
+    /** 是否包含等于关系 / Whether this includes equality */
     val includesEquality: Boolean
         get() = this == LE || this == EQ || this == GE
 
+    /** 是否为小于类比较（LT或LE）/ Whether this is a less-than type comparison (LT or LE) */
     val isLessLike: Boolean
         get() = this == LT || this == LE
 
+    /** 是否为大于类比较（GT或GE）/ Whether this is a greater-than type comparison (GT or GE) */
     val isGreaterLike: Boolean
         get() = this == GT || this == GE
 
+    /**
+     * 返回反转的比较运算符。
+     * Returns the reversed comparison operator.
+     *
+     * @return 反转后的比较运算符 / The reversed comparison operator
+     */
     fun reverse(): Comparison {
         return when (this) {
             LT -> GT

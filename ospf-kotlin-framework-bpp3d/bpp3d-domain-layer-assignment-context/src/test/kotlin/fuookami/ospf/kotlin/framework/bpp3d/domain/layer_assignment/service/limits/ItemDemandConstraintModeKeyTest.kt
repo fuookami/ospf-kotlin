@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -127,7 +127,7 @@ class ItemDemandConstraintModeKeyTest {
         val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
 
         assertTrue(constraint(model) is Ok)
-        assertEquals(setOf(Bpp3dDemandMode.ItemMaterialAmount), demandModesInModel(model))
+        assertEquals(setOf(Bpp3dDemandMode.Material), demandModesInModel(model))
     }
 
     @Test
@@ -148,7 +148,7 @@ class ItemDemandConstraintModeKeyTest {
         val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
 
         assertTrue(constraint(model) is Ok)
-        assertEquals(setOf(Bpp3dDemandMode.ItemMaterialWeight), demandModesInModel(model))
+        assertEquals(setOf(Bpp3dDemandMode.Material), demandModesInModel(model))
     }
 
     @Test
@@ -176,7 +176,7 @@ class ItemDemandConstraintModeKeyTest {
 
         assertTrue(constraint(model) is Ok)
         assertEquals(
-            setOf(Bpp3dDemandMode.ItemAmount, Bpp3dDemandMode.ItemMaterialWeight),
+            setOf(Bpp3dDemandMode.ItemAmount, Bpp3dDemandMode.Material),
             demandModesInModel(model)
         )
     }

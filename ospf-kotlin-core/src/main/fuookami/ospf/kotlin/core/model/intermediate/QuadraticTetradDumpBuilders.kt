@@ -1,20 +1,24 @@
+/**
+ * 二次四元模型转储构建器
+ * Quadratic tetrad model dump builders
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import fuookami.ospf.kotlin.utils.functional.Quadruple
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
 import fuookami.ospf.kotlin.core.model.basic.Variable
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.utils.functional.Quadruple
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 
 internal fun buildQuadraticSparseLhs(rows: List<List<QuadraticConstraintCell>>): SparseQuadraticMatrix {
     val matrix = SparseQuadraticMatrix()

@@ -1,5 +1,5 @@
 /**
- * 索引标签和索引列表定乌
+ * 索引标签和索引列表定义
  * Index labels and index lists definitions
  *
  * 提供爱因斯坦表示法的索引标记系统。
@@ -134,7 +134,7 @@ data class IndexList(
     val ids: List<Int> = indices.map { it.id }
 
     /**
-     * 将索引列表转换为名称字符丌
+     * 将索引列表转换为名称字符串
      * Convert index list to name string
      */
     val names: String = indices.joinToString(", ") { it.labelName }
@@ -146,20 +146,20 @@ data class IndexList(
     fun isEmpty(): Boolean = indices.isEmpty()
 
     /**
-     * 检查是否包含指定索弌
+     * 检查是否包含指定索引
      * Check if contains specified index
      *
      * @param label 要检查的索引标签
-     * @return 如果包含则返囌true
+     * @return 如果包含则返回true
      */
     fun contains(label: IndexLabel): Boolean = indices.contains(label)
 
     /**
-     * 检查是否包含指定索弌ID
+     * 检查是否包含指定索引ID
      * Check if contains specified index ID
      *
      * @param id 要检查的索引 ID
-     * @return 如果包含则返囌true
+     * @return 如果包含则返回true
      */
     fun containsId(id: Int): Boolean = ids.contains(id)
 
@@ -168,7 +168,7 @@ data class IndexList(
      * Get dimension position for index at specified position
      *
      * @param label 索引标签
-     * @return 该索引在列表中的位置，如果不存在则返囌null
+     * @return 该索引在列表中的位置，如果不存在则返回null
      */
     fun positionOf(label: IndexLabel): Int? = indices.indexOf(label).let { if (it >= 0) it else null }
 
@@ -177,25 +177,25 @@ data class IndexList(
      * Get dimension position for specified index ID
      *
      * @param id 索引 ID
-     * @return 该索引在列表中的位置，如果不存在则返囌null
+     * @return 该索引在列表中的位置，如果不存在则返回null
      */
     fun positionOfId(id: Int): Int? = ids.indexOf(id).let { if (it >= 0) it else null }
 
     companion object {
         /**
-         * 空索引列行
+         * 空索引列表
          * Empty index list
          */
         val Empty = IndexList(emptyList())
 
         /**
-         * 从索引标签创建索引列行
+         * 从索引标签创建索引列表
          * Create index list from index labels
          */
         fun of(vararg labels: IndexLabel): IndexList = IndexList(labels.toList())
 
         /**
-         * 从索弌ID 创建索引列表
+         * 从索引ID 创建索引列表
          * Create index list from index IDs
          */
         fun fromIds(ids: List<Int>): IndexList {
@@ -213,7 +213,7 @@ data class IndexList(
             val trimmed = names.trim()
             if (trimmed.isEmpty()) return Empty
 
-            // 支持逗号分隔或不分隔的格弌
+            // 支持逗号分隔或不分隔的格式
             // Support comma-separated or non-separated format
             val parts = if (trimmed.contains(",")) {
                 trimmed.split(",").map { it.trim() }
@@ -248,8 +248,8 @@ data class IndexList(
  * // Result: j, k
  * ```
  *
- * @param lhs 左操作数的索引列行
- * @param rhs 右操作数的索引列行
+ * @param lhs 左操作数的索引列表
+ * @param rhs 右操作数的索引列表
  * @return 公共索引列表
  */
 fun findCommonIndices(lhs: IndexList, rhs: IndexList): IndexList {
@@ -272,9 +272,9 @@ fun findCommonIndices(lhs: IndexList, rhs: IndexList): IndexList {
  * // Result: i, k
  * ```
  *
- * @param indices 原索引列行
+ * @param indices 原索引列表
  * @param toRemove 要移除的索引列表
- * @return 移除指定索引后的新列行
+ * @return 移除指定索引后的新列表
  */
 fun removeIndices(indices: IndexList, toRemove: IndexList): IndexList {
     return IndexList(indices.indices.filter { !toRemove.contains(it) })
@@ -284,8 +284,8 @@ fun removeIndices(indices: IndexList, toRemove: IndexList): IndexList {
  * 合并两个索引列表，保持唯一怌
  * Merge two index lists, maintaining uniqueness
  *
- * @param lhs 左操作数的索引列行
- * @param rhs 右操作数的索引列行
+ * @param lhs 左操作数的索引列表
+ * @param rhs 右操作数的索引列表
  * @return 合并后的唯一索引列表
  */
 fun mergeIndices(lhs: IndexList, rhs: IndexList): IndexList {

@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -23,7 +24,7 @@ import kotlin.test.assertTrue
 class MaterialPackerTest {
     private object CargoAttr : AbstractCargoAttribute
 
-    private fun material(no: String, unitWeightKg: Double): Material {
+    private fun material(no: String, unitWeightKg: Flt64): Material {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -35,7 +36,7 @@ class MaterialPackerTest {
 
     private fun candidate(
         id: String,
-        widthMeter: Double,
+        widthMeter: Flt64,
         materials: Map<Material, UInt64>
     ): MaterialPackingProgramCandidate {
         return MaterialPackingProgramCandidate(
@@ -55,7 +56,7 @@ class MaterialPackerTest {
 
     @Test
     fun shouldSelectOneFiveAndOneTwoForSingleMaterialAmountDemand() = runBlocking {
-        val material = material("M-1", 1.0)
+        val material = material("M-1", Flt64.one)
         val plan = MaterialPacker().plan(
             demands = listOf(
                 MaterialPackingDemand(
@@ -64,8 +65,8 @@ class MaterialPackerTest {
                 )
             ),
             candidates = listOf(
-                candidate("pack-5", 5.0, mapOf(material to UInt64(5))),
-                candidate("pack-2", 2.0, mapOf(material to UInt64(2)))
+                candidate("pack-5", Flt64(5.0), mapOf(material to UInt64(5))),
+                candidate("pack-2", Flt64(2.0), mapOf(material to UInt64(2)))
             )
         )
 
@@ -78,7 +79,7 @@ class MaterialPackerTest {
 
     @Test
     fun shouldConvertWeightDemandToAmountByCeilRule() = runBlocking {
-        val material = material("M-2", 2.0)
+        val material = material("M-2", Flt64(2.0))
         val plan = MaterialPacker().plan(
             demands = listOf(
                 MaterialPackingDemand(
@@ -87,7 +88,7 @@ class MaterialPackerTest {
                 )
             ),
             candidates = listOf(
-                candidate("pack-1", 1.0, mapOf(material to UInt64.one))
+                candidate("pack-1", Flt64.one, mapOf(material to UInt64.one))
             )
         )
 
@@ -98,8 +99,8 @@ class MaterialPackerTest {
 
     @Test
     fun shouldPreferComboProgramWhenItNeedsLessPackages() = runBlocking {
-        val materialA = material("M-3A", 1.0)
-        val materialB = material("M-3B", 1.0)
+        val materialA = material("M-3A", Flt64.one)
+        val materialB = material("M-3B", Flt64.one)
         val plan = MaterialPacker().plan(
             demands = listOf(
                 MaterialPackingDemand(materialA, UInt64.one),
@@ -108,14 +109,14 @@ class MaterialPackerTest {
             candidates = listOf(
                 candidate(
                     id = "combo",
-                    widthMeter = 1.0,
+                    widthMeter = Flt64.one,
                     materials = mapOf(
                         materialA to UInt64.one,
                         materialB to UInt64.one
                     )
                 ),
-                candidate("single-a", 0.5, mapOf(materialA to UInt64.one)),
-                candidate("single-b", 0.5, mapOf(materialB to UInt64.one))
+                candidate("single-a", Flt64(0.5), mapOf(materialA to UInt64.one)),
+                candidate("single-b", Flt64(0.5), mapOf(materialB to UInt64.one))
             )
         )
 
@@ -127,10 +128,10 @@ class MaterialPackerTest {
 
     @Test
     fun shouldMarkUnfilledPackageAsPending() = runBlocking {
-        val material = material("M-4", 1.0)
+        val material = material("M-4", Flt64.one)
         val plan = MaterialPacker().plan(
             demands = listOf(MaterialPackingDemand(material, UInt64(6))),
-            candidates = listOf(candidate("pack-5", 5.0, mapOf(material to UInt64(5))))
+            candidates = listOf(candidate("pack-5", Flt64(5.0), mapOf(material to UInt64(5))))
         )
 
         assertEquals(2, plan.packages.size)
@@ -140,11 +141,11 @@ class MaterialPackerTest {
 
     @Test
     fun shouldReturnInfeasibleWhenMaterialCannotBeCovered() = runBlocking {
-        val demandMaterial = material("M-5A", 1.0)
-        val candidateMaterial = material("M-5B", 1.0)
+        val demandMaterial = material("M-5A", Flt64.one)
+        val candidateMaterial = material("M-5B", Flt64.one)
         val plan = MaterialPacker().plan(
             demands = listOf(MaterialPackingDemand(demandMaterial, UInt64.one)),
-            candidates = listOf(candidate("pack-b", 1.0, mapOf(candidateMaterial to UInt64.one)))
+            candidates = listOf(candidate("pack-b", Flt64.one, mapOf(candidateMaterial to UInt64.one)))
         )
 
         assertEquals(MaterialPackingStatus.Infeasible, plan.solveInfo.status)
@@ -153,17 +154,17 @@ class MaterialPackerTest {
 
     @Test
     fun shouldBreakTieByLowerVolumeWhenPackageCountAndSlackAreEqual() = runBlocking {
-        val material = material("M-6", 1.0)
+        val material = material("M-6", Flt64.one)
         val plan = MaterialPacker().plan(
             demands = listOf(MaterialPackingDemand(material, UInt64(4))),
             candidates = listOf(
-                candidate("high-volume", 8.0, mapOf(material to UInt64(4u))),
-                candidate("low-volume", 4.0, mapOf(material to UInt64(4u)))
+                candidate("high-volume", Flt64(8.0), mapOf(material to UInt64(4u))),
+                candidate("low-volume", Flt64(4.0), mapOf(material to UInt64(4u)))
             ),
             objective = MaterialPackingObjectiveConfig(
-                packageCountWeight = 1_000_000.0,
-                volumeWeight = 1_000.0,
-                slackWeight = 1.0
+                packageCountWeight = Flt64(1_000_000.0),
+                volumeWeight = Flt64(1_000.0),
+                slackWeight = Flt64.one
             )
         )
 

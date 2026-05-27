@@ -1,5 +1,13 @@
+/**
+ * Flt64 序列化与反序列化
+ * Flt64 Serialization and Deserialization
+ *
+ * 提供 Flt64 多项式和不等式的 JSON 序列化与反序列化功能。
+ * Provides JSON serialization and deserialization for Flt64 polynomials and inequalities.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import java.io.ByteArrayInputStream
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -16,42 +24,102 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.serde.*
 import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import fuookami.ospf.kotlin.utils.serialization.writeJson
-import java.io.ByteArrayInputStream
 
+/**
+ * 将 Flt64 规范多项式序列化为 JSON 字符串
+ * Serialize a Flt64 canonical polynomial to a JSON string
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return JSON 字符串 / JSON string
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
     return writeJson(combineTerms(symbolComparator).toFlt64Dto())
 }
 
+/**
+ * 将 Flt64 线性多项式序列化为 JSON 字符串
+ * Serialize a Flt64 linear polynomial to a JSON string
+ *
+ * @return JSON 字符串 / JSON string
+ */
 fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
+/**
+ * 将 Flt64 二次多项式序列化为 JSON 字符串
+ * Serialize a Flt64 quadratic polynomial to a JSON string
+ *
+ * @return JSON 字符串 / JSON string
+ */
 fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
+/**
+ * 将 Flt64 线性不等式序列化为 JSON 字符串
+ * Serialize a Flt64 linear inequality to a JSON string
+ *
+ * @return JSON 字符串 / JSON string
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
+/**
+ * 将 Flt64 二次不等式序列化为 JSON 字符串
+ * Serialize a Flt64 quadratic inequality to a JSON string
+ *
+ * @return JSON 字符串 / JSON string
+ */
 fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
+/**
+ * 将 Flt64 规范不等式序列化为 JSON 字符串
+ * Serialize a Flt64 canonical inequality to a JSON string
+ *
+ * @return JSON 字符串 / JSON string
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
+/**
+ * 从 JSON 字符串反序列化为 Flt64 规范多项式
+ * Deserialize a JSON string to a Flt64 canonical polynomial
+ *
+ * @param json JSON 字符串 / JSON string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 规范多项式 / Canonical polynomial
+ */
 fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val dto = readFromJson<CanonicalPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf).combineTerms()
 }
 
+/**
+ * 从 JSON 字符串反序列化为 Flt64 线性多项式
+ * Deserialize a JSON string to a Flt64 linear polynomial
+ *
+ * @param json JSON 字符串 / JSON string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 线性多项式，若不可转换则返回 null / Linear polynomial, or null if not convertible
+ */
 fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val dto = readFromJson<LinearPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf).toLinearPolynomialOrNull()
 }
 
+/**
+ * 从 JSON 字符串反序列化为 Flt64 二次多项式
+ * Deserialize a JSON string to a Flt64 quadratic polynomial
+ *
+ * @param json JSON 字符串 / JSON string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 二次多项式，若不可转换则返回 null / Quadratic polynomial, or null if not convertible
+ */
 fun quadraticPolynomialFromJson(
     json: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -60,11 +128,27 @@ fun quadraticPolynomialFromJson(
     return dto.toFlt64Domain(symbolOf).toQuadraticPolynomialOrNull()
 }
 
+/**
+ * 从 JSON 字符串反序列化为 Flt64 线性不等式
+ * Deserialize a JSON string to a Flt64 linear inequality
+ *
+ * @param json JSON 字符串 / JSON string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 线性不等式 / Linear inequality
+ */
 fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val dto = readFromJson<LinearInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
 
+/**
+ * 从 JSON 字符串反序列化为 Flt64 二次不等式
+ * Deserialize a JSON string to a Flt64 quadratic inequality
+ *
+ * @param json JSON 字符串 / JSON string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 二次不等式 / Quadratic inequality
+ */
 fun quadraticInequalityFromJson(
     json: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -73,6 +157,14 @@ fun quadraticInequalityFromJson(
     return dto.toFlt64Domain(symbolOf)
 }
 
+/**
+ * 从 JSON 字符串反序列化为 Flt64 规范不等式
+ * Deserialize a JSON string to a Flt64 canonical inequality
+ *
+ * @param json JSON 字符串 / JSON string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 规范不等式 / Canonical inequality
+ */
 fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val dto = readFromJson<CanonicalInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)

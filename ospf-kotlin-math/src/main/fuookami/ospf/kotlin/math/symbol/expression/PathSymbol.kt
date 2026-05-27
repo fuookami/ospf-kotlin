@@ -80,21 +80,27 @@ data class PathSymbol(
 /**
  * 扩展函数：属性路径转路径符号
  * Extension function: PropertyPath to PathSymbol
+ *
+ * @return 路径符号 / Path symbol
  */
 fun PropertyPath.toPathSymbol(): PathSymbol = PathSymbol.from(this)
 
 /**
- * 扩展函数：字符串转路径符双
+ * 扩展函数：字符串转路径符号
  * Extension function: String to PathSymbol
+ *
+ * @return 路径符号 / Path symbol
  */
 fun String.toPathSymbol(): PathSymbol = PathSymbol.from(this)
 
 /**
- * 扩展函数：符号尝试转属性路後
+ * 扩展函数：符号尝试转属性路径
  * Extension function: Symbol to PropertyPathOrNull
  *
- * 仅对 `PathSymbol` 类型有效，其他类型返囌null。
+ * 仅对 `PathSymbol` 类型有效，其他类型返回 null。
  * Only works for `PathSymbol` type, returns null for other types.
+ *
+ * @return 属性路径，非 PathSymbol 时返回 null / Property path, null if not PathSymbol
  */
 fun Symbol.toPropertyPathOrNull(): PropertyPath? {
     return when (this) {
@@ -106,15 +112,19 @@ fun Symbol.toPropertyPathOrNull(): PropertyPath? {
 /**
  * 扩展函数：符号是否是路径符号
  * Extension function: Symbol is PathSymbol
+ *
+ * @return 是否是路径符号 / Whether it is a path symbol
  */
 fun Symbol.isPathSymbol(): Boolean = this is PathSymbol
 
 /**
- * 扩展函数：识别符号尝试转属性路後
+ * 扩展函数：识别符号尝试转属性路径
  * Extension function: IdentifiedSymbol to PropertyPathOrNull
  *
  * 基于 symbolId 格式 `path:${value}` 解析。
  * Parses based on symbolId format `path:${value}`.
+ *
+ * @return 属性路径，解析失败时返回 null / Property path, null on failure
  */
 fun IdentifiedSymbol.toPropertyPathFromIdOrNull(): PropertyPath? {
     val id = symbolId

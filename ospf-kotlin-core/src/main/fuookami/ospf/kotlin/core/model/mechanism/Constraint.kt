@@ -1,42 +1,44 @@
+/**
+ * 约束与多项式类型
+ * Constraint and polynomial kind types
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.intermediate.Cell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.intermediate.Cell
+import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
+import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
-// ========== Polynomial Kind Marker Types ==========
-
+/** 多项式类型标记接口 / Polynomial kind marker interface */
 sealed interface PolynomialKind
+/** 线性多项式标记 / Linear polynomial marker */
 object Linear : PolynomialKind
+/** 二次多项式标记 / Quadratic polynomial marker */
 object Quadratic : PolynomialKind
 
-// ========== Symbolic Inequality Wrapper Types ==========
-
+/** 符号线性不等式包装 / Symbolic linear inequality wrapper */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 
+/** 符号二次不等式包装 / Symbolic quadratic inequality wrapper */
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
 
 // ========== Constraint<V, P> ==========
@@ -58,7 +60,13 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Poly
     fun isTrue(results: List<V>): Boolean?
 }
 
-
+/**
+ * 元对偶解，将约束和符号映射到对偶值。
+ * Meta dual solution mapping constraints and symbols to dual values.
+ *
+ * @property constraints 约束到对偶值的映射 / Mapping from constraints to dual values
+ * @property symbols     符号到对偶值的映射 / Mapping from symbols to dual values
+ */
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
     val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
@@ -92,6 +100,10 @@ fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDu
     )
 }
 
+/**
+ * 约束实现密封基类，提供 LHS 求值和约束判断能力。
+ * Sealed constraint implementation base class providing LHS evaluation and constraint checking.
+ */
 sealed class ConstraintImpl<V, P : PolynomialKind>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
@@ -120,6 +132,10 @@ sealed class ConstraintImpl<V, P : PolynomialKind>(
     }
 }
 
+/**
+ * 线性约束实现。
+ * Linear constraint implementation.
+ */
 class LinearConstraintImpl<V>(
     override val lhs: List<LinearCell<V>>,
     sign: ConstraintRelation,
@@ -164,6 +180,10 @@ class LinearConstraintImpl<V>(
     }
 }
 
+/**
+ * 二次约束实现。
+ * Quadratic constraint implementation.
+ */
 class QuadraticConstraintImpl<V>(
     override val lhs: List<QuadraticCell<V>>,
     sign: ConstraintRelation,

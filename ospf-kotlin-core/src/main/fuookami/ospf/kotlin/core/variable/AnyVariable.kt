@@ -1,8 +1,12 @@
+/**
+ * 类型擦除的变量包装器，统一所有 VariableType 变体为单一类型参数 V。
+ * Type-erased variable wrapper unifying all VariableType variants into a single type parameter V.
+ */
 package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
  * Type-erased variable wrapper (aligns with Rust AnyVariable<V>).

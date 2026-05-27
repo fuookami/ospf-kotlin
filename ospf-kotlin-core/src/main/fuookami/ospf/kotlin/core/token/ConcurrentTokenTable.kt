@@ -1,18 +1,24 @@
+/**
+ * 并发 token table 读写实现。
+ * Concurrent token-table read/write implementation.
+ *
+ * 通过统一锁与 TokenCacheContexts 管理 value/flatten/range 缓存，并在 close/remove 时解绑上下文。
+ * Value/flatten/range caches are managed with a unified lock and TokenCacheContexts, and symbol contexts are unbound on close/remove.
+ */
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.ord
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 并发 token table 读写实现。
@@ -532,6 +538,13 @@ sealed class ConcurrentMutableTokenTable<V>(
     }
 }
 
+/**
+ * 并发自动 token table，变量缺失时自动创建 token。
+ * Concurrent auto token table that creates tokens on-the-fly for missing variables.
+ *
+ * @property category 符号操作类别 / Symbol operation category
+ * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+ */
 class ConcurrentAutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
@@ -552,6 +565,13 @@ class ConcurrentAutoTokenTable<V>(
     }
 }
 
+/**
+ * 并发手动 token table，变量需显式添加后才能使用。
+ * Concurrent manual token table where variables must be explicitly added before use.
+ *
+ * @property category 符号操作类别 / Symbol operation category
+ * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+ */
 class ConcurrentManualAddTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
@@ -571,4 +591,3 @@ class ConcurrentManualAddTokenTable<V>(
         )
     }
 }
-

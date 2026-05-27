@@ -1,3 +1,12 @@
+/**
+ * Flt64 转换快捷函数
+ * Flt64 Conversion Convenience Functions
+ *
+ * 提供 Flt64 多项式和不等式的类型转换快捷函数。
+ * 包括 Ret 包装的降阶转换和不等式规范化操作。
+ * Provides Flt64 polynomial and inequality type conversion convenience functions.
+ * Includes Ret-wrapped demotion conversions and inequality normalization operations.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -21,7 +30,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.*
 
 private fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.minus(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return subtractLinear(
@@ -31,6 +39,13 @@ private fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.min
     )
 }
 
+/**
+ * 将 Flt64 规范多项式尝试转换为二次多项式
+ * Try to convert a Flt64 canonical polynomial to a quadratic polynomial
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 二次多项式，若不可转换则返回 null / Quadratic polynomial, or null if not convertible
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticPolynomialOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
@@ -41,6 +56,13 @@ fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadra
     )
 }
 
+/**
+ * 线性转换错误
+ * Linear conversion error
+ *
+ * 表示降阶转换为线性多项式时的失败原因。
+ * Represents the failure reason when demoting to a linear polynomial.
+ */
 enum class TryToLinearError {
     CanonicalMonomialIsNotLinear,
     QuadraticMonomialIsNotLinear,
@@ -50,16 +72,36 @@ enum class TryToLinearError {
     CanonicalInequalityIsNotLinear
 }
 
+/**
+ * 二次转换错误
+ * Quadratic conversion error
+ *
+ * 表示降阶转换为二次多项式时的失败原因。
+ * Represents the failure reason when demoting to a quadratic polynomial.
+ */
 enum class TryToQuadraticError {
     CanonicalMonomialIsNotQuadratic,
     CanonicalPolynomialIsNotQuadratic,
     CanonicalInequalityIsNotQuadratic
 }
 
+/**
+ * 规范转换错误
+ * Canonical conversion error
+ *
+ * 表示转换为规范多项式时的失败原因。
+ * Represents the failure reason when converting to a canonical polynomial.
+ */
 enum class TryToCanonicalError {
     Unsupported
 }
 
+/**
+ * 将 Flt64 规范单项式转换为线性单项式（Ret 包装）
+ * Convert a Flt64 canonical monomial to a linear monomial (Ret-wrapped)
+ *
+ * @return 包含线性单项式的 Ret 结果 / Ret result containing linear monomial
+ */
 fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearMonomial = toLinearMonomialOrNull()
     return if (linearMonomial != null) {
@@ -69,6 +111,13 @@ fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearMo
     }
 }
 
+/**
+ * 将 Flt64 规范单项式转换为二次单项式（Ret 包装）
+ * Convert a Flt64 canonical monomial to a quadratic monomial (Ret-wrapped)
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 包含二次单项式的 Ret 结果 / Ret result containing quadratic monomial
+ */
 fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticMonomialRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): Ret<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
@@ -80,6 +129,12 @@ fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadrati
     }
 }
 
+/**
+ * 将 Flt64 二次单项式转换为线性单项式（Ret 包装）
+ * Convert a Flt64 quadratic monomial to a linear monomial (Ret-wrapped)
+ *
+ * @return 包含线性单项式的 Ret 结果 / Ret result containing linear monomial
+ */
 fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearMonomial = toLinearMonomialOrNull()
     return if (linearMonomial != null) {
@@ -89,6 +144,12 @@ fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearMo
     }
 }
 
+/**
+ * 将 Flt64 规范多项式转换为线性多项式（Ret 包装）
+ * Convert a Flt64 canonical polynomial to a linear polynomial (Ret-wrapped)
+ *
+ * @return 包含线性多项式的 Ret 结果 / Ret result containing linear polynomial
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearPolynomial = toLinearPolynomialOrNull()
     return if (linearPolynomial != null) {
@@ -98,6 +159,13 @@ fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinear
     }
 }
 
+/**
+ * 将 Flt64 规范多项式转换为二次多项式（Ret 包装）
+ * Convert a Flt64 canonical polynomial to a quadratic polynomial (Ret-wrapped)
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 包含二次多项式的 Ret 结果 / Ret result containing quadratic polynomial
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticPolynomialRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): Ret<QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
@@ -109,6 +177,12 @@ fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadra
     }
 }
 
+/**
+ * 将 Flt64 二次多项式转换为线性多项式（Ret 包装）
+ * Convert a Flt64 quadratic polynomial to a linear polynomial (Ret-wrapped)
+ *
+ * @return 包含线性多项式的 Ret 结果 / Ret result containing linear polynomial
+ */
 fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearPolynomial = toLinearPolynomialOrNull()
     return if (linearPolynomial != null) {
@@ -118,6 +192,12 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinear
     }
 }
 
+/**
+ * 将 Flt64 线性不等式升阶为二次不等式
+ * Promote a Flt64 linear inequality to a quadratic inequality
+ *
+ * @return 二次不等式 / Quadratic inequality
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return QuadraticInequalityOf(
         lhs = lhs.toQuadraticPolynomial(),
@@ -126,6 +206,13 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadratic
     )
 }
 
+/**
+ * 将 Flt64 线性不等式升阶为规范不等式
+ * Promote a Flt64 linear inequality to a canonical inequality
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范不等式 / Canonical inequality
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toCanonicalInequality(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
@@ -136,6 +223,13 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toCanonical
     )
 }
 
+/**
+ * 将 Flt64 二次不等式升阶为规范不等式
+ * Promote a Flt64 quadratic inequality to a canonical inequality
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范不等式 / Canonical inequality
+ */
 fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toCanonicalInequality(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
@@ -146,12 +240,24 @@ fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toCano
     )
 }
 
+/**
+ * 将 Flt64 二次不等式尝试降阶为线性不等式
+ * Try to demote a Flt64 quadratic inequality to a linear inequality
+ *
+ * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
+ */
 fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityOrNull(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
     return LinearInequality(lhs = linearLhs, rhs = linearRhs, comparison = comparison)
 }
 
+/**
+ * 将 Flt64 二次不等式降阶为线性不等式（Ret 包装）
+ * Demote a Flt64 quadratic inequality to a linear inequality (Ret-wrapped)
+ *
+ * @return 包含线性不等式的 Ret 结果 / Ret result containing linear inequality
+ */
 fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityRet(): Ret<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearInequality = toLinearInequalityOrNull()
     return if (linearInequality != null) {
@@ -161,12 +267,25 @@ fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLine
     }
 }
 
+/**
+ * 将 Flt64 规范不等式尝试降阶为线性不等式
+ * Try to demote a Flt64 canonical inequality to a linear inequality
+ *
+ * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityOrNull(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
     return LinearInequality(lhs = linearLhs, rhs = linearRhs, comparison = comparison)
 }
 
+/**
+ * 将 Flt64 规范不等式尝试降阶为二次不等式
+ * Try to demote a Flt64 canonical inequality to a quadratic inequality
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 二次不等式，若不可转换则返回 null / Quadratic inequality, or null if not convertible
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequalityOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
@@ -175,6 +294,12 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadra
     return QuadraticInequalityOf(lhs = quadraticLhs, rhs = quadraticRhs, comparison = comparison)
 }
 
+/**
+ * 将 Flt64 规范不等式降阶为线性不等式（Ret 包装）
+ * Demote a Flt64 canonical inequality to a linear inequality (Ret-wrapped)
+ *
+ * @return 包含线性不等式的 Ret 结果 / Ret result containing linear inequality
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityRet(): Ret<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearInequality = toLinearInequalityOrNull()
     return if (linearInequality != null) {
@@ -184,6 +309,13 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinear
     }
 }
 
+/**
+ * 将 Flt64 规范不等式降阶为二次不等式（Ret 包装）
+ * Demote a Flt64 canonical inequality to a quadratic inequality (Ret-wrapped)
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 包含二次不等式的 Ret 结果 / Ret result containing quadratic inequality
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequalityRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): Ret<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
@@ -195,6 +327,13 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadra
     }
 }
 
+/**
+ * 将 Flt64 线性不等式所有项移至左侧
+ * Move all terms of a Flt64 linear inequality to the left-hand side
+ *
+ * @param combineTerms 是否合并同类项 / Whether to combine like terms
+ * @return 左侧归一化的不等式 / Normalized inequality with all terms on LHS
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.moveAllToLhs(combineTerms: Boolean = true): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val lhsToZeroRhs = lhs.minus(rhs)
     val normalizedLhs = if (combineTerms) {
@@ -205,6 +344,13 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.moveAllToLh
     return LinearInequality(lhs = normalizedLhs, rhs = LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>(constant = Flt64.zero), comparison = comparison)
 }
 
+/**
+ * 将 Flt64 线性不等式规范化为小于等于形式
+ * Normalize a Flt64 linear inequality to less-than-or-equal form
+ *
+ * @param combineTerms 是否合并同类项 / Whether to combine like terms
+ * @return 规范化的不等式 / Normalized inequality
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalizeToLessEqualForm(combineTerms: Boolean = true): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     if (comparison == Comparison.NE) {
         return this
@@ -217,6 +363,14 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalizeTo
     return lessLikeInequality.moveAllToLhs(combineTerms)
 }
 
+/**
+ * 将 Flt64 规范不等式所有项移至左侧
+ * Move all terms of a Flt64 canonical inequality to the left-hand side
+ *
+ * @param combineTerms 是否合并同类项 / Whether to combine like terms
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 左侧归一化的不等式 / Normalized inequality with all terms on LHS
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.moveAllToLhs(
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
@@ -235,6 +389,14 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.moveAllT
     }
 }
 
+/**
+ * 将 Flt64 规范不等式规范化为小于等于形式
+ * Normalize a Flt64 canonical inequality to less-than-or-equal form
+ *
+ * @param combineTerms 是否合并同类项 / Whether to combine like terms
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范化的不等式 / Normalized inequality
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalizeToLessEqualForm(
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

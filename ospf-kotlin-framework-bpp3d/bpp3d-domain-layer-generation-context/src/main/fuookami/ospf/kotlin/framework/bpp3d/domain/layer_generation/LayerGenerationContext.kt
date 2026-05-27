@@ -15,13 +15,16 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.math.floor
@@ -38,7 +41,7 @@ data class Bpp3dLayerGenerationRequest<V>(
     val existingLayers: List<BinLayer> = emptyList(),
     val demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    val scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> Double)? = null,
+    val scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> Flt64)? = null,
     val timeLimit: Duration = ZERO,
     val maxCandidates: Int = 256
 )
@@ -51,7 +54,7 @@ data class Bpp3dLayerGenerationResult<V>(
     val layer: BinLayer,
     val reducedCost: V? = null,
     val score: V? = null,
-    val numericScore: Double? = null,
+    val numericScore: Flt64? = null,
     val source: String
 )
 
@@ -61,7 +64,8 @@ data class Bpp3dLayerGenerationResult<V>(
  */
 data class DemandModeKey(
     val mode: Bpp3dDemandMode,
-    val key: Bpp3dDemandKey
+    val key: Bpp3dDemandKey,
+    val quantityUnit: PhysicalUnit? = null
 )
 
 /**
@@ -70,7 +74,8 @@ data class DemandModeKey(
  */
 data class LayerGenerationDemandEntry(
     val mode: Bpp3dDemandMode,
-    val key: Bpp3dDemandKey
+    val key: Bpp3dDemandKey,
+    val quantityUnit: PhysicalUnit? = null
 )
 
 /**
@@ -83,26 +88,41 @@ interface Bpp3dLayerGenerator<V> {
     ): List<Bpp3dLayerGenerationResult<V>>
 }
 
+private fun resolveDemandDomainDiscrete(unit: PhysicalUnit?): Boolean {
+    val domainRaw = runCatching {
+        unit?.javaClass?.methods
+            ?.firstOrNull { it.name == "getDomain" && it.parameterCount == 0 }
+            ?.invoke(unit)
+            ?.toString()
+    }.getOrNull()
+    return domainRaw.equals("Discrete", ignoreCase = true)
+}
+
 fun <V> shadowPriceAwareLayerScore(
-    shadowPriceToDouble: (V) -> Double,
-    demandValueToDouble: (Bpp3dDemandValue) -> Double = { demand ->
+    shadowPriceToScalar: (V) -> Flt64,
+    demandValueToScalar: (Bpp3dDemandValue) -> Flt64 = { demand ->
         when (demand) {
-            is Bpp3dDemandValue.Amount -> demand.value.toULong().toDouble()
-            is Bpp3dDemandValue.Weight -> demand.value.value.toDouble()
+            is Bpp3dDemandValue.Amount -> Flt64(demand.value.toULong().toDouble())
+            is Bpp3dDemandValue.Weight -> demand.value.value
         }
     }
-): (BinLayer, Bpp3dLayerGenerationRequest<V>) -> Double {
+): (BinLayer, Bpp3dLayerGenerationRequest<V>) -> Flt64 {
     return { layer, request ->
         val activeEntries = if (request.demandEntries.isNotEmpty()) {
-            request.demandEntries.map { DemandModeKey(it.mode, it.key) }
+            request.demandEntries.map { DemandModeKey(it.mode, it.key, it.quantityUnit) }
         } else {
             request.shadowPrices.keys
         }
-        activeEntries.sumOf { entry ->
-            val shadowPrice = request.shadowPrices[entry] ?: return@sumOf 0.0
-            val demand = layer.statistics(entry.mode)[entry.key] ?: return@sumOf 0.0
-            shadowPriceToDouble(shadowPrice) * demandValueToDouble(demand)
+        var total = Flt64.zero
+        for (entry in activeEntries) {
+            val shadowPrice = request.shadowPrices[entry] ?: continue
+            val concreteMode = entry.mode.toConcreteMode(
+                isDiscrete = resolveDemandDomainDiscrete(entry.quantityUnit)
+            )
+            val demand = layer.statistics(concreteMode)[entry.key] ?: continue
+            total += shadowPriceToScalar(shadowPrice) * demandValueToScalar(demand)
         }
+        total
     }
 }
 
@@ -116,7 +136,7 @@ private fun <V> rankByShadowScore(
             val thisScore = result.numericScore ?: score(result.layer, request)
             result.copy(numericScore = thisScore)
         }
-        .sortedByDescending { it.numericScore ?: Double.NEGATIVE_INFINITY }
+        .sortedByDescending { it.numericScore ?: Flt64.negativeInfinity }
 }
 
 private suspend fun <V> delegatedOrDefault(
@@ -457,7 +477,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         .map { (layer, source, packed) ->
             Bpp3dLayerGenerationResult<V>(
                 layer = layer,
-                numericScore = packed.toDouble(),
+                numericScore = Flt64(packed.toDouble()),
                 source = source
             )
         }

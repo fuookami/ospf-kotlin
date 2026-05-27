@@ -1,8 +1,9 @@
 /**
- * 澶氶」寮忚В鏋愬櫒
+ * 多项式解析器
  * Polynomial Parser
  *
- * 鎻愪緵澶氶」寮忓拰涓嶇瓑寮忕殑閫掑綊涓嬮檷瑙ｆ瀽鍔熻兘锛屾敮鎸佹硾鍨?Ring<T> 绫诲瀷銆? * Provides recursive descent parsing for polynomials and inequalities, supporting generic Ring<T> types.
+ * 提供多项式和不等式的递归下降解析功能，支持泛型 Ring<T> 类型。
+ * Provides recursive descent parsing for polynomials and inequalities, supporting generic Ring<T> types.
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
@@ -27,6 +28,19 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 // Generic typed parsing
 // ============================================================================
 
+/**
+ * 解析字符串为规范多项式（泛型类型版本）
+ * Parses a string into a canonical polynomial (generic typed version)
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
+ * @return 解析后的规范多项式 / Parsed canonical polynomial
+ */
 fun <T> parseCanonicalTyped(
     input: String,
     numberParser: NumberParser<T>,
@@ -41,6 +55,18 @@ fun <T> parseCanonicalTyped(
     return parser.parsePolynomial().toCanonicalPolynomial(zero, isZero, symbolComparator)
 }
 
+/**
+ * 解析字符串为线性多项式，若非线性则返回 null
+ * Parses a string into a linear polynomial, returns null if not linear
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @return 线性多项式或 null / Linear polynomial or null
+ */
 fun <T> parseLinearTypedOrNull(
     input: String,
     numberParser: NumberParser<T>,
@@ -52,6 +78,19 @@ fun <T> parseLinearTypedOrNull(
     return parseCanonicalTyped(input, numberParser, zero, one, symbolOf, isZero).toLinearPolynomialOrNull(zero, isZero)
 }
 
+/**
+ * 解析字符串为二次多项式，若非二次则返回 null
+ * Parses a string into a quadratic polynomial, returns null if not quadratic
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
+ * @return 二次多项式或 null / Quadratic polynomial or null
+ */
 fun <T> parseQuadraticTypedOrNull(
     input: String,
     numberParser: NumberParser<T>,
@@ -65,6 +104,18 @@ fun <T> parseQuadraticTypedOrNull(
         .toQuadraticPolynomialOrNull(zero, isZero, symbolComparator)
 }
 
+/**
+ * 解析字符串为线性不等式，若非线性则返回 null
+ * Parses a string into a linear inequality, returns null if not linear
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @return 线性不等式或 null / Linear inequality or null
+ */
 fun <T> parseLinearInequalityTypedOrNull(
     input: String,
     numberParser: NumberParser<T>,
@@ -357,6 +408,19 @@ private inline fun <T> wrapRet(
     }
 }
 
+/**
+ * 解析字符串为规范多项式，返回 Ret 包装结果
+ * Parses a string into a canonical polynomial, returning a Ret-wrapped result
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
+ * @return 包装了规范多项式的解析结果 / Parse result wrapping a canonical polynomial
+ */
 fun <T> parseCanonicalTypedRet(
     input: String,
     numberParser: NumberParser<T>,
@@ -369,6 +433,18 @@ fun <T> parseCanonicalTypedRet(
     return wrapRet(input) { parseCanonicalTyped(input, numberParser, zero, one, symbolOf, isZero, symbolComparator) }
 }
 
+/**
+ * 解析字符串为线性多项式，返回 Ret 包装结果
+ * Parses a string into a linear polynomial, returning a Ret-wrapped result
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @return 包装了线性多项式的解析结果 / Parse result wrapping a linear polynomial
+ */
 fun <T> parseLinearTypedRetOrNull(
     input: String,
     numberParser: NumberParser<T>,
@@ -383,6 +459,18 @@ fun <T> parseLinearTypedRetOrNull(
     }
 }
 
+/**
+ * 解析字符串为线性不等式，返回 Ret 包装结果
+ * Parses a string into a linear inequality, returning a Ret-wrapped result
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @return 包装了线性不等式的解析结果 / Parse result wrapping a linear inequality
+ */
 fun <T> parseLinearInequalityTypedRetOrNull(
     input: String,
     numberParser: NumberParser<T>,
@@ -397,6 +485,19 @@ fun <T> parseLinearInequalityTypedRetOrNull(
     }
 }
 
+/**
+ * 解析字符串为二次多项式，返回 Ret 包装结果
+ * Parses a string into a quadratic polynomial, returning a Ret-wrapped result
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
+ * @return 包装了二次多项式的解析结果 / Parse result wrapping a quadratic polynomial
+ */
 fun <T> parseQuadraticTypedRetOrNull(
     input: String,
     numberParser: NumberParser<T>,

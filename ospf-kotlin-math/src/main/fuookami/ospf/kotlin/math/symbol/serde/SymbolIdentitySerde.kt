@@ -7,19 +7,26 @@
  */
 package fuookami.ospf.kotlin.math.symbol.serde
 
-import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
-import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
-import fuookami.ospf.kotlin.math.symbol.OwnedSymbolLike
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.SymbolId
-import fuookami.ospf.kotlin.utils.serialization.writeJson
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbolLike
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.SymbolId
+import fuookami.ospf.kotlin.utils.serialization.writeJson
 
+/**
+ * 序列化符号标识前缀
+ * Serialized symbol identity prefix
+ *
+ * 用于标识经过序列化编码的符号标识字符串。
+ * Used to identify serialized and encoded symbol identity strings.
+ */
 const val SerializedSymbolIdentityPrefix = "__ospf_symbol_identity__"
 
 private data class DefaultSymbol(
@@ -32,7 +39,7 @@ private fun defaultSymbolOf(name: String): Symbol {
 }
 
 /**
- * 符号标识表达弌
+ * 符号标识表达式
  * Symbol identity expression
  *
  * 表示符号标识的序列化表达式，支持简单、带 ID 和复合形式。
@@ -44,8 +51,11 @@ sealed interface SymbolIdentityExpr {
     val displayName: String?
 
     /**
-     * 简单符号标诌
+     * 简单符号标识
      * Simple symbol identity
+     *
+     * @property name 符号名称 / Symbol name
+     * @property displayName 显示名称 / Display name
      */
     @Serializable
     data class Simple(
@@ -54,8 +64,12 @@ sealed interface SymbolIdentityExpr {
     ) : SymbolIdentityExpr
 
     /**
-     * 希ID 符号标识
+     * 带 ID 符号标识
      * ID-bearing symbol identity
+     *
+     * @property name 符号名称 / Symbol name
+     * @property id 符号标识 ID / Symbol identity ID
+     * @property displayName 显示名称 / Display name
      */
     @Serializable
     data class WithId(
@@ -67,6 +81,11 @@ sealed interface SymbolIdentityExpr {
     /**
      * 复合符号标识
      * Composite symbol identity
+     *
+     * @property operator 运算符名称 / Operator name
+     * @property arg 单参数符号标识表达式 / Single-argument symbol identity expression
+     * @property name 符号名称 / Symbol name
+     * @property displayName 显示名称 / Display name
      */
     @Serializable
     data class Composite(
@@ -77,8 +96,13 @@ sealed interface SymbolIdentityExpr {
     ) : SymbolIdentityExpr
 
     /**
-     * 多参数复合符号标诌
+     * 多参数复合符号标识
      * Multi-argument composite symbol identity
+     *
+     * @property operator 运算符名称 / Operator name
+     * @property args 多参数符号标识表达式列表 / List of multi-argument symbol identity expressions
+     * @property name 符号名称 / Symbol name
+     * @property displayName 显示名称 / Display name
      */
     @Serializable
     data class CompositeMulti(
@@ -188,6 +212,13 @@ private fun parseIdentityExprOrNull(json: String): SymbolIdentityExpr? {
     }
 }
 
+/**
+ * 将符号标识表达式序列化为标识符字符串
+ * Serializes a symbol identity expression into an identifier string
+ *
+ * @receiver 符号标识表达式 / Symbol identity expression
+ * @return 序列化后的标识符字符串 / Serialized identifier string
+ */
 fun SymbolIdentityExpr.toSerializedIdentifier(): String {
     if (this is SymbolIdentityExpr.Simple && displayName == null && !name.startsWith(SerializedSymbolIdentityPrefix)) {
         return name
@@ -196,6 +227,13 @@ fun SymbolIdentityExpr.toSerializedIdentifier(): String {
     return "$SerializedSymbolIdentityPrefix$payload"
 }
 
+/**
+ * 将符号转换为符号标识表达式
+ * Converts a symbol to a symbol identity expression
+ *
+ * @receiver 符号 / Symbol
+ * @return 符号标识表达式 / Symbol identity expression
+ */
 fun Symbol.toSymbolIdentityExpr(): SymbolIdentityExpr {
     return when (this) {
         is SerializedIdentitySymbol -> identityExpr
@@ -216,6 +254,13 @@ fun Symbol.toSymbolIdentityExpr(): SymbolIdentityExpr {
     }
 }
 
+/**
+ * 从序列化标识符字符串反序列化为符号
+ * Deserializes a serialized identifier string into a symbol
+ *
+ * @param identifier 序列化的标识符字符串 / Serialized identifier string
+ * @return 反序列化后的符号 / Deserialized symbol
+ */
 fun symbolOfSerializedIdentifier(identifier: String): Symbol {
     if (!identifier.startsWith(SerializedSymbolIdentityPrefix)) {
         return defaultSymbolOf(identifier)

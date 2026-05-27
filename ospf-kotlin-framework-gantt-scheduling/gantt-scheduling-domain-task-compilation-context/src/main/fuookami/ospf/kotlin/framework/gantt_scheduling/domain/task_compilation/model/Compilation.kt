@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.symbol.function.OrFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq

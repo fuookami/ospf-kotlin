@@ -15,7 +15,6 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -23,8 +22,11 @@ import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
 /**
- * 圆映尌
+ * 圆映射
  * Circle Map
+ *
+ * @property alpha 频率参数 / Frequency parameter
+ * @property beta 非线性耦合强度参数 / Nonlinear coupling strength parameter
  */
 data class CircleMap<V : FloatingImpl<V>>(
     val alpha: V,

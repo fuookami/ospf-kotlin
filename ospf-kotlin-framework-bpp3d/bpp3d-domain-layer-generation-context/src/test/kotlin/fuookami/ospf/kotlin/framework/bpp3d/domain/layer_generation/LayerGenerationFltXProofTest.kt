@@ -6,13 +6,19 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Package as GenericPa
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.PackageShape as GenericPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
@@ -45,8 +51,8 @@ class LayerGenerationFltXProofTest {
         )
     }
 
-    private fun q(value: Double, unit: PhysicalUnit): Quantity<FltX> {
-        return FltX(value) * unit
+    private fun q(value: FltX, unit: PhysicalUnit): Quantity<FltX> {
+        return value * unit
     }
 
     @Test
@@ -59,13 +65,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-LG",
-            weight = q(0.25, Kilogram)
+            weight = q(FltX(0.25), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(0.8, Meter),
-            depth = q(0.6, Meter),
-            weight = q(0.3, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(0.8), Meter),
+            depth = q(FltX(0.6), Meter),
+            weight = q(FltX(0.3), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val pack = GenericPackage.innerPackage(
@@ -116,13 +122,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-LG2",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(0.5, Meter),
-            depth = q(0.5, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(0.5), Meter),
+            depth = q(FltX(0.5), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val pack = GenericPackage.innerPackage(
@@ -140,15 +146,15 @@ class LayerGenerationFltXProofTest {
         val layer = fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
             from = LayerGenerationFltXProofTest::class,
-            width = q(3.0, Meter),
-            height = q(3.0, Meter),
-            depth = q(3.0, Meter),
+            width = q(FltX(3.0), Meter),
+            height = q(FltX(3.0), Meter),
+            depth = q(FltX(3.0), Meter),
             units = listOf(
                 fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemPlacement(
                     item = item,
-                    x = q(0.0, Meter),
-                    y = q(0.0, Meter),
-                    z = q(0.0, Meter)
+                    x = q(FltX(0.0), Meter),
+                    y = q(FltX(0.0), Meter),
+                    z = q(FltX(0.0), Meter)
                 )
             )
         ).toLegacy()
@@ -172,20 +178,20 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-HIGH",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val materialLow = GenericMaterial(
             no = MaterialNo("M-LOW"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-LOW",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(0.5, Meter),
-            depth = q(0.5, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(0.5), Meter),
+            depth = q(FltX(0.5), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
 
@@ -233,15 +239,87 @@ class LayerGenerationFltXProofTest {
                         fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(lowMaterialKey)
                     ) to Flt64(1.0)
                 ),
-                scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToDouble = { it.toDouble() }),
+                scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToScalar = { it }),
                 maxCandidates = 2
             )
         )
 
         assertEquals(2, generated.size)
-        assertEquals(10.0, generated.first().numericScore ?: Double.NaN, 1e-10)
-        assertEquals(1.0, generated.last().numericScore ?: Double.NaN, 1e-10)
-        assertTrue((generated.first().numericScore ?: 0.0) > (generated.last().numericScore ?: 0.0))
+        val firstScore = generated.first().numericScore
+        val lastScore = generated.last().numericScore
+        assertEquals(Flt64(10.0), firstScore)
+        assertEquals(Flt64.one, lastScore)
+        assertTrue((firstScore ?: Flt64.zero) > (lastScore ?: Flt64.zero))
+    }
+
+    @Test
+    fun shadowPriceAwareLayerScoreShouldRespectWeightOnlyProgramContribution() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-WEIGHT-ONLY"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-WEIGHT-ONLY",
+            weight = 2.0 * Kilogram
+        )
+        val program = PackingProgram.innerPackageWithMaterialValues(
+            shape = PackageShape(
+                width = 1.0 * Meter,
+                height = 1.0 * Meter,
+                depth = 1.0 * Meter,
+                weight = 1.0 * Kilogram,
+                packageType = PackageType.CartonContainer
+            ),
+            materials = mapOf(
+                material.key to PackingProgramMaterialValue(
+                    weight = 3.0 * Kilogram
+                )
+            )
+        )
+        val item = ActualItem(
+            id = "item-weight-only-program",
+            name = "item-weight-only-program",
+            width = program.width,
+            height = program.height,
+            depth = program.depth,
+            weight = program.weight,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-WEIGHT-ONLY"),
+            packageAttribute = defaultPackageAttribute(),
+            materialAmountsOverride = program.materialAmounts(),
+            materialWeightsOverride = program.materialWeights()
+        )
+        val demandKey = Bpp3dDemandKey.Material(material.key)
+        val generated = BlockLayerGenerator<Flt64>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                items = listOf(item),
+                demandEntries = listOf(
+                    LayerGenerationDemandEntry(
+                        mode = Bpp3dDemandMode.ItemMaterialAmount,
+                        key = demandKey
+                    ),
+                    LayerGenerationDemandEntry(
+                        mode = Bpp3dDemandMode.ItemMaterialWeight,
+                        key = demandKey
+                    )
+                ),
+                shadowPrices = linkedMapOf(
+                    DemandModeKey(
+                        mode = Bpp3dDemandMode.ItemMaterialAmount,
+                        key = demandKey
+                    ) to Flt64(10.0),
+                    DemandModeKey(
+                        mode = Bpp3dDemandMode.ItemMaterialWeight,
+                        key = demandKey
+                    ) to Flt64(2.0)
+                ),
+                scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToScalar = { it }),
+                maxCandidates = 1
+            )
+        )
+
+        assertEquals(1, generated.size)
+        assertEquals(Flt64(6.0), generated.first().numericScore)
     }
 
     @Test
@@ -251,13 +329,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-BLOCK",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(1.0, Meter),
-            depth = q(1.0, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(1.0), Meter),
+            depth = q(FltX(1.0), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val item = GenericItem(
@@ -298,13 +376,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PATTERN",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(1.0, Meter),
-            depth = q(1.0, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(1.0), Meter),
+            depth = q(FltX(1.0), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val item = GenericItem(
@@ -345,13 +423,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PILE",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(1.0, Meter),
-            depth = q(1.0, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(1.0), Meter),
+            depth = q(FltX(1.0), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val item = GenericItem(
@@ -392,13 +470,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-CIRCLE",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(1.0, Meter),
-            depth = q(1.0, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(1.0), Meter),
+            depth = q(FltX(1.0), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val item = GenericItem(
@@ -441,13 +519,13 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-CIRCLE-TIE",
-            weight = q(0.2, Kilogram)
+            weight = q(FltX(0.2), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.0, Meter),
-            height = q(1.0, Meter),
-            depth = q(1.0, Meter),
-            weight = q(0.2, Kilogram),
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(1.0), Meter),
+            depth = q(FltX(1.0), Meter),
+            weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val item = GenericItem(
@@ -481,4 +559,5 @@ class LayerGenerationFltXProofTest {
         assertEquals("circle-packing-hex", generated.first().source)
     }
 }
+
 

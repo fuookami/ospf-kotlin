@@ -47,8 +47,8 @@ class FltXDirectCompileProofTest {
         )
     }
 
-    private fun q(value: Double, unit: PhysicalUnit): Quantity<FltX> {
-        return FltX(value) * unit
+    private fun q(value: FltX, unit: PhysicalUnit): Quantity<FltX> {
+        return value * unit
     }
 
     @Test
@@ -58,13 +58,13 @@ class FltXDirectCompileProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-1",
-            weight = q(0.5, Kilogram)
+            weight = q(FltX(0.5), Kilogram)
         )
         val shape = GenericPackageShape(
-            width = q(1.2, Meter),
-            height = q(0.8, Meter),
-            depth = q(0.6, Meter),
-            weight = q(0.3, Kilogram),
+            width = q(FltX(1.2), Meter),
+            height = q(FltX(0.8), Meter),
+            depth = q(FltX(0.6), Meter),
+            weight = q(FltX(0.3), Kilogram),
             packageType = PackageType.CartonContainer
         )
         val pack = GenericPackage.innerPackage(
@@ -83,15 +83,15 @@ class FltXDirectCompileProofTest {
         val layer = GenericBinLayer(
             iteration = Int64.zero,
             from = FltXDirectCompileProofTest::class,
-            width = q(5.0, Meter),
-            height = q(5.0, Meter),
-            depth = q(5.0, Meter),
+            width = q(FltX(5.0), Meter),
+            height = q(FltX(5.0), Meter),
+            depth = q(FltX(5.0), Meter),
             units = listOf(
                 GenericItemPlacement(
                     item = item,
-                    x = q(0.0, Meter),
-                    y = q(0.0, Meter),
-                    z = q(0.0, Meter)
+                    x = q(FltX.zero, Meter),
+                    y = q(FltX.zero, Meter),
+                    z = q(FltX.zero, Meter)
                 )
             )
         )
@@ -111,7 +111,7 @@ class FltXDirectCompileProofTest {
             is GenericBpp3dDemandValue.Amount -> adapter.amountToSolver(amountValue.value)
             else -> error("Unexpected amount statistics value: $amountValue")
         }
-        assertEquals(6.0, amountSolverValue.toDouble(), 1e-10)
+        assertEquals(Flt64(6.0), amountSolverValue)
 
         val layerWeightStats = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         val materialNo = when (val weightKey = layerWeightStats.keys.single()) {
@@ -124,6 +124,6 @@ class FltXDirectCompileProofTest {
             is GenericBpp3dDemandValue.Weight -> adapter.weightToSolver(weightValue.value.asScalarF64())
             else -> error("Unexpected weight statistics value: $weightValue")
         }
-        assertEquals(10.0, weightSolverValue.toDouble(), 1e-10)
+        assertEquals(Flt64(10.0), weightSolverValue)
     }
 }

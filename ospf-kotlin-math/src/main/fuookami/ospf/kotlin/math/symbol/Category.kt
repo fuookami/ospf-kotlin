@@ -133,9 +133,3 @@ fun Collection<Category>.max(): Category {
 fun Collection<Category>.maxOrNull(): Category? {
     return this.maxByOrNull { it.code }
 }
-
-
-
-
-
-

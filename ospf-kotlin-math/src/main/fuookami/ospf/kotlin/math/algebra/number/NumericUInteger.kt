@@ -12,10 +12,6 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.utils.functional.orderOf
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -23,6 +19,10 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.*
 
 /**
  * 数值无符号整数接口
@@ -201,7 +201,6 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override operator fun rem(rhs: NUInt8) = NUInt8(value % rhs.value)
     override fun intDiv(rhs: NUInt8) = NUInt8(value / rhs.value)
 
-
     override fun pow(index: Int): URtn8 {
         return if (index >= 1) {
             URtn8(value.pow(index), UInt8.one)
@@ -211,8 +210,6 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
             URtn8.one
         }
     }
-
-
 
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(
         start = copy(),
@@ -315,7 +312,6 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override operator fun rem(rhs: NUInt16) = NUInt16(value % rhs.value)
     override fun intDiv(rhs: NUInt16) = NUInt16(value / rhs.value)
 
-
     override fun pow(index: Int): URtn16 {
         return if (index >= 1) {
             URtn16(value.pow(index), UInt16.one)
@@ -325,8 +321,6 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
             URtn16.one
         }
     }
-
-
 
     override fun rangeTo(rhs: NUInt16) = NumericUIntegerRange(
         start = copy(),
@@ -431,7 +425,6 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override operator fun rem(rhs: NUInt32) = NUInt32(value % rhs.value)
     override fun intDiv(rhs: NUInt32) = NUInt32(value / rhs.value)
 
-
     override fun pow(index: Int): URtn32 {
         return if (index >= 1) {
             URtn32(value.pow(index), UInt32.one)
@@ -441,8 +434,6 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
             URtn32.one
         }
     }
-
-
 
     override fun rangeTo(rhs: NUInt32) = NumericUIntegerRange(
         start = copy(),
@@ -547,7 +538,6 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override operator fun rem(rhs: NUInt64) = NUInt64(value % rhs.value)
     override fun intDiv(rhs: NUInt64) = NUInt64(value / rhs.value)
 
-
     override fun pow(index: Int): URtn64 {
         return if (index >= 1) {
             URtn64(value.pow(index), UInt64.one)
@@ -557,8 +547,6 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
             URtn64.one
         }
     }
-
-
 
     override fun rangeTo(rhs: NUInt64) = NumericUIntegerRange(
         start = copy(),
@@ -762,7 +750,3 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun toFlt64() = value.toFlt64()
     override fun toFltX() = value.toFltX()
 }
-
-
-
-

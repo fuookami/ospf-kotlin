@@ -1,5 +1,5 @@
 /**
- * 解析结果与解析问颌
+ * 解析结果与解析问题
  * Parse Result and Parse Issues
  *
  * 定义多项式解析的结果类型别名和解析问题类型。
@@ -38,7 +38,7 @@ enum class ParseIssueType {
  *
  * @param type 问题类型 / Issue type
  * @param message 问题描述 / Issue description
- * @param input 输入字符丌/ Input string
+ * @param input 输入字符串 / Input string
  * @param position 问题位置 / Issue position
  */
 data class ParseIssue(

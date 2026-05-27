@@ -95,6 +95,15 @@ sealed interface ScalarExpression<out T> {
  * 表示常量值。
  * Represents a constant value.
  */
+/**
+ * 标量常量
+ * Scalar Constant
+ *
+ * 表示常量值。
+ * Represents a constant value.
+ *
+ * @property value 常量值 / Constant value
+ */
 data class ScalarConstant<T>(
     val value: T
 ) : ScalarExpression<T> {
@@ -110,6 +119,9 @@ data class ScalarConstant<T>(
  *
  * 表示对属性路径的引用。
  * Represents a reference to a property path.
+ *
+ * @property path 属性路径 / Property path
+ * @property symbol 路径符号，默认从 path 转换 / Path symbol, defaults to conversion from path
  */
 data class ScalarReference<T>(
     val path: PropertyPath,
@@ -121,6 +133,15 @@ data class ScalarReference<T>(
     override fun toString(): String = "Reference(${path.value})"
 }
 
+/**
+ * 标量符号引用
+ * Scalar Symbol Reference
+ *
+ * 表示对符号的引用（非路径形式）。
+ * Represents a reference to a symbol (non-path form).
+ *
+ * @property symbol 符号 / Symbol
+ */
 data class ScalarSymbolReference<T>(
     val symbol: Symbol
 ) : ScalarExpression<T> {
@@ -136,6 +157,9 @@ data class ScalarSymbolReference<T>(
  *
  * 表示一元操作表达式，如负号。
  * Represents a unary operation expression, such as negation.
+ *
+ * @property operator 一元操作符 / Unary operator
+ * @property operand 操作数 / Operand
  */
 data class ScalarUnary<T>(
     val operator: UnaryOperator,
@@ -153,6 +177,10 @@ data class ScalarUnary<T>(
  *
  * 表示二元操作表达式，如加法、减法。
  * Represents a binary operation expression, such as addition, subtraction.
+ *
+ * @property operator 二元操作符 / Binary operator
+ * @property left 左操作数 / Left operand
+ * @property right 右操作数 / Right operand
  */
 data class ScalarBinary<T>(
     val operator: BinaryOperator,
@@ -171,6 +199,9 @@ data class ScalarBinary<T>(
  *
  * 表示函数调用表达式。
  * Represents a function call expression.
+ *
+ * @property name 函数名称 / Function name
+ * @property arguments 参数列表 / Argument list
  */
 data class ScalarFunction<T>(
     val name: String,
@@ -188,6 +219,9 @@ data class ScalarFunction<T>(
  *
  * 表示自定义表达式，用于扩展。
  * Represents a custom expression for extension.
+ *
+ * @property value 自定义值 / Custom value
+ * @property description 可选描述 / Optional description
  */
 data class ScalarCustom<T>(
     val value: Any,
@@ -210,26 +244,46 @@ object ScalarExpressionFactory {
     /**
      * 创建常量表达弌
      * Create constant expression
+     *
+     * @param value 常量值 / Constant value
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> constant(value: T): ScalarExpression<T> = ScalarConstant(value)
 
     /**
      * 创建引用表达弌
      * Create reference expression
+     *
+     * @param path 属性路径 / Property path
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> reference(path: PropertyPath): ScalarExpression<T> = ScalarReference(path)
 
     /**
      * 创建引用表达弌
      * Create reference expression
+     *
+     * @param path 路径字符串 / Path string
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> reference(path: String): ScalarExpression<T> = reference(PropertyPath.parse(path))
 
+    /**
+     * 创建符号引用表达式
+     * Create symbol reference expression
+     *
+     * @param symbol 符号 / Symbol
+     * @return 标量表达式 / Scalar expression
+     */
     fun <T> reference(symbol: Symbol): ScalarExpression<T> = ScalarSymbolReference(symbol)
 
     /**
      * 创建一元操作表达式
      * Create unary operation expression
+     *
+     * @param operator 一元操作符 / Unary operator
+     * @param operand 操作数 / Operand
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> unary(operator: UnaryOperator, operand: ScalarExpression<T>): ScalarExpression<T> =
         ScalarUnary(operator, operand)
@@ -237,6 +291,11 @@ object ScalarExpressionFactory {
     /**
      * 创建二元操作表达弌
      * Create binary operation expression
+     *
+     * @param operator 二元操作符 / Binary operator
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> binary(
         operator: BinaryOperator,
@@ -247,6 +306,10 @@ object ScalarExpressionFactory {
     /**
      * 创建函数调用表达弌
      * Create function call expression
+     *
+     * @param name 函数名 / Function name
+     * @param arguments 参数列表 / Argument list
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> function(name: String, arguments: List<ScalarExpression<T>>): ScalarExpression<T> =
         ScalarFunction(name, arguments)
@@ -254,6 +317,10 @@ object ScalarExpressionFactory {
     /**
      * 创建加法表达弌
      * Create addition expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> add(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Add, left, right)
@@ -261,6 +328,10 @@ object ScalarExpressionFactory {
     /**
      * 创建减法表达弌
      * Create subtraction expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> subtract(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Subtract, left, right)
@@ -268,6 +339,10 @@ object ScalarExpressionFactory {
     /**
      * 创建乘法表达弌
      * Create multiplication expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> multiply(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Multiply, left, right)
@@ -275,6 +350,10 @@ object ScalarExpressionFactory {
     /**
      * 创建除法表达弌
      * Create division expression
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 标量表达式 / Scalar expression
      */
     fun <T> divide(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Divide, left, right)
@@ -296,8 +375,18 @@ object ScalarFunctionNames {
 /**
  * 标量函数注册表
  * Scalar function registry
+ *
+ * @param R 注册表使用的中间表示类型 / Intermediate representation type used by registry
  */
 interface ScalarFunctionRegistry<R> {
+    /**
+     * 将标量函数调用翻译为目标表示
+     * Translate scalar function call to target representation
+     *
+     * @param name 函数名 / Function name
+     * @param arguments 参数列表 / Argument list
+     * @return 翻译结果，不支持的函数返回 null / Translation result, null if function not supported
+     */
     fun translate(name: String, arguments: List<R>): R?
 }
 
@@ -306,5 +395,13 @@ interface ScalarFunctionRegistry<R> {
  * Scalar function evaluator
  */
 interface ScalarFunctionEvaluator {
+    /**
+     * 求值标量函数
+     * Evaluate scalar function
+     *
+     * @param name 函数名 / Function name
+     * @param arguments 参数列表 / Argument list
+     * @return 求值结果 / Evaluation result
+     */
     fun evaluate(name: String, arguments: List<Any?>): Any?
 }

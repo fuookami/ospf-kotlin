@@ -1,8 +1,8 @@
 # ospf-kotlin-math
 
-[中文文档 (README_ch.md)](./README_ch.md)
+[Chinese Documentation (README_ch.md)](./README_ch.md)
 
-A comprehensive mathematical algebra and symbol system for OSPF Kotlin. Provides foundational mathematical types, algebraic structures, symbolic expressions, and numerical operations with a focus on type safety, precision, and performance.
+A comprehensive mathematical algebra, symbol, and geometry system for OSPF Kotlin. Provides foundational mathematical types, algebraic structures, symbolic expressions, geometric primitives, and numerical operations with a focus on type safety, precision, and performance.
 
 ## Overview
 
@@ -25,15 +25,15 @@ A comprehensive mathematical algebra and symbol system for OSPF Kotlin. Provides
 | `combinatorics` | Combinatorial algorithms | `permutations`, `combinations`, `cross` |
 | `fractal_operator` | Fractal generation | `MandelbrotSet` |
 | `functional` | Collection extensions | `usize`, `uIndices` |
-| `geometry` | Geometric primitives | `Point`, `Vector`, `Circle`, `Triangle`, `Rectangle`, `Quadrilateral` |
+| `geometry` | Dimension-generic geometric primitives | `Point`, `Vector`, `Edge`, `Triangle`, `Circle`, `Rectangle`, `Quadrilateral`, `Box2`/`Box3`, `Cuboid3`, `Cylinder3`, `Placement2`/`Placement3` |
 | `multiarray` | Multi-dimensional arrays | `MultiArray`, `Einsum`, `TensorExpr` |
 | `operator` | Mathematical operators | `Plus`, `Minus`, `Times`, `Div`, `Pow`, `Trigonometry` |
 | `ordinary` | Common math operations | `gcd`, `lcm`, `Prime`, `Factorization` |
 | `parallel` | Parallel computation | `parallelFold`, `chunked` |
 | `symbol` | Symbolic expression system | `Symbol`, `LinearPolynomial`, `CanonicalPolynomial`, `Inequality` |
-| `symbol/expression` | Runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath` |
-| `symbol/parse` | Direct polynomial/inequality parser | `parseLinear`, `parseQuadratic`, `parseCanonical`, `ParseResult` |
-| `symbol/serde` | Polynomial/inequality JSON serde and symbol identity | `linearPolynomialFromJson`, `SymbolIdentityExpr` |
+| `symbol.expression` | Runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath` |
+| `symbol.parse` | Direct polynomial/inequality parser | `parseLinear`, `parseQuadratic`, `parseCanonical`, `ParseResult` |
+| `symbol.serde` | Polynomial/inequality JSON serde and symbol identity | `linearPolynomialFromJson`, `SymbolIdentityExpr` |
 
 ## Expression Entry Points
 
@@ -80,6 +80,43 @@ Floating (floating-point)
 Rational (rational numbers)
 ├── Rtn8..RtnX (signed rational)
 └── URtn8..URtnX (unsigned rational)
+```
+
+### Geometry Type Hierarchy
+
+All geometric types are dimension-generic, parameterized by `<D : Dimension, V : FloatingNumber<V>>`:
+
+```
+Dimension
+├── Dim1 (1D)
+├── Dim2 (2D)
+└── Dim3 (3D)
+
+Point<D, V>       -- position in D-dimensional space
+Vector<D, V>      -- direction and magnitude in D-dimensional space
+Edge<P, D, V>     -- line segment connecting two points
+Triangle<P, D, V> -- three vertices
+Quadrilateral<P, D, V> -- four vertices
+Rectangle<P, D, V> -- four right-angle vertices (axis-aligned factory available)
+Circle<P, Vec, D, V>  -- center + direction + radius (general circle/sphere)
+
+Projection2<V> (sealed interface, aka Shape2<V>)
+├── Rectangle2<V> -- width + height
+└── Circle2<V>    -- radius
+
+Shape3<V> (interface)
+├── Cuboid3<V>    -- width + height + depth
+└── Cylinder3<V>  -- radius + height + axis
+
+Box2<V>           -- 2D bounding box (position + Shape2)
+Box3<V>           -- 3D bounding box (position + Cuboid3)
+Placement2<V>     -- 2D placement (position + Projection2)
+Placement3<V>     -- 3D placement (position + Shape3)
+
+Axis2, Axis3      -- axis enums (X, Y / X, Y, Z)
+AxisPermutation2/3 -- axis permutation
+AxisPlane3        -- principal plane enum (XY, XZ, YZ)
+PlaneFrame3       -- coordinate frame for plane projection
 ```
 
 ## Core Features
@@ -178,7 +215,7 @@ val linear = LinearPolynomial(
     constant = Flt64(1.0)
 )
 
-// Quadratic polynomial: x² + 2xy + y²
+// Quadratic polynomial: x^2 + 2xy + y^2
 val quadratic = QuadraticPolynomial(
     monomials = listOf(
         QuadraticMonomial(Flt64(1.0), x, x),
@@ -315,53 +352,151 @@ val expr = path("a").gt(5) and path("b").isNotNull()
 
 ### Geometric Primitives
 
+All geometric types are dimension-generic. Use factory functions `point2`/`point3` and `vector2`/`vector3` to create Flt64-typed points and vectors:
+
 ```kotlin
 import fuookami.ospf.kotlin.math.geometry.*
 
-// Points and vectors
-val p1 = Point2(Flt64(0.0), Flt64(0.0))
-val p2 = Point2(Flt64(3.0), Flt64(4.0))
-val v = Vector2(Flt64(3.0), Flt64(4.0))
+// Points and vectors (dimension-generic, Flt64 convenience factories)
+val p1 = point2(Flt64(0.0), Flt64(0.0))    // Point<Dim2, Flt64>
+val p2 = point2(Flt64(3.0), Flt64(4.0))
+val p3 = point2(Flt64(6.0), Flt64(0.0))
+val v = vector2(Flt64(3.0), Flt64(4.0))     // Vector<Dim2, Flt64>
+
+// Access coordinates via extension properties
+val x: Flt64 = p1.x
+val y: Flt64 = p1.y
+
+// 3D points and vectors
+val q1 = point3(Flt64(1.0), Flt64(2.0), Flt64(3.0))  // Point<Dim3, Flt64>
+val w = vector3(Flt64(0.0), Flt64(0.0), Flt64(1.0))   // Vector<Dim3, Flt64>
+val z: Flt64 = q1.z
 
 // Distance calculations
-val distance = p1.distanceTo(p2)  // 5.0
+val dist: Flt64 = p1 distance p2  // 5.0 (Euclidean by default)
 
-// Geometric shapes
-val circle = Circle(center = p1, radius = Flt64(5.0))
+// Edges
+val edge = Edge(p1, p2)
+val length: Flt64 = edge.length
+val mid: Point<Dim2, Flt64> = edge.midpoint()
+
+// Triangles
 val triangle = Triangle(p1, p2, p3)
-val rectangle = Rectangle(p1, Flt64(10.0), Flt64(5.0))
+val area: Flt64 = triangle.area        // Heron's formula
+val perimeter: Flt64 = triangle.perimeter
+val centroid: Point<Dim2, Flt64> = triangle.centroid
 
-// Area and perimeter
-val area = triangle.area()
-val perimeter = rectangle.perimeter()
+// 2D triangle-specific operations
+val area2d: Flt64 = triangle.area2D()           // Cross-product method
+val cc: Circle<...> = triangle.circumcircle()
+val incenterPt: Point<Dim2, Flt64> = triangle.incenter()
+val containsPt: Boolean = triangle containsPoint p1
 
-// Containment checks
-val contains = circle.contains(p2)
+// Circles (dimension-generic: center + direction + radius)
+val circle = Circle(center = p1, radiusVec = vector2(Flt64(5.0), Flt64.zero))
+val circleArea: Flt64 = circle.area
+val circleCirc: Flt64 = circle.circumference
+val inside: Boolean = circle containsPoint p2
 
-// Triangulation
-val polygon = listOf(p1, p2, p3, p4)
-val triangles = triangulate(polygon)
+// Rectangles (four vertices, not necessarily axis-aligned)
+val rect = Rectangle(p1, p2, p3, p4)  // general rectangle from 4 vertices
+val rectArea: Flt64 = rect.area
+val rectContains: Boolean = rect.contains(point2(Flt64(1.0), Flt64(1.0)))
+
+// Axis-aligned rectangle from corners
+val aaRect = Rectangle(point2(Flt64(0.0), Flt64(5.0)), point2(Flt64(10.0), Flt64(0.0)))
+
+// Quadrilaterals
+val quad = Quadrilateral(p1, p2, p3, p4)
+val quadArea: Flt64 = quad.area          // Shoelace formula (2D)
+val isConvex: Boolean = quad.isConvex()
+val quadPerimeter: Flt64 = quad.perimeter
+
+// Triangulation (Delaunay)
+val points = listOf(p1, p2, p3, p4, p5)
+val triangles: List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>> = triangulate(points)
+val result: DelaunayTriangulation2 = delaunayTriangulate(points)  // full result with edges
+```
+
+### 3D Shapes
+
+```kotlin
+import fuookami.ospf.kotlin.math.geometry.*
+
+// Cuboid (width x height x depth)
+val cuboid = Cuboid3(width = Flt64(10.0), height = Flt64(5.0), depth = Flt64(3.0))
+val volume: Flt64 = cuboid.volume
+val box: Box3<Flt64> = cuboid.atOrigin()
+
+// Cylinder (radius, height, axis)
+val cylinder = Cylinder3(radius = Flt64(2.5), height = Flt64(10.0), axis = Axis3.Z)
+val cylVolume: Flt64 = cylinder.volume(Flt64.pi)
+val cylBase: Flt64 = cylinder.baseArea(Flt64.pi)
+val boundingCuboid: Cuboid3<Flt64> = cylinder.boundingCuboid
+
+// Bounding boxes
+val box2 = Box2(x = Flt64.zero, y = Flt64.zero, shape = Rectangle2(Flt64(10.0), Flt64(5.0)))
+val box3 = Box3(x = Flt64.zero, y = Flt64.zero, z = Flt64.zero, cuboid = cuboid)
+val overlaps: Boolean = box3.overlapped(otherBox)
+val intersection: Box3<Flt64>? = box3.intersect(otherBox)
+val inside: Boolean = box3.contains(Flt64(1.0), Flt64(1.0), Flt64(1.0))
+
+// Placements (shape + position)
+val placement2 = Placement2(x = Flt64(1.0), y = Flt64(2.0), shape = Rectangle2(Flt64(5.0), Flt64(3.0)))
+val placement3 = Placement3(x = Flt64(1.0), y = Flt64(2.0), z = Flt64(0.0), shape = cuboid)
+val pOverlaps: Boolean = placement3.overlapped(otherPlacement)
+
+// Axis permutations (rotate/flip shapes)
+val perm = AxisPermutation3.YXZ
+val permutedCuboid: Cuboid3<Flt64> = perm.apply(cuboid)
+val permutedCylinder: Cylinder3<Flt64> = perm.apply(cylinder)
+
+// Plane frames and projections
+val frame = PlaneFrame3.XY
+val footprint: Rectangle2<Flt64> = frame.footprint(cuboid)
+val dist: Flt64 = frame.distance(PlanePoint3(Flt64(1.0), Flt64(2.0), Flt64(5.0)))
+
+// Cylinder projection on a plane
+val proj: Projection2<Flt64> = cylinder.projectionOn(AxisPlane3.XY)
+```
+
+### Projection Shapes (Shape2)
+
+```kotlin
+import fuookami.ospf.kotlin.math.geometry.*
+
+// 2D projection shapes (sealed interface Projection2<V> aka Shape2<V>)
+val rect2 = Rectangle2(width = Flt64(10.0), height = Flt64(5.0))
+val circ2 = Circle2(radius = Flt64(2.5))
+
+val rectArea: Flt64 = rect2.area
+val rectAlongX: Flt64 = rect2.along(Axis2.X)
+val permuted: Rectangle2<Flt64> = rect2.permute(AxisPermutation2.YX)
+
+val circArea: Flt64 = circ2.area(Flt64.pi)
+val diameter: Flt64 = circ2.diameter
 ```
 
 ### Distance Metrics
 
 ```kotlin
-import fuookami.ospf.kotlin.math.geometry.Distance
+import fuookami.ospf.kotlin.math.geometry.*
 
-// Euclidean distance (L2)
-val euclidean = Distance.Euclidean<Flt64>()
+// Distance metric strategies (sealed interface)
+val p1 = point2(Flt64(0.0), Flt64(0.0))
+val p2 = point2(Flt64(3.0), Flt64(4.0))
 
-// Manhattan distance (L1)
-val manhattan = Distance.Manhattan<Flt64>()
+// Default: Euclidean (L2)
+val dist: Flt64 = p1 distance p2  // 5.0
 
-// Minkowski distance (Lp)
-val minkowski = Distance.Minkowski<Flt64>(p = Flt64(3.0))
+// Explicit metric selection
+val euclidean: Flt64 = Distance.Euclidean(p1, p2)    // 5.0
+val manhattan: Flt64 = Distance.Manhattan(p1, p2)     // 7.0
+val minkowski: Flt64 = Distance.Minkowski(p = 3)(p1, p2)
+val chebyshev: Flt64 = Distance.Chebyshev(p1, p2)    // 4.0
 
-// Chebyshev distance (L∞)
-val chebyshev = Distance.Chebyshev<Flt64>()
-
-// Calculate distance
-val dist = euclidean.calculate(p1, p2)
+// Custom metric
+val d: Flt64 = p1.distanceBetween(p2, Distance.Manhattan)
 ```
 
 ### Einstein Summation
@@ -411,7 +546,7 @@ val lorenz = Lorenz(
 )
 
 // Generate trajectory
-val initial = Vector3(Flt64(1.0), Flt64(1.0), Flt64(1.0))
+val initial = vector3(Flt64(1.0), Flt64(1.0), Flt64(1.0))
 val trajectory = lorenz.iterate(initial, steps = 10000, dt = Flt64(0.01))
 
 // Chen attractor
@@ -521,7 +656,7 @@ val op = ComparisonOperator<Flt64, Flt64>(Flt64(1e-10))
 with(op) {
     val a = Flt64(1.0)
     val b = Flt64(1.0 + 1e-15)
-    
+
     a eq b    // true (within tolerance)
     a neq b   // false
     a ls b    // false
@@ -559,17 +694,17 @@ val balanced = BalancedTrivalent.True  // value = +1
 import fuookami.ospf.kotlin.math.Scale
 
 // SI prefixes
-val k = Scale.kilo      // 10³
-val M = Scale.mega      // 10⁶
-val m = Scale.milli     // 10⁻³
-val μ = Scale.micro     // 10⁻⁶
+val k = Scale.kilo      // 10^3
+val M = Scale.mega      // 10^6
+val m = Scale.milli     // 10^-3
+val u = Scale.micro     // 10^-6
 
 // Custom scales
-val custom = Scale(2, 10)  // 2¹⁰ = 1024
+val custom = Scale(2, 10)  // 2^10 = 1024
 
 // Scale arithmetic
 val km = Scale.kilo * Scale.milli  // Identity
-val result = Scale.mega / Scale.kilo  // 10³
+val result = Scale.mega / Scale.kilo  // 10^3
 ```
 
 ## Performance Optimizations
@@ -579,7 +714,7 @@ val result = Scale.mega / Scale.kilo  // 10³
 | GCD multi-arg | Iterator-based fold | Avoids % 0 vulnerability |
 | LCM | Zero short-circuit | Prevents entering vulnerable GCD path |
 | Prime cache | Sieve of Eratosthenes | O(n log log n) initialization |
-| Factorization | O(√n) upper bound | Uses sqrt(n) instead of n |
+| Factorization | O(sqrt(n)) upper bound | Uses sqrt(n) instead of n |
 | Parallel fold | Chunk-based limiting | Controls coroutine count |
 | Contract operation | Stride pre-computation | Output-driven iteration |
 | Polynomial evaluation | Compile optimization | Reduces overhead for repeated evaluation |
@@ -588,7 +723,7 @@ val result = Scale.mega / Scale.kilo  // 10³
 
 ## Testing
 
-```powershell
+```bash
 # Run all tests
 mvn -pl ospf-kotlin-math test
 
@@ -606,7 +741,9 @@ Test coverage includes:
 - Algebraic structure laws (associativity, commutativity, distributivity)
 - Number type conversions and arithmetic
 - Symbolic expression parsing, evaluation, and differentiation
-- Geometric primitive operations
+- Geometric primitive operations (point, vector, edge, triangle, circle, rectangle, quadrilateral)
+- Delaunay triangulation
+- 3D shapes (cuboid, cylinder, bounding box, placement)
 - Chaos and fractal iterations
 - Edge cases and boundary conditions
 

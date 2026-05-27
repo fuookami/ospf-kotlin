@@ -1,10 +1,16 @@
+/**
+ * 批处理调度策略
+ * Batch dispatch policy
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
+/** 批处理切片，表示左闭右开区间 / Batch slice representing a half-open interval */
 internal data class BatchSlice(
     val fromIndex: Int,
     val toIndexExclusive: Int
 )
 
+/** 批处理调度计划 / Batch dispatch plan */
 internal data class BatchDispatchPlan(
     val availableProcessors: Int,
     val workerCount: Int,

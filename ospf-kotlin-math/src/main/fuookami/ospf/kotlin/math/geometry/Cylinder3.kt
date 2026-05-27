@@ -1,18 +1,44 @@
+/**
+ * 三维圆柱体与轴对齐线段
+ * 3D Cylinder and Axis-Aligned Line Segment
+ *
+ * 定义三维几何空间中的圆柱体和轴对齐线段数据结构。
+ * Defines cylinder and axis-aligned line segment data structures in 3D geometric space.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 三维轴对齐线段，沿某一轴从 from 到 to。
+ * 3D axis-aligned line segment along an axis from `from` to `to`.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property axis 对齐的轴 / The aligned axis
+ * @property from 起始值 / Start value
+ * @property to 终止值 / End value
+ */
 data class AxisLine3<V : FloatingNumber<V>>(
     val axis: Axis3,
     val from: V,
     val to: V
 )
 
+/**
+ * 三维圆柱体，由半径、高度和对齐轴定义。
+ * 3D cylinder defined by radius, height, and alignment axis.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property radius 半径 / The radius
+ * @property height 高度 / The height
+ * @property axis 对齐轴 / The alignment axis
+ */
 data class Cylinder3<V : FloatingNumber<V>>(
     val radius: V,
     val height: V,
     val axis: Axis3
 ) : Shape3<V> {
+    /** 直径 / The diameter */
     val diameter: V get() = quantityPlus(radius, radius)
 
     override val boundingCuboid: Cuboid3<V>
@@ -24,6 +50,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
             }
         }
 
+    /** 沿指定轴的尺寸（轴向为高度，其余为直径） / Dimension along the specified axis (axial=height, others=diameter) */
     fun along(axis: Axis3): V {
         return if (axis == this.axis) {
             height
@@ -32,6 +59,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
         }
     }
 
+    /** 原点处的轴线段 / The axis line segment at the origin */
     val axisLineAtOrigin: AxisLine3<V>
         get() = AxisLine3(
             axis = axis,
@@ -39,6 +67,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
             to = height
         )
 
+    /** 在指定平面上的投影形状 / The projection shape on the specified plane */
     fun projectionOn(plane: AxisPlane3): Projection2<V> {
         return if (plane.contains(axis)) {
             Rectangle2(
@@ -50,14 +79,19 @@ data class Cylinder3<V : FloatingNumber<V>>(
         }
     }
 
+    /** 计算底面积 / Compute the base area */
     fun baseArea(pi: V): V = (radius * radius) * pi
 
+    /** 计算体积 / Compute the volume */
     fun volume(pi: V): V = baseArea(pi) * height
 
+    /** 按轴置换 / Permute by axes */
     fun permute(permutation: AxisPermutation3): Cylinder3<V> = permutation.apply(this)
 
+    /** 在原点处创建包围盒 / Create a bounding box at the origin */
     fun boundingBoxAtOrigin(): Box3<V> = Box3.atOrigin(boundingCuboid)
 
+    /** 在指定位置创建包围盒 / Create a bounding box at the specified position */
     fun toBoundingBox(
         x: V,
         y: V,
@@ -72,5 +106,5 @@ data class Cylinder3<V : FloatingNumber<V>>(
     }
 }
 
+/** @see Cylinder3 */
 typealias AxisAlignedCylinder3<V> = Cylinder3<V>
-

@@ -1,16 +1,22 @@
+/**
+ * 约束关系
+ * Constraint relation
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
+/**
+ * 线性约束关系密封接口，封装线性展平数据和比较符号。
+ * Sealed interface for linear constraint relations, encapsulating linear flatten data and comparison sign.
+ */
 sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
     val flattenData: LinearFlattenData<V>
     val sign: Comparison
@@ -22,6 +28,10 @@ sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
     fun normalize(): LinearRelation<V>
 }
 
+/**
+ * 二次约束关系密封接口，封装二次展平数据和比较符号。
+ * Sealed interface for quadratic constraint relations, encapsulating quadratic flatten data and comparison sign.
+ */
 sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V> {
     val flattenData: QuadraticFlattenData<V>
     val sign: Comparison
@@ -33,6 +43,10 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
     fun normalize(): QuadraticRelation<V>
 }
 
+/**
+ * 线性约束关系实现。
+ * Linear constraint relation implementation.
+ */
 data class LinearRelationImpl<V>(
     override val flattenData: LinearFlattenData<V>,
     override val sign: Comparison,
@@ -65,6 +79,10 @@ data class LinearRelationImpl<V>(
     }
 }
 
+/**
+ * 二次约束关系实现。
+ * Quadratic constraint relation implementation.
+ */
 data class QuadraticRelationImpl<V>(
     override val flattenData: QuadraticFlattenData<V>,
     override val sign: Comparison,

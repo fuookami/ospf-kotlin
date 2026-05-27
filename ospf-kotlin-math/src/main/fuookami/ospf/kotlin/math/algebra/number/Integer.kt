@@ -10,11 +10,10 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import java.math.BigInteger
+import kotlin.math.abs
+import kotlin.math.log
+import kotlin.math.pow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -22,10 +21,11 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.math.BigInteger
-import kotlin.math.abs
-import kotlin.math.log
-import kotlin.math.pow
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.ordinary.pow
+import fuookami.ospf.kotlin.math.*
 
 /**
  * 使用浮点基数计算整数的对数
@@ -805,7 +805,3 @@ fun String.toIntX(radix: Int = 10) = IntX(this, radix)
  *         The IntX value or null
  */
 fun String.toIntXOrNull(radix: Int = 10) = runCatching { IntX(this, radix) }.getOrNull()
-
-
-
-

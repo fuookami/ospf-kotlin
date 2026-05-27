@@ -22,10 +22,9 @@
 expression/
 ├── PropertyPath.kt       # 路径抽象
 ├── PathSymbol.kt         # 路径-符号适配器
-├── ScalarExpression.kt   # 标量表达式 AST
-├── BooleanExpression.kt  # 布尔表达式 AST
+├── ScalarExpression.kt   # 标量表达式 AST + ScalarExpressionFactory
+├── BooleanExpression.kt  # 布尔表达式 AST + BooleanExpressionFactory
 ├── ExpressionOperator.kt # 操作符定义
-├── ExpressionFactory.kt  # 工厂方法
 ├── dsl/                  # DSL 构造
 ├── parser/               # 词法分析器和解析器
 ├── serde/                # JSON 序列化

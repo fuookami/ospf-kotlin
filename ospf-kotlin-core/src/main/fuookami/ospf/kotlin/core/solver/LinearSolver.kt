@@ -1,34 +1,42 @@
+/**
+ * 线性求解器接口定义
+ * Linear solver interface definitions
+ */
 package fuookami.ospf.kotlin.core.solver
 
+import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.future.future
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.output.convertTo
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
-import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.future.future
-import java.util.concurrent.CompletableFuture
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
+/**
+ * 线性求解器的抽象接口，定义了求解、异步求解和泛型求解等核心能力。
+ * Abstract interface for linear solvers, defining core capabilities for solving, async solving, and generic solving.
+ */
 interface AbstractLinearSolver {
     val name: String
 
@@ -236,6 +244,12 @@ interface AbstractLinearSolver {
     }
 }
 
+/**
+ * 线性求解器接口，扩展 [AbstractLinearSolver] 并提供配置驱动的模型转储能力。
+ * Linear solver interface extending [AbstractLinearSolver] with configuration-driven model dumping.
+ *
+ * @property config 求解器配置 / Solver configuration
+ */
 interface LinearSolver : AbstractLinearSolver {
     val config: SolverConfig
 
@@ -264,5 +278,3 @@ interface LinearSolver : AbstractLinearSolver {
         )
     }
 }
-
-

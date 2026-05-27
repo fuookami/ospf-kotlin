@@ -15,19 +15,22 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point2
+import kotlin.random.Random
 
 /**
  * Bogdanov 映射
  * Bogdanov Map
+ *
+ * @property epsilon 系统参数 epsilon / System parameter epsilon
+ * @property kappa 系统参数 kappa / System parameter kappa
+ * @property mu 系统参数 mu / System parameter mu
  */
 data class BogdanovMap<V : FloatingNumber<V>>(
     val epsilon: V,

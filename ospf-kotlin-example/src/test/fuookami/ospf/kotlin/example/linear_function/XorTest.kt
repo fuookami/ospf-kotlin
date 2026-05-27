@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.XorFunction
+import fuookami.ospf.kotlin.core.symbol.function.XorFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

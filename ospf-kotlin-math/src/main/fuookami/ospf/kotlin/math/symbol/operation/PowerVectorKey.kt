@@ -12,17 +12,24 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.number.Int32
+import fuookami.ospf.kotlin.math.symbol.Symbol
 
 /**
+ * 规范单项式幂向量的优化键
  * Optimized key for canonical monomial powers comparison.
+ *
+ * 根据稀疏度支持两种模式：
+ * - 稠密模式：长度等于总符号数的单个 IntArray（适用于符号数较少的情况）
+ * - 稀疏模式：两个 IntArray（索引 + 幂次）（适用于符号数较多、单项式符号较少的情况）
+ * 稀疏度阈值：0.5（powers.size / totalSymbols）。
  *
  * Supports two modes based on sparsity:
  * - Dense mode: single IntArray of length = total symbols (fast for small n)
  * - Sparse mode: two IntArrays (indices + powers) (fast for large n, few symbols)
- *
  * Sparsity threshold: 0.5 (powers.size / totalSymbols)
+ *
+ * @property hash 预计算的哈希值 / Pre-computed hash value
  */
 class PowerVectorKey private constructor(
     private val denseVec: IntArray?,       // dense mode: [power0, power1, ...]
@@ -32,14 +39,23 @@ class PowerVectorKey private constructor(
 ) {
     companion object {
         /**
+         * 模式选择的稀疏度阈值
          * Sparsity threshold for mode selection.
+         *
+         * 当 powers.size / totalSymbols < 阈值时使用稀疏模式。
          * When powers.size / totalSymbols < threshold, use sparse mode.
          */
         const val SPARSITY_THRESHOLD = 0.5
 
         /**
+         * 创建稠密模式键（单个 IntArray）
          * Create dense mode key (single IntArray).
+         *
+         * 适用于稀疏度 >= 阈值或 totalSymbols 较小（<= 5）的情况。
          * Use when sparsity >= threshold or totalSymbols is small (<= 5).
+         *
+         * @param vec 幂次数组 / Power array
+         * @return 稠密模式的 PowerVectorKey / PowerVectorKey in dense mode
          */
         fun dense(vec: IntArray): PowerVectorKey {
             return PowerVectorKey(
@@ -51,10 +67,18 @@ class PowerVectorKey private constructor(
         }
 
         /**
+         * 创建稀疏模式键（两个 IntArray）
          * Create sparse mode key (two IntArrays).
-         * Use when sparsity < threshold and totalSymbols > 5.
          *
+         * 适用于稀疏度 < 阈值且 totalSymbols > 5 的情况。
+         * 注意：indices 必须按升序排列以保证规范化。
+         *
+         * Use when sparsity < threshold and totalSymbols > 5.
          * IMPORTANT: indices must be sorted ascending for normalization.
+         *
+         * @param indices 符号索引数组（升序） / Symbol index array (ascending)
+         * @param powers 对应的幂次数组 / Corresponding power array
+         * @return 稀疏模式的 PowerVectorKey / PowerVectorKey in sparse mode
          */
         fun sparse(indices: IntArray, powers: IntArray): PowerVectorKey {
             require(indices.size == powers.size) { "Indices and powers size mismatch" }
@@ -72,12 +96,13 @@ class PowerVectorKey private constructor(
         }
 
         /**
+         * 根据稀疏度自动选择最优模式创建键
          * Auto-select mode based on sparsity.
          *
-         * @param powers Map of symbol to power
-         * @param symbolIndex Map of symbol to its index in the order
-         * @param totalSymbols Total number of unique symbols
-         * @return PowerVectorKey with optimal mode
+         * @param powers 符号到幂次的映射 / Map of symbol to power
+         * @param symbolIndex 符号到顺序索引的映射 / Map of symbol to its index in the order
+         * @param totalSymbols 唯一符号总数 / Total number of unique symbols
+         * @return 最优模式的 PowerVectorKey / PowerVectorKey with optimal mode
          */
         fun create(
             powers: Map<Symbol, Int32>,
@@ -117,7 +142,9 @@ class PowerVectorKey private constructor(
         }
     }
 
+    /** 是否为稠密模式 / Whether this key is in dense mode */
     val isDense: Boolean = denseVec != null
+    /** 是否为稀疏模式 / Whether this key is in sparse mode */
     val isSparse: Boolean = sparseIndices != null
 
     override fun hashCode(): Int = hash
@@ -137,8 +164,14 @@ class PowerVectorKey private constructor(
     }
 
     /**
+     * 从键重建幂次映射
      * Reconstruct powers map from key.
-     * Requires symbolList (index ↌symbol mapping).
+     *
+     * 需要 symbolList（索引到符号的映射）。
+     * Requires symbolList (index to symbol mapping).
+     *
+     * @param symbolList 索引到符号的映射列表 / Index to symbol mapping list
+     * @return 符号到幂次的映射 / Map of symbol to power
      */
     fun toPowers(symbolList: List<Symbol>): Map<Symbol, Int32> {
         return when {

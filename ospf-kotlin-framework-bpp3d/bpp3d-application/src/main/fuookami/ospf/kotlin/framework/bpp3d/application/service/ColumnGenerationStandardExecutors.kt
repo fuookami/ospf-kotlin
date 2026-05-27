@@ -58,7 +58,7 @@ data class ColumnGenerationStandardExecutorConfig(
     val enableFinalBinDepthConstraint: Boolean = true,
     val enableFinalBinCapacityConstraint: Boolean = true,
     val enableShadowPriceAwareRequestScore: Boolean = true,
-    val integralityTolerance: Double = 1e-6
+    val integralityTolerance: Flt64 = Flt64(1e-6)
 )
 
 class ColumnGenerationStandardExecutors(
@@ -109,7 +109,13 @@ class ColumnGenerationStandardExecutors(
             val shadowPrices = LinkedHashMap<DemandModeKey, Flt64>()
             for ((key, value) in shadowPriceMap.map) {
                 val demandKey = key as? DemandShadowPriceKey ?: continue
-                shadowPrices[DemandModeKey(demandKey.mode, demandKey.key)] = value.price
+                shadowPrices[DemandModeKey(demandKey.mode, demandKey.key, demandKey.quantityUnit)] = value.price
+                if (demandKey.quantityUnit != null) {
+                    shadowPrices.putIfAbsent(
+                        DemandModeKey(demandKey.mode, demandKey.key),
+                        value.price
+                    )
+                }
             }
             ColumnGenerationLpResult(
                 shadowPrices = shadowPrices,
@@ -232,7 +238,9 @@ class ColumnGenerationStandardExecutors(
     }
 
     fun requestBuilder(): ColumnGenerationLayerRequestBuilder<Flt64> {
-        val requestDemandEntries = demandEntries.map { LayerGenerationDemandEntry(it.mode, it.key) }
+        val requestDemandEntries = demandEntries.map {
+            LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
+        }
         return ColumnGenerationLayerRequestBuilder { state, items, cgConfig ->
             Bpp3dLayerGenerationRequest(
                 iteration = state.iteration,
@@ -241,7 +249,7 @@ class ColumnGenerationStandardExecutors(
                 demandEntries = requestDemandEntries,
                 shadowPrices = state.shadowPrices,
                 scoreByShadowPrice = if (config.enableShadowPriceAwareRequestScore) {
-                    shadowPriceAwareLayerScore(shadowPriceToDouble = { it.toDouble() })
+                    shadowPriceAwareLayerScore(shadowPriceToScalar = { it })
                 } else {
                     null
                 },
@@ -323,11 +331,11 @@ class ColumnGenerationStandardExecutors(
     ): List<BinLayer> {
         val selected = ArrayList<BinLayer>()
         for ((columnIndex, column) in columns.withIndex()) {
-            var amount = 0.0
+            var amount = Flt64.zero
             for (binIndex in 0 until binAmount) {
                 amount += tokenValue(model, assignment.x[binIndex, columnIndex])
             }
-            if (amount > config.integralityTolerance) {
+            if (amount.toDouble() > config.integralityTolerance.toDouble()) {
                 selected.add(column)
             }
         }
@@ -346,7 +354,7 @@ class ColumnGenerationStandardExecutors(
             var zCursor = baseBin.shape.depth - baseBin.shape.depth
             for ((columnIndex, column) in columns.withIndex()) {
                 val raw = tokenValue(model, assignment.x[binIndex, columnIndex])
-                val copies = raw.roundToInt()
+                val copies = raw.toDouble().roundToInt()
                 if (copies <= 0) {
                     continue
                 }
@@ -387,8 +395,8 @@ class ColumnGenerationStandardExecutors(
     private fun tokenValue(
         model: LinearMetaModel<Flt64>,
         variable: AbstractVariableItem<*, *>
-    ): Double {
-        return model.tokens.find(variable)?.result?.toDouble() ?: 0.0
+    ): Flt64 {
+        return model.tokens.find(variable)?.result ?: Flt64.zero
     }
 
     private fun normalizeFlt64Solution(values: List<*>): List<Flt64> {

@@ -1,16 +1,24 @@
+/**
+ * 选择策略接口与实现
+ * Selection strategy interface and implementations
+ */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.math.functional.sum
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.math.functional.sum
 
+/**
+ * 选择策略接口，定义从种群中选择个体的行为。
+ * Selection strategy interface, defining behavior for selecting individuals from the population.
+ */
 interface Selection {
     operator fun invoke(
         iteration: Iteration,
@@ -24,6 +32,12 @@ interface Selection {
     ): List<UInt64>
 }
 
+/**
+ * 轮盘赌选择策略，按权重概率选择个体。
+ * Roulette selection strategy, selecting individuals with probability proportional to weights.
+ *
+ * @property randomGenerator 随机数生成器 / Random number generator
+ */
 data class RouletteSelection(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : Selection {
@@ -67,6 +81,10 @@ data class RouletteSelection(
     }
 }
 
+/**
+ * 排名选择策略，选择权重最高的个体。
+ * Rank selection strategy, selecting individuals with the highest weights.
+ */
 data object RankSelection : Selection {
     override operator fun invoke(
         iteration: Iteration,
@@ -91,6 +109,13 @@ data object RankSelection : Selection {
     }
 }
 
+/**
+ * 锦标赛选择策略，将种群分组后选择每组精英。
+ * Tournament selection strategy, dividing population into groups and selecting elites from each.
+ *
+ * @property eliteAmount 每组精英数量函数 / Elite amount per group function
+ * @property groupMinAmount 每组最小数量函数 / Minimum group size function
+ */
 data class TournamentSelection(
     private val eliteAmount: (Iteration) -> UInt64,
     private val groupMinAmount: (Iteration) -> UInt64
@@ -152,6 +177,12 @@ data class TournamentSelection(
     }
 }
 
+/**
+ * 随机通用选择策略，使用等间距指针进行选择。
+ * Stochastic universal selection strategy, using equally spaced pointers for selection.
+ *
+ * @property randomGenerator 随机数生成器 / Random number generator
+ */
 data class StochasticUniversalSelection(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : Selection {
@@ -188,6 +219,12 @@ data class StochasticUniversalSelection(
     }
 }
 
+/**
+ * 截断选择策略，按阈值截断后随机选择。
+ * Truncation selection strategy, truncating by threshold then randomly selecting.
+ *
+ * @property truncationThreshold 截断阈值函数 / Truncation threshold function
+ */
 data class TruncationSelection(
     private val truncationThreshold: (Iteration) -> Flt64
 ) : Selection {
@@ -240,6 +277,13 @@ data class TruncationSelection(
     }
 }
 
+/**
+ * 玻尔兹曼选择策略，基于温度的退火选择。
+ * Boltzmann selection strategy, annealing-based selection with temperature.
+ *
+ * @property temperature 温度函数 / Temperature function
+ * @property randomGenerator 随机数生成器 / Random number generator
+ */
 data class BoltzmannSelection(
     private val temperature: (Iteration) -> Flt64,
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -299,6 +343,10 @@ data class BoltzmannSelection(
     }
 }
 
+/**
+ * 局部选择策略基类，基于邻域进行选择。
+ * Base class for local selection strategies, selecting based on neighborhood.
+ */
 abstract class LocalSelection : Selection {
     protected abstract val neighborhoodSize: (Iteration) -> UInt64
     protected abstract val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -337,6 +385,13 @@ abstract class LocalSelection : Selection {
     }
 }
 
+/**
+ * 环形局部选择策略，在环形邻域内进行选择。
+ * Ring local selection strategy, selecting within a ring-shaped neighborhood.
+ *
+ * @property neighborhoodSize 邻域大小函数 / Neighborhood size function
+ * @property randomGenerator 随机数生成器 / Random number generator
+ */
 data class RingLocalSelection(
     override val neighborhoodSize: (Iteration) -> UInt64,
     override val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -375,5 +430,3 @@ data class RingLocalSelection(
         return neighbours
     }
 }
-
-

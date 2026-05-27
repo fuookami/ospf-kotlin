@@ -1,34 +1,41 @@
+/**
+ * 模型核心接口
+ * Core model interfaces
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.utils.functional.MultiMap2
-import fuookami.ospf.kotlin.utils.functional.MultiMap3
-import fuookami.ospf.kotlin.utils.functional.MultiMap4
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
+/** 解决方案类型别名 / Solution type alias */
 typealias Solution<V> = List<V>
 
+/**
+ * 模型核心接口，定义变量注册、目标设置和约束添加的能力。
+ * Core model interface defining capabilities for variable registration, objective setting, and constraint addition.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : NumberField<V> {
     val objectCategory: ObjectCategory
 
@@ -223,6 +230,12 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
     fun clearSolution()
 }
 
+/**
+ * 线性模型接口，在 Model 基础上增加线性约束和线性目标的能力。
+ * Linear model interface adding linear constraint and objective capabilities on top of Model.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> {
     val converter: IntoValue<V>
 
@@ -516,6 +529,12 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     }
 }
 
+/**
+ * 二次模型接口，在 LinearModel 基础上增加二次约束和二次目标的能力。
+ * Quadratic model interface adding quadratic constraint and objective capabilities on top of LinearModel.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
      * Add constraint using math QuadraticInequality
@@ -765,4 +784,3 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 }
-

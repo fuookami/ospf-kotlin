@@ -2,8 +2,9 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
@@ -11,11 +12,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
-
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+
+
+
+
+
+
 
 sealed class Block(
     // inherited from Container3<Block>
@@ -142,14 +147,14 @@ class Pile(
         fun layer(
             item: Item,
             bottomItems: List<Item>,
-        ): Pair<UInt64, LegacyQuantity> {
+        ): Pair<UInt64, Quantity<Flt64>> {
             return layer(item.view(), bottomItems.map { ItemView(it) })
         }
 
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
-        ): Pair<UInt64, LegacyQuantity> {
+        ): Pair<UInt64, Quantity<Flt64>> {
             return if (bottomItems.isNotEmpty() && bottomItems.last().type == item.type) {
                 val notSameIndex = bottomItems.indexOfLast { it.type != item.type }
                 val sameItems = if (notSameIndex == -1) {
@@ -259,3 +264,4 @@ class ComplexBlock(
 typealias BlockView = CuboidView<Block>
 typealias BlockPlacement2<P> = QuantityPlacement2<Block, P>
 typealias BlockPlacement3 = QuantityPlacement3<Block>
+

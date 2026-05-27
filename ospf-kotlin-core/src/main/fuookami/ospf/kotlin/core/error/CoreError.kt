@@ -1,3 +1,7 @@
+/**
+ * 核心错误类型体系，包含变量、模型和求解器错误的结构化定义。
+ * Core error type system containing structured definitions for variable, model, and solver errors.
+ */
 package fuookami.ospf.kotlin.core.error
 
 import fuookami.ospf.kotlin.utils.error.Err
@@ -6,6 +10,10 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ret
 
+/**
+ * 结构化核心错误接口，提供错误码、消息和转换方法。
+ * Structured core error interface providing error code, message, and conversion methods.
+ */
 interface StructuredCoreError {
     val errorCode: ErrorCode
     val message: String
@@ -19,6 +27,13 @@ interface StructuredCoreError {
     }
 }
 
+/**
+ * 核心错误的密封基类，聚合变量、模型和求解器错误。
+ * Sealed base class for core errors, aggregating variable, model, and solver errors.
+ *
+ * @property errorCode 错误码 / Error code
+ * @property message 错误消息 / Error message
+ */
 sealed class CoreError(
     override val errorCode: ErrorCode,
     override val message: String
@@ -36,6 +51,13 @@ sealed class CoreError(
     )
 }
 
+/**
+ * 变量相关错误的密封基类。
+ * Sealed base class for variable-related errors.
+ *
+ * @property errorCode 错误码 / Error code
+ * @property message 错误消息 / Error message
+ */
 sealed class VariableError(
     override val errorCode: ErrorCode,
     override val message: String
@@ -62,6 +84,13 @@ sealed class VariableError(
     )
 }
 
+/**
+ * 模型相关错误的密封基类。
+ * Sealed base class for model-related errors.
+ *
+ * @property errorCode 错误码 / Error code
+ * @property message 错误消息 / Error message
+ */
 sealed class ModelError(
     override val errorCode: ErrorCode,
     override val message: String
@@ -92,6 +121,13 @@ sealed class ModelError(
     )
 }
 
+/**
+ * 求解器相关错误的密封基类。
+ * Sealed base class for solver-related errors.
+ *
+ * @property errorCode 错误码 / Error code
+ * @property message 错误消息 / Error message
+ */
 sealed class SolverError(
     override val errorCode: ErrorCode,
     override val message: String

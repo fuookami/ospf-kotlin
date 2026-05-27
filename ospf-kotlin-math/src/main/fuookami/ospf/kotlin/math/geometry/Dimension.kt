@@ -69,6 +69,3 @@ data object Dim2 : Dimension {
 data object Dim3 : Dimension {
     override val size = 3
 }
-
-
-

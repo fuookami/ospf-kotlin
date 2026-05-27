@@ -28,14 +28,14 @@ import kotlin.test.assertTrue
 class QuantityDemandStatisticsGenericTest {
     private val cargo = object : AbstractCargoAttribute {}
 
-    private fun assertKilogramQuantity(value: Quantity<*>, expected: Double) {
+    private fun assertKilogramQuantity(value: Quantity<*>, expected: Flt64) {
         assertEquals(Kilogram, value.unit)
         val actual = when (val scalar = value.value) {
-            is Flt64 -> scalar.toDouble()
-            is FltX -> scalar.toDouble()
+            is Flt64 -> scalar
+            is FltX -> Flt64(scalar.toDouble())
             else -> error("Unsupported scalar type: $scalar")
         }
-        assertEquals(expected, actual, 1e-10)
+        assertEquals(expected, actual)
     }
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
@@ -96,11 +96,11 @@ class QuantityDemandStatisticsGenericTest {
 
         val scaledMaterialWeight = item.statistics(Bpp3dDemandMode.ItemMaterialWeight, UInt64(3)).values.single()
         assertTrue(scaledMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(scaledMaterialWeight.value, 3.0)
+        assertKilogramQuantity(scaledMaterialWeight.value, Flt64(3.0))
 
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).values.single()
         assertTrue(layerMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(layerMaterialWeight.value, 2.0)
+        assertKilogramQuantity(layerMaterialWeight.value, Flt64(2.0))
     }
 
     @Test
@@ -151,11 +151,11 @@ class QuantityDemandStatisticsGenericTest {
 
         val scaledMaterialWeight = item.statistics(Bpp3dDemandMode.ItemMaterialWeight, UInt64(4)).values.single()
         assertTrue(scaledMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(scaledMaterialWeight.value, 4.0)
+        assertKilogramQuantity(scaledMaterialWeight.value, Flt64(4.0))
 
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).values.single()
         assertTrue(layerMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(layerMaterialWeight.value, 2.0)
+        assertKilogramQuantity(layerMaterialWeight.value, Flt64(2.0))
     }
 
     @Test

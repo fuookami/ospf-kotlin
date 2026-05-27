@@ -1,11 +1,24 @@
+/**
+ * 线性模型 IIS 计算
+ * Linear model IIS computation
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.iis
 
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
+import java.io.OutputStreamWriter
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.associateNotNull
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
 import fuookami.ospf.kotlin.core.model.basic.Variable
@@ -13,15 +26,20 @@ import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import java.io.OutputStreamWriter
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import fuookami.ospf.kotlin.core.model.mechanism.eq
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
 
+/**
+ * 线性 IIS 模型，包含不可行子系统和可选的守卫约束。
+ * Linear IIS model, containing the infeasible subsystem and optional guard constraints.
+ *
+ * @property impl 基础线性三元模型实现 / Basic linear triad model implementation
+ * @property guardConstraints 守卫约束（可选）/ Guard constraints (optional)
+ * @property origin 原始模型视图 / Original model view
+ * @property relaxedFeasible 是否为松弛可行（无守卫约束）/ Whether relaxed feasible (no guard constraints)
+ */
 data class LinearIISModel(
     private val impl: BasicLinearTriadModel,
     val guardConstraints: LinearConstraintBatch?,
@@ -448,5 +466,3 @@ private suspend fun relaxSpecificComponents(
     }
     return Ok(true to relaxedComponents)
 }
-
-

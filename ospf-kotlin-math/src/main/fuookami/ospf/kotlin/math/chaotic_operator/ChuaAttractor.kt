@@ -15,16 +15,26 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
+/**
+ * 蔡氏吸引子
+ * Chua's Attractor
+ *
+ * @property alpha 系统参数 alpha / System parameter alpha
+ * @property beta 系统参数 beta / System parameter beta
+ * @property delta 分段线性参数 delta / Piecewise linear parameter delta
+ * @property epsilon 分段线性参数 epsilon / Piecewise linear parameter epsilon
+ * @property zeta 系统参数 zeta / System parameter zeta
+ * @property h 时间步长 / Time step size
+ */
 data class ChuaAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,

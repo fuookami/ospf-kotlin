@@ -9,9 +9,9 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.functional.sumOf
 
 /**
  * 边数据类
@@ -105,11 +105,12 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = "$from -> $to"
 }
 
-
+/** 判断两条二维边是否相交 / Check whether two 2D edges intersect */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     return intersectionPoint(other) != null
 }
 
+/** 计算两条二维边的交点，无交点返回 null / Compute intersection point of two 2D edges, returns null if none */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Point<Dim2, Flt64>? {
     val p1 = from
     val p2 = to
@@ -140,6 +141,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Po
     return null
 }
 
+/** 计算边上离给定点最近的点 / Compute the closest point on the edge to the given point */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
     val direction = this.direction
     val dx = point.x - from.x
@@ -162,6 +164,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, 
     return pointAt(tClamped)
 }
 
+/** 计算边到给定点的距离 / Compute the distance from the edge to the given point */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.distanceToPoint(point: Point<Dim2, Flt64>): Flt64 {
     val closest = closestPoint(point)
     return point distance closest

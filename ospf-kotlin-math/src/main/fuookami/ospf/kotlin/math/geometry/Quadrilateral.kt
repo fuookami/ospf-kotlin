@@ -1,9 +1,35 @@
+/**
+ * 四边形
+ * Quadrilateral
+ *
+ * 定义几何空间中的四边形数据结构，由四个顶点构成。
+ * 支持边、对角线、周长、质心、面积、凸性检测等操作。
+ * Defines quadrilateral data structure in geometric space, composed of four vertices.
+ * Supports edges, diagonals, perimeter, centroid, area, convexity detection, etc.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.math.geometry.vector2
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.vector2
 
+/**
+ * 四边形数据类
+ * Quadrilateral data class
+ *
+ * 由四个顶点定义的四边形，支持任意维度和浮点数类型。
+ * 提供边、对角线、周长、质心、面积（三角形分解）等计算功能。
+ * A quadrilateral defined by four vertices, supporting arbitrary dimensions and floating-point types.
+ * Provides functionality for edges, diagonals, perimeter, centroid, area (triangle decomposition), etc.
+ *
+ * @param P 点类型 / Point type
+ * @param D 维度类型 / Dimension type
+ * @param V 数值类型 / Number type
+ * @property p1 第一个顶点 / First vertex
+ * @property p2 第二个顶点 / Second vertex
+ * @property p3 第三个顶点 / Third vertex
+ * @property p4 第四个顶点 / Fourth vertex
+ */
 class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,
     val p2: P,
@@ -16,16 +42,24 @@ class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         assert(p3.size == p4.size)
     }
 
+    /** 第一条边（p1 -> p2） / First edge (p1 -> p2) */
     val e1: Edge<P, D, V> get() = Edge(p1, p2)
+    /** 第二条边（p2 -> p3） / Second edge (p2 -> p3) */
     val e2: Edge<P, D, V> get() = Edge(p2, p3)
+    /** 第三条边（p3 -> p4） / Third edge (p3 -> p4) */
     val e3: Edge<P, D, V> get() = Edge(p3, p4)
+    /** 第四条边（p4 -> p1） / Fourth edge (p4 -> p1) */
     val e4: Edge<P, D, V> get() = Edge(p4, p1)
 
+    /** 所有边的列表 / List of all edges */
     val edges: List<Edge<P, D, V>> get() = listOf(e1, e2, e3, e4)
+    /** 对角线列表 / List of diagonals */
     val diagonals: List<Edge<P, D, V>> get() = listOf(Edge(p1, p3), Edge(p2, p4))
 
+    /** 周长 / Perimeter */
     val perimeter: V by lazy { e1.length + e2.length + e3.length + e4.length }
 
+    /** 质心 / Centroid */
     val centroid: Point<D, V> by lazy {
         val v = p1[0]
         val four = v.constants.two + v.constants.two
@@ -35,12 +69,13 @@ class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         )
     }
 
+    /** 面积（三角形分解法） / Area (triangle decomposition method) */
     val areaByTriangles: V by lazy {
         Triangle(p1, p2, p3).area + Triangle(p1, p3, p4).area
     }
 }
 
-
+/** 二维四边形面积（鞋带公式） / 2D quadrilateral area (Shoelace formula) */
 val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
     get() {
         val sum1 = p1.x * p2.y + p2.x * p3.y + p3.x * p4.y + p4.x * p1.y
@@ -54,6 +89,7 @@ val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
         return absolute / Flt64.two
     }
 
+/** 判断二维四边形是否为凸四边形 / Check whether a 2D quadrilateral is convex */
 fun Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.isConvex(): Boolean {
     fun crossSign(a: Point<Dim2, Flt64>, b: Point<Dim2, Flt64>, c: Point<Dim2, Flt64>): Flt64 {
         val v1 = vector2(b.x - a.x, b.y - a.y)
@@ -71,9 +107,11 @@ fun Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.isConvex(): Boolean {
     return allPositive || allNegative
 }
 
+/** 是否非法（面积为零） / Whether illegal (zero area) */
 val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.illegal: Boolean
     get() = area eq Flt64.zero
 
+/** 创建二维四边形 / Create a 2D quadrilateral */
 fun quadrilateral2(p1: Point<Dim2, Flt64>, p2: Point<Dim2, Flt64>, p3: Point<Dim2, Flt64>, p4: Point<Dim2, Flt64>): Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64> {
     return Quadrilateral(p1, p2, p3, p4)
 }

@@ -10,10 +10,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol.inequality
 
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
 /**
@@ -37,6 +35,12 @@ data class CanonicalInequality<T : Ring<T>>(
     val rhs: CanonicalPolynomial<T>,
     val comparison: Comparison
 ) {
+    /**
+     * 返回反转后的不等式（交换左右两侧并反转比较运算符）。
+     * Returns the reversed inequality (swaps left and right sides and reverses the comparison operator).
+     *
+     * @return 反转后的规范不等式 / The reversed canonical inequality
+     */
     fun reverse(): CanonicalInequality<T> {
         return CanonicalInequality(
             lhs = rhs,

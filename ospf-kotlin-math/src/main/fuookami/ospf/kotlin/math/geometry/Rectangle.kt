@@ -1,17 +1,36 @@
+/**
+ * 矩形
+ * Rectangle
+ *
+ * 定义几何空间中的矩形数据结构，由四个顶点定义，支持面积、凸性检测、交集等操作。
+ * Defines rectangle data structure in geometric space, defined by four vertices, supporting area, convexity detection, intersection, etc.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.ordinary.minMax
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.geometry.point2
 
+/**
+ * 通用矩形，由四个顶点定义（不要求轴对齐）。
+ * General rectangle defined by four vertices (not necessarily axis-aligned).
+ *
+ * @param P 点类型 / The point type
+ * @param D 维度类型 / The dimension type
+ * @param V 数值类型 / The numeric type
+ * @property p1 第一个顶点 / First vertex
+ * @property p2 第二个顶点 / Second vertex
+ * @property p3 第三个顶点 / Third vertex
+ * @property p4 第四个顶点 / Fourth vertex
+ */
 data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,
     val p2: P,
@@ -19,6 +38,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p4: P
 ) {
     companion object {
+        /** 通过左上角和右下角创建二维轴对齐矩形 / Create a 2D axis-aligned rectangle from left-upper and right-bottom corners */
         operator fun invoke(leftUpperPoint: Point<Dim2, Flt64>, rightBottomPoint: Point<Dim2, Flt64>): Rectangle<Point<Dim2, Flt64>, Dim2, Flt64> {
             return Rectangle(
                 leftUpperPoint,
@@ -29,7 +49,9 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         }
     }
 
+    /** 长边长度 / Length of the longer side */
     val length: V
+    /** 短边长度 / Length of the shorter side */
     val width: V
 
     init {
@@ -44,6 +66,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         assert(((e1.vector * e2.vector) / (l1 * l2)) eq v.constants.zero)
     }
 
+    /** 面积 / Area */
     val area: V by lazy { length * width }
 
     private val leftUpperRightBottom: List<V> by lazy {
@@ -53,12 +76,14 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         minMaxValues.map { it.first } + minMaxValues.map { it.second }
     }
 
+    /** 左上角点 / Left-upper corner point */
     val leftUpperPoint: Point<D, V>
         get() = Point(
             leftUpperRightBottom.take(p1.dim.size),
             p1.dim
         )
 
+    /** 右下角点 / Right-bottom corner point */
     val rightBottomPoint: Point<D, V>
         get() = Point(
             leftUpperRightBottom.subList(p1.dim.size, p1.dim.size * 2),
@@ -66,7 +91,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         )
 }
 
-
+/** 判断指定点是否在矩形内 / Check whether a point is inside the rectangle */
 fun Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>.contains(
     point: Point<Dim2, Flt64>,
     withLowerBound: Boolean = true,

@@ -1,13 +1,24 @@
+/**
+ * 交叉模式接口与实现
+ * Crossover mode interface and implementations
+ */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
+/**
+ * 交叉模式接口，定义如何从种群中选择父代组合。
+ * Crossover mode interface, defining how to select parent combinations from the population.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ */
 interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     enum class Method {
         WeightedRing,
@@ -25,6 +36,13 @@ interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     ): List<List<T>>
 }
 
+/**
+ * 单父代交叉模式，每个个体单独作为父代。
+ * Single parent crossover mode, each individual acts as a parent independently.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ */
 class OneParentCrossMode<ObjValue, V> : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -37,6 +55,14 @@ class OneParentCrossMode<ObjValue, V> : CrossMode<ObjValue, V> where V : RealNum
     }
 }
 
+/**
+ * 双父代交叉模式，使用指定方法选择两个父代进行交叉。
+ * Two-parent crossover mode, using specified method to select two parents for crossover.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property method 交叉方法 / Crossover method
+ */
 class TwoParentCrossMode<ObjValue, V>(
     val method: CrossMode.Method
 ) : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -91,6 +117,15 @@ class TwoParentCrossMode<ObjValue, V>(
     }
 }
 
+/**
+ * 多父代交叉模式，支持动态计算父代数量。
+ * Multi-parent crossover mode with dynamic parent amount calculation.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property method 交叉方法 / Crossover method
+ * @property parentAmountCalculator 父代数量计算器 / Parent amount calculator
+ */
 class MultiParentCrossMode<ObjValue, V>(
     val method: CrossMode.Method,
     val parentAmountCalculator: (Iteration, List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ValueRange<UInt64>) -> UInt64
@@ -189,6 +224,10 @@ class MultiParentCrossMode<ObjValue, V>(
     }
 }
 
+/**
+ * 自适应多父代交叉模式，根据权重动态调整父代数量。
+ * Adaptive multi-parent crossover mode, dynamically adjusting parent count based on weights.
+ */
 data object AdaptiveMultiParentCrossMode {
     operator fun <ObjValue, V> invoke(
         method: CrossMode.Method
@@ -203,5 +242,3 @@ data object AdaptiveMultiParentCrossMode {
         }
     }
 }
-
-

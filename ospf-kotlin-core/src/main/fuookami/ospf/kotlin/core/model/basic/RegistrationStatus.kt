@@ -1,11 +1,21 @@
+/**
+ * 注册状态
+ * Registration status
+ */
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
+/**
+ * 符号注册状态，跟踪符号注册进度。
+ * Symbol registration status tracking registration progress.
+ *
+ * @property emptySymbolAmount  空符号数量 / Number of empty symbols
+ * @property readySymbolAmount  已就绪符号数量 / Number of ready symbols
+ * @property totalSymbolAmount  符号总数 / Total number of symbols
+ */
 data class RegistrationStatus(
     val emptySymbolAmount: UInt64,
     val readySymbolAmount: UInt64,
@@ -29,8 +39,16 @@ data class RegistrationStatus(
         }
 }
 
+/** 注册状态回调 / Registration status callback */
 typealias RegistrationStatusCallBack = (RegistrationStatus) -> Try
 
+/**
+ * 将注册状态转换为模型构建状态。
+ * Convert registration status to model building status.
+ *
+ * @param modelName 模型名称 / The model name
+ * @return 模型构建状态 / The model building status
+ */
 fun RegistrationStatus.toModelBuildingStatus(modelName: String): ModelBuildingStatus {
     return ModelBuildingStatus(
         modelName = modelName,
@@ -39,5 +57,3 @@ fun RegistrationStatus.toModelBuildingStatus(modelName: String): ModelBuildingSt
         total = totalSymbolAmount
     )
 }
-
-

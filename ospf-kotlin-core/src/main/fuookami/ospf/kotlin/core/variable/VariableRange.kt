@@ -1,15 +1,24 @@
+/**
+ * 变量范围（Range）及其对二值/三值/平衡三值变量的约束扩展函数。
+ * Variable range (Range) and its constraint extension functions for binary/ternary/balanced-ternary variables.
+ */
 package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 
+/**
+ * 变量范围数据类，根据变量类型自动初始化值域边界。
+ * Variable range data class that initializes value range bounds based on the variable type.
+ *
+ * @property type 变量类型 / Variable type
+ * @property constants 数值类型常量 / Numeric type constants
+ */
 data class Range<T, V>(
     val type: T,
     override val constants: RealNumberConstants<V>
@@ -178,4 +187,3 @@ fun Range<BalancedTernary, Int8>.setFalse(): Boolean {
 fun Range<BalancedTernary, Int8>.setUnknown(): Boolean {
     return this.eq(Int8.zero)
 }
-

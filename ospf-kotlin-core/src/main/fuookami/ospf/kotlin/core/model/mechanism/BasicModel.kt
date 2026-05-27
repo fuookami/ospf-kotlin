@@ -1,20 +1,21 @@
+/**
+ * 模型基础层
+ * Model base layer
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.MutableTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.core.token.MutableTokenTable
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
+ * 模型层级结构的基础层：变量 + 约束 + 符号 + 缓存（无目标函数）。
  * Base layer of the model hierarchy: variables + constraints + symbols + caches (no objective).
  *
  * This corresponds to `BasicModel<V>` in the Rust implementation.

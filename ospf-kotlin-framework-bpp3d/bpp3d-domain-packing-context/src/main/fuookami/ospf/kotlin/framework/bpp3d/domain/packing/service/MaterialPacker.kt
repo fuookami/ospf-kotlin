@@ -80,8 +80,8 @@ class MaterialPacker(
                 normalizedDemands = emptyMap(),
                 solveInfo = MaterialPackingSolveInfo(
                     status = MaterialPackingStatus.Optimal,
-                    objective = 0.0,
-                    gap = 0.0,
+                    objective = Flt64.zero,
+                    gap = Flt64.zero,
                     timeMillis = 0L,
                     selectedPackageCount = UInt64.zero,
                     rawStatus = "empty_demand"
@@ -162,7 +162,7 @@ class MaterialPacker(
             var remaining = demandAmount
             val sortedSlots = slotCandidates
                 .mapIndexed { slotIndex, candidateIndex ->
-                    val cap = candidates[candidateIndex].program.materials[material] ?: UInt64.zero
+                    val cap = candidates[candidateIndex].program.materialAmount(material)
                     Pair(slotIndex, cap)
                 }
                 .filter { (_, cap) -> cap != UInt64.zero }
@@ -199,7 +199,7 @@ class MaterialPacker(
                     Pair(materialByKey[materialKey] ?: return@mapNotNull null, amount)
                 }
             }.toMap()
-            val pending = candidate.program.materials.any { (material, capacityAmount) ->
+            val pending = candidate.program.materialAmounts().any { (material, capacityAmount) ->
                 (assigned[material] ?: UInt64.zero) < capacityAmount
             }
             PackageSlot(

@@ -1,17 +1,42 @@
+/**
+ * 三维平面坐标框架
+ * 3D Plane Coordinate Frame
+ *
+ * 定义三维空间中的平面坐标框架及相关类型（平面点、平面矩形等）。
+ * Defines plane coordinate frame and related types (plane point, plane rectangle, etc.) in 3D space.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 二维平面点，用于平面坐标框架中的二维坐标。
+ * 2D plane point for coordinates within a plane coordinate frame.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property x X 坐标 / X coordinate
+ * @property y Y 坐标 / Y coordinate
+ */
 data class PlanePoint2<V : FloatingNumber<V>>(
     val x: V,
     val y: V
 )
 
+/**
+ * 三维空间点，用于平面坐标框架中的三维坐标。
+ * 3D space point for coordinates within a plane coordinate frame.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property x X 坐标 / X coordinate
+ * @property y Y 坐标 / Y coordinate
+ * @property z Z 坐标 / Z coordinate
+ */
 data class PlanePoint3<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
     val z: V
 ) {
+    /** 沿指定轴的坐标值 / Coordinate value along the specified axis */
     fun along(axis: Axis3): V {
         return when (axis) {
             Axis3.X -> x
@@ -21,6 +46,15 @@ data class PlanePoint3<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 三维平面法向量，表示平面坐标框架中的法向偏移。
+ * 3D plane normal vector representing the normal offset in a plane coordinate frame.
+ *
+ * @param V 数值类型 / The numeric type
+ * @property x X 分量 / X component
+ * @property y Y 分量 / Y component
+ * @property z Z 分量 / Z component
+ */
 data class PlaneVector3<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
@@ -39,6 +73,7 @@ data class PlaneFrame3(
         require(firstAxis != secondAxis) { "firstAxis and secondAxis must be different." }
     }
 
+    /** 法向轴 / The normal axis */
     val normalAxis: Axis3
         get() {
             return when {
@@ -49,8 +84,10 @@ data class PlaneFrame3(
             }
         }
 
+    /** 计算点到平面的距离 / Compute the distance from a point to the plane */
     fun <V : FloatingNumber<V>> distance(point: PlanePoint3<V>): V = point.along(normalAxis)
 
+    /** 将三维点投影到平面二维坐标 / Project a 3D point to 2D plane coordinates */
     fun <V : FloatingNumber<V>> point2(point: PlanePoint3<V>): PlanePoint2<V> {
         return PlanePoint2(
             x = point.along(firstAxis),
@@ -58,6 +95,7 @@ data class PlaneFrame3(
         )
     }
 
+    /** 将平面二维坐标还原为三维点 / Convert 2D plane coordinates back to a 3D point */
     fun <V : FloatingNumber<V>> point3(point: PlanePoint2<V>, distance: V): PlanePoint3<V> {
         val x = if (firstAxis == Axis3.X) {
             point.x
@@ -87,6 +125,7 @@ data class PlaneFrame3(
         )
     }
 
+    /** 根据距离值创建法向量 / Create a normal vector from a distance value */
     fun <V : FloatingNumber<V>> vector(distance: V): PlaneVector3<V> {
         val zero = quantityZeroOf(distance)
         return when (normalAxis) {
@@ -96,6 +135,7 @@ data class PlaneFrame3(
         }
     }
 
+    /** 计算长方体在平面上的投影矩形 / Compute the footprint rectangle of a cuboid on the plane */
     fun <V : FloatingNumber<V>> footprint(cuboid: Cuboid3<V>): Rectangle2<V> {
         return Rectangle2(
             width = cuboid.along(firstAxis),
@@ -104,12 +144,17 @@ data class PlaneFrame3(
     }
 
     companion object {
+        /** X-Y 平面 / X-Y plane */
         val XY = PlaneFrame3(firstAxis = Axis3.X, secondAxis = Axis3.Y)
+        /** Y-X 平面 / Y-X plane */
         val YX = PlaneFrame3(firstAxis = Axis3.Y, secondAxis = Axis3.X)
+        /** X-Z 平面 / X-Z plane */
         val XZ = PlaneFrame3(firstAxis = Axis3.X, secondAxis = Axis3.Z)
+        /** Z-X 平面 / Z-X plane */
         val ZX = PlaneFrame3(firstAxis = Axis3.Z, secondAxis = Axis3.X)
+        /** Y-Z 平面 / Y-Z plane */
         val YZ = PlaneFrame3(firstAxis = Axis3.Y, secondAxis = Axis3.Z)
+        /** Z-Y 平面 / Z-Y plane */
         val ZY = PlaneFrame3(firstAxis = Axis3.Z, secondAxis = Axis3.Y)
     }
 }
-

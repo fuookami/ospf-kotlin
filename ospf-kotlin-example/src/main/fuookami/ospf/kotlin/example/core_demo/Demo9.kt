@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*

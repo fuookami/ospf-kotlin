@@ -34,6 +34,16 @@ value class SymbolId(val value: String) {
     override fun toString(): String = value
 }
 
+/**
+ * 稳定符号接口
+ * Stable Symbol Interface
+ *
+ * 提供稳定标识的符号接口，实现此接口的符号具有在生命周期内不变的标识符。
+ * Symbol interface providing stable identification. Symbols implementing this
+ * interface have identifiers that remain constant throughout their lifecycle.
+ *
+ * @property stableSymbolId 符号的稳定标识符 / Stable identifier of the symbol
+ */
 interface StableSymbol : Symbol {
     val stableSymbolId: SymbolId
 }
@@ -122,15 +132,38 @@ fun Symbol.stableIdOrNull(): SymbolId? {
     return (this as? StableSymbol)?.stableSymbolId
 }
 
+/**
+ * 检查符号是否具有稳定标识。
+ * Checks whether the symbol has a stable identifier.
+ *
+ * @return 如果符号具有稳定标识则返回true / True if the symbol has a stable identifier
+ */
 fun Symbol.hasStableId(): Boolean {
     return stableIdOrNull() != null
 }
 
+/**
+ * 获取符号的稳定标识符，如果没有则抛出异常。
+ * Gets the stable identifier of the symbol, throws if absent.
+ *
+ * @return 符号的稳定标识符 / Stable identifier of the symbol
+ * @throws IllegalStateException 如果符号没有显式的稳定标识 / If the symbol has no explicit stable identity
+ */
 fun Symbol.requireStableId(): SymbolId {
     return stableIdOrNull()
         ?: throw IllegalStateException("Symbol $name has no explicit stable identity.")
 }
 
+/**
+ * 获取或生成符号的稳定标识符。
+ * Gets or generates the stable identifier of the symbol.
+ *
+ * 如果符号实现了 [StableSymbol]，返回其稳定标识；否则使用名称和对象哈希码生成。
+ * If the symbol implements [StableSymbol], returns its stable ID; otherwise generates one
+ * from the name and object hash code.
+ *
+ * @return 符号的稳定标识符 / Stable identifier of the symbol
+ */
 fun Symbol.stableId(): SymbolId {
     return stableIdOrNull() ?: SymbolId("${name}#${System.identityHashCode(this)}")
 }
@@ -172,6 +205,15 @@ val defaultSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
     }
 }
 
+/**
+ * 默认稳定符号比较器
+ * Default Stable Symbol Comparator
+ *
+ * 用于符号排序的比较器，首先按名称比较，名称相同则按稳定标识比较。
+ * 要求符号具有显式的稳定标识，否则抛出异常。
+ * Comparator for sorting symbols, first by name, then by stable identifier if names are equal.
+ * Requires symbols to have explicit stable identifiers, throws otherwise.
+ */
 val defaultStableSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
     val byName = lhs.name.compareTo(rhs.name)
     if (byName != 0) {

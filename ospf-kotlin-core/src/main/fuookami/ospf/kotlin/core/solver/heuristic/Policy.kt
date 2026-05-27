@@ -1,16 +1,24 @@
+/**
+ * 启发式策略接口与基类
+ * Heuristic policy interface and base class
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
+/**
+ * 启发式策略的抽象接口，定义值约束、状态更新和终止判断。
+ * Abstract interface for heuristic policies, defining value coercion, state updates, and termination checks.
+ */
 interface AbstractHeuristicPolicy {
     fun coerceIn(
         iteration: Iteration,
@@ -47,6 +55,14 @@ interface AbstractHeuristicPolicy {
     fun finished(iteration: Iteration): Boolean
 }
 
+/**
+ * 启发式策略基类，提供基于迭代次数和时间的终止条件。
+ * Base class for heuristic policies, providing termination conditions based on iteration count and time.
+ *
+ * @property iterationLimit 最大迭代次数 / Maximum iteration count
+ * @property notBetterIterationLimit 最大无改进迭代次数 / Maximum no-improvement iteration count
+ * @property timeLimit 时间限制 / Time limit
+ */
 abstract class HeuristicPolicy(
     val iterationLimit: UInt64 = UInt64.maximum,
     val notBetterIterationLimit: UInt64 = UInt64.maximum,
@@ -58,5 +74,3 @@ abstract class HeuristicPolicy(
                 || iteration.time > timeLimit
     }
 }
-
-

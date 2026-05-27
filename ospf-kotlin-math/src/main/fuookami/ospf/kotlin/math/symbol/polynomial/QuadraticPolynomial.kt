@@ -16,8 +16,6 @@ package fuookami.ospf.kotlin.math.symbol.polynomial
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -57,12 +55,33 @@ data class QuadraticPolynomial<T : Ring<T>>(
     val category: Category
         get() = if (monomials.any { it.isQuadratic }) Quadratic else Linear
 
+    /**
+     * 转换为二次多项式（自身）
+     * Converts to a quadratic polynomial (self)
+     *
+     * @return 自身 / Self
+     */
     override fun toQuadraticPolynomial(): QuadraticPolynomial<T> = this
 
+    /**
+     * 转换为规范多项式
+     * Converts to a canonical polynomial
+     *
+     * @return 规范多项式 / Canonical polynomial
+     */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
         return CanonicalPolynomial(monomials.map { it.toCanonicalMonomial() }, constant)
     }
 
+    /**
+     * 尝试转换为线性多项式
+     * Tries to convert to a linear polynomial
+     *
+     * 若不包含真正的二次项（symbol2 不为 null），返回对应的线性多项式；否则返回 null。
+     * Returns the corresponding linear polynomial if there are no true quadratic terms; otherwise returns null.
+     *
+     * @return 线性多项式或 null / Linear polynomial or null
+     */
     override fun toLinearPolynomialOrNull(): LinearPolynomial<T>? {
         if (monomials.any { it.isQuadratic }) return null
         return LinearPolynomial(

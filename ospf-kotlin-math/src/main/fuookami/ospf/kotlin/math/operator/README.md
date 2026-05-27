@@ -1,6 +1,6 @@
 # ospf-kotlin-math/operator
 
-[中文文档 (README_ch.md)](./README_ch.md)
+[Chinese Documentation (README_ch.md)](./README_ch.md)
 
 Mathematical operator interfaces for OSPF Kotlin. Defines algebraic operations as reusable interfaces that number types and other algebraic structures implement.
 
@@ -8,45 +8,57 @@ Mathematical operator interfaces for OSPF Kotlin. Defines algebraic operations a
 
 | Interface | File | Operation | Notation |
 |-----------|------|-----------|----------|
-| `Plus<Rhs, Ret>` | `Plus.kt` | Addition | `a + b` |
-| `PlusAssign<Rhs>` | `Plus.kt` | Addition assignment | `a += b` |
+| `Plus<in Rhs, out Ret>` | `Plus.kt` | Addition | `a + b` |
+| `PlusTrait<Self, in Rhs, out Ret>` | `Plus.kt` | Addition (extension trait) | `a + b` |
+| `PlusAssign<in Rhs>` | `Plus.kt` | Addition assignment | `a += b` |
 | `Inc<Self>` | `Plus.kt` | Increment | `++a` |
-| `Minus<Self, Ret>` | `Minus.kt` | Subtraction | `a - b` |
-| `MinusAssign<Self, Rhs>` | `Minus.kt` | Subtraction assignment | `a -= b` |
+| `Minus<in Rhs, out Ret>` | `Minus.kt` | Subtraction | `a - b` |
+| `MinusAssign<in Rhs>` | `Minus.kt` | Subtraction assignment | `a -= b` |
 | `Dec<Self>` | `Minus.kt` | Decrement | `--a` |
-| `Times<Rhs, Ret>` | `Times.kt` | Multiplication | `a * b` |
-| `Div<Rhs, Ret>` | `Div.kt` | Division | `a / b` |
-| `Rem<Rhs, Ret>` | `Rem.kt` | Remainder | `a % b` |
-| `Pow<Self, Exp, Ret>` | `Pow.kt` | Power | `a ^ b` |
-| `Neg<Self>` | `Neg.kt` | Negation | `-a` |
-| `Reciprocal<Self>` | `Reciprocal.kt` | Reciprocal | `1/a` |
-| `RangeTo<Self>` | `RangeTo.kt` | Range creation | `a..b` |
+| `Times<in Rhs, out Ret>` | `Times.kt` | Multiplication | `a * b` |
+| `TimesAssign<in Rhs>` | `Times.kt` | Multiplication assignment | `a *= b` |
+| `Cross<in Rhs, out Ret>` | `Times.kt` | Cross product | `a x b` |
+| `Div<in Rhs, out Ret>` | `Div.kt` | Division | `a / b` |
+| `DivAssign<in Rhs>` | `Div.kt` | Division assignment | `a /= b` |
+| `IntDiv<in Rhs, out Ret>` | `Div.kt` | Integer division | `a intDiv b` |
+| `IntDivAssign<in Rhs>` | `Div.kt` | Integer division assignment | `a intDivAssign b` |
+| `Rem<in Rhs, out Ret>` | `Rem.kt` | Remainder | `a % b` / `a mod b` |
+| `RemAssign<in Rhs>` | `Rem.kt` | Remainder assignment | `a %= b` |
+| `Pow<out Ret>` | `Pow.kt` | Integer power | `a^n` (n: Int) |
+| `PowP<Ret>` | `Pow.kt` | Integer power with precision | `a^n` with digits/precision |
+| `PowFun<in Self, out Ret>` | `Pow.kt` | Integer power (extension) | `a.pow(n)` |
+| `PowFunP<in Self, Ret>` | `Pow.kt` | Integer power with precision (extension) | `a.pow(n, digits, precision)` |
+| `PowF<in Index, out Ret>` | `Pow.kt` | Floating-point power | `a^x` (x: Index) |
+| `PowFP<in Index, Ret>` | `Pow.kt` | Floating-point power with precision | `a^x` with digits/precision |
+| `PowFFun<in Self, in Index, out Ret>` | `Pow.kt` | Floating-point power (extension) | `a.pow(x)` |
+| `PowFPFun<in Self, in Index, Ret>` | `Pow.kt` | Floating-point power with precision (extension) | `a.pow(x, digits, precision)` |
+| `Neg<out Ret>` | `Neg.kt` | Negation | `-a` |
+| `Reciprocal<out Ret>` | `Reciprocal.kt` | Reciprocal | `1/a` |
+| `RangeTo<in Rhs, out Ret>` | `RangeTo.kt` | Range creation | `a..b` / `a until b` |
+| `Contains<in T>` | `Contains.kt` | Containment check | `a in b` |
 
 ## Transcendental Operators
 
-| Interface | File | Operation |
-|-----------|------|-----------|
-| `Exp<T>` | `Exp.kt` | Exponential e^x |
-| `Log<T>` | `Log.kt` | Natural logarithm ln(x) |
-| `Log2<T>` | `Log.kt` | Base-2 logarithm |
-| `Log10<T>` | `Log.kt` | Base-10 logarithm |
-| `Sin<T>` | `Trigonometry.kt` | Sine |
-| `Cos<T>` | `Trigonometry.kt` | Cosine |
-| `Tan<T>` | `Trigonometry.kt` | Tangent |
-| `Asin<T>` | `Trigonometry.kt` | Arc sine |
-| `Acos<T>` | `Trigonometry.kt` | Arc cosine |
-| `Atan<T>` | `Trigonometry.kt` | Arc tangent |
-| `Sinh<T>` | `Trigonometry.kt` | Hyperbolic sine |
-| `Cosh<T>` | `Trigonometry.kt` | Hyperbolic cosine |
-| `Tanh<T>` | `Trigonometry.kt` | Hyperbolic tangent |
+| Interface | File | Key Methods |
+|-----------|------|-------------|
+| `Exp<out Ret>` | `Exp.kt` | `exp()` -- e^x |
+| `ExpP<Ret>` | `Exp.kt` | `exp(digits, precision)` -- e^x with precision |
+| `Log<in Base, out Ret>` | `Log.kt` | `log(base)`, `lg()` (base 10), `lg2()` (base 2), `ln()` (base e) |
+| `LogFun<in Self, in Base, out Ret>` | `Log.kt` | Extension variants: `Self.log(base)`, `Self.lg()`, `Self.lg2()`, `Self.ln()` |
+| `LogP<in Base, Ret>` | `Log.kt` | Precision-aware variants of all Log methods |
+| `LogFunP<in Self, in Base, Ret>` | `Log.kt` | Precision-aware extension variants |
+| `Trigonometry<out Ret>` | `Trigonometry.kt` | `sin()`, `cos()`, `tan()`, `sec()`, `csc()`, `cot()`, `asin()`, `acos()`, `atan()`, `asec()`, `acsc()`, `acot()`, `sinh()`, `cosh()`, `tanh()`, `sech()`, `csch()`, `coth()`, `asinh()`, `acosh()`, `atanh()`, `asech()`, `acsch()`, `acoth()` |
 
 ## Utility Operators
 
 | Interface | File | Operation |
 |-----------|------|-----------|
-| `Abs<Self>` | `Abs.kt` | Absolute value |
-| `Precision<T>` | `Precision.kt` | Precision control |
-| `Tolerance<T>` | `Tolerance.kt` | Tolerance-based comparison |
+| `Abs<out Ret>` | `Abs.kt` | Absolute value |
+| `Precision<T>` | `Precision.kt` | Precision-based comparison (`equal`, `order`, `less`, `greater`, etc.) |
+| `Tolerance<T>` | `Tolerance.kt` | Tolerance value |
+| `TolerancedEq<T>` | `Tolerance.kt` | Tolerance-based equality test |
+| `TolerancedOrd<T>` | `Tolerance.kt` | Tolerance-based ordering |
+| `AbsoluteTolerance<T>` | `Tolerance.kt` | Absolute tolerance data class |
 
 ## Usage
 
@@ -62,14 +74,14 @@ val sum = a + b         // Plus
 val diff = a - b        // Minus
 val product = a * b     // Times
 val quotient = a / b    // Div
+val remainder = a % b   // Rem
 val power = a.pow(b)    // Pow
 
 // Transcendental functions
 val expA = a.exp()      // Exp
-val logA = a.ln()       // Log
-val sinA = a.sin()      // Sin
-val cosA = a.cos()      // Cos
-val tanA = a.tan()      // Tan
+val logA = a.ln()       // Log (natural logarithm)
+val sinA = a.sin()      // Trigonometry
+val cosA = a.cos()      // Trigonometry
 ```
 
 ## Related

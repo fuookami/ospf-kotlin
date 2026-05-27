@@ -2,8 +2,9 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
@@ -11,13 +12,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
-
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import kotlin.reflect.KClass
+
+
+
+
+
+
 
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>
@@ -101,7 +106,7 @@ class BinLayer(
     }
 
     // inherited from Cuboid<BinLayer>
-    override val depth: LegacyQuantity = units.maxOfOrNull { it.maxZ } ?: (shape.depth * legacyZero())
+    override val depth: Quantity<Flt64> = units.maxOfOrNull { it.maxZ } ?: (shape.depth * legacyZero())
 
     // inherited from ItemContainer<BinLayer>
     override val bottomOnly: Boolean = true
@@ -167,7 +172,7 @@ class PalletLayer(
     }
 
     // inherited from Cuboid<PalletLayer>
-    override val height: LegacyQuantity = units.maxOfOrNull { it.maxY } ?: (shape.height * legacyZero())
+    override val height: Quantity<Flt64> = units.maxOfOrNull { it.maxY } ?: (shape.height * legacyZero())
 
     // inherited from ItemContainer<PalletLayer>
     override val topFlat: Boolean = true
@@ -197,3 +202,4 @@ typealias BinLayerView = CuboidView<BinLayer>
 typealias BinLayerPlacement = QuantityPlacement3<BinLayer>
 typealias PalletLayerView = CuboidView<PalletLayer>
 typealias PalletLayerPlacement = QuantityPlacement3<PalletLayer>
+

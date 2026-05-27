@@ -9,26 +9,45 @@
 3. 统一的建模阶段状态回调模型。
 4. 带公共统计字段的统一求解输出模型。
 
+## 模块结构
+
+```
+core/
+├── error/                  - 错误处理类型 (ErrorCode, ErrorKind)
+├── model/
+│   ├── basic/              - 基础模型类型 (Constraint, Expression, Model, ModelView)
+│   ├── callback/           - 建模状态回调
+│   ├── intermediate/       - 中间模型层 (LinearTriadModel, QuadraticTetradModel)
+│   └── mechanism/          - 机制模型层 (MetaModel, 约束注册)
+├── solver/
+│   ├── config/             - 求解器配置 (SolverConfig)
+│   ├── heuristic/          - 启发式求解器实现
+│   ├── iis/                - 不可约不可行集分析
+│   ├── output/             - 求解器输出模型 (FeasibleSolverOutput)
+│   └── value/              - 求解器值类型
+├── symbol/
+│   ├── flatten/            - 符号展平工具
+│   └── function/           - 函数符号 (BigM, Binaryization, Piecewise 等)
+├── token/                  - 模型构建的 Token 类型 (TokenList, TokenTable)
+└── variable/               - 变量类型与集合 (VariableItem, VariableRange)
+```
+
 ## 统一求解入口
 
-可通过 `backend/solver/SolverExt.kt` 中的扩展函数使用统一入口：
+可通过 `core/solver/SolverExt.kt` 中的扩展函数使用统一入口：
 
 ```kotlin
-import fuookami.ospf.kotlin.core.backend.solver.SolveOptions
-import fuookami.ospf.kotlin.core.backend.solver.solveWithOptions
+import fuookami.ospf.kotlin.core.solver.SolveOptions
+import fuookami.ospf.kotlin.core.solver.solveWithOptions
 
 suspend fun unifiedSolve(
     solver: AbstractLinearSolver,
-    model: LinearMetaModel
+    model: LinearTriadModelView
 ) {
     val result = solver.solveWithOptions(
         model = model,
         options = SolveOptions.build {
             solutionAmount = UInt64.one
-            modelBuildingStatusCallBack = { status ->
-                println("${status.modelName} ${status.stage} ${status.ready}/${status.total}")
-                ok
-            }
             solvingStatusCallBack = { status ->
                 println("obj=${status.obj}, gap=${status.gap}")
                 ok
@@ -64,59 +83,54 @@ suspend fun unifiedSolve(
 
 ### 已删除的 Typealias
 
-以下 `Flt64` 便捷 typealias 已删除，请使用 V 类型化等价形式：
+以下 `Flt64` 便捷 typealias 已删除，请直接使用泛型形式：
 
 | 已删除别名 | 替代写法 |
 |---|---|
-| `CallBackModelInterface` | `CallBackModelInterfaceV<Flt64>`（或你的 V 类型） |
-| `MultiObjectiveModelInterface` | `MultiObjectiveModelInterfaceV<Flt64>`（或你的 V 类型） |
+| `CallBackModelInterface`（Flt64 别名） | `CallBackModelInterface<Flt64>`（或你的 V 类型） |
+| `MultiObjectiveModelInterface`（Flt64 别名） | `MultiObjectiveModelInterface<Flt64>`（或你的 V 类型） |
 
 ### 已 Internal 化的方法
 
 以下方法此前为 public，现已改为 `internal`（模块私有）：
 
-- `LinearInequality<Flt64>.sign`、`QuadraticInequality.sign`
-- `LinearInequality<Flt64>.flattenData`、`QuadraticInequality.flattenData`
+- `LinearInequality<Flt64>.sign`、`QuadraticInequalityOf<Flt64>.sign`
+- `LinearInequality<Flt64>.flattenData`、`QuadraticInequalityOf<Flt64>.flattenData`
 - `LinearPolynomial<Flt64>.toFlattenData()`、`QuadraticPolynomial<Flt64>.toFlattenData()`
 - `LinearRelation.toConstraint()`、`QuadraticRelation.toConstraint()`、`LinearRelation.toQuadraticConstraint()`
 - `LinearPolynomial<Flt64>.toFrontendPolynomial()`（已删除——原为恒等函数）
 
 ### SolverBoundaryCasts
 
-所有 `@Suppress("UNCHECKED_CAST")` 注解已集中到 `SolverBoundaryCasts.kt`。如之前使用类型擦除桥接方法（如 `registerAuxiliaryTokensAny`、`registerConstraintsAny`），请改为直接使用 V 类型化方法。框架内部通过 `SolverBoundaryCasts` 处理星投影泛型调用。
+所有 `@Suppress("UNCHECKED_CAST")` 注解已集中到 `SolverBoundaryCasts.kt`。如之前使用类型擦除桥接方法（如 `registerAuxiliaryTokensStar`、`registerConstraintsLinearStar` / `registerConstraintsQuadraticStar`），请改为直接使用 V 类型化方法。框架内部通过 `SolverBoundaryCasts` 处理星投影泛型调用。
 
-### 遗留 Typealias（仍可用）
+### Token 类型
 
-`token/TokenList.kt` 中的以下 `Flt64` typealias 仍作为遗留便捷别名保留：
+`token/TokenList.kt` 中的 Token 类型现已完全泛型化，使用时需指定类型参数：
 
-- `AbstractTokenList` → `AbstractTokenList<Flt64>`
-- `TokenList` → `TokenList<Flt64>`
-- `AddableTokenCollection` → `AddableTokenCollection<Flt64>`
-- `AbstractMutableTokenList` → `AbstractMutableTokenList<Flt64>`
-- `MutableTokenList` → `MutableTokenList<Flt64>`
-- `AutoTokenList` → `AutoTokenList<Flt64>`
-- `ManualTokenList` → `ManualTokenList<Flt64>`
+- `AbstractTokenList<V>`
+- `TokenList<V>`
+- `AddableTokenCollection<V>`
+- `AbstractMutableTokenList<V>`
+- `MutableTokenList<V>`
+- `AutoTokenList<V>`
+- `ManualTokenList<V>`
 
-新代码应直接使用泛型形式。
+新代码应直接使用泛型形式（如 `TokenList<Flt64>`）。
 
-### adapter/flt64 兼容层
+### QuadraticInequalityOf
 
-`math.symbol.adapter.flt64` 包提供 Flt64 专用便捷函数和 `QuadraticInequality` typealias。该层是**兼容边界**，不属于主链 V 类型化 API。
+二次不等式类型现已完全泛型化：`QuadraticInequalityOf<V>`。直接使用 V 类型参数即可（如 `QuadraticInequalityOf<Flt64>`），不提供兼容别名。
 
-**退场策略：**
+## 包命名迁移
 
-- `QuadraticInequality` 已标注 `@Deprecated(WARNING)`，请直接使用 `QuadraticInequalityOf<Flt64>`。
-- 其余 adapter 函数（evaluate、parse、serde、DSL 等）保留向后兼容，新代码应优先使用泛型 V 类型化等价形式。
-- 该 adapter 层将在未来主版本中移除，暂无明确时间线，deprecation 标注表明此意图。
+`core.intermediate_symbol.*` 已重命名为 `core.symbol.*`，请相应更新导入：
 
-### 扫描门禁（I5）
-
-泛型化扫描门禁（`scripts/scan-full-genericization.ps1`）执行以下检查：
-
-1. `public_api_blocking = 0`（非 adapter 公开 API 签名中无 Flt64）。
-2. `UNCHECKED_CAST` blocking = 0（所有 cast 集中在 `SolverBoundaryCasts.kt`）。
-3. 非 adapter 公开 API 签名 Flt64 = 0（I5 签名级检查，捕获嵌套泛型和多行签名等纯正则扫描盲区）。
-4. 边界项分为三级：**permanent**（solver 固有）、**deprecated**（计划移除）、**must_decrease**（跟踪下降）。
+| 旧导入 | 新导入 |
+|---|---|
+| `fuookami.ospf.kotlin.core.intermediate_symbol.*` | `fuookami.ospf.kotlin.core.symbol.*` |
+| `fuookami.ospf.kotlin.core.intermediate_symbol.function.*` | `fuookami.ospf.kotlin.core.symbol.function.*` |
+| `fuookami.ospf.kotlin.core.intermediate_symbol.flatten.*` | `fuookami.ospf.kotlin.core.symbol.flatten.*` |
 
 ## 与根 README 的分工
 

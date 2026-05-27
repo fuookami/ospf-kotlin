@@ -4,8 +4,8 @@ import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.example.exampleAbsoluteSlack
 import fuookami.ospf.kotlin.example.flt64Constant
 import fuookami.ospf.kotlin.example.flt64Linear

@@ -13,7 +13,6 @@ package fuookami.ospf.kotlin.math.symbol.operation
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -73,7 +72,14 @@ private fun requireSymbolIndex(
 }
 
 /**
+ * 将线性多项式编译为求值函数
  * Compile a linear polynomial into an evaluation function.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
  */
 fun <T> LinearPolynomial<T>.compileEvalLinear(
     order: List<Symbol>,
@@ -106,7 +112,15 @@ fun <T> LinearPolynomial<T>.compileEvalLinear(
 }
 
 /**
+ * 将二次多项式编译为求值函数
  * Compile a quadratic polynomial into an evaluation function.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
  */
 fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
     order: List<Symbol>,
@@ -145,8 +159,19 @@ fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
 }
 
 /**
+ * 将规范多项式编译为求值函数
  * Compile a canonical polynomial into an evaluation function.
+ *
+ * 需要提供乘法单位元 one 用于幂运算。
  * Requires one (multiplicative identity) for power computation.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @param one 乘法单位元 / The multiplicative identity
+ * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
  */
 fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     order: List<Symbol>,
@@ -187,8 +212,18 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
 }
 
 /**
+ * 将规范多项式编译为求值函数（自动推断乘法单位元）
  * Compile a canonical polynomial into an evaluation function (infer one).
+ *
+ * 需要 Arithmetic<T> 约束以访问 constants.one。
  * Requires Arithmetic<T> to access constants.one.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
  */
 fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     order: List<Symbol>,
@@ -225,7 +260,14 @@ private fun <T> scaleByInt(
 }
 
 /**
+ * 将线性多项式编译为梯度函数
  * Compile a linear polynomial's gradient.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @return 接受值列表并返回梯度向量的函数 / Function accepting a value list and returning the gradient vector
  */
 fun <T> LinearPolynomial<T>.compileGradientLinear(
     order: List<Symbol>,
@@ -253,7 +295,15 @@ fun <T> LinearPolynomial<T>.compileGradientLinear(
 }
 
 /**
+ * 将二次多项式编译为梯度函数
  * Compile a quadratic polynomial's gradient.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @return 接受值列表并返回梯度向量的函数 / Function accepting a value list and returning the gradient vector
  */
 fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
     order: List<Symbol>,
@@ -301,7 +351,15 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
 }
 
 /**
+ * 将规范多项式编译为梯度函数
  * Compile a canonical polynomial's gradient.
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param combineTerms 是否先合并同类项 / Whether to combine like terms first
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
+ * @return 接受值列表并返回梯度向量的函数 / Function accepting a value list and returning the gradient vector
  */
 fun <T> CanonicalPolynomial<T>.compileGradientCanonical(
     order: List<Symbol>,

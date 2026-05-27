@@ -14,11 +14,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.ordinary.gcd
-import fuookami.ospf.kotlin.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import kotlin.ConsistentCopyVisibility
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -29,7 +25,11 @@ import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import kotlin.ConsistentCopyVisibility
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.ordinary.gcd
+import fuookami.ospf.kotlin.math.ordinary.pow
 
 /**
  * 确保分母不为零
@@ -789,7 +789,3 @@ data class URtnX internal constructor(
     override operator fun times(rhs: URtnX) = invoke(num * rhs.num, den * rhs.den)
     override operator fun div(rhs: URtnX) = invoke(num * rhs.den, rhs.num * den)
 }
-
-
-
-

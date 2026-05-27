@@ -15,16 +15,26 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
+/**
+ * 耦合洛伦兹吸引子
+ * Coupled Lorenz Attractor
+ *
+ * @property beta 系统参数 beta / System parameter beta
+ * @property gamma1 第一个 Lorenz 系统的参数 gamma / Parameter gamma of the first Lorenz system
+ * @property gamma2 第二个 Lorenz 系统的参数 gamma / Parameter gamma of the second Lorenz system
+ * @property epsilon 耦合强度参数 / Coupling strength parameter
+ * @property omicron 系统参数 omicron / System parameter omicron
+ * @property h 时间步长 / Time step size
+ */
 data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
     val beta: V,
     val gamma1: V,

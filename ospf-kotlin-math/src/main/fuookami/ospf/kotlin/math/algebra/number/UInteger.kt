@@ -12,11 +12,9 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import java.math.BigInteger
+import kotlin.math.log
+import kotlin.math.pow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -24,9 +22,11 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.math.BigInteger
-import kotlin.math.log
-import kotlin.math.pow
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.ordinary.pow
+import fuookami.ospf.kotlin.math.*
 
 /**
  * 使用浮点基数计算无符号整数的对数
@@ -947,7 +947,3 @@ fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
  *         The UIntX value or null
  */
 fun String.toUIntXOrNull(radix: Int = 10) = runCatching { UIntX(this, radix) }.getOrNull()
-
-
-
-

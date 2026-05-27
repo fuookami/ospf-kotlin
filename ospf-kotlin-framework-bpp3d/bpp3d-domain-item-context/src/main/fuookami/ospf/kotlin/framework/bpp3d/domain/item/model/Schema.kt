@@ -5,6 +5,10 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
+
+
+
+
 class Scheme(
     val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>> = emptyList(),
 ) {

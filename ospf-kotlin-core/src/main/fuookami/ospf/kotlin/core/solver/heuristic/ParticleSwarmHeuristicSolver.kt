@@ -1,26 +1,45 @@
+/**
+ * 粒子群启发式求解器
+ * Particle swarm heuristic solver
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
+/**
+ * 启发式求解状态枚举。
+ * Heuristic solution status enum.
+ */
 enum class HeuristicSolutionStatus {
     Feasible,
     Infeasible
 }
 
+/**
+ * 启发式求解结果。
+ * Heuristic solve result.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property bestSolution 最优解（可选）/ Best solution (optional)
+ * @property bestObjective 最优目标值（可选）/ Best objective value (optional)
+ * @property status 求解状态 / Solution status
+ * @property iteration 迭代信息 / Iteration info
+ */
 data class HeuristicResult<ObjValue, V>(
     val bestSolution: Solution<V>?,
     val bestObjective: ObjValue?,
@@ -28,6 +47,14 @@ data class HeuristicResult<ObjValue, V>(
     val iteration: Iteration
 ) where V : RealNumber<V>, V : NumberField<V>
 
+/**
+ * 基础启发式策略，使用默认的迭代和时间限制。
+ * Basic heuristic policy with default iteration and time limits.
+ *
+ * @property iterationLimit 最大迭代次数 / Maximum iteration count
+ * @property notBetterIterationLimit 最大无改进迭代次数 / Maximum no-improvement iteration count
+ * @property timeLimit 时间限制 / Time limit
+ */
 class BasicHeuristicPolicy(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
@@ -38,6 +65,18 @@ class BasicHeuristicPolicy(
     timeLimit = timeLimit
 )
 
+/**
+ * 粒子数据结构，表示粒子群优化中的一个粒子。
+ * Particle data structure, representing a particle in particle swarm optimization.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property fitness 适应度 / Fitness
+ * @property solution 当前位置 / Current position
+ * @property velocity 速度 / Velocity
+ * @property bestPosition 历史最优位置 / Historical best position
+ * @property bestFitness 历史最优适应度 / Historical best fitness
+ */
 data class Particle<ObjValue, V>(
     val fitness: ObjValue,
     val solution: Solution<V>,
@@ -46,6 +85,23 @@ data class Particle<ObjValue, V>(
     val bestFitness: ObjValue? = null
 ) where V : RealNumber<V>, V : NumberField<V>
 
+/**
+ * 粒子群启发式求解器，实现标准 PSO 算法。
+ * Particle swarm heuristic solver, implementing standard PSO algorithm.
+ *
+ * @param ObjValue 目标值类型 / Objective value type
+ * @param V 值类型 / Value type
+ * @property particleAmount 粒子数量 / Particle amount
+ * @property solutionAmount 期望解数量 / Desired solution amount
+ * @property w 惯性权重 / Inertia weight
+ * @property c1 个体学习因子 / Personal learning factor
+ * @property c2 社会学习因子 / Social learning factor
+ * @property maxVelocity 最大速度 / Maximum velocity
+ * @property solveOnObjectiveMiss 目标值缺失时是否使用默认值 / Whether to use default on objective miss
+ * @property randomGenerator 随机数生成器 / Random number generator
+ * @property initialVelocityGenerator 初始速度生成器 / Initial velocity generator
+ * @property converter 值转换器 / Value converter
+ */
 class ParticleSwarmHeuristicSolver<ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100),
     val solutionAmount: UInt64 = UInt64.one,

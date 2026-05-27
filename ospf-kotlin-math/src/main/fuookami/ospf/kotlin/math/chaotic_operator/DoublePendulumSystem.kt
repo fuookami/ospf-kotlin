@@ -15,18 +15,22 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point2
+import kotlin.random.Random
 
 /**
  * 双摆系统
  * Double Pendulum System
+ *
+ * @property m 质量 / Mass
+ * @property l 摆长 / Pendulum length
+ * @property g 重力加速度 / Gravitational acceleration
+ * @property h 时间步长 / Time step size
  */
 data class DoublePendulumSystem(
     val m: Flt64 = Flt64(10.0),
@@ -112,8 +116,3 @@ data class DoublePendulumSystemGenerator(
         return x to y
     }
 }
-
-
-
-
-

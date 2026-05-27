@@ -121,6 +121,7 @@ class IntegerRange<I>(
         )
     }
 
+    /** 指定步长 / Specify step size */
     infix fun step(step: I) = IntegerRange(
         start = start,
         endInclusive = endInclusive,
@@ -223,6 +224,7 @@ class NumericUIntegerRange<NI, I>(
         )
     }
 
+    /** 指定步长 / Specify step size */
     infix fun step(step: NI) = NumericUIntegerRange(
         start = start,
         endInclusive = endInclusive,

@@ -1,34 +1,42 @@
+/**
+ * 二次求解器接口定义
+ * Quadratic solver interface definitions
+ */
 package fuookami.ospf.kotlin.core.solver
 
+import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.future.future
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.output.convertTo
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.future.future
-import java.util.concurrent.CompletableFuture
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 
+/**
+ * 二次求解器的抽象接口，定义了求解、异步求解和泛型求解等核心能力。
+ * Abstract interface for quadratic solvers, defining core capabilities for solving, async solving, and generic solving.
+ */
 interface AbstractQuadraticSolver {
     val name: String
 
@@ -236,6 +244,12 @@ interface AbstractQuadraticSolver {
     }
 }
 
+/**
+ * 二次求解器接口，扩展 [AbstractQuadraticSolver] 并提供配置驱动的模型转储能力。
+ * Quadratic solver interface extending [AbstractQuadraticSolver] with configuration-driven model dumping.
+ *
+ * @property config 求解器配置 / Solver configuration
+ */
 interface QuadraticSolver : AbstractQuadraticSolver {
     val config: SolverConfig
 
@@ -264,5 +278,3 @@ interface QuadraticSolver : AbstractQuadraticSolver {
         )
     }
 }
-
-

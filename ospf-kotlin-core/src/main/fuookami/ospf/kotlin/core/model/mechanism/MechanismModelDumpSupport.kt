@@ -1,17 +1,21 @@
+/**
+ * 机制模型转储支持
+ * Mechanism model dump support
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.MemoryCleanupPolicy
 import fuookami.ospf.kotlin.core.model.intermediate.buildBatchSlices
 import fuookami.ospf.kotlin.core.model.intermediate.computeBatchDispatchPlan
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.usize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 
 private fun <V> dumpingConstraintsProgressCallback(
     metaModel: MetaModel<V>,

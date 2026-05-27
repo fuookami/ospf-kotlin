@@ -1,3 +1,13 @@
+/**
+ * Flt64 多项式与不等式解析
+ * Flt64 Polynomial and Inequality Parsing
+ *
+ * 提供从字符串直接解析 Flt64 多项式和不等式的功能。
+ * 支持规范、线性和二次多项式以及不等式的解析，包含 Ret 包装的安全版本。
+ * Provides direct parsing of Flt64 polynomials and inequalities from strings.
+ * Supports canonical, linear, and quadratic polynomials and inequalities,
+ * including Ret-wrapped safe versions.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -280,6 +290,16 @@ private fun ParsedInequality.toCanonicalInequality(
 // Public API: Direct polynomial and inequality parsing (Flt64)
 // ============================================================================
 
+/**
+ * 解析字符串为 Flt64 规范多项式
+ * Parse a string into a Flt64 canonical polynomial
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范多项式 / Canonical polynomial
+ * @throws DirectParseError 若解析失败 / If parsing fails
+ */
 fun parseCanonical(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -290,6 +310,14 @@ fun parseCanonical(
     return parser.parsePolynomial().toCanonicalPolynomial(symbolComparator)
 }
 
+/**
+ * 解析字符串为 Flt64 线性多项式
+ * Parse a string into a Flt64 linear polynomial
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 线性多项式，若表达式非线性则返回 null / Linear polynomial, or null if expression is not linear
+ */
 fun parseLinear(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -297,6 +325,15 @@ fun parseLinear(
     return parseCanonical(input, symbolOf).toLinearPolynomialOrNull()
 }
 
+/**
+ * 解析字符串为 Flt64 二次多项式
+ * Parse a string into a Flt64 quadratic polynomial
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 二次多项式，若表达式非二次则返回 null / Quadratic polynomial, or null if expression is not quadratic
+ */
 fun parseQuadratic(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -305,6 +342,14 @@ fun parseQuadratic(
     return parseCanonical(input, symbolOf, symbolComparator).toQuadraticPolynomialOrNull(symbolComparator)
 }
 
+/**
+ * 解析字符串为 Flt64 线性不等式
+ * Parse a string into a Flt64 linear inequality
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
+ */
 fun parseLinearInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -314,6 +359,15 @@ fun parseLinearInequality(
     return parser.parseInequality().toCanonicalInequality().toLinearInequalityOrNull()
 }
 
+/**
+ * 解析字符串为 Flt64 二次不等式
+ * Parse a string into a Flt64 quadratic inequality
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 二次不等式，若不可转换则返回 null / Quadratic inequality, or null if not convertible
+ */
 fun parseQuadraticInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -324,6 +378,15 @@ fun parseQuadraticInequality(
     return parser.parseInequality().toCanonicalInequality().toQuadraticInequalityOrNull(symbolComparator)
 }
 
+/**
+ * 解析字符串为 Flt64 规范不等式
+ * Parse a string into a Flt64 canonical inequality
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范不等式 / Canonical inequality
+ */
 fun parseCanonicalInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -392,6 +455,15 @@ private inline fun <T> wrapRet(
     }
 }
 
+/**
+ * 解析字符串为 Flt64 规范多项式（Ret 安全版本）
+ * Parse a string into a Flt64 canonical polynomial (Ret-safe version)
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 解析结果 / Parse result
+ */
 fun parseCanonicalRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -400,6 +472,14 @@ fun parseCanonicalRet(
     return wrapRet(input) { parseCanonical(input, symbolOf, symbolComparator) }
 }
 
+/**
+ * 解析字符串为 Flt64 线性多项式（Ret 安全版本）
+ * Parse a string into a Flt64 linear polynomial (Ret-safe version)
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 解析结果 / Parse result
+ */
 fun parseLinearRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -410,6 +490,15 @@ fun parseLinearRet(
     }
 }
 
+/**
+ * 解析字符串为 Flt64 二次多项式（Ret 安全版本）
+ * Parse a string into a Flt64 quadratic polynomial (Ret-safe version)
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 解析结果 / Parse result
+ */
 fun parseQuadraticRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -421,6 +510,15 @@ fun parseQuadraticRet(
     }
 }
 
+/**
+ * 解析字符串为 Flt64 规范不等式（Ret 安全版本）
+ * Parse a string into a Flt64 canonical inequality (Ret-safe version)
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 解析结果 / Parse result
+ */
 fun parseCanonicalInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -429,6 +527,14 @@ fun parseCanonicalInequalityRet(
     return wrapRet(input) { parseCanonicalInequality(input, symbolOf, symbolComparator) }
 }
 
+/**
+ * 解析字符串为 Flt64 线性不等式（Ret 安全版本）
+ * Parse a string into a Flt64 linear inequality (Ret-safe version)
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return 解析结果 / Parse result
+ */
 fun parseLinearInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -439,6 +545,15 @@ fun parseLinearInequalityRet(
     }
 }
 
+/**
+ * 解析字符串为 Flt64 二次不等式（Ret 安全版本）
+ * Parse a string into a Flt64 quadratic inequality (Ret-safe version)
+ *
+ * @param input 输入表达式字符串 / Input expression string
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 解析结果 / Parse result
+ */
 fun parseQuadraticInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,

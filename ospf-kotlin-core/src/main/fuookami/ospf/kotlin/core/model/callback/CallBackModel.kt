@@ -1,28 +1,36 @@
+/**
+ * 回调模型
+ * Call-back model
+ */
 package fuookami.ospf.kotlin.core.model.callback
 
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.TokenTable
-import fuookami.ospf.kotlin.core.token.ManualTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
-import fuookami.ospf.kotlin.core.model.mechanism.Flt64LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.SubObject
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.Flt64LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.SubObject
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
+import fuookami.ospf.kotlin.core.token.ManualTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
+/**
+ * 回调模型策略接口，定义目标比较和初始解生成。
+ * Call-back model policy interface defining objective comparison and initial solution generation.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     val comparator: ThreeWayComparator<V>
 
@@ -43,6 +51,12 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     }
 }
 
+/**
+ * 函数式回调模型策略，通过比较器和初始解生成器实现。
+ * Functional call-back model policy implemented via comparator and initial solution generator.
+ *
+ * @property objectiveComparator 目标比较器 / Objective comparator
+ */
 class FunctionalCallBackModelPolicy<V>(
     val objectiveComparator: PartialComparator<V>,
     private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null
@@ -89,6 +103,12 @@ class FunctionalCallBackModelPolicy<V>(
     }
 }
 
+/**
+ * 回调模型实现，支持通过回调函数添加约束和目标。
+ * Call-back model implementation supporting constraint and objective addition via callback functions.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 class CallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -376,6 +396,12 @@ class CallBackModel<V> internal constructor(
     }
 }
 
+/**
+ * 多目标回调模型实现。
+ * Multi-objective call-back model implementation.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 class MultiObjectCallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,

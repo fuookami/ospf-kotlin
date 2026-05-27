@@ -15,16 +15,24 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
+/**
+ * 陈氏系统
+ * Chen System
+ *
+ * @property a 系统参数 a / System parameter a
+ * @property b 系统参数 b / System parameter b
+ * @property c 系统参数 c / System parameter c
+ * @property h 时间步长 / Time step size
+ */
 data class ChenSystem<V : FloatingNumber<V>>(
     val a: V,
     val b: V,

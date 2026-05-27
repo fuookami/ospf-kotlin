@@ -2,8 +2,9 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
@@ -11,25 +12,27 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
-
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.utils.functional.Eq
+import kotlin.math.ceil
 
 data class PackageBottomShape(
-    val width: LegacyQuantity,
-    val depth: LegacyQuantity,
-    val weight: LegacyQuantity,
+    val width: Quantity<Flt64>,
+    val depth: Quantity<Flt64>,
+    val weight: Quantity<Flt64>,
     val packageType: PackageType,
 ) : Eq<PackageBottomShape> {
     val packageCategory by packageType::category
-    val area: LegacyQuantity = width * depth
+    val area: Quantity<Flt64> = width * depth
 
     fun new(
-        width: LegacyQuantity? = null,
-        depth: LegacyQuantity? = null,
-        weight: LegacyQuantity? = null,
+        width: Quantity<Flt64>? = null,
+        depth: Quantity<Flt64>? = null,
+        weight: Quantity<Flt64>? = null,
         packageType: PackageType? = null
     ): PackageBottomShape {
         return PackageBottomShape(
@@ -69,10 +72,10 @@ data class PackageBottomShape(
 }
 
 data class PackageShape(
-    val width: LegacyQuantity,
-    val height: LegacyQuantity,
-    val depth: LegacyQuantity,
-    val weight: LegacyQuantity,
+    val width: Quantity<Flt64>,
+    val height: Quantity<Flt64>,
+    val depth: Quantity<Flt64>,
+    val weight: Quantity<Flt64>,
     val packageType: PackageType,
 ) : Eq<PackageShape> {
     val bottomShape = PackageBottomShape(
@@ -82,13 +85,13 @@ data class PackageShape(
         packageType = packageType
     )
     val packageCategory by packageType::category
-    val volume: LegacyQuantity = width * height * depth
+    val volume: Quantity<Flt64> = width * height * depth
 
     fun new(
-        width: LegacyQuantity? = null,
-        height: LegacyQuantity? = null,
-        depth: LegacyQuantity? = null,
-        weight: LegacyQuantity? = null,
+        width: Quantity<Flt64>? = null,
+        height: Quantity<Flt64>? = null,
+        depth: Quantity<Flt64>? = null,
+        weight: Quantity<Flt64>? = null,
         packageType: PackageType? = null
     ): PackageShape {
         return PackageShape(
@@ -130,25 +133,90 @@ data class PackageShape(
     }
 }
 
+data class PackingProgramMaterialValue(
+    val amount: UInt64? = null,
+    val weight: Quantity<Flt64>? = null
+) {
+    init {
+        require(amount != null || weight != null) { "amount and weight cannot both be null." }
+    }
+}
+
+private fun mergePackingProgramMaterialValue(
+    lhs: PackingProgramMaterialValue?,
+    rhs: PackingProgramMaterialValue
+): PackingProgramMaterialValue {
+    val amount = when {
+        lhs?.amount == null -> rhs.amount
+        rhs.amount == null -> lhs.amount
+        else -> lhs.amount + rhs.amount
+    }
+    val weight = when {
+        lhs?.weight == null -> rhs.weight
+        rhs.weight == null -> lhs.weight
+        else -> lhs.weight + rhs.weight
+    }
+    return PackingProgramMaterialValue(
+        amount = amount,
+        weight = weight
+    )
+}
+
+private enum class PackingProgramMaterialDomain {
+    Discrete,
+    Continuous
+}
+
+private object PackingProgramCountUnit : PhysicalUnit() {
+    @Suppress("unused")
+    fun getDomain(): String = "Discrete"
+
+    override val name = "count"
+    override val symbol = "cnt"
+    override val quantity = QuantityUnit(name = "count", symbol = "cnt").quantity
+    override val scale = Scale()
+}
+
+private fun resolvePackingProgramDomain(unit: PhysicalUnit): PackingProgramMaterialDomain {
+    val domainRaw = runCatching {
+        unit.javaClass.methods
+            .firstOrNull { it.name == "getDomain" && it.parameterCount == 0 }
+            ?.invoke(unit)
+            ?.toString()
+    }.getOrNull()
+    return when {
+        domainRaw.equals("Discrete", ignoreCase = true) -> PackingProgramMaterialDomain.Discrete
+        else -> PackingProgramMaterialDomain.Continuous
+    }
+}
+
+private fun toDiscreteAmount(value: LegacyScalar): UInt64 {
+    val rounded = ceil(value.toDouble()).toLong()
+    return if (rounded <= 0L) {
+        UInt64.zero
+    } else {
+        UInt64(rounded.toULong())
+    }
+}
+
 data class PackingProgram(
     val shape: PackageShape,
     val pattern: PackagePattern? = null,
     val packages: List<PackingProgram>? = null,
-    val materials: Map<MaterialKey, UInt64>
+    val materials: Map<MaterialKey, PackingProgramMaterialValue>
 ) {
     companion object {
         fun outerPackage(
             shape: PackageShape,
             packages: List<PackingProgram>
         ): PackingProgram {
-            val materials = packages
-                .flatMap { it.materials.keys }
-                .toSet()
-                .associateWith { UInt64.zero }
-                .toMutableMap()
+            val materials = LinkedHashMap<MaterialKey, PackingProgramMaterialValue>()
             for (pack in packages) {
-                for ((materialNo, amount) in pack.materials) {
-                    materials[materialNo] = (materials[materialNo] ?: UInt64.zero) + amount
+                for ((materialNo, value) in pack.materials) {
+                    materials[materialNo] = mergePackingProgramMaterialValue(
+                        lhs = materials[materialNo],
+                        rhs = value
+                    )
                 }
             }
             return PackingProgram(
@@ -164,7 +232,41 @@ data class PackingProgram(
         ): PackingProgram {
             return PackingProgram(
                 shape = shape,
-                materials = materials,
+                materials = materials.mapValues { (_, amount) ->
+                    PackingProgramMaterialValue(
+                        amount = amount
+                    )
+                }
+            )
+        }
+
+        fun innerPackageWithMaterialValues(
+            shape: PackageShape,
+            materials: Map<MaterialKey, PackingProgramMaterialValue>
+        ): PackingProgram {
+            return PackingProgram(
+                shape = shape,
+                materials = materials
+            )
+        }
+
+        fun innerPackageWithMaterialQuantities(
+            shape: PackageShape,
+            materials: Map<MaterialKey, Quantity<Flt64>>
+        ): PackingProgram {
+            return PackingProgram(
+                shape = shape,
+                materials = materials.mapValues { (_, quantity) ->
+                    when (resolvePackingProgramDomain(quantity.unit)) {
+                        PackingProgramMaterialDomain.Discrete -> PackingProgramMaterialValue(
+                            amount = toDiscreteAmount(quantity.value)
+                        )
+
+                        PackingProgramMaterialDomain.Continuous -> PackingProgramMaterialValue(
+                            weight = quantity
+                        )
+                    }
+                }
             )
         }
     }
@@ -182,20 +284,71 @@ data class PackingProgram(
     val packageCategory by shape::packageCategory
     val volume by shape::volume
 
+    fun materialAmounts(): Map<MaterialKey, UInt64> {
+        return materials.mapNotNull { (material, value) ->
+            val amount = value.amount
+            if (amount == null || amount == UInt64.zero) {
+                null
+            } else {
+                Pair(material, amount)
+            }
+        }.toMap()
+    }
+
+    fun materialQuantities(
+        amountUnit: PhysicalUnit = PackingProgramCountUnit,
+        materialCatalog: Map<MaterialKey, Material> = emptyMap()
+    ): Map<MaterialKey, Quantity<Flt64>> {
+        return materials.mapNotNull { (material, value) ->
+            val quantity = value.weight ?: value.amount?.let { amount ->
+                val unitWeight = materialCatalog[material]?.weight
+                if (unitWeight != null) {
+                    unitWeight * legacyScalar(amount.toULong().toDouble())
+                } else {
+                    legacyScalar(amount.toULong().toDouble()) * amountUnit
+                }
+            }
+            if (quantity == null) {
+                null
+            } else {
+                Pair(material, quantity)
+            }
+        }.toMap()
+    }
+
+    fun materialWeights(materialCatalog: Map<MaterialKey, Material> = emptyMap()): Map<MaterialKey, Quantity<Flt64>> {
+        return materials.mapNotNull { (material, value) ->
+            val resolvedWeight = value.weight ?: value.amount?.let { amount ->
+                val unitWeight = materialCatalog[material]?.weight ?: return@let null
+                unitWeight * legacyScalar(amount.toULong().toDouble())
+            }
+            if (resolvedWeight == null) {
+                null
+            } else {
+                Pair(material, resolvedWeight)
+            }
+        }.toMap()
+    }
+
+    fun materialAmount(material: MaterialKey): UInt64 {
+        return materials[material]?.amount ?: UInt64.zero
+    }
+
     fun actualPackage(materials: Map<Material, UInt64>, pending: Boolean = false): Package {
+        val requiredAmounts = this.materialAmounts()
         return when (classification) {
             PackageClassification.Outer -> {
-                val maxPackage = this.materials.minOf {
+                val maxPackage = requiredAmounts.minOfOrNull {
                     val material = materials.filterKeys { material -> material.key == it.key }.entries.firstOrNull()
                     (material?.value ?: UInt64.zero) / it.value
-                }
+                } ?: UInt64.zero
                 if (maxPackage != UInt64.zero) {
                     Package.outerPackage(
                         program = this,
                         packages = this.packages!!.map {
                             Package.innerPackage(
                                 program = it,
-                                materials = it.materials.map { (materialKey, amount) ->
+                                materials = it.materialAmounts().map { (materialKey, amount) ->
                                     val material = materials.filterKeys { material -> material.key == materialKey }.entries.firstOrNull()!!
                                     Pair(material.key, amount)
                                 }.toMap(),
@@ -210,7 +363,7 @@ data class PackingProgram(
                     val packages = ArrayList<Package>()
                     val restMaterials = materials.toMutableMap()
                     for (pack in this.packages!!) {
-                        val thisPackageMaterials = pack.materials.mapNotNull {
+                        val thisPackageMaterials = pack.materialAmounts().mapNotNull {
                             val material = restMaterials.filterKeys { material -> material.key == it.key }.entries.firstOrNull()
                                 ?: return@mapNotNull null
                             Pair(material.key, maxOf(material.value, it.value))
@@ -243,14 +396,14 @@ data class PackingProgram(
             }
 
             PackageClassification.Inner -> {
-                val maxPackage = this.materials.minOf {
+                val maxPackage = requiredAmounts.minOfOrNull {
                     val material = materials.filterKeys { material -> material.key == it.key }.entries.firstOrNull()
                     (material?.value ?: UInt64.zero) / it.value
-                }
+                } ?: UInt64.zero
                 if (maxPackage != UInt64.zero) {
                     Package.innerPackage(
                         program = this,
-                        materials = this.materials.map {
+                        materials = requiredAmounts.map {
                             val material = materials.filterKeys { material -> material.key == it.key }.entries.firstOrNull()!!
                             Pair(material.key, it.value)
                         }.toMap(),
@@ -260,7 +413,7 @@ data class PackingProgram(
                 } else {
                     Package.innerPackage(
                         program = this,
-                        materials = this.materials.mapNotNull {
+                        materials = requiredAmounts.mapNotNull {
                             val material = materials.filterKeys { material -> material.key == it.key }.entries.firstOrNull()
                                 ?: return@mapNotNull null
                             Pair(material.key, maxOf(material.value, it.value))
@@ -389,13 +542,14 @@ open class Package(
     }
 
     open fun enabledHoldingAmount(packingProgram: PackingProgram): Map<MaterialKey, UInt64>? {
+        val requiredAmounts = packingProgram.materialAmounts()
         if (!(pattern == null || packingProgram.pattern == null || pattern belong packingProgram.pattern)) {
             return null
         }
-        if (materials.keys.any { !packingProgram.materials.containsKey(it.key) }) {
+        if (materials.keys.any { !requiredAmounts.containsKey(it.key) }) {
             return null
         }
-        return packingProgram.materials.mapNotNull {
+        return requiredAmounts.mapNotNull {
             val amount = materials.entries.find { entry -> entry.key.key == it.key }?.value ?: UInt64.zero
             if (amount >= it.value) {
                 null
@@ -423,3 +577,4 @@ open class Package(
         return materialType != null && materials.keys.any { it.type == materialType }
     }
 }
+

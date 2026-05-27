@@ -1,9 +1,14 @@
+/**
+ * 稀疏矩阵
+ * Sparse matrix
+ */
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
+ * 稀疏向量中的单个条目，将列索引与值配对。
  * A single entry in a [SparseVector], pairing a column index with a value.
  */
 data class SparseVectorEntry<V : RealNumber<V>>(
@@ -141,7 +146,6 @@ class SparseMatrix<V : RealNumber<V>>(
         fun <V : RealNumber<V>> invoke(): SparseMatrix<V> = SparseMatrix()
     }
 }
-
 
 /**
  * Negate a [SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>] in-place: multiply every entry by -1.

@@ -1,21 +1,33 @@
+/**
+ * 回调模型接口
+ * Call-back model interfaces
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.model.callback
 
-import fuookami.ospf.kotlin.core.model.basic.Model
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.core.model.basic.Model
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
+/**
+ * 回调模型抽象接口，定义约束、目标函数和解比较的通用能力。
+ * Abstract call-back model interface defining common capabilities for constraints, objective functions, and solution comparison.
+ *
+ * @param Obj          目标值类型 / The objective value type
+ * @param ObjValue     目标聚合值类型 / The aggregated objective value type
+ * @param SolutionValue 解值类型 / The solution value type
+ */
 interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<SolutionValue>, AutoCloseable
         where SolutionValue : RealNumber<SolutionValue>, SolutionValue : NumberField<SolutionValue> {
     val defaultObjective: ObjValue
@@ -68,6 +80,12 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     }
 }
 
+/**
+ * 单目标回调模型接口，目标值和解值类型相同。
+ * Single-objective call-back model interface where objective and solution value types are the same.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> where V : RealNumber<V>, V : NumberField<V> {
     override val defaultObjective: V
         get() = if (objectCategory == ObjectCategory.Minimum) {
@@ -116,6 +134,12 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
     fun infinity(): V
 }
 
+/**
+ * 多目标回调模型接口，支持多个优先级和权重的目标函数。
+ * Multi-objective call-back model interface supporting multiple priority-weighted objective functions.
+ *
+ * @param V 数值类型 / The numeric type
+ */
 interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<Pair<MultiObjectLocation<V>, V>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
     val objectiveLocation: List<MultiObjectLocation<V>>
     val objectiveSize get() = objectiveLocation.size

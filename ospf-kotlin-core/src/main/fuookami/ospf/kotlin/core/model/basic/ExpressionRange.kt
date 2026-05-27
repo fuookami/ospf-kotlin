@@ -1,13 +1,25 @@
+/**
+ * 表达式值域
+ * Expression value range
+ */
 package fuookami.ospf.kotlin.core.model.basic
 
+import kotlin.reflect.full.companionObjectInstance
 import fuookami.ospf.kotlin.math.algebra.concept.Invariant
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import kotlin.reflect.full.companionObjectInstance
 
+/**
+ * 表达式的值域，支持通过交集操作逐步收紧上下界。
+ * Value range of an expression, supporting progressive tightening of bounds via intersection.
+ *
+ * @param V   数值类型 / The numeric type
+ * @property _range      当前值域（null 表示空集） / Current value range (null means empty set)
+ * @property constants   数值类型常量提供器 / Numeric type constants provider
+ */
 open class ExpressionRange<V>(
     private var _range: ValueRange<V>?,
     protected open val constants: RealNumberConstants<V>

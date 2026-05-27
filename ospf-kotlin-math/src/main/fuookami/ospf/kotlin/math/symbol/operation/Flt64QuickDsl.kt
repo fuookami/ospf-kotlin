@@ -1,8 +1,18 @@
+/**
+ * Flt64 快捷 DSL 构造函数与运算符
+ * Flt64 Quick DSL Constructors and Operators
+ *
+ * 提供 Flt64 多项式的快捷构造函数（LinearPolynomial/QuadraticPolynomial 工厂函数）、
+ * 聚合函数（sumVars/sum/qsumVars/qsum）以及符号和多项式的算术运算符重载。
+ * Provides Flt64 polynomial quick constructors (LinearPolynomial/QuadraticPolynomial factory functions),
+ * aggregation functions (sumVars/sum/qsumVars/qsum), and arithmetic operator overloads
+ * for symbols and polynomials.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.symbol.Symbol
+import kotlin.jvm.JvmName
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -10,17 +20,30 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
 
-import kotlin.jvm.JvmName
-
 // ========== LinearPolynomial quick constructors ==========
+// 线性多项式快捷构造函数 / Linear polynomial quick constructors
 
+/**
+ * 创建空的 Flt64 线性多项式（零多项式）
+ * Create an empty Flt64 linear polynomial (zero polynomial)
+ *
+ * @return 零线性多项式 / Zero linear polynomial
+ */
 @JvmName("quickLinearPolynomialZero")
 fun LinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), Flt64.zero)
 }
 
+/**
+ * 从常数创建 Flt64 线性多项式
+ * Create a Flt64 linear polynomial from a constant
+ *
+ * @param constant 常数值 / Constant value
+ * @return 线性多项式 / Linear polynomial
+ */
 @JvmName("quickLinearPolynomialFromConstant")
 fun LinearPolynomial(constant: Flt64): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), constant)
@@ -79,7 +102,16 @@ fun MutableQuadraticPolynomial(): MutableQuadraticPolynomial<Flt64> {
 }
 
 // ========== Linear aggregation ==========
+// 线性聚合函数 / Linear aggregation functions
 
+/**
+ * 对集合中每个元素的符号求和（线性多项式）
+ * Sum symbols from each element in a collection (linear polynomial)
+ *
+ * @param items 元素集合 / Collection of elements
+ * @param selector 从元素提取符号的函数 / Function to extract symbol from element
+ * @return 线性多项式之和 / Sum as linear polynomial
+ */
 @JvmName("quickSumVars")
 fun <E> sumVars(
     items: Iterable<E>,
@@ -89,6 +121,13 @@ fun <E> sumVars(
     return LinearPolynomial(monomials, Flt64.zero)
 }
 
+/**
+ * 对符号集合求和（线性多项式）
+ * Sum a collection of symbols (linear polynomial)
+ *
+ * @param symbols 符号集合 / Collection of symbols
+ * @return 线性多项式之和 / Sum as linear polynomial
+ */
 @JvmName("quickSumSymbols")
 fun sum(symbols: Iterable<Symbol>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
@@ -98,7 +137,16 @@ fun sum(symbols: Iterable<Symbol>): LinearPolynomial<Flt64> {
 }
 
 // ========== Quadratic aggregation ==========
+// 二次聚合函数 / Quadratic aggregation functions
 
+/**
+ * 对集合中每个元素的符号求和（二次多项式）
+ * Sum symbols from each element in a collection (quadratic polynomial)
+ *
+ * @param items 元素集合 / Collection of elements
+ * @param selector 从元素提取符号的函数 / Function to extract symbol from element
+ * @return 二次多项式之和 / Sum as quadratic polynomial
+ */
 @JvmName("quickQSumVars")
 fun <E> qsumVars(
     items: Iterable<E>,
@@ -108,6 +156,13 @@ fun <E> qsumVars(
     return QuadraticPolynomial(monomials, Flt64.zero)
 }
 
+/**
+ * 对符号集合求和（二次多项式）
+ * Sum a collection of symbols (quadratic polynomial)
+ *
+ * @param symbols 符号集合 / Collection of symbols
+ * @return 二次多项式之和 / Sum as quadratic polynomial
+ */
 @JvmName("quickQSumSymbols")
 fun qsum(symbols: Iterable<Symbol>): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(

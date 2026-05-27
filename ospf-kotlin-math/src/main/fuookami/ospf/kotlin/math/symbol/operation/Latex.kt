@@ -1,3 +1,12 @@
+/**
+ * Flt64 LaTeX 格式化
+ * Flt64 LaTeX Formatting
+ *
+ * 提供 Flt64 多项式和不等式的 LaTeX 字符串转换。
+ * 包含紧凑和简化两种格式化模式。
+ * Provides LaTeX string conversion for Flt64 polynomials and inequalities.
+ * Includes compact and simplified formatting modes.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -12,11 +21,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.LatexNumberOps
-import fuookami.ospf.kotlin.math.symbol.operation.LatexOptions
-import fuookami.ospf.kotlin.math.symbol.operation.toLatexString
 import java.math.BigDecimal
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
 private fun formatNumber(value: Flt64): String {
     val doubleValue = value.toDouble()
@@ -34,36 +40,78 @@ private val flt64LatexOps = LatexNumberOps<fuookami.ospf.kotlin.math.algebra.num
     format = { formatNumber(it) }
 )
 
+/**
+ * 将 Flt64 线性单项式转换为 LaTeX 字符串
+ * Convert a Flt64 linear monomial to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
+/**
+ * 将 Flt64 二次单项式转换为 LaTeX 字符串
+ * Convert a Flt64 quadratic monomial to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
+/**
+ * 将 Flt64 规范单项式转换为 LaTeX 字符串
+ * Convert a Flt64 canonical monomial to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
+/**
+ * 将 Flt64 线性多项式转换为 LaTeX 字符串
+ * Convert a Flt64 linear polynomial to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
+/**
+ * 将 Flt64 二次多项式转换为 LaTeX 字符串
+ * Convert a Flt64 quadratic polynomial to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
+/**
+ * 将 Flt64 规范多项式转换为 LaTeX 字符串
+ * Convert a Flt64 canonical polynomial to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -81,18 +129,39 @@ private fun Comparison.latexSymbol(): String {
     }
 }
 
+/**
+ * 将 Flt64 线性不等式转换为 LaTeX 字符串
+ * Convert a Flt64 linear inequality to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
+/**
+ * 将 Flt64 二次不等式转换为 LaTeX 字符串
+ * Convert a Flt64 quadratic inequality to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
+/**
+ * 将 Flt64 规范不等式转换为 LaTeX 字符串
+ * Convert a Flt64 canonical inequality to a LaTeX string
+ *
+ * @param options LaTeX 格式选项 / LaTeX format options
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -163,6 +232,12 @@ private fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.to
     }
 }
 
+/**
+ * 将 Flt64 线性多项式转换为简化 LaTeX 字符串
+ * Convert a Flt64 linear polynomial to a simplified LaTeX string
+ *
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
@@ -188,6 +263,12 @@ fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexStri
     return parts.joinToString(" ")
 }
 
+/**
+ * 将 Flt64 二次多项式转换为简化 LaTeX 字符串
+ * Convert a Flt64 quadratic polynomial to a simplified LaTeX string
+ *
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
@@ -213,6 +294,12 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexS
     return parts.joinToString(" ")
 }
 
+/**
+ * 将 Flt64 规范多项式转换为简化 LaTeX 字符串
+ * Convert a Flt64 canonical polynomial to a simplified LaTeX string
+ *
+ * @return LaTeX 字符串 / LaTeX string
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()

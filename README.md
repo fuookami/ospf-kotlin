@@ -276,7 +276,7 @@ This script covers:
 ## Migration Entry Quick Reference
 
 1. Package migration direction:
-   - `core.frontend.*` -> `core.model.*` / `core.variable.*` / `core.intermediate_symbol.*`
+   - `core.frontend.*` -> `core.model.*` / `core.variable.*` / `core.symbol.*`
    - `core.backend.*` -> `core.solver.*`
    - modeling expressions and inequalities are migrated under `math.symbol.*`
    - `math.symbol.adapter.*` -> `math.symbol.operation.*`

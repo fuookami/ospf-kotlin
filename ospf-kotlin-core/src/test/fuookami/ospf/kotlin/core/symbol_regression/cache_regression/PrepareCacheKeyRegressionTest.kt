@@ -1,7 +1,7 @@
 
 package fuookami.ospf.kotlin.core.symbol_regression.cache_regression
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.*
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

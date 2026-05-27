@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX

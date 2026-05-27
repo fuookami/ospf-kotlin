@@ -31,7 +31,7 @@ class QuadraticProductBuildOnlyStructureTest {
             constant = Flt64.zero
         )
 
-        val function = fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction(
+        val function = fuookami.ospf.kotlin.core.symbol.function.ProductFunction(
             left = left,
             right = right,
             converter = IntoValue.Identity,

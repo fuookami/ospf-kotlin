@@ -15,7 +15,6 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -25,6 +24,9 @@ import kotlin.random.Random
 /**
  * Arnold 舌
  * Arnold Tongue
+ *
+ * @property omega 频率参数 / Frequency parameter
+ * @property kappa 耦合强度参数 / Coupling strength parameter
  */
 data class ArnoldTongue<V : FloatingNumber<V>>(
     val omega: V,

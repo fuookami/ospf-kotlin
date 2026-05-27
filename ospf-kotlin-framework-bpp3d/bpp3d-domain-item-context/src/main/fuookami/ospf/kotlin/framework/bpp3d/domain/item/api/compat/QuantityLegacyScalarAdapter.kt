@@ -2,12 +2,16 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat
 
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.number.toFlt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
+
+
+
+
 
 /**
  * Scalar compatibility adapter at facade boundary.

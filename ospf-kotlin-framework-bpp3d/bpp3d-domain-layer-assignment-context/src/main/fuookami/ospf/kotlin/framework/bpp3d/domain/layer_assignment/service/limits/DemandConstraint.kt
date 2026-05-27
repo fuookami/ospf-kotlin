@@ -7,7 +7,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandDomain
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAssignmentScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
@@ -22,6 +24,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -30,11 +33,13 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.*
 
 data class DemandShadowPriceKey(
     val mode: Bpp3dDemandMode,
-    val key: Bpp3dDemandKey
+    val key: Bpp3dDemandKey,
+    val quantityUnit: PhysicalUnit? = null
 ) : ShadowPriceKey(DemandShadowPriceKey::class)
 
 private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<LayerAssignmentScalar> {
@@ -50,9 +55,19 @@ private fun constantPolynomial(value: LayerAssignmentScalar): LinearPolynomial<L
 
 private fun modeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
+        is Bpp3dDemandMode.Item -> "item"
+        is Bpp3dDemandMode.Material -> "material"
         is Bpp3dDemandMode.ItemAmount -> "item_amount"
+        is Bpp3dDemandMode.ItemWeight -> "item_weight"
         is Bpp3dDemandMode.ItemMaterialAmount -> "material_amount"
         is Bpp3dDemandMode.ItemMaterialWeight -> "material_weight"
+    }
+}
+
+private fun domainTag(domain: Bpp3dDemandDomain): String {
+    return when (domain) {
+        Bpp3dDemandDomain.Discrete -> "discrete"
+        Bpp3dDemandDomain.Continuous -> "continuous"
     }
 }
 
@@ -126,12 +141,61 @@ open class DemandConstraint<
         return runCatching { load.lessLoad[index] as Symbol }.getOrDefault(symbolAt(index))
     }
 
+    private fun resolveShadowPrice(
+        map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, T>>,
+        demand: Bpp3dDemandEntry,
+        concreteMode: Bpp3dDemandMode
+    ): LayerAssignmentScalar {
+        val keys = LinkedHashSet<DemandShadowPriceKey>()
+        keys.add(
+            DemandShadowPriceKey(
+                mode = demand.mode,
+                key = demand.key,
+                quantityUnit = demand.quantityUnit
+            )
+        )
+        keys.add(
+            DemandShadowPriceKey(
+                mode = demand.mode,
+                key = demand.key,
+                quantityUnit = null
+            )
+        )
+        if (concreteMode != demand.mode) {
+            keys.add(
+                DemandShadowPriceKey(
+                    mode = concreteMode,
+                    key = demand.key,
+                    quantityUnit = demand.quantityUnit
+                )
+            )
+            keys.add(
+                DemandShadowPriceKey(
+                    mode = concreteMode,
+                    key = demand.key,
+                    quantityUnit = null
+                )
+            )
+        }
+        for (key in keys) {
+            val shadowPrice = map[key]?.price
+            if (shadowPrice != null) {
+                return shadowPrice
+            }
+        }
+        return layerAssignmentZero()
+    }
+
     override fun invoke(model: AbstractLinearMetaModel<LayerAssignmentScalar>): Try {
         for ((i, demand) in demandEntries.withIndex()) {
             val upperBound = demand.demandRange.upperBound.value.unwrap()
             val lowerBound = demand.demandRange.lowerBound.value.unwrap()
-            val priceKey = DemandShadowPriceKey(demand.mode, demand.key)
-            val tag = modeTag(demand.mode)
+            val priceKey = DemandShadowPriceKey(
+                mode = demand.mode,
+                key = demand.key,
+                quantityUnit = demand.quantityUnit
+            )
+            val tag = "${modeTag(demand.mode)}_${domainTag(demand.quantityDomain)}"
 
             if (load.overEnabled && !demand.demandRange.fixed && upperBound neq demand.demand) {
                 when (val result = model.addConstraint(
@@ -202,17 +266,23 @@ open class DemandConstraint<
             return { _, args -> shadowPriceExtractor.invoke(args) ?: layerAssignmentZero() }
         }
 
-        val activeDemands = demandEntries.map { Pair(it.mode, it.key) }.toSet()
-        if (activeDemands.isEmpty()) {
+        if (demandEntries.isEmpty()) {
             return null
         }
 
         return { map, args ->
             var price = layerAssignmentZero()
-            for ((mode, key) in activeDemands) {
-                val statistics = demandStatistics(args.cuboid, mode)
-                val value = statistics[key] ?: continue
-                val shadow = map[DemandShadowPriceKey(mode, key)]?.price ?: layerAssignmentZero()
+            for (demand in demandEntries) {
+                val concreteMode = demand.mode.toConcreteMode(
+                    isDiscrete = demand.quantityDomain == Bpp3dDemandDomain.Discrete
+                )
+                val statistics = demandStatistics(args.cuboid, concreteMode)
+                val value = statistics[demand.key] ?: continue
+                val shadow = resolveShadowPrice(
+                    map = map,
+                    demand = demand,
+                    concreteMode = concreteMode
+                )
                 if (shadow neq layerAssignmentZero()) {
                     price += shadow * load.demandValueAdapter.toSolver(value)
                 }

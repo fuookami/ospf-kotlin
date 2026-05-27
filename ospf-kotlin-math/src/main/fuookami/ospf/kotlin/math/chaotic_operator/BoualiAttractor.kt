@@ -15,19 +15,22 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
 /**
- * Bouali 吸引孌
+ * Bouali 吸引子
  * Bouali Attractor
+ *
+ * @property alpha 系统参数 alpha / System parameter alpha
+ * @property zeta 系统参数 zeta / System parameter zeta
+ * @property h 时间步长 / Time step size
  */
 data class BoualiAttractor(
     val alpha: Flt64 = Flt64(0.3),

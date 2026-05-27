@@ -18,7 +18,5 @@ package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.utils.functional.Ord
 
+/** 将值限制在 [min, max] 范围内 / Restricts value to [min, max] range */
 fun <T : Ord<T>> clamp(v: T, min: T, max: T): T = if (v < min) min else if (v > max) max else v
-
-
-

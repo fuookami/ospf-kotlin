@@ -17,16 +17,16 @@
  */
 package fuookami.ospf.kotlin.math.combinatorics
 
+import kotlin.math.min
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
-import kotlin.math.min
 
+/** 生成输入列表的所有子集组合 / Generate all subset combinations of the input list */
 fun <T> combine(
     input: List<T>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -50,6 +50,7 @@ fun <T> combine(
     return result
 }
 
+/** 计算组合数 C(n, choose) / Calculate combination count C(n, choose) */
 fun combineCount(n: Int, choose: Int): Long {
     if (choose < 0 || choose > n) {
         return 0L
@@ -65,12 +66,14 @@ fun combineCount(n: Int, choose: Int): Long {
     return value
 }
 
+/** 惰性序列生成所有子集组合 / Lazy sequence generation of all subset combinations */
 fun <T> combineSequence(input: List<T>): Sequence<List<T>> = sequence {
     for (k in 1..input.size) {
         yieldAll(combineSequence(input, k))
     }
 }
 
+/** 惰性序列生成指定大小的组合 / Lazy sequence generation of combinations of specified size */
 fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
     if (choose < 0 || choose > input.size) {
         return@sequence
@@ -96,6 +99,7 @@ fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     }
 }
 
+/** 生成指定大小的所有组合 / Generate all combinations of specified size */
 fun <T> combine(
     input: List<T>,
     choose: Int,
@@ -113,6 +117,7 @@ fun <T> combine(
     return result
 }
 
+/** 异步生成所有子集组合，通过协程通道返回 / Async generation of all subset combinations via coroutine channel */
 fun <T> combineAsync(
     input: List<T>,
     scope: CoroutineScope = combinatoricsAsyncScope,
@@ -142,6 +147,3 @@ fun <T> combineAsync(
     }
     return ChannelGuard(promise)
 }
-
-
-

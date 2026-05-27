@@ -15,16 +15,24 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
+/**
+ * 生物混沌模型
+ * Biological Chaotic Model
+ *
+ * @property a 竞争参数 a / Competition parameter a
+ * @property b 竞争参数 b / Competition parameter b
+ * @property c 竞争参数 c / Competition parameter c
+ * @property r 增长率 / Growth rate
+ */
 data class BiologyChaoticModel<V : FloatingNumber<V>>(
     val a: V,
     val b: V,

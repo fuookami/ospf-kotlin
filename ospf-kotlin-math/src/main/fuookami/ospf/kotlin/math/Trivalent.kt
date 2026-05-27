@@ -154,6 +154,7 @@ sealed class BalancedTrivalent {
     }
 
     companion object {
+        /** 从布尔值创建 / Create from boolean */
         operator fun invoke(value: Boolean): BalancedTrivalent {
             return when (value) {
                 true -> True
@@ -161,6 +162,7 @@ sealed class BalancedTrivalent {
             }
         }
 
+        /** 从可空布尔值创建 / Create from nullable boolean */
         operator fun invoke(value: Boolean?): BalancedTrivalent {
             return when (value) {
                 true -> True
@@ -169,6 +171,7 @@ sealed class BalancedTrivalent {
             }
         }
 
+        /** 从 Trivalent 创建 / Create from Trivalent */
         operator fun invoke(value: Trivalent): BalancedTrivalent {
             return when (value) {
                 Trivalent.True -> True
@@ -178,6 +181,3 @@ sealed class BalancedTrivalent {
         }
     }
 }
-
-
-

@@ -24,7 +24,6 @@ package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -94,6 +93,7 @@ class PrimeCache {
         }
     }
 
+    /** 获取不超过 limit 的所有素数 / Get all primes up to limit */
     fun getPrimes(limit: UInt64): List<UInt64> {
         synchronized(lock) {
             if (limit > current) {
@@ -103,6 +103,7 @@ class PrimeCache {
         }
     }
 
+    /** 判断 UInt64 是否为素数 / Check whether a UInt64 value is prime */
     fun isPrime(num: UInt64): Boolean {
         if (num <= UInt64.one) {
             return false
@@ -182,15 +183,17 @@ class PrimeCache {
 
 internal val cache = PrimeCache()
 
-/** Get primes up to limit directly from the cache (for UInt64). */
+/** 获取不超过 limit 的所有素数（UInt64 专用，直接使用缓存） / Get all primes up to limit (UInt64 only, uses cache directly) */
 fun getPrimesUpTo(limit: UInt64): List<UInt64> {
     return cache.getPrimes(limit)
 }
 
+/** 判断整数是否为素数 / Check whether an integer is prime */
 fun <I> isPrime(num: I): Boolean where I : Integer<I> {
     return cache.isPrime(num.toUInt64())
 }
 
+/** 获取不超过 num 的所有素数（内部实现） / Get all primes up to num (internal implementation) */
 fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where I : Integer<I> {
     var current = constants.one
     val primes = ArrayList<I>()
@@ -203,9 +206,12 @@ fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where 
     return primes
 }
 
+/** 获取不超过 num 的所有素数 / Get all primes up to num */
 fun <I> getPrimes(num: I, constants: RealNumberConstants<I>): List<I> where I : Integer<I> {
     return getPrimesImpl(num, constants)
 }
+
+/** 获取不超过 num 的所有素数（自动解析常量） / Get all primes up to num (auto-resolve constants) */
 inline fun <reified I> getPrimes(num: I): List<I> where I : Integer<I> {
     return getPrimes(
         num = num,

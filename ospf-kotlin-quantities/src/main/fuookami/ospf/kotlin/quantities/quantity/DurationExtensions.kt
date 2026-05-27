@@ -1,19 +1,3 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
-package fuookami.ospf.kotlin.quantities.quantity
-
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Field
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.dimension.Time
-import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 /**
  * 时间物理量与 kotlin.time.Duration 互转换扩展
  * Extension functions for converting between time Quantity and kotlin.time.Duration
@@ -27,6 +11,21 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * - Int64, IntX (有符号整数 / Signed integer)
  * - UInt64, UIntX (无符号整数 / Unsigned integer)
  */
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+package fuookami.ospf.kotlin.quantities.quantity
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.quantities.dimension.Time
+import fuookami.ospf.kotlin.quantities.unit.*
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 // ============================================================================
 // 泛型接口定义 / Generic interface definitions
@@ -36,25 +35,35 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * Duration 转换器接口
  * Duration converter interface
  *
- * 定义从 Duration 转换为特定数值类型的方法
- * Defines methods for converting Duration to specific number types
+ * 定义从 Duration 转换为特定数值类型的方法。
+ * Defines methods for converting Duration to specific number types.
+ *
+ * @param V 数值类型 / The number type
  */
 interface DurationConverter<V> {
     /**
      * 从 Double 创建数值
      * Create number from Double
+     *
+     * @param value Double 值 / The Double value
+     * @return 转换结果 / The conversion result
      */
     fun fromDouble(value: Double): Ret<V>
 
     /**
      * 将数值转换为 Double（秒为单位）
      * Convert number to Double (in seconds)
+     *
+     * @param value 数值 / The number value
+     * @return Double 值（秒） / The Double value in seconds
      */
     fun toDoubleSeconds(value: V): Double
 
     /**
      * 获取数值的零值
      * Get zero value of the number type
+     *
+     * @return 零值 / The zero value
      */
     fun zero(): V
 }
@@ -162,6 +171,10 @@ private fun <V> DurationConverter<*>.asDurationConverter(): DurationConverter<V>
 /**
  * 获取指定类型的转换器
  * Get converter for specified type
+ *
+ * @param V 数值类型 / The number type
+ * @param valueClass 数值类型的 Class 对象 / The Class object of the number type
+ * @return 转换器，或错误 / The converter, or an error
  */
 fun <V> getConverter(valueClass: Class<V>): Ret<DurationConverter<V>> {
     val converter = converters[valueClass]?.asDurationConverter<V>()
@@ -192,8 +205,8 @@ fun <V> getConverter(valueClass: Class<V>): Ret<DurationConverter<V>> {
  * val result3 = time3.toDuration()  // Failed(IllegalArgument)
  * ```
  *
- * @param V 数值类型
- * @return 对应的 Duration，或错误
+ * @param V 数值类型 / The number type
+ * @return 对应的 Duration，或错误 / The corresponding Duration, or an error
  */
 fun <V> Quantity<V>.toDuration(): Ret<Duration> where V : RealNumber<V> {
     // 检查量纲
@@ -226,9 +239,9 @@ fun <V> Quantity<V>.toDuration(): Ret<Duration> where V : RealNumber<V> {
  * 将时间物理量转换为指定单位的 Duration
  * Convert time quantity to kotlin.time.Duration in specified unit
  *
- * @param V 数值类型
- * @param unit 目标 Duration 单位
- * @return 对应的 Duration，或错误
+ * @param V 数值类型 / The number type
+ * @param unit 目标 Duration 单位 / The target Duration unit
+ * @return 对应的 Duration，或错误 / The corresponding Duration, or an error
  */
 fun <V> Quantity<V>.toDuration(unit: DurationUnit): Ret<Duration> where V : RealNumber<V> {
     return when (val result = this.toDuration()) {
@@ -341,6 +354,9 @@ fun <V> Duration.toQuantity(unit: PhysicalUnit, converter: DurationConverter<V>)
 /**
  * 将 Duration 转换为 Flt64 时间物理量
  * Convert Duration to Flt64 time quantity
+ *
+ * @param unit 目标物理量单位 / The target physical unit
+ * @return 对应的时间物理量，或错误 / The corresponding time quantity, or an error
  */
 fun Duration.toQuantityFlt64(unit: PhysicalUnit): Ret<Quantity<Flt64>> {
     return this.toQuantity(unit, Flt64DurationConverter)
@@ -349,6 +365,9 @@ fun Duration.toQuantityFlt64(unit: PhysicalUnit): Ret<Quantity<Flt64>> {
 /**
  * 将 Duration 转换为 FltX 时间物理量
  * Convert Duration to FltX time quantity
+ *
+ * @param unit 目标物理量单位 / The target physical unit
+ * @return 对应的时间物理量，或错误 / The corresponding time quantity, or an error
  */
 fun Duration.toQuantityFltX(unit: PhysicalUnit): Ret<Quantity<FltX>> {
     return this.toQuantity(unit, FltXDurationConverter)
@@ -357,6 +376,9 @@ fun Duration.toQuantityFltX(unit: PhysicalUnit): Ret<Quantity<FltX>> {
 /**
  * 将 Duration 转换为 Int64 时间物理量
  * Convert Duration to Int64 time quantity
+ *
+ * @param unit 目标物理量单位 / The target physical unit
+ * @return 对应的时间物理量，或错误 / The corresponding time quantity, or an error
  */
 fun Duration.toQuantityInt64(unit: PhysicalUnit): Ret<Quantity<Int64>> {
     return this.toQuantity(unit, Int64DurationConverter)
@@ -365,6 +387,9 @@ fun Duration.toQuantityInt64(unit: PhysicalUnit): Ret<Quantity<Int64>> {
 /**
  * 将 Duration 转换为 IntX 时间物理量
  * Convert Duration to IntX time quantity
+ *
+ * @param unit 目标物理量单位 / The target physical unit
+ * @return 对应的时间物理量，或错误 / The corresponding time quantity, or an error
  */
 fun Duration.toQuantityIntX(unit: PhysicalUnit): Ret<Quantity<IntX>> {
     return this.toQuantity(unit, IntXDurationConverter)
@@ -373,6 +398,9 @@ fun Duration.toQuantityIntX(unit: PhysicalUnit): Ret<Quantity<IntX>> {
 /**
  * 将 Duration 转换为 UInt64 时间物理量
  * Convert Duration to UInt64 time quantity
+ *
+ * @param unit 目标物理量单位 / The target physical unit
+ * @return 对应的时间物理量，或错误 / The corresponding time quantity, or an error
  */
 fun Duration.toQuantityUInt64(unit: PhysicalUnit): Ret<Quantity<UInt64>> {
     return this.toQuantity(unit, UInt64DurationConverter)
@@ -381,6 +409,9 @@ fun Duration.toQuantityUInt64(unit: PhysicalUnit): Ret<Quantity<UInt64>> {
 /**
  * 将 Duration 转换为 UIntX 时间物理量
  * Convert Duration to UIntX time quantity
+ *
+ * @param unit 目标物理量单位 / The target physical unit
+ * @return 对应的时间物理量，或错误 / The corresponding time quantity, or an error
  */
 fun Duration.toQuantityUIntX(unit: PhysicalUnit): Ret<Quantity<UIntX>> {
     return this.toQuantity(unit, UIntXDurationConverter)
@@ -390,55 +421,85 @@ fun Duration.toQuantityUIntX(unit: PhysicalUnit): Ret<Quantity<UIntX>> {
 // 便捷方法：秒 / Convenience methods: Seconds
 // ============================================================================
 
+/** 将 Duration 转换为秒的 Flt64 物理量 / Convert Duration to Flt64 quantity in seconds. @return 秒物理量或错误 / Seconds quantity or error */
 fun Duration.toQuantitySecondsFlt64(): Ret<Quantity<Flt64>> = toQuantityFlt64(Second)
+/** 将 Duration 转换为秒的 FltX 物理量 / Convert Duration to FltX quantity in seconds. @return 秒物理量或错误 / Seconds quantity or error */
 fun Duration.toQuantitySecondsFltX(): Ret<Quantity<FltX>> = toQuantityFltX(Second)
+/** 将 Duration 转换为秒的 Int64 物理量 / Convert Duration to Int64 quantity in seconds. @return 秒物理量或错误 / Seconds quantity or error */
 fun Duration.toQuantitySecondsInt64(): Ret<Quantity<Int64>> = toQuantityInt64(Second)
+/** 将 Duration 转换为秒的 IntX 物理量 / Convert Duration to IntX quantity in seconds. @return 秒物理量或错误 / Seconds quantity or error */
 fun Duration.toQuantitySecondsIntX(): Ret<Quantity<IntX>> = toQuantityIntX(Second)
+/** 将 Duration 转换为秒的 UInt64 物理量 / Convert Duration to UInt64 quantity in seconds. @return 秒物理量或错误 / Seconds quantity or error */
 fun Duration.toQuantitySecondsUInt64(): Ret<Quantity<UInt64>> = toQuantityUInt64(Second)
+/** 将 Duration 转换为秒的 UIntX 物理量 / Convert Duration to UIntX quantity in seconds. @return 秒物理量或错误 / Seconds quantity or error */
 fun Duration.toQuantitySecondsUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Second)
 
 // ============================================================================
 // 便捷方法：毫秒 / Convenience methods: Milliseconds
 // ============================================================================
 
+/** 将 Duration 转换为毫秒的 Flt64 物理量 / Convert Duration to Flt64 quantity in milliseconds. @return 毫秒物理量或错误 / Milliseconds quantity or error */
 fun Duration.toQuantityMillisecondsFlt64(): Ret<Quantity<Flt64>> = toQuantityFlt64(Millisecond)
+/** 将 Duration 转换为毫秒的 FltX 物理量 / Convert Duration to FltX quantity in milliseconds. @return 毫秒物理量或错误 / Milliseconds quantity or error */
 fun Duration.toQuantityMillisecondsFltX(): Ret<Quantity<FltX>> = toQuantityFltX(Millisecond)
+/** 将 Duration 转换为毫秒的 Int64 物理量 / Convert Duration to Int64 quantity in milliseconds. @return 毫秒物理量或错误 / Milliseconds quantity or error */
 fun Duration.toQuantityMillisecondsInt64(): Ret<Quantity<Int64>> = toQuantityInt64(Millisecond)
+/** 将 Duration 转换为毫秒的 IntX 物理量 / Convert Duration to IntX quantity in milliseconds. @return 毫秒物理量或错误 / Milliseconds quantity or error */
 fun Duration.toQuantityMillisecondsIntX(): Ret<Quantity<IntX>> = toQuantityIntX(Millisecond)
+/** 将 Duration 转换为毫秒的 UInt64 物理量 / Convert Duration to UInt64 quantity in milliseconds. @return 毫秒物理量或错误 / Milliseconds quantity or error */
 fun Duration.toQuantityMillisecondsUInt64(): Ret<Quantity<UInt64>> = toQuantityUInt64(Millisecond)
+/** 将 Duration 转换为毫秒的 UIntX 物理量 / Convert Duration to UIntX quantity in milliseconds. @return 毫秒物理量或错误 / Milliseconds quantity or error */
 fun Duration.toQuantityMillisecondsUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Millisecond)
 
 // ============================================================================
 // 便捷方法：分钟 / Convenience methods: Minutes
 // ============================================================================
 
+/** 将 Duration 转换为分钟的 Flt64 物理量 / Convert Duration to Flt64 quantity in minutes. @return 分钟物理量或错误 / Minutes quantity or error */
 fun Duration.toQuantityMinutesFlt64(): Ret<Quantity<Flt64>> = toQuantityFlt64(Minute)
+/** 将 Duration 转换为分钟的 FltX 物理量 / Convert Duration to FltX quantity in minutes. @return 分钟物理量或错误 / Minutes quantity or error */
 fun Duration.toQuantityMinutesFltX(): Ret<Quantity<FltX>> = toQuantityFltX(Minute)
+/** 将 Duration 转换为分钟的 Int64 物理量 / Convert Duration to Int64 quantity in minutes. @return 分钟物理量或错误 / Minutes quantity or error */
 fun Duration.toQuantityMinutesInt64(): Ret<Quantity<Int64>> = toQuantityInt64(Minute)
+/** 将 Duration 转换为分钟的 IntX 物理量 / Convert Duration to IntX quantity in minutes. @return 分钟物理量或错误 / Minutes quantity or error */
 fun Duration.toQuantityMinutesIntX(): Ret<Quantity<IntX>> = toQuantityIntX(Minute)
+/** 将 Duration 转换为分钟的 UInt64 物理量 / Convert Duration to UInt64 quantity in minutes. @return 分钟物理量或错误 / Minutes quantity or error */
 fun Duration.toQuantityMinutesUInt64(): Ret<Quantity<UInt64>> = toQuantityUInt64(Minute)
+/** 将 Duration 转换为分钟的 UIntX 物理量 / Convert Duration to UIntX quantity in minutes. @return 分钟物理量或错误 / Minutes quantity or error */
 fun Duration.toQuantityMinutesUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Minute)
 
 // ============================================================================
 // 便捷方法：小时 / Convenience methods: Hours
 // ============================================================================
 
+/** 将 Duration 转换为小时的 Flt64 物理量 / Convert Duration to Flt64 quantity in hours. @return 小时物理量或错误 / Hours quantity or error */
 fun Duration.toQuantityHoursFlt64(): Ret<Quantity<Flt64>> = toQuantityFlt64(Hour)
+/** 将 Duration 转换为小时的 FltX 物理量 / Convert Duration to FltX quantity in hours. @return 小时物理量或错误 / Hours quantity or error */
 fun Duration.toQuantityHoursFltX(): Ret<Quantity<FltX>> = toQuantityFltX(Hour)
+/** 将 Duration 转换为小时的 Int64 物理量 / Convert Duration to Int64 quantity in hours. @return 小时物理量或错误 / Hours quantity or error */
 fun Duration.toQuantityHoursInt64(): Ret<Quantity<Int64>> = toQuantityInt64(Hour)
+/** 将 Duration 转换为小时的 IntX 物理量 / Convert Duration to IntX quantity in hours. @return 小时物理量或错误 / Hours quantity or error */
 fun Duration.toQuantityHoursIntX(): Ret<Quantity<IntX>> = toQuantityIntX(Hour)
+/** 将 Duration 转换为小时的 UInt64 物理量 / Convert Duration to UInt64 quantity in hours. @return 小时物理量或错误 / Hours quantity or error */
 fun Duration.toQuantityHoursUInt64(): Ret<Quantity<UInt64>> = toQuantityUInt64(Hour)
+/** 将 Duration 转换为小时的 UIntX 物理量 / Convert Duration to UIntX quantity in hours. @return 小时物理量或错误 / Hours quantity or error */
 fun Duration.toQuantityHoursUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Hour)
 
 // ============================================================================
 // 便捷方法：天 / Convenience methods: Days
 // ============================================================================
 
+/** 将 Duration 转换为天的 Flt64 物理量 / Convert Duration to Flt64 quantity in days. @return 天物理量或错误 / Days quantity or error */
 fun Duration.toQuantityDaysFlt64(): Ret<Quantity<Flt64>> = toQuantityFlt64(Day)
+/** 将 Duration 转换为天的 FltX 物理量 / Convert Duration to FltX quantity in days. @return 天物理量或错误 / Days quantity or error */
 fun Duration.toQuantityDaysFltX(): Ret<Quantity<FltX>> = toQuantityFltX(Day)
+/** 将 Duration 转换为天的 Int64 物理量 / Convert Duration to Int64 quantity in days. @return 天物理量或错误 / Days quantity or error */
 fun Duration.toQuantityDaysInt64(): Ret<Quantity<Int64>> = toQuantityInt64(Day)
+/** 将 Duration 转换为天的 IntX 物理量 / Convert Duration to IntX quantity in days. @return 天物理量或错误 / Days quantity or error */
 fun Duration.toQuantityDaysIntX(): Ret<Quantity<IntX>> = toQuantityIntX(Day)
+/** 将 Duration 转换为天的 UInt64 物理量 / Convert Duration to UInt64 quantity in days. @return 天物理量或错误 / Days quantity or error */
 fun Duration.toQuantityDaysUInt64(): Ret<Quantity<UInt64>> = toQuantityUInt64(Day)
+/** 将 Duration 转换为天的 UIntX 物理量 / Convert Duration to UIntX quantity in days. @return 天物理量或错误 / Days quantity or error */
 fun Duration.toQuantityDaysUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Day)
 
 // ============================================================================
@@ -461,9 +522,9 @@ fun Duration.toQuantityDaysUIntX(): Ret<Quantity<UIntX>> = toQuantityUIntX(Day)
  * val result2 = duration2.toQuantityBestFit<Int64>()  // Ok(60 min)
  * ```
  *
- * @param V 数值类型
- * @param threshold 单位切换阈值，默认为 1000.0
- * @return 以最佳单位表示的时间物理量，或错误
+ * @param V 数值类型 / The number type
+ * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
+ * @return 以最佳单位表示的时间物理量，或错误 / Time quantity in best fit unit, or an error
  */
 inline fun <reified V> Duration.toQuantityBestFit(threshold: Double = 1000.0): Ret<Quantity<V>> where V : RealNumber<V> {
     val converter = when (val result = getConverter(V::class.java)) {
@@ -500,6 +561,9 @@ inline fun <reified V> Duration.toQuantityBestFit(threshold: Double = 1000.0): R
 /**
  * 将 Duration 转换为 Flt64 最佳单位时间物理量
  * Convert Duration to Flt64 time quantity with best fit unit
+ *
+ * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
+ * @return 以最佳单位表示的 Flt64 时间物理量，或错误 / Flt64 time quantity in best fit unit, or an error
  */
 fun Duration.toQuantityBestFitFlt64(threshold: Double = 1000.0): Ret<Quantity<Flt64>> {
     return toQuantityBestFit<Flt64>(threshold)
@@ -508,6 +572,9 @@ fun Duration.toQuantityBestFitFlt64(threshold: Double = 1000.0): Ret<Quantity<Fl
 /**
  * 将 Duration 转换为 FltX 最佳单位时间物理量
  * Convert Duration to FltX time quantity with best fit unit
+ *
+ * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
+ * @return 以最佳单位表示的 FltX 时间物理量，或错误 / FltX time quantity in best fit unit, or an error
  */
 fun Duration.toQuantityBestFitFltX(threshold: Double = 1000.0): Ret<Quantity<FltX>> {
     return toQuantityBestFit<FltX>(threshold)
@@ -516,6 +583,9 @@ fun Duration.toQuantityBestFitFltX(threshold: Double = 1000.0): Ret<Quantity<Flt
 /**
  * 将 Duration 转换为 Int64 最佳单位时间物理量
  * Convert Duration to Int64 time quantity with best fit unit
+ *
+ * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
+ * @return 以最佳单位表示的 Int64 时间物理量，或错误 / Int64 time quantity in best fit unit, or an error
  */
 fun Duration.toQuantityBestFitInt64(threshold: Double = 1000.0): Ret<Quantity<Int64>> {
     return toQuantityBestFit<Int64>(threshold)
@@ -524,6 +594,9 @@ fun Duration.toQuantityBestFitInt64(threshold: Double = 1000.0): Ret<Quantity<In
 /**
  * 将 Duration 转换为 UInt64 最佳单位时间物理量
  * Convert Duration to UInt64 time quantity with best fit unit
+ *
+ * @param threshold 单位切换阈值，默认为 1000.0 / Unit switching threshold, defaults to 1000.0
+ * @return 以最佳单位表示的 UInt64 时间物理量，或错误 / UInt64 time quantity in best fit unit, or an error
  */
 fun Duration.toQuantityBestFitUInt64(threshold: Double = 1000.0): Ret<Quantity<UInt64>> {
     return toQuantityBestFit<UInt64>(threshold)
@@ -582,29 +655,47 @@ val Duration.inHoursQuantityFlt64: Ret<Quantity<Flt64>>
 val Duration.inDaysQuantityFlt64: Ret<Quantity<Flt64>>
     get() = toQuantityFlt64(Day)
 
-// FltX 扩展属性
+/** Duration 的 FltX 纳秒值作为时间物理量 / Duration value in nanoseconds as FltX time quantity */
 val Duration.inNanosecondsQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Nanosecond)
+/** Duration 的 FltX 微秒值作为时间物理量 / Duration value in microseconds as FltX time quantity */
 val Duration.inMicrosecondsQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Microsecond)
+/** Duration 的 FltX 毫秒值作为时间物理量 / Duration value in milliseconds as FltX time quantity */
 val Duration.inMillisecondsQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Millisecond)
+/** Duration 的 FltX 秒值作为时间物理量 / Duration value in seconds as FltX time quantity */
 val Duration.inSecondsQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Second)
+/** Duration 的 FltX 分钟值作为时间物理量 / Duration value in minutes as FltX time quantity */
 val Duration.inMinutesQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Minute)
+/** Duration 的 FltX 小时值作为时间物理量 / Duration value in hours as FltX time quantity */
 val Duration.inHoursQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Hour)
+/** Duration 的 FltX 天值作为时间物理量 / Duration value in days as FltX time quantity */
 val Duration.inDaysQuantityFltX: Ret<Quantity<FltX>> get() = toQuantityFltX(Day)
 
-// Int64 扩展属性
+/** Duration 的 Int64 纳秒值作为时间物理量 / Duration value in nanoseconds as Int64 time quantity */
 val Duration.inNanosecondsQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Nanosecond)
+/** Duration 的 Int64 微秒值作为时间物理量 / Duration value in microseconds as Int64 time quantity */
 val Duration.inMicrosecondsQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Microsecond)
+/** Duration 的 Int64 毫秒值作为时间物理量 / Duration value in milliseconds as Int64 time quantity */
 val Duration.inMillisecondsQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Millisecond)
+/** Duration 的 Int64 秒值作为时间物理量 / Duration value in seconds as Int64 time quantity */
 val Duration.inSecondsQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Second)
+/** Duration 的 Int64 分钟值作为时间物理量 / Duration value in minutes as Int64 time quantity */
 val Duration.inMinutesQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Minute)
+/** Duration 的 Int64 小时值作为时间物理量 / Duration value in hours as Int64 time quantity */
 val Duration.inHoursQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Hour)
+/** Duration 的 Int64 天值作为时间物理量 / Duration value in days as Int64 time quantity */
 val Duration.inDaysQuantityInt64: Ret<Quantity<Int64>> get() = toQuantityInt64(Day)
 
-// UInt64 扩展属性
+/** Duration 的 UInt64 纳秒值作为时间物理量 / Duration value in nanoseconds as UInt64 time quantity */
 val Duration.inNanosecondsQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Nanosecond)
+/** Duration 的 UInt64 微秒值作为时间物理量 / Duration value in microseconds as UInt64 time quantity */
 val Duration.inMicrosecondsQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Microsecond)
+/** Duration 的 UInt64 毫秒值作为时间物理量 / Duration value in milliseconds as UInt64 time quantity */
 val Duration.inMillisecondsQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Millisecond)
+/** Duration 的 UInt64 秒值作为时间物理量 / Duration value in seconds as UInt64 time quantity */
 val Duration.inSecondsQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Second)
+/** Duration 的 UInt64 分钟值作为时间物理量 / Duration value in minutes as UInt64 time quantity */
 val Duration.inMinutesQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Minute)
+/** Duration 的 UInt64 小时值作为时间物理量 / Duration value in hours as UInt64 time quantity */
 val Duration.inHoursQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Hour)
+/** Duration 的 UInt64 天值作为时间物理量 / Duration value in days as UInt64 time quantity */
 val Duration.inDaysQuantityUInt64: Ret<Quantity<UInt64>> get() = toQuantityUInt64(Day)

@@ -1,3 +1,13 @@
+/**
+ * Flt64 求值快捷函数
+ * Flt64 Evaluation Convenience Functions
+ *
+ * 提供 Flt64 单项式和多项式的求值、有序求值、部分求值和区间极值计算。
+ * 封装通用求值运算，支持 ValueProvider 和 Map 两种值来源。
+ * Provides Flt64 monomial and polynomial evaluation, ordered evaluation,
+ * partial evaluation, and interval extremum computation.
+ * Wraps generic evaluation operations with ValueProvider and Map value sources.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -18,7 +28,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.*
 
 private fun missingValueFailed(symbol: Symbol): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")
@@ -56,6 +65,14 @@ private fun resolveValueRet(
     }
 }
 
+/**
+ * 使用值提供者求值 Flt64 线性单项式
+ * Evaluate a Flt64 linear monomial using a value provider
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -68,6 +85,14 @@ fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     }
 }
 
+/**
+ * 使用 Map 求值 Flt64 线性单项式
+ * Evaluate a Flt64 linear monomial using a Map
+ *
+ * @param values 符号到值的映射 / Symbol-to-value mapping
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -75,6 +100,14 @@ fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     return evaluate(MapValueProvider(values), policy)
 }
 
+/**
+ * 使用值提供者求值 Flt64 线性单项式（Ret 安全版本）
+ * Evaluate a Flt64 linear monomial using a value provider (Ret-safe version)
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果 / Evaluation result
+ */
 fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
@@ -93,6 +126,14 @@ fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     return evaluateRet(MapValueProvider(values), policy)
 }
 
+/**
+ * 使用有序值求值 Flt64 线性单项式
+ * Evaluate a Flt64 linear monomial using ordered values
+ *
+ * @param order 符号顺序 / Symbol order
+ * @param values 对应值列表 / Corresponding value list
+ * @return 求值结果 / Evaluation result
+ */
 fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -109,6 +150,13 @@ fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrder
     return coefficient * values[index]
 }
 
+/**
+ * 部分求值 Flt64 线性单项式
+ * Partially evaluate a Flt64 linear monomial
+ *
+ * @param provider 值提供者 / Value provider
+ * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
+ */
 fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val symbolValue = provider[symbol]
     return if (symbolValue != null) {
@@ -128,6 +176,14 @@ fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvalua
     return partialEvaluate(MapValueProvider(values))
 }
 
+/**
+ * 使用值提供者求值 Flt64 二次单项式
+ * Evaluate a Flt64 quadratic monomial using a value provider
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -258,6 +314,14 @@ fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEva
     return partialEvaluate(MapValueProvider(values))
 }
 
+/**
+ * 使用值提供者求值 Flt64 规范单项式
+ * Evaluate a Flt64 canonical monomial using a value provider
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -342,6 +406,14 @@ fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEva
     return partialEvaluate(MapValueProvider(values))
 }
 
+/**
+ * 使用值提供者求值 Flt64 线性多项式
+ * Evaluate a Flt64 linear polynomial using a value provider
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -418,6 +490,13 @@ fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEval
     )
 }
 
+/**
+ * 计算 Flt64 线性多项式在区间上的极值范围
+ * Compute the extremum range of a Flt64 linear polynomial over intervals
+ *
+ * @param intervals 符号到值区间的映射 / Symbol-to-value-range mapping
+ * @return 极值范围，若缺少区间则返回 null / Extremum range, or null if interval is missing
+ */
 fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateIntervalExtremum(
     intervals: Map<Symbol, ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
 ): ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
@@ -456,6 +535,14 @@ fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateInt
     }
 }
 
+/**
+ * 使用值提供者求值 Flt64 二次多项式
+ * Evaluate a Flt64 quadratic polynomial using a value provider
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
@@ -535,6 +622,14 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialE
     )
 }
 
+/**
+ * 使用值提供者求值 Flt64 规范多项式
+ * Evaluate a Flt64 canonical polynomial using a value provider
+ *
+ * @param provider 值提供者 / Value provider
+ * @param policy 缺失值策略 / Missing value policy
+ * @return 求值结果，若缺少值则返回 null / Evaluation result, or null if value is missing
+ */
 fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull

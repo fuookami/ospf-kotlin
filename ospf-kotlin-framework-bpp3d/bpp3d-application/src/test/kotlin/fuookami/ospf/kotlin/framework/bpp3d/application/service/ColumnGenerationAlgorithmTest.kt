@@ -72,10 +72,10 @@ class ColumnGenerationAlgorithmTest {
     private fun item(id: String, material: Material): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = 1.0 * Meter,
-                height = 1.0 * Meter,
-                depth = 1.0 * Meter,
-                weight = 1.0 * Kilogram,
+                width = Flt64.one * Meter,
+                height = Flt64.one * Meter,
+                depth = Flt64.one * Meter,
+                weight = Flt64.one * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -114,10 +114,10 @@ class ColumnGenerationAlgorithmTest {
         typeCode: String = "BIN-A"
     ): Bin<BinLayer> {
         val binType = BinType(
-            width = 3.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 3.0 * Meter,
-            capacity = 100.0 * Kilogram,
+            width = Flt64(3) * Meter,
+            height = Flt64(3) * Meter,
+            depth = Flt64(3) * Meter,
+            capacity = Flt64(100) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = typeCode
@@ -125,7 +125,7 @@ class ColumnGenerationAlgorithmTest {
         val placements = items.mapIndexed { index, item ->
             QuantityPlacement3(
                 view = item.view(Orientation.Upright),
-                position = point3(x = index.toDouble() * Meter, y = 0.0 * Meter, z = 0.0 * Meter)
+                position = point3(x = Flt64(index) * Meter, y = Flt64.zero * Meter, z = Flt64.zero * Meter)
             )
         }
         val layer = BinLayer(
@@ -149,8 +149,8 @@ class ColumnGenerationAlgorithmTest {
     @Test
     fun columnGenerationAlgorithmShouldLiveInApplicationService() {
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<Double> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Double>): List<Bpp3dLayerGenerationResult<Double>> {
+            layerGenerator = object : Bpp3dLayerGenerator<Flt64> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
                     return emptyList()
                 }
             }
@@ -161,8 +161,8 @@ class ColumnGenerationAlgorithmTest {
     @Test
     fun algorithmShouldStopWhenNoAcceptedColumns() = runBlocking {
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<Double> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Double>): List<Bpp3dLayerGenerationResult<Double>> {
+            layerGenerator = object : Bpp3dLayerGenerator<Flt64> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
                     return emptyList()
                 }
             }
@@ -181,8 +181,8 @@ class ColumnGenerationAlgorithmTest {
         val analyzeCounter = AtomicInteger(0)
         val heartbeatCounter = AtomicInteger(0)
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<Double> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Double>): List<Bpp3dLayerGenerationResult<Double>> {
+            layerGenerator = object : Bpp3dLayerGenerator<Flt64> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
                     return emptyList()
                 }
             },
@@ -211,7 +211,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-FLOW",
-            weight = 1.0 * Kilogram
+            weight = Flt64.one * Kilogram
         )
         val seedItem = item(
             id = "item-cg-flow-seed",
@@ -245,7 +245,7 @@ class ColumnGenerationAlgorithmTest {
                 rmpCallStates.add(Pair(state.iteration, state.columns.size))
                 ColumnGenerationLpResult(
                     shadowPrices = emptyMap(),
-                    objective = Flt64(100.0 - state.iteration.toDouble()),
+                    objective = Flt64(100.0) - Flt64(state.iteration),
                     info = mapOf(
                         Pair("solver", "stub-lp"),
                         Pair("iteration", state.iteration.toString())
@@ -291,8 +291,8 @@ class ColumnGenerationAlgorithmTest {
         val requestBuilderCounter = AtomicInteger(0)
         var observedMaxCandidates = -1
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<Double> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Double>): List<Bpp3dLayerGenerationResult<Double>> {
+            layerGenerator = object : Bpp3dLayerGenerator<Flt64> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
                     observedMaxCandidates = request.maxCandidates
                     return emptyList()
                 }
@@ -300,8 +300,8 @@ class ColumnGenerationAlgorithmTest {
             rmpSolver = ColumnGenerationRmpSolver {
                 rmpSolverCounter.incrementAndGet()
                 ColumnGenerationLpResult(
-                    shadowPrices = emptyMap<DemandModeKey, Double>(),
-                    objective = 42.0
+                    shadowPrices = emptyMap<DemandModeKey, Flt64>(),
+                    objective = Flt64(42.0)
                 )
             },
             layerRequestBuilder = ColumnGenerationLayerRequestBuilder { state, items, _ ->
@@ -328,7 +328,7 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(0, legacyRmpCounter.get())
         assertEquals(1, requestBuilderCounter.get())
         assertEquals(1, observedMaxCandidates)
-        assertEquals(listOf(42.0), result.lpObjectives)
+        assertEquals(listOf(Flt64(42.0)), result.lpObjectives)
     }
 
     @Test
@@ -338,7 +338,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-1",
-            weight = 0.5 * Kilogram
+            weight = Flt64.half * Kilogram
         )
         val bin = layerBin(listOf(item("item-1", material)))
         val analyzer = ColumnGenerationPackingAnalyzer()
@@ -372,7 +372,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-2",
-            weight = 0.5 * Kilogram
+            weight = Flt64.half * Kilogram
         )
         val actualItem = item("item-2", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -493,7 +493,7 @@ class ColumnGenerationAlgorithmTest {
             mode = Bpp3dDemandMode.ItemAmount,
             key = Bpp3dDemandKey.Item(actualItem)
         )
-        assertEquals(7.0, (request.shadowPrices[demandKey] ?: Flt64.zero).toDouble(), 1e-10)
+        assertEquals(Flt64(7.0), request.shadowPrices[demandKey] ?: Flt64.zero)
     }
 
     @Test
@@ -503,7 +503,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-3",
-            weight = 0.5 * Kilogram
+            weight = Flt64.half * Kilogram
         )
         val actualItem = item("item-3", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -610,7 +610,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-4",
-            weight = 1.0 * Kilogram
+            weight = Flt64.one * Kilogram
         )
         val actualItem = item("item-4", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -721,14 +721,14 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-5A",
-            weight = 1.0 * Kilogram
+            weight = Flt64.one * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("M-5B"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-5B",
-            weight = 2.0 * Kilogram
+            weight = Flt64(2) * Kilogram
         )
         val itemA = item("item-5a", materialA)
         val itemB = item("item-5b", materialB)
@@ -802,7 +802,7 @@ class ColumnGenerationAlgorithmTest {
                     .filter { constraint -> constraint.args is DemandShadowPriceKey }
                 val dual = linkedMapOf<Constraint<Flt64, Linear>, Flt64>()
                 taggedConstraints.forEachIndexed { index, constraint ->
-                    dual[fakeConstraint(constraint)] = Flt64(index.toDouble() + 1.0)
+                    dual[fakeConstraint(constraint)] = Flt64(index + 1)
                 }
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
                 val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
@@ -871,7 +871,7 @@ class ColumnGenerationAlgorithmTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-6-$index",
-                weight = 1.0 * Kilogram
+                weight = Flt64.one * Kilogram
             )
         }
         val items = (0 until layerCount).map { index ->
@@ -908,7 +908,7 @@ class ColumnGenerationAlgorithmTest {
                 fixedDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialWeight,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = Flt64((layerCount / materialCount).toDouble())
+                    demand = Flt64(layerCount / materialCount)
                 )
             })
         }
@@ -944,7 +944,7 @@ class ColumnGenerationAlgorithmTest {
                     .filter { constraint -> constraint.args is DemandShadowPriceKey }
                 val dual = linkedMapOf<Constraint<Flt64, Linear>, Flt64>()
                 taggedConstraints.forEachIndexed { index, constraint ->
-                    dual[fakeConstraint(constraint)] = Flt64(index.toDouble() + 1.0)
+                    dual[fakeConstraint(constraint)] = Flt64(index + 1)
                 }
                 val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
                 val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
@@ -1010,7 +1010,7 @@ class ColumnGenerationAlgorithmTest {
             override val lazy: Boolean = false
             override val name: String = "fake-dual"
             override val origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint = origin
-            override val from: Pair<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>, Boolean>? = null
+            override val from: Pair<fuookami.ospf.kotlin.core.symbol.IntermediateSymbol<*>, Boolean>? = null
 
             override fun isTrue(): Boolean? = true
             override fun isTrue(results: List<Flt64>): Boolean? = true

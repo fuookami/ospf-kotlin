@@ -276,7 +276,7 @@ pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\che
 ## 迁移入口速查
 
 1. 包路径迁移方向：
-   - `core.frontend.*` -> `core.model.*` / `core.variable.*` / `core.intermediate_symbol.*`
+   - `core.frontend.*` -> `core.model.*` / `core.variable.*` / `core.symbol.*`
    - `core.backend.*` -> `core.solver.*`
    - 表达式与不等式主入口迁移到 `math.symbol.*`
    - `math.symbol.adapter.*` -> `math.symbol.operation.*`

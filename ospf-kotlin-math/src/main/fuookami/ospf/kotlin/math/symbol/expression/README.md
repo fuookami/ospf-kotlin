@@ -22,10 +22,9 @@ Generic expression AST for SQL-like boolean and scalar expressions. Provides a p
 expression/
 ├── PropertyPath.kt       # Path abstraction
 ├── PathSymbol.kt         # Path-Symbol adapter
-├── ScalarExpression.kt   # Scalar expression AST
-├── BooleanExpression.kt  # Boolean expression AST
+├── ScalarExpression.kt   # Scalar expression AST + ScalarExpressionFactory
+├── BooleanExpression.kt  # Boolean expression AST + BooleanExpressionFactory
 ├── ExpressionOperator.kt # Operator definitions
-├── ExpressionFactory.kt  # Factory methods
 ├── dsl/                  # DSL construction
 ├── parser/               # Lexer and Parser
 ├── serde/                # JSON serialization

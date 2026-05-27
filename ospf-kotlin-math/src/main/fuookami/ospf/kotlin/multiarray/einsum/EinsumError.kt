@@ -27,7 +27,7 @@ sealed class EinsumError(
 ) : Exception(message) {
 
     /**
-     * 维度不匹配错诌
+     * 维度不匹配错误
      * Dimension mismatch error
      *
      * @param expected 期望的维度数
@@ -44,7 +44,7 @@ sealed class EinsumError(
     )
 
     /**
-     * 形状不兼容错诌
+     * 形状不兼容错误
      * Incompatible shapes error
      *
      * @param shape1 第一个张量的形状
@@ -64,7 +64,7 @@ sealed class EinsumError(
      * 索引重复错误
      * Duplicate indices error
      *
-     * @param index 重复的索弌ID
+     * @param index 重复的索引ID
      */
     data class DuplicateIndices(
         val index: Int
@@ -88,8 +88,8 @@ sealed class EinsumError(
      * 索引越界错误
      * Index out of bounds error
      *
-     * @param index 索引倌
-     * @param maxIndex 最大索引倌
+     * @param index 索引值
+     * @param maxIndex 最大索引值
      */
     data class IndexOutOfBounds(
         val index: Int,
@@ -100,11 +100,11 @@ sealed class EinsumError(
     )
 
     /**
-     * 索引列表长度不匹配错诌
+     * 索引列表长度不匹配错误
      * Index list length mismatch error
      *
-     * @param expected 期望的长庌
-     * @param actual 实际的长庌
+     * @param expected 期望的长度
+     * @param actual 实际的长度
      * @param description 描述信息
      */
     data class IndexListLengthMismatch(

@@ -37,7 +37,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.algebra.number.Int16
 import fuookami.ospf.kotlin.math.algebra.number.Int8
 import fuookami.ospf.kotlin.math.algebra.number.IntX
-
 import fuookami.ospf.kotlin.math.operator.Div
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Pow
@@ -110,6 +109,7 @@ private fun <I> factorizeWithPrimes(
     return factors
 }
 
+/** 对整数进行质因数分解（内部实现） / Perform prime factorization of an integer (internal implementation) */
 fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     // Compute sqrt(num) + 1 as the upper bound for prime candidates
     val sqrtULong = (num.toFlt64().sqrt() as Flt64).floor().toUInt64().value + 1UL
@@ -129,7 +129,7 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
     return factorizeWithPrimes(num, primes, constants)
 }
 
-/** Optimized factorization for UInt64 using cache directly. */
+/** UInt64 专用优化质因数分解，直接使用缓存 / Optimized factorization for UInt64 using cache directly */
 fun factorizeImpl(num: UInt64, constants: RealNumberConstants<UInt64>): List<Pair<UInt64, Int>> {
     if (num <= UInt64.one) {
         return emptyList()
@@ -141,6 +141,7 @@ fun factorizeImpl(num: UInt64, constants: RealNumberConstants<UInt64>): List<Pai
     return factorizeWithPrimes(num, primes, constants)
 }
 
+/** 对整数进行质因数分解 / Perform prime factorization of an integer */
 fun <I> factorize(
     num: I,
     constants: RealNumberConstants<I>
@@ -148,6 +149,7 @@ fun <I> factorize(
     return factorizeImpl(num, constants)
 }
 
+/** 对整数进行质因数分解（自动解析常量） / Perform prime factorization (auto-resolve constants) */
 inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     return factorize(
         num = num,
@@ -155,6 +157,7 @@ inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I
     )
 }
 
+/** 将质因数分解结果还原为原整数（内部实现） / Convert factorization result back to original integer (internal) */
 fun <I> defactorizeImpl(
     factors: Iterable<Pair<I, Int>>,
     constants: RealNumberConstants<I>
@@ -172,6 +175,7 @@ fun <I> defactorizeImpl(
     return value
 }
 
+/** 将质因数分解结果还原为原整数 / Convert factorization result back to original integer */
 fun <I> defactorize(
     factors: Iterable<Pair<I, Int>>,
     constants: RealNumberConstants<I>
@@ -179,6 +183,7 @@ fun <I> defactorize(
     return defactorizeImpl(factors, constants)
 }
 
+/** 将质因数分解结果还原为原整数（自动解析常量） / Convert factorization result back to integer (auto-resolve) */
 inline fun <reified I> defactorize(
     factors: Iterable<Pair<I, Int>>
 ): I where I : Integer<I>, I : Pow<I> {
@@ -188,6 +193,7 @@ inline fun <reified I> defactorize(
     )
 }
 
+/** 根据质因数分解结果计算所有因数（内部实现） / Compute all divisors from factorization result (internal) */
 fun <I> divisorsImpl(
     factors: List<Pair<I, Int>>,
     constants: RealNumberConstants<I>
@@ -210,6 +216,7 @@ fun <I> divisorsImpl(
     return values.sorted()
 }
 
+/** 计算整数的所有因数（内部实现） / Compute all divisors of an integer (internal) */
 fun <I> divisorsImpl(
     num: I,
     constants: RealNumberConstants<I>
@@ -217,6 +224,7 @@ fun <I> divisorsImpl(
     return divisorsImpl(factorizeImpl(num, constants), constants)
 }
 
+/** 根据质因数分解结果计算所有因数 / Compute all divisors from factorization result */
 fun <I> divisors(
     factors: List<Pair<I, Int>>,
     constants: RealNumberConstants<I>
@@ -224,6 +232,7 @@ fun <I> divisors(
     return divisorsImpl(factors, constants)
 }
 
+/** 根据质因数分解结果计算所有因数（自动解析常量） / Compute all divisors from factorization (auto-resolve) */
 inline fun <reified I> divisors(
     factors: List<Pair<I, Int>>
 ): List<I> where I : Integer<I>, I : Pow<I> {
@@ -233,6 +242,7 @@ inline fun <reified I> divisors(
     )
 }
 
+/** 计算整数的所有因数 / Compute all divisors of an integer */
 fun <I> divisors(
     num: I,
     constants: RealNumberConstants<I>
@@ -240,6 +250,7 @@ fun <I> divisors(
     return divisorsImpl(num, constants)
 }
 
+/** 计算整数的所有因数（自动解析常量） / Compute all divisors (auto-resolve constants) */
 inline fun <reified I> divisors(
     num: I
 ): List<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
@@ -249,6 +260,7 @@ inline fun <reified I> divisors(
     )
 }
 
+/** 根据质因数分解结果计算因数个数 / Compute divisor count from factorization result */
 fun <I> divisorCount(factors: Iterable<Pair<I, Int>>): Int where I : Integer<I> {
     var count = 1
     for ((_, index) in factors) {
@@ -259,6 +271,7 @@ fun <I> divisorCount(factors: Iterable<Pair<I, Int>>): Int where I : Integer<I> 
     return count
 }
 
+/** 计算整数的因数个数 / Compute divisor count of an integer */
 fun <I> divisorCount(
     num: I,
     constants: RealNumberConstants<I>
@@ -266,6 +279,7 @@ fun <I> divisorCount(
     return divisorCount(factorizeImpl(num, constants))
 }
 
+/** 计算整数的因数个数（自动解析常量） / Compute divisor count (auto-resolve constants) */
 inline fun <reified I> divisorCount(
     num: I
 ): Int where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
@@ -275,6 +289,7 @@ inline fun <reified I> divisorCount(
     )
 }
 
+/** 计算欧拉函数值（内部实现） / Compute Euler's totient function value (internal) */
 fun <I> eulerTotientImpl(
     num: I,
     constants: RealNumberConstants<I>
@@ -290,6 +305,7 @@ fun <I> eulerTotientImpl(
     return value
 }
 
+/** 计算欧拉函数值 phi(n)，即小于 n 且与 n 互质的正整数个数 / Compute Euler's totient phi(n) */
 fun <I> eulerTotient(
     num: I,
     constants: RealNumberConstants<I>
@@ -297,6 +313,7 @@ fun <I> eulerTotient(
     return eulerTotientImpl(num, constants)
 }
 
+/** 计算欧拉函数值（自动解析常量） / Compute Euler's totient (auto-resolve constants) */
 inline fun <reified I> eulerTotient(
     num: I
 ): I where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {

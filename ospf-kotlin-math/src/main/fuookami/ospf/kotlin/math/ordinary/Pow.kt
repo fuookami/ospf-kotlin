@@ -26,12 +26,11 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import java.math.RoundingMode
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.math.*
-import java.math.RoundingMode
 
 @Suppress("UNCHECKED_CAST")
 private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {
@@ -100,6 +99,7 @@ private tailrec fun <T : TimesGroup<T>> powNegImpl(
     }
 }
 
+/** 计算正整数指数幂，使用快速幂算法（不支持负指数） / Compute positive integer exponent power using fast power algorithm */
 @Throws(IllegalArgumentException::class)
 fun <T> pow(
     base: T,
@@ -123,6 +123,7 @@ fun <T> pow(
     }
 }
 
+/** 计算整数指数幂（支持负指数），使用快速幂算法 / Compute integer exponent power (supports negative), using fast power */
 fun <T> pow(
     base: T,
     index: Int,
@@ -150,6 +151,7 @@ fun <T> pow(
         constants.one
     }
 }
+/** 计算正整数指数幂（自动解析常量） / Compute positive integer exponent power (auto-resolve constants) */
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -164,6 +166,7 @@ inline fun <reified T> pow(
         precision = precision
     )
 }
+/** 计算整数指数幂（支持负指数，自动解析常量） / Compute integer exponent power (auto-resolve constants) */
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -179,6 +182,7 @@ inline fun <reified T> pow(
     )
 }
 
+/** 计算浮点指数幂，通过 ln 和 exp 实现 / Compute floating-point exponent power via ln and exp */
 fun <T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -199,6 +203,7 @@ fun <T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
+/** 计算浮点指数幂（自动解析常量） / Compute floating-point exponent power (auto-resolve constants) */
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -213,6 +218,7 @@ inline fun <reified T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
+/** 计算指数函数 exp(index)，使用泰勒级数展开 / Compute exponential function exp(index) using Taylor series */
 fun <T : FloatingNumber<T>> exp(
     index: T,
     constants: FloatingNumberConstants<T>,
@@ -235,6 +241,7 @@ fun <T : FloatingNumber<T>> exp(
     }
     return value
 }
+/** 计算指数函数 exp(index)（自动解析常量） / Compute exponential function (auto-resolve constants) */
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
     digits: Int = index.constants.decimalDigits ?: 0,

@@ -12,10 +12,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import java.math.BigInteger
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -23,7 +20,10 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.math.BigInteger
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.*
 
 /**
  * 数值有符号整数接口
@@ -204,7 +204,6 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override operator fun rem(rhs: NInt8) = NInt8(value % rhs.value)
     override fun intDiv(rhs: NInt8) = NInt8(value / rhs.value)
 
-
     override fun pow(index: Int): Rtn8 {
         return if (index >= 1) {
             Rtn8(value.pow(index), Int8.one)
@@ -214,8 +213,6 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
             Rtn8.one
         }
     }
-
-
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -301,7 +298,6 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override operator fun rem(rhs: NInt16) = NInt16(value % rhs.value)
     override fun intDiv(rhs: NInt16) = NInt16(value / rhs.value)
 
-
     override fun pow(index: Int): Rtn16 {
         return if (index >= 1) {
             Rtn16(value.pow(index), Int16.one)
@@ -311,8 +307,6 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
             Rtn16.one
         }
     }
-
-
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -400,7 +394,6 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override operator fun rem(rhs: NInt32) = NInt32(value % rhs.value)
     override fun intDiv(rhs: NInt32) = NInt32(value / rhs.value)
 
-
     override fun pow(index: Int): Rtn32 {
         return if (index >= 1) {
             Rtn32(value.pow(index), Int32.one)
@@ -410,8 +403,6 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
             Rtn32.one
         }
     }
-
-
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -499,7 +490,6 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override operator fun rem(rhs: NInt64) = NInt64(value % rhs.value)
     override fun intDiv(rhs: NInt64) = NInt64(value / rhs.value)
 
-
     override fun pow(index: Int): Rtn64 {
         return if (index >= 1) {
             Rtn64(value.pow(index), Int64.one)
@@ -509,8 +499,6 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
             Rtn64.one
         }
     }
-
-
 
     override fun toInt8() = value.toInt8()
     override fun toInt16() = value.toInt16()
@@ -679,7 +667,3 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun toFlt64() = value.toFlt64()
     override fun toFltX() = value.toFltX()
 }
-
-
-
-

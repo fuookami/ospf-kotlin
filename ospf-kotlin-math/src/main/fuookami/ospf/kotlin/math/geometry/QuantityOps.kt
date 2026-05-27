@@ -1,9 +1,16 @@
+/**
+ * 几何数量运算
+ * Geometry Quantity Operations
+ *
+ * 提供几何空间中浮点数的基本运算函数（加、减、乘、除、比较等）。
+ * Provides basic arithmetic operation functions (add, subtract, multiply, divide, compare, etc.) for floating-point numbers in geometric space.
+ */
 @file:JvmName("GeometryOpsKt")
 
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 internal fun <V : FloatingNumber<V>> quantityPlus(lhs: V, rhs: V): V {
     return lhs + rhs

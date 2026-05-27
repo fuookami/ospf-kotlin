@@ -6,6 +6,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.bottomPlacements
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.topPlacements
 
+
+
+
+
 fun QuantityPlacement3<*>.toItemPlacementOrNull(): ItemPlacement3? {
     val item = unit as? Item ?: return null
     val itemView = view as? ItemView ?: ItemView(item, orientation)

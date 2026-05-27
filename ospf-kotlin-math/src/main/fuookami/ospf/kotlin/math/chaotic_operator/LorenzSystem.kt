@@ -15,19 +15,23 @@ package fuookami.ospf.kotlin.math.chaotic_operator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.nextFlt64
-import kotlin.random.Random
 import fuookami.ospf.kotlin.math.geometry.point3
+import kotlin.random.Random
 
 /**
- * 洛伦兹系绌
+ * 洛伦兹系统
  * Lorenz System
+ *
+ * @property a 系统参数 a（普朗特数） / System parameter a (Prandtl number)
+ * @property b 系统参数 b / System parameter b
+ * @property c 系统参数 c（瑞利数） / System parameter c (Rayleigh number)
+ * @property h 时间步长 / Time step size
  */
 data class LorenzSystem<V : FloatingNumber<V>>(
     val a: V,

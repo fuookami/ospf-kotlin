@@ -1,26 +1,30 @@
+/**
+ * 元模型导出支持
+ * MetaModel export support
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
-import fuookami.ospf.kotlin.core.token.MutableTokenTable
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import java.io.FileWriter
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.neq
 import fuookami.ospf.kotlin.utils.functional.ok
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.FileWriter
-import java.nio.file.Path
-import kotlin.io.path.isDirectory
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.core.token.MutableTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
 
 /**
  * MetaModel 导出支持。
@@ -157,4 +161,3 @@ private suspend fun <V> exportMetaModelOpm(
         ok
     }
 }
-

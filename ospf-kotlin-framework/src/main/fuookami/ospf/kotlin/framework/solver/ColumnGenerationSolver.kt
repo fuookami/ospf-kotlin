@@ -19,7 +19,7 @@ import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_symbol.castLinearMetaModelForSolver
+import fuookami.ospf.kotlin.core.symbol.castLinearMetaModelForSolver
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.convertTo
 import fuookami.ospf.kotlin.core.solver.value.IntoValue

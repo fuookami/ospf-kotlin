@@ -12,42 +12,41 @@ Chaotic system attractors and iterative maps for OSPF Kotlin. Provides 27+ imple
 |--------|-----------|-------------|
 | `LorenzSystem` | a, b, c, h | Classic Lorenz attractor (butterfly effect), 1963 |
 | `ChenSystem` | a, b, c, h | Chen attractor, dual of Lorenz |
-| `RosslerAttractor` | a, b, c, h | Rossler attractor, simpler than Lorenz |
-| `ChenCelikovskyAttractor` | a, b, c, d, h | Generalized Chen system |
-| `ChenLeeAttractor` | a, b, c, h | Chen-Lee variant |
-| `CoulletAttractor` | a, b, c, h | Coullet system |
-| `BurkeShawAttractor` | a, b, c, h | Burke-Shaw system |
-| `BoualiAttractor` | a, b, c, d, h | Bouali system |
-| `AizawaAttractor` | a, b, c, d, e, f, h | Aizawa attractor |
-| `AnishchenkoAstakhovAttractor` | a, b, c, d, h | Anishchenko-Astakhov system |
-| `ArneodoAttractor` | a, b, c, d, h | Arneodo attractor |
-| `ChuaAttractor` | a, b, c, d, e, h | Chua's circuit attractor |
+| `ChenCelikovskyAttractor` | alpha, beta, delta, h | Generalized Chen system |
+| `ChenLeeAttractor` | alpha, beta, delta, h | Chen-Lee variant |
+| `CoulletAttractor` | alpha, beta, delta, zeta, h | Coullet system |
+| `BurkeShawAttractor` | zeta, nu, h | Burke-Shaw system |
+| `BoualiAttractor` | alpha, zeta, h | Bouali system |
+| `AizawaAttractor` | alpha, beta, gamma, delta, epsilon, zeta, h | Aizawa attractor |
+| `AnishchenkoAstakhovAttractor` | mu, eta, h | Anishchenko-Astakhov system |
+| `ArneodoAttractor` | alpha, beta, delta, h | Arneodo attractor |
+| `ChuaAttractor` | alpha, beta, delta, epsilon, zeta, h | Chua's circuit attractor |
 | `Brusselator` | a, b, h | Brusselator chemical model |
 
 ### 2D/3D Discrete Maps
 
 | System | Parameters | Description |
 |--------|-----------|-------------|
-| `ArnoldsCatMap` | h | Arnold's cat map |
+| `ArnoldsCatMap` | - | Arnold's cat map |
 | `BakersMap` | - | Baker's map |
-| `BogdanovMap` | a, b, c, d | Bogdanov map |
-| `CircleMap` | K, Omega | Circle map |
-| `ArnoldTongue` | - | Arnold tongue visualization |
-| `ChebyshevMap` | n | Chebyshev polynomial map |
-| `GaussMap` | a, q | Gauss map |
-| `ComplexQuadraticPolynomial` | c | Complex quadratic map (Mandelbrot/Julia) |
+| `BogdanovMap` | epsilon, kappa, mu | Bogdanov map |
+| `CircleMap` | alpha, beta | Circle map |
+| `ArnoldTongue` | omega, kappa | Arnold tongue visualization |
+| `ChebyshevMap` | a | Chebyshev polynomial map |
+| `GaussMap` | mu | Gauss map |
+| `ComplexQuadraticPolynomial` | c, d | Complex quadratic map (Mandelbrot/Julia) |
 | `ComplexSquaringMap` | - | Complex squaring map |
 
 ### Physical and Biological Models
 
 | System | Parameters | Description |
 |--------|-----------|-------------|
-| `BiologyChaoticModel` | a, b, c, d, h | Biological chaotic model |
-| `CapacitanceEquation` | a, b, c, d, h | Capacitance-based chaotic equation |
-| `CircuitChaotic` | a, b, c, h | Electronic circuit chaos |
-| `ChuaCircuit` | alpha, beta, m0, m1, h | Chua's circuit model |
-| `DoublePendulumSystem` | g, l1, l2, m1, m2, h | Double pendulum |
-| `CoupledLorenzAttractor` | a, b, c, k, h | Coupled Lorenz systems |
+| `BiologyChaoticModel` | a, b, c, r | Biological chaotic model |
+| `CapacitanceEquation` | a, b, c, d, e, h | Capacitance-based chaotic equation |
+| `CircuitChaotic` | a, b, c, d | Electronic circuit chaos |
+| `ChuaCircuit` | a, b, c, d, h | Chua's circuit model |
+| `DoublePendulumSystem` | m, l, g, h | Double pendulum |
+| `CoupledLorenzAttractor` | beta, gamma1, gamma2, epsilon, omicron, h | Coupled Lorenz systems |
 
 ## Usage
 

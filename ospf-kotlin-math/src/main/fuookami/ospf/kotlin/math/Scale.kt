@@ -10,54 +10,81 @@ package fuookami.ospf.kotlin.math
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.functional.Either
 
 private typealias ScaleBase = Either<FltX, RtnX>
 
+/**
+ * 科学计数缩放因子
+ * Scientific scaling factor
+ *
+ * @property scales 缩放因子列表 / List of scaling factors
+ */
 data class Scale(
     val scales: List<Pair<ScaleBase, FltX>> = emptyList()
 ) {
     companion object {
+        /** 阿托 (10^-18) / Atto (10^-18) */
         val atto = Scale(10, -18)
+        /** 飞托 (10^-15) / Femto (10^-15) */
         val femto = Scale(10, -15)
+        /** 皮可 (10^-12) / Pico (10^-12) */
         val pico = Scale(10, -12)
+        /** 纳诺 (10^-9) / Nano (10^-9) */
         val nano = Scale(10, -9)
+        /** 微 (10^-6) / Micro (10^-6) */
         val micro = Scale(10, -6)
+        /** 毫 (10^-3) / Milli (10^-3) */
         val milli = Scale(10, -3)
+        /** 厘 (10^-2) / Centi (10^-2) */
         val centi = Scale(10, -2)
+        /** 分 (10^-1) / Deci (10^-1) */
         val deci = Scale(10, -1)
+        /** 十 (10^1) / Deca (10^1) */
         val deca = Scale(10, 1)
+        /** 百 (10^2) / Hecto (10^2) */
         val hecto = Scale(10, 2)
+        /** 千 (10^3) / Kilo (10^3) */
         val kilo = Scale(10, 3)
+        /** 兆 (10^6) / Mega (10^6) */
         val mega = Scale(10, 6)
+        /** 吉 (10^9) / Giga (10^9) */
         val giga = Scale(10, 9)
+        /** 太 (10^12) / Tera (10^12) */
         val tera = Scale(10, 12)
+        /** 拍 (10^15) / Peta (10^15) */
         val peta = Scale(10, 15)
+        /** 艾 (10^18) / Exa (10^18) */
         val exa = Scale(10, 18)
 
+        /** 从 FltX 底数和 FltX 指数创建缩放因子 / Create scale from FltX base and FltX exponent */
         operator fun invoke(base: FltX, index: FltX): Scale {
             val base: ScaleBase = Either.Left(base)
             return Scale(listOf(base to index))
         }
 
+        /** 从 FltX 底数和 Int 指数创建缩放因子 / Create scale from FltX base and Int exponent */
         operator fun invoke(base: FltX, index: Int = 1): Scale {
             return Scale(base, FltX(index.toLong()))
         }
 
+        /** 从 Double 底数和 Int 指数创建缩放因子 / Create scale from Double base and Int exponent */
         operator fun invoke(base: Double, index: Int = 1): Scale {
             return Scale(FltX(base), index)
         }
 
+        /** 从 Int 底数和 Int 指数创建缩放因子 / Create scale from Int base and Int exponent */
         operator fun invoke(base: Int, index: Int = 1): Scale {
             return Scale(FltX(base.toLong()), index)
         }
 
+        /** 从 RtnX 底数和 FltX 指数创建缩放因子 / Create scale from RtnX base and FltX exponent */
         operator fun invoke(base: RtnX, index: FltX): Scale {
             val base: ScaleBase = Either.Right(base)
             return Scale(listOf(base to index))
         }
 
+        /** 从 RtnX 底数和 Int 指数创建缩放因子 / Create scale from RtnX base and Int exponent */
         operator fun invoke(base: RtnX, index: Int = 1): Scale {
             val base: ScaleBase = Either.Right(base)
             return Scale(listOf(base to FltX(index.toLong())))
@@ -174,6 +201,7 @@ data class Scale(
         return Scale(merged.tidy())
     }
 
+    /** 乘以 FltX / Multiply by FltX */
     operator fun times(other: FltX): Scale {
         if (other eq FltX.zero) {
             return Scale(FltX.zero, FltX.one)
@@ -182,6 +210,7 @@ data class Scale(
         return updateSingleBase(base, FltX.one)
     }
 
+    /** 乘以 RtnX / Multiply by RtnX */
     operator fun times(other: RtnX): Scale {
         if (other eq RtnX.zero) {
             return Scale(FltX.zero, FltX.one)
@@ -190,6 +219,7 @@ data class Scale(
         return updateSingleBase(base, FltX.one)
     }
 
+    /** 除以 FltX / Divide by FltX */
     operator fun div(other: FltX): Scale {
         if (other eq FltX.zero) {
             throw ArithmeticException("Cannot divide by zero")
@@ -198,6 +228,7 @@ data class Scale(
         return updateSingleBase(base, -FltX.one)
     }
 
+    /** 除以 RtnX / Divide by RtnX */
     operator fun div(other: RtnX): Scale {
         if (other eq RtnX.zero) {
             throw ArithmeticException("Cannot divide by zero")
@@ -206,19 +237,18 @@ data class Scale(
         return updateSingleBase(base, -FltX.one)
     }
 
+    /** 乘以另一个缩放因子 / Multiply by another scale */
     operator fun times(other: Scale): Scale {
         return mergeWithScale(other, subtract = false)
     }
 
+    /** 除以另一个缩放因子 / Divide by another scale */
     operator fun div(other: Scale): Scale {
         return mergeWithScale(other, subtract = true)
     }
 }
 
-// for java
+/** 获取缩放因子的值（Java 互操作） / Get scale value (Java interop) */
 fun getValue(scale: Scale): FltX {
     return scale.value
 }
-
-
-

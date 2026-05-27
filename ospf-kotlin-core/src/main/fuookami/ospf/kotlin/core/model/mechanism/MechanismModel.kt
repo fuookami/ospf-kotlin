@@ -1,53 +1,54 @@
+/**
+ * 机制模型
+ * Mechanism model
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.TokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
-import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticMathFunctionSymbolBase
-import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.normalize
-import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.inequality.ge
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.utils.functional.*
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.core.error.CoreError
-import fuookami.ospf.kotlin.core.error.ModelError
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.symbol.inequality.ge
+import fuookami.ospf.kotlin.math.symbol.inequality.le
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.normalize
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
-import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
-import fuookami.ospf.kotlin.core.token.register
+import fuookami.ospf.kotlin.core.error.CoreError
+import fuookami.ospf.kotlin.core.error.ModelError
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.MemoryCleanupPolicy
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.token.TokenTable
+import fuookami.ospf.kotlin.core.token.register
+import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.symbol.function.QuadraticMathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
@@ -109,7 +110,6 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
 interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<SubObject<V>>
 }
-
 
 private fun validateDualById(
     constraints: List<Constraint<*, *>>,
@@ -1063,4 +1063,3 @@ class QuadraticMechanismModel<V>(
         return name
     }
 }
-

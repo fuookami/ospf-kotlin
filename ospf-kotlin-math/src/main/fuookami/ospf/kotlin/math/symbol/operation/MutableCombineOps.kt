@@ -25,12 +25,14 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 // ============================================================================
 
 /**
+ * 原地合并可变线性多项式中的同类项
  * Combine like terms in a mutable linear polynomial in-place.
  *
+ * 这是 FastSum 模式：先用 += 累积，最后一次性合并同类项。
  * This is the FastSum pattern: accumulate with +=, then combine once at the end.
  *
- * @param zero Zero value for the coefficient type
- * @param isZero Predicate to check if a value is zero
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  */
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
     zero: T,
@@ -42,7 +44,12 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
 }
 
 /**
+ * 累加多项式并合并同类项（一步操作）
  * Add a polynomial and combine terms in one operation.
+ *
+ * @param rhs 要累加的多项式 / Polynomial to add
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  */
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
     rhs: LinearPolynomial<T>,
@@ -57,7 +64,12 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
 }
 
 /**
+ * 减去多项式并合并同类项（一步操作）
  * Subtract a polynomial and combine terms in one operation.
+ *
+ * @param rhs 要减去的多项式 / Polynomial to subtract
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  */
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
     rhs: LinearPolynomial<T>,
@@ -76,11 +88,12 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
 // ============================================================================
 
 /**
+ * 原地合并可变二次多项式中的同类项
  * Combine like terms in a mutable quadratic polynomial in-place.
  *
- * @param zero Zero value for the coefficient type
- * @param isZero Predicate to check if a value is zero
- * @param symbolComparator Comparator for symbol ordering (optional)
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  */
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.combineTerms(
     zero: T,
@@ -93,7 +106,13 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.combineTerms(
 }
 
 /**
+ * 累加多项式并合并同类项（一步操作）
  * Add a polynomial and combine terms in one operation.
+ *
+ * @param rhs 要累加的多项式 / Polynomial to add
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  */
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.addAssignAndCombine(
     rhs: QuadraticPolynomial<T>,
@@ -109,7 +128,13 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.addAssignAndCombine(
 }
 
 /**
+ * 减去多项式并合并同类项（一步操作）
  * Subtract a polynomial and combine terms in one operation.
+ *
+ * @param rhs 要减去的多项式 / Polynomial to subtract
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  */
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssignAndCombine(
     rhs: QuadraticPolynomial<T>,
@@ -129,13 +154,15 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssignAndCombine(
 // ============================================================================
 
 /**
+ * 原地合并可变规范多项式中的同类项
  * Combine like terms in a mutable canonical polynomial in-place.
  *
+ * 使用 PowerVectorKey 进行高效合并（参见 CanonicalOps.kt）。
  * Uses PowerVectorKey for optimal performance (see CanonicalOps.kt).
  *
- * @param zero Zero value for the coefficient type
- * @param isZero Predicate to check if a value is zero
- * @param symbolComparator Comparator for symbol ordering (optional)
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  */
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.combineTerms(
     zero: T,
@@ -149,7 +176,13 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.combineTerms(
 }
 
 /**
+ * 累加多项式并合并同类项（一步操作）
  * Add a polynomial and combine terms in one operation.
+ *
+ * @param rhs 要累加的多项式 / Polynomial to add
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  */
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.addAssignAndCombine(
     rhs: CanonicalPolynomial<T>,
@@ -165,7 +198,13 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.addAssignAndCombine(
 }
 
 /**
+ * 减去多项式并合并同类项（一步操作）
  * Subtract a polynomial and combine terms in one operation.
+ *
+ * @param rhs 要减去的多项式 / Polynomial to subtract
+ * @param zero 系数类型的零值 / Zero value for the coefficient type
+ * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
+ * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  */
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssignAndCombine(
     rhs: CanonicalPolynomial<T>,

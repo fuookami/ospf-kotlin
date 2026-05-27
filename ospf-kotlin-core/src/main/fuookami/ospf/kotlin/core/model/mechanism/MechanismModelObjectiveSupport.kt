@@ -1,12 +1,16 @@
+/**
+ * 机制模型目标函数构建支持
+ * Mechanism model objective function building support
+ */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 
 internal fun <V> buildLinearObjectiveSubObjects(
     metaModel: LinearMetaModel<V>,

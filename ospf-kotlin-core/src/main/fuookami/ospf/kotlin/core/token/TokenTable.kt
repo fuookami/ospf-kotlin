@@ -1,24 +1,33 @@
+/**
+ * Token 表接口与实现，管理中间符号的注册、缓存与求解结果。
+ * Token table interfaces and implementations managing intermediate symbol registration, caching, and solve results.
+ */
 package fuookami.ospf.kotlin.core.token
 
-
-import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.ord
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
+/**
+ * 重复符号错误，当尝试注册已存在的符号时抛出。
+ * Repeated symbol error thrown when attempting to register an already-existing symbol.
+ *
+ * @property repeatedSymbol 已存在的重复符号 / The pre-existing repeated symbol
+ * @property symbol 新注册的冲突符号 / The new conflicting symbol being registered
+ */
 class RepeatedSymbolError(
     val repeatedSymbol: IntermediateSymbol<*>,
     val symbol: IntermediateSymbol<*>
@@ -26,6 +35,10 @@ class RepeatedSymbolError(
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
 }
 
+/**
+ * Token 表的抽象接口，定义符号注册、缓存查询和求解结果管理的契约。
+ * Abstract interface for token tables, defining the contract for symbol registration, cache queries, and solution management.
+ */
 interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val category: Category
     val tokenList: AbstractTokenList<V>
@@ -219,7 +232,6 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = emptyMap()
 }
 
-
 /**
  * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
  */
@@ -241,7 +253,14 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
     fun removeSymbol(symbol: IntermediateSymbol<*>) = remove(symbol)
 }
 
-
+/**
+ * 不可变 token 表实现，封装已注册的 token 列表和符号集合。
+ * Immutable token table implementation wrapping a registered token list and symbol collection.
+ *
+ * @property category 符号操作类别 / Symbol operation category
+ * @property tokenList token 列表 / Token list
+ * @property symbols 已注册的中间符号集合 / Registered intermediate symbol collection
+ */
 data class TokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractTokenList<V>,
@@ -374,7 +393,13 @@ data class TokenTable<V>(
     }
 }
 
-
+/**
+ * 可变 token 表的密封基类，支持符号和变量的增删操作。
+ * Sealed base class for mutable token tables, supporting add/remove of symbols and variables.
+ *
+ * @property category 符号操作类别 / Symbol operation category
+ * @property tokenList 可变 token 列表 / Mutable token list
+ */
 sealed class MutableTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractMutableTokenList<V>,
@@ -609,7 +634,13 @@ sealed class MutableTokenTable<V>(
     }
 }
 
-
+/**
+ * 自动 token 表，变量缺失时自动创建 token。
+ * Auto token table that creates tokens on-the-fly for missing variables.
+ *
+ * @property category 符号操作类别 / Symbol operation category
+ * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+ */
 class AutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean,
@@ -630,6 +661,13 @@ class AutoTokenTable<V>(
     }
 }
 
+/**
+ * 手动 token 表，变量需显式添加后才能使用。
+ * Manual token table where variables must be explicitly added before use.
+ *
+ * @property category 符号操作类别 / Symbol operation category
+ * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+ */
 class ManualTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean,
@@ -649,4 +687,3 @@ class ManualTokenTable<V>(
         )
     }
 }
-

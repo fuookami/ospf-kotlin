@@ -1,18 +1,30 @@
+/**
+ * 求解器输出数据结构
+ * Solver output data structures
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.output
 
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
+/**
+ * 求解器输出的密封接口。
+ * Sealed interface for solver output.
+ */
 sealed interface SolverOutput {}
+/**
+ * 统一求解器输出接口，包含通用的求解统计信息。
+ * Unified solver output interface, containing common solving statistics.
+ */
 sealed interface UnifiedSolverOutput : SolverOutput {
     val iterations: UInt64?
     val nodeCount: UInt64?
@@ -20,7 +32,16 @@ sealed interface UnifiedSolverOutput : SolverOutput {
     val mipGap: Flt64?
     val solveTime: Duration?
 }
+/**
+ * 线性求解器输出接口。
+ * Linear solver output interface.
+ */
 sealed interface LinearSolverOutput : SolverOutput {}
+
+/**
+ * 二次求解器输出接口。
+ * Quadratic solver output interface.
+ */
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
 @Suppress("UNCHECKED_CAST")
@@ -34,6 +55,25 @@ private fun <V> castSolverFlt64FallbackToValueOrThrow(fieldName: String, value: 
     return value as V
 }
 
+/**
+ * 可行求解器输出，包含目标值、解和求解统计信息。
+ * Feasible solver output, containing objective value, solution, and solving statistics.
+ *
+ * @param V 值类型 / Value type
+ * @property obj 目标值（Flt64）/ Objective value (Flt64)
+ * @property solution 解 / Solution
+ * @property time 求解时间 / Solve time
+ * @property possibleBestObj 可能的最优目标值 / Possible best objective value
+ * @property gap 间隙 / Gap
+ * @property iterations 迭代次数（可选）/ Iteration count (optional)
+ * @property nodeCount 节点数（可选）/ Node count (optional)
+ * @property bestBound 最优界（可选）/ Best bound (optional)
+ * @property mipGap MIP 间隙 / MIP gap
+ * @property solveTime 求解时间 / Solve time
+ * @property objValue 目标值（V 类型）/ Objective value (V type)
+ * @property possibleBestObjValue 可能的最优目标值（V 类型）/ Possible best objective value (V type)
+ * @property bestBoundValue 最优界（V 类型，可选）/ Best bound (V type, optional)
+ */
 data class FeasibleSolverOutput<V>(
     val obj: Flt64,
     val solution: Solution<V>,
@@ -49,7 +89,6 @@ data class FeasibleSolverOutput<V>(
     val possibleBestObjValue: V = castSolverFlt64FallbackToValueOrThrow("possibleBestObjValue", possibleBestObj, solution),
     val bestBoundValue: V? = bestBound?.let { castSolverFlt64FallbackToValueOrThrow("bestBoundValue", it, solution) }
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
-
 
 fun <V> FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -70,6 +109,17 @@ fun <V> FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>.con
     )
 }
 
+/**
+ * 线性不可行求解器输出，包含 IIS 信息。
+ * Linear infeasible solver output, containing IIS information.
+ *
+ * @property iis 不可行子系统模型视图 / Infeasible subsystem model view
+ * @property iterations 迭代次数（可选）/ Iteration count (optional)
+ * @property nodeCount 节点数（可选）/ Node count (optional)
+ * @property bestBound 最优界（可选）/ Best bound (optional)
+ * @property mipGap MIP 间隙（可选）/ MIP gap (optional)
+ * @property solveTime 求解时间（可选）/ Solve time (optional)
+ */
 data class LinearInfeasibleSolverOutput(
     val iis: BasicLinearTriadModelView,
     override val iterations: UInt64? = null,
@@ -79,6 +129,17 @@ data class LinearInfeasibleSolverOutput(
     override val solveTime: Duration? = null
 ) : LinearSolverOutput, UnifiedSolverOutput
 
+/**
+ * 二次不可行求解器输出，包含 IIS 信息。
+ * Quadratic infeasible solver output, containing IIS information.
+ *
+ * @property iis 不可行子系统模型视图 / Infeasible subsystem model view
+ * @property iterations 迭代次数（可选）/ Iteration count (optional)
+ * @property nodeCount 节点数（可选）/ Node count (optional)
+ * @property bestBound 最优界（可选）/ Best bound (optional)
+ * @property mipGap MIP 间隙（可选）/ MIP gap (optional)
+ * @property solveTime 求解时间（可选）/ Solve time (optional)
+ */
 data class QuadraticInfeasibleSolverOutput(
     val iis: QuadraticTetradModelView,
     override val iterations: UInt64? = null,
@@ -88,6 +149,14 @@ data class QuadraticInfeasibleSolverOutput(
     override val solveTime: Duration? = null
 ) : QuadraticSolverOutput, UnifiedSolverOutput
 
+/**
+ * 带 IIS 的求解器输出包装。
+ * Solver output wrapper with IIS.
+ *
+ * @param IIS IIS 类型 / IIS type
+ * @property output 求解器输出 / Solver output
+ * @property iis IIS 信息（可选）/ IIS information (optional)
+ */
 data class SolverOutputWithIIS<out IIS>(
     val output: SolverOutput,
     val iis: IIS?
@@ -120,4 +189,3 @@ fun QuadraticInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<QuadraticTetr
         iis = iis
     )
 }
-

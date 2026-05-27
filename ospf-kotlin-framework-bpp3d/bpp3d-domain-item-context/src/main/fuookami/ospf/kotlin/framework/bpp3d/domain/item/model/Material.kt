@@ -2,8 +2,9 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
@@ -11,10 +12,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
-
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
+
+
+
+
+
+
 
 enum class MaterialType {
     RawMaterial,
@@ -57,7 +62,7 @@ open class Material(
     val manufacturer: String? = null,
     val supplier: String? = null,
     val warehouse: String? = null,
-    val weight: LegacyQuantity = Quantity(legacyZero(), Kilogram)
+    val weight: Quantity<Flt64> = Quantity(legacyZero(), Kilogram)
 ) {
     open val key: MaterialKey
         get() = MaterialKey(
@@ -67,3 +72,4 @@ open class Material(
             supplier = supplier
         )
 }
+

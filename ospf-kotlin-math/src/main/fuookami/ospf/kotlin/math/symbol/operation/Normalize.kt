@@ -1,3 +1,12 @@
+/**
+ * Flt64 不等式规范化
+ * Flt64 Inequality Normalization
+ *
+ * 提供 Flt64 线性和二次不等式的规范化操作。
+ * 将不等式两侧归并为左侧减右侧、右侧为零的标准形式。
+ * Provides normalization operations for Flt64 linear and quadratic inequalities.
+ * Standardizes inequalities to LHS-minus-RHS form with zero on the right-hand side.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -8,6 +17,12 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.subtractLinear
 
+/**
+ * 将 Flt64 线性不等式规范化为标准形式（LHS - RHS <= 0）
+ * Normalize a Flt64 linear inequality to standard form (LHS - RHS <= 0)
+ *
+ * @return 规范化的不等式 / Normalized inequality
+ */
 fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val normalizedLhs = lhs.subtractLinear(rhs, Flt64.zero).combineTerms()
     return copy(
@@ -16,6 +31,12 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize()
     )
 }
 
+/**
+ * 将 Flt64 二次不等式规范化为标准形式（LHS - RHS <= 0）
+ * Normalize a Flt64 quadratic inequality to standard form (LHS - RHS <= 0)
+ *
+ * @return 规范化的不等式 / Normalized inequality
+ */
 fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val negatedRhsMonomials = rhs.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
     val diff = QuadraticPolynomial(

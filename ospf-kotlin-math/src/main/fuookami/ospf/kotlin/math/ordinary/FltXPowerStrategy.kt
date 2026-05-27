@@ -22,12 +22,11 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import java.math.RoundingMode
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import java.math.RoundingMode
 
 /**
  * FltX 级数计算结果
@@ -51,6 +50,7 @@ data class FltXSeriesResult(
  * Provides high-precision power, exponential, and logarithm operations for FltX.
  */
 object FltXPowerStrategy {
+    /** 根据精度位数计算默认精度阈值 / Compute default precision threshold from digit count */
     fun defaultPrecision(digits: Int): FltX {
         val normalizedDigits = if (digits <= 0) {
             1
@@ -66,6 +66,7 @@ object FltXPowerStrategy {
         return min(threshold, FltX.epsilon)
     }
 
+    /** 计算 FltX 自然对数 / Compute FltX natural logarithm */
     fun ln(
         x: FltX,
         digits: Int,
@@ -73,6 +74,7 @@ object FltXPowerStrategy {
         maxIterations: Int = 8192
     ): FltX? = lnWithStats(x, digits, precision, maxIterations)?.value
 
+    /** 计算 FltX 自然对数，返回包含迭代统计的结果 / Compute FltX natural logarithm with iteration statistics */
     fun lnWithStats(
         x: FltX,
         digits: Int,
@@ -128,6 +130,7 @@ object FltXPowerStrategy {
         return FltXSeriesResult((value * FltX.two).withScale(scale, RoundingMode.HALF_UP), iterations, false)
     }
 
+    /** 计算 FltX 指数函数 / Compute FltX exponential function */
     fun exp(
         index: FltX,
         digits: Int,
@@ -135,6 +138,7 @@ object FltXPowerStrategy {
         maxIterations: Int = 8192
     ): FltX = expWithStats(index, digits, precision, maxIterations).value
 
+    /** 计算 FltX 指数函数，返回包含迭代统计的结果 / Compute FltX exponential with iteration statistics */
     fun expWithStats(
         index: FltX,
         digits: Int,
@@ -164,6 +168,7 @@ object FltXPowerStrategy {
         return FltXSeriesResult(value, iterations, false)
     }
 
+    /** 计算 FltX 幂函数，通过 ln 和 exp 实现 / Compute FltX power function via ln and exp */
     fun pow(
         base: FltX,
         index: FltX,
@@ -185,10 +190,3 @@ object FltXPowerStrategy {
         return exp(index * lnBase, digits, precision, maxIterations)
     }
 }
-
-
-
-
-
-
-

@@ -1,3 +1,7 @@
+/**
+ * 值类型转换接口
+ * Value type conversion interface
+ */
 package fuookami.ospf.kotlin.core.solver.value
 
 import fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter

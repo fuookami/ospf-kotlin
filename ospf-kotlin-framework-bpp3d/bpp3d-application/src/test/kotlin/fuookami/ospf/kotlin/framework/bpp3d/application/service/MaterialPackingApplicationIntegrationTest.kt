@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
@@ -71,7 +72,7 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private fun material(no: String, unitWeightKg: Double): Material {
+    private fun material(no: String, unitWeightKg: Flt64): Material {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -155,7 +156,7 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private inner class FixedValueSolver(private val milpValue: Double) : ColumnGenerationSolver {
+    private inner class FixedValueSolver(private val milpValue: Flt64) : ColumnGenerationSolver {
         override val name: String = "fixed-value-solver"
 
         override suspend fun solveMILP(
@@ -165,7 +166,7 @@ class MaterialPackingApplicationIntegrationTest {
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
         ): Ret<FeasibleSolverOutput<Flt64>> {
-            val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64(milpValue) }
+            val solution = List(metaModel.tokens.tokensInSolver.size) { milpValue }
             return Ok(
                 FeasibleSolverOutput(
                     obj = Flt64(10.0),
@@ -207,10 +208,10 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun materialAmountOnlyShouldBePackedThenEnterCgFlow() = runBlocking {
-        val material = material("M-A1", 1.0)
+        val material = material("M-A1", Flt64.one)
         val seed = seedItem("seed-a1", material)
         val layer = seedLayer(seed)
-        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = 3.0))
+        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(3.0)))
 
         val response = service.solve(
             request = ColumnGenerationApplicationRequest(
@@ -239,10 +240,10 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun materialWeightOnlyShouldBePackedThenEnterCgFlow() = runBlocking {
-        val material = material("M-W1", 2.0)
+        val material = material("M-W1", Flt64(2.0))
         val seed = seedItem("seed-w1", material)
         val layer = seedLayer(seed)
-        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = 3.0))
+        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(3.0)))
 
         val response = service.solve(
             request = ColumnGenerationApplicationRequest(
@@ -271,10 +272,10 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun materialPackingSummaryShouldMatchFinalPackingAnalyzerSummary() = runBlocking {
-        val material = material("M-S1", 1.0)
+        val material = material("M-S1", Flt64.one)
         val seed = seedItem("seed-s1", material)
         val layer = seedLayer(seed)
-        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = 4.0))
+        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(4.0)))
 
         val response = service.solve(
             request = ColumnGenerationApplicationRequest(
@@ -304,6 +305,62 @@ class MaterialPackingApplicationIntegrationTest {
         assertEquals(plan.normalizedDemands[material.key], materialSummary[material.key])
     }
 
+    @Test
+    fun layerGenerationProgramDemandShouldWorkWithoutMaterialPacker() = runBlocking {
+        val material = material("M-PROGRAM-DIRECT", Flt64(2.0))
+        val candidate = MaterialPackingProgramCandidate(
+            id = "program-direct",
+            program = PackingProgram.innerPackageWithMaterialValues(
+                shape = PackageShape(
+                    width = 1.0 * Meter,
+                    height = 1.0 * Meter,
+                    depth = 1.0 * Meter,
+                    weight = 1.0 * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(
+                    material.key to PackingProgramMaterialValue(
+                        amount = UInt64(2)
+                    )
+                )
+            )
+        )
+        val programItem = candidate.toLayerGenerationItem(
+            sequence = 1,
+            materialCatalog = mapOf(material.key to material)
+        ) as ActualItem
+        val layer = seedLayer(programItem)
+        val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64.one))
+
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = emptyList(),
+                materialAmountDemands = listOf(Pair(material, UInt64(2))),
+                layerGenerationProgramDemands = listOf(Pair(candidate, UInt64.one)),
+                programMaterialCatalog = mapOf(material.key to material),
+                initialColumns = listOf(layer),
+                finalBins = listOf(finalBinOf(layer)),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(null, response.materialPackingPlan)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        assertEquals(UInt64(2), materialSummary[material.key])
+    }
+
     private fun fakeConstraint(origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint): Constraint<Flt64, Linear> {
         return object : Constraint<Flt64, Linear> {
             override val lhs: List<Cell<Flt64>> = emptyList()
@@ -312,7 +369,7 @@ class MaterialPackingApplicationIntegrationTest {
             override val lazy: Boolean = false
             override val name: String = "fake-dual"
             override val origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint = origin
-            override val from: Pair<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>, Boolean>? = null
+            override val from: Pair<fuookami.ospf.kotlin.core.symbol.IntermediateSymbol<*>, Boolean>? = null
 
             override fun isTrue(): Boolean? = true
             override fun isTrue(results: List<Flt64>): Boolean? = true
