@@ -196,6 +196,18 @@ interface PartialOrd<in Self> : PartialEq<Self> {
         return partialOrd(rhs)?.let { it is Order.Equal }
     }
 
+    /**
+     * 部分排序比较
+     *
+     * Compares `this` value with [rhs] for partial ordering.
+     * Returns [Order] if the values are comparable, or `null` if they are not.
+     *
+     * 将当前值与 [rhs] 进行部分排序比较。
+     * 如果两个值可比较则返回 [Order]，否则返回 `null`。
+     *
+     * @param rhs 另一个待比较的值 / The other value to compare against
+     * @return 比较结果，不可比较时为 null / The ordering result, or null if not comparable
+     */
     infix fun partialOrd(rhs: Self): Order?
 }
 

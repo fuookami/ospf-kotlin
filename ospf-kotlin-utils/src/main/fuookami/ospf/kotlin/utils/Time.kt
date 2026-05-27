@@ -1,19 +1,19 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /**
  * 时间扩展函数
  *
  * Time extension functions providing utilities for Instant, Duration, LocalDate, and LocalDateTime.
  * 为 Instant、Duration、LocalDate 和 LocalDateTime 提供扩展功能。
  */
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.utils
 
+import kotlin.time.*
+import kotlin.time.Duration.Companion.days
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.plus
-import kotlin.time.*
-import kotlin.time.Duration.Companion.days
 
 /**
  * 返回两个时间戳中的较大值

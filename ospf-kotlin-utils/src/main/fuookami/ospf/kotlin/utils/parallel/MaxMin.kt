@@ -1,3 +1,8 @@
+/**
+ * 并行最小最大值操作
+ *
+ * Parallel min-max operations (returns both min and max in one pass) with concurrency control.
+ */
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.error.Err
@@ -10,17 +15,6 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
-
-/**
- * 并行最大/最小值操作
- *
- * Parallel max/min operations with concurrency control.
- *
- * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
- * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
- * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
- * Coroutine count is bound to concurrentAmount, not pre-created by input size.
- */
 
 // ============================================================================
 // maxBy 系列

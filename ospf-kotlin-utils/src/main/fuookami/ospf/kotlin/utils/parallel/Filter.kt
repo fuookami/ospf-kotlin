@@ -1,3 +1,8 @@
+/**
+ * 并行过滤操作
+ *
+ * Parallel filtering operations with concurrency control.
+ */
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -10,17 +15,6 @@ import fuookami.ospf.kotlin.utils.functional.SuspendIndexedPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
-
-/**
- * 并行过滤操作
- *
- * Parallel filtering operations with concurrency control.
- *
- * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
- * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
- * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
- * Coroutine count is bound to concurrentAmount, not pre-created by input size.
- */
 
 /**
  * 并行过滤满足条件的元素

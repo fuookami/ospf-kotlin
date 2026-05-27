@@ -8,10 +8,6 @@
  */
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.concept.Movable
-import fuookami.ospf.kotlin.utils.concept.copy
-import fuookami.ospf.kotlin.utils.concept.move
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -22,6 +18,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.concept.Movable
+import fuookami.ospf.kotlin.utils.concept.copy
+import fuookami.ospf.kotlin.utils.concept.move
 
 /**
  * Either 序列化器

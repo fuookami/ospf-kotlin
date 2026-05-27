@@ -41,7 +41,6 @@ interface PartialEq<in Self> {
     infix fun partialEq(rhs: Self): Boolean?
 }
 
-
 /**
  * 完全相等接口
  *

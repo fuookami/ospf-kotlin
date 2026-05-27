@@ -1,3 +1,5 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /**
  * Duration 序列化器
  *
@@ -13,8 +15,6 @@
  * - [ContinuousDurationSerializer]: 连续时间单位序列化器，使用 Double 类型
  *   - [ContinuousDurationSerializer]: Continuous time unit serializer using Double type
  */
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.utils.serialization
 
 import kotlinx.serialization.KSerializer

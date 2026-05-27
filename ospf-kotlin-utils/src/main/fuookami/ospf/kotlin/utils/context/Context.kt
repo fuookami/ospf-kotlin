@@ -1,3 +1,7 @@
+/**
+ * 本文件实现上下文管理系统，支持线程局部和协程作用域的变量存储。
+ * This file implements a context management system for thread-local and coroutine-scoped variable storage.
+ */
 package fuookami.ospf.kotlin.utils.context
 
 /**
@@ -73,6 +77,18 @@ data class ContextKey(
         }
     }
 
+    /**
+     * 判断两个上下文键是否相等
+     *
+     * Checks equality using [contentDeepEquals] for the stack tree array,
+     * ensuring structural comparison of array contents rather than reference equality.
+     *
+     * 使用 [contentDeepEquals] 对栈树数组进行结构化比较，
+     * 确保比较的是数组内容而非引用。
+     *
+     * @param other 待比较的对象 / The object to compare against
+     * @return 是否相等 / Whether the two keys are equal
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ContextKey) return false
@@ -83,6 +99,17 @@ data class ContextKey(
         return true
     }
 
+    /**
+     * 计算上下文键的哈希码
+     *
+     * Computes the hash code using [contentDeepHashCode] for the stack tree array,
+     * consistent with the structural equality defined in [equals].
+     *
+     * 使用 [contentDeepHashCode] 计算栈树数组的哈希码，
+     * 与 [equals] 中定义的结构化相等性保持一致。
+     *
+     * @return 哈希码 / The hash code
+     */
     override fun hashCode(): Int {
         var result = thread.hashCode()
         result = 31 * result + stackTree.contentDeepHashCode()
@@ -283,6 +310,15 @@ class Context<T>(
     private val key: Any,
     private val context: ContextVar<T>
 ) : AutoCloseable {
+    /**
+     * 关闭上下文，移除关联的值
+     *
+     * Closes this context by removing the associated value from the context variable.
+     * Typically called automatically via `use {}` or at the end of a scope.
+     *
+     * 关闭此上下文，从上下文变量中移除关联的值。
+     * 通常通过 `use {}` 或在作用域结束时自动调用。
+     */
     @Synchronized
     override fun close() {
         context.remove(key)

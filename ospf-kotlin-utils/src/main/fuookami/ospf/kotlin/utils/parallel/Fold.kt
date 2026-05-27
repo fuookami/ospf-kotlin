@@ -1,3 +1,8 @@
+/**
+ * 并行折叠操作
+ *
+ * Sequential fold/reduce operations with yield-based coroutine scheduling.
+ */
 package fuookami.ospf.kotlin.utils.parallel
 
 import kotlinx.coroutines.Deferred
@@ -13,19 +18,6 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
-
-/**
- * 并行折叠操作
- *
- * Parallel fold/reduce operations.
- *
- * 注意：Fold 操作本质上是顺序执行的累积操作，不适用于并行处理。
- * Note: Fold operations are inherently sequential accumulation operations, not suitable for parallelism.
- * segment 参数用于控制 yield 频率，防止长时间阻塞协程。
- * The segment parameter controls yield frequency to prevent long-running coroutine blocking.
- * 因此 Fold 系列不纳入 UTL-005 的并发控制范围。
- * Therefore, Fold series is excluded from UTL-005 concurrency control scope.
- */
 
 /**
  * 最大分段值
@@ -648,5 +640,3 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
     }
     return exResultOf(accumulator, errors)
 }
-
-

@@ -1,3 +1,7 @@
+/**
+ * 本文件定义应用程序中使用的所有错误码枚举。
+ * This file defines all error code enumerations used throughout the application.
+ */
 package fuookami.ospf.kotlin.utils.error
 
 /**
@@ -299,6 +303,13 @@ enum class ErrorCode(private val code: UByte) {
      */
     fun toULong() = this.code.toULong()
 
+    /**
+     * 返回错误码名称
+     *
+     * Returns the name of this error code.
+     *
+     * @return 错误码的名称字符串 / The name string of this error code
+     */
     override fun toString(): String {
         return this.name
     }

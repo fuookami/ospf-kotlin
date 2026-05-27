@@ -26,194 +26,393 @@ package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.error.*
 
-// Result: Basic result type with Ok and Failed states / 基础结果类型，包含 Ok 和 Failed 两种状态
+/**
+ * 基础结果类型，包含 Ok 和 Failed 两种状态
+ *
+ * Basic result type with Ok and Failed states.
+ * 基础结果类型，包含 Ok 和 Failed 两种状态。
+ *
+ * @param T 值的类型 / The type of the success value
+ * @param C 错误码的类型 / The type of the error code
+ * @param E 错误的类型 / The type of the error
+ */
 sealed interface Result<out T, C : Any, out E : Error<C>> {
+    /** 是否为成功结果 / Whether this is a successful result */
     val ok: Boolean get() = false
+    /** 是否为失败结果 / Whether this is a failed result */
     val failed: Boolean get() = false
+    /** 成功值，失败时为 null / The success value, or null if failed */
     val value: T? get() = null
 
+    /**
+     * 映射成功值
+     *
+     * Transforms the success value using the given function.
+     * 使用给定函数转换成功值。
+     *
+     * @param transform 值转换函数 / The transformation function
+     * @return 包含转换后值的新结果 / A new result containing the transformed value
+     */
     fun <U> map(transform: (T) -> U): Result<U, C, E>
 }
 
-// ExResult: Extended result type with Ok, Failed, and Warn states / 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态
+/**
+ * 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态
+ *
+ * Extended result type with Ok, Failed, and Warn states.
+ * 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态。
+ *
+ * @param T 值的类型 / The type of the success value
+ * @param C 错误码的类型 / The type of the error code
+ * @param E 错误的类型 / The type of the error
+ */
 sealed interface ExResult<out T, C : Any, out E : Error<C>> {
+    /** 是否为成功结果 / Whether this is a successful result */
     val ok: Boolean get() = false
+    /** 是否为失败结果 / Whether this is a failed result */
     val failed: Boolean get() = false
+    /** 是否为警告结果 / Whether this is a warned result */
     val warned: Boolean get() = false
+    /** 成功值，失败时为 null / The success value, or null if failed */
     val value: T? get() = null
 
+    /**
+     * 映射成功值
+     *
+     * Transforms the success value using the given function.
+     * 使用给定函数转换成功值。
+     *
+     * @param transform 值转换函数 / The transformation function
+     * @return 包含转换后值的新扩展结果 / A new ExResult containing the transformed value
+     */
     fun <U> map(transform: (T) -> U): ExResult<U, C, E>
 }
 
-// Ok: Success result with value / 成功结果，包含值
-// Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
+/**
+ * 成功结果，包含值
+ *
+ * Success result containing a value.
+ * Implements both Result and ExResult for code reuse.
+ * 成功结果，包含值。同时实现 Result 和 ExResult 以实现代码复用。
+ *
+ * @param T 值的类型 / The type of the success value
+ * @param C 错误码的类型 / The type of the error code
+ * @param E 错误的类型 / The type of the error
+ * @property value 成功值 / The success value
+ */
 class Ok<out T, C : Any, out E : Error<C>>(
     override val value: T
 ) : Result<T, C, E>, ExResult<T, C, E> {
+    /** 始终为 true / Always true for Ok */
     override val ok: Boolean get() = true
+    /** 始终为 false / Always false for Ok */
     override val failed: Boolean get() = false
 
+    /**
+     * 将值转换为指定类型
+     *
+     * Attempts to cast the value to the specified type.
+     * 尝试将值转换为指定类型。
+     *
+     * @param U 目标类型 / The target type
+     * @return 转换后的值，类型不匹配时返回 null / The cast value, or null if the type doesn't match
+     */
     inline fun <reified U> getAs(): U? {
         return value as? U
     }
 
+    /**
+     * 映射成功值
+     *
+     * Transforms the success value using the given function.
+     * 使用给定函数转换成功值。
+     *
+     * @param transform 值转换函数 / The transformation function
+     * @return 包含转换后值的新 Ok 实例 / A new Ok instance containing the transformed value
+     */
     override fun <U> map(transform: (T) -> U): Ok<U, C, E> {
         return Ok(transform(value))
     }
 }
 
-// Failed: Failed result with error / 失败结果，包含错误
-// Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
+/**
+ * 失败结果，包含错误
+ *
+ * Failed result containing an error.
+ * Implements both Result and ExResult for code reuse.
+ * 失败结果，包含错误。同时实现 Result 和 ExResult 以实现代码复用。
+ *
+ * @param T 值的类型 / The type of the success value (never used)
+ * @param C 错误码的类型 / The type of the error code
+ * @param E 错误的类型 / The type of the error
+ * @property error 错误信息 / The error information
+ */
 class Failed<out T, C : Any, out E : Error<C>>(
     val error: E
 ) : Result<T, C, E>, ExResult<T, C, E> {
     companion object {
+        /** 从错误码和消息创建 Failed / Create Failed from error code and message */
         operator fun <T> invoke(code: ErrorCode, message: String? = null): Failed<T, ErrorCode, Error<ErrorCode>> {
             return Failed(Err(code, message))
         }
 
+        /** 从错误码和附加值创建 Failed / Create Failed from error code and value */
         operator fun <T, E> invoke(code: ErrorCode, value: E): Failed<T, ErrorCode, Error<ErrorCode>> {
             return Failed(ExErr(code, value))
         }
 
+        /** 从错误码、消息和附加值创建 Failed / Create Failed from error code, message, and value */
         operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Failed<T, ErrorCode, Error<ErrorCode>> {
             return Failed(ExErr(code, message, value))
         }
 
+        /** 从自定义错误码和消息创建 Failed / Create Failed from custom error code and message */
         operator fun <T, C : Any> invoke(code: C, message: String? = null): Failed<T, C, Error<C>> {
             return Failed(Err(code, message))
         }
 
+        /** 从自定义错误码和附加值创建 Failed / Create Failed from custom error code and value */
         operator fun <T, C : Any, E> invoke(code: C, value: E): Failed<T, C, Error<C>> {
             return Failed(ExErr(code, value))
         }
 
+        /** 从自定义错误码、消息和附加值创建 Failed / Create Failed from custom error code, message, and value */
         operator fun <T, C : Any, E> invoke(code: C, message: String, value: E): Failed<T, C, Error<C>> {
             return Failed(ExErr(code, message, value))
         }
     }
 
+    /** 始终为 false / Always false for Failed */
     override val ok: Boolean get() = false
+    /** 始终为 true / Always true for Failed */
     override val failed: Boolean get() = true
+    /** 始终为 null / Always null for Failed */
     override val value: T? get() = null
 
+    /** 错误码 / The error code */
     val code by error::code
+    /** 错误消息 / The error message */
     val message by error::message
 
+    /** 是否包含附加值 / Whether the error contains an additional value */
     val withValue by error::withValue
+    /** 错误附加值 / The additional value attached to the error */
     val errValue by error::value
 
+    /**
+     * 映射（Failed 状态下保持不变）
+     *
+     * Returns a new Failed with the same error, ignoring the transform.
+     * 返回具有相同错误的新 Failed，忽略转换函数。
+     *
+     * @param transform 值转换函数（未使用）/ The transformation function (unused)
+     * @return 包含相同错误的新 Failed / A new Failed with the same error
+     */
     override fun <U> map(transform: (T) -> U): Failed<U, C, E> {
         return Failed(error)
     }
 }
 
-// Fatal: Fatal result with multiple errors / 致命结果，包含多个错误
-// Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
+/**
+ * 致命结果，包含多个错误
+ *
+ * Fatal result containing multiple errors.
+ * Implements both Result and ExResult for code reuse.
+ * 致命结果，包含多个错误。同时实现 Result 和 ExResult 以实现代码复用。
+ *
+ * @param T 值的类型 / The type of the success value (never used)
+ * @param C 错误码的类型 / The type of the error code
+ * @param E 错误的类型 / The type of the error
+ * @property errors 错误列表 / The list of errors
+ */
 class Fatal<out T, C : Any, out E : Error<C>>(
     val errors: List<E>
 ) : Result<T, C, E>, ExResult<T, C, E> {
     companion object {
+        /** 从多个错误创建 Fatal / Create Fatal from multiple errors */
         operator fun <T, C : Any> invoke(vararg errors: Error<C>): Fatal<T, C, Error<C>> {
             return Fatal(errors.toList())
         }
 
+        /** 从错误码和消息创建 Fatal / Create Fatal from error code and message */
         operator fun <T> invoke(code: ErrorCode, message: String? = null): Fatal<T, ErrorCode, Error<ErrorCode>> {
             return Fatal(listOf(Err(code, message)))
         }
 
+        /** 从错误码和附加值创建 Fatal / Create Fatal from error code and value */
         operator fun <T, E> invoke(code: ErrorCode, value: E): Fatal<T, ErrorCode, Error<ErrorCode>> {
             return Fatal(listOf(ExErr(code, value)))
         }
 
+        /** 从错误码、消息和附加值创建 Fatal / Create Fatal from error code, message, and value */
         operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Fatal<T, ErrorCode, Error<ErrorCode>> {
             return Fatal(listOf(ExErr(code, message, value)))
         }
 
+        /** 从自定义错误码和消息创建 Fatal / Create Fatal from custom error code and message */
         operator fun <T, C : Any> invoke(code: C, message: String? = null): Fatal<T, C, Error<C>> {
             return Fatal(listOf(Err(code, message)))
         }
 
+        /** 从自定义错误码和附加值创建 Fatal / Create Fatal from custom error code and value */
         operator fun <T, C : Any, E> invoke(code: C, value: E): Fatal<T, C, Error<C>> {
             return Fatal(listOf(ExErr(code, value)))
         }
 
+        /** 从自定义错误码、消息和附加值创建 Fatal / Create Fatal from custom error code, message, and value */
         operator fun <T, C : Any, E> invoke(code: C, message: String, value: E): Fatal<T, C, Error<C>> {
             return Fatal(listOf(ExErr(code, message, value)))
         }
     }
 
+    /** 始终为 false / Always false for Fatal */
     override val ok: Boolean get() = false
+    /** 始终为 true / Always true for Fatal */
     override val failed: Boolean get() = true
+    /** 始终为 null / Always null for Fatal */
     override val value: T? get() = null
 
+    /** 第一个错误，列表为空时为 null / The first error, or null if the list is empty */
     val firstError: E? get() = errors.firstOrNull()
+    /** 错误数量 / The number of errors */
     val size: Int get() = errors.size
+    /** 错误列表是否为空 / Whether the error list is empty */
     val isEmpty: Boolean get() = errors.isEmpty()
 
+    /**
+     * 映射（Fatal 状态下保持不变）
+     *
+     * Returns a new Fatal with the same errors, ignoring the transform.
+     * 返回具有相同错误的新 Fatal，忽略转换函数。
+     *
+     * @param transform 值转换函数（未使用）/ The transformation function (unused)
+     * @return 包含相同错误的新 Fatal / A new Fatal with the same errors
+     */
     override fun <U> map(transform: (T) -> U): Fatal<U, C, E> {
         return Fatal(errors)
     }
 
+    /**
+     * 合并两个 Fatal 的错误列表
+     *
+     * Merges this Fatal's errors with another Fatal's errors.
+     * 将此 Fatal 的错误列表与另一个 Fatal 的错误列表合并。
+     *
+     * @param other 要合并的另一个 Fatal / The other Fatal to merge with
+     * @return 包含所有错误的新 Fatal / A new Fatal containing all errors
+     */
     fun <U : Error<C>> merge(other: Fatal<*, C, U>): Fatal<T, C, Error<C>> {
         return Fatal(errors + other.errors)
     }
 
+    /**
+     * 遍历所有错误
+     *
+     * Iterates over all errors, applying the given action.
+     * 遍历所有错误，执行给定的操作。
+     *
+     * @param action 对每个错误执行的操作 / The action to perform on each error
+     */
     inline fun forEach(action: (E) -> Unit) {
         errors.forEach(action)
     }
 }
 
-// Warn: Warning result with both value and warning error / 警告结果，包含值和警告错误
-// Only implements ExResult / 仅实现 ExResult
+/**
+ * 警告结果，包含值和警告错误
+ *
+ * Warning result containing both a value and warning errors.
+ * Only implements ExResult.
+ * 警告结果，包含值和警告错误。仅实现 ExResult。
+ *
+ * @param T 值的类型 / The type of the success value
+ * @param C 错误码的类型 / The type of the error code
+ * @param E 错误的类型 / The type of the error
+ * @property value 成功值 / The success value
+ * @property warnings 警告列表 / The list of warnings
+ */
 class Warn<out T, C : Any, out E : Error<C>>(
     override val value: T,
     val warnings: List<E>
 ) : ExResult<T, C, E> {
     companion object {
+        /** 从值、错误码和消息创建 Warn / Create Warn from value, error code, and message */
         operator fun <T> invoke(value: T, code: ErrorCode, message: String? = null): Warn<T, ErrorCode, Error<ErrorCode>> {
             return Warn(value, listOf(Err(code, message)))
         }
 
+        /** 从值、错误码和附加值创建 Warn / Create Warn from value, error code, and warning value */
         operator fun <T, E> invoke(value: T, code: ErrorCode, warningValue: E): Warn<T, ErrorCode, Error<ErrorCode>> {
             return Warn(value, listOf(ExErr(code, warningValue)))
         }
 
+        /** 从值、错误码、消息和附加值创建 Warn / Create Warn from value, error code, message, and warning value */
         operator fun <T, E> invoke(value: T, code: ErrorCode, message: String, warningValue: E): Warn<T, ErrorCode, Error<ErrorCode>> {
             return Warn(value, listOf(ExErr(code, message, warningValue)))
         }
 
+        /** 从值、自定义错误码和消息创建 Warn / Create Warn from value, custom error code, and message */
         operator fun <T, C : Any> invoke(value: T, code: C, message: String? = null): Warn<T, C, Error<C>> {
             return Warn(value, listOf(Err(code, message)))
         }
 
+        /** 从值、自定义错误码和附加值创建 Warn / Create Warn from value, custom error code, and warning value */
         operator fun <T, C : Any, E> invoke(value: T, code: C, warningValue: E): Warn<T, C, Error<C>> {
             return Warn(value, listOf(ExErr(code, warningValue)))
         }
 
+        /** 从值、自定义错误码、消息和附加值创建 Warn / Create Warn from value, custom error code, message, and warning value */
         operator fun <T, C : Any, E> invoke(value: T, code: C, message: String, warningValue: E): Warn<T, C, Error<C>> {
             return Warn(value, listOf(ExErr(code, message, warningValue)))
         }
     }
 
+    /** 始终为 false / Always false for Warn */
     override val ok: Boolean get() = false
+    /** 始终为 false / Always false for Warn */
     override val failed: Boolean get() = false
+    /** 始终为 true / Always true for Warn */
     override val warned: Boolean get() = true
 
+    /** 第一个警告，列表为空时为 null / The first warning, or null if the list is empty */
     val firstWarning: E? get() = warnings.firstOrNull()
+    /** 警告数量 / The number of warnings */
     val size: Int get() = warnings.size
+    /** 警告列表是否为空 / Whether the warning list is empty */
     val isEmpty: Boolean get() = warnings.isEmpty()
 
+    /** 第一个警告的错误码 / The error code of the first warning */
     val code get() = firstWarning?.code
+    /** 第一个警告的消息 / The message of the first warning */
     val warningMessage get() = firstWarning?.message
 
+    /** 第一个警告是否包含附加值 / Whether the first warning contains an additional value */
     val withWarningValue get() = firstWarning?.withValue ?: false
+    /** 第一个警告的附加值 / The additional value of the first warning */
     val warningValue get() = firstWarning?.value
 
+    /**
+     * 将值转换为指定类型
+     *
+     * Attempts to cast the value to the specified type.
+     * 尝试将值转换为指定类型。
+     *
+     * @param U 目标类型 / The target type
+     * @return 转换后的值，类型不匹配时返回 null / The cast value, or null if the type doesn't match
+     */
     inline fun <reified U> getAs(): U? {
         return value as? U
     }
 
+    /**
+     * 映射成功值，保留警告
+     *
+     * Transforms the success value using the given function, preserving warnings.
+     * 使用给定函数转换成功值，保留警告。
+     *
+     * @param transform 值转换函数 / The transformation function
+     * @return 包含转换后值和相同警告的新 Warn / A new Warn with the transformed value and same warnings
+     */
     override fun <U> map(transform: (T) -> U): Warn<U, C, E> {
         return Warn(transform(value), warnings)
     }
@@ -289,6 +488,11 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFatal(crossinline func: 
  *
  * Executes the given function if this ExResult is Ok, then returns the result unchanged.
  * 如果 ExResult 是 Ok 则执行给定函数，然后返回未改变的结果。
+ *
+ * @param T 值的类型 / The type of the value
+ * @param E 错误的类型 / The type of the error
+ * @param func Ok 结果的处理函数 / The handler function for Ok result
+ * @return 未改变的扩展结果 / The unchanged ExResult
  */
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifOk(crossinline func: Ok<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Ok) func(this)
@@ -300,6 +504,11 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifOk(crossinline func: O
  *
  * Executes the given function if this ExResult is Failed, then returns the result unchanged.
  * 如果 ExResult 是 Failed 则执行给定函数，然后返回未改变的结果。
+ *
+ * @param T 值的类型 / The type of the value
+ * @param E 错误的类型 / The type of the error
+ * @param func Failed 结果的处理函数 / The handler function for Failed result
+ * @return 未改变的扩展结果 / The unchanged ExResult
  */
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFailed(crossinline func: Failed<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Failed) func(this)
@@ -311,6 +520,11 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFailed(crossinline fun
  *
  * Executes the given function if this ExResult is Fatal, then returns the result unchanged.
  * 如果 ExResult 是 Fatal 则执行给定函数，然后返回未改变的结果。
+ *
+ * @param T 值的类型 / The type of the value
+ * @param E 错误的类型 / The type of the error
+ * @param func Fatal 结果的处理函数 / The handler function for Fatal result
+ * @return 未改变的扩展结果 / The unchanged ExResult
  */
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFatal(crossinline func: Fatal<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Fatal) func(this)
@@ -398,6 +612,15 @@ fun run(
     return ok
 }
 
+/**
+ * 异步顺序执行多个操作块
+ *
+ * Executes multiple suspend operation blocks sequentially, returning the first failure or Ok.
+ * 异步顺序执行多个 suspend 操作块，返回第一个失败或 Ok。
+ *
+ * @param blocks 要执行的异步操作块 / The suspend operation blocks to execute
+ * @return 第一个失败结果或 Ok / The first failure result or Ok
+ */
 suspend fun syncRun(
     vararg blocks: suspend () -> Try
 ): Try {

@@ -1,3 +1,7 @@
+/**
+ * 本文件提供命名风格转换工具，支持在不同命名约定之间进行转换。
+ * This file provides a name transfer utility for converting between different naming conventions.
+ */
 package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.concurrent.ConcurrentHashMap
@@ -139,12 +143,14 @@ private val transfers = mapOf(
 )
 
 /**
- * name transfer
+ * 名称转换器
  *
- * @property frontend           frontend naming system
- * @property backend            backend naming system
- * @property abbreviations      abbreviation set
- * @property impl               implementation
+ * Name transfer.
+ *
+ * @property frontend           前端命名系统 / Frontend naming system
+ * @property backend            后端命名系统 / Backend naming system
+ * @property abbreviations      缩写集合 / Abbreviation set
+ * @property impl               实现 / Implementation
  */
 class NameTransfer(
     val frontend: NamingSystem,
@@ -154,20 +160,24 @@ class NameTransfer(
     private val impl: NameTransferImpl? = transfers[Pair(frontend, backend)]
 
     /**
-     * transform a name from the frontend naming system to the backend naming system
+     * 将名称从前端命名系统转换为后端命名系统
      *
-     * @param name              given name
-     * @return                  the name corresponding the backend naming system
+     * Transform a name from the frontend naming system to the backend naming system.
+     *
+     * @param name              给定名称 / Given name
+     * @return                  对应后端命名系统的名称 / The name corresponding the backend naming system
      */
     operator fun invoke(name: String): String {
         return impl?.invoke(name, abbreviations) ?: name
     }
 
     /**
-     * transform a name from the backend naming system to the frontend naming system
+     * 将名称从后端命名系统转换为前端命名系统
      *
-     * @param name              given name
-     * @return                  the name corresponding the frontend naming system
+     * Transform a name from the backend naming system to the frontend naming system.
+     *
+     * @param name              给定名称 / Given name
+     * @return                  对应前端命名系统的名称 / The name corresponding the frontend naming system
      */
     fun reverse(name: String): String {
         return impl?.reverse(name) ?: name

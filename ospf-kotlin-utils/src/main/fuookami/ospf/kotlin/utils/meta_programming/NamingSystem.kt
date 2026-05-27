@@ -1,3 +1,7 @@
+/**
+ * 本文件定义命名系统枚举，支持 camelCase、snake_case 等不同命名约定。
+ * This file defines naming system enumerations for different conventions (camelCase, snake_case, etc.).
+ */
 package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.*
@@ -59,10 +63,28 @@ enum class NamingSystem {
      * Upper snake case naming (e.g., PLAY_STATION).
      */
     UpperSnakeCase {
+        /**
+         * 将大写蛇形命名拆分为单词序列（委托给 SnakeCase）
+         *
+         * Split UPPER_SNAKE_CASE name to word sequence (delegates to SnakeCase).
+         *
+         * @param name          大写蛇形命名的名称 / Upper snake case name
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return              单词序列 / Word sequence
+         */
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             return SnakeCase.frontend(name, abbreviations)
         }
 
+        /**
+         * 将单词序列转换为大写蛇形命名
+         *
+         * Convert word sequence to UPPER_SNAKE_CASE name.
+         *
+         * @param words         单词序列 / Word sequence
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return              大写蛇形命名的名称 / Upper snake case name
+         */
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
             return words.joinToString("_")
         }
@@ -74,6 +96,15 @@ enum class NamingSystem {
      * Kebab case naming (e.g., play-station).
      */
     KebabCase {
+        /**
+         * 将短横线命名拆分为单词序列
+         *
+         * Split kebab-case name to word sequence.
+         *
+         * @param name          短横线命名的名称 / Kebab case name
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return              单词序列 / Word sequence
+         */
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             if (name.isEmpty()) {
                 return emptyList()
@@ -83,6 +114,15 @@ enum class NamingSystem {
             return name.split("-").map { it.lowercase(Locale.getDefault()) }
         }
 
+        /**
+         * 将单词序列转换为短横线命名
+         *
+         * Convert word sequence to kebab-case name.
+         *
+         * @param words         单词序列 / Word sequence
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return              短横线命名的名称 / Kebab case name
+         */
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
             return words.joinToString("-")
         }
@@ -94,6 +134,15 @@ enum class NamingSystem {
      * Camel case naming (e.g., playStation).
      */
     CamelCase {
+        /**
+         * 将骆驼命名拆分为单词序列
+         *
+         * Split camelCase name to word sequence.
+         *
+         * @param name          骆驼命名的名称 / Camel case name
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return              单词序列 / Word sequence
+         */
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             if (name.isEmpty()) {
                 return emptyList()
@@ -219,6 +268,15 @@ enum class NamingSystem {
      * Pascal case naming (e.g., PlayStation).
      */
     PascalCase {
+        /**
+         * 将帕斯卡命名拆分为单词序列（委托给 CamelCase）
+         *
+         * Split PascalCase name to word sequence (delegates to CamelCase).
+         *
+         * @param name          帕斯卡命名的名称 / Pascal case name
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return              单词序列 / Word sequence
+         */
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             return CamelCase.frontend(name, abbreviations)
         }

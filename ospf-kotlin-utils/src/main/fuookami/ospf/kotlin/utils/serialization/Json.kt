@@ -1,7 +1,9 @@
+/**
+ * 本文件提供 JSON 序列化工具，支持命名策略自动转换。
+ * This file provides JSON serialization utilities with naming strategy support.
+ */
 package fuookami.ospf.kotlin.utils.serialization
 
-import fuookami.ospf.kotlin.utils.meta_programming.NameTransfer
-import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -13,6 +15,8 @@ import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.serializer
 import java.io.*
+import fuookami.ospf.kotlin.utils.meta_programming.NameTransfer
+import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
 
 /**
  * JSON 命名策略

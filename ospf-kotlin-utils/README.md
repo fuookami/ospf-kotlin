@@ -14,7 +14,7 @@ ospf-kotlin-utils is the core utility library for the OSPF Kotlin project, provi
 | `context` | Context variable management with stack-level lookup |
 | `concept` | Concept interfaces (Move, Swap, Clone, Indexed) |
 | `error` | Error codes and error handling |
-| `functional` | Functional programming tools (Result, Either, Eq, Ord, etc.) |
+| `functional` | Functional programming tools (Result, Either, Eq, Ord, etc.) — [see sub-package README](src/main/fuookami/ospf/kotlin/utils/functional/README.md) |
 | `meta_programming` | Metaprogramming tools (naming system conversion, lazy delegate) |
 | `parallel` | Parallel processing extension functions |
 | `serialization` | Serialization tools (JSON, CSV, date/time) |

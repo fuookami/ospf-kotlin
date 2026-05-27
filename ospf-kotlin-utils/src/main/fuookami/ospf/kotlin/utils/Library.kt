@@ -1,7 +1,10 @@
+/**
+ * 本文件提供从 JAR 中提取并加载本地库的工具。
+ * This file provides a utility for extracting and loading native libraries from JAR files.
+ */
 package fuookami.ospf.kotlin.utils
 
-import java.io.File
-import java.io.FileOutputStream
+import java.io.*
 
 /**
  * 库加载工具
