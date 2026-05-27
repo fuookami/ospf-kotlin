@@ -390,6 +390,11 @@ APS PackageSolution
 17. `MaterialPackingObjectiveConfig`、`MaterialPackingMipResult`、`MaterialPackingSolveInfo` 与 `ExhaustiveMaterialPackingSolverExecutor` 的目标值/间隙/权重已由 `Double` 迁移为 `Flt64`，并保留原有求解语义。
 18. `LayerGenerationContext` 的 `scoreByShadowPrice`/`numericScore` 及 `ColumnGenerationStandardExecutorConfig.integralityTolerance` 已迁移为 `Flt64`，评分排序与列选择逻辑保持不变。
 19. 定向回归通过（`mvn -f ospf-kotlin-framework-bpp3d/pom.xml ...`）：`MaterialPackerTest`、`LayerGenerationFltXProofTest`、`ColumnGenerationAlgorithmTest`。
+20. 修复 `bpp3d-domain-layer-assignment-context` 与 `ospf-kotlin-core:1.1.0` 包路径不一致问题：`core.symbol.*` 全量迁移到 `core.intermediate_symbol.*`（`Assignment.kt`、`Capacity.kt`、`Load.kt`），`-DskipTests compile` 可通过。
+21. 同步修复 `ItemDemandConstraintModeKeyTest` 的 `core.symbol.*` 旧包引用，定向测试通过：`mvn -f ... -pl bpp3d-domain-layer-assignment-context -am test -Dtest=ItemDemandConstraintModeKeyTest '-Dsurefire.failIfNoSpecifiedTests=false'`。
+22. 修复 application 测试中 `IntermediateSymbol` 全限定名旧包引用（`ColumnGenerationAlgorithmTest`、`MaterialPackingApplicationIntegrationTest`），恢复 `bpp3d-application` 测试编译。
+23. `GurobiColumnGenerationTest` 已清退显式 `Double` 类型声明（参数、配置阈值、CSV 行模型、聚合容器），统一为 `Flt64`；新增 `optionalFlt64Property` 并在时长阈值比较处显式 `toDouble().seconds`。
+24. 启用 `gurobi-cg-test` profile 的 test-compile 回归通过：`mvn -f ... -pl bpp3d-application -am -Pgurobi-cg-test test-compile -DskipTests`。
 
 ## 9. 建议验证命令
 

@@ -5,10 +5,10 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.symbol.function.MaskingFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer

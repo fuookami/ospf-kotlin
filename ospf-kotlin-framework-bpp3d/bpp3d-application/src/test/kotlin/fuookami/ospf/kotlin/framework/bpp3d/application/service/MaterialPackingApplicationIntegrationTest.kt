@@ -369,7 +369,7 @@ class MaterialPackingApplicationIntegrationTest {
             override val lazy: Boolean = false
             override val name: String = "fake-dual"
             override val origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint = origin
-            override val from: Pair<fuookami.ospf.kotlin.core.symbol.IntermediateSymbol<*>, Boolean>? = null
+            override val from: Pair<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>, Boolean>? = null
 
             override fun isTrue(): Boolean? = true
             override fun isTrue(results: List<Flt64>): Boolean? = true

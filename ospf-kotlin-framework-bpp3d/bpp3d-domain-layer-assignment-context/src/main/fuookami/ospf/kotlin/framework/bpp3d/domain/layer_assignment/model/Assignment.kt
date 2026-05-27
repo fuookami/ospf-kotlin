@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.symbol.function.BinaryzationFunction
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable1
