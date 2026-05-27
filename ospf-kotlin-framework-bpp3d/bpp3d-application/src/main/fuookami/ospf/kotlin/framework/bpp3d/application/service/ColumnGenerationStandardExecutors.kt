@@ -116,7 +116,10 @@ class ColumnGenerationStandardExecutors(
                 objective = solved.obj,
                 info = mapOf(
                     "solver" to solver.name,
-                    "model" to artifacts.model.name
+                    "model" to artifacts.model.name,
+                    "lp_time_ms" to solved.time.inWholeMilliseconds.toString(),
+                    "lp_gap" to solved.gap.toString(),
+                    "lp_objective" to solved.obj.toString()
                 )
             )
         }
@@ -217,7 +220,12 @@ class ColumnGenerationStandardExecutors(
                 objective = solved.obj,
                 info = mapOf(
                     "solver" to solver.name,
-                    "model" to model.name
+                    "model" to model.name,
+                    "milp_time_ms" to solved.time.inWholeMilliseconds.toString(),
+                    "milp_gap" to solved.gap.toString(),
+                    "milp_objective" to solved.obj.toString(),
+                    "selected_bin_count" to selectedBins.size.toString(),
+                    "selected_layer_count" to selectedColumns.size.toString()
                 )
             )
         }

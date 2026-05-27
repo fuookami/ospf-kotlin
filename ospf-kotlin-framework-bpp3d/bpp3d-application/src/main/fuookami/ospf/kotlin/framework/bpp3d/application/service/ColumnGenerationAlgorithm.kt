@@ -47,7 +47,10 @@ data class ColumnGenerationResult<V>(
     val lpSolvedTimes: Int,
     val finalSolved: Boolean,
     val lpObjectives: List<V?>,
-    val finalObjective: V?
+    val finalObjective: V?,
+    val elapsed: Duration = Duration.ZERO,
+    val lpInfos: List<Map<String, String>> = emptyList(),
+    val finalInfo: Map<String, String> = emptyMap()
 )
 
 fun interface ColumnGenerationRmpSolver<V> {
@@ -108,7 +111,9 @@ class ColumnGenerationAlgorithm<V>(
         var finalSolved = false
         var latestShadowPrices: Map<DemandModeKey, V> = emptyMap()
         val lpObjectives = ArrayList<V?>()
+        val lpInfos = ArrayList<Map<String, String>>()
         var finalObjective: V? = null
+        var finalInfo: Map<String, String> = emptyMap()
 
         while (iterations < config.iterationLimit) {
             if (startedAt.elapsedNow() >= config.timeLimit) {
@@ -132,6 +137,7 @@ class ColumnGenerationAlgorithm<V>(
             val shadowPrices = lpResult.shadowPrices
             latestShadowPrices = shadowPrices
             lpObjectives.add(lpResult.objective)
+            lpInfos.add(lpResult.info)
             lpSolvedTimes += 1
 
             val shadowPriceRefreshedState = ColumnGenerationState(
@@ -199,6 +205,7 @@ class ColumnGenerationAlgorithm<V>(
             if (finalResult != null) {
                 columns = deduplicateColumns(finalResult.columns)
                 finalObjective = finalResult.objective
+                finalInfo = finalResult.info
                 finalState = finalState.copy(
                     columns = columns,
                     bins = finalResult.bins
@@ -219,7 +226,10 @@ class ColumnGenerationAlgorithm<V>(
             lpSolvedTimes = lpSolvedTimes,
             finalSolved = finalSolved,
             lpObjectives = lpObjectives,
-            finalObjective = finalObjective
+            finalObjective = finalObjective,
+            elapsed = startedAt.elapsedNow(),
+            lpInfos = lpInfos,
+            finalInfo = finalInfo
         )
     }
 }

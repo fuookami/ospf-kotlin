@@ -104,8 +104,96 @@ class ComplexBlockGenerator(
         simpleBlocks: List<Block>,
         restWeight: LegacyScalar = legacyInfinity()
     ): List<ComplexBlock> {
-        // todo: impl it
-        return emptyList()
+        if (simpleBlocks.isEmpty()) {
+            return emptyList()
+        }
+
+        val candidateBlocks = simpleBlocks.filter {
+            space.enabled(it) && enough(items, it) && (it.weight.value leq restWeight)
+        }
+        if (candidateBlocks.isEmpty()) {
+            return emptyList()
+        }
+
+        val complexBlocks = LinkedHashSet<ComplexBlock>()
+        for (lhs in candidateBlocks) {
+            for (rhs in candidateBlocks) {
+                if (config.withX && config.predicateX(lhs, rhs)) {
+                    mergeAlongX(lhs, rhs)?.let { merged ->
+                        if (enabled(items, space, merged, restWeight)) {
+                            complexBlocks.add(merged)
+                        }
+                    }
+                }
+                if (config.withY && config.predicateY(lhs, rhs)) {
+                    mergeAlongY(lhs, rhs)?.let { merged ->
+                        if (enabled(items, space, merged, restWeight)) {
+                            complexBlocks.add(merged)
+                        }
+                    }
+                }
+                if (config.withZ && config.predicateZ(lhs, rhs)) {
+                    mergeAlongZ(lhs, rhs)?.let { merged ->
+                        if (enabled(items, space, merged, restWeight)) {
+                            complexBlocks.add(merged)
+                        }
+                    }
+                }
+            }
+        }
+        return complexBlocks.toList()
+    }
+
+    private fun mergeAlongX(lhs: Block, rhs: Block): ComplexBlock? {
+        val lhsView = lhs.view() ?: return null
+        val rhsView = rhs.view() ?: return null
+        return ComplexBlock(
+            blocks = listOf(
+                QuantityPlacement3(lhsView, point3()),
+                QuantityPlacement3(rhsView, point3(x = lhs.width.value))
+            )
+        )
+    }
+
+    private fun mergeAlongY(lhs: Block, rhs: Block): ComplexBlock? {
+        val lhsView = lhs.view() ?: return null
+        val rhsView = rhs.view() ?: return null
+        return ComplexBlock(
+            blocks = listOf(
+                QuantityPlacement3(lhsView, point3()),
+                QuantityPlacement3(rhsView, point3(y = lhs.height.value))
+            )
+        )
+    }
+
+    private fun mergeAlongZ(lhs: Block, rhs: Block): ComplexBlock? {
+        val lhsView = lhs.view() ?: return null
+        val rhsView = rhs.view() ?: return null
+        return ComplexBlock(
+            blocks = listOf(
+                QuantityPlacement3(lhsView, point3()),
+                QuantityPlacement3(rhsView, point3(z = lhs.depth.value))
+            )
+        )
+    }
+
+    private fun enabled(
+        items: Map<Item, UInt64>,
+        space: Container3Shape,
+        block: Block,
+        restWeight: LegacyScalar
+    ): Boolean {
+        return space.enabled(block) && enough(items, block) && (block.weight.value leq restWeight)
+    }
+
+    private fun enough(items: Map<Item, UInt64>, block: Block): Boolean {
+        for ((item, amount) in block.amounts) {
+            val actual = item as? Item ?: return false
+            if (amount > (items[actual] ?: UInt64.zero)) {
+                return false
+            }
+        }
+        return true
     }
 }
 

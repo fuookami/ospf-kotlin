@@ -90,7 +90,29 @@ class ColumnGenerationAlgorithmTest {
         )
     }
 
-    private fun layerBin(items: List<ActualItem>): Bin<BinLayer> {
+    private fun fixedDemandEntry(
+        mode: Bpp3dDemandMode,
+        key: Bpp3dDemandKey,
+        demand: Flt64
+    ): Bpp3dDemandEntry {
+        return Bpp3dDemandEntry(
+            mode = mode,
+            key = key,
+            demand = demand,
+            demandRange = ValueRange(
+                demand,
+                demand,
+                Interval.Closed,
+                Interval.Closed,
+                Flt64
+            ).value!!
+        )
+    }
+
+    private fun layerBin(
+        items: List<ActualItem>,
+        typeCode: String = "BIN-A"
+    ): Bin<BinLayer> {
         val binType = BinType(
             width = 3.0 * Meter,
             height = 3.0 * Meter,
@@ -98,7 +120,7 @@ class ColumnGenerationAlgorithmTest {
             capacity = 100.0 * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-A"
+            typeCode = typeCode
         )
         val placements = items.mapIndexed { index, item ->
             QuantityPlacement3(
@@ -180,6 +202,86 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(1, analyzeCounter.get())
         assertEquals(0, heartbeatCounter.get())
         assertTrue(result.finalSolved)
+    }
+
+    @Test
+    fun algorithmShouldCompleteLpSpAddColumnAndFinalMilpFlow() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CG-FLOW"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CG-FLOW",
+            weight = 1.0 * Kilogram
+        )
+        val seedItem = item(
+            id = "item-cg-flow-seed",
+            material = material
+        )
+        val generatedItem = item(
+            id = "item-cg-flow-generated",
+            material = material
+        )
+        val seedLayer = layerBin(listOf(seedItem)).units.first().unit
+        val generatedLayer = layerBin(listOf(generatedItem)).units.first().unit
+        val rmpCallStates = ArrayList<Pair<Int, Int>>()
+        var finalSolverColumnCount = -1
+        val algorithm = ColumnGenerationAlgorithm(
+            layerGenerator = object : Bpp3dLayerGenerator<Flt64> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    return if (request.iteration == 0) {
+                        listOf(
+                            Bpp3dLayerGenerationResult(
+                                layer = generatedLayer,
+                                reducedCost = Flt64(-1.0),
+                                source = "test-add-column"
+                            )
+                        )
+                    } else {
+                        emptyList()
+                    }
+                }
+            },
+            rmpSolver = ColumnGenerationRmpSolver { state ->
+                rmpCallStates.add(Pair(state.iteration, state.columns.size))
+                ColumnGenerationLpResult(
+                    shadowPrices = emptyMap(),
+                    objective = Flt64(100.0 - state.iteration.toDouble()),
+                    info = mapOf(
+                        Pair("solver", "stub-lp"),
+                        Pair("iteration", state.iteration.toString())
+                    )
+                )
+            },
+            finalMilpSolver = ColumnGenerationFinalSolver { state ->
+                finalSolverColumnCount = state.columns.size
+                ColumnGenerationFinalResult(
+                    columns = state.columns,
+                    objective = Flt64(77.0),
+                    info = mapOf(Pair("solver", "stub-final"))
+                )
+            },
+            initialColumns = { listOf(seedLayer) }
+        )
+
+        val result = algorithm.solve(
+            items = listOf(seedItem, generatedItem),
+            config = ColumnGenerationConfig(
+                iterationLimit = 4,
+                maxColumnsPerIteration = 16
+            )
+        )
+
+        assertEquals(1, result.iterationCount)
+        assertEquals(2, result.lpSolvedTimes)
+        assertTrue(result.finalSolved)
+        assertEquals(2, result.columns.size)
+        assertEquals(
+            listOf(Pair(0, 1), Pair(1, 2)),
+            rmpCallStates
+        )
+        assertEquals(2, finalSolverColumnCount)
+        assertEquals(2, result.lpInfos.size)
+        assertEquals("stub-final", result.finalInfo["solver"])
     }
 
     @Test
@@ -392,6 +494,512 @@ class ColumnGenerationAlgorithmTest {
             key = Bpp3dDemandKey.Item(actualItem)
         )
         assertEquals(7.0, (request.shadowPrices[demandKey] ?: Flt64.zero).toDouble(), 1e-10)
+    }
+
+    @Test
+    fun applicationServiceShouldBridgeExecutorsLayerGenerationAndPacking() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-3"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-3",
+            weight = 0.5 * Kilogram
+        )
+        val actualItem = item("item-3", material)
+        val seedBin = layerBin(listOf(actualItem))
+        val seedLayer = seedBin.units.first().unit
+        val finalBin: Bin<BinLayer> = Bin(
+            shape = seedBin.shape,
+            units = emptyList<QuantityPlacement3<BinLayer>>(),
+            batchNo = seedBin.batchNo
+        )
+        val demandValue = Flt64.one
+        val demandEntries = listOf(
+            Bpp3dDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(actualItem),
+                demand = demandValue,
+                demandRange = ValueRange(
+                    demandValue,
+                    demandValue,
+                    Interval.Closed,
+                    Interval.Closed,
+                    Flt64
+                ).value!!
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-service-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(9.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(9.0),
+                    gap = Flt64.zero
+                )
+                return Ok(output)
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
+                val dual = linkedMapOf<Constraint<Flt64, Linear>, Flt64>(
+                    fakeConstraint(tagged) to Flt64(7.0)
+                )
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(11.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(11.0),
+                    gap = Flt64.zero
+                )
+                return Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = output,
+                        dualSolution = dual
+                    )
+                )
+            }
+        }
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                demandEntries = demandEntries,
+                initialColumns = listOf(seedLayer),
+                finalBins = listOf(finalBin),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(listOf(Flt64(11.0)), response.result.lpObjectives)
+        assertEquals(1, response.result.columns.size)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(1, snapshot.bins.size)
+        assertEquals("1", snapshot.schema.kpi["bin_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldSupportMaterialWeightOnlyDemandPackingFlow() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-4"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-4",
+            weight = 1.0 * Kilogram
+        )
+        val actualItem = item("item-4", material)
+        val seedBin = layerBin(listOf(actualItem))
+        val seedLayer = seedBin.units.first().unit
+        val finalBin: Bin<BinLayer> = Bin(
+            shape = seedBin.shape,
+            units = emptyList<QuantityPlacement3<BinLayer>>(),
+            batchNo = seedBin.batchNo
+        )
+        val demandValue = Flt64(2.0)
+        val demandEntries = listOf(
+            Bpp3dDemandEntry(
+                mode = Bpp3dDemandMode.ItemMaterialWeight,
+                key = Bpp3dDemandKey.Material(material.key),
+                demand = demandValue,
+                demandRange = ValueRange(
+                    demandValue,
+                    demandValue,
+                    Interval.Closed,
+                    Interval.Closed,
+                    Flt64
+                ).value!!
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-material-weight-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64(2.0) }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(17.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(17.0),
+                    gap = Flt64.zero
+                )
+                return Ok(output)
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
+                val dual = linkedMapOf<Constraint<Flt64, Linear>, Flt64>(
+                    fakeConstraint(tagged) to Flt64(5.0)
+                )
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(13.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(13.0),
+                    gap = Flt64.zero
+                )
+                return Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = output,
+                        dualSolution = dual
+                    )
+                )
+            }
+        }
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(actualItem, UInt64(2))),
+                demandEntries = demandEntries,
+                initialColumns = listOf(seedLayer),
+                finalBins = listOf(finalBin),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(listOf(Flt64(13.0)), response.result.lpObjectives)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(1, snapshot.bins.size)
+        assertEquals(2, snapshot.bins.single().units.size)
+        assertEquals(2, snapshot.packingResult.aggregation.bins.single().items.size)
+        assertEquals(1, snapshot.packingResult.materialSummary.size)
+        assertEquals(UInt64(2), snapshot.packingResult.materialSummary.single().amount)
+        assertEquals("1", snapshot.schema.kpi["bin_count"])
+        assertEquals("1", snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldKeepPackingConsistentForMultiMaterialMultiBinScenario() = runBlocking {
+        val materialA = Material(
+            no = MaterialNo("M-5A"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-5A",
+            weight = 1.0 * Kilogram
+        )
+        val materialB = Material(
+            no = MaterialNo("M-5B"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-5B",
+            weight = 2.0 * Kilogram
+        )
+        val itemA = item("item-5a", materialA)
+        val itemB = item("item-5b", materialB)
+        val seedBinA = layerBin(listOf(itemA))
+        val seedBinB = layerBin(listOf(itemB))
+        val seedLayerA = seedBinA.units.first().unit
+        val seedLayerB = seedBinB.units.first().unit
+        val finalBins = listOf(
+            Bin(
+                shape = seedBinA.shape,
+                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                batchNo = seedBinA.batchNo
+            ),
+            Bin(
+                shape = seedBinB.shape,
+                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                batchNo = seedBinB.batchNo
+            )
+        )
+        val demandEntries = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(itemA),
+                demand = Flt64(2.0)
+            ),
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(itemB),
+                demand = Flt64.one
+            ),
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemMaterialWeight,
+                key = Bpp3dDemandKey.Material(materialA.key),
+                demand = Flt64(2.0)
+            ),
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemMaterialWeight,
+                key = Bpp3dDemandKey.Material(materialB.key),
+                demand = Flt64(4.0)
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-multi-bin-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(23.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(23.0),
+                    gap = Flt64.zero
+                )
+                return Ok(output)
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val taggedConstraints = metaModel.constraints
+                    .filter { constraint -> constraint.args is DemandShadowPriceKey }
+                val dual = linkedMapOf<Constraint<Flt64, Linear>, Flt64>()
+                taggedConstraints.forEachIndexed { index, constraint ->
+                    dual[fakeConstraint(constraint)] = Flt64(index.toDouble() + 1.0)
+                }
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(19.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(19.0),
+                    gap = Flt64.zero
+                )
+                return Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = output,
+                        dualSolution = dual
+                    )
+                )
+            }
+        }
+
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(
+                    Pair(itemA, UInt64(2)),
+                    Pair(itemB, UInt64.one)
+                ),
+                demandEntries = demandEntries,
+                initialColumns = listOf(seedLayerA, seedLayerB),
+                finalBins = finalBins,
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(listOf(Flt64(19.0)), response.result.lpObjectives)
+        assertEquals(2, response.result.columns.size)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(2, snapshot.bins.size)
+        assertEquals(2, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(2, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(2, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        assertEquals(UInt64.one, materialSummary[materialA.key])
+        assertEquals(UInt64.one, materialSummary[materialB.key])
+        assertEquals("2", snapshot.schema.kpi["bin_count"])
+        assertEquals("2", snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldKeepPackingConsistentForLargeMaterialBatchScenario() = runBlocking {
+        val materialCount = 4
+        val layerCount = 24
+        val materials = (0 until materialCount).map { index ->
+            Material(
+                no = MaterialNo("M-6-$index"),
+                type = MaterialType.RawMaterial,
+                cargo = CargoAttr,
+                name = "M-6-$index",
+                weight = 1.0 * Kilogram
+            )
+        }
+        val items = (0 until layerCount).map { index ->
+            item(
+                id = "item-6-$index",
+                material = materials[index % materialCount]
+            )
+        }
+        val seedBins = items.mapIndexed { index, actualItem ->
+            layerBin(
+                items = listOf(actualItem),
+                typeCode = "BIN-6-$index"
+            )
+        }
+        val seedLayers = seedBins.map { seedBin ->
+            seedBin.units.first().unit
+        }
+        val finalBins = seedBins.map { seedBin ->
+            Bin(
+                shape = seedBin.shape,
+                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                batchNo = seedBin.batchNo
+            )
+        }
+        val demandEntries = buildList {
+            addAll(items.map { actualItem ->
+                fixedDemandEntry(
+                    mode = Bpp3dDemandMode.ItemAmount,
+                    key = Bpp3dDemandKey.Item(actualItem),
+                    demand = Flt64.one
+                )
+            })
+            addAll(materials.map { material ->
+                fixedDemandEntry(
+                    mode = Bpp3dDemandMode.ItemMaterialWeight,
+                    key = Bpp3dDemandKey.Material(material.key),
+                    demand = Flt64((layerCount / materialCount).toDouble())
+                )
+            })
+        }
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-large-batch-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(61.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(61.0),
+                    gap = Flt64.zero
+                )
+                return Ok(output)
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val taggedConstraints = metaModel.constraints
+                    .filter { constraint -> constraint.args is DemandShadowPriceKey }
+                val dual = linkedMapOf<Constraint<Flt64, Linear>, Flt64>()
+                taggedConstraints.forEachIndexed { index, constraint ->
+                    dual[fakeConstraint(constraint)] = Flt64(index.toDouble() + 1.0)
+                }
+                val solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero }
+                val output: FeasibleSolverOutput<Flt64> = FeasibleSolverOutput(
+                    obj = Flt64(37.0),
+                    solution = solution,
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(37.0),
+                    gap = Flt64.zero
+                )
+                return Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = output,
+                        dualSolution = dual
+                    )
+                )
+            }
+        }
+
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = items.map { actualItem -> Pair(actualItem, UInt64.one) },
+                demandEntries = demandEntries,
+                initialColumns = seedLayers,
+                finalBins = finalBins,
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(listOf(Flt64(37.0)), response.result.lpObjectives)
+        assertEquals(layerCount, response.result.columns.size)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(layerCount, snapshot.bins.size)
+        assertEquals(layerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(layerCount, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(layerCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        val expectedMaterialAmount = UInt64(layerCount / materialCount)
+        for (material in materials) {
+            assertEquals(expectedMaterialAmount, materialSummary[material.key])
+        }
+        assertEquals(layerCount.toString(), snapshot.schema.kpi["bin_count"])
+        assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
     }
 
     private fun fakeConstraint(origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint): Constraint<Flt64, Linear> {

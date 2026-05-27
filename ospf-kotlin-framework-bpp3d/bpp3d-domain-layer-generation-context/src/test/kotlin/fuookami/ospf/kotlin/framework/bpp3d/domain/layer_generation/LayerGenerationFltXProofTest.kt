@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.PackageShape as Gene
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
@@ -241,6 +242,243 @@ class LayerGenerationFltXProofTest {
         assertEquals(10.0, generated.first().numericScore ?: Double.NaN, 1e-10)
         assertEquals(1.0, generated.last().numericScore ?: Double.NaN, 1e-10)
         assertTrue((generated.first().numericScore ?: 0.0) > (generated.last().numericScore ?: 0.0))
+    }
+
+    @Test
+    fun blockLayerGeneratorShouldUseBlockLoadingWhenBinProvided() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-BLOCK"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-BLOCK",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(1.0, Meter),
+            depth = q(1.0, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val item = GenericItem(
+            id = "item-block",
+            name = "item-block",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-BLOCK"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val bin = BinType(
+            width = 2.0 * Meter,
+            height = 1.0 * Meter,
+            depth = 1.0 * Meter,
+            capacity = 10.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-BLOCK"
+        )
+
+        val generated = BlockLayerGenerator<Flt64>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item, item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { it.layer.units.size >= 2 })
+    }
+
+    @Test
+    fun patternLayerGeneratorShouldUsePatternGroupedBlockLoadingWhenBinProvided() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-PATTERN"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-PATTERN",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(1.0, Meter),
+            depth = q(1.0, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val item = GenericItem(
+            id = "item-pattern",
+            name = "item-pattern",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-PATTERN"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val bin = BinType(
+            width = 2.0 * Meter,
+            height = 1.0 * Meter,
+            depth = 1.0 * Meter,
+            capacity = 10.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-PATTERN"
+        )
+
+        val generated = PatternLayerGenerator<Flt64>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item, item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { it.layer.units.size >= 2 })
+    }
+
+    @Test
+    fun pileLayerGeneratorShouldStackItemsWhenBinProvided() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-PILE"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-PILE",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(1.0, Meter),
+            depth = q(1.0, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val item = GenericItem(
+            id = "item-pile",
+            name = "item-pile",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-PILE"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val bin = BinType(
+            width = 1.0 * Meter,
+            height = 3.0 * Meter,
+            depth = 1.0 * Meter,
+            capacity = 10.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-PILE"
+        )
+
+        val generated = PileLayerGenerator<Flt64>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { it.layer.units.size > 1 })
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldGeneratePackedLayersWhenBinProvided() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-CIRCLE"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-CIRCLE",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(1.0, Meter),
+            depth = q(1.0, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val item = GenericItem(
+            id = "item-circle",
+            name = "item-circle",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-CIRCLE"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val bin = BinType(
+            width = 3.0 * Meter,
+            height = 1.0 * Meter,
+            depth = 2.0 * Meter,
+            capacity = 10.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE"
+        )
+
+        val generated = CirclePackingLayerGenerator<Flt64>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { it.source == "circle-packing-rect" })
+        assertTrue(generated.any { it.source == "circle-packing-hex" })
+        assertTrue(generated.all { it.layer.units.size > 1 })
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldPreferHexWhenPatternCountsTie() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-CIRCLE-TIE"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-CIRCLE-TIE",
+            weight = q(0.2, Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(1.0, Meter),
+            height = q(1.0, Meter),
+            depth = q(1.0, Meter),
+            weight = q(0.2, Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val item = GenericItem(
+            id = "item-circle-tie",
+            name = "item-circle-tie",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-CIRCLE-TIE"),
+            packageAttribute = defaultPackageAttribute()
+        ).toLegacy()
+        val bin = BinType(
+            width = 2.0 * Meter,
+            height = 1.0 * Meter,
+            depth = 1.0 * Meter,
+            capacity = 10.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-TIE"
+        )
+
+        val generated = CirclePackingLayerGenerator<Flt64>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertEquals("circle-packing-hex", generated.first().source)
     }
 }
 

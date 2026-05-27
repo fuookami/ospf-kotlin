@@ -508,9 +508,15 @@ class PreciseLoad(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
+                val binAmount = assignment.x.shape[0]
                 LinearExpressionSymbol(
-                    sum(layers.map {
-                        LinearMonomial(loadCoefficient(it, demandEntries[i]), assignment.x[it])
+                    sum((0 until binAmount).flatMap { binIndex ->
+                        layers.mapIndexed { layerIndex, layer ->
+                            LinearMonomial(
+                                loadCoefficient(layer, demandEntries[i]),
+                                assignment.x[binIndex, layerIndex]
+                            )
+                        }
                     }),
                     name = "load_$i"
                 )

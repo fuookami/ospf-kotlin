@@ -2,6 +2,10 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.ComplexBlockGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.SimpleBlockGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
@@ -9,13 +13,19 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.times
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
+import kotlin.math.floor
+import kotlin.math.sqrt
 
 /**
  * Layer generation request.
@@ -179,6 +189,281 @@ private fun <V> mapItemsToLayers(
     )
 }
 
+private suspend fun <V> mapBlockLoadingToLayers(
+    request: Bpp3dLayerGenerationRequest<V>,
+    source: String,
+    sourceClass: Class<*>,
+    useGlobalSearch: Boolean
+): List<Bpp3dLayerGenerationResult<V>> {
+    val bin = request.bin ?: return emptyList()
+    val groupedItems = request.items.group()
+    if (groupedItems.isEmpty()) {
+        return emptyList()
+    }
+
+    val binShape = Container3Shape(bin)
+    val simpleBlocks = SimpleBlockGenerator(
+        config = SimpleBlockGenerator.Config(
+            mergeAsPatternBlock = false,
+            withRotation = true,
+            withRemainder = false
+        )
+    ).invoke(
+        items = groupedItems,
+        space = binShape,
+        patterns = emptyList(),
+        restWeight = bin.capacity.value
+    )
+    if (simpleBlocks.isEmpty()) {
+        return emptyList()
+    }
+
+    val complexBlocks = ComplexBlockGenerator(
+        config = ComplexBlockGenerator.Config(
+            withX = true,
+            withY = true,
+            withZ = false
+        )
+    ).invoke(
+        items = groupedItems,
+        space = binShape,
+        simpleBlocks = simpleBlocks,
+        restWeight = bin.capacity.value
+    )
+
+    val blockTable = (simpleBlocks + complexBlocks)
+        .filter { binShape.enabled(it) }
+        .distinct()
+    if (blockTable.isEmpty()) {
+        return emptyList()
+    }
+
+    val orderedBlocks = if (useGlobalSearch) {
+        blockTable.sortedWith(
+            compareByDescending<Block> { block -> block.volume.value }
+                .thenByDescending { block -> block.weight.value }
+        )
+    } else {
+        blockTable.sortedWith(
+            compareByDescending<Block> { block -> block.units.size }
+                .thenByDescending { block -> block.volume.value }
+        )
+    }
+
+    val iteration = Int64(request.iteration.toLong())
+    return orderedBlocks.asSequence()
+        .mapNotNull { block ->
+            val units = block.dump()
+            if (units.isEmpty()) {
+                return@mapNotNull null
+            }
+            BinLayer(
+                iteration = iteration,
+                from = sourceClass.kotlin,
+                bin = bin,
+                shape = Container3Shape(bin),
+                units = units
+            )
+        }
+        .distinct()
+        .take(request.maxCandidates)
+        .map { layer ->
+            Bpp3dLayerGenerationResult<V>(
+                layer = layer,
+                source = source
+            )
+        }
+        .toList()
+}
+
+private suspend fun <V> mapItemsToPileLayers(
+    request: Bpp3dLayerGenerationRequest<V>,
+    source: String,
+    sourceClass: Class<*>
+): List<Bpp3dLayerGenerationResult<V>> {
+    val bin = request.bin ?: return emptyList()
+    val binShape = Container3Shape(bin)
+    val iteration = Int64(request.iteration.toLong())
+    val layers = LinkedHashSet<BinLayer>()
+    for (item in request.items) {
+        val orientation = pickOrientation(item, request.bin) ?: continue
+        val itemView = item.view(orientation)
+        val maxByBinHeight = (bin.height.value / itemView.height.value).floor().toUInt64()
+        if (maxByBinHeight <= UInt64.one) {
+            continue
+        }
+
+        val placements = ArrayList<ItemPlacement3>()
+        for (index in UInt64.zero until maxByBinHeight) {
+            val placement = ItemPlacement3(
+                view = itemView,
+                position = point3(y = itemView.height * legacyScalar(index.toULong().toDouble()))
+            )
+            val isEnabled = item.packageAttribute.enabledStackingOn(
+                item = placement,
+                bottomItems = placements,
+                space = binShape
+            )
+            if (!isEnabled) {
+                break
+            }
+            placements.add(placement)
+        }
+        if (placements.size <= 1) {
+            continue
+        }
+
+        layers.add(
+            BinLayer(
+                iteration = iteration,
+                from = sourceClass.kotlin,
+                bin = bin,
+                shape = binShape,
+                units = placements
+            )
+        )
+        if (layers.size >= request.maxCandidates) {
+            break
+        }
+    }
+
+    val generated = layers
+        .map { layer ->
+            Bpp3dLayerGenerationResult<V>(
+                layer = layer,
+                source = source
+            )
+        }
+    return rankByShadowScore(request, generated)
+}
+
+private suspend fun <V> mapItemsToCirclePackingLayers(
+    request: Bpp3dLayerGenerationRequest<V>,
+    sourceClass: Class<*>
+): List<Bpp3dLayerGenerationResult<V>> {
+    val bin = request.bin ?: return emptyList()
+    val iteration = Int64(request.iteration.toLong())
+    val binWidth = bin.width.value.toDouble()
+    val binDepth = bin.depth.value.toDouble()
+    if (binWidth <= 0.0 || binDepth <= 0.0) {
+        return emptyList()
+    }
+
+    val candidates = ArrayList<Triple<BinLayer, String, Int>>()
+    val items = request.items
+        .filter { item ->
+            item.packageType.category != fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCategory.Pallet
+        }
+        .distinct()
+    for (item in items) {
+        val orientation = pickOrientation(item, request.bin) ?: continue
+        val itemView = item.view(orientation)
+        val diameter = if (itemView.width.value.toDouble() >= itemView.depth.value.toDouble()) {
+            itemView.width
+        } else {
+            itemView.depth
+        }
+        val diameterValue = diameter.value.toDouble()
+        if (diameterValue <= 0.0 || diameterValue > binWidth || diameterValue > binDepth) {
+            continue
+        }
+
+        val rectCols = floor(binWidth / diameterValue).toInt()
+        val rectRows = floor(binDepth / diameterValue).toInt()
+        if (rectCols > 0 && rectRows > 0) {
+            val placements = ArrayList<ItemPlacement3>(rectCols * rectRows)
+            for (row in 0 until rectRows) {
+                val z = diameter * legacyScalar(row.toDouble())
+                for (col in 0 until rectCols) {
+                    val x = diameter * legacyScalar(col.toDouble())
+                    placements.add(
+                        ItemPlacement3(
+                            view = itemView,
+                            position = point3(x = x, z = z)
+                        )
+                    )
+                }
+            }
+            if (placements.isNotEmpty()) {
+                candidates.add(
+                    Triple(
+                        BinLayer(
+                            iteration = iteration,
+                            from = sourceClass.kotlin,
+                            bin = bin,
+                            shape = Container3Shape(bin),
+                            units = placements
+                        ),
+                        "circle-packing-rect",
+                        placements.size
+                    )
+                )
+            }
+        }
+
+        val hexRowStepScale = sqrt(3.0) / 2.0
+        val hexRowStep = diameter * legacyScalar(hexRowStepScale)
+        val hexRowStepValue = hexRowStep.value.toDouble()
+        if (hexRowStepValue > 0.0) {
+            val placements = ArrayList<ItemPlacement3>()
+            var row = 0
+            while (true) {
+                val z = hexRowStep * legacyScalar(row.toDouble())
+                if (z.value.toDouble() + diameterValue > binDepth) {
+                    break
+                }
+                val offset = if (row % 2 == 0) 0.0 else 0.5
+                var col = 0
+                while (true) {
+                    val xScale = col.toDouble() + offset
+                    val x = diameter * legacyScalar(xScale)
+                    if (x.value.toDouble() + diameterValue > binWidth) {
+                        break
+                    }
+                    placements.add(
+                        ItemPlacement3(
+                            view = itemView,
+                            position = point3(x = x, z = z)
+                        )
+                    )
+                    col += 1
+                }
+                row += 1
+            }
+            if (placements.isNotEmpty()) {
+                candidates.add(
+                    Triple(
+                        BinLayer(
+                            iteration = iteration,
+                            from = sourceClass.kotlin,
+                            bin = bin,
+                            shape = Container3Shape(bin),
+                            units = placements
+                        ),
+                        "circle-packing-hex",
+                        placements.size
+                    )
+                )
+            }
+        }
+    }
+
+    val ranked = candidates
+        .sortedWith(
+            compareByDescending<Triple<BinLayer, String, Int>> { it.third }
+                .thenByDescending { it.second == "circle-packing-hex" }
+        )
+        .take(request.maxCandidates)
+        .map { (layer, source, packed) ->
+            Bpp3dLayerGenerationResult<V>(
+                layer = layer,
+                numericScore = packed.toDouble(),
+                source = source
+            )
+        }
+    return rankByShadowScore(request, ranked)
+}
+
 /**
  * Fallback generator reading pre-built layers from request.
  * 从请求中读取已有层作为兜底生成器。
@@ -207,8 +492,18 @@ class BlockLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
-            val sortedItems = it.items.sortedByDescending { item -> item.volume.value }
-            mapItemsToLayers(it, "block", BlockLayerGenerator::class.java, sortedItems)
+            val byBlockLoading = mapBlockLoadingToLayers(
+                request = it,
+                source = "block",
+                sourceClass = BlockLayerGenerator::class.java,
+                useGlobalSearch = false
+            )
+            if (byBlockLoading.isNotEmpty()) {
+                byBlockLoading
+            } else {
+                val sortedItems = it.items.sortedByDescending { item -> item.volume.value }
+                mapItemsToLayers(it, "block", BlockLayerGenerator::class.java, sortedItems)
+            }
         }
     }
 }
@@ -222,11 +517,21 @@ class BLLocalLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
-            val sortedItems = it.items.sortedWith(
-                compareByDescending<Item> { item -> item.width.value * item.depth.value }
-                    .thenByDescending { item -> item.height.value }
+            val byBlockLoading = mapBlockLoadingToLayers(
+                request = it,
+                source = "bl-local",
+                sourceClass = BLLocalLayerGenerator::class.java,
+                useGlobalSearch = false
             )
-            mapItemsToLayers(it, "bl-local", BLLocalLayerGenerator::class.java, sortedItems)
+            if (byBlockLoading.isNotEmpty()) {
+                byBlockLoading
+            } else {
+                val sortedItems = it.items.sortedWith(
+                    compareByDescending<Item> { item -> item.width.value * item.depth.value }
+                        .thenByDescending { item -> item.height.value }
+                )
+                mapItemsToLayers(it, "bl-local", BLLocalLayerGenerator::class.java, sortedItems)
+            }
         }
     }
 }
@@ -240,11 +545,21 @@ class BLGlobalLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
-            val sortedItems = it.items.sortedWith(
-                compareByDescending<Item> { item -> item.weight.value }
-                    .thenByDescending { item -> item.volume.value }
+            val byBlockLoading = mapBlockLoadingToLayers(
+                request = it,
+                source = "bl-global",
+                sourceClass = BLGlobalLayerGenerator::class.java,
+                useGlobalSearch = true
             )
-            mapItemsToLayers(it, "bl-global", BLGlobalLayerGenerator::class.java, sortedItems)
+            if (byBlockLoading.isNotEmpty()) {
+                byBlockLoading
+            } else {
+                val sortedItems = it.items.sortedWith(
+                    compareByDescending<Item> { item -> item.weight.value }
+                        .thenByDescending { item -> item.volume.value }
+                )
+                mapItemsToLayers(it, "bl-global", BLGlobalLayerGenerator::class.java, sortedItems)
+            }
         }
     }
 }
@@ -258,11 +573,28 @@ class PatternLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
+            val groupedByPattern = it.items.groupBy { item -> item.pattern }
+            val byBlockLoading = if (it.bin != null) {
+                groupedByPattern.values.flatMap { groupItems ->
+                    mapBlockLoadingToLayers(
+                        request = it.copy(items = groupItems),
+                        source = "pattern",
+                        sourceClass = PatternLayerGenerator::class.java,
+                        useGlobalSearch = false
+                    )
+                }
+            } else {
+                emptyList()
+            }
+            if (byBlockLoading.isNotEmpty()) {
+                byBlockLoading
+            } else {
             val picked = LinkedHashMap<Any, Item>()
             for (item in it.items) {
                 picked.putIfAbsent(item.pattern, item)
             }
-            mapItemsToLayers(it, "pattern", PatternLayerGenerator::class.java, picked.values.toList())
+                mapItemsToLayers(it, "pattern", PatternLayerGenerator::class.java, picked.values.toList())
+            }
         }
     }
 }
@@ -276,11 +608,24 @@ class PileLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
-            val sortedItems = it.items.sortedWith(
-                compareByDescending<Item> { item -> item.maxLayer.toLong() }
-                    .thenByDescending { item -> item.maxHeight.value }
-            )
-            mapItemsToLayers(it, "pile", PileLayerGenerator::class.java, sortedItems)
+            val byPile = if (it.bin != null) {
+                mapItemsToPileLayers(
+                    request = it,
+                    source = "pile",
+                    sourceClass = PileLayerGenerator::class.java
+                )
+            } else {
+                emptyList()
+            }
+            if (byPile.isNotEmpty()) {
+                byPile
+            } else {
+                val sortedItems = it.items.sortedWith(
+                    compareByDescending<Item> { item -> item.maxLayer.toLong() }
+                        .thenByDescending { item -> item.maxHeight.value }
+                )
+                mapItemsToLayers(it, "pile", PileLayerGenerator::class.java, sortedItems)
+            }
         }
     }
 }
@@ -294,11 +639,23 @@ class CirclePackingLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
-            val preferred = it.items.filter { item ->
-                item.packageType.category != fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCategory.Pallet
+            val packed = if (it.bin != null) {
+                mapItemsToCirclePackingLayers(
+                    request = it,
+                    sourceClass = CirclePackingLayerGenerator::class.java
+                )
+            } else {
+                emptyList()
             }
-            val fallback = if (preferred.isNotEmpty()) preferred else it.items
-            mapItemsToLayers(it, "circle-packing", CirclePackingLayerGenerator::class.java, fallback)
+            if (packed.isNotEmpty()) {
+                packed
+            } else {
+                val preferred = it.items.filter { item ->
+                    item.packageType.category != fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCategory.Pallet
+                }
+                val fallback = if (preferred.isNotEmpty()) preferred else it.items
+                mapItemsToLayers(it, "circle-packing", CirclePackingLayerGenerator::class.java, fallback)
+            }
         }
     }
 }

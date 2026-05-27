@@ -18,6 +18,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
@@ -39,9 +42,13 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
+import java.io.File
+import java.util.Locale
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 
 @EnabledIfSystemProperty(named = "bpp3d.gurobi.cg.test.enabled", matches = "true")
@@ -79,15 +86,21 @@ class GurobiColumnGenerationTest {
         )
     }
 
-    private fun layerBin(items: List<ActualItem>): Bin<BinLayer> {
-        val binType = BinType(
-            width = 3.0 * Meter,
+    private fun layerBin(
+        items: List<ActualItem>,
+        typeCode: String = "BIN-GUROBI",
+        depthInMeter: Double = 3.0,
+        binType: BinType? = null,
+        widthInMeter: Double = 3.0
+    ): Bin<BinLayer> {
+        val resolvedBinType = binType ?: BinType(
+            width = widthInMeter * Meter,
             height = 3.0 * Meter,
-            depth = 3.0 * Meter,
+            depth = depthInMeter * Meter,
             capacity = 100.0 * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-GUROBI"
+            typeCode = typeCode
         )
         val placements = items.mapIndexed { index, item ->
             QuantityPlacement3(
@@ -98,12 +111,12 @@ class GurobiColumnGenerationTest {
         val layer = BinLayer(
             iteration = Int64.zero,
             from = GurobiColumnGenerationTest::class,
-            bin = binType,
-            shape = Container3Shape(binType),
+            bin = resolvedBinType,
+            shape = Container3Shape(resolvedBinType),
             units = placements
         )
         return Bin(
-            shape = binType,
+            shape = resolvedBinType,
             units = listOf(
                 QuantityPlacement3(
                     view = layer.view(Orientation.Upright)!!,
@@ -111,6 +124,338 @@ class GurobiColumnGenerationTest {
                 )
             )
         )
+    }
+
+    private data class CsvScenarioRow(
+        val groupIndex: Int,
+        val layerIndex: Int,
+        val itemId: String,
+        val materialNo: String,
+        val materialName: String,
+        val materialWeightKg: Double
+    )
+
+    private data class CsvDrivenScenario(
+        val itemDemands: List<Pair<ActualItem, UInt64>>,
+        val demandEntries: List<Bpp3dDemandEntry>,
+        val initialColumns: List<BinLayer>,
+        val finalBins: List<Bin<BinLayer>>,
+        val materialAmountDemands: Map<Material, UInt64>,
+        val groupCount: Int,
+        val materialCount: Int,
+        val totalLayerCount: Int,
+        val totalItemCount: Int
+    )
+
+    private data class CsvDrivenScenarioCase(
+        val name: String,
+        val scenario: CsvDrivenScenario
+    )
+
+    private fun loadCsvDrivenScenario(resourcePath: String): CsvDrivenScenario {
+        val csv = this::class.java.classLoader
+            .getResource(resourcePath)
+            ?.readText()
+            ?: throw IllegalStateException("missing csv resource: $resourcePath")
+        return loadCsvDrivenScenarioFromCsvText(csv)
+    }
+
+    private fun loadCsvDrivenScenarioFromFile(filePath: String): CsvDrivenScenario {
+        val file = File(filePath)
+        if (!file.exists() || !file.isFile) {
+            throw IllegalStateException("invalid dataset file path: $filePath")
+        }
+        return loadCsvDrivenScenarioFromCsvText(file.readText())
+    }
+
+    private fun loadCsvDrivenScenarioByPropertyOrResource(
+        propertyName: String,
+        defaultResourcePath: String
+    ): CsvDrivenScenario {
+        val filePath = System.getProperty(propertyName)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+        return if (filePath != null) {
+            loadCsvDrivenScenarioFromFile(filePath)
+        } else {
+            loadCsvDrivenScenario(defaultResourcePath)
+        }
+    }
+
+    private fun loadCsvDrivenScenarioFromCsvText(csv: String): CsvDrivenScenario {
+        val lines = csv
+            .lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toList()
+        if (lines.size <= 1) {
+            throw IllegalStateException("csv has no data rows")
+        }
+        val rows = lines.drop(1).mapIndexed { index, line ->
+            val cols = line.split(",").map { it.trim() }
+            if (cols.size != 6) {
+                throw IllegalStateException("invalid csv columns at row ${index + 2}: $line")
+            }
+            CsvScenarioRow(
+                groupIndex = cols[0].toInt(),
+                layerIndex = cols[1].toInt(),
+                itemId = cols[2],
+                materialNo = cols[3],
+                materialName = cols[4],
+                materialWeightKg = cols[5].toDouble()
+            )
+        }
+
+        val materialsByNo = LinkedHashMap<String, Material>()
+        val materialWeightKgByNo = LinkedHashMap<String, Double>()
+        for (row in rows) {
+            if (materialsByNo.containsKey(row.materialNo)) {
+                continue
+            }
+            materialsByNo[row.materialNo] = Material(
+                no = MaterialNo(row.materialNo),
+                type = MaterialType.RawMaterial,
+                cargo = CargoAttr,
+                name = row.materialName,
+                weight = row.materialWeightKg * Kilogram
+            )
+            materialWeightKgByNo[row.materialNo] = row.materialWeightKg
+        }
+
+        val itemsById = LinkedHashMap<String, ActualItem>()
+        for (row in rows) {
+            if (itemsById.containsKey(row.itemId)) {
+                continue
+            }
+            val material = materialsByNo[row.materialNo]
+                ?: throw IllegalStateException("missing material for item: ${row.itemId}")
+            itemsById[row.itemId] = item(
+                id = row.itemId,
+                material = material
+            )
+        }
+
+        val rowsByGroup = rows.groupBy { it.groupIndex }.toSortedMap()
+        val initialColumns = ArrayList<BinLayer>()
+        val finalBins = ArrayList<Bin<BinLayer>>()
+        for ((groupIndex, groupRows) in rowsByGroup) {
+            val rowsByLayer = groupRows.groupBy { it.layerIndex }.toSortedMap()
+            val layerCount = rowsByLayer.size
+            val maxItemsPerLayer = rowsByLayer.values.maxOf { it.size }
+            val binType = BinType(
+                width = maxItemsPerLayer.toDouble() * Meter,
+                height = 3.0 * Meter,
+                depth = layerCount.toDouble() * Meter,
+                capacity = 1500.0 * Kilogram,
+                longitudinalBalance = null,
+                lateralBalance = null,
+                typeCode = "BIN-GUROBI-CSV-$groupIndex"
+            )
+            finalBins.add(
+                Bin(
+                    shape = binType,
+                    units = emptyList(),
+                    batchNo = BatchNo("B-GUROBI-CSV-$groupIndex")
+                )
+            )
+            for ((_, layerRows) in rowsByLayer) {
+                val layerItems = layerRows.map { row ->
+                    itemsById[row.itemId]
+                        ?: throw IllegalStateException("missing item: ${row.itemId}")
+                }
+                val bin = layerBin(
+                    items = layerItems,
+                    typeCode = binType.typeCode,
+                    depthInMeter = layerCount.toDouble(),
+                    binType = binType,
+                    widthInMeter = maxItemsPerLayer.toDouble()
+                )
+                val rawLayer = bin.units.first().unit
+                initialColumns.add(
+                    BinLayer(
+                        iteration = rawLayer.iteration,
+                        from = rawLayer.from,
+                        bin = binType,
+                        shape = rawLayer.shape,
+                        units = rawLayer.units
+                    )
+                )
+            }
+        }
+
+        val sortedItems = itemsById.values.sortedBy { it.id }
+        val itemDemands = sortedItems.map { actualItem ->
+            Pair(actualItem, UInt64.one)
+        }
+        val materialAmountByNo = rows
+            .groupingBy { it.materialNo }
+            .eachCount()
+        val materialAmountDemands = materialAmountByNo.entries.associate { entry ->
+            val material = materialsByNo[entry.key]
+                ?: throw IllegalStateException("missing material in amount map: ${entry.key}")
+            Pair(material, UInt64(entry.value))
+        }
+        val materialWeightDemands = materialAmountByNo.entries.map { entry ->
+            val material = materialsByNo[entry.key]
+                ?: throw IllegalStateException("missing material in weight map: ${entry.key}")
+            val weightKg = materialWeightKgByNo[entry.key]
+                ?: throw IllegalStateException("missing material weight in map: ${entry.key}")
+            Pair(material, (entry.value * weightKg) * Kilogram)
+        }
+        val demandEntries = demandEntriesFromItems(items = itemDemands) +
+                demandEntriesFromMaterialAmounts(
+                    materials = materialAmountDemands.entries.map { entry ->
+                        Pair(entry.key, entry.value)
+                    }
+                ) +
+                demandEntriesFromMaterialWeights(
+                    materials = materialWeightDemands
+                )
+        return CsvDrivenScenario(
+            itemDemands = itemDemands,
+            demandEntries = demandEntries,
+            initialColumns = initialColumns,
+            finalBins = finalBins,
+            materialAmountDemands = materialAmountDemands,
+            groupCount = rowsByGroup.size,
+            materialCount = materialsByNo.size,
+            totalLayerCount = initialColumns.size,
+            totalItemCount = rows.size
+        )
+    }
+
+    private fun optionalIntProperty(name: String): Int? {
+        return System.getProperty(name)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.toIntOrNull()
+    }
+
+    private fun optionalDoubleProperty(name: String): Double? {
+        return System.getProperty(name)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.toDoubleOrNull()
+    }
+
+    private fun optionalStringProperty(name: String): String? {
+        return System.getProperty(name)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+    }
+
+    private fun loadCsvDrivenScenarioSuiteByProperties(
+        pathsPropertyName: String,
+        directoryPropertyName: String
+    ): List<CsvDrivenScenarioCase> {
+        val explicitPaths = optionalStringProperty(pathsPropertyName)
+            ?.split(',', ';')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?: emptyList()
+        if (explicitPaths.isNotEmpty()) {
+            return explicitPaths.map { filePath ->
+                CsvDrivenScenarioCase(
+                    name = filePath,
+                    scenario = loadCsvDrivenScenarioFromFile(
+                        filePath = filePath
+                    )
+                )
+            }
+        }
+
+        val directoryPath = optionalStringProperty(directoryPropertyName)
+            ?: throw IllegalStateException(
+                "missing dataset suite properties: $pathsPropertyName or $directoryPropertyName"
+            )
+        val directory = File(directoryPath)
+        if (!directory.exists() || !directory.isDirectory) {
+            throw IllegalStateException("invalid dataset directory path: $directoryPath")
+        }
+        val files = directory
+            .listFiles { file ->
+                file.isFile && file.extension.equals(
+                    other = "csv",
+                    ignoreCase = true
+                )
+            }
+            ?.sortedBy { it.name }
+            ?: emptyList()
+        if (files.isEmpty()) {
+            throw IllegalStateException("no csv files found in dataset directory: $directoryPath")
+        }
+        return files.map { file ->
+            CsvDrivenScenarioCase(
+                name = file.absolutePath,
+                scenario = loadCsvDrivenScenarioFromFile(
+                    filePath = file.absolutePath
+                )
+            )
+        }
+    }
+
+    private fun createDeterministicRandomCsvDrivenScenarioCases(
+        seed: Int,
+        caseCount: Int
+    ): List<CsvDrivenScenarioCase> {
+        if (caseCount <= 0) {
+            throw IllegalArgumentException("caseCount must be positive")
+        }
+        val random = Random(seed)
+        return (0 until caseCount).map { caseIndex ->
+            val groupCount = random.nextInt(
+                from = 2,
+                until = 4
+            )
+            val materialCount = random.nextInt(
+                from = 3,
+                until = 6
+            )
+            val materials = (0 until materialCount).map { materialIndex ->
+                val weight = 0.8 + random.nextInt(
+                    from = 0,
+                    until = 221
+                ) / 100.0
+                Triple(
+                    "MAT-R-$caseIndex-$materialIndex",
+                    "Material-R-$caseIndex-$materialIndex",
+                    weight
+                )
+            }
+            val lines = ArrayList<String>()
+            lines.add("group_index,layer_index,item_id,material_no,material_name,material_weight_kg")
+            var itemIndex = 0
+            for (groupIndex in 0 until groupCount) {
+                val layerCount = random.nextInt(
+                    from = 2,
+                    until = 5
+                )
+                for (layerIndex in 0 until layerCount) {
+                    val itemsPerLayer = random.nextInt(
+                        from = 4,
+                        until = 9
+                    )
+                    repeat(itemsPerLayer) {
+                        val material = materials[random.nextInt(materials.size)]
+                        val weightText = String.format(
+                            Locale.US,
+                            "%.2f",
+                            material.third
+                        )
+                        lines.add(
+                            "$groupIndex,$layerIndex,item-r$caseIndex-g$groupIndex-l$layerIndex-i$itemIndex,${material.first},${material.second},$weightText"
+                        )
+                        itemIndex += 1
+                    }
+                }
+            }
+            CsvDrivenScenarioCase(
+                name = "random-case-${caseIndex + 1}",
+                scenario = loadCsvDrivenScenarioFromCsvText(
+                    csv = lines.joinToString(separator = "\n")
+                )
+            )
+        }
     }
 
     @Test
@@ -189,5 +534,889 @@ class GurobiColumnGenerationTest {
         assertEquals(1, result.lpSolvedTimes)
         assertTrue(result.lpObjectives.isNotEmpty())
         assertTrue(capturedRequest!!.scoreByShadowPrice != null)
+    }
+
+    @Test
+    fun applicationServiceShouldWorkWithGurobiDelegateAndPackingAnalyzer() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-GUROBI-SVC"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-GUROBI-SVC",
+            weight = 0.5 * Kilogram
+        )
+        val actualItem = item("item-gurobi-svc", material)
+        val seedBin = layerBin(listOf(actualItem))
+        val seedLayer = seedBin.units.first().unit
+        val demandValue = Flt64.one
+        val demandEntries = listOf(
+            Bpp3dDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(actualItem),
+                demand = demandValue,
+                demandRange = ValueRange(
+                    demandValue,
+                    demandValue,
+                    Interval.Closed,
+                    Interval.Closed,
+                    Flt64
+                ).value!!
+            )
+        )
+
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(time = 10.seconds)
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                demandEntries = demandEntries,
+                initialColumns = listOf(seedLayer),
+                finalBins = listOf(
+                    Bin(
+                        shape = seedBin.shape,
+                        units = emptyList<QuantityPlacement3<BinLayer>>(),
+                        batchNo = seedBin.batchNo
+                    )
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        assertNotNull(response.packingSnapshot)
+        assertTrue(response.packingSnapshot!!.bins.isNotEmpty())
+        assertEquals(response.packingSnapshot!!.bins.size.toString(), response.packingSnapshot!!.schema.kpi["bin_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldKeepPackingConsistentForMultiMaterialWithGurobi() = runBlocking {
+        val materialA = Material(
+            no = MaterialNo("M-GUROBI-A"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-GUROBI-A",
+            weight = 1.0 * Kilogram
+        )
+        val materialB = Material(
+            no = MaterialNo("M-GUROBI-B"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-GUROBI-B",
+            weight = 1.0 * Kilogram
+        )
+        val itemA = item("item-gurobi-a", materialA)
+        val itemB = item("item-gurobi-b", materialB)
+        val seedBin = layerBin(
+            items = listOf(itemA, itemB),
+            typeCode = "BIN-GUROBI-MULTI"
+        )
+        val seedLayer = seedBin.units.first().unit
+        val itemDemands = listOf(
+            Pair(itemA, UInt64.one),
+            Pair(itemB, UInt64.one)
+        )
+        val demandEntries = demandEntriesFromItems(
+            items = itemDemands
+        )
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(time = 10.seconds)
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = itemDemands,
+                demandEntries = demandEntries,
+                initialColumns = listOf(seedLayer),
+                finalBins = listOf(
+                    Bin(
+                        shape = seedBin.shape,
+                        units = emptyList<QuantityPlacement3<BinLayer>>(),
+                        batchNo = seedBin.batchNo
+                    )
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(1, snapshot.bins.size)
+        assertEquals(1, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(1, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(2, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        assertEquals(UInt64.one, materialSummary[materialA.key])
+        assertEquals(UInt64.one, materialSummary[materialB.key])
+        assertEquals("1", snapshot.schema.kpi["bin_count"])
+        assertEquals("2", snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldHandleProductionLikeConfigOnMediumScaleScenario() = runBlocking {
+        val materialCount = 4
+        val layerCount = 2
+        val itemsPerLayer = 12
+        val finalBinCount = 1
+        val sharedBinType = BinType(
+            width = itemsPerLayer.toDouble() * Meter,
+            height = 3.0 * Meter,
+            depth = 2.0 * Meter,
+            capacity = 300.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-GUROBI-MEDIUM"
+        )
+        val materials = (0 until materialCount).map { index ->
+            Material(
+                no = MaterialNo("M-GUROBI-MEDIUM-$index"),
+                type = MaterialType.RawMaterial,
+                cargo = CargoAttr,
+                name = "M-GUROBI-MEDIUM-$index",
+                weight = 1.0 * Kilogram
+            )
+        }
+        val items = (0 until (layerCount * itemsPerLayer)).map { index ->
+            val material = materials[index % materialCount]
+            item(id = "item-gurobi-medium-$index", material = material)
+        }
+        val layers = items.chunked(itemsPerLayer).map { chunk ->
+            val bin = layerBin(
+                items = chunk,
+                typeCode = sharedBinType.typeCode,
+                depthInMeter = 2.0,
+                binType = sharedBinType,
+                widthInMeter = itemsPerLayer.toDouble()
+            )
+            val rawLayer = bin.units.first().unit
+            BinLayer(
+                iteration = rawLayer.iteration,
+                from = rawLayer.from,
+                bin = sharedBinType,
+                shape = rawLayer.shape,
+                units = rawLayer.units
+            )
+        }
+        val itemDemands = items.map { Pair(it, UInt64.one) }
+        val demandEntries = demandEntriesFromItems(
+            items = itemDemands
+        )
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 20.seconds,
+                threadNum = UInt64(2),
+                gap = Flt64(0.01),
+                notImprovementTime = 5.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = itemDemands,
+                demandEntries = demandEntries,
+                initialColumns = layers,
+                finalBins = (0 until finalBinCount).map { index ->
+                    Bin(
+                        shape = sharedBinType,
+                        units = emptyList<QuantityPlacement3<BinLayer>>(),
+                        batchNo = BatchNo("B-GUROBI-MEDIUM-$index")
+                    )
+                },
+                cgConfig = ColumnGenerationConfig(
+                    iterationLimit = 4,
+                    maxColumnsPerIteration = 64
+                ),
+                executorConfig = ColumnGenerationStandardExecutorConfig(
+                    integralityTolerance = 1e-5
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(finalBinCount, snapshot.bins.size)
+        assertEquals(layerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(1, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(layerCount * itemsPerLayer, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        val expectedMaterialAmount = UInt64((layerCount * itemsPerLayer) / materialCount)
+        for (material in materials) {
+            assertEquals(expectedMaterialAmount, materialSummary[material.key])
+        }
+        assertEquals(finalBinCount.toString(), snapshot.schema.kpi["bin_count"])
+        assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldHandleProductionLikeConfigOnLargeScaleScenario() = runBlocking {
+        val materialCount = 6
+        val layerCount = 6
+        val itemsPerLayer = 10
+        val finalBinCount = 1
+        val sharedBinType = BinType(
+            width = itemsPerLayer.toDouble() * Meter,
+            height = 3.0 * Meter,
+            depth = layerCount.toDouble() * Meter,
+            capacity = 600.0 * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-GUROBI-LARGE"
+        )
+        val materials = (0 until materialCount).map { index ->
+            Material(
+                no = MaterialNo("M-GUROBI-LARGE-$index"),
+                type = MaterialType.RawMaterial,
+                cargo = CargoAttr,
+                name = "M-GUROBI-LARGE-$index",
+                weight = 1.0 * Kilogram
+            )
+        }
+        val items = (0 until (layerCount * itemsPerLayer)).map { index ->
+            val material = materials[index % materialCount]
+            item(id = "item-gurobi-large-$index", material = material)
+        }
+        val layers = items.chunked(itemsPerLayer).map { chunk ->
+            val bin = layerBin(
+                items = chunk,
+                typeCode = sharedBinType.typeCode,
+                depthInMeter = layerCount.toDouble(),
+                binType = sharedBinType,
+                widthInMeter = itemsPerLayer.toDouble()
+            )
+            val rawLayer = bin.units.first().unit
+            BinLayer(
+                iteration = rawLayer.iteration,
+                from = rawLayer.from,
+                bin = sharedBinType,
+                shape = rawLayer.shape,
+                units = rawLayer.units
+            )
+        }
+        val itemDemands = items.map { Pair(it, UInt64.one) }
+        val demandEntries = demandEntriesFromItems(
+            items = itemDemands
+        )
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 30.seconds,
+                threadNum = UInt64(4),
+                gap = Flt64(0.01),
+                notImprovementTime = 10.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = itemDemands,
+                demandEntries = demandEntries,
+                initialColumns = layers,
+                finalBins = (0 until finalBinCount).map { index ->
+                    Bin(
+                        shape = sharedBinType,
+                        units = emptyList<QuantityPlacement3<BinLayer>>(),
+                        batchNo = BatchNo("B-GUROBI-LARGE-$index")
+                    )
+                },
+                cgConfig = ColumnGenerationConfig(
+                    iterationLimit = 4,
+                    maxColumnsPerIteration = 64
+                ),
+                executorConfig = ColumnGenerationStandardExecutorConfig(
+                    integralityTolerance = 1e-5
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(finalBinCount, snapshot.bins.size)
+        assertEquals(layerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(1, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(layerCount * itemsPerLayer, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        val expectedMaterialAmount = UInt64((layerCount * itemsPerLayer) / materialCount)
+        for (material in materials) {
+            assertEquals(expectedMaterialAmount, materialSummary[material.key])
+        }
+        assertEquals(finalBinCount.toString(), snapshot.schema.kpi["bin_count"])
+        assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldHandleLargeScaleMixedDemandScenario() = runBlocking {
+        val materialCount = 5
+        val groupCount = 2
+        val layersPerGroup = 6
+        val itemsPerLayer = 10
+        val totalLayerCount = groupCount * layersPerGroup
+        val totalItemCount = totalLayerCount * itemsPerLayer
+        val materials = (0 until materialCount).map { index ->
+            Material(
+                no = MaterialNo("M-GUROBI-MIXED-$index"),
+                type = MaterialType.RawMaterial,
+                cargo = CargoAttr,
+                name = "M-GUROBI-MIXED-$index",
+                weight = 1.0 * Kilogram
+            )
+        }
+        val binTypes = (0 until groupCount).map { index ->
+            BinType(
+                width = itemsPerLayer.toDouble() * Meter,
+                height = 3.0 * Meter,
+                depth = layersPerGroup.toDouble() * Meter,
+                capacity = 600.0 * Kilogram,
+                longitudinalBalance = null,
+                lateralBalance = null,
+                typeCode = "BIN-GUROBI-MIXED-$index"
+            )
+        }
+        val layers = ArrayList<BinLayer>()
+        val items = ArrayList<ActualItem>()
+        var globalItemIndex = 0
+        for (groupIndex in 0 until groupCount) {
+            for (layerIndex in 0 until layersPerGroup) {
+                val layerItems = (0 until itemsPerLayer).map {
+                    val material = materials[globalItemIndex % materialCount]
+                    val actualItem = item(
+                        id = "item-gurobi-mixed-$globalItemIndex",
+                        material = material
+                    )
+                    globalItemIndex += 1
+                    items.add(actualItem)
+                    actualItem
+                }
+                val bin = layerBin(
+                    items = layerItems,
+                    typeCode = binTypes[groupIndex].typeCode,
+                    depthInMeter = layersPerGroup.toDouble(),
+                    binType = binTypes[groupIndex],
+                    widthInMeter = itemsPerLayer.toDouble()
+                )
+                val rawLayer = bin.units.first().unit
+                layers.add(
+                    BinLayer(
+                        iteration = rawLayer.iteration,
+                        from = rawLayer.from,
+                        bin = binTypes[groupIndex],
+                        shape = rawLayer.shape,
+                        units = rawLayer.units
+                    )
+                )
+            }
+        }
+        val itemDemands = items.map { Pair(it, UInt64.one) }
+        val materialDemands = materials.associateWith {
+            UInt64(totalItemCount / materialCount)
+        }
+        val demandEntries = demandEntriesFromItems(items = itemDemands) +
+                demandEntriesFromMaterialAmounts(
+                    materials = materialDemands.entries.map { entry ->
+                        Pair(entry.key, entry.value)
+                    }
+                )
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 30.seconds,
+                threadNum = UInt64(4),
+                gap = Flt64(0.01),
+                notImprovementTime = 10.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = itemDemands,
+                demandEntries = demandEntries,
+                initialColumns = layers,
+                finalBins = binTypes.mapIndexed { index, binType ->
+                    Bin(
+                        shape = binType,
+                        units = emptyList<QuantityPlacement3<BinLayer>>(),
+                        batchNo = BatchNo("B-GUROBI-MIXED-$index")
+                    )
+                },
+                cgConfig = ColumnGenerationConfig(
+                    iterationLimit = 4,
+                    maxColumnsPerIteration = 64
+                ),
+                executorConfig = ColumnGenerationStandardExecutorConfig(
+                    integralityTolerance = 1e-5
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(groupCount, snapshot.bins.size)
+        assertEquals(totalLayerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(groupCount, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        for ((material, demand) in materialDemands) {
+            assertEquals(demand, materialSummary[material.key])
+        }
+        assertEquals(groupCount.toString(), snapshot.schema.kpi["bin_count"])
+        assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldSupportCsvDrivenProductionLikeScenario() = runBlocking {
+        val scenario = loadCsvDrivenScenarioByPropertyOrResource(
+            propertyName = "bpp3d.gurobi.dataset.path",
+            defaultResourcePath = "gurobi/production-like-dataset.csv"
+        )
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 40.seconds,
+                threadNum = UInt64(4),
+                gap = Flt64(0.01),
+                notImprovementTime = 15.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = scenario.itemDemands,
+                demandEntries = scenario.demandEntries,
+                initialColumns = scenario.initialColumns,
+                finalBins = scenario.finalBins,
+                cgConfig = ColumnGenerationConfig(
+                    iterationLimit = 4,
+                    maxColumnsPerIteration = 96
+                ),
+                executorConfig = ColumnGenerationStandardExecutorConfig(
+                    integralityTolerance = 1e-5
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+        val expectedGroupCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.group.count")
+            ?: scenario.groupCount
+        val expectedMaterialCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.material.count")
+            ?: scenario.materialCount
+        val expectedLayerCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.layer.count")
+            ?: scenario.totalLayerCount
+        val expectedItemCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.item.count")
+            ?: scenario.totalItemCount
+        val maxElapsedSeconds = optionalDoubleProperty("bpp3d.gurobi.dataset.max.elapsed.seconds")
+            ?: 120.0
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        assertTrue(response.result.elapsed > 0.seconds)
+        assertTrue(response.result.elapsed <= maxElapsedSeconds.seconds)
+        assertEquals(1, response.result.lpInfos.size)
+        assertEquals("gurobi", response.result.lpInfos.first()["solver"])
+        assertEquals("gurobi", response.result.finalInfo["solver"])
+        assertTrue((response.result.finalInfo["milp_time_ms"] ?: "0").toLong() >= 0L)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(expectedGroupCount, snapshot.bins.size)
+        assertEquals(expectedLayerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(expectedGroupCount, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(expectedItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(expectedMaterialCount, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        for ((material, demand) in scenario.materialAmountDemands) {
+            assertEquals(demand, materialSummary[material.key])
+        }
+        assertEquals(expectedGroupCount.toString(), response.result.finalInfo["selected_bin_count"])
+        assertEquals(expectedLayerCount.toString(), response.result.finalInfo["selected_layer_count"])
+        assertEquals(response.result.iterationCount.toString(), snapshot.schema.kpi["cg_iteration"])
+        assertEquals(expectedGroupCount.toString(), snapshot.schema.kpi["bin_count"])
+        assertEquals(expectedMaterialCount.toString(), snapshot.schema.kpi["material_count"])
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "bpp3d.gurobi.dataset.suite.enabled", matches = "true")
+    fun applicationServiceShouldSupportCsvDrivenProductionLikeScenarioSuite() = runBlocking {
+        val scenarios = loadCsvDrivenScenarioSuiteByProperties(
+            pathsPropertyName = "bpp3d.gurobi.dataset.suite.paths",
+            directoryPropertyName = "bpp3d.gurobi.dataset.suite.dir"
+        )
+        val expectedCaseCount = optionalIntProperty("bpp3d.gurobi.dataset.suite.expected.case.count")
+            ?: scenarios.size
+        val maxElapsedSeconds = optionalDoubleProperty("bpp3d.gurobi.dataset.suite.max.elapsed.seconds")
+            ?: 180.0
+        val maxTotalElapsedSeconds = optionalDoubleProperty("bpp3d.gurobi.dataset.suite.max.total.elapsed.seconds")
+            ?: 600.0
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 40.seconds,
+                threadNum = UInt64(4),
+                gap = Flt64(0.01),
+                notImprovementTime = 15.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        var totalElapsed = ZERO
+
+        assertEquals(expectedCaseCount, scenarios.size)
+        for (scenarioCase in scenarios) {
+            val scenario = scenarioCase.scenario
+            val response = service.solve(
+                request = ColumnGenerationApplicationRequest(
+                    itemDemands = scenario.itemDemands,
+                    demandEntries = scenario.demandEntries,
+                    initialColumns = scenario.initialColumns,
+                    finalBins = scenario.finalBins,
+                    cgConfig = ColumnGenerationConfig(
+                        iterationLimit = 4,
+                        maxColumnsPerIteration = 96
+                    ),
+                    executorConfig = ColumnGenerationStandardExecutorConfig(
+                        integralityTolerance = 1e-5
+                    ),
+                    generators = listOf(
+                        object : Bpp3dLayerGenerator<Flt64> {
+                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                                return emptyList()
+                            }
+                        }
+                    )
+                ),
+                packingAnalyzer = ColumnGenerationPackingAnalyzer()
+            )
+            totalElapsed += response.result.elapsed
+
+            assertTrue(response.result.finalSolved, scenarioCase.name)
+            assertEquals(1, response.result.lpSolvedTimes, scenarioCase.name)
+            assertTrue(response.result.lpObjectives.isNotEmpty(), scenarioCase.name)
+            assertTrue(response.result.elapsed > 0.seconds, scenarioCase.name)
+            assertTrue(response.result.elapsed <= maxElapsedSeconds.seconds, scenarioCase.name)
+            assertEquals(1, response.result.lpInfos.size, scenarioCase.name)
+            assertEquals("gurobi", response.result.lpInfos.first()["solver"], scenarioCase.name)
+            assertEquals("gurobi", response.result.finalInfo["solver"], scenarioCase.name)
+            val snapshot = response.packingSnapshot
+            assertNotNull(snapshot, scenarioCase.name)
+            assertEquals(scenario.groupCount, snapshot.bins.size, scenarioCase.name)
+            assertEquals(scenario.totalLayerCount, snapshot.bins.sumOf { bin -> bin.units.size }, scenarioCase.name)
+            assertEquals(scenario.groupCount, snapshot.packingResult.aggregation.bins.size, scenarioCase.name)
+            assertEquals(scenario.totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size }, scenarioCase.name)
+            assertEquals(scenario.materialCount, snapshot.packingResult.materialSummary.size, scenarioCase.name)
+            val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+                entry.material to entry.amount
+            }
+            for ((material, demand) in scenario.materialAmountDemands) {
+                assertEquals(demand, materialSummary[material.key], scenarioCase.name)
+            }
+            assertEquals(scenario.groupCount.toString(), response.result.finalInfo["selected_bin_count"], scenarioCase.name)
+            assertEquals(scenario.totalLayerCount.toString(), response.result.finalInfo["selected_layer_count"], scenarioCase.name)
+            assertEquals(response.result.iterationCount.toString(), snapshot.schema.kpi["cg_iteration"], scenarioCase.name)
+            assertEquals(scenario.groupCount.toString(), snapshot.schema.kpi["bin_count"], scenarioCase.name)
+            assertEquals(scenario.materialCount.toString(), snapshot.schema.kpi["material_count"], scenarioCase.name)
+        }
+
+        assertTrue(totalElapsed <= maxTotalElapsedSeconds.seconds)
+    }
+
+    @Test
+    fun applicationServiceShouldSupportDeterministicRandomScenarioSuite() = runBlocking {
+        val seed = optionalIntProperty("bpp3d.gurobi.random.dataset.seed")
+            ?: 20260527
+        val caseCount = optionalIntProperty("bpp3d.gurobi.random.dataset.case.count")
+            ?: 3
+        val scenarios = createDeterministicRandomCsvDrivenScenarioCases(
+            seed = seed,
+            caseCount = caseCount
+        )
+        val maxElapsedSeconds = optionalDoubleProperty("bpp3d.gurobi.random.dataset.max.elapsed.seconds")
+            ?: 120.0
+        val maxTotalElapsedSeconds = optionalDoubleProperty("bpp3d.gurobi.random.dataset.max.total.elapsed.seconds")
+            ?: 300.0
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 40.seconds,
+                threadNum = UInt64(4),
+                gap = Flt64(0.01),
+                notImprovementTime = 15.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        var totalElapsed = ZERO
+
+        assertEquals(caseCount, scenarios.size)
+        for (scenarioCase in scenarios) {
+            val scenario = scenarioCase.scenario
+            val response = service.solve(
+                request = ColumnGenerationApplicationRequest(
+                    itemDemands = scenario.itemDemands,
+                    demandEntries = scenario.demandEntries,
+                    initialColumns = scenario.initialColumns,
+                    finalBins = scenario.finalBins,
+                    cgConfig = ColumnGenerationConfig(
+                        iterationLimit = 4,
+                        maxColumnsPerIteration = 96
+                    ),
+                    executorConfig = ColumnGenerationStandardExecutorConfig(
+                        integralityTolerance = 1e-5
+                    ),
+                    generators = listOf(
+                        object : Bpp3dLayerGenerator<Flt64> {
+                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                                return emptyList()
+                            }
+                        }
+                    )
+                ),
+                packingAnalyzer = ColumnGenerationPackingAnalyzer()
+            )
+            totalElapsed += response.result.elapsed
+
+            assertTrue(response.result.finalSolved, scenarioCase.name)
+            assertEquals(1, response.result.lpSolvedTimes, scenarioCase.name)
+            assertTrue(response.result.lpObjectives.isNotEmpty(), scenarioCase.name)
+            assertTrue(response.result.elapsed > 0.seconds, scenarioCase.name)
+            assertTrue(response.result.elapsed <= maxElapsedSeconds.seconds, scenarioCase.name)
+            assertEquals(1, response.result.lpInfos.size, scenarioCase.name)
+            assertEquals("gurobi", response.result.lpInfos.first()["solver"], scenarioCase.name)
+            assertEquals("gurobi", response.result.finalInfo["solver"], scenarioCase.name)
+            val snapshot = response.packingSnapshot
+            assertNotNull(snapshot, scenarioCase.name)
+            assertEquals(scenario.groupCount, snapshot.bins.size, scenarioCase.name)
+            assertEquals(scenario.totalLayerCount, snapshot.bins.sumOf { bin -> bin.units.size }, scenarioCase.name)
+            assertEquals(scenario.groupCount, snapshot.packingResult.aggregation.bins.size, scenarioCase.name)
+            assertEquals(scenario.totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size }, scenarioCase.name)
+            assertEquals(scenario.materialCount, snapshot.packingResult.materialSummary.size, scenarioCase.name)
+            val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+                entry.material to entry.amount
+            }
+            for ((material, demand) in scenario.materialAmountDemands) {
+                assertEquals(demand, materialSummary[material.key], scenarioCase.name)
+            }
+            assertEquals(scenario.groupCount.toString(), response.result.finalInfo["selected_bin_count"], scenarioCase.name)
+            assertEquals(scenario.totalLayerCount.toString(), response.result.finalInfo["selected_layer_count"], scenarioCase.name)
+            assertEquals(response.result.iterationCount.toString(), snapshot.schema.kpi["cg_iteration"], scenarioCase.name)
+            assertEquals(scenario.groupCount.toString(), snapshot.schema.kpi["bin_count"], scenarioCase.name)
+            assertEquals(scenario.materialCount.toString(), snapshot.schema.kpi["material_count"], scenarioCase.name)
+        }
+
+        assertTrue(totalElapsed <= maxTotalElapsedSeconds.seconds)
+    }
+
+    @Test
+    fun applicationServiceShouldHandleProductionLikeLargeMultiBinTripleDemandScenario() = runBlocking {
+        val materialCount = 6
+        val groupCount = 3
+        val layersPerGroup = 8
+        val itemsPerLayer = 12
+        val totalLayerCount = groupCount * layersPerGroup
+        val totalItemCount = totalLayerCount * itemsPerLayer
+        val materials = (0 until materialCount).map { index ->
+            Material(
+                no = MaterialNo("M-GUROBI-MIXED-WEIGHT-$index"),
+                type = MaterialType.RawMaterial,
+                cargo = CargoAttr,
+                name = "M-GUROBI-MIXED-WEIGHT-$index",
+                weight = (index + 1).toDouble() * Kilogram
+            )
+        }
+        val binTypes = (0 until groupCount).map { index ->
+            BinType(
+                width = itemsPerLayer.toDouble() * Meter,
+                height = 3.0 * Meter,
+                depth = layersPerGroup.toDouble() * Meter,
+                capacity = 1200.0 * Kilogram,
+                longitudinalBalance = null,
+                lateralBalance = null,
+                typeCode = "BIN-GUROBI-MIXED-WEIGHT-$index"
+            )
+        }
+        val layers = ArrayList<BinLayer>()
+        val items = ArrayList<ActualItem>()
+        var globalItemIndex = 0
+        for (groupIndex in 0 until groupCount) {
+            for (layerIndex in 0 until layersPerGroup) {
+                val layerItems = (0 until itemsPerLayer).map {
+                    val material = materials[globalItemIndex % materialCount]
+                    val actualItem = item(
+                        id = "item-gurobi-mixed-weight-$globalItemIndex",
+                        material = material
+                    )
+                    globalItemIndex += 1
+                    items.add(actualItem)
+                    actualItem
+                }
+                val bin = layerBin(
+                    items = layerItems,
+                    typeCode = binTypes[groupIndex].typeCode,
+                    depthInMeter = layersPerGroup.toDouble(),
+                    binType = binTypes[groupIndex],
+                    widthInMeter = itemsPerLayer.toDouble()
+                )
+                val rawLayer = bin.units.first().unit
+                layers.add(
+                    BinLayer(
+                        iteration = rawLayer.iteration,
+                        from = rawLayer.from,
+                        bin = binTypes[groupIndex],
+                        shape = rawLayer.shape,
+                        units = rawLayer.units
+                    )
+                )
+            }
+        }
+        val itemDemands = items.map { Pair(it, UInt64.one) }
+        val expectedMaterialAmount = UInt64(totalItemCount / materialCount)
+        val materialAmountDemands = materials.associateWith { expectedMaterialAmount }
+        val materialWeightDemands = materials.mapIndexed { index, material ->
+            Pair(
+                material,
+                (expectedMaterialAmount.toLong() * (index + 1L)).toDouble() * Kilogram
+            )
+        }
+        val demandEntries = demandEntriesFromItems(items = itemDemands) +
+                demandEntriesFromMaterialAmounts(
+                    materials = materialAmountDemands.entries.map { entry ->
+                        Pair(entry.key, entry.value)
+                    }
+                ) +
+                demandEntriesFromMaterialWeights(
+                    materials = materialWeightDemands
+                )
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(
+                time = 40.seconds,
+                threadNum = UInt64(4),
+                gap = Flt64(0.01),
+                notImprovementTime = 15.seconds
+            )
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = itemDemands,
+                demandEntries = demandEntries,
+                initialColumns = layers,
+                finalBins = binTypes.mapIndexed { index, binType ->
+                    Bin(
+                        shape = binType,
+                        units = emptyList<QuantityPlacement3<BinLayer>>(),
+                        batchNo = BatchNo("B-GUROBI-MIXED-WEIGHT-$index")
+                    )
+                },
+                cgConfig = ColumnGenerationConfig(
+                    iterationLimit = 4,
+                    maxColumnsPerIteration = 96
+                ),
+                executorConfig = ColumnGenerationStandardExecutorConfig(
+                    integralityTolerance = 1e-5
+                ),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<Flt64> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                            return emptyList()
+                        }
+                    }
+                )
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertTrue(response.result.lpObjectives.isNotEmpty())
+        assertTrue(response.result.elapsed > 0.seconds)
+        assertTrue(response.result.elapsed <= 120.seconds)
+        assertEquals(1, response.result.lpInfos.size)
+        assertEquals("gurobi", response.result.lpInfos.first()["solver"])
+        assertTrue((response.result.lpInfos.first()["lp_time_ms"] ?: "0").toLong() >= 0L)
+        assertEquals("gurobi", response.result.finalInfo["solver"])
+        assertTrue((response.result.finalInfo["milp_time_ms"] ?: "0").toLong() >= 0L)
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(groupCount, snapshot.bins.size)
+        assertEquals(totalLayerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(groupCount, snapshot.packingResult.aggregation.bins.size)
+        assertEquals(totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(groupCount, snapshot.schema.loadingPlans.size)
+        assertEquals(totalItemCount, snapshot.schema.loadingPlans.sumOf { plan -> plan.items.size })
+        assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
+        val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
+            entry.material to entry.amount
+        }
+        for ((material, demand) in materialAmountDemands) {
+            assertEquals(demand, materialSummary[material.key])
+        }
+        assertEquals(groupCount.toString(), response.result.finalInfo["selected_bin_count"])
+        assertEquals(totalLayerCount.toString(), response.result.finalInfo["selected_layer_count"])
+        assertEquals(response.result.iterationCount.toString(), snapshot.schema.kpi["cg_iteration"])
+        assertEquals(groupCount.toString(), snapshot.schema.kpi["bin_count"])
+        assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
     }
 }
