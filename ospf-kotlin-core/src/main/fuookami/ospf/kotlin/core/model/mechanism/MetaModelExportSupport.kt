@@ -9,22 +9,18 @@ import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.neq
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 
 /**
  * MetaModel 导出支持。
@@ -46,7 +42,7 @@ private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): S
 private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
-        monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
+        monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
         converter.fromValue(constant)
     )
 }

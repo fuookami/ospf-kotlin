@@ -3,26 +3,17 @@
  * Mathematical inequality DSL
  */
 @file:Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
-
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.operation.normalize
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt8
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue

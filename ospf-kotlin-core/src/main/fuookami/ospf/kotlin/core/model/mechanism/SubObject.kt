@@ -6,15 +6,11 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.intermediate.Cell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 

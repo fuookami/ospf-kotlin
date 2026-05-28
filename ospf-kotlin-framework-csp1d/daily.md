@@ -113,7 +113,56 @@ data class Csp1dProblem<V : RealNumber<V>>(
 )
 ```
 
-这里的宽度、长度、重量、坐标、产能全部应是 `Quantity<V>`；卷数、刀数、张数继续使用 `UInt64`；损耗率、兼容性、惩罚权重、归一化 reduced cost 使用裸 `V`。
+这里的宽度、长度、重量、坐标、产能全部应是 `Quantity<V>`；刀数等纯组合计数继续使用 `UInt64`；卷数需求、重量需求、张数需求统一表达为 `ProductDemand<V>` 中的 `Quantity<V>`；损耗率、兼容性、惩罚权重、归一化 reduced cost 使用裸 `V`。
+
+### 5.1.1 统一需求模型
+
+`poit/csp1d` 中按卷数、重量、张数存在三种需求计算方式。迁移到 framework 时不应保留三套 demand 字段或三套约束入口，而应统一为：
+
+```kotlin
+data class ProductDemand<V : RealNumber<V>>(
+    val product: Product<V>,
+    val quantity: Quantity<V>,
+    val mode: DemandMode? = null
+)
+```
+
+语义规则：
+
+1. 卷数需求：使用离散卷数单位，例如 `roll`，`quantity.unit.domain == QuantityDomain.Discrete`。
+2. 张数需求：使用离散张数单位，例如 `sheet`，`quantity.unit.domain == QuantityDomain.Discrete`。
+3. 重量需求：使用质量单位，例如 `Kilogram`，`quantity.unit.domain == QuantityDomain.Continuous`。
+4. `DemandMode` 可以作为决策对象和约束对象的语义标签，用于追踪该 demand 来自卷数、重量或张数口径。
+5. framework 领域层只读取 `quantity.unit.domain` 判定离散/连续，不通过单位名称、业务枚举、`DemandMode` 或 dimension 推断。
+6. 旧项目的三种计算方式应在 adapter 层转换为 `ProductDemand<V>`，进入 framework 后不再拆成三套字段或三套约束入口。
+
+建议标签：
+
+```kotlin
+enum class DemandMode {
+    Roll,
+    Weight,
+    Sheet
+}
+```
+
+`DemandMode` 的使用边界：
+
+1. 可以出现在 `ProductDemand<V>`、demand decision、demand constraint、solution analyzer 和 KPI 中。
+2. 只用于命名、分组、追踪来源、报表聚合和调试输出。
+3. 不参与单位换算、数值计算、离散/连续判定和 solver 变量类型判定。
+4. 同一个 `DemandMode` 下仍必须以 `Quantity<V>` 作为唯一需求值。
+
+对应的产出贡献也应统一为 `Quantity<V>`：
+
+```kotlin
+data class CuttingPlanDemandContribution<V : RealNumber<V>>(
+    val product: Product<V>,
+    val quantity: Quantity<V>
+)
+```
+
+主问题和 yield 约束只比较同一 unit/dimension 下的 demand 与 contribution；必要的单位换算通过 `Quantity` 完成。
 
 ### 5.2 切割方案与可行性
 
@@ -148,7 +197,7 @@ data class Csp1dProblem<V : RealNumber<V>>(
 
 建议功能：
 
-1. `yield`：按卷数、重量、张数表达需求，并输出产品/配规的欠产和超产。
+1. `yield`：按统一 `ProductDemand<V>` 表达需求，并输出产品/配规的欠产和超产；卷数、重量、张数只是 `quantity.unit` 不同。
 2. `length_assignment`：给动态长度产品分配卷长，控制超长和批次。
 3. `wasting_minimization`：最小化余宽、余料、成本和超产面积浪费。
 4. schedule variant：当需要按日期/订单分段时，使用 schedule 版本的 aggregation、constraint 和 analyzer。
@@ -185,6 +234,15 @@ CSP1D 领域层中有量纲字段必须使用 `Quantity<V>`：
 | 产能/加工能力 | `capacity`, `produceCapacity`, `cuttingRate` | `Length / Time`、`Amount / Time` 或业务定义单位 |
 
 裸 `V` 只用于无量纲值，例如损耗率、利用率、惩罚系数和归一化目标值。
+
+需求硬规则：
+
+1. 产品需求必须使用 `ProductDemand<V>(product, quantity)`。
+2. 不新增 `rollDemand`、`weightDemand`、`sheetDemand` 等平行字段。
+3. `DemandMode.Roll`、`DemandMode.Weight`、`DemandMode.Sheet` 只作为决策对象和约束对象的标签。
+4. demand 建模统一读取 `quantity.unit.domain`。
+5. 离散 demand 进入整数/离散约束，连续 demand 进入连续约束。
+6. 三种旧需求计算方式只允许作为 adapter 或 legacy factory 的输入形式。
 
 ## 8. 改造步骤
 
@@ -297,6 +355,26 @@ data class WidthRange<V>(
 - [ ] DTO 输出兼容旧格式。
 - [ ] 领域模型不再为了 DTO 固定为 `FltX`。
 
+### Phase C1-4：三种需求方式合并
+
+目标：
+
+1. 定义 `ProductDemand<V>`，用 `Quantity<V>` 表达需求值。
+2. 将卷数、重量、张数三种需求计算方式迁移为 adapter 层输入转换，并映射为 `DemandMode` 标签。
+3. 定义 `CuttingPlanDemandContribution<V>` 或等价模型，使切割方案产出统一贡献 `Quantity<V>`。
+4. 主问题 demand constraint、yield 欠产/超产、solution analyzer 均基于统一 demand/contribution 聚合。
+5. 通过 `quantity.unit.domain` 决定建模变量和约束是离散还是连续。
+
+验收：
+
+- [ ] 领域主路径不存在 `rollDemand`、`weightDemand`、`sheetDemand` 三套平行字段。
+- [ ] `DemandMode` 只作为 decision/constraint/analyzer/KPI 标签，不参与数值计算。
+- [ ] 卷数需求可用离散单位建模并进入离散约束。
+- [ ] 张数需求可用离散单位建模并进入离散约束。
+- [ ] 重量需求可用连续单位建模并进入连续约束。
+- [ ] 同一 solution analyzer 可以汇总三种 unit 的 `ProductDemand<V>` 与产出贡献。
+- [ ] legacy/adapter 可从旧的卷数、重量、张数输入转换为统一 `ProductDemand<V>`。
+
 ## 9. 向后兼容
 
 建议提供：
@@ -328,6 +406,20 @@ git grep -n "Flt64\\|FltX" -- ospf-kotlin-framework-csp1d
 
 其它领域模型中的固定数值类型应迁移为泛型。
 
+需求模型门禁：
+
+```powershell
+git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-csp1d
+```
+
+允许出现的位置：
+
+1. adapter。
+2. legacy factory。
+3. 测试。
+
+领域主路径中不应出现三套需求字段。`DemandMode` 允许作为标签出现，但不能驱动数值计算或变量类型判定。
+
 ## 11. 后续实现优先级
 
 建议按以下顺序落地：
@@ -337,5 +429,6 @@ git grep -n "Flt64\\|FltX" -- ospf-kotlin-framework-csp1d
 3. 不依赖 solver 的 DFS/FullSum/N-Same/N-Sum 方案生成。
 4. produce 主问题静态 MILP。
 5. MILP pricing + column generation。
-6. yield、length assignment、wasting minimization 三个增强上下文。
-7. application wrapper、KPI、render mapper 和兼容入口。
+6. 统一 `ProductDemand<V>` 与三种旧需求方式的 adapter 转换。
+7. yield、length assignment、wasting minimization 三个增强上下文。
+8. application wrapper、KPI、render mapper 和兼容入口。

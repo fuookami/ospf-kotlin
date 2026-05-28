@@ -4,11 +4,9 @@
  */
 package fuookami.ospf.kotlin.core.error
 
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Failed
 
 /**
  * 结构化核心错误接口，提供错误码、消息和转换方法。

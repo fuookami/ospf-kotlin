@@ -4,16 +4,12 @@
  */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.functional.Quadruple
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
-import fuookami.ospf.kotlin.core.model.basic.Variable
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.token.Token

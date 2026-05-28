@@ -1,9 +1,8 @@
-@file:Suppress("DEPRECATION")
-
 /**
  * Token 缓存上下文，管理 flatten/value/range 缓存及符号绑定关系。
  * Token cache contexts managing flatten/value/range caches and symbol binding relationships.
  */
+@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.token
 
 import java.util.Collections
@@ -11,10 +10,8 @@ import java.util.WeakHashMap
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem

@@ -6,9 +6,7 @@ package fuookami.ospf.kotlin.core.solver.value
 
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView

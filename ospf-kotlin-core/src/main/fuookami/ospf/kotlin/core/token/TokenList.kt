@@ -7,10 +7,10 @@ package fuookami.ospf.kotlin.core.token
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 通用抽象 token 列表，带有实数类型参数 T。

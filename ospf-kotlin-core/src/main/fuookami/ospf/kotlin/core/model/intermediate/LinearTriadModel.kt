@@ -5,10 +5,7 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import java.io.OutputStreamWriter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
@@ -18,15 +15,12 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.*
 
-private fun LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isBound(): Boolean {
+private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
     // && from?.second != true
@@ -62,18 +56,18 @@ class LinearConstraintCell(
 }
 
 class LinearConstraintBatch(
-    val sparseLhs: SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    val sparseLhs: SparseMatrix<Flt64>,
     signs: List<ConstraintRelation>,
-    rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    origins: List<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> = (0 until sparseLhs.numRows()).map { null },
+    origins: List<LinearConstraintImpl<Flt64>?> = (0 until sparseLhs.numRows()).map { null },
     froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
     priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
 ) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
     /**
      * Sparse representation of the LHS matrix.
-     * Each row is a SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64> where entry.index = colIndex, entry.value = coefficient.
+     * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
      */
 
@@ -89,8 +83,8 @@ class LinearConstraintBatch(
         }
     }
 
-    private val _origins: MutableList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> = origins.toMutableList()
-    val origins: List<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> by ::_origins
+    private val _origins: MutableList<LinearConstraintImpl<Flt64>?> = origins.toMutableList()
+    val origins: List<LinearConstraintImpl<Flt64>?> by ::_origins
 
     private val _froms: MutableList<Pair<IntermediateSymbol<*>, Boolean>?> = froms.toMutableList()
     val froms: List<Pair<IntermediateSymbol<*>, Boolean>?> by ::_froms
@@ -99,7 +93,7 @@ class LinearConstraintBatch(
     val priorities: List<Int?> by ::_priorities
 
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
-        val filteredSparseLhs = SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
+        val filteredSparseLhs = SparseMatrix<Flt64>()
         for ((i, row) in sparseLhs.rows.withIndex()) {
             if (condition(i)) {
                 filteredSparseLhs.addRow(row)
@@ -118,9 +112,9 @@ class LinearConstraintBatch(
     }
 
     override fun copy() = LinearConstraintBatch(
-        SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>().also { mat ->
+        SparseMatrix<Flt64>().also { mat ->
             for (row in sparseLhs.rows) {
-                val newRow = SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
+                val newRow = SparseVector<Flt64>()
                 for (entry in row.entries) {
                     newRow.add(entry.index, entry.value.copy())
                 }
@@ -203,7 +197,7 @@ class BasicLinearTriadModel(
 ) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
     companion object {
         /**
-         * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>] by
+         * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -216,9 +210,9 @@ class BasicLinearTriadModel(
          * @return a [BasicLinearTriadModel] containing the extracted variables and constraints
          */
         fun from(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexMap: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
+            model: LinearMechanismModel<Flt64>,
+            tokenIndexMap: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicLinearTriadModel {
             val variables = dumpLinearTriadVariables(
@@ -253,7 +247,7 @@ class BasicLinearTriadModel(
                     it._type = UContinuous
                 }
 
-                is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer -> {
+                is BalancedTernary, is Integer -> {
                     it._type = Continuous
                 }
 
@@ -278,7 +272,7 @@ class BasicLinearTriadModel(
                         ret
                     }
 
-                    is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer -> {
+                    is BalancedTernary, is Integer -> {
                         val ret = it.copy()
                         ret._type = Continuous
                         ret
@@ -388,11 +382,11 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         minSlackAmount: Pair<UInt64, Flt64>? = null
     ): LinearTriadModelView
 
-    fun tidyDualSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
+    fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {
-                    (it.dualOrigin as LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>) to solution[it.index]
+                    (it.dualOrigin as LinearConstraintImpl<Flt64>) to solution[it.index]
                 } else {
                     null
                 }
@@ -411,7 +405,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
-    val tokensInSolver: List<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    val tokensInSolver: List<Token<Flt64>>,
     override val objective: LinearObjective,
     internal val dualOrigin: LinearTriadModelView? = null
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
@@ -420,7 +414,7 @@ data class LinearTriadModel(
 
         /** V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            model: LinearMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,

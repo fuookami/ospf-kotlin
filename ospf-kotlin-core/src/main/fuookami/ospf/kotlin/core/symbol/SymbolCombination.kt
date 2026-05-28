@@ -10,19 +10,13 @@
  * convenience factory functions.
  */
 @file:Suppress("unused")
-
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 

@@ -3,20 +3,16 @@
  * Call-back model interfaces
  */
 @file:Suppress("unused")
-
 package fuookami.ospf.kotlin.core.model.callback
 
-import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.functional.sumOf
-import fuookami.ospf.kotlin.core.model.basic.Model
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 

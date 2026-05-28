@@ -42,9 +42,158 @@ Gantt Scheduling 不能只做数值泛型化，还要把有量纲字段 `Quantit
 
 裸 `V` 只用于无量纲量：相对改善率、利用率、折扣/权重、归一化 reduced cost、排序评分。
 
-## 4. 分层策略
+## 4. ProductivityCalendar 物理量化目标
 
-### 3.1 领域数值层
+`ProductivityCalendar` 当前的泛型核心是 `Q`：
+
+```kotlin
+sealed class ProductivityCalendar<Q, P, T, U>(...)
+```
+
+其中 `Q` 表示产出数量或单位时间产出数量，`Productivity.unitYields`、`actualTimeFrom(quantity)`、`actualTimeUntil(quantity)`、`actualQuantity()` 都直接使用裸 `Q`。这只完成了数值类型泛型化，没有完成业务量纲建模。
+
+目标是把 `ProductivityCalendar` 的产出数量从裸 `Q` 推进为 `Quantity<V>`：
+
+```kotlin
+sealed class ProductivityCalendar<V, P, T, U>(...)
+    where V : RealNumber<V>, ...
+```
+
+建议目标语义：
+
+1. `Productivity.unitYields: Map<U, Quantity<V>>`，表达“单位时间产出多少带单位数量”。
+2. `Productivity.capacityOf(material)` 保持返回 `Duration?`，表达“生产一个业务单位或指定基准数量所需时间”。
+3. `Productivity.unitYieldOf(material)` 返回 `Quantity<V>?`。
+4. `actualTimeFrom(material, startTime, quantity)` 的 `quantity` 改为 `Quantity<V>`。
+5. `actualTimeUntil(material, endTime, quantity)` 的 `quantity` 改为 `Quantity<V>`。
+6. `actualQuantity(material, time)` 返回 `Quantity<V>`。
+7. `averageUnitYield` 返回 `Map<U, Quantity<V>>`。
+8. 只有内部时间比例、利用率、进度比例、floor/ceil 计算可以临时使用裸 `V` 或 `Flt64`。
+
+### 4.1 建模事项
+
+| 事项 | 当前状态 | 目标 |
+|------|----------|------|
+| 数量入参 | `quantity: Q` | `quantity: Quantity<V>` |
+| 实际产量返回 | `Q` | `Quantity<V>` |
+| 单位时间产出 | `unitYields: Map<U, Q>` | `unitYields: Map<U, Quantity<V>>` |
+| 平均单位时间产出 | `Map<U, Q>` | `Map<U, Quantity<V>>` |
+| 时间耗量 | `capacities: Map<U, Duration>` | 短期保留，后续评估是否升级为 `Map<U, Pair<Quantity<V>, Duration>>` |
+| 条件产出 | `conditionUnitYields: List<Pair<Condition<T>, Q>>` | `List<Pair<Condition<T>, Quantity<V>>>` |
+| 离散/连续日历 | `UInt64` / `Flt64` | `Quantity<UInt64>` / `Quantity<Flt64>` 或 `Quantity<FltX>` |
+
+### 4.2 迁移计划
+
+#### Phase P0：兼容层
+
+新增兼容 typealias 或 wrapper，保留旧调用：
+
+```kotlin
+typealias LegacyDiscreteProductivityCalendar<P, T, U> = DiscreteProductivityCalendar<P, T, U>
+typealias LegacyContinuousProductivityCalendar<P, T, U> = ContinuousProductivityCalendar<P, T, U>
+```
+
+同时新增带物理量语义的新入口，避免一次性破坏现有应用：
+
+```kotlin
+class QuantityProductivityCalendar<V, P, T, U>(...)
+```
+
+验收：
+
+- [ ] 旧 `ProductivityCalendar` 测试不变。
+- [ ] 新 `QuantityProductivityCalendar` 可用 `Quantity<Flt64>` 和 `Quantity<FltX>` 构造。
+
+#### Phase P1：Productivity 数量字段升级
+
+将 `Productivity` 中和产出数量有关的字段升级为 `Quantity<V>`：
+
+```kotlin
+val unitYields: Map<U, Quantity<V>>
+val conditionUnitYields: List<Pair<ProductivityCondition<T>, Quantity<V>>>
+```
+
+`capacities: Map<U, Duration>` 暂时保留，用于兼容“生产一个单位所需时间”的语义。
+
+验收：
+
+- [ ] `unitYieldOf(material)` 返回 `Quantity<V>?`。
+- [ ] `averageUnitYield` 可正确保留单位。
+- [ ] 不同单位混算时返回失败或显式拒绝，不做静默相加。
+
+#### Phase P2：计算 API 升级
+
+升级公开 API：
+
+```kotlin
+fun actualTimeFrom(
+    material: T,
+    startTime: Instant,
+    quantity: Quantity<V>,
+    ...
+): ActualTime
+
+fun actualTimeUntil(
+    material: T,
+    endTime: Instant,
+    quantity: Quantity<V>,
+    ...
+): ActualTime
+
+fun actualQuantity(
+    material: T,
+    time: TimeRange,
+    ...
+): Quantity<V>
+```
+
+验收：
+
+- [ ] `actualTimeFrom` 能按 `Quantity<Flt64>` 计算完成时间。
+- [ ] `actualQuantity` 返回值携带与输入生产率一致的单位。
+- [ ] 离散产量可用 `Quantity<UInt64>` 或明确的离散 wrapper 表达。
+
+#### Phase P3：TimeWindow 比例计算隔离
+
+`TimeWindow.valueOf(duration)` 仍可返回裸数值比例，但该比例只能作为内部换算因子使用：
+
+```kotlin
+val produced = unitYield * timeWindow.valueOf(produceTime.duration)
+```
+
+这里 `unitYield` 是 `Quantity<V>`，乘以无量纲比例后仍为 `Quantity<V>`。
+
+验收：
+
+- [ ] `TimeWindow` 不负责产出单位。
+- [ ] `ProductivityCalendar` 内部不把 `Quantity<V>` 拆成裸 `V` 后丢弃单位。
+
+#### Phase P4：旧 API 收敛
+
+在所有使用方迁移后：
+
+1. 裸 `Q` 版本降级为 legacy wrapper。
+2. 新主路径统一使用 `Quantity<V>`。
+3. `DiscreteProductivityCalendar` / `ContinuousProductivityCalendar` 明确表达为数量域选择，而不是裸数值选择。
+
+验收：
+
+- [ ] `ProductivityCalendar` 主 API 不再暴露裸数量 `Q`。
+- [ ] `Quantity<V>` 单位检查覆盖 `unitYields`、`actualQuantity`、`averageUnitYield`。
+- [ ] APS 等上层可以直接传入 `Quantity<FltX>` 产能数量。
+
+### 4.3 风险与约束
+
+| 风险 | 说明 | 缓解 |
+|------|------|------|
+| `Quantity<V>` 运算能力不足 | 乘除无量纲比例、floor/ceil 可能缺少统一接口 | 在 `QuantityProductivityCalculator` 或 adapter 中集中实现 |
+| 离散数量舍入 | `Quantity<UInt64>` 与 `Quantity<Flt64>` 的舍入语义不同 | 保留离散/连续策略对象，不在 `Quantity` 内隐式舍入 |
+| 单位换算 | 不同产出单位不能直接相加 | 单位不一致时返回失败，或要求调用方先显式换算 |
+| 兼容成本 | 当前测试大量使用裸 `UInt64` / `Flt64` | 先新增新 API，旧 API 保留 wrapper |
+
+## 5. 分层策略
+
+### 5.1 领域数值层
 
 新增统一约束：
 
@@ -60,7 +209,7 @@ interface Cost<V : RealNumber<V>> { val sum: Quantity<V>? }
 data class CapacityColumn<E, A, V : RealNumber<V>>(...)
 ```
 
-### 3.2 时间映射层
+### 5.2 时间映射层
 
 `TimeWindow` 当前把时间映射为 `Flt64`。改为输出时间量纲的 `Quantity<V>`，solver 边界再做数值转换：
 
@@ -86,7 +235,7 @@ typealias Flt64TimeWindow = TimeWindow<Flt64>
 - [ ] `TimeWindow<FltX>` 可编译。
 - [ ] 时间到 solver 的转换只在边界发生。
 
-### 3.3 Solver adapter 层
+### 5.3 Solver adapter 层
 
 新增或统一：
 
@@ -100,7 +249,7 @@ typealias Flt64TimeWindow = TimeWindow<Flt64>
 2. solver solution `Flt64` -> 领域 `V`。
 3. 控制舍入、非有限值、溢出和精度损失。
 
-## 5. 改造步骤
+## 6. 改造步骤
 
 ### Phase G0：基线与门禁
 
@@ -138,6 +287,29 @@ git grep -n "Flt64\\|AbstractLinearMetaModel<Flt64>\\|MetaModel<Flt64>\\|LinearI
 
 - [ ] `Flt64TimeWindow` 兼容旧 API。
 - [ ] 所有调用点显式选择 `V`。
+
+### Phase G2.5：ProductivityCalendar 数量物理量化
+
+处理 `gantt-scheduling-infrastructure/WorkingCalendar.kt` 中的：
+
+1. `Productivity<Q, T, U>`。
+2. `ProductivityCalendar<Q, P, T, U>`。
+3. `DiscreteProductivityCalendar`。
+4. `ContinuousProductivityCalendar`。
+5. `WorkingCalendarTest.testProductivityCalendarActualTime` 相关测试。
+
+策略：
+
+1. 先新增 `QuantityProductivity` / `QuantityProductivityCalendar` 新路径。
+2. 再把 `unitYields`、`conditionUnitYields`、`actualTimeFrom(quantity)`、`actualTimeUntil(quantity)`、`actualQuantity()` 迁移到 `Quantity<V>`。
+3. 保留旧裸数量 API 作为 wrapper，内部将裸数量包装为 `Quantity<V>`，单位由调用方或默认兼容单位提供。
+
+验收：
+
+- [ ] 旧 `ProductivityCalendar` 测试通过。
+- [ ] 新增 `QuantityProductivityCalendarTest`，覆盖 `Quantity<Flt64>` 和 `Quantity<FltX>`。
+- [ ] `actualQuantity` 返回带单位结果。
+- [ ] 单位不一致的 `unitYields` 聚合有明确失败路径或显式拒绝策略。
 
 ### Phase G3：task/bunch compilation 泛型化
 
@@ -207,7 +379,7 @@ git grep -n "Flt64\\|AbstractLinearMetaModel<Flt64>\\|MetaModel<Flt64>\\|LinearI
 mvn -pl ospf-kotlin-framework-gantt-scheduling test
 ```
 
-## 6. 风险
+## 7. 风险
 
 | 风险 | 说明 | 缓解 |
 |------|------|------|
@@ -215,8 +387,9 @@ mvn -pl ospf-kotlin-framework-gantt-scheduling test
 | reduced cost/shadow price 类型分裂 | 列生成跨多个上下文 | 先统一 `Cost<V>` / `ShadowPriceMap<V>` |
 | 时间映射精度 | Instant/Duration 到 V 可能损失精度 | `fromDouble` / `toDouble` 策略显式化 |
 | 改动面大 | 126 个 Kotlin 文件 | 按子模块分阶段，每阶段保持 Flt64 wrapper 编译 |
+| ProductivityCalendar 单位语义迁移 | 裸 Q 迁移到 `Quantity<V>` 会影响排程耗时和产量计算 | 新增 `QuantityProductivityCalendar` 后迁移调用方，旧 API wrapper 兼容 |
 
-## 7. 向后兼容
+## 8. 向后兼容
 
 建议保留：
 

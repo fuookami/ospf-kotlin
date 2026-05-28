@@ -2,9 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
@@ -15,7 +13,7 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
 data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : AbstractResourceCapacity>(

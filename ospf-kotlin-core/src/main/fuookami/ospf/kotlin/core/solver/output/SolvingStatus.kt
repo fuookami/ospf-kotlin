@@ -3,7 +3,6 @@
  * Solving status data structure
  */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration

@@ -5,10 +5,10 @@
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 

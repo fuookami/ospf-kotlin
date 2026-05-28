@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

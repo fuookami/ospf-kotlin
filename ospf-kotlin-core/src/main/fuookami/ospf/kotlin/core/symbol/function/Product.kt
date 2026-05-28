@@ -10,30 +10,22 @@ package fuookami.ospf.kotlin.core.symbol.function
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.multiarray.Shape
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.AbstractSymbolCombination
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 
 private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
 
@@ -284,7 +276,7 @@ class ProductFunction<V>(
     }
     override fun toString(): String = displayName ?: name
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try = ok
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val poly = polynomial

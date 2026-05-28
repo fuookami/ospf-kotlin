@@ -7,45 +7,25 @@ package fuookami.ospf.kotlin.core.model.mechanism
 import java.nio.file.Path
 import kotlin.io.path.Path
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.core.model.basic.LinearModel
-import fuookami.ospf.kotlin.core.model.basic.Model
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.QuadraticModel
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentAutoTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.ManualTokenTable
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
-private val solverValueConverter = IntoValue.fromConverter(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+private val solverValueConverter = IntoValue.fromConverter(Flt64)
 
 /**
  * Factory function to create the appropriate [AbstractMutableTokenTable<V>]

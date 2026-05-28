@@ -5,10 +5,10 @@
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.operator.pow
 import fuookami.ospf.kotlin.math.ordinary.max

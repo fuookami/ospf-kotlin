@@ -7,21 +7,12 @@ package fuookami.ospf.kotlin.core.model.callback
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.Flt64LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.SubObject
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
-import fuookami.ospf.kotlin.core.token.ManualTokenTable
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 

@@ -3,17 +3,16 @@
  * Solver output data structures
  */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**

@@ -4,9 +4,7 @@
  */
 package fuookami.ospf.kotlin.core.solver
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 
 /**
  * 核心求解器共享的异步协程作用域，使用 [SupervisorJob] 和 [Dispatchers.Default]。

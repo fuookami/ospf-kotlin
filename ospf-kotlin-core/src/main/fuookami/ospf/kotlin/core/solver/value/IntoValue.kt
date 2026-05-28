@@ -4,9 +4,9 @@
  */
 package fuookami.ospf.kotlin.core.solver.value
 
-import fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter
 
 /**
  * Value type conversion trait (aligns with Rust IntoValue<V>).

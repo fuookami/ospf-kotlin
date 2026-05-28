@@ -5,10 +5,7 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import java.io.OutputStreamWriter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
@@ -18,15 +15,12 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.*
 
-private fun QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isBound(): Boolean {
+private fun QuadraticConstraintImpl<Flt64>.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
             && lhs.first().token2 == null
@@ -64,10 +58,10 @@ class QuadraticConstraintCell(
 class QuadraticConstraintBatch(
     val sparseLhs: SparseQuadraticMatrix,
     signs: List<ConstraintRelation>,
-    rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    origins: List<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> = (0 until sparseLhs.numRows()).map { null },
+    origins: List<QuadraticConstraintImpl<Flt64>?> = (0 until sparseLhs.numRows()).map { null },
     froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
     priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
 ) : ModelConstraint<QuadraticConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
@@ -90,8 +84,8 @@ class QuadraticConstraintBatch(
         }
     }
 
-    private val _origins: MutableList<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> = origins.toMutableList()
-    val origins: List<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> by ::_origins
+    private val _origins: MutableList<QuadraticConstraintImpl<Flt64>?> = origins.toMutableList()
+    val origins: List<QuadraticConstraintImpl<Flt64>?> by ::_origins
 
     private val _froms: MutableList<Pair<IntermediateSymbol<*>, Boolean>?> = froms.toMutableList()
     val froms: List<Pair<IntermediateSymbol<*>, Boolean>?> by ::_froms
@@ -189,7 +183,7 @@ class BasicQuadraticTetradModel(
 ) : BasicModelView<QuadraticConstraintCell>, Cloneable, Copyable<BasicQuadraticTetradModel> {
     companion object {
         /**
-         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>] by
+         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -202,9 +196,9 @@ class BasicQuadraticTetradModel(
          * @return a [BasicQuadraticTetradModel] containing the extracted variables and constraints
          */
         fun from(
-            model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexMap: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
+            model: QuadraticMechanismModel<Flt64>,
+            tokenIndexMap: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<QuadraticConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicQuadraticTetradModel {
             val variables = dumpQuadraticTetradVariables(
@@ -239,7 +233,7 @@ class BasicQuadraticTetradModel(
                     it._type = UContinuous
                 }
 
-                is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer -> {
+                is BalancedTernary, is Integer -> {
                     it._type = Continuous
                 }
 
@@ -264,7 +258,7 @@ class BasicQuadraticTetradModel(
                         ret
                     }
 
-                    is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer -> {
+                    is BalancedTernary, is Integer -> {
                         val ret = it.copy()
                         ret._type = Continuous
                         ret
@@ -374,11 +368,11 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     fun feasibility(): QuadraticTetradModelView
     fun elastic(): QuadraticTetradModelView
 
-    fun tidyDualSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> {
+    fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index) {
-                    (it.dualOrigin as QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>) to solution[it.index]
+                    (it.dualOrigin as QuadraticConstraintImpl<Flt64>) to solution[it.index]
                 } else {
                     null
                 }
@@ -397,7 +391,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
-    val tokensInSolver: List<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    val tokensInSolver: List<Token<Flt64>>,
     override val objective: QuadraticObjective,
     internal val dualOrigin: QuadraticTetradModelView? = null
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
@@ -411,7 +405,7 @@ data class QuadraticTetradModel(
 
         /** V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
-            model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            model: QuadraticMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,

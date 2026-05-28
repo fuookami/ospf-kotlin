@@ -6,10 +6,8 @@ package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.quantity.Quantity

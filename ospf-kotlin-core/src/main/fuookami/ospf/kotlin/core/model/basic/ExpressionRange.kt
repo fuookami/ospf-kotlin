@@ -5,10 +5,7 @@
 package fuookami.ospf.kotlin.core.model.basic
 
 import kotlin.reflect.full.companionObjectInstance
-import fuookami.ospf.kotlin.math.algebra.concept.Invariant
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 

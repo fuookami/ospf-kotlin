@@ -5,14 +5,8 @@
 package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.concept.IntegerNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.concept.UIntegerNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /** 变量类型分类接口，提供二值/无符号/整数/连续等类型判断属性。 / Variable type kind interface providing binary/unsigned/integer/continuous type classification properties. */

@@ -4,29 +4,20 @@
  */
 package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.utils.functional.Ord
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.ord
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.Bound
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.model.mechanism.*
 
 /**
  * 变量项键，由标识符和索引唯一确定一个变量项。

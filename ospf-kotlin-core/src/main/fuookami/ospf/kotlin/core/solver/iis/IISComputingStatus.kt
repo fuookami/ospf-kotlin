@@ -3,7 +3,6 @@
  * IIS computing status
  */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.iis
 
 import kotlin.time.Duration

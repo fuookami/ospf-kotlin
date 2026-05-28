@@ -6,40 +6,26 @@
  * Provides [QuadraticMinFunction] for minimum value modeling under quadratic constraints.
  */
 @file:Suppress("unused")
-
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
-import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 
 /**
  * Quadratic min function: y = min(p1, p2, ..., pn).
@@ -222,7 +208,7 @@ class QuadraticMinFunction<V>(
     /**
      * Register helper variables (resultVar, binVars) with the token collection.
      */
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         val allVars = mutableListOf<AbstractVariableItem<*, *>>(resultVar)
         allVars.addAll(binVars)
         return when (val result = tokens.add(allVars)) {

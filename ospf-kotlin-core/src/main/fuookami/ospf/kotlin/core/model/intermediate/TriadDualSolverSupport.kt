@@ -6,9 +6,7 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 

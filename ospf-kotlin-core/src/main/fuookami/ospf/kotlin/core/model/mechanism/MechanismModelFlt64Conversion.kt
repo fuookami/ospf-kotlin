@@ -6,25 +6,14 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.token.AbstractTokenList
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.MutableTokenTable
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.token.TokenList
-import fuookami.ospf.kotlin.core.token.TokenTable
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
@@ -41,19 +30,19 @@ internal fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(mod
     return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }
 
-private fun <V> copyTokenWithFlt64Converter(token: Token<V>): Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+private fun <V> copyTokenWithFlt64Converter(token: Token<V>): Token<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
-    val copied = Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+    val copied = Token<Flt64>(
         variable = token.variable,
         solverIndex = token.solverIndex,
-        refreshCallbacks = mutableMapOf<AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, (Boolean) -> Unit>(),
+        refreshCallbacks = mutableMapOf<AbstractTokenList<Flt64>, (Boolean) -> Unit>(),
         converter = IntoValue.Identity
     )
     copied.__result = token.resultFlt64
     return copied
 }
 
-private fun <V> createFlt64TokenTable(tokens: AbstractTokenTable<V>): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+private fun <V> createFlt64TokenTable(tokens: AbstractTokenTable<V>): AbstractTokenTable<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val copiedTokens = tokens.tokens.map { copyTokenWithFlt64Converter(it) }
     val copiedTokenMap = copiedTokens.associateBy { it.key }
@@ -66,21 +55,21 @@ private fun <V> createFlt64TokenTable(tokens: AbstractTokenTable<V>): AbstractTo
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <V> copyMutableTokenTableAsFlt64(tokens: MutableTokenTable<V>): MutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal fun <V> copyMutableTokenTableAsFlt64(tokens: MutableTokenTable<V>): MutableTokenTable<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
-    return tokens.copy() as MutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    return tokens.copy() as MutableTokenTable<Flt64>
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <V> copyConcurrentMutableTokenTableAsFlt64(tokens: ConcurrentMutableTokenTable<V>): ConcurrentMutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal fun <V> copyConcurrentMutableTokenTableAsFlt64(tokens: ConcurrentMutableTokenTable<V>): ConcurrentMutableTokenTable<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
-    return tokens.copy() as ConcurrentMutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    return tokens.copy() as ConcurrentMutableTokenTable<Flt64>
 }
 
 private fun <V> convertLinearSubObjectToFlt64(
     subObject: LinearSubObject<V>,
-    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): LinearSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    tokens: AbstractTokenTable<Flt64>
+): LinearSubObject<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     val flattenData = LinearFlattenData(
         monomials = subObject.linearTerms().map { (coefficient, symbol) ->
             LinearMonomial(
@@ -101,8 +90,8 @@ private fun <V> convertLinearSubObjectToFlt64(
 
 private fun <V> convertQuadraticSubObjectToFlt64(
     subObject: QuadraticSubObject<V>,
-    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): QuadraticSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    tokens: AbstractTokenTable<Flt64>
+): QuadraticSubObject<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     val flattenData = QuadraticFlattenData(
         monomials = subObject.quadraticTerms().map { (coefficient, symbol1, symbol2) ->
             if (symbol2 == null) {
@@ -131,8 +120,8 @@ private fun <V> convertQuadraticSubObjectToFlt64(
 
 private fun <V> convertLinearConstraintToFlt64(
     constraint: LinearConstraintImpl<V>,
-    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    tokens: AbstractTokenTable<Flt64>
+): LinearConstraintImpl<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     val relation = LinearRelationImpl(
         flattenData = LinearFlattenData(
             monomials = constraint.lhs.map { cell ->
@@ -159,8 +148,8 @@ private fun <V> convertLinearConstraintToFlt64(
 
 private fun <V> convertQuadraticConstraintToFlt64(
     constraint: QuadraticConstraintImpl<V>,
-    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    tokens: AbstractTokenTable<Flt64>
+): QuadraticConstraintImpl<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     val relation = QuadraticRelationImpl(
         flattenData = QuadraticFlattenData(
             monomials = constraint.lhs.map { cell ->
@@ -193,10 +182,10 @@ private fun <V> convertQuadraticConstraintToFlt64(
     )
 }
 
-private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V>): LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V>): LinearMechanismModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val flt64Tokens = createFlt64TokenTable(model.tokens)
-    val flt64Parent = LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+    val flt64Parent = LinearMetaModel<Flt64>(
         name = model.parent.name,
         objectCategory = model.parent.objectCategory,
         configuration = model.parent.configuration,
@@ -213,10 +202,10 @@ private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V
     )
 }
 
-private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismModel<V>): QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismModel<V>): QuadraticMechanismModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val flt64Tokens = createFlt64TokenTable(model.tokens)
-    val flt64Parent = QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+    val flt64Parent = QuadraticMetaModel<Flt64>(
         name = model.parent.name,
         objectCategory = model.parent.objectCategory,
         configuration = model.parent.configuration,
@@ -242,7 +231,7 @@ internal fun <V, T> mechanismTokenTableAs(table: AbstractTokenTable<T>): Abstrac
 internal fun <V> toSolverFixedValues(
     fixedVariables: Map<AbstractVariableItem<*, *>, V>?,
     toFlt64: (V) -> Flt64
-): Map<Symbol, fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+): Map<Symbol, Flt64>? {
     return fixedVariables
         ?.mapValues { (_, value) -> toFlt64(value) }
         ?.mapKeys { (variable, _) -> variable as Symbol }
@@ -251,7 +240,7 @@ internal fun <V> toSolverFixedValues(
 internal fun <V> toFlt64FixedVariables(
     fixedVariables: Map<AbstractVariableItem<*, *>, V>,
     toFlt64: (V) -> Flt64
-): Map<AbstractVariableItem<*, *>, fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): Map<AbstractVariableItem<*, *>, Flt64> {
     return fixedVariables.mapValues { (_, value) -> toFlt64(value) }
 }
 
@@ -262,7 +251,7 @@ internal fun <V> toFlt64FixedVariables(
  * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。
  * Validates concrete mechanism-model subclasses and returns Failed for unexpected types.
  */
-internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
+internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
         is LinearMechanismModel<*> -> {

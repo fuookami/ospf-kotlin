@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableType
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * 变量松弛信息，关联变量与其约束或界限。
@@ -144,7 +144,7 @@ enum class ConstraintSource {
 abstract class ModelConstraint<ConCell>(
     val constraintCount: Int,
     signs: List<ConstraintRelation>,
-    rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>
 ) : Cloneable, Copyable<ModelConstraint<ConCell>>, AutoCloseable
@@ -156,7 +156,7 @@ abstract class ModelConstraint<ConCell>(
 
     abstract val lhs: List<List<ConCell>>
     val signs: List<ConstraintRelation> by ::_signs
-    val rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64> by ::_rhs
+    val rhs: List<Flt64> by ::_rhs
     val names: List<String> by ::_names
     val sources: List<ConstraintSource> by ::_sources
 

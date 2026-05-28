@@ -3,7 +3,6 @@
  * COPT solver configuration
  */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.config
 
 import kotlin.time.Duration

@@ -232,7 +232,7 @@ internal fun QuadraticTetradModel.buildElasticModel(): QuadraticTetradModel {
             },
             rhs = this.constraints.rhs + this.variables.flatMapIndexed { j, variable ->
                 val jp = this.constraints.size + j
-                val thisRhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
+                val thisRhs = ArrayList<Flt64>()
                 if (slackVariables[jp].first != null) {
                     thisRhs.add(variable.lowerBound)
                 }
@@ -265,7 +265,7 @@ internal fun QuadraticTetradModel.buildElasticModel(): QuadraticTetradModel {
             },
             origins = this.constraints.origins + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisOrigins = ArrayList<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?>()
+                val thisOrigins = ArrayList<QuadraticConstraintImpl<Flt64>?>()
                 if (slackVariables[jp].first != null) {
                     thisOrigins.add(null)
                 }
@@ -276,7 +276,7 @@ internal fun QuadraticTetradModel.buildElasticModel(): QuadraticTetradModel {
             },
             froms = this.constraints.froms + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisOrigins = ArrayList<Pair<IntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Boolean>?>()
+                val thisOrigins = ArrayList<Pair<IntermediateSymbol<Flt64>, Boolean>?>()
                 if (slackVariables[jp].first != null) {
                     thisOrigins.add(null)
                 }

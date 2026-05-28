@@ -3,32 +3,17 @@
  * Linear model IIS computation
  */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.iis
 
 import java.io.OutputStreamWriter
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.associateNotNull
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
-import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
 
 /**

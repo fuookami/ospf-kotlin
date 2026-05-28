@@ -4,8 +4,8 @@
  */
 package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**

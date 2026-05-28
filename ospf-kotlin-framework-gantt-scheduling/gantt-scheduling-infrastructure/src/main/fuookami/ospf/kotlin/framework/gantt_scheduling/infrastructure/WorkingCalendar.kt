@@ -5,10 +5,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.math.functional.sumOf
-import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.utils.max

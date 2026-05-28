@@ -3,7 +3,6 @@
  * Infeasible output unified fields
  */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration

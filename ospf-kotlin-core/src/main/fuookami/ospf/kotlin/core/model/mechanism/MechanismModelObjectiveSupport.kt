@@ -5,12 +5,11 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 
 internal fun <V> buildLinearObjectiveSubObjects(
     metaModel: LinearMetaModel<V>,
@@ -68,7 +67,7 @@ internal fun <V> buildQuadraticObjectiveSubObjects(
                         if (monomial.coefficient eq metaModel.converter.zero) {
                             null
                         } else {
-                            fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl(
+                            QuadraticCellImpl(
                                 tokenTable = tokens,
                                 _coefficientFlt64 = metaModel.converter.fromValue(monomial.coefficient),
                                 token1 = token1,

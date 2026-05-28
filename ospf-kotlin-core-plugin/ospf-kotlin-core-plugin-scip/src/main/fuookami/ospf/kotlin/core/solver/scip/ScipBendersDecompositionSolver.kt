@@ -3,7 +3,6 @@
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.model.intermediate.solveDual
 import fuookami.ospf.kotlin.core.model.intermediate.solveFarkasDual
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
@@ -19,7 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import jscip.SCIP_ParamSetting
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint

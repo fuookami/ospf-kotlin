@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.functional.sumOf
-import fuookami.ospf.kotlin.math.functional.average
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.average
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

@@ -9,37 +9,20 @@
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.token.AbstractTokenList
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.symbol.function.QuadraticMathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.*
 
 /**
  * Centralized solver-boundary type casts.

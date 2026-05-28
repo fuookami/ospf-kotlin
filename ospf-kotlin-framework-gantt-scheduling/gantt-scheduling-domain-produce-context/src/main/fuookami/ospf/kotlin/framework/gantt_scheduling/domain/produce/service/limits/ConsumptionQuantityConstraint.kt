@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
 data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(

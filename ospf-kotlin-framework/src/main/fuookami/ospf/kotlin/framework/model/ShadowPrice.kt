@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear

@@ -12,16 +12,12 @@ package fuookami.ospf.kotlin.core.token
 
 import kotlin.random.Random
 import kotlin.random.nextULong
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.VariableCombination
-import fuookami.ospf.kotlin.core.variable.VariableItemKey
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * Generic Token<V> - V is a real type parameter with dual-view access.
@@ -79,7 +75,7 @@ data class Token<V : RealNumber<V>>(
     val type by variable::type
 
     /** Flt64 view of range (solver-boundary). */
-    val range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>?
+    val range: ValueRange<Flt64>?
         get() = if (lowerBound != null && upperBound != null) {
             ValueRange(
                 lowerBound = lowerBound!!,
