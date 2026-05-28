@@ -15,7 +15,6 @@
 
 package fuookami.ospf.kotlin.quantities.quantity
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
