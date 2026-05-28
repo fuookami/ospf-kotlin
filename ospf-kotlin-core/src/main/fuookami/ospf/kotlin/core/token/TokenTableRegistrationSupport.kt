@@ -7,14 +7,14 @@
  */
 package fuookami.ospf.kotlin.core.token
 
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.utils.functional.*
+import kotlinx.coroutines.*
 
 /**
  * Token 注册与缓存预热支持（含并发路径）。

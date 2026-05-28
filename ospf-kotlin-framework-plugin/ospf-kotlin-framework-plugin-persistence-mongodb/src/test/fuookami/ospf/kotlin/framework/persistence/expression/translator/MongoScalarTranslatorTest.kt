@@ -5,14 +5,7 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
-import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
-import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarCustom
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
+import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -102,4 +95,3 @@ class MongoScalarTranslatorTest {
         }
     }
 }
-

@@ -4,11 +4,11 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 模型层级结构的基础层：变量 + 约束 + 符号 + 缓存（无目标函数）。

@@ -1,15 +1,15 @@
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 平衡三值化函数符号 / Balance ternaryzation function symbol

@@ -1,15 +1,15 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import kotlin.test.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import kotlin.test.*
 
 class MathInequalityFlattenTest {
 

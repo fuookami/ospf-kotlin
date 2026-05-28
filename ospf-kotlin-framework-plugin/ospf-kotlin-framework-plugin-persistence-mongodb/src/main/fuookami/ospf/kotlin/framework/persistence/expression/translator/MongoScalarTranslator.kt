@@ -8,15 +8,7 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
-import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarUnary
-import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
+import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.bson.Document
 
 /**

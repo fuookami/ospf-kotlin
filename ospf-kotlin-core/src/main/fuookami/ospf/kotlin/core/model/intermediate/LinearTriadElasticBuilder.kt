@@ -4,13 +4,13 @@
  */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.Binary
 import fuookami.ospf.kotlin.core.variable.Continuous
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.abs
 
 internal fun LinearTriadModel.buildElasticModel(
     minmaxSlack: Boolean,

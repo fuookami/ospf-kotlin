@@ -4,8 +4,8 @@
  */
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 从比较运算创建约束符号时的无效输入异常。

@@ -4,17 +4,17 @@
  */
 package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.Bound
-import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.Bound
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 变量项键，由标识符和索引唯一确定一个变量项。

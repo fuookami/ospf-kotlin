@@ -7,13 +7,13 @@
  */
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 并发 token table 读写实现。

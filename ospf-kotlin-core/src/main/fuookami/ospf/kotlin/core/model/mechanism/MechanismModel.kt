@@ -4,25 +4,25 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.error.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
 
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String

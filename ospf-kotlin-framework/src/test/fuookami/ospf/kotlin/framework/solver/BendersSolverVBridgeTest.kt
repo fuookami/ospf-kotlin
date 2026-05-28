@@ -12,20 +12,17 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import kotlin.time.Duration
 
 class BendersSolverVBridgeTest {
     private class StubBendersSolver : QuadraticBendersDecompositionSolver {

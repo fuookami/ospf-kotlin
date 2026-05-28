@@ -1,18 +1,18 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.*
-import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.utils.functional.Ok
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 
 class ProductFunctionTest {
     @Test

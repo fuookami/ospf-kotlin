@@ -1,14 +1,14 @@
 @file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.token
 
-import java.util.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import java.util.*
 
 /**
  * Token 缓存上下文，管理 flatten/value/range 缓存及符号绑定关系。

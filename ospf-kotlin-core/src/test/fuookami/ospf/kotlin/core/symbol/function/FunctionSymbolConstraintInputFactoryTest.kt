@@ -1,18 +1,18 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.*
-import kotlinx.coroutines.runBlocking
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.testing.*
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.functional.*
+import kotlin.test.*
+import kotlinx.coroutines.runBlocking
 
 class FunctionSymbolConstraintInputFactoryTest {
     @Test

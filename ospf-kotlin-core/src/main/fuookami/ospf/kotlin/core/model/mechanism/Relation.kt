@@ -4,11 +4,11 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 
 /**
  * 线性约束关系密封接口，封装线性展平数据和比较符号。

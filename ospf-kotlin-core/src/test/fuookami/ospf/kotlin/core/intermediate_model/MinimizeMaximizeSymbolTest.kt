@@ -1,18 +1,18 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.functional.Ok
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value

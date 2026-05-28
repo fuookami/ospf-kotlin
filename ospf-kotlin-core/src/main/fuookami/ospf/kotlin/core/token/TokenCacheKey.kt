@@ -4,9 +4,9 @@
  */
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Category
 
 internal data class TokenCacheKey(
     val category: Category,

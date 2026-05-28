@@ -7,9 +7,7 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
+import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.PathBuilder
 
 @Suppress("UNCHECKED_CAST")

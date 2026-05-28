@@ -4,27 +4,27 @@
  */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import java.io.OutputStreamWriter
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.BalancedTernary
+import fuookami.ospf.kotlin.core.variable.Binary
+import fuookami.ospf.kotlin.core.variable.Continuous
+import fuookami.ospf.kotlin.core.variable.Integer
+import fuookami.ospf.kotlin.core.variable.Percentage
+import fuookami.ospf.kotlin.core.variable.Ternary
+import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.core.variable.UInteger
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.variable.Binary
-import fuookami.ospf.kotlin.core.variable.Integer
-import fuookami.ospf.kotlin.core.variable.Ternary
-import fuookami.ospf.kotlin.core.variable.UInteger
-import fuookami.ospf.kotlin.core.variable.Continuous
-import fuookami.ospf.kotlin.core.variable.Percentage
-import fuookami.ospf.kotlin.core.variable.UContinuous
-import fuookami.ospf.kotlin.core.variable.BalancedTernary
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import java.io.OutputStreamWriter
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
 
 private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     return lhs.size == 1

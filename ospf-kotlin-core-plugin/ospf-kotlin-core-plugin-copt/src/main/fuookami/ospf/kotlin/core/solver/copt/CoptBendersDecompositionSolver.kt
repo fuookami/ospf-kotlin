@@ -2,29 +2,28 @@ package fuookami.ospf.kotlin.core.solver.copt
 
 import copt.COPT
 import copt.get
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 class CplexLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -481,4 +480,3 @@ class CoptLinearBendersDecompositionSolver(
         }
     }
 }
-

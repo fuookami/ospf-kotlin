@@ -4,17 +4,17 @@
  */
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 重复符号错误，当尝试注册已存在的符号时抛出。

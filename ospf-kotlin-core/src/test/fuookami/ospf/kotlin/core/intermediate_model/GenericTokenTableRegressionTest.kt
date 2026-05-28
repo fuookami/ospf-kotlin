@@ -1,13 +1,13 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Linear
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 /**
  * P3-2 regression: verify generic TokenTable, Cell, TokenCacheContexts

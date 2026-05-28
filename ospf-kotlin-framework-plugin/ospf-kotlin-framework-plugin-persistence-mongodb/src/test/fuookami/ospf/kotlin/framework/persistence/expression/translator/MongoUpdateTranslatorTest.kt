@@ -4,9 +4,9 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import com.mongodb.MongoClientSettings
 import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
-import com.mongodb.MongoClientSettings
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -37,4 +37,3 @@ class MongoUpdateTranslatorTest {
         assertTrue(json.contains("\"age\""))
     }
 }
-

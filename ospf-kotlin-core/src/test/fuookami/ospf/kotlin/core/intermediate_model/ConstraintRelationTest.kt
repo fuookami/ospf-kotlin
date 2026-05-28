@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.basic.*
 
 class ConstraintRelationTest {
     @Test

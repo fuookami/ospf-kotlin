@@ -8,19 +8,12 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
-import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarUnary
-import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
+import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.BinaryExpression
 import org.ktorm.expression.BinaryExpressionType
 import org.ktorm.expression.FunctionExpression
+import org.ktorm.expression.ScalarExpression as KtormScalarExpression
 import org.ktorm.expression.UnaryExpression
 import org.ktorm.expression.UnaryExpressionType
 import org.ktorm.schema.BooleanSqlType
@@ -29,7 +22,6 @@ import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.LongSqlType
 import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
-import org.ktorm.expression.ScalarExpression as KtormScalarExpression
 
 /**
  * Ktorm 标量表达式翻译器

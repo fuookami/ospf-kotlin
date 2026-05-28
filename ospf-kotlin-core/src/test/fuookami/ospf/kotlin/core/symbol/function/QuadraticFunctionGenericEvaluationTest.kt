@@ -1,14 +1,14 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import kotlin.test.*
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.testing.*
-import fuookami.ospf.kotlin.core.variable.*
+import kotlin.test.*
 
 class QuadraticFunctionGenericEvaluationTest {
     @Test

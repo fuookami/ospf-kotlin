@@ -4,10 +4,9 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.prop
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+import fuookami.ospf.kotlin.math.Trivalent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -21,8 +20,8 @@ import org.ktorm.expression.FunctionExpression
 import org.ktorm.expression.InListExpression
 import org.ktorm.expression.UnaryExpression
 import org.ktorm.expression.UnaryExpressionType
-import org.ktorm.schema.Table
 import org.ktorm.schema.int
+import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
 
 @DisplayName("KtormBooleanTranslator Tests / Ktorm 布尔翻译器测试")
@@ -271,4 +270,3 @@ class KtormBooleanTranslatorTest {
         }
     }
 }
-

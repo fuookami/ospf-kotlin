@@ -1,19 +1,19 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.testing.*
-import fuookami.ospf.kotlin.core.variable.*
 
 class GenericLinearMetaModelBuildTest {
     @Test

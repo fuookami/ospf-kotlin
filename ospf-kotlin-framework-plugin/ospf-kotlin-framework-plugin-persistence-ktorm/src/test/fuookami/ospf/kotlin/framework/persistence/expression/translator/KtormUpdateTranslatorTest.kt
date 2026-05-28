@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
+import java.nio.file.Files
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.DisplayName
@@ -18,7 +19,6 @@ import org.ktorm.dsl.where
 import org.ktorm.schema.int
 import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
-import java.nio.file.Files
 
 @DisplayName("KtormUpdateTranslator Tests / Ktorm 更新翻译器测试")
 class KtormUpdateTranslatorTest {
@@ -105,4 +105,3 @@ class KtormUpdateTranslatorTest {
         assertEquals("updated", row[Users.name])
     }
 }
-

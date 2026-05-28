@@ -4,23 +4,23 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import java.nio.file.Path
-import kotlin.io.path.Path
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbol
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.utils.functional.*
+import java.nio.file.Path
+import kotlin.io.path.Path
 
 private val solverValueConverter = IntoValue.fromConverter(Flt64)
 

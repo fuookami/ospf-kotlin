@@ -4,9 +4,9 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
@@ -36,4 +36,3 @@ class MybatisUpdateTranslatorTest {
         assertTrue(sqlSet.contains("age"))
     }
 }
-

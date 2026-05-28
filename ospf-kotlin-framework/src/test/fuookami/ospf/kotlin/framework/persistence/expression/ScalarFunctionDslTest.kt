@@ -4,12 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunction
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarFunctionNames
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.eq
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.path
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName

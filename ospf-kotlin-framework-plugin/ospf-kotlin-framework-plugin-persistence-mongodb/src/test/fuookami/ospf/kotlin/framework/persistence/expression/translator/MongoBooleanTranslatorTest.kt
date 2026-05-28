@@ -4,16 +4,15 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.prop
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
 import com.mongodb.MongoClientSettings
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+import fuookami.ospf.kotlin.math.Trivalent
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
@@ -206,4 +205,3 @@ class MongoBooleanTranslatorTest {
         }
     }
 }
-

@@ -4,27 +4,19 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.framework.persistence.expression.translator.MybatisColumnNameResolver
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.BooleanConstant
-import fuookami.ospf.kotlin.math.symbol.expression.BooleanCustom
-import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
-import fuookami.ospf.kotlin.math.symbol.expression.Comparison
-import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
-import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarBinary
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarReference
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
+import fuookami.ospf.kotlin.framework.persistence.expression.translator.MybatisColumnNameResolver
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
+import java.lang.reflect.Proxy
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import java.lang.reflect.Proxy
 
 @DisplayName("MybatisRepository Tests / MyBatis 仓储测试")
 class MybatisRepositoryTest {

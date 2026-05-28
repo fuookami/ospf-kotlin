@@ -7,12 +7,11 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.prop
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
 import fuookami.ospf.kotlin.math.Trivalent
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 
@@ -350,4 +349,3 @@ class MybatisBooleanTranslatorTest {
         }
     }
 }
-
