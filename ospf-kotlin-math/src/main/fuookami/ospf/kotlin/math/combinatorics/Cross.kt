@@ -18,9 +18,6 @@
  */
 package fuookami.ospf.kotlin.math.combinatorics
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.parallel.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*

@@ -7,17 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.ordinary.minMax
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
  * 通用矩形，由四个顶点定义（不要求轴对齐）。

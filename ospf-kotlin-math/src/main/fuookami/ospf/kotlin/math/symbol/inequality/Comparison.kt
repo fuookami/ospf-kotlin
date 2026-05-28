@@ -8,10 +8,6 @@
  */
 package fuookami.ospf.kotlin.math.symbol.inequality
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 /**
  * 比较运算符枚丌 * Comparison Operator Enumeration
  *

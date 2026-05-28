@@ -13,11 +13,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
-import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
-import fuookami.ospf.kotlin.math.symbol.OwnedSymbolLike
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.SymbolId
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.utils.serialization.writeJson
 
 /**

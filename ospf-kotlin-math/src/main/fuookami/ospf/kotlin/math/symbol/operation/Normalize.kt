@@ -10,12 +10,11 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.subtractLinear
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+
 
 /**
  * 将 Flt64 线性不等式规范化为标准形式（LHS - RHS <= 0）
@@ -23,7 +22,7 @@ import fuookami.ospf.kotlin.math.symbol.operation.subtractLinear
  *
  * @return 规范化的不等式 / Normalized inequality
  */
-fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun LinearInequality<Flt64>.normalize(): LinearInequality<Flt64> {
     val normalizedLhs = lhs.subtractLinear(rhs, Flt64.zero).combineTerms()
     return copy(
         lhs = normalizedLhs,
@@ -37,7 +36,7 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize()
  *
  * @return 规范化的不等式 / Normalized inequality
  */
-fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun QuadraticInequalityOf<Flt64>.normalize(): QuadraticInequalityOf<Flt64> {
     val negatedRhsMonomials = rhs.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
     val diff = QuadraticPolynomial(
         monomials = lhs.monomials + negatedRhsMonomials,

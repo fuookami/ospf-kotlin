@@ -97,4 +97,4 @@ val asyncPerms = permuteAsync(listOf(1, 2, 3, 4))
 ## Related
 
 - [Main README](../../README.md)
-- [Parallel Module](../parallel/README.md)
+- [Parallel Module](../../utils/parallel/README.md)

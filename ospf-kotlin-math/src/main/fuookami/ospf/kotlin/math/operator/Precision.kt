@@ -23,10 +23,7 @@
  */
 package fuookami.ospf.kotlin.math.operator
 
-import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.concept.resolveRealNumberConstants
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**

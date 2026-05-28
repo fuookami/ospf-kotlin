@@ -12,11 +12,9 @@ package fuookami.ospf.kotlin.math.symbol.expression.serde
 
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
-import fuookami.ospf.kotlin.math.symbol.serde.toSymbolIdentityExpr
-import fuookami.ospf.kotlin.math.symbol.serde.toSerializedIdentifier
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.serde.*
 
 // ========== 序列化模型 / Serialization Models ==========
 

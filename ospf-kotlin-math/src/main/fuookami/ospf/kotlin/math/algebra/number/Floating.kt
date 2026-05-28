@@ -16,21 +16,15 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.*
 import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonDecoder
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.math.operator.ExpP
-import fuookami.ospf.kotlin.math.operator.LogP
-import fuookami.ospf.kotlin.math.operator.PowFP
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 将浮点数转换为有理数
@@ -523,7 +517,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
  * 用于 Flt64 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Flt64 type in the Kotlin serialization framework.
  */
-data object Flt64Serializer : KSerializer<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+data object Flt64Serializer : KSerializer<Flt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt64", PrimitiveKind.DOUBLE)
 
     override fun serialize(encoder: Encoder, value: Flt64) {
@@ -570,7 +564,7 @@ interface Flt64Interface {
  */
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
-value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Copyable<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt64>, Copyable<Flt64> {
     /**
      * 从 Int 构造 Flt64 的构造函数
      * Constructor for Flt64 from Int
@@ -587,7 +581,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<fuo
      * 提供常用的数值常量，包括数学常数（pi、e）、特殊值（nan、infinity）等。
      * Provides common numeric constants, including mathematical constants (pi, e), special values (nan, infinity), etc.
      */
-    companion object : FloatingNumberConstants<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Flt64ValueConverter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    companion object : FloatingNumberConstants<Flt64>, Flt64ValueConverter<Flt64> {
         @JvmStatic
         override val zero: Flt64 get() = Flt64(0.0)
 
@@ -648,7 +642,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<fuo
         override fun fromValue(value: Flt64): Flt64 = value
     }
 
-    override val constants: FloatingNumberConstants<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = Flt64
+    override val constants: FloatingNumberConstants<Flt64> get() = Flt64
 
     override fun copy() = Flt64(value)
 

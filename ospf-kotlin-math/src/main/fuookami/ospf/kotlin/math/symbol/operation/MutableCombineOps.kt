@@ -11,14 +11,10 @@ package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.unaryMinus
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
 
 // ============================================================================
 // Mutable Linear Polynomial Combine Operations
@@ -78,7 +74,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
 ) {
     // Subtract rhs monomials
     _monomials.addAll(rhs.monomials.map { -it })
-    _constant = _constant - rhs.constant
+    _constant -= rhs.constant
     // Combine
     this.combineTerms(zero, isZero)
 }
@@ -122,7 +118,7 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.addAssignAndCombine(
 ) {
     // Add rhs monomials
     _monomials.addAll(rhs.monomials)
-    _constant = _constant + rhs.constant
+    _constant += rhs.constant
     // Combine
     this.combineTerms(zero, isZero, symbolComparator)
 }

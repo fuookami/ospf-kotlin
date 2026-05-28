@@ -7,11 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.IntDiv
-import fuookami.ospf.kotlin.math.operator.Reciprocal
-import fuookami.ospf.kotlin.math.operator.Rem
-import fuookami.ospf.kotlin.math.operator.Times
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 乘法半群结构接口

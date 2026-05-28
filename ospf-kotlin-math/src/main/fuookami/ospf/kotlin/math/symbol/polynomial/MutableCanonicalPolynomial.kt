@@ -10,17 +10,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Nonlinear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.div
-import fuookami.ospf.kotlin.math.symbol.monomial.times
-import fuookami.ospf.kotlin.math.symbol.monomial.unaryMinus
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 
 /**
  * 可变规范多项式

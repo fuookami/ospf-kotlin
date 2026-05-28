@@ -10,10 +10,9 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
 
 /**
  * Flt64 线性多项式矩阵形式
@@ -59,7 +58,7 @@ data class Flt64QuadraticMatrixForm(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return Flt64 线性矩阵形式 / Flt64 linear matrix form
  */
-fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64MatrixForm(
+fun LinearPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): Flt64LinearMatrixForm {
@@ -90,7 +89,7 @@ fun flt64LinearPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): LinearPolynomial<Flt64> {
     return linearPolynomialFromMatrixForm(
         c = c.map { Flt64(it) },
         d = d,
@@ -107,7 +106,7 @@ fun flt64LinearPolynomialFromMatrixForm(
  * @param form Flt64 线性矩阵形式 / Flt64 linear matrix form
  * @return 线性多项式 / Linear polynomial
  */
-fun flt64LinearPolynomialFromMatrixForm(form: Flt64LinearMatrixForm): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun flt64LinearPolynomialFromMatrixForm(form: Flt64LinearMatrixForm): LinearPolynomial<Flt64> {
     return flt64LinearPolynomialFromMatrixForm(
         c = form.c,
         d = form.d,
@@ -123,7 +122,7 @@ fun flt64LinearPolynomialFromMatrixForm(form: Flt64LinearMatrixForm): LinearPoly
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return Flt64 二次矩阵形式 / Flt64 quadratic matrix form
  */
-fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64MatrixForm(
+fun QuadraticPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): Flt64QuadraticMatrixForm {
@@ -155,7 +154,7 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64M
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return Flt64 二次矩阵形式 / Flt64 quadratic matrix form
  */
-fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64MatrixForm(
+fun CanonicalPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
@@ -195,7 +194,7 @@ fun flt64QuadraticPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): QuadraticPolynomial<Flt64> {
     return quadraticPolynomialFromMatrixForm(
         q = q.map { row -> row.map { Flt64(it) } },
         c = c.map { Flt64(it) },
@@ -214,7 +213,7 @@ fun flt64QuadraticPolynomialFromMatrixForm(
  * @param form Flt64 二次矩阵形式 / Flt64 quadratic matrix form
  * @return 二次多项式 / Quadratic polynomial
  */
-fun flt64QuadraticPolynomialFromMatrixForm(form: Flt64QuadraticMatrixForm): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun flt64QuadraticPolynomialFromMatrixForm(form: Flt64QuadraticMatrixForm): QuadraticPolynomial<Flt64> {
     return flt64QuadraticPolynomialFromMatrixForm(
         q = form.q,
         c = form.c,

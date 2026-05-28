@@ -9,11 +9,7 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.geometry.vector2
-import fuookami.ospf.kotlin.math.geometry.vector3
-import fuookami.ospf.kotlin.math.functional.sumOf
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.concept.InnerProductSpace
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

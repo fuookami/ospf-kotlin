@@ -8,8 +8,6 @@
 package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /** 无符号大小 / Unsigned size */
 val Collection<*>.usize: UInt64

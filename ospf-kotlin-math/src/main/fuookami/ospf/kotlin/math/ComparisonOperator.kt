@@ -10,10 +10,7 @@
 package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.operator.Abs
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Neg
+import fuookami.ospf.kotlin.math.operator.*
 import fuookami.ospf.kotlin.utils.functional.Ord
 
 /**

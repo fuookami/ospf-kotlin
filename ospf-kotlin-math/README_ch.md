@@ -536,7 +536,7 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 支持混沌系统和分形生成：
 
 ```kotlin
-import fuookami.ospf.kotlin.math.chaotic_operator.*
+import fuookami.ospf.kotlin.math.chaotic.*
 
 // 洛伦兹吸引子
 val lorenz = Lorenz(
@@ -566,7 +566,7 @@ val series = logistic.iterate(Flt64(0.5), steps = 1000)
 ### 分形生成
 
 ```kotlin
-import fuookami.ospf.kotlin.math.fractal_operator.*
+import fuookami.ospf.kotlin.math.fractal.*
 
 // 曼德博集
 val mandelbrot = MandelbrotSet(

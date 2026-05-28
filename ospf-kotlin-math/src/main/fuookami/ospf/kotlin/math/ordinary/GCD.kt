@@ -29,9 +29,7 @@ import fuookami.ospf.kotlin.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Rem
+import fuookami.ospf.kotlin.math.operator.*
 
 /** 使用减法实现的 GCD 算法（内部实现） / GCD using subtraction-based algorithm (internal implementation) */
 fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {

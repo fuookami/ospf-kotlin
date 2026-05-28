@@ -21,6 +21,7 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
@@ -127,11 +128,11 @@ class Parser(private val tokens: List<Token>) {
             // 布尔常量 / Boolean constants
             TokenType.TRUE -> {
                 advance()
-                BooleanConstant(fuookami.ospf.kotlin.math.Trivalent.True)
+                BooleanConstant(Trivalent.True)
             }
             TokenType.FALSE -> {
                 advance()
-                BooleanConstant(fuookami.ospf.kotlin.math.Trivalent.False)
+                BooleanConstant(Trivalent.False)
             }
 
             // 标识符或路径（可能是比较、in、is null 等）

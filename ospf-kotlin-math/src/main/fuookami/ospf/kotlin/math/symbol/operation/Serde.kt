@@ -10,18 +10,12 @@ package fuookami.ospf.kotlin.math.symbol.operation
 import java.io.ByteArrayInputStream
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.serde.*
+
 import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import fuookami.ospf.kotlin.utils.serialization.writeJson
 
@@ -32,7 +26,7 @@ import fuookami.ospf.kotlin.utils.serialization.writeJson
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return JSON 字符串 / JSON string
  */
-fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
     return writeJson(combineTerms(symbolComparator).toFlt64Dto())
 }
 
@@ -42,7 +36,7 @@ fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonSt
  *
  * @return JSON 字符串 / JSON string
  */
-fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
+fun LinearPolynomial<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
@@ -52,7 +46,7 @@ fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonStrin
  *
  * @return JSON 字符串 / JSON string
  */
-fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
+fun QuadraticPolynomial<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
@@ -62,7 +56,7 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonSt
  *
  * @return JSON 字符串 / JSON string
  */
-fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
+fun LinearInequality<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
@@ -72,7 +66,7 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonStrin
  *
  * @return JSON 字符串 / JSON string
  */
-fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
+fun QuadraticInequalityOf<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
@@ -82,7 +76,7 @@ fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJson
  *
  * @return JSON 字符串 / JSON string
  */
-fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonString(): String {
+fun CanonicalInequality<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
@@ -94,7 +88,7 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toJsonSt
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 规范多项式 / Canonical polynomial
  */
-fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<Flt64> {
     val dto = readFromJson<CanonicalPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf).combineTerms()
 }
@@ -107,7 +101,7 @@ fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::s
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 线性多项式，若不可转换则返回 null / Linear polynomial, or null if not convertible
  */
-fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<Flt64>? {
     val dto = readFromJson<LinearPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf).toLinearPolynomialOrNull()
 }
@@ -123,7 +117,7 @@ fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 fun quadraticPolynomialFromJson(
     json: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+): QuadraticPolynomial<Flt64>? {
     val dto = readFromJson<QuadraticPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf).toQuadraticPolynomialOrNull()
 }
@@ -136,7 +130,7 @@ fun quadraticPolynomialFromJson(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 线性不等式 / Linear inequality
  */
-fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<Flt64> {
     val dto = readFromJson<LinearInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -152,7 +146,7 @@ fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 fun quadraticInequalityFromJson(
     json: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): QuadraticInequalityOf<Flt64> {
     val dto = readFromJson<QuadraticInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -165,7 +159,7 @@ fun quadraticInequalityFromJson(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 规范不等式 / Canonical inequality
  */
-fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality<Flt64> {
     val dto = readFromJson<CanonicalInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -201,28 +195,28 @@ private fun comparisonFromDtoString(str: String): Comparison {
     }
 }
 
-internal fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64Dto(): CanonicalPolynomialData {
+internal fun CanonicalPolynomial<Flt64>.toFlt64Dto(): CanonicalPolynomialData {
     return CanonicalPolynomialData(
         monomials = monomials.map { CanonicalMonomialData(it.coefficient.value, it.powers.mapKeys { it.key.toDtoIdentifier() }.mapValues { it.value.toInt() }) },
         constant = constant.value
     )
 }
 
-internal fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64Dto(): LinearPolynomialData {
+internal fun LinearPolynomial<Flt64>.toFlt64Dto(): LinearPolynomialData {
     return LinearPolynomialData(
         monomials = monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) },
         constant = constant.value
     )
 }
 
-internal fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64Dto(): QuadraticPolynomialData {
+internal fun QuadraticPolynomial<Flt64>.toFlt64Dto(): QuadraticPolynomialData {
     return QuadraticPolynomialData(
         monomials = monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) },
         constant = constant.value
     )
 }
 
-internal fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64Dto(): LinearInequalityData {
+internal fun LinearInequality<Flt64>.toFlt64Dto(): LinearInequalityData {
     return LinearInequalityData(
         lhs = LinearPolynomialData(lhs.monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) }, lhs.constant.value),
         rhs = LinearPolynomialData(rhs.monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) }, rhs.constant.value),
@@ -232,7 +226,7 @@ internal fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.to
     )
 }
 
-internal fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64Dto(): QuadraticInequalityData {
+internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData {
     return QuadraticInequalityData(
         lhs = QuadraticPolynomialData(lhs.monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) }, lhs.constant.value),
         rhs = QuadraticPolynomialData(rhs.monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) }, rhs.constant.value),
@@ -242,7 +236,7 @@ internal fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt6
     )
 }
 
-internal fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlt64Dto(): CanonicalInequalityData {
+internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
     val combinedLhs = lhs.combineTerms()
     val combinedRhs = rhs.combineTerms()
     return CanonicalInequalityData(
@@ -252,28 +246,28 @@ internal fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     )
 }
 
-internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalPolynomial<Flt64> {
     return CanonicalPolynomial(
         monomials = monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) },
         constant = Flt64(constant)
     )
 }
 
-internal fun LinearPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+internal fun LinearPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         monomials = monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) },
         constant = Flt64(constant)
     )
 }
 
-internal fun QuadraticPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+internal fun QuadraticPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(
         monomials = monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) },
         constant = Flt64(constant)
     )
 }
 
-internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearInequality<Flt64> {
     return LinearInequality(
         lhs = LinearPolynomial(lhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) }, Flt64(lhs.constant)),
         rhs = LinearPolynomial(rhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) }, Flt64(rhs.constant)),
@@ -283,7 +277,7 @@ internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): L
     )
 }
 
-internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): QuadraticInequalityOf<Flt64> {
     return QuadraticInequalityOf(
         lhs = QuadraticPolynomial(lhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) }, Flt64(lhs.constant)),
         rhs = QuadraticPolynomial(rhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) }, Flt64(rhs.constant)),
@@ -293,8 +287,8 @@ internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol)
     )
 }
 
-internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalInequality<Flt64> {
+    return CanonicalInequality<Flt64>(
         lhs = CanonicalPolynomial(lhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(lhs.constant)),
         rhs = CanonicalPolynomial(rhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(rhs.constant)),
         comparison = comparisonFromDtoString(comparison)

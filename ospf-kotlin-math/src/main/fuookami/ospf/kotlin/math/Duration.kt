@@ -14,8 +14,6 @@ import kotlin.time.DurationUnit
 import kotlin.time.times
 import kotlin.time.toDuration
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /** Int32 转时长 / Convert Int32 to duration */
 fun Int32.toDuration(unit: DurationUnit): Duration {

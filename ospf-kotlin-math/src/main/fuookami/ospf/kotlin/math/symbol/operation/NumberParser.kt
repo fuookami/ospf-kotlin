@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
  * 实现 NumberParser 接口，使用 Kotlin 标准库的 toDoubleOrNull 进行解析。
  * Implements NumberParser interface, using Kotlin stdlib's toDoubleOrNull for parsing.
  */
-data object Flt64NumberParser : NumberParser<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+data object Flt64NumberParser : NumberParser<Flt64> {
     /**
      * 将文本解析为 Flt64 数值
      * Parse text into a Flt64 value

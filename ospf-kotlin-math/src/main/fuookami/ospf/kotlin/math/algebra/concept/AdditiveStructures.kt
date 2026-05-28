@@ -7,11 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.operator.Dec
-import fuookami.ospf.kotlin.math.operator.Inc
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Neg
-import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 加法半群结构接口

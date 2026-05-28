@@ -16,18 +16,9 @@ package fuookami.ospf.kotlin.math.symbol.polynomial
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.toCanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import kotlin.jvm.JvmName
 
 /**

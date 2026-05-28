@@ -12,8 +12,6 @@ package fuookami.ospf.kotlin.math.geometry
 import kotlin.math.sqrt
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.vector2
 
 @Suppress("UNCHECKED_CAST")
 private fun <D : Dimension, Va : FloatingNumber<Va>, Vec : Vector<D, Va>> unitAsSameVectorType(radiusVec: Vec): Vec {

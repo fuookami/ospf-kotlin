@@ -12,13 +12,10 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -30,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
  * @param symbol 微分变量 / Differentiation variable
  * @return 导数值 / Derivative value
  */
-fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(symbol: Symbol): Flt64 {
+fun LinearMonomial<Flt64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
 
@@ -41,7 +38,7 @@ fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(sy
  * @param symbol 微分变量 / Differentiation variable
  * @return 导数值 / Derivative value
  */
-fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(symbol: Symbol): Flt64 {
+fun LinearPolynomial<Flt64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
 
@@ -52,7 +49,7 @@ fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
  * @param order 符号顺序 / Symbol order
  * @return 梯度值列表 / Gradient value list
  */
-fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(order: List<Symbol>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun LinearPolynomial<Flt64>.gradient(order: List<Symbol>): List<Flt64> {
     return gradientLinear(order, zero = Flt64.zero)
 }
 
@@ -64,10 +61,10 @@ fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(or
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（线性多项式） / Derivative (linear polynomial)
  */
-fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
+fun QuadraticMonomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): LinearPolynomial<Flt64> {
     return derivativeQuadratic(
         symbol = symbol,
         zero = Flt64.zero,
@@ -84,10 +81,10 @@ fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（线性多项式） / Derivative (linear polynomial)
  */
-fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
+fun QuadraticPolynomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): LinearPolynomial<Flt64> {
     return derivativeQuadratic(
         symbol = symbol,
         zero = Flt64.zero,
@@ -104,10 +101,10 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivati
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 梯度（线性多项式列表） / Gradient (list of linear polynomials)
  */
-fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(
+fun QuadraticPolynomial<Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+): List<LinearPolynomial<Flt64>> {
     return gradientQuadratic(
         order = order,
         zero = Flt64.zero,
@@ -124,7 +121,7 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 海森矩阵（二维 Double 数组） / Hessian matrix (2D Double array)
  */
-fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.hessian(
+fun QuadraticPolynomial<Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): Array<DoubleArray> {
@@ -144,10 +141,10 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.hessian(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（规范多项式） / Derivative (canonical polynomial)
  */
-fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
+fun CanonicalMonomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): CanonicalPolynomial<Flt64> {
     return derivativeCanonical(
         symbol = symbol,
         zero = Flt64.zero,
@@ -164,10 +161,10 @@ fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（规范多项式） / Derivative (canonical polynomial)
  */
-fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
+fun CanonicalPolynomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): CanonicalPolynomial<Flt64> {
     return derivativeCanonical(
         symbol = symbol,
         zero = Flt64.zero,
@@ -184,10 +181,10 @@ fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivati
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 梯度（规范多项式列表） / Gradient (list of canonical polynomials)
  */
-fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(
+fun CanonicalPolynomial<Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+): List<CanonicalPolynomial<Flt64>> {
     return gradientCanonical(
         order = order,
         zero = Flt64.zero,
@@ -205,7 +202,7 @@ fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 海森矩阵（二维 Double 数组） / Hessian matrix (2D Double array)
  */
-fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.hessian(
+fun CanonicalPolynomial<Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

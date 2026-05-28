@@ -7,9 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.operator.Dec
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Neg
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 群接口

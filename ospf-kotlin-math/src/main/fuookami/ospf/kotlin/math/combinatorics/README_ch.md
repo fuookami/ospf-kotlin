@@ -97,4 +97,4 @@ val asyncPerms = permuteAsync(listOf(1, 2, 3, 4))
 ## 相关链接
 
 - [主 README](../../README.md)
-- [Parallel 模块](../parallel/README_ch.md)
+- [Parallel 模块](../../utils/parallel/README_ch.md)

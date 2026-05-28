@@ -536,7 +536,7 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 Support for chaotic systems and fractal generation:
 
 ```kotlin
-import fuookami.ospf.kotlin.math.chaotic_operator.*
+import fuookami.ospf.kotlin.math.chaotic.*
 
 // Lorenz attractor
 val lorenz = Lorenz(
@@ -566,7 +566,7 @@ val series = logistic.iterate(Flt64(0.5), steps = 1000)
 ### Fractal Generation
 
 ```kotlin
-import fuookami.ospf.kotlin.math.fractal_operator.*
+import fuookami.ospf.kotlin.math.fractal.*
 
 // Mandelbrot set
 val mandelbrot = MandelbrotSet(

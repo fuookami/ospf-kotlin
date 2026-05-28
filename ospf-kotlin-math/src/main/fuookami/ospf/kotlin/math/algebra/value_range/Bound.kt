@@ -8,22 +8,10 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.utils.functional.Ord
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt32
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int16
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.Int8
-import fuookami.ospf.kotlin.math.algebra.number.IntX
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.math.operator.Times
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 边界
@@ -206,7 +194,7 @@ class Bound<T>(
      *
      * @return Flt64 类型的新边界
      */
-    fun toFlt64(): Bound<fuookami.ospf.kotlin.math.algebra.number.Flt64> = Bound(ValueWrapper(value.toFlt64()).value!!, interval)
+    fun toFlt64(): Bound<Flt64> = Bound(ValueWrapper(value.toFlt64()).value!!, interval)
 
     /**
      * 获取字符串表礌
@@ -235,7 +223,7 @@ operator fun Bound<Flt32>.unaryMinus() = Bound(-value, interval)
  * @return 取负后的新边界
  */
 @JvmName("negBoundFlt64")
-operator fun Bound<fuookami.ospf.kotlin.math.algebra.number.Flt64>.unaryMinus() = Bound(-value, interval)
+operator fun Bound<Flt64>.unaryMinus() = Bound(-value, interval)
 
 /**
  * FltX 类型边界的取负操佌

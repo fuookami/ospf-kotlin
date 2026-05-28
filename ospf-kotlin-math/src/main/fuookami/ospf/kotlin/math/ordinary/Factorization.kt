@@ -26,21 +26,8 @@ package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt32
-import fuookami.ospf.kotlin.math.algebra.number.UInt16
-import fuookami.ospf.kotlin.math.algebra.number.UInt8
-import fuookami.ospf.kotlin.math.algebra.number.UIntX
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.algebra.number.Int16
-import fuookami.ospf.kotlin.math.algebra.number.Int8
-import fuookami.ospf.kotlin.math.algebra.number.IntX
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Pow
-import fuookami.ospf.kotlin.math.operator.Rem
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.*
 
 /** Compute sqrt(num) for generic Integer type, returning UInt64. */
 private fun <I> computeSqrtLimit(num: I): UInt64 where I : Integer<I> {

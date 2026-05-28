@@ -10,13 +10,8 @@ package fuookami.ospf.kotlin.math.symbol.parser
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
-import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalTyped
-import fuookami.ospf.kotlin.math.symbol.parse.parseLinearTypedOrNull
-import fuookami.ospf.kotlin.math.symbol.parse.parseQuadraticTypedOrNull
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.parse.*
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
 /**

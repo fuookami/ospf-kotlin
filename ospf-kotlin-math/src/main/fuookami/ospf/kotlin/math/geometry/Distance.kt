@@ -7,7 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 @Suppress("UNCHECKED_CAST")

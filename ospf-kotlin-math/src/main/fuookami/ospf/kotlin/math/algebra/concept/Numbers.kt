@@ -9,21 +9,7 @@ package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.functional.Ord
-import fuookami.ospf.kotlin.math.operator.Abs
-import fuookami.ospf.kotlin.math.operator.Cross
-import fuookami.ospf.kotlin.math.operator.Dec
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Exp
-import fuookami.ospf.kotlin.math.operator.IntDiv
-import fuookami.ospf.kotlin.math.operator.Log
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Neg
-import fuookami.ospf.kotlin.math.operator.Pow
-import fuookami.ospf.kotlin.math.operator.PowF
-import fuookami.ospf.kotlin.math.operator.RangeTo
-import fuookami.ospf.kotlin.math.operator.Reciprocal
-import fuookami.ospf.kotlin.math.operator.Rem
-import fuookami.ospf.kotlin.math.operator.Trigonometry
+import fuookami.ospf.kotlin.math.operator.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**

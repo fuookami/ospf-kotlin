@@ -66,5 +66,5 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 ## 相关链接
 
 - [主 README](../../README.md)
-- [Functional 模块](../math/functional/README_ch.md)
+- [Functional 模块](../utils/functional/README_ch.md)
 - [Algebra 模块](../math/algebra/README_ch.md)

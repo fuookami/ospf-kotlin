@@ -15,7 +15,6 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
-import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 // ============================================================================

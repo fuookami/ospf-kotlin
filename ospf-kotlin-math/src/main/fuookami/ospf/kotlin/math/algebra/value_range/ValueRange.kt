@@ -10,10 +10,7 @@ package fuookami.ospf.kotlin.math.algebra.value_range
 import java.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.descriptors.elementNames
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
@@ -22,22 +19,9 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt32
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int16
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.Int8
-import fuookami.ospf.kotlin.math.algebra.number.IntX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.operator.Contains
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.math.operator.Times
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 值范围序列化噌
@@ -136,7 +120,7 @@ data object ValueRangeUInt64Serializer : ValueRangeSerializer<UInt64>(ValueWrapp
  * Flt64 类型值范围的序列化器
  * Serializer for Flt64 typed value range
  */
-data object ValueRangeFlt64Serializer : ValueRangeSerializer<fuookami.ospf.kotlin.math.algebra.number.Flt64>(ValueWrapperSerializer(Flt64))
+data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapperSerializer(Flt64))
 
 /**
  * 值范囌
@@ -1272,7 +1256,7 @@ operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
  * @return 取负后的新值范囌
  */
 @JvmName("negValueRangeFlt64")
-operator fun ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>.unaryMinus() = ValueRange(
+operator fun ValueRange<Flt64>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
     lowerBound = -lowerBound,
     constants = Flt64
