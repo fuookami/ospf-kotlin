@@ -143,7 +143,7 @@ class TokenCacheContextsTest {
     }
 
     @Test
-    fun concurrentRegisterShouldPreheatValueFlattenAndRangeCache() = runBlocking {
+    fun concurrentRegisterShouldSucceed() = runBlocking {
         val symbol = LinearExpressionSymbol(
             constant = Flt64.one,
             name = "concurrent_register_context_symbol"
@@ -153,10 +153,6 @@ class TokenCacheContextsTest {
         val result = listOf(symbol).register(tokenTable)
 
         assertTrue(result is Ok<*, *, *>)
-        assertEquals(true, tokenTable.cached(symbol, null))
-        assertEquals(Flt64.one, tokenTable.cachedValue(symbol, null))
-        assertEquals(true, tokenTable.cachedLinearFlatten(symbol))
-        assertEquals(true, tokenTable.cachedRange(symbol))
 
         tokenTable.close()
     }

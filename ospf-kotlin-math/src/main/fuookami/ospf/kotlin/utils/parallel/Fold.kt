@@ -1,3 +1,4 @@
+@file:JvmName("MathParallelFoldKt")
 /**
  * 并行折叠
  * Parallel Fold Operations

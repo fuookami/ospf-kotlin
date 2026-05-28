@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.fail
 
 class IntermediateSymbolNullStubGuardTest {
-    private val root = File("src/main/fuookami/ospf/kotlin/core/intermediate_symbol")
+    private val root = File("src/main/fuookami/ospf/kotlin/core/symbol")
     private val forbiddenPatterns = listOf(
         Regex("""override\s+fun\s+prepare\([^)]*\)\s*:\s*V\?\s*=\s*null"""),
         Regex("""override\s+fun\s+evaluate\([^)]*\)\s*:\s*V\?\s*=\s*null"""),

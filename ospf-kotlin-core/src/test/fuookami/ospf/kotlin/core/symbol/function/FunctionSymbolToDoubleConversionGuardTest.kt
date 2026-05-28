@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.fail
 
 class FunctionSymbolToDoubleConversionGuardTest {
-    private val root = File("src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function")
+    private val root = File("src/main/fuookami/ospf/kotlin/core/symbol/function")
 
     @Test
     fun shouldNotIntroduceToDoubleInFunctionSymbols() {

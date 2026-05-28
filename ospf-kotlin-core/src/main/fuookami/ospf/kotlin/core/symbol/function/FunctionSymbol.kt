@@ -196,7 +196,7 @@ class LinearFunctionSymbolAdapter<V>(
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
-    override val category: Category get() = Linear
+    override val category: Category get() = fuookami.ospf.kotlin.math.symbol.Linear
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false

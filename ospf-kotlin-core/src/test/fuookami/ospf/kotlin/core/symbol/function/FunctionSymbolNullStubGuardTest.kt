@@ -5,7 +5,7 @@ import kotlin.test.Test
 import kotlin.test.fail
 
 class FunctionSymbolNullStubGuardTest {
-    private val root = File("src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function")
+    private val root = File("src/main/fuookami/ospf/kotlin/core/symbol/function")
     private val forbiddenPatterns = listOf(
         Regex("""override\s+fun\s+prepare\([^)]*\)\s*:\s*V\?\s*=\s*null"""),
         Regex("""override\s+fun\s+evaluate\([^)]*\)\s*:\s*V\?\s*=\s*null"""),

@@ -678,7 +678,7 @@ class LinearMetaModel<V>(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration(),
     converter: IntoValue<V>
-) : AbstractMetaModel<V>(Linear, configuration, converter), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+) : AbstractMetaModel<V>(fuookami.ospf.kotlin.math.symbol.Linear, configuration, converter), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<LinearInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
@@ -814,7 +814,7 @@ class QuadraticMetaModel<V>(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration(),
     converter: IntoValue<V>
-) : AbstractMetaModel<V>(Quadratic, configuration, converter), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+) : AbstractMetaModel<V>(fuookami.ospf.kotlin.math.symbol.Quadratic, configuration, converter), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<QuadraticInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
