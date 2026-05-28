@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -101,8 +101,8 @@ private fun defaultDemandDomain(unit: PhysicalUnit): Bpp3dDemandDomain {
 data class Bpp3dDemandEntry(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey,
-    val demand: Flt64,
-    val demandRange: ValueRange<Flt64>,
+    val demand: InfraNumber,
+    val demandRange: ValueRange<InfraNumber>,
     val quantityUnit: PhysicalUnit = defaultDemandUnit(),
     val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(quantityUnit)
 )
@@ -117,7 +117,7 @@ private fun defaultDemandValue(
     }
 }
 
-private fun toDiscreteAmount(value: Quantity<Flt64>): UInt64 {
+private fun toDiscreteAmount(value: Quantity<InfraNumber>): UInt64 {
     val rounded = ceil(value.value.toDouble()).toLong()
     return if (rounded <= 0L) {
         UInt64.zero
@@ -132,13 +132,13 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
 
 data class Bpp3dItemDemand(
     val item: Item,
-    val quantity: Quantity<Flt64>,
+    val quantity: Quantity<InfraNumber>,
     val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
 )
 
 data class Bpp3dMaterialDemand(
     val material: MaterialKey,
-    val quantity: Quantity<Flt64>,
+    val quantity: Quantity<InfraNumber>,
     val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
 )
 
@@ -163,9 +163,9 @@ private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
 }
 
 private fun demandValueFromQuantity(
-    quantity: Quantity<Flt64>,
+    quantity: Quantity<InfraNumber>,
     demandValueAdapter: Bpp3dDemandValueAdapter
-): Flt64 {
+): InfraNumber {
     return if (isDiscreteDemandUnit(quantity.unit)) {
         demandValueAdapter.amountToSolver(toDiscreteAmount(quantity))
     } else {
@@ -173,7 +173,7 @@ private fun demandValueFromQuantity(
     }
 }
 
-private fun exactDemandRange(value: Flt64): ValueRange<Flt64> {
+private fun exactDemandRange(value: InfraNumber): ValueRange<InfraNumber> {
     return ValueRange(
         value,
         value,
@@ -184,7 +184,7 @@ private fun exactDemandRange(value: Flt64): ValueRange<Flt64> {
 }
 
 fun demandEntriesFromItemDemands(
-    items: List<Pair<Item, Quantity<Flt64>>>,
+    items: List<Pair<Item, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromLabeledItemDemands(
@@ -301,7 +301,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
 }
 
 fun demandEntriesFromMaterialDemands(
-    materials: List<Pair<Material, Quantity<Flt64>>>,
+    materials: List<Pair<Material, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
@@ -344,7 +344,7 @@ private fun demandEntriesFromMaterialAmountsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
                 material = material,
-                quantity = Quantity(Flt64(demand.toULong().toDouble()), DemandCountUnit)
+                quantity = Quantity(InfraNumber(demand.toULong().toDouble()), DemandCountUnit)
             )
         },
         demandValueAdapter = demandValueAdapter
@@ -383,7 +383,7 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialAmounts(
 }
 
 private fun demandEntriesFromMaterialWeightsByKey(
-    materials: List<Pair<MaterialKey, Quantity<Flt64>>>,
+    materials: List<Pair<MaterialKey, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
@@ -398,7 +398,7 @@ private fun demandEntriesFromMaterialWeightsByKey(
 }
 
 fun demandEntriesFromMaterialWeights(
-    materials: List<Pair<Material, Quantity<Flt64>>>,
+    materials: List<Pair<Material, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialWeightsByKey(
@@ -422,21 +422,21 @@ interface Load {
     val demandEntries: List<Bpp3dDemandEntry>
     val demandValueAdapter: Bpp3dDemandValueAdapter
 
-    val load: LinearIntermediateSymbols1<Flt64>
-    val overLoad: LinearIntermediateSymbols1<Flt64>
-    val lessLoad: LinearIntermediateSymbols1<Flt64>
+    val load: LinearIntermediateSymbols1<InfraNumber>
+    val overLoad: LinearIntermediateSymbols1<InfraNumber>
+    val lessLoad: LinearIntermediateSymbols1<InfraNumber>
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
 }
 
 abstract class AbstractLoad : Load {
-    override lateinit var overLoad: LinearIntermediateSymbols1<Flt64>
-    override lateinit var lessLoad: LinearIntermediateSymbols1<Flt64>
+    override lateinit var overLoad: LinearIntermediateSymbols1<InfraNumber>
+    override lateinit var lessLoad: LinearIntermediateSymbols1<InfraNumber>
 
-    open fun register(model: MetaModel<Flt64>): Try {
+    open fun register(model: MetaModel<InfraNumber>): Try {
         if (overEnabled && !::overLoad.isInitialized) {
-            overLoad = LinearIntermediateSymbols1<Flt64>(
+            overLoad = LinearIntermediateSymbols1<InfraNumber>(
                 "over_load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -447,7 +447,7 @@ abstract class AbstractLoad : Load {
             }
         }
         if (lessEnabled && !::lessLoad.isInitialized) {
-            lessLoad = LinearIntermediateSymbols1<Flt64>(
+            lessLoad = LinearIntermediateSymbols1<InfraNumber>(
                 "less_load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -480,7 +480,7 @@ abstract class AbstractLoad : Load {
     protected fun loadCoefficient(
         layer: BinLayer,
         demand: Bpp3dDemandEntry
-    ): Flt64 {
+    ): InfraNumber {
         val concreteMode = demand.mode.toConcreteMode(demand.quantityDomain == Bpp3dDemandDomain.Discrete)
         val value = layer.statistics(concreteMode)[demand.key]
             ?: defaultDemandValue(demand.quantityDomain)
@@ -575,15 +575,15 @@ class ImpreciseLoad(
         }
     }
 
-    override lateinit var load: LinearExpressionSymbols1<Flt64>
+    override lateinit var load: LinearExpressionSymbols1<InfraNumber>
 
-    override fun register(model: MetaModel<Flt64>): Try {
+    override fun register(model: MetaModel<InfraNumber>): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1<Flt64>(
+            load = LinearExpressionSymbols1<InfraNumber>(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
-                LinearExpressionSymbol(Flt64.zero, name = "load_$i")
+                LinearExpressionSymbol(InfraNumber.zero, name = "load_$i")
             }
         }
         when (val result = model.add(load)) {
@@ -598,14 +598,14 @@ class ImpreciseLoad(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel<Flt64>
+        model: AbstractLinearMetaModel<InfraNumber>
     ): Ret<List<BinLayer>> {
         assert(newLayers.isNotEmpty())
 
         val xi = assignment.x[iteration.toInt()]
 
         for ((i, demand) in demandEntries.withIndex()) {
-            val thisLayers = newLayers.filter { layer -> loadCoefficient(layer, demand) neq Flt64.zero }
+            val thisLayers = newLayers.filter { layer -> loadCoefficient(layer, demand) neq InfraNumber.zero }
             if (thisLayers.isNotEmpty()) {
                 val thisLoad = load[i]
                 thisLoad.flush()
@@ -717,11 +717,11 @@ class PreciseLoad(
         }
     }
 
-    override lateinit var load: LinearIntermediateSymbols1<Flt64>
+    override lateinit var load: LinearIntermediateSymbols1<InfraNumber>
 
-    override fun register(model: MetaModel<Flt64>): Try {
+    override fun register(model: MetaModel<InfraNumber>): Try {
         if (!::load.isInitialized) {
-            load = LinearIntermediateSymbols1<Flt64>(
+            load = LinearIntermediateSymbols1<InfraNumber>(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -748,5 +748,7 @@ class PreciseLoad(
         return super.register(model)
     }
 }
+
+
 
 

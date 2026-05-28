@@ -72,7 +72,7 @@ data class QuantityPlacement2<
 ) : Copyable<QuantityPlacement2<T, P>> {
     constructor(
         projection: Projection<T, P>,
-        position: Point<Dim2, InfraScalar>
+        position: Point<Dim2, InfraNumber>
     ) : this(projection, point2(position))
 
     constructor(QuantityPlacement3: QuantityPlacement3<T>, plane: P) : this(
@@ -96,7 +96,7 @@ data class QuantityPlacement2<
     val maxY = y + width
     val maxPosition = QuantityPoint2(maxX, maxY)
 
-    private fun toGeometryPlacement(): GeometryPlacement2<InfraScalar> {
+    private fun toGeometryPlacement(): GeometryPlacement2<InfraNumber> {
         return GeometryPlacement2(
             x = x,
             y = y,
@@ -128,7 +128,7 @@ data class QuantityPlacement2<
         return asGenericPlacement2().overlapped(rhs.asGenericPlacement2())
     }
 
-    fun intersect(rhs: QuantityPlacement2<*, P>): QuantityRectangle2<InfraScalar>? {
+    fun intersect(rhs: QuantityPlacement2<*, P>): QuantityRectangle2<InfraNumber>? {
         return asGenericPlacement2().intersect(rhs.asGenericPlacement2())
     }
 
@@ -145,7 +145,7 @@ data class QuantityPlacement3<T : Cuboid<T>>(
 ) : Copyable<QuantityPlacement3<T>>, Ord<QuantityPlacement3<T>> {
     constructor(
         view: CuboidView<T>,
-        position: Point<Dim3, InfraScalar>
+        position: Point<Dim3, InfraNumber>
     ) : this(view, point3(position))
 
     private var _parent: QuantityPlacement3<*>? = null
@@ -170,9 +170,9 @@ data class QuantityPlacement3<T : Cuboid<T>>(
                 z = z + parent!!.absoluteZ
             )
         }
-    val absoluteX: Quantity<InfraScalar> get() = x + (parent?.absoluteX ?: (infraZero() * x.unit))
-    val absoluteY: Quantity<InfraScalar> get() = y + (parent?.absoluteY ?: (infraZero() * y.unit))
-    val absoluteZ: Quantity<InfraScalar> get() = z + (parent?.absoluteZ ?: (infraZero() * z.unit))
+    val absoluteX: Quantity<InfraNumber> get() = x + (parent?.absoluteX ?: (infraZero() * x.unit))
+    val absoluteY: Quantity<InfraNumber> get() = y + (parent?.absoluteY ?: (infraZero() * y.unit))
+    val absoluteZ: Quantity<InfraNumber> get() = z + (parent?.absoluteZ ?: (infraZero() * z.unit))
 
     val absolutePlacement get() = QuantityPlacement3(view, absolutePosition)
 
@@ -180,17 +180,17 @@ data class QuantityPlacement3<T : Cuboid<T>>(
     val height by view::height
     val depth by view::depth
 
-    val maxX: Quantity<InfraScalar> = x + width
-    val maxY: Quantity<InfraScalar> = y + height
-    val maxZ: Quantity<InfraScalar> = z + depth
+    val maxX: Quantity<InfraNumber> = x + width
+    val maxY: Quantity<InfraNumber> = y + height
+    val maxZ: Quantity<InfraNumber> = z + depth
     val maxPosition: QuantityPoint3 = position + QuantityVector3(x = width, y = height, z = depth)
 
-    val maxAbsoluteX: Quantity<InfraScalar> get() = absoluteX + width
-    val maxAbsoluteY: Quantity<InfraScalar> get() = absoluteY + height
-    val maxAbsoluteZ: Quantity<InfraScalar> get() = absoluteZ + depth
+    val maxAbsoluteX: Quantity<InfraNumber> get() = absoluteX + width
+    val maxAbsoluteY: Quantity<InfraNumber> get() = absoluteY + height
+    val maxAbsoluteZ: Quantity<InfraNumber> get() = absoluteZ + depth
     val maxAbsolutePosition: QuantityPoint3 get() = absolutePosition + QuantityVector3(x = width, y = height, z = depth)
 
-    private fun toGeometryPlacement(): GeometryPlacement3<InfraScalar> {
+    private fun toGeometryPlacement(): GeometryPlacement3<InfraNumber> {
         return GeometryPlacement3(
             x = absoluteX,
             y = absoluteY,

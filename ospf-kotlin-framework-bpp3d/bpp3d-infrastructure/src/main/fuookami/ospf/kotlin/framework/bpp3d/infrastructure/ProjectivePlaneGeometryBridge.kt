@@ -18,7 +18,7 @@ fun ProjectivePlane.toPlaneFrame3(): QuantityPlaneFrame3 {
     }
 }
 
-fun ProjectivePlane.distanceByGeometry(point: QuantityPoint3): Quantity<InfraScalar> {
+fun ProjectivePlane.distanceByGeometry(point: QuantityPoint3): Quantity<InfraNumber> {
     return toPlaneFrame3().distance(point.toGeometryPoint3())
 }
 
@@ -36,7 +36,7 @@ fun <V : FloatingNumber<V>> ProjectivePlane.point2ByGeometry(point: QuantityPoin
 
 fun ProjectivePlane.point3ByGeometry(
     point: QuantityPoint2,
-    distance: Quantity<InfraScalar>
+    distance: Quantity<InfraNumber>
 ): QuantityPoint3 {
     return toPlaneFrame3().point3(point.toGeometryPoint2(), distance).toCompat()
 }
@@ -48,7 +48,7 @@ fun <V : FloatingNumber<V>> ProjectivePlane.point3ByGeometry(
     return toPlaneFrame3().point3(point.toGeometryPoint2(), distance).toCompat()
 }
 
-fun ProjectivePlane.vectorByGeometry(distance: Quantity<InfraScalar>): QuantityVector3 {
+fun ProjectivePlane.vectorByGeometry(distance: Quantity<InfraNumber>): QuantityVector3 {
     return toPlaneFrame3().vector(distance).toCompat()
 }
 
@@ -56,31 +56,31 @@ fun <V : FloatingNumber<V>> ProjectivePlane.vectorByGeometry(distance: Quantity<
     return toPlaneFrame3().vector(distance).toCompat()
 }
 
-fun ProjectivePlane.footprintByGeometry(cuboid: QuantityCuboid3<InfraScalar>): QuantityRectangle2<InfraScalar> {
+fun ProjectivePlane.footprintByGeometry(cuboid: QuantityCuboid3<InfraNumber>): QuantityRectangle2<InfraNumber> {
     return toPlaneFrame3().footprint(cuboid)
 }
 
-fun ProjectivePlane.footprintByGeometry(view: QuantityCuboid3View<InfraScalar>): QuantityRectangle2<InfraScalar> {
+fun ProjectivePlane.footprintByGeometry(view: QuantityCuboid3View<InfraNumber>): QuantityRectangle2<InfraNumber> {
     return footprintByGeometry(view.cuboid)
 }
 
-private fun QuantityPoint2.toGeometryPoint2(): QuantityPlanePoint2<InfraScalar> {
+private fun QuantityPoint2.toGeometryPoint2(): QuantityPlanePoint2<InfraNumber> {
     return QuantityPlanePoint2(x = x, y = y)
 }
 
-private fun QuantityPoint3.toGeometryPoint3(): QuantityPlanePoint3<InfraScalar> {
+private fun QuantityPoint3.toGeometryPoint3(): QuantityPlanePoint3<InfraNumber> {
     return QuantityPlanePoint3(x = x, y = y, z = z)
 }
 
-private fun QuantityPlanePoint2<InfraScalar>.toCompat(): QuantityPoint2 {
+private fun QuantityPlanePoint2<InfraNumber>.toCompat(): QuantityPoint2 {
     return QuantityPoint2(x = x, y = y)
 }
 
-private fun QuantityPlanePoint3<InfraScalar>.toCompat(): QuantityPoint3 {
+private fun QuantityPlanePoint3<InfraNumber>.toCompat(): QuantityPoint3 {
     return QuantityPoint3(x = x, y = y, z = z)
 }
 
-private fun QuantityPlaneVector3<InfraScalar>.toCompat(): QuantityVector3 {
+private fun QuantityPlaneVector3<InfraNumber>.toCompat(): QuantityVector3 {
     return QuantityVector3(x = x, y = y, z = z)
 }
 

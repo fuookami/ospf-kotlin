@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -44,7 +44,7 @@ sealed interface Bpp3dDemandKey {
 
 sealed interface Bpp3dDemandValue {
     data class Amount(val value: UInt64) : Bpp3dDemandValue
-    data class Weight(val value: Quantity<ItemModelScalar>) : Bpp3dDemandValue
+    data class Weight(val value: Quantity<InfraNumber>) : Bpp3dDemandValue
 }
 
 private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3dDemandValue {
@@ -58,7 +58,7 @@ private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3
 private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3dDemandValue {
     return when (value) {
         is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(value.value * multiplier)
-        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * ItemModelScalar(multiplier.toULong().toDouble()))
+        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * InfraNumber(multiplier.toULong().toDouble()))
     }
 }
 
@@ -193,5 +193,6 @@ fun Iterable<QuantityPlacement3<*>>.statistics(mode: Bpp3dDemandMode): Map<Bpp3d
 }
 
 fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(legacyZero() * Kilogram)
+
 
 

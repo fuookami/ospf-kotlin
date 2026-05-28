@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -23,18 +23,18 @@ import fuookami.ospf.kotlin.utils.functional.Eq
 import kotlin.math.ceil
 
 data class PackageBottomShape(
-    val width: Quantity<ItemModelScalar>,
-    val depth: Quantity<ItemModelScalar>,
-    val weight: Quantity<ItemModelScalar>,
+    val width: Quantity<InfraNumber>,
+    val depth: Quantity<InfraNumber>,
+    val weight: Quantity<InfraNumber>,
     val packageType: PackageType,
 ) : Eq<PackageBottomShape> {
     val packageCategory by packageType::category
-    val area: Quantity<ItemModelScalar> = width * depth
+    val area: Quantity<InfraNumber> = width * depth
 
     fun new(
-        width: Quantity<ItemModelScalar>? = null,
-        depth: Quantity<ItemModelScalar>? = null,
-        weight: Quantity<ItemModelScalar>? = null,
+        width: Quantity<InfraNumber>? = null,
+        depth: Quantity<InfraNumber>? = null,
+        weight: Quantity<InfraNumber>? = null,
         packageType: PackageType? = null
     ): PackageBottomShape {
         return PackageBottomShape(
@@ -74,10 +74,10 @@ data class PackageBottomShape(
 }
 
 data class PackageShape(
-    val width: Quantity<ItemModelScalar>,
-    val height: Quantity<ItemModelScalar>,
-    val depth: Quantity<ItemModelScalar>,
-    val weight: Quantity<ItemModelScalar>,
+    val width: Quantity<InfraNumber>,
+    val height: Quantity<InfraNumber>,
+    val depth: Quantity<InfraNumber>,
+    val weight: Quantity<InfraNumber>,
     val packageType: PackageType,
 ) : Eq<PackageShape> {
     val bottomShape = PackageBottomShape(
@@ -87,13 +87,13 @@ data class PackageShape(
         packageType = packageType
     )
     val packageCategory by packageType::category
-    val volume: Quantity<ItemModelScalar> = width * height * depth
+    val volume: Quantity<InfraNumber> = width * height * depth
 
     fun new(
-        width: Quantity<ItemModelScalar>? = null,
-        height: Quantity<ItemModelScalar>? = null,
-        depth: Quantity<ItemModelScalar>? = null,
-        weight: Quantity<ItemModelScalar>? = null,
+        width: Quantity<InfraNumber>? = null,
+        height: Quantity<InfraNumber>? = null,
+        depth: Quantity<InfraNumber>? = null,
+        weight: Quantity<InfraNumber>? = null,
         packageType: PackageType? = null
     ): PackageShape {
         return PackageShape(
@@ -145,12 +145,12 @@ data class PackingProgramMaterialValue(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun packingProgramWeightToLegacyScalar(value: Quantity<*>): Quantity<ItemModelScalar> {
+private fun packingProgramWeightToLegacyScalar(value: Quantity<*>): Quantity<InfraNumber> {
     return when (value.value) {
-        is ItemModelScalar -> value as Quantity<ItemModelScalar>
+        is InfraNumber -> value as Quantity<InfraNumber>
         is FltX -> {
             val quantity = value as Quantity<FltX>
-            Quantity(ItemModelScalar(quantity.value.toDouble()), quantity.unit)
+            Quantity(InfraNumber(quantity.value.toDouble()), quantity.unit)
         }
         else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${value.value}")
     }
@@ -168,11 +168,11 @@ private fun plusPackingProgramWeight(
         return lhs
     }
     return when (lhs.value) {
-        is ItemModelScalar -> (lhs as Quantity<ItemModelScalar>) + packingProgramWeightToLegacyScalar(rhs)
+        is InfraNumber -> (lhs as Quantity<InfraNumber>) + packingProgramWeightToLegacyScalar(rhs)
         is FltX -> {
             val rhsValue = when (rhs.value) {
                 is FltX -> rhs as Quantity<FltX>
-                is ItemModelScalar -> packingProgramWeightToLegacyScalar(rhs).toFltX()
+                is InfraNumber -> packingProgramWeightToLegacyScalar(rhs).toFltX()
                 else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${rhs.value}")
             }
             (lhs as Quantity<FltX>) + rhsValue
@@ -243,7 +243,7 @@ private fun resolvePackingProgramDomain(unit: PhysicalUnit): PackingProgramMater
 
 private fun toDiscreteAmount(value: Any): UInt64 {
     val numericValue = when (value) {
-        is ItemModelScalar -> value.toDouble()
+        is InfraNumber -> value.toDouble()
         is FltX -> value.toDouble()
         else -> value.toString().toDouble()
     }
@@ -354,14 +354,14 @@ data class PackingProgram(
     fun materialQuantities(
         amountUnit: PhysicalUnit = PackingProgramCountUnit,
         materialCatalog: Map<MaterialKey, Material> = emptyMap()
-    ): Map<MaterialKey, Quantity<ItemModelScalar>> {
+    ): Map<MaterialKey, Quantity<InfraNumber>> {
         return materials.mapNotNull { (material, value) ->
             val quantity = value.weight?.let { packingProgramWeightToLegacyScalar(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight
                 if (unitWeight != null) {
-                    unitWeight * ItemModelScalar(amount.toULong().toDouble())
+                    unitWeight * InfraNumber(amount.toULong().toDouble())
                 } else {
-                    ItemModelScalar(amount.toULong().toDouble()) * amountUnit
+                    InfraNumber(amount.toULong().toDouble()) * amountUnit
                 }
             }
             if (quantity == null) {
@@ -372,11 +372,11 @@ data class PackingProgram(
         }.toMap()
     }
 
-    fun materialWeights(materialCatalog: Map<MaterialKey, Material> = emptyMap()): Map<MaterialKey, Quantity<ItemModelScalar>> {
+    fun materialWeights(materialCatalog: Map<MaterialKey, Material> = emptyMap()): Map<MaterialKey, Quantity<InfraNumber>> {
         return materials.mapNotNull { (material, value) ->
             val resolvedWeight = value.weight?.let { packingProgramWeightToLegacyScalar(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight ?: return@let null
-                unitWeight * ItemModelScalar(amount.toULong().toDouble())
+                unitWeight * InfraNumber(amount.toULong().toDouble())
             }
             if (resolvedWeight == null) {
                 null
@@ -633,5 +633,6 @@ open class Package(
         return materialType != null && materials.keys.any { it.type == materialType }
     }
 }
+
 
 

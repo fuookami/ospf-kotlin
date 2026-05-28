@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -60,7 +60,7 @@ open class Material(
     val manufacturer: String? = null,
     val supplier: String? = null,
     val warehouse: String? = null,
-    val weight: Quantity<ItemModelScalar> = Quantity(legacyZero(), Kilogram)
+    val weight: Quantity<InfraNumber> = Quantity(legacyZero(), Kilogram)
 ) {
     open val key: MaterialKey
         get() = MaterialKey(
@@ -70,4 +70,5 @@ open class Material(
             supplier = supplier
         )
 }
+
 

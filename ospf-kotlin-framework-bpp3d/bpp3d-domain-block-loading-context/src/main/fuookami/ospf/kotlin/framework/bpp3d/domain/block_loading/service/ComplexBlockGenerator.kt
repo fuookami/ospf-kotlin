@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ComplexBlock
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ComplexBlockGenerator(
@@ -102,7 +102,7 @@ class ComplexBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         simpleBlocks: List<Block>,
-        restWeight: Flt64 = legacyInfinity()
+        restWeight: InfraNumber = legacyInfinity()
     ): List<ComplexBlock> {
         if (simpleBlocks.isEmpty()) {
             return emptyList()
@@ -181,7 +181,7 @@ class ComplexBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         block: Block,
-        restWeight: Flt64
+        restWeight: InfraNumber
     ): Boolean {
         return space.enabled(block) && enough(items, block) && (block.weight.value leq restWeight)
     }
@@ -196,3 +196,4 @@ class ComplexBlockGenerator(
         return true
     }
 }
+

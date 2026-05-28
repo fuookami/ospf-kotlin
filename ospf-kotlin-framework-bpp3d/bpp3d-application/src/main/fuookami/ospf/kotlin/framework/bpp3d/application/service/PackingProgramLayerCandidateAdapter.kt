@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 
 fun MaterialPackingProgramCandidate.toLayerGenerationItem(
     sequence: Int,
@@ -42,8 +42,9 @@ private fun defaultProgramPackageAttribute(
     return PackageAttribute(
         packageType = packageType,
         weightAttribute = WeightAttribute(),
-        deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-        hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+        deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+        hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
         stackingOnPolicy = FilterStackingOnPolicy()
     )
 }
+

@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -47,7 +47,7 @@ enum class MaterialPackingMixedDemandPolicy {
 data class ColumnGenerationApplicationRequest(
     val itemDemands: List<Pair<Item, UInt64>>,
     val materialAmountDemands: List<Pair<Material, UInt64>> = emptyList(),
-    val materialWeightDemands: List<Pair<Material, Quantity<Flt64>>> = emptyList(),
+    val materialWeightDemands: List<Pair<Material, Quantity<InfraNumber>>> = emptyList(),
     val materialPackingCandidates: List<MaterialPackingProgramCandidate> = emptyList(),
     val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate, UInt64>> = emptyList(),
     val programMaterialCatalog: Map<MaterialKey, Material> = emptyMap(),
@@ -56,7 +56,7 @@ data class ColumnGenerationApplicationRequest(
     val demandEntries: List<Bpp3dDemandEntry>? = null,
     val initialColumns: List<BinLayer> = emptyList(),
     val finalBins: List<LayerBin> = emptyList(),
-    val generators: List<Bpp3dLayerGenerator<Flt64>> = emptyList(),
+    val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
@@ -74,7 +74,7 @@ data class ColumnGenerationApplicationRequest(
             initialColumns: List<BinLayer> = emptyList(),
             quantityInitialColumns: List<QuantityBinLayer<V>> = emptyList(),
             finalBins: List<LayerBin> = emptyList(),
-            generators: List<Bpp3dLayerGenerator<Flt64>> = emptyList(),
+            generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
             cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
             executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
             materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
@@ -110,7 +110,7 @@ data class ColumnGenerationApplicationRequest(
 }
 
 data class ColumnGenerationApplicationResponse(
-    val result: ColumnGenerationResult<Flt64>,
+    val result: ColumnGenerationResult<InfraNumber>,
     val packingSnapshot: ColumnGenerationPackingSnapshot?,
     val materialPackingPlan: MaterialPackingPlan? = null
 )
@@ -120,7 +120,7 @@ class ColumnGenerationApplicationService(
     private val materialPackingSolverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
 ) {
     companion object {
-        fun defaultLayerGenerators(): List<Bpp3dLayerGenerator<Flt64>> {
+        fun defaultLayerGenerators(): List<Bpp3dLayerGenerator<InfraNumber>> {
             return listOf(
                 BlockLayerGenerator(),
                 BLLocalLayerGenerator(),
@@ -136,7 +136,7 @@ class ColumnGenerationApplicationService(
     suspend fun solve(
         request: ColumnGenerationApplicationRequest,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
-        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<Flt64>? = null
+        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<InfraNumber>? = null
     ): ColumnGenerationApplicationResponse {
         val hasMaterialDemands = request.materialAmountDemands.isNotEmpty() || request.materialWeightDemands.isNotEmpty()
         val shouldRunMaterialPacking = hasMaterialDemands && request.materialPackingCandidates.isNotEmpty()
@@ -219,7 +219,7 @@ class ColumnGenerationApplicationService(
         )
         val combinedAnalyzer = when {
             packingAnalyzer != null && solutionAnalyzer != null -> {
-                ColumnGenerationSolutionAnalyzer<Flt64> { state ->
+                ColumnGenerationSolutionAnalyzer<InfraNumber> { state ->
                     solutionAnalyzer.analyze(state)
                     packingAnalyzer.analyze(state)
                 }
@@ -261,11 +261,11 @@ class ColumnGenerationApplicationService(
         initialColumns: List<BinLayer> = emptyList(),
         quantityInitialColumns: List<QuantityBinLayer<V>> = emptyList(),
         finalBins: List<LayerBin> = emptyList(),
-        generators: List<Bpp3dLayerGenerator<Flt64>> = emptyList(),
+        generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
         cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
         executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
-        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<Flt64>? = null,
+        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<InfraNumber>? = null,
         materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): ColumnGenerationApplicationResponse {
@@ -324,3 +324,4 @@ class ColumnGenerationApplicationService(
         return catalog
     }
 }
+

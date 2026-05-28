@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -104,7 +104,7 @@ class BinLayer(
     }
 
     // inherited from Cuboid<BinLayer>
-    override val depth: Quantity<ItemModelScalar> = units.maxOfOrNull { it.maxZ } ?: (shape.depth * legacyZero())
+    override val depth: Quantity<InfraNumber> = units.maxOfOrNull { it.maxZ } ?: (shape.depth * legacyZero())
 
     // inherited from ItemContainer<BinLayer>
     override val bottomOnly: Boolean = true
@@ -170,7 +170,7 @@ class PalletLayer(
     }
 
     // inherited from Cuboid<PalletLayer>
-    override val height: Quantity<ItemModelScalar> = units.maxOfOrNull { it.maxY } ?: (shape.height * legacyZero())
+    override val height: Quantity<InfraNumber> = units.maxOfOrNull { it.maxY } ?: (shape.height * legacyZero())
 
     // inherited from ItemContainer<PalletLayer>
     override val topFlat: Boolean = true
@@ -200,4 +200,5 @@ typealias BinLayerView = CuboidView<BinLayer>
 typealias BinLayerPlacement = QuantityPlacement3<BinLayer>
 typealias PalletLayerView = CuboidView<PalletLayer>
 typealias PalletLayerPlacement = QuantityPlacement3<PalletLayer>
+
 

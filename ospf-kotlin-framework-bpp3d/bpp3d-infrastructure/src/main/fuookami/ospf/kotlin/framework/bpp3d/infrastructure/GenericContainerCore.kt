@@ -23,7 +23,7 @@ private fun <V : FloatingNumber<V>> genericQuantityTimes(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (lhs.value) {
-        is InfraScalar -> ((lhs as Quantity<InfraScalar>) * (rhs as Quantity<InfraScalar>)) as Quantity<V>
+        is InfraNumber -> ((lhs as Quantity<InfraNumber>) * (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) * (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${lhs.value::class.simpleName}")
     }
@@ -35,7 +35,7 @@ private fun <V : FloatingNumber<V>> genericQuantityMinus(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (lhs.value) {
-        is InfraScalar -> ((lhs as Quantity<InfraScalar>) - (rhs as Quantity<InfraScalar>)) as Quantity<V>
+        is InfraNumber -> ((lhs as Quantity<InfraNumber>) - (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) - (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${lhs.value::class.simpleName}")
     }
@@ -47,7 +47,7 @@ private fun <V : FloatingNumber<V>> genericQuantityPlus(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (lhs.value) {
-        is InfraScalar -> ((lhs as Quantity<InfraScalar>) + (rhs as Quantity<InfraScalar>)) as Quantity<V>
+        is InfraNumber -> ((lhs as Quantity<InfraNumber>) + (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) + (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${lhs.value::class.simpleName}")
     }
@@ -63,7 +63,7 @@ private fun <V : FloatingNumber<V>> genericQuantityScale(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (quantity.value) {
-        is InfraScalar -> ((quantity as Quantity<InfraScalar>) * infraScalar(scale)) as Quantity<V>
+        is InfraNumber -> ((quantity as Quantity<InfraNumber>) * infraScalar(scale)) as Quantity<V>
         is FltX -> ((quantity as Quantity<FltX>) * FltX(scale.toULong().toString())) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${quantity.value::class.simpleName}")
     }
@@ -348,12 +348,12 @@ open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
 }
 
 /**
- * 旧版 `Cuboid<T>` 的泛型适配器（`InfraScalar`）。
- * Generic adapter for legacy `Cuboid<T>` (`InfraScalar`).
+ * 旧版 `Cuboid<T>` 的泛型适配器（`InfraNumber`）。
+ * Generic adapter for legacy `Cuboid<T>` (`InfraNumber`).
  */
 data class LegacyCuboidGenericAdapter<T : Cuboid<T>>(
     val cuboid: T
-) : GenericCuboid<LegacyCuboidGenericAdapter<T>, InfraScalar> {
+) : GenericCuboid<LegacyCuboidGenericAdapter<T>, InfraNumber> {
     override val self: LegacyCuboidGenericAdapter<T>
         get() = this
     override val width by cuboid::width
@@ -367,7 +367,7 @@ fun <T : Cuboid<T>> T.asGenericCuboid(): LegacyCuboidGenericAdapter<T> {
     return LegacyCuboidGenericAdapter(this)
 }
 
-fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asGenericContainer2Shape(): GenericContainer2Shape<P, InfraScalar> {
+fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asGenericContainer2Shape(): GenericContainer2Shape<P, InfraNumber> {
     return QuantityContainer2Shape(
         length = length,
         width = width,
@@ -375,7 +375,7 @@ fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asGenericContainer2Shape():
     )
 }
 
-fun AbstractContainer3Shape.asGenericContainer3Shape(): GenericContainer3Shape<InfraScalar> {
+fun AbstractContainer3Shape.asGenericContainer3Shape(): GenericContainer3Shape<InfraNumber> {
     return QuantityContainer3Shape(
         width = width,
         height = height,

@@ -25,8 +25,8 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 private fun merge(
-    counter: MutableMap<AbstractCuboid<InfraScalar>, UInt64>,
-    unit: AbstractCuboid<InfraScalar>
+    counter: MutableMap<AbstractCuboid<InfraNumber>, UInt64>,
+    unit: AbstractCuboid<InfraNumber>
 ) {
     when (unit) {
         is Container2<*, *> -> {
@@ -49,12 +49,12 @@ private fun merge(
 
 @Suppress("UNCHECKED_CAST")
 private fun toLegacyCountMap(
-    genericCounts: Map<AbstractCuboid<InfraScalar>, UInt64>
-): Map<AbstractCuboid<InfraScalar>, UInt64> {
-    val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
+    genericCounts: Map<AbstractCuboid<InfraNumber>, UInt64>
+): Map<AbstractCuboid<InfraNumber>, UInt64> {
+    val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
     for ((unit, amount) in genericCounts) {
         val legacyUnit = when (unit) {
-            is LegacyCuboidGenericAdapter<*> -> unit.cuboid as AbstractCuboid<InfraScalar>
+            is LegacyCuboidGenericAdapter<*> -> unit.cuboid as AbstractCuboid<InfraNumber>
             else -> unit
         }
         counter[legacyUnit] = (counter[legacyUnit] ?: UInt64.zero) + amount
@@ -62,10 +62,10 @@ private fun toLegacyCountMap(
     return counter
 }
 
-private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
     if (hasNestedContainer) {
-        val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
+        val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
         for (placement in units) {
             merge(counter, placement.unit)
         }
@@ -75,10 +75,10 @@ private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPl
     return toLegacyCountMap(genericCounts)
 }
 
-private fun count3ByGenericOrLegacy(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+private fun count3ByGenericOrLegacy(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
     if (hasNestedContainer) {
-        val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
+        val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
         for (placement in units) {
             merge(counter, placement.unit)
         }
@@ -101,18 +101,18 @@ private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): 
 }
 
 private fun quantityWeightedSum(
-    amounts: Map<AbstractCuboid<InfraScalar>, UInt64>,
-    zero: Quantity<InfraScalar>,
-    selector: (AbstractCuboid<InfraScalar>) -> Quantity<InfraScalar>
-): Quantity<InfraScalar> {
+    amounts: Map<AbstractCuboid<InfraNumber>, UInt64>,
+    zero: Quantity<InfraNumber>,
+    selector: (AbstractCuboid<InfraNumber>) -> Quantity<InfraNumber>
+): Quantity<InfraNumber> {
     return amounts.asSequence().fold(zero) { acc, (unit, amount) ->
         acc + (selector(unit) * infraScalar(amount))
     }
 }
 
 interface AbstractContainer2Shape<P : ProjectivePlane> {
-    val length: Quantity<InfraScalar>
-    val width: Quantity<InfraScalar>
+    val length: Quantity<InfraNumber>
+    val width: Quantity<InfraNumber>
     val plane: P
 
     fun restSpace(offset: QuantityPoint2) = Container2Shape(
@@ -127,13 +127,13 @@ interface AbstractContainer2Shape<P : ProjectivePlane> {
         plane = plane
     )
 
-    fun restSpace(offset: Point<Dim2, InfraScalar>) = restSpace(point2(offset))
-    fun restSpace(offset: Vector<Dim2, InfraScalar>) = restSpace(vector2(offset))
+    fun restSpace(offset: Point<Dim2, InfraNumber>) = restSpace(point2(offset))
+    fun restSpace(offset: Vector<Dim2, InfraNumber>) = restSpace(vector2(offset))
 }
 
 class Container2Shape<P : ProjectivePlane>(
-    override val length: Quantity<InfraScalar> = infraInfinity() * Meter,
-    override val width: Quantity<InfraScalar> = infraInfinity() * Meter,
+    override val length: Quantity<InfraNumber> = infraInfinity() * Meter,
+    override val width: Quantity<InfraNumber> = infraInfinity() * Meter,
     override val plane: P
 ) : AbstractContainer2Shape<P> {
     companion object {
@@ -154,31 +154,31 @@ interface Container2<
         > : Copyable<S> {
     val shape: AbstractContainer2Shape<P>
     val units: List<QuantityPlacement2<*, P>>
-    val amounts: Map<AbstractCuboid<InfraScalar>, UInt64> get() = count(units)
+    val amounts: Map<AbstractCuboid<InfraNumber>, UInt64> get() = count(units)
 
-    val length: Quantity<InfraScalar> get() = shape.length
-    val width: Quantity<InfraScalar> get() = shape.width
+    val length: Quantity<InfraNumber> get() = shape.length
+    val width: Quantity<InfraNumber> get() = shape.width
 
     companion object {
-        fun <P : ProjectivePlane> count(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+        fun <P : ProjectivePlane> count(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
             return count2ByGenericOrLegacy(units)
         }
     }
 
-    fun amount(unit: AbstractCuboid<InfraScalar>) = amounts[unit] ?: UInt64.zero
-    fun amount(predicate: Predicate<AbstractCuboid<InfraScalar>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
-    fun contains(unit: AbstractCuboid<InfraScalar>) = amounts[unit]?.let { it != UInt64.zero } ?: false
-    fun contains(predicate: Predicate<AbstractCuboid<InfraScalar>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
+    fun amount(unit: AbstractCuboid<InfraNumber>) = amounts[unit] ?: UInt64.zero
+    fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
+    fun contains(unit: AbstractCuboid<InfraNumber>) = amounts[unit]?.let { it != UInt64.zero } ?: false
+    fun contains(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
 interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
-    val width: Quantity<InfraScalar>
-    val height: Quantity<InfraScalar>
-    val depth: Quantity<InfraScalar>
-    val volume: Quantity<InfraScalar> get() = width * height * depth
+    val width: Quantity<InfraNumber>
+    val height: Quantity<InfraNumber>
+    val depth: Quantity<InfraNumber>
+    val volume: Quantity<InfraNumber> get() = width * height * depth
 
     fun enabled(
-        unit: AbstractCuboid<InfraScalar>,
+        unit: AbstractCuboid<InfraNumber>,
         orientation: Orientation = Orientation.Upright
     ): Boolean {
         return (width geq orientation.width(unit)) == true
@@ -195,7 +195,7 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
     }
 
     fun maxAmount(
-        unit: AbstractCuboid<InfraScalar>,
+        unit: AbstractCuboid<InfraNumber>,
         orientation: Orientation = Orientation.Upright,
         maxXAmount: UInt64 = UInt64.maximum,
         maxYAmount: UInt64 = UInt64.maximum,
@@ -228,8 +228,8 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
         depth = depth - offset.z
     )
 
-    fun restSpace(offset: Point<Dim3, InfraScalar>) = restSpace(point3(offset))
-    fun restSpace(offset: Vector<Dim3, InfraScalar>) = restSpace(vector3(offset))
+    fun restSpace(offset: Point<Dim3, InfraNumber>) = restSpace(point3(offset))
+    fun restSpace(offset: Vector<Dim3, InfraNumber>) = restSpace(vector3(offset))
 
     override fun partialEq(rhs: AbstractContainer3Shape): Boolean? {
         return width eq rhs.width && height eq rhs.height && depth eq rhs.depth
@@ -237,9 +237,9 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
 }
 
 data class Container3Shape(
-    override val width: Quantity<InfraScalar> = infraInfinity() * Meter,
-    override val height: Quantity<InfraScalar> = infraInfinity() * Meter,
-    override val depth: Quantity<InfraScalar> = infraInfinity() * Meter
+    override val width: Quantity<InfraNumber> = infraInfinity() * Meter,
+    override val height: Quantity<InfraNumber> = infraInfinity() * Meter,
+    override val depth: Quantity<InfraNumber> = infraInfinity() * Meter
 ) : AbstractContainer3Shape {
     companion object {
         operator fun invoke(space: AbstractContainer2Shape<*>): Container3Shape {
@@ -264,14 +264,14 @@ data class Container3Shape(
     }
 }
 
-interface Container3<S : Container3<S>> : AbstractCuboid<InfraScalar>, Copyable<S> {
+interface Container3<S : Container3<S>> : AbstractCuboid<InfraNumber>, Copyable<S> {
     val shape: AbstractContainer3Shape get() = Container3Shape()
     val units: List<QuantityPlacement3<*>>
-    val amounts: Map<AbstractCuboid<InfraScalar>, UInt64> get() = count(units)
+    val amounts: Map<AbstractCuboid<InfraNumber>, UInt64> get() = count(units)
 
-    override val width: Quantity<InfraScalar> get() = shape.width
-    override val height: Quantity<InfraScalar> get() = shape.height
-    override val depth: Quantity<InfraScalar> get() = shape.depth
+    override val width: Quantity<InfraNumber> get() = shape.width
+    override val height: Quantity<InfraNumber> get() = shape.height
+    override val depth: Quantity<InfraNumber> get() = shape.depth
 
     override val weight
         get() = quantityWeightedSum(
@@ -279,24 +279,24 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraScalar>, Copyable<
             zero = infraZero() * Kilogram
         ) { it.weight }
     override val volume get() = depth * height * width
-    override val actualVolume: Quantity<InfraScalar>
+    override val actualVolume: Quantity<InfraNumber>
         get() = quantityWeightedSum(
             amounts = amounts,
             zero = volume * infraZero()
         ) { it.actualVolume }
-    val loadingRate: InfraScalar get() = (actualVolume / (volume + (infraEpsilon() * volume.unit))).value
+    val loadingRate: InfraNumber get() = (actualVolume / (volume + (infraEpsilon() * volume.unit))).value
 
     companion object {
-        fun count(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+        fun count(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
             return count3ByGenericOrLegacy(units)
         }
     }
 
-    fun enabled(unit: AbstractCuboid<InfraScalar>, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
-    fun amount(unit: AbstractCuboid<InfraScalar>) = amounts[unit] ?: UInt64.zero
-    fun amount(predicate: Predicate<AbstractCuboid<InfraScalar>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
-    fun contains(unit: AbstractCuboid<InfraScalar>) = amounts[unit]?.let { it != UInt64.zero } ?: false
-    fun contains(predicate: Predicate<AbstractCuboid<InfraScalar>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
+    fun enabled(unit: AbstractCuboid<InfraNumber>, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
+    fun amount(unit: AbstractCuboid<InfraNumber>) = amounts[unit] ?: UInt64.zero
+    fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
+    fun contains(unit: AbstractCuboid<InfraNumber>) = amounts[unit]?.let { it != UInt64.zero } ?: false
+    fun contains(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
 
 interface Container3CuboidUnit<S> : Container3<S>, Cuboid<S> where S : Container3<S>, S : Cuboid<S> {

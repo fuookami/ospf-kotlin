@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -15,10 +15,10 @@ import kotlin.test.assertTrue
 
 class OrientationTest {
     private data class StubCuboid(
-        override val width: QuantityFlt64,
-        override val height: QuantityFlt64,
-        override val depth: QuantityFlt64,
-        override val weight: QuantityFlt64
+        override val width: InfraQuantity,
+        override val height: InfraQuantity,
+        override val depth: InfraQuantity,
+        override val weight: InfraQuantity
     ) : AbstractCuboid<Flt64>
 
     private data class StubCuboidX(

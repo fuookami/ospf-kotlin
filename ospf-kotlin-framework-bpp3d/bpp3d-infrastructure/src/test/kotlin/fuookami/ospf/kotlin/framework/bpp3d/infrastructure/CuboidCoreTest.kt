@@ -12,10 +12,10 @@ import kotlin.test.assertTrue
 
 class CuboidCoreTest {
     private data class Box(
-        override val width: QuantityFlt64,
-        override val height: QuantityFlt64,
-        override val depth: QuantityFlt64,
-        override val weight: QuantityFlt64,
+        override val width: InfraQuantity,
+        override val height: InfraQuantity,
+        override val depth: InfraQuantity,
+        override val weight: InfraQuantity,
         override val enabledOrientations: List<Orientation> = Orientation.entries
     ) : Cuboid<Box> {
         override val self: Box

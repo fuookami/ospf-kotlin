@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.lim
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
@@ -17,10 +17,10 @@ class VolumeMinimization<
         T : Cuboid<T>
         >(
     private val assignment: ImpreciseAssignment,
-    private val coefficient: Flt64,
+    private val coefficient: InfraNumber,
     override val name: String = "volume_minimization",
-) : CGPipeline<Args, AbstractLinearMetaModel<Flt64>, AbstractBPP3DShadowPriceMap<Args, T>> {
-    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+) : CGPipeline<Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>> {
+    override fun invoke(model: AbstractLinearMetaModel<InfraNumber>): Try {
         when (val result = model.minimize(
             monomial = LinearMonomial(coefficient, assignment.volume),
             name = "volume"
@@ -39,5 +39,6 @@ class VolumeMinimization<
         return ok
     }
 }
+
 
 

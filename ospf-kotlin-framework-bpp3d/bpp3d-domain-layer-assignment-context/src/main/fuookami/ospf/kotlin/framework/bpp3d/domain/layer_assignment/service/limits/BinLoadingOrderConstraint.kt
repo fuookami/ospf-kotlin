@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
 import fuookami.ospf.kotlin.utils.functional.*
@@ -20,8 +20,8 @@ class BinLoadingOrderConstraint(
     private val capacity: Capacity,
     val name: String = "bin_loading_order_constraint"
 ) {
-    fun invoke(model: MetaModel<Flt64>): Try {
-        val linearModel = model as AbstractLinearMetaModel<Flt64>
+    fun invoke(model: MetaModel<InfraNumber>): Try {
+        val linearModel = model as AbstractLinearMetaModel<InfraNumber>
         for (i in bins.indices) {
             if (i == 0) {
                 continue
@@ -79,5 +79,6 @@ class BinLoadingOrderConstraint(
         return ok
     }
 }
+
 
 

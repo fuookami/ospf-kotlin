@@ -193,7 +193,7 @@ class QuantityDemandStatisticsGenericTest {
             units = listOf(ItemPlacement(item, 0.0 * Meter, 0.0 * Meter, 0.0 * Meter))
         )
 
-        val legacyLayer = layer.toLegacy()
+        val legacyLayer = layer.toLegacyModel()
         assertEquals(1, legacyLayer.units.size)
         assertTrue(legacyLayer.shape.width eq (2.0 * Meter))
         assertTrue(legacyLayer.units.first().unit.weight eq (0.1 * Kilogram))

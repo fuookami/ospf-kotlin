@@ -43,7 +43,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -59,12 +59,12 @@ data class ColumnGenerationStandardExecutorConfig(
     val finalSolveNamePrefix: String = "bpp3d-final",
     val rmpToLogModel: Boolean = false,
     val finalToLogModel: Boolean = false,
-    val rmpVolumeCoefficient: Flt64 = Flt64.one,
-    val finalBinAmountCoefficient: Flt64 = Flt64.one,
+    val rmpVolumeCoefficient: InfraNumber = InfraNumber.one,
+    val finalBinAmountCoefficient: InfraNumber = InfraNumber.one,
     val enableFinalBinDepthConstraint: Boolean = true,
     val enableFinalBinCapacityConstraint: Boolean = true,
     val enableShadowPriceAwareRequestScore: Boolean = true,
-    val integralityTolerance: Flt64 = Flt64(1e-6)
+    val integralityTolerance: InfraNumber = InfraNumber(1e-6)
 )
 
 class ColumnGenerationStandardExecutors(
@@ -142,7 +142,7 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    fun rmpSolver(): ColumnGenerationRmpSolver<Flt64> {
+    fun rmpSolver(): ColumnGenerationRmpSolver<InfraNumber> {
         return ColumnGenerationRmpSolver { state ->
             val artifacts = buildRmpArtifacts(state)
             val solved = ensureRet(
@@ -162,7 +162,7 @@ class ColumnGenerationStandardExecutors(
                 ),
                 stage = "refresh demand shadow prices"
             )
-            val shadowPrices = LinkedHashMap<DemandModeKey, Flt64>()
+            val shadowPrices = LinkedHashMap<DemandModeKey, InfraNumber>()
             for ((key, value) in shadowPriceMap.map) {
                 val demandKey = key as? DemandShadowPriceKey ?: continue
                 shadowPrices[DemandModeKey(demandKey.mode, demandKey.key, demandKey.quantityUnit)] = value.price
@@ -187,7 +187,7 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    fun finalSolver(): ColumnGenerationFinalSolver<Flt64> {
+    fun finalSolver(): ColumnGenerationFinalSolver<InfraNumber> {
         return ColumnGenerationFinalSolver { state ->
             val bins = if (finalBins.isNotEmpty()) {
                 finalBins
@@ -293,7 +293,7 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    fun requestBuilder(): ColumnGenerationLayerRequestBuilder<Flt64> {
+    fun requestBuilder(): ColumnGenerationLayerRequestBuilder<InfraNumber> {
         val requestDemandEntries = demandEntries.map {
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
         }
@@ -315,12 +315,12 @@ class ColumnGenerationStandardExecutors(
     }
 
     private data class RmpArtifacts(
-        val model: LinearMetaModel<Flt64>,
+        val model: LinearMetaModel<InfraNumber>,
         val demandConstraint: DemandConstraint<BPP3DShadowPriceArguments, Item>
     )
 
     private suspend fun buildRmpArtifacts(
-        state: ColumnGenerationState<Flt64>
+        state: ColumnGenerationState<InfraNumber>
     ): RmpArtifacts {
         val model = newModel("${config.rmpSolveNamePrefix}-${state.iteration}")
         val aggregation = LayerAggregation()
@@ -380,14 +380,14 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun collectSelectedColumns(
-        model: LinearMetaModel<Flt64>,
+        model: LinearMetaModel<InfraNumber>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment,
         binAmount: Int
     ): List<BinLayer> {
         val selected = ArrayList<BinLayer>()
         for ((columnIndex, column) in columns.withIndex()) {
-            var amount = Flt64.zero
+            var amount = InfraNumber.zero
             for (binIndex in 0 until binAmount) {
                 amount += tokenValue(model, assignment.x[binIndex, columnIndex])
             }
@@ -399,7 +399,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun collectSelectedBins(
-        model: LinearMetaModel<Flt64>,
+        model: LinearMetaModel<InfraNumber>,
         bins: List<LayerBin>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment
@@ -449,23 +449,23 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun tokenValue(
-        model: LinearMetaModel<Flt64>,
+        model: LinearMetaModel<InfraNumber>,
         variable: AbstractVariableItem<*, *>
-    ): Flt64 {
-        return model.tokens.find(variable)?.result ?: Flt64.zero
+    ): InfraNumber {
+        return model.tokens.find(variable)?.result ?: InfraNumber.zero
     }
 
-    private fun normalizeScalarSolution(values: List<*>): List<Flt64> {
+    private fun normalizeScalarSolution(values: List<*>): List<InfraNumber> {
         return values.mapIndexed { index, value ->
             when (value) {
-                is Flt64 -> value
-                is Number -> Flt64(value.toDouble())
+                is InfraNumber -> value
+                is Number -> InfraNumber(value.toDouble())
                 else -> throw IllegalStateException("unsupported solution value at $index: ${value?.javaClass?.name}")
             }
         }
     }
 
-    private fun newModel(name: String): LinearMetaModel<Flt64> {
+    private fun newModel(name: String): LinearMetaModel<InfraNumber> {
         return LinearMetaModel(
             name = name,
             objectCategory = ObjectCategory.Minimum,
@@ -490,3 +490,4 @@ class ColumnGenerationStandardExecutors(
         }
     }
 }
+

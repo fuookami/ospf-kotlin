@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -31,7 +31,7 @@ import org.apache.logging.log4j.kotlin.logger
 
 
 
-private typealias PatternScalar = ItemModelScalar
+private typealias PatternScalar = InfraNumber
 private typealias PatternRange = ValueRange<PatternScalar>
 private typealias PatternItemsGroup = Map<PatternScalar, List<PatternItemInfo>>
 private typealias PatternTwoSumHeights = List<Pair<PatternScalar, PatternScalar>>
@@ -624,4 +624,5 @@ abstract class Pattern {
         }
     }
 }
+
 

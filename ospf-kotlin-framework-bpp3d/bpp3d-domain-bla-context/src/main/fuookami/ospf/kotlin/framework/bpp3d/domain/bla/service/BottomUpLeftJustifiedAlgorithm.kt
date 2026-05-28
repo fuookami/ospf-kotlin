@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.not
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
@@ -85,7 +85,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 ) {
     private val logger = logger()
 
-    constructor(length: Flt64, width: Flt64, plane: P, config: Config<P> = Config()) : this(
+    constructor(length: InfraNumber, width: InfraNumber, plane: P, config: Config<P> = Config()) : this(
         space = Container2Shape(length * Meter, width * Meter, plane),
         plane = plane,
         config = config
@@ -475,4 +475,5 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
     }
 }
+
 

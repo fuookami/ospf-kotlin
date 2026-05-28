@@ -42,9 +42,9 @@ data class ProjectionShapeG<V : FloatingNumber<V>>(
     val area: Quantity<V> = length * width
 }
 
-typealias ProjectionShape = ProjectionShapeG<InfraScalar>
+typealias ProjectionShape = ProjectionShapeG<InfraNumber>
 
-private fun <T : Cuboid<T>> GenericQuantityPlacement3<LegacyCuboidGenericAdapter<T>, InfraScalar>.toLegacyPlacement3(): QuantityPlacement3<T> {
+private fun <T : Cuboid<T>> GenericQuantityPlacement3<LegacyCuboidGenericAdapter<T>, InfraNumber>.toLegacyPlacement3(): QuantityPlacement3<T> {
     val legacyUnit = view.unit.cuboid
     val legacyView = legacyUnit.view(orientation)
         ?: throw IllegalStateException("Legacy cuboid view is unavailable for orientation $orientation")
@@ -63,9 +63,9 @@ sealed class ProjectivePlane {
     abstract fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
     abstract fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
 
-    abstract fun length(space: AbstractContainer3Shape): Quantity<InfraScalar>
-    abstract fun width(space: AbstractContainer3Shape): Quantity<InfraScalar>
-    abstract fun height(space: AbstractContainer3Shape): Quantity<InfraScalar>
+    abstract fun length(space: AbstractContainer3Shape): Quantity<InfraNumber>
+    abstract fun width(space: AbstractContainer3Shape): Quantity<InfraNumber>
+    abstract fun height(space: AbstractContainer3Shape): Quantity<InfraNumber>
 
     open fun <V : FloatingNumber<V>> length(space: GenericContainer3Shape<V>): Quantity<V> {
         return when (this) {
@@ -104,10 +104,10 @@ sealed class ProjectivePlane {
         )
     }
 
-    abstract fun distance(point: QuantityPoint3): Quantity<InfraScalar>
+    abstract fun distance(point: QuantityPoint3): Quantity<InfraNumber>
     abstract fun point2(point: QuantityPoint3): QuantityPoint2
-    abstract fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar> = infraZero() * Meter): QuantityPoint3
-    abstract fun vector(distance: Quantity<InfraScalar> = infraOne() * Meter): QuantityVector3
+    abstract fun point3(point: QuantityPoint2, distance: Quantity<InfraNumber> = infraZero() * Meter): QuantityPoint3
+    abstract fun vector(distance: Quantity<InfraNumber> = infraOne() * Meter): QuantityVector3
 
     open fun <V : FloatingNumber<V>> distance(point: QuantityPoint3G<V>): Quantity<V> {
         return distanceByGeometry(point)
@@ -142,8 +142,8 @@ object Bottom : ProjectivePlane() {
 
     override fun distance(point: QuantityPoint3) = distanceByGeometry(point)
     override fun point2(point: QuantityPoint3) = point2ByGeometry(point)
-    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = point3ByGeometry(point, distance)
-    override fun vector(distance: Quantity<InfraScalar>) = vectorByGeometry(distance)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraNumber>) = point3ByGeometry(point, distance)
+    override fun vector(distance: Quantity<InfraNumber>) = vectorByGeometry(distance)
 
     override fun toString(): String {
         return "Bottom-ZOX"
@@ -166,8 +166,8 @@ object Side : ProjectivePlane() {
 
     override fun distance(point: QuantityPoint3) = distanceByGeometry(point)
     override fun point2(point: QuantityPoint3) = point2ByGeometry(point)
-    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = point3ByGeometry(point, distance)
-    override fun vector(distance: Quantity<InfraScalar>) = vectorByGeometry(distance)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraNumber>) = point3ByGeometry(point, distance)
+    override fun vector(distance: Quantity<InfraNumber>) = vectorByGeometry(distance)
 
     override fun toString(): String {
         return "Side-XOY"
@@ -190,8 +190,8 @@ object Front : ProjectivePlane() {
 
     override fun distance(point: QuantityPoint3) = distanceByGeometry(point)
     override fun point2(point: QuantityPoint3) = point2ByGeometry(point)
-    override fun point3(point: QuantityPoint2, distance: Quantity<InfraScalar>) = point3ByGeometry(point, distance)
-    override fun vector(distance: Quantity<InfraScalar>) = vectorByGeometry(distance)
+    override fun point3(point: QuantityPoint2, distance: Quantity<InfraNumber>) = point3ByGeometry(point, distance)
+    override fun vector(distance: Quantity<InfraNumber>) = vectorByGeometry(distance)
 
     override fun toString(): String {
         return "Front-ZOY"
@@ -208,11 +208,11 @@ sealed interface Projection<
     val plane: P
     val unit: T get() = view.unit
     val orientation: Orientation get() = view.orientation
-    val length: Quantity<InfraScalar> get() = asGenericProjection().length
-    val width: Quantity<InfraScalar> get() = asGenericProjection().width
-    val height: Quantity<InfraScalar> get() = asGenericProjection().height
-    val area: Quantity<InfraScalar> get() = asGenericProjection().area
-    val weight: Quantity<InfraScalar> get() = asGenericProjection().weight
+    val length: Quantity<InfraNumber> get() = asGenericProjection().length
+    val width: Quantity<InfraNumber> get() = asGenericProjection().width
+    val height: Quantity<InfraNumber> get() = asGenericProjection().height
+    val area: Quantity<InfraNumber> get() = asGenericProjection().area
+    val weight: Quantity<InfraNumber> get() = asGenericProjection().weight
 
     fun amount(unit: AbstractCuboid<*>): UInt64
     fun toPlacement3At(position: QuantityPoint2): List<QuantityPlacement3<T>>
@@ -225,7 +225,7 @@ data class PlaneProjection<
     override val view: CuboidView<T>,
     override val plane: P
 ) : Projection<T, P> {
-    private val genericProjection: GenericPlaneProjection<LegacyCuboidGenericAdapter<T>, InfraScalar, P> by lazy {
+    private val genericProjection: GenericPlaneProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> by lazy {
         GenericPlaneProjection(
             view = unit.asGenericCuboid().view(orientation),
             plane = plane
@@ -260,7 +260,7 @@ data class PileProjection<
     override val plane: P,
     val layer: UInt64,
 ) : Projection<T, P> {
-    private val genericProjection: GenericPileProjection<LegacyCuboidGenericAdapter<T>, InfraScalar, P> by lazy {
+    private val genericProjection: GenericPileProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> by lazy {
         GenericPileProjection(
             view = unit.asGenericCuboid().view(orientation),
             plane = plane,
@@ -268,9 +268,9 @@ data class PileProjection<
         )
     }
 
-    override val height: Quantity<InfraScalar>
+    override val height: Quantity<InfraNumber>
         get() = genericProjection.height
-    override val weight: Quantity<InfraScalar>
+    override val weight: Quantity<InfraNumber>
         get() = genericProjection.weight
 
     constructor(plane: PlaneProjection<T, P>, layer: UInt64 = UInt64.one) : this(plane.view, plane.plane, layer)
@@ -304,20 +304,20 @@ data class MultiPileProjection<
 ) : Projection<T, P> {
     override val view = views.first()
 
-    private val genericProjection: GenericMultiPileProjection<LegacyCuboidGenericAdapter<T>, InfraScalar, P> by lazy {
+    private val genericProjection: GenericMultiPileProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> by lazy {
         GenericMultiPileProjection(
             views = views.map { it.unit.asGenericCuboid().view(it.orientation) },
             plane = plane
         )
     }
 
-    override val length: Quantity<InfraScalar>
+    override val length: Quantity<InfraNumber>
         get() = genericProjection.length
-    override val width: Quantity<InfraScalar>
+    override val width: Quantity<InfraNumber>
         get() = genericProjection.width
-    override val height: Quantity<InfraScalar>
+    override val height: Quantity<InfraNumber>
         get() = genericProjection.height
-    override val weight: Quantity<InfraScalar>
+    override val weight: Quantity<InfraNumber>
         get() = genericProjection.weight
 
     override fun amount(unit: AbstractCuboid<*>) = UInt64(views.count { it.unit == unit })

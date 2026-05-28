@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.geometry.vector3
 
 data class Space(
-    val position: Point<Dim3, InfraScalar>,
+    val position: Point<Dim3, InfraNumber>,
     val shape: AbstractContainer3Shape,
     val parentShape: AbstractContainer3Shape = shape,
     val block: Block? = null,
@@ -25,7 +25,7 @@ data class Space(
         fun from(
             blocks: List<BlockPlacement3>,
             shape: AbstractContainer3Shape = Container3Shape(),
-            offset: Point<Dim3, InfraScalar> = point3()
+            offset: Point<Dim3, InfraNumber> = point3()
         ): List<Space>? {
             val absoluteBlocks = blocks.map { BlockPlacement3(it.view.copy(), it.position + offset) }
             val spaces = ArrayList<Space>()

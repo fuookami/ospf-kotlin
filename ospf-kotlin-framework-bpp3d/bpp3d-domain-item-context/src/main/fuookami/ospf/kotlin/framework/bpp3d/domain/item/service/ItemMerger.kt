@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 
-private typealias MergeScalar = ItemModelScalar
+private typealias MergeScalar = InfraNumber
 private fun scalar(value: Number): MergeScalar = MergeScalar(value.toDouble())
 private fun scalar(value: ULong): MergeScalar = MergeScalar(value.toDouble())
 
@@ -641,4 +641,5 @@ data object ItemMerger {
         }.flatten()
     }
 }
+
 

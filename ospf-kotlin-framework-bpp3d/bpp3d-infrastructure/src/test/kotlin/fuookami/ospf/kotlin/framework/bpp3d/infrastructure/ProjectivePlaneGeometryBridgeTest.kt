@@ -48,15 +48,15 @@ class ProjectivePlaneGeometryBridgeTest {
 
     @Test
     fun footprintByGeometryShouldMatchPlaneAxes() {
-        val cuboid: QuantityCuboid3<InfraScalar> = QuantityCuboid3(
+        val cuboid: QuantityCuboid3<InfraNumber> = QuantityCuboid3(
             width = 2.0 * Meter,
             height = 3.0 * Meter,
             depth = 4.0 * Meter
         )
 
-        val bottomShape: QuantityRectangle2<InfraScalar> = Bottom.footprintByGeometry(cuboid)
-        val sideShape: QuantityRectangle2<InfraScalar> = Side.footprintByGeometry(cuboid)
-        val frontShape: QuantityRectangle2<InfraScalar> = Front.footprintByGeometry(cuboid)
+        val bottomShape: QuantityRectangle2<InfraNumber> = Bottom.footprintByGeometry(cuboid)
+        val sideShape: QuantityRectangle2<InfraNumber> = Side.footprintByGeometry(cuboid)
+        val frontShape: QuantityRectangle2<InfraNumber> = Front.footprintByGeometry(cuboid)
 
         assertTrue(bottomShape.width eq (4.0 * Meter))
         assertTrue(bottomShape.height eq (2.0 * Meter))

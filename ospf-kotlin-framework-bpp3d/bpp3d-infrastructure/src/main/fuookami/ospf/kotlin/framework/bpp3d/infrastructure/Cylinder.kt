@@ -13,11 +13,11 @@ interface AbstractCylinder<V : FloatingNumber<V>> {
     val weight: Quantity<V>
 }
 
-interface Cylinder<T : Cylinder<T>> : AbstractCylinder<InfraScalar> {
+interface Cylinder<T : Cylinder<T>> : AbstractCylinder<InfraNumber> {
     val self: T
     val enabledAxes: List<Axis3>
 
-    fun geometry(axis: Axis3 = this.axis): QuantityCylinder3<InfraScalar> {
+    fun geometry(axis: Axis3 = this.axis): QuantityCylinder3<InfraNumber> {
         return QuantityCylinder3(
             radius = radius,
             height = height,

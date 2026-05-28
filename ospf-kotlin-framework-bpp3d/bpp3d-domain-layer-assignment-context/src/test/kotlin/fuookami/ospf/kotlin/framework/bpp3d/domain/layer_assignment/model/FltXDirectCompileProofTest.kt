@@ -21,7 +21,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.asScalarF64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -49,6 +48,10 @@ class FltXDirectCompileProofTest {
 
     private fun q(value: FltX, unit: PhysicalUnit): Quantity<FltX> {
         return value * unit
+    }
+
+    private fun toFlt64Quantity(value: Quantity<FltX>): Quantity<Flt64> {
+        return Quantity(Flt64(value.value.toDouble()), value.unit)
     }
 
     @Test
@@ -121,7 +124,7 @@ class FltXDirectCompileProofTest {
         assertEquals(MaterialNo("M-1"), materialNo)
 
         val weightSolverValue = when (val weightValue = layerWeightStats.values.single()) {
-            is GenericBpp3dDemandValue.Weight -> adapter.weightToSolver(weightValue.value.asScalarF64())
+            is GenericBpp3dDemandValue.Weight -> adapter.weightToSolver(toFlt64Quantity(weightValue.value))
             else -> error("Unexpected weight statistics value: $weightValue")
         }
         assertEquals(Flt64(10.0), weightSolverValue)

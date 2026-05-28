@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 
 
-typealias ShadowPriceScalar = ItemModelScalar
+typealias ShadowPriceScalar = InfraNumber
 
 open class BPP3DShadowPriceArguments(
     override val cuboid: Item
@@ -55,7 +55,7 @@ fun BPP3DShadowPriceMap.reducedCost(
         },
         demandValueToScalar = { demand ->
             when (demand) {
-                is Bpp3dDemandValue.Amount -> ItemModelScalar(demand.value.toULong().toDouble())
+                is Bpp3dDemandValue.Amount -> InfraNumber(demand.value.toULong().toDouble())
                 is Bpp3dDemandValue.Weight -> demand.value.value
             }
         }
@@ -65,4 +65,5 @@ fun BPP3DShadowPriceMap.reducedCost(
 typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>;
+
 

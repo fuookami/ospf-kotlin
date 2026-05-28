@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 
-private typealias LoadingDepthLimit = Quantity<ItemModelScalar>
+private typealias LoadingDepthLimit = Quantity<InfraNumber>
 
 class LoadingOrderCalculator(
     private val maxBlockDepth: LoadingDepthLimit?,
@@ -260,4 +260,5 @@ class LoadingOrderCalculator(
         return ret
     }
 }
+
 

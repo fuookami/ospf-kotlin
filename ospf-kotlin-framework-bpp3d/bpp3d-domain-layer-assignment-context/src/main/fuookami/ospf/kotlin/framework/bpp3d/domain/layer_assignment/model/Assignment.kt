@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
@@ -26,11 +26,11 @@ import fuookami.ospf.kotlin.multiarray._a
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
+private val flt64Converter = object : IntoValue<InfraNumber> {
+        override fun intoValue(value: InfraNumber) = value
+        override val zero get() = InfraNumber.zero
+        override val one get() = InfraNumber.one
+        override fun fromValue(value: InfraNumber) = value
     }
 
 class ImpreciseAssignment(
@@ -44,11 +44,11 @@ class ImpreciseAssignment(
     private val _x = ArrayList<UIntVariable1>()
     val x: List<UIntVariable1> by ::_x
 
-    lateinit var volume: LinearExpressionSymbol<Flt64>
+    lateinit var volume: LinearExpressionSymbol<InfraNumber>
 
-    fun register(model: MetaModel<Flt64>): Try {
+    fun register(model: MetaModel<InfraNumber>): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(Flt64.zero, name = "volume")
+            volume = LinearExpressionSymbol(InfraNumber.zero, name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}
@@ -68,7 +68,7 @@ class ImpreciseAssignment(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel<Flt64>
+        model: AbstractLinearMetaModel<InfraNumber>
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -117,11 +117,11 @@ class PreciseAssignment(
 ) {
     lateinit var x: UIntVariable2
 
-    lateinit var u: LinearIntermediateSymbols2<Flt64>
-    lateinit var v: LinearIntermediateSymbols1<Flt64>
+    lateinit var u: LinearIntermediateSymbols2<InfraNumber>
+    lateinit var v: LinearIntermediateSymbols1<InfraNumber>
     lateinit var tail: BinVariable1
 
-    fun register(model: MetaModel<Flt64>): Try {
+    fun register(model: MetaModel<InfraNumber>): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",
@@ -156,13 +156,13 @@ class PreciseAssignment(
         }
 
         if (!::u.isInitialized) {
-            u = LinearIntermediateSymbols2<Flt64>(
+            u = LinearIntermediateSymbols2<InfraNumber>(
                 name = "u",
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
-                        polynomial = LinearMonomial(Flt64.one, x[v[0], v[1]]).toLinearPolynomial(),
+                        polynomial = LinearMonomial(InfraNumber.one, x[v[0], v[1]]).toLinearPolynomial(),
                         converter = flt64Converter,
                         name = "u_$v",
                     ),
@@ -183,13 +183,13 @@ class PreciseAssignment(
         }
 
         if (!::v.isInitialized) {
-            v = LinearIntermediateSymbols1<Flt64>(
+            v = LinearIntermediateSymbols1<InfraNumber>(
                 name = "v",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
-                        polynomial = sum(x[i, _a].map { LinearMonomial(Flt64.one, it) }),
+                        polynomial = sum(x[i, _a].map { LinearMonomial(InfraNumber.one, it) }),
                         converter = flt64Converter,
                         name = "v_$i",
                     ),
@@ -230,5 +230,6 @@ class PreciseAssignment(
         return ok
     }
 }
+
 
 

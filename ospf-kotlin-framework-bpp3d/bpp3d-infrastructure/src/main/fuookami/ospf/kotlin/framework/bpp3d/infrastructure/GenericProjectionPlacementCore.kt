@@ -25,7 +25,7 @@ private fun <V : FloatingNumber<V>> projectionQuantityPlus(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (lhs.value) {
-        is InfraScalar -> ((lhs as Quantity<InfraScalar>) + (rhs as Quantity<InfraScalar>)) as Quantity<V>
+        is InfraNumber -> ((lhs as Quantity<InfraNumber>) + (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) + (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${lhs.value::class.simpleName}")
     }
@@ -37,7 +37,7 @@ private fun <V : FloatingNumber<V>> projectionQuantityMinus(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (lhs.value) {
-        is InfraScalar -> ((lhs as Quantity<InfraScalar>) - (rhs as Quantity<InfraScalar>)) as Quantity<V>
+        is InfraNumber -> ((lhs as Quantity<InfraNumber>) - (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) - (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${lhs.value::class.simpleName}")
     }
@@ -49,7 +49,7 @@ private fun <V : FloatingNumber<V>> projectionQuantityTimes(
 ): Quantity<V> {
     @Suppress("UNCHECKED_CAST")
     return when (lhs.value) {
-        is InfraScalar -> ((lhs as Quantity<InfraScalar>) * (rhs as Quantity<InfraScalar>)) as Quantity<V>
+        is InfraNumber -> ((lhs as Quantity<InfraNumber>) * (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) * (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported quantity scalar type: ${lhs.value::class.simpleName}")
     }
@@ -410,7 +410,7 @@ fun <T : GenericCuboid<T, V>, V : FloatingNumber<V>> bottomPlacements(
     return bottomPlacements
 }
 
-fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantityPlacement3<LegacyCuboidGenericAdapter<T>, InfraScalar> {
+fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantityPlacement3<LegacyCuboidGenericAdapter<T>, InfraNumber> {
     return GenericQuantityPlacement3(
         view = unit.asGenericCuboid().view(orientation),
         position = QuantityPoint3G(
@@ -421,7 +421,7 @@ fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantity
     )
 }
 
-fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlacement2(): GenericQuantityPlacement2<LegacyCuboidGenericAdapter<T>, InfraScalar, P> {
+fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlacement2(): GenericQuantityPlacement2<LegacyCuboidGenericAdapter<T>, InfraNumber, P> {
     return GenericQuantityPlacement2(
         projection = GenericPlaneProjection(
             view = unit.asGenericCuboid().view(orientation),
@@ -434,7 +434,7 @@ fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlace
     )
 }
 
-fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asGenericProjection(): GenericProjection<LegacyCuboidGenericAdapter<T>, InfraScalar, P> {
+fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asGenericProjection(): GenericProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> {
     return when (this) {
         is PlaneProjection -> GenericPlaneProjection(
             view = unit.asGenericCuboid().view(orientation),

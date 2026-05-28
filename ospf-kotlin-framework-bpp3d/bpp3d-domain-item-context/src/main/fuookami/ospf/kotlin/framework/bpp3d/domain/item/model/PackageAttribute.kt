@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -26,7 +26,7 @@ import kotlinx.coroutines.coroutineScope
 
 
 
-private typealias PackageScalar = ItemModelScalar
+private typealias PackageScalar = InfraNumber
 private typealias PackageCuboid = AbstractCuboid<PackageScalar>
 private typealias PackageQuantity = Quantity<PackageScalar>
 private typealias PackageVector3 = Vector<Dim3, PackageScalar>
@@ -576,4 +576,5 @@ data class PackageAttribute(
         return result
     }
 }
+
 

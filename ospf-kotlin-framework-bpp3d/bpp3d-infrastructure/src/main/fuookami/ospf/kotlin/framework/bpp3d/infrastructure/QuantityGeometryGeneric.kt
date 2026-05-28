@@ -13,12 +13,12 @@ import fuookami.ospf.kotlin.utils.functional.Order
 private fun <V : FloatingNumber<V>> quantityBinary(
     lhs: Quantity<V>,
     rhs: Quantity<V>,
-    flt64Op: (Quantity<InfraScalar>, Quantity<InfraScalar>) -> Quantity<InfraScalar>,
+    flt64Op: (Quantity<InfraNumber>, Quantity<InfraNumber>) -> Quantity<InfraNumber>,
     fltXOp: (Quantity<FltX>, Quantity<FltX>) -> Quantity<FltX>,
     symbol: String
 ): Quantity<V> {
     return when (lhs.value) {
-        is InfraScalar -> flt64Op(lhs as Quantity<InfraScalar>, rhs as Quantity<InfraScalar>) as Quantity<V>
+        is InfraNumber -> flt64Op(lhs as Quantity<InfraNumber>, rhs as Quantity<InfraNumber>) as Quantity<V>
         is FltX -> fltXOp(lhs as Quantity<FltX>, rhs as Quantity<FltX>) as Quantity<V>
         else -> throw IllegalArgumentException(
             "Unsupported quantity numeric type for '$symbol': ${lhs.value::class.simpleName}"

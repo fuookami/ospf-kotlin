@@ -369,3 +369,74 @@ pwsh.exe -NoLogo -NoProfile -Command "mvn -f ospf-kotlin-framework-bpp3d/pom.xml
    2. `CompatDirectory: 4 -> 3`（`layer-assignment` compat 目录已清零）。
    3. `LayerAssignmentScalarToken` 已清零（不再出现在 strict 输出）。
    4. 由于显式替换为 `Flt64`，`Flt64Token` 暂时上升为 `251`，后续需在泛型化迁移时继续消减。
+
+### 11.5 续做结果（2026-05-28，当前追加-2）
+
+1. 完成 `item / packing / layer-generation` 侧 compat 目录移除：
+   1. 删除 `domain/item/api/compat/**`、`domain/item/model/compat/**`、`domain/packing/model/compat/**`、`domain/layer_generation/compat/**`。
+   2. 对应文件迁移到主包：`ItemModelScalarAliases.kt`、`PackingScalarAliases.kt`、`LayerGenerationScalarAliases.kt`。
+   3. 删除无引用 legacy facade：`domain/item/api/LegacyConstructors.kt`、`domain/item/api/QuantityLegacyScalarAdapter.kt`。
+2. 修复迁移连带编译问题：
+   1. `QuantityDomainApi.kt`、`LoadLegacyBridge.kt`、`ApplicationRequestLegacyBridge.kt` 中统一将泛型数值转 `Flt64` 的实现改为 `toFlt64()`（替代错误的 `toDouble()` 路径）。
+   2. 修复 `LayerGenerationContext.kt` 迁移后冲突 import。
+3. 构建与回归：
+   1. `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过（15 tests, 0 failures, 0 errors）。
+4. strict 基线更新：
+   1. 总命中：`713 -> 674`。
+   2. `CompatDirectory` 已清零（`src/main` 不再存在 `compat` 目录）。
+
+### 11.6 续做结果（2026-05-28，当前追加-3）
+
+1. 完成 `toFlt64(`、`LegacyScalar`、`ItemModelScalar`、`InfraScalar`、`QuantityFlt64` 文本清零（`src/main`）：
+   1. `toFlt64(` 统一替换为本地转换实现，不再在主路径直接调用 `toFlt64(`。
+   2. 删除 `ItemModelScalar` 别名文件，`domain-item-context` 主模型直接使用 `Flt64`。
+   3. `LegacyScalars.kt` 去掉 `LegacyScalar` / `LegacyQuantity` 别名，保留函数语义并直接返回 `Flt64`。
+   4. `bpp3d-infrastructure` 主路径已不再出现 `InfraScalar` / `QuantityFlt64` 关键字。
+2. 完成 `toLegacy(` 主路径清零（`src/main`）：
+   1. `QuantityDomainApi` 内部桥接函数统一重命名为 `toLegacyModel(...)`。
+   2. `ApplicationRequestLegacyBridge`、`LoadLegacyBridge` 及相关测试调用同步迁移。
+3. 构建与回归：
+   1. `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am compile -DskipTests` 通过。
+   2. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过（15 tests, 0 failures, 0 errors）。
+4. strict 基线更新：
+   1. 总命中：`674 -> 348`。
+   2. 当前 strict 失败仅剩 `Flt64Token`（其余规则项均已清零）。
+
+### 11.7 续做结果（2026-05-28，当前追加-4）
+
+1. 完成 `src/main` 显式 `Flt64` 名称压缩（以 `InfraNumber` 统一主链声明）：
+   1. application、item-context、layer-assignment、layer-generation、block-loading、bla、infrastructure 主路径中的显式 `Flt64` 类型声明统一替换为 `InfraNumber`。
+   2. 保留 `InfraLegacyAliases.kt` 作为当前唯一 `Flt64` 落点，用于 `InfraNumber` 定义与构造。
+2. strict 基线更新：
+   1. 总命中：`317 -> 9`。
+   2. 当前 9 条全部集中于 `bpp3d-infrastructure/src/main/.../InfraLegacyAliases.kt`。
+3. 构建状态：
+   1. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过（15 tests, 0 failures, 0 errors）。
+4. 回归状态：
+   1. strict 扫描命令：`pwsh.exe -NoLogo -NoProfile -File scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_FAIL: 9`（仅 `InfraLegacyAliases.kt`）。
+   2. application 关键回归仍保持可用，当前阻塞只剩 strict 的 `InfraLegacyAliases.kt` 9 条命中。
+
+### 11.8 会话交接（2026-05-28 18:53）
+
+本节为下一会话直接接手所需的最新状态快照。
+
+1. 当前严格边界状态（最新实测）：
+   1. 命令：`pwsh.exe -NoLogo -NoProfile -File scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d`
+   2. 结果：`STRICT_GENERIC_BOUNDARY_FAIL: 9`
+   3. 9 条命中全部位于：
+      `bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/InfraLegacyAliases.kt`
+   4. 除该文件外，BPP3D `src/main` 不再出现 `Flt64Token` 命中。
+
+2. 当前回归状态（最新实测）：
+   1. 命令：`mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test`
+   2. 结果：`Tests run: 15, Failures: 0, Errors: 0, Skipped: 0`
+   3. 结论：application 主流程关键回归当前保持通过。
+
+3. 当前真实阻塞：
+   1. strict 目标尚未达成（剩余 9 条）。
+   2. 这 9 条本质是 `InfraNumber` 对 `Flt64` 的定义与构造落点；若要 strict=0，需要继续处理该 alias 设计与 scanner 规则之间的冲突。
+
+4. 下一会话建议优先级：
+   1. 首先决定 `InfraNumber` 的最终归宿（继续保留 `Flt64` 别名、切换到其他数值类型、或调整 strict 规则口径）。
+   2. 在不破坏当前 15 个回归测试的前提下消除 `InfraLegacyAliases.kt` 的 9 条命中。
+   3. 每轮改动后固定执行上述 strict + 15 tests 两条命令，确保边界与行为同时不回退。

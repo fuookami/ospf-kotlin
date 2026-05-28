@@ -76,7 +76,7 @@ class QuantityDomainAliasExampleTest {
 
         assertTrue(layer.width eq (5.0 * Meter))
         assertEquals(1, layer.units.size)
-        assertTrue(layer.toLegacy().shape.width eq (5.0 * Meter))
+        assertTrue(layer.toLegacyModel().shape.width eq (5.0 * Meter))
     }
 
     @Test
@@ -120,6 +120,6 @@ class QuantityDomainAliasExampleTest {
         assertEquals(Meter, layer.width.unit)
         assertEquals(5.0, layer.width.value.toDouble(), 1e-10)
         assertEquals(1, layer.units.size)
-        assertTrue(layer.toLegacy().shape.width eq (5.0 * Meter))
+        assertTrue(layer.toLegacyModel().shape.width eq (5.0 * Meter))
     }
 }

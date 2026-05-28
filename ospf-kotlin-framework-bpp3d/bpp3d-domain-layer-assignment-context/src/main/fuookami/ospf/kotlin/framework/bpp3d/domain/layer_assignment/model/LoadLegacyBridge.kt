@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.asScalarF64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
@@ -11,11 +10,16 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dItemDemand
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dMaterialDemand
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+
+private fun <V : FloatingNumber<V>> Quantity<V>.toFlt64Quantity(): Quantity<InfraNumber> {
+    return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
+}
 
 fun <V : FloatingNumber<V>> toLegacyItems(
     items: List<Pair<QuantityItem<V>, UInt64>>,
@@ -23,7 +27,7 @@ fun <V : FloatingNumber<V>> toLegacyItems(
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<Pair<Item, UInt64>> {
     return items.map { (item, demand) ->
-        Pair(item.toLegacy(materialCache, legacyItemCache), demand)
+        Pair(item.toLegacyModel(materialCache, legacyItemCache), demand)
     }
 }
 
@@ -33,7 +37,7 @@ fun <V : FloatingNumber<V>> toLegacyItemRanges(
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<Triple<Item, UInt64, ValueRange<UInt64>>> {
     return items.map { (item, demand, demandRange) ->
-        Triple(item.toLegacy(materialCache, legacyItemCache), demand, demandRange)
+        Triple(item.toLegacyModel(materialCache, legacyItemCache), demand, demandRange)
     }
 }
 
@@ -42,7 +46,7 @@ fun <V : FloatingNumber<V>> toLegacyLayers(
     legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<BinLayer> {
-    return layers.map { it.toLegacy(materialCache, legacyItemCache) }
+    return layers.map { it.toLegacyModel(materialCache, legacyItemCache) }
 }
 
 fun <V : FloatingNumber<V>> toLegacyItemDemands(
@@ -52,8 +56,8 @@ fun <V : FloatingNumber<V>> toLegacyItemDemands(
 ): List<Bpp3dItemDemand> {
     return items.map { (item, quantity) ->
         Bpp3dItemDemand(
-            item = item.toLegacy(materialCache, legacyItemCache),
-            quantity = quantity.asScalarF64()
+            item = item.toLegacyModel(materialCache, legacyItemCache),
+            quantity = quantity.toFlt64Quantity()
         )
     }
 }
@@ -69,14 +73,14 @@ fun <V : FloatingNumber<V>> toLegacyMaterialDemands(
                 manufacturer = material.manufacturer,
                 supplier = material.supplier
             ),
-            quantity = demand.asScalarF64()
+            quantity = demand.toFlt64Quantity()
         )
     }
 }
 
 fun <V : FloatingNumber<V>> toLegacyMaterialWeightDemandsByKey(
     materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>
-): List<Pair<MaterialKey, Quantity<Flt64>>> {
+): List<Pair<MaterialKey, Quantity<InfraNumber>>> {
     return materials.map { (material, demand) ->
         Pair(
             MaterialKey(
@@ -85,10 +89,11 @@ fun <V : FloatingNumber<V>> toLegacyMaterialWeightDemandsByKey(
                 manufacturer = material.manufacturer,
                 supplier = material.supplier
             ),
-            demand.asScalarF64()
+            demand.toFlt64Quantity()
         )
     }
 }
+
 
 
 

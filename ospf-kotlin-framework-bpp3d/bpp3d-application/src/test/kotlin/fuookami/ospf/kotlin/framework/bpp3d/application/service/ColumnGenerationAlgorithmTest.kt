@@ -531,7 +531,7 @@ class ColumnGenerationAlgorithmTest {
         )
         val legacyItemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
         val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
-        val legacyItem = quantityItem.toLegacy(materialCache, legacyItemCache)
+        val legacyItem = quantityItem.toLegacyModel(materialCache, legacyItemCache)
         val demandEntries = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,

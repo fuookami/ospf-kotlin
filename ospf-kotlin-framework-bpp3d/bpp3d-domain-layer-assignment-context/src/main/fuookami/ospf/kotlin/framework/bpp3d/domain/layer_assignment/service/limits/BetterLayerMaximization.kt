@@ -6,18 +6,18 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.utils.functional.*
 
 class BetterLayerMaximization(
     private val bins: List<Bin<BinLayer>>,
     private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment,
-    private val coefficient: (BinLayer, Bin<BinLayer>) -> Flt64,
+    private val coefficient: (BinLayer, Bin<BinLayer>) -> InfraNumber,
     val name: String = "better_layer_maximization"
 ) {
-    fun invoke(model: MetaModel<Flt64>): Try {
-        val linearModel = model as AbstractLinearMetaModel<Flt64>
+    fun invoke(model: MetaModel<InfraNumber>): Try {
+        val linearModel = model as AbstractLinearMetaModel<InfraNumber>
         when (val result = linearModel.maximize(
             polynomial = sum(bins.flatMapIndexed { i, bin ->
                 layers.mapIndexed { j, layer ->
@@ -40,6 +40,7 @@ class BetterLayerMaximization(
         return ok
     }
 }
+
 
 
 

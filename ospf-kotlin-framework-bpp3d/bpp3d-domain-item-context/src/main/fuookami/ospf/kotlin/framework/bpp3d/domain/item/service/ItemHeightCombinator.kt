@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -23,7 +23,7 @@ import org.apache.logging.log4j.kotlin.logger
 
 
 
-private typealias HeightScalar = ItemModelScalar
+private typealias HeightScalar = InfraNumber
 
 data object ItemHeightCombinator {
     private val logger = logger()
@@ -396,4 +396,5 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 }
+
 

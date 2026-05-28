@@ -27,15 +27,15 @@ interface AbstractCuboid<V : FloatingNumber<V>> {
     val linearDensity: Quantity<V> get() = weight / depth
 }
 
-interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraScalar> {
+interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraNumber> {
     val self: T
     val enabledOrientations: List<Orientation>
 
-    fun geometryView(orientation: Orientation = Orientation.Upright): QuantityCuboid3View<InfraScalar> {
+    fun geometryView(orientation: Orientation = Orientation.Upright): QuantityCuboid3View<InfraNumber> {
         return self.asGenericCuboid().geometryView(orientation)
     }
 
-    fun geometry(orientation: Orientation = Orientation.Upright): QuantityCuboid3<InfraScalar> {
+    fun geometry(orientation: Orientation = Orientation.Upright): QuantityCuboid3<InfraNumber> {
         return self.asGenericCuboid().geometry(orientation)
     }
 
@@ -63,8 +63,8 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraScalar> {
 }
 
 data class BottomSupport(
-    val area: Quantity<InfraScalar>,
-    val weight: Quantity<InfraScalar>
+    val area: Quantity<InfraNumber>,
+    val weight: Quantity<InfraNumber>
 ) : Plus<BottomSupport, BottomSupport> {
     override fun plus(rhs: BottomSupport) = BottomSupport(
         area = area + rhs.area,
@@ -75,8 +75,8 @@ data class BottomSupport(
 open class CuboidView<T : Cuboid<T>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
-) : AbstractCuboid<InfraScalar>, Copyable<CuboidView<T>> {
-    private val geometryView: QuantityCuboid3View<InfraScalar> by lazy { unit.geometryView(orientation) }
+) : AbstractCuboid<InfraNumber>, Copyable<CuboidView<T>> {
+    private val geometryView: QuantityCuboid3View<InfraNumber> by lazy { unit.geometryView(orientation) }
 
     override val width get() = geometryView.width
     override val height get() = geometryView.height
@@ -138,11 +138,11 @@ open class CuboidView<T : Cuboid<T>>(
         orientation = orientation
     )
 
-    fun toGeometryCuboid3View(): QuantityCuboid3View<InfraScalar> = geometryView
+    fun toGeometryCuboid3View(): QuantityCuboid3View<InfraNumber> = geometryView
 
-    fun toGeometryCuboid3(): QuantityCuboid3<InfraScalar> = geometryView.cuboid
+    fun toGeometryCuboid3(): QuantityCuboid3<InfraNumber> = geometryView.cuboid
 
-    fun toGeometryBox3AtOrigin(): QuantityBox3<InfraScalar> = QuantityBox3.atOrigin(geometryView.cuboid)
+    fun toGeometryBox3AtOrigin(): QuantityBox3<InfraNumber> = QuantityBox3.atOrigin(geometryView.cuboid)
 
     override fun hashCode(): Int {
         var result = unit.hashCode()

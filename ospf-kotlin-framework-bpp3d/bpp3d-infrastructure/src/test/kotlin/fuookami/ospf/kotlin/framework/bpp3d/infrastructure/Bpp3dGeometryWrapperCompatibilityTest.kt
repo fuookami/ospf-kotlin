@@ -16,10 +16,10 @@ import kotlin.test.assertTrue
 
 class Bpp3dGeometryWrapperCompatibilityTest {
     private data class Box(
-        override val width: Quantity<InfraScalar>,
-        override val height: Quantity<InfraScalar>,
-        override val depth: Quantity<InfraScalar>,
-        override val weight: Quantity<InfraScalar>,
+        override val width: Quantity<InfraNumber>,
+        override val height: Quantity<InfraNumber>,
+        override val depth: Quantity<InfraNumber>,
+        override val weight: Quantity<InfraNumber>,
         override val enabledOrientations: List<Orientation> = Orientation.entries
     ) : Cuboid<Box> {
         override val self: Box
@@ -37,10 +37,10 @@ class Bpp3dGeometryWrapperCompatibilityTest {
     }
 
     private data class Column(
-        override val radius: Quantity<InfraScalar>,
-        override val height: Quantity<InfraScalar>,
+        override val radius: Quantity<InfraNumber>,
+        override val height: Quantity<InfraNumber>,
         override val axis: Axis3,
-        override val weight: Quantity<InfraScalar>,
+        override val weight: Quantity<InfraNumber>,
         override val enabledAxes: List<Axis3>
     ) : Cylinder<Column> {
         override val self: Column
