@@ -3,19 +3,9 @@ package fuookami.ospf.kotlin.quantities
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.quantities.dimension.CustomFundamentalQuantityDimension
-import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
-import fuookami.ospf.kotlin.quantities.dimension.Information
-import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
-import fuookami.ospf.kotlin.quantities.dimension.div
-import fuookami.ospf.kotlin.quantities.dimension.times
-import fuookami.ospf.kotlin.quantities.unit.AnonymousPhysicalUnit
-import fuookami.ospf.kotlin.quantities.unit.Bit
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.unit.Byte as ByteUnit
-import fuookami.ospf.kotlin.quantities.unit.Kilobit
-import fuookami.ospf.kotlin.quantities.unit.Kilobyte
-import fuookami.ospf.kotlin.quantities.unit.div
-import fuookami.ospf.kotlin.quantities.unit.times
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 class QuantityDomainTest {
     @Test

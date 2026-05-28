@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.fail
+import kotlin.test.*
 
 class FunctionSymbolFlt64LeakageGuardTest {
     private val root = File("src/main/fuookami/ospf/kotlin/core/symbol/function")

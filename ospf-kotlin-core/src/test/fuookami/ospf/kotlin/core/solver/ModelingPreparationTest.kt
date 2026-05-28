@@ -1,13 +1,9 @@
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.variable.Binary
-import fuookami.ospf.kotlin.core.variable.Integer
+import kotlin.test.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.model.basic.Variable
+import fuookami.ospf.kotlin.core.variable.*
 
 class ModelingPreparationTest {
     @Test

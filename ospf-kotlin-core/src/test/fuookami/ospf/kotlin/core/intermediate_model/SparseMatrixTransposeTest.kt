@@ -1,11 +1,8 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
-import fuookami.ospf.kotlin.core.model.intermediate.SparseVector
+import kotlin.test.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.model.intermediate.*
 
 class SparseMatrixTransposeTest {
     @Test
@@ -92,4 +89,3 @@ class SparseMatrixTransposeTest {
         assertTrue(entry.value eq Flt64(7.0))
     }
 }
-

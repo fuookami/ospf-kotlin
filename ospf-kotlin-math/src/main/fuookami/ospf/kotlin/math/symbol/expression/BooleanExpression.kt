@@ -9,8 +9,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression
 
-import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.Trivalent
 
 /**
  * 布尔表达弌

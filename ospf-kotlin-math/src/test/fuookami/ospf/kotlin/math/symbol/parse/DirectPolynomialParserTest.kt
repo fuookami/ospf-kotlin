@@ -1,16 +1,11 @@
 package fuookami.ospf.kotlin.math.symbol.parse
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.parseCanonical
-import fuookami.ospf.kotlin.math.symbol.operation.parseLinear
-import fuookami.ospf.kotlin.math.symbol.operation.parseQuadratic
-import fuookami.ospf.kotlin.math.symbol.operation.parseLinearInequality
-import fuookami.ospf.kotlin.math.symbol.operation.parseQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.operation.parseCanonicalInequality
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import kotlin.test.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 private data class TestSymbol(
     override val name: String,

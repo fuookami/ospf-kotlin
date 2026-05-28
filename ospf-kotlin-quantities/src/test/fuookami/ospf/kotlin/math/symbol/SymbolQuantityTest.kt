@@ -1,15 +1,14 @@
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.unit.*
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class SymbolQuantityTest {
     @Test

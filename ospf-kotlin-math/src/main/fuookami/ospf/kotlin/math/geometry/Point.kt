@@ -10,10 +10,9 @@
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.math.operator.Minus
-import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 点数据类

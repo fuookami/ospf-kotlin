@@ -1,13 +1,9 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class TypedValueRangeTest {
     @Test

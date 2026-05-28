@@ -1,19 +1,13 @@
 package fuookami.ospf.kotlin.quantities
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.quantities.dimension.CustomFundamentalQuantityDimension
-import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
-import fuookami.ospf.kotlin.quantities.dimension.Mass
-import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
-import fuookami.ospf.kotlin.quantities.dimension.div
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 class QuantityTest {
     @Test
@@ -381,5 +375,3 @@ class QuantityTest {
         // 注意：由于量纲简化可能包含其他幂次为 0 的量纲，所以只验证包含 M 即可
     }
 }
-
-

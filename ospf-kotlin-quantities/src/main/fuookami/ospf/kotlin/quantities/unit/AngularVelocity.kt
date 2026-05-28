@@ -10,7 +10,6 @@
  * - RadianPerSecond: rad/s, SI derived unit for angular velocity
  * - DegreePerSecond: °/s, common unit for angular velocity
  */
-
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.AngularVelocity

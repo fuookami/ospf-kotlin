@@ -1,3 +1,15 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+
 /**
  * Flt64 求值快捷函数
  * Flt64 Evaluation Convenience Functions
@@ -8,23 +20,6 @@
  * partial evaluation, and interval extremum computation.
  * Wraps generic evaluation operations with ValueProvider and Map value sources.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 
 private fun missingValueFailed(symbol: Symbol): Ret<Flt64> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")

@@ -1,21 +1,13 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.toLatex
-import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.LatexOptions
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class LatexTest {
     private data class TestSymbol(
@@ -125,4 +117,3 @@ class LatexTest {
         assertEquals("0", CanonicalPolynomial<Flt64>(constant = Flt64.zero).toLatex())
     }
 }
-

@@ -1,12 +1,9 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Meter
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class GeometryPlacementTest {
     @Test
@@ -88,4 +85,3 @@ class GeometryPlacementTest {
         assertTrue(intersection.depth eq (2.0 * Meter))
     }
 }
-

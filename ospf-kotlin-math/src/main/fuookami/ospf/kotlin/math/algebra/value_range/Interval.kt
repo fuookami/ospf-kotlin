@@ -8,15 +8,10 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import java.util.*
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.PartialOrd
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 区间序列化器

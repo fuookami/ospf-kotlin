@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * 分块多维数组测试

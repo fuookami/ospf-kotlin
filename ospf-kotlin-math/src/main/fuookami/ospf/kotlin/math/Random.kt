@@ -7,9 +7,7 @@
  */
 package fuookami.ospf.kotlin.math
 
-import kotlin.random.Random
-import kotlin.random.nextLong
-import kotlin.random.nextULong
+import kotlin.random.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 /** 生成随机 Int64 / Generate random Int64 */

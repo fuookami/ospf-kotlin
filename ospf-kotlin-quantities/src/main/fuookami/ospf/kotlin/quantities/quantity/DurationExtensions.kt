@@ -1,3 +1,14 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+package fuookami.ospf.kotlin.quantities.quantity
+
+import kotlin.time.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.dimension.Time
+
 /**
  * 时间物理量与 kotlin.time.Duration 互转换扩展
  * Extension functions for converting between time Quantity and kotlin.time.Duration
@@ -11,20 +22,6 @@
  * - Int64, IntX (有符号整数 / Signed integer)
  * - UInt64, UIntX (无符号整数 / Unsigned integer)
  */
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
-package fuookami.ospf.kotlin.quantities.quantity
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.Field
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.quantities.dimension.Time
-import fuookami.ospf.kotlin.quantities.unit.*
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 // ============================================================================
 // 泛型接口定义 / Generic interface definitions

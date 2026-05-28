@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * BlockMultiArray 语义测试

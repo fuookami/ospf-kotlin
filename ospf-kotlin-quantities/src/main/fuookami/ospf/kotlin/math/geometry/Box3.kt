@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
  * 三维包围盒

@@ -1,17 +1,14 @@
 package fuookami.ospf.kotlin.core.solver.heuristic
 
+import kotlin.test.*
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.callback.CallBackModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class ParticleSwarmHeuristicSolverTest {
     @Test

@@ -1,3 +1,13 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import java.math.BigDecimal
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 /**
  * Flt64 LaTeX 格式化
  * Flt64 LaTeX Formatting
@@ -7,17 +17,6 @@
  * Provides LaTeX string conversion for Flt64 polynomials and inequalities.
  * Includes compact and simplified formatting modes.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-
-import java.math.BigDecimal
 
 private fun formatNumber(value: Flt64): String {
     val doubleValue = value.toDouble()

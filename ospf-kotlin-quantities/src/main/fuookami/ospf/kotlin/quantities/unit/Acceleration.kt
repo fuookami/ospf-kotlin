@@ -9,7 +9,6 @@
  * Source: SI base unit definitions
  * - Standard gravity (g): 9.80665 m/s² (ISO 80000-3)
  */
-
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX

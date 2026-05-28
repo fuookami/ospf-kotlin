@@ -1,15 +1,12 @@
 package fuookami.ospf.kotlin.math.symbol
 
+import kotlin.test.assertEquals
+import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.DimensionedSymbol
-import fuookami.ospf.kotlin.math.symbol.Operation
-import fuookami.ospf.kotlin.math.symbol.SymbolDimensionRegistry
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.dimension.*
-import fuookami.ospf.kotlin.quantities.unit.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
 
 class SymbolDimensionTest {
     @Test

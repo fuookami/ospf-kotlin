@@ -1,14 +1,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.output
 
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 
 class InfeasibleOutputFieldsTest {
     @Test

@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.random.Random
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import kotlin.random.Random
 
 class ShapeColumnMajorInverseTest {
 

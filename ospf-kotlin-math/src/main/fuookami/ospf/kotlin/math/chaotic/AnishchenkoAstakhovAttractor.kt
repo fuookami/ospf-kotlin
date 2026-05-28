@@ -13,12 +13,11 @@
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
-import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * Anishchenko-Astakhov 吸引子

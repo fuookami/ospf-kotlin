@@ -1,3 +1,16 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+
 /**
  * Flt64 转换快捷函数
  * Flt64 Conversion Convenience Functions
@@ -7,22 +20,6 @@
  * Provides Flt64 polynomial and inequality type conversion convenience functions.
  * Includes Ret-wrapped demotion conversions and inequality normalization operations.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-
 
 private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return subtractLinear(

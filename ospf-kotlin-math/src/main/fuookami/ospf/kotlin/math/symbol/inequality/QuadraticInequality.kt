@@ -4,11 +4,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.inequality
 
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
 /**
  * 二次不等式

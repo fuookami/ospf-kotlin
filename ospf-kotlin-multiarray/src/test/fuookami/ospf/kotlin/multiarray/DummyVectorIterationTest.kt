@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * DummyVector 迭代专项测试

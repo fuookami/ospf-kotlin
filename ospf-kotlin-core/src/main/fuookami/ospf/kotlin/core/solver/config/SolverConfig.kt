@@ -1,14 +1,14 @@
-/**
- * 求解器通用配置
- * Common solver configuration
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.config
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/**
+ * 求解器通用配置
+ * Common solver configuration
+ */
 
 /**
  * 求解器通用配置，包含时间限制、线程数、间隙容忍度等参数。

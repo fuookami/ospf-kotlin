@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.geometry.point2
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.point2
 
 class RectangleTest {
     @Test
@@ -30,5 +30,3 @@ class RectangleTest {
         assertTrue(rectangle.area eq Flt64(6.0))
     }
 }
-
-

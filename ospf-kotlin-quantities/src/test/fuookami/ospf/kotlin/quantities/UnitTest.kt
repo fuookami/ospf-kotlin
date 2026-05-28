@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.quantities
 
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.*
-import org.junit.jupiter.api.Test
 
 class UnitTest {
     @Test
@@ -21,5 +21,3 @@ class UnitTest {
         assert(Meter.to(Kilometer)!!.value eq FltX(0.001))
     }
 }
-
-

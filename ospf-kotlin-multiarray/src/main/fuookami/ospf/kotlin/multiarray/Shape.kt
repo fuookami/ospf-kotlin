@@ -57,8 +57,8 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
-import kotlin.ConsistentCopyVisibility
 import kotlin.reflect.KClass
+import kotlin.ConsistentCopyVisibility
 import fuookami.ospf.kotlin.utils.concept.Indexed
 
 /**

@@ -1,12 +1,13 @@
-/**
- * 启发式迭代计数器
- * Heuristic iteration counter
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import kotlin.time.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+
+/**
+ * 启发式迭代计数器
+ * Heuristic iteration counter
+ */
 
 /**
  * 迭代计数器，跟踪总迭代次数、无改进迭代次数和运行时间。

@@ -1,10 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * 数据框测试

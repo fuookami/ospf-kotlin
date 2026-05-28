@@ -7,10 +7,9 @@
  */
 package fuookami.ospf.kotlin.math
 
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.operator.TolerancedEq
-import fuookami.ospf.kotlin.math.operator.TolerancedOrd
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 默认容差相等比较

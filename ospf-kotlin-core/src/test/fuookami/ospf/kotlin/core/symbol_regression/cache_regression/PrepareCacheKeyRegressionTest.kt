@@ -1,13 +1,11 @@
-
 package fuookami.ospf.kotlin.core.symbol_regression.cache_regression
 
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import kotlin.test.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class PrepareCacheKeyRegressionTest {
     @Test
@@ -55,6 +53,3 @@ class PrepareCacheKeyRegressionTest {
         assertNotNull(normalResult)
     }
 }
-
-
-

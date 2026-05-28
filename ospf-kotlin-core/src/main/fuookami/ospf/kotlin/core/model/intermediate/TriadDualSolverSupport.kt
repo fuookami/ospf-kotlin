@@ -7,8 +7,7 @@ package fuookami.ospf.kotlin.core.model.intermediate
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.LinearSolver
-import fuookami.ospf.kotlin.core.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.solver.*
 
 /**
  * 求解线性三元模型的对偶问题。

@@ -4,20 +4,16 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
-import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
-import fuookami.ospf.kotlin.core.symbol.function.QuadraticMathFunctionSymbolBase
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 // 求解器边界转换：在星投影函数符号上注册约束。 / Solver-boundary conversion: register constraints on star-projected function symbols.

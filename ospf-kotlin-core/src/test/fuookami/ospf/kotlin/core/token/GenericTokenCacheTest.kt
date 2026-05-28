@@ -1,17 +1,11 @@
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import kotlin.test.*
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.testing.*
 
 class GenericTokenCacheTest {
     @Test

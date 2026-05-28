@@ -1,12 +1,8 @@
 package fuookami.ospf.kotlin.core.testing
 
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
 
 class GenericNumberCase<V>(
     val name: String,

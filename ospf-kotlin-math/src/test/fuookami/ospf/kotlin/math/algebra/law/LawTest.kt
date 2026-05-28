@@ -1,26 +1,11 @@
 package fuookami.ospf.kotlin.math.algebra.law
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int8
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.IntX
-import fuookami.ospf.kotlin.math.algebra.number.Rtn8
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
-import fuookami.ospf.kotlin.math.algebra.number.URtnX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.number.UIntX
-import fuookami.ospf.kotlin.math.algebra.number.URtn64
-import fuookami.ospf.kotlin.math.defaultTolerancedEq
-import fuookami.ospf.kotlin.math.defaultTolerancedOrd
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.operator.TolerancedEq
-import fuookami.ospf.kotlin.math.operator.TolerancedOrd
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.math.*
 
 class LawTest {
     @Test
@@ -250,6 +235,3 @@ class LawTest {
         )
     }
 }
-
-
-

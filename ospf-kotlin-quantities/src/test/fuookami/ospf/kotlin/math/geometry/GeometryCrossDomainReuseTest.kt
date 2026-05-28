@@ -1,13 +1,10 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Meter
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class GeometryCrossDomainReuseTest {
     private data class Bpp2dLikePlacement<V : fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber<V>>(
@@ -76,4 +73,3 @@ class GeometryCrossDomainReuseTest {
         assertTrue(intersect.width eq Quantity(FltX(2.0), Meter))
     }
 }
-

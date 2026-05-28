@@ -5,13 +5,10 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 /**

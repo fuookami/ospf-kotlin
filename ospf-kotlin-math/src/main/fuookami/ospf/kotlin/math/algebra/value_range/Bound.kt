@@ -9,8 +9,8 @@ package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
 
 /**

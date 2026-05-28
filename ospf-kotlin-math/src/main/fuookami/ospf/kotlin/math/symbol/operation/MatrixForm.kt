@@ -9,11 +9,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 /**
  * 线性多项式矩阵形式

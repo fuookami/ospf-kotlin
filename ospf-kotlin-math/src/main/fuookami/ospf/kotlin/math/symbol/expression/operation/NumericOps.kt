@@ -8,8 +8,7 @@
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
 import kotlin.reflect.KClass
-import fuookami.ospf.kotlin.math.symbol.expression.BinaryOperator
-import fuookami.ospf.kotlin.math.symbol.expression.UnaryOperator
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
  * 数值运算接双

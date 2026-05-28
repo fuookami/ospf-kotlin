@@ -1,14 +1,10 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.*
+import kotlin.math.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import kotlin.math.PI
-import kotlin.math.sqrt
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.point3
-import fuookami.ospf.kotlin.math.geometry.vector2
-import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.*
 
 /**
  * Circle 测试类

@@ -5,8 +5,7 @@
 package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * 模型构建状态，包含模型名称、当前阶段和进度信息。

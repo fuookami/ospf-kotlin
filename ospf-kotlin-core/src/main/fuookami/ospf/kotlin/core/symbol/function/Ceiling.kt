@@ -1,3 +1,18 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.symbol.function
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
+
 /**
  * 向上取整函数符号 / Ceiling function symbol
  *
@@ -5,22 +20,6 @@
  *
  * Provides [CeilingFunction] for linearized modeling of y = ceil(x).
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.symbol.function
-
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * Ceiling function: y = ceil(x).

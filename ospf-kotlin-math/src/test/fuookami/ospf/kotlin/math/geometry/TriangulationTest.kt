@@ -1,16 +1,11 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.*
 
 class TriangulationTest {
     // ============================================================================

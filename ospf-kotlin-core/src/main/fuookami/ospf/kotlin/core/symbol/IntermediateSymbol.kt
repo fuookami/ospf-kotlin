@@ -1,3 +1,30 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.symbol
+
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.unit.reciprocal
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+
 /**
  * 中间符号核心接口定义 / Core intermediate symbol interface definitions
  *
@@ -8,32 +35,6 @@
  * [LinearIntermediateSymbol], and [QuadraticIntermediateSymbol], used for symbolic
  * expression evaluation and management in mathematical optimization models.
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.symbol
-
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.quantities.unit.reciprocal
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 
 /**
  * 中间符号接口 / Intermediate symbol interface

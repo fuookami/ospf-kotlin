@@ -7,12 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.convertTo
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 两个物理量相加（内部辅助函数）

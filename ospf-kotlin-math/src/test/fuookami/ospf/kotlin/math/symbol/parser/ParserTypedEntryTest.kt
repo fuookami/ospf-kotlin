@@ -1,14 +1,8 @@
 package fuookami.ospf.kotlin.math.symbol.parser
 
-import fuookami.ospf.kotlin.math.symbol.operation.parseLinear
-import fuookami.ospf.kotlin.math.symbol.operation.parseQuadratic
-import fuookami.ospf.kotlin.math.symbol.operation.parseCanonical
-import fuookami.ospf.kotlin.math.symbol.operation.parseLinearInequality
-import fuookami.ospf.kotlin.math.symbol.operation.parseQuadraticInequality
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.operation.*
 
 class ParserTypedEntryTest {
     @Test

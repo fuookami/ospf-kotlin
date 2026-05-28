@@ -1,23 +1,18 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.QuadraticExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
-import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value

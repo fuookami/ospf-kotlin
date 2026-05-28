@@ -18,10 +18,10 @@
  */
 package fuookami.ospf.kotlin.math.combinatorics
 
-import fuookami.ospf.kotlin.utils.parallel.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.apache.logging.log4j.kotlin.*
+import fuookami.ospf.kotlin.utils.parallel.*
 
 /** 计算多个集合的笛卡尔积 / Calculate Cartesian product of multiple sets */
 fun <T> cross(

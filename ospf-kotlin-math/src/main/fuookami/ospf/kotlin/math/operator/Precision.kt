@@ -23,8 +23,8 @@
  */
 package fuookami.ospf.kotlin.math.operator
 
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
  * 精度比较籌

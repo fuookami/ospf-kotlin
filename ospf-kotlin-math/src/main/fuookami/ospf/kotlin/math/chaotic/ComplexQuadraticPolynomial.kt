@@ -13,13 +13,11 @@
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
-import org.kotlinmath.complex
-import org.kotlinmath.pow
-import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.functional.Generator
+import org.kotlinmath.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 复二次多项式

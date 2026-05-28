@@ -10,13 +10,11 @@
  */
 package fuookami.ospf.kotlin.core.token
 
-import kotlin.random.Random
-import kotlin.random.nextULong
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import kotlin.random.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.value.*
 import fuookami.ospf.kotlin.core.variable.*
 
 /**

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertThrows
 
 class ViewDimensionValidationTest {
     @Test

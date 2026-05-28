@@ -8,10 +8,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.dsl
 
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.parser.parseBooleanExpression
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.parser.parseBooleanExpression
 
 @DisplayName("Boolean DSL Tests / 布尔表达式 DSL 测试")
 class BooleanDslTest {

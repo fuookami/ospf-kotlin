@@ -1,3 +1,12 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 /**
  * Flt64 微分快捷函数
  * Flt64 Differentiation Convenience Functions
@@ -7,18 +16,6 @@
  * Provides Flt64 polynomial derivative, gradient, and Hessian convenience functions.
  * Wraps generic differentiation operations with Flt64 zero constant.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
 
 /**
  * 计算 Flt64 线性单项式对指定符号的导数

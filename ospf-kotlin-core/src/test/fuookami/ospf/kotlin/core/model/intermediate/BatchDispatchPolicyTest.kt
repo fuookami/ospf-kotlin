@@ -1,9 +1,6 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class BatchDispatchPolicyTest {
     @Test

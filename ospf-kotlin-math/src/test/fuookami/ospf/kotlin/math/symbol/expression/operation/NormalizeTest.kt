@@ -7,10 +7,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
 
 @DisplayName("Normalize Tests / 规范化测试")
 class NormalizeTest {

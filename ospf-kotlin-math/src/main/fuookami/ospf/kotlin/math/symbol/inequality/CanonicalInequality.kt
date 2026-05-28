@@ -10,8 +10,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol.inequality
 
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
  * 规范不等弌

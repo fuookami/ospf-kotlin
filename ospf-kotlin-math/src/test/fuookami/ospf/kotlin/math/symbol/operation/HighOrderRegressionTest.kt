@@ -1,19 +1,12 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
-import fuookami.ospf.kotlin.math.symbol.operation.compileEval
-import fuookami.ospf.kotlin.math.symbol.operation.compileGradient
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.operation.evaluateOrdered
-import fuookami.ospf.kotlin.math.symbol.operation.gradient
-import fuookami.ospf.kotlin.math.symbol.operation.partialEvaluate
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class HighOrderRegressionTest {
     private data class TestSymbol(

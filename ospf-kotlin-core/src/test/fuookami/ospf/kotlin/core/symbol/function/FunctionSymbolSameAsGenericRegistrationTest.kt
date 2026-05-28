@@ -1,26 +1,17 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
+import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class FunctionSymbolSameAsGenericRegistrationTest {
     @Test

@@ -4,12 +4,11 @@
  */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.neq
 import fuookami.ospf.kotlin.utils.functional.sum
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
 /**

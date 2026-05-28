@@ -4,8 +4,7 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 
 /**

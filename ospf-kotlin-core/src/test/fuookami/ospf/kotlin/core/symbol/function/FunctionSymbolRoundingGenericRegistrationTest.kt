@@ -1,33 +1,17 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
-import fuookami.ospf.kotlin.core.model.mechanism.Object
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
-import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
-import fuookami.ospf.kotlin.core.token.MutableTokenTable
-import fuookami.ospf.kotlin.core.token.TokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import kotlin.test.*
 import org.junit.jupiter.api.Tag
-import kotlin.test.Test
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class FunctionSymbolRoundingGenericRegistrationTest {
     @Test

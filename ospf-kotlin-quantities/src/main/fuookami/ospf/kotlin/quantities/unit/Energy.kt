@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.quantities.unit
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.dimension.Energy
 
 /**

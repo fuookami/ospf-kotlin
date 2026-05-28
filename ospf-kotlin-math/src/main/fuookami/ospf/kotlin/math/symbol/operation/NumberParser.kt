@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * Flt64 数字解析器单例

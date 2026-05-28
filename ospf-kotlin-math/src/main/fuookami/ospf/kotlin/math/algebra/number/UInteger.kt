@@ -13,18 +13,15 @@
 package fuookami.ospf.kotlin.math.algebra.number
 
 import java.math.BigInteger
-import kotlin.math.log
-import kotlin.math.pow
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlin.math.*
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.pow
-import fuookami.ospf.kotlin.math.*
 
 /**
  * 使用浮点基数计算无符号整数的对数

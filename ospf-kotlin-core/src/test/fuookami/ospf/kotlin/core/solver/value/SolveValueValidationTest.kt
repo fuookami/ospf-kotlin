@@ -1,12 +1,10 @@
 package fuookami.ospf.kotlin.core.solver.value
 
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class SolveValueValidationTest {
     @Test

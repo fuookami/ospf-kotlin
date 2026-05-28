@@ -1,3 +1,12 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 /**
  * Flt64 不等式 DSL 和求值
  * Flt64 Inequality DSL and Evaluation
@@ -5,16 +14,6 @@
  * 提供 Flt64 不等式的符号级 DSL（lt/le/eq/ne/ge/gt）和满足性判断。
  * Supports symbol-level comparison DSL and satisfaction checking for Flt64 inequalities.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-
 
 // ========== Comparison.satisfiedBy ==========
 

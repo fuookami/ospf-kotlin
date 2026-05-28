@@ -23,12 +23,10 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.IntX
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.operator.*
 
 /** 使用减法实现的 GCD 算法（内部实现） / GCD using subtraction-based algorithm (internal implementation) */

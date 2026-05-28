@@ -1,15 +1,10 @@
 package fuookami.ospf.kotlin.math.symbol.monomial
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class MonomialTest {
     private data class TestSymbol(
@@ -86,5 +81,3 @@ class MonomialTest {
         assertEquals(Flt64(-1.0), poly3.constant)
     }
 }
-
-

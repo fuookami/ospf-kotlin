@@ -28,10 +28,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 /**
  * 可尝试转换为线性多项式（降阶）

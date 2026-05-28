@@ -1,3 +1,14 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.symbol
+
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+
 /**
  * 符号组合容器 / Symbol combination containers
  *
@@ -9,16 +20,6 @@
  * expression symbols and intermediate symbols. Also provides [map] / [flatMap]
  * convenience factory functions.
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.symbol
-
-import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 
 /**
  * 符号组合抽象接口 / Abstract symbol combination interface

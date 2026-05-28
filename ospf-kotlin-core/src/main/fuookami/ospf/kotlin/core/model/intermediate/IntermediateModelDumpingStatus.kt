@@ -5,10 +5,8 @@
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
 
 /**
  * 中间模型转储进度状态，跟踪约束的准备进度。

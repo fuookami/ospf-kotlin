@@ -27,10 +27,10 @@
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
+import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.*
 
 @Suppress("UNCHECKED_CAST")
 private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {

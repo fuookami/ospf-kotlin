@@ -8,9 +8,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
-import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.identity
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
 
 /**
  * 规范化配罌

@@ -1,27 +1,13 @@
 package fuookami.ospf.kotlin.math.symbol.serialization
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.canonicalInequalityFromJson
-import fuookami.ospf.kotlin.math.symbol.operation.canonicalPolynomialFromJson
-import fuookami.ospf.kotlin.math.symbol.operation.linearInequalityFromJson
-import fuookami.ospf.kotlin.math.symbol.operation.linearPolynomialFromJson
-import fuookami.ospf.kotlin.math.symbol.operation.quadraticInequalityFromJson
-import fuookami.ospf.kotlin.math.symbol.operation.quadraticPolynomialFromJson
-import fuookami.ospf.kotlin.math.symbol.operation.toJsonString
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class SerializationTest {
     private data class TestSymbol(

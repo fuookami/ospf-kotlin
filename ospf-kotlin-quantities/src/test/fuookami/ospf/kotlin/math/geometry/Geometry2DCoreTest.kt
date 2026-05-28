@@ -1,14 +1,10 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.quantities.unit.SquareMeter
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class Geometry2DCoreTest {
     @Test
@@ -89,4 +85,3 @@ class Geometry2DCoreTest {
         assertNull(farCircle.intersect(rectangle))
     }
 }
-

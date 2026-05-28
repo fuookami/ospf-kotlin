@@ -1,11 +1,9 @@
 package fuookami.ospf.kotlin.math
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
-import fuookami.ospf.kotlin.utils.functional.Either
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class ScaleTest {
     @Test

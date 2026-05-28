@@ -1,3 +1,10 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.polynomial
+
+import kotlin.jvm.JvmName
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+
 /**
  * 多项式快捷 DSL
  * Polynomial Quick DSL
@@ -5,15 +12,6 @@
  * 提供多项式构建的泛型 DSL 扩展函数。
  * Provides generic DSL extension functions for polynomial construction.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.polynomial
-
-import kotlin.jvm.JvmName
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 
 // ========== Linear polynomial construction ==========
 

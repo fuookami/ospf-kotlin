@@ -1,4 +1,12 @@
 @file:JvmName("MathParallelFoldKt")
+package fuookami.ospf.kotlin.utils.parallel
+
+import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.operator.Plus
+
 /**
  * 并行折叠
  * Parallel Fold Operations
@@ -27,25 +35,6 @@
  * Uses Dispatchers.Default as coroutine dispatcher, suitable for CPU-intensive computation.
  * Thread-safe: each coroutine computes partial sum independently, final merge uses single-thread serial operation.
  */
-package fuookami.ospf.kotlin.utils.parallel
-
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.functional.ExRet
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
-import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
-import fuookami.ospf.kotlin.math.algebra.concept.Arithmetic
-import fuookami.ospf.kotlin.math.algebra.concept.ArithmeticConstants
-import fuookami.ospf.kotlin.math.algebra.concept.resolveArithmeticConstants
-import fuookami.ospf.kotlin.math.operator.Plus
 
 @PublishedApi
 internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {

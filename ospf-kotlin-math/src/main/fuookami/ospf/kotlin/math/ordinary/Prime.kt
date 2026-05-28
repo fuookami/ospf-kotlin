@@ -22,10 +22,9 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class PrimeCache {
     private var current = UInt64.zero

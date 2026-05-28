@@ -1,14 +1,14 @@
-/**
- * IIS 计算状态
- * IIS computing status
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.iis
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/**
+ * IIS 计算状态
+ * IIS computing status
+ */
 
 /**
  * IIS 计算进度状态，包含边界和约束的剩余/总量信息。

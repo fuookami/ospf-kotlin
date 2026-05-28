@@ -12,15 +12,13 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
  * 数值无符号整数接口

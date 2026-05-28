@@ -1,21 +1,11 @@
 package fuookami.ospf.kotlin.math.functional
 
+import kotlin.test.*
+import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.operator.withPrecision
-import fuookami.ospf.kotlin.utils.functional.average
-import fuookami.ospf.kotlin.utils.functional.averageOrNull
-import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.functional.sumOfOrNull
-import fuookami.ospf.kotlin.utils.functional.sumOrNull
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class CollectionConstantPathTest {
     companion object {

@@ -9,12 +9,9 @@
  */
 package fuookami.ospf.kotlin.utils.meta_programming
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.reflect.KProperty
-import kotlin.reflect.KProperty1
+import kotlin.reflect.*
+import kotlinx.coroutines.*
 
 /**
  * 创建懒加载委托

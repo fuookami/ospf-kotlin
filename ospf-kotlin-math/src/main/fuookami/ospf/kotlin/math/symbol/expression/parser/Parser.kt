@@ -21,8 +21,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
-import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
 
 /**
  * 解析异常

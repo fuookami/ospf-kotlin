@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.error
 
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
 
 /**
  * ErrorCode 单元测试

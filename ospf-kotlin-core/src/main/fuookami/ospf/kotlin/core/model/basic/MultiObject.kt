@@ -4,9 +4,8 @@
  */
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
  * 多目标函数中的子目标位置，将目标函数与其在多目标序列中的索引关联。

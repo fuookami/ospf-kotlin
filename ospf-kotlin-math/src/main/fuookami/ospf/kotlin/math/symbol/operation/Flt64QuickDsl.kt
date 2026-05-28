@@ -1,3 +1,13 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import kotlin.jvm.JvmName
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+
 /**
  * Flt64 快捷 DSL 构造函数与运算符
  * Flt64 Quick DSL Constructors and Operators
@@ -8,17 +18,6 @@
  * aggregation functions (sumVars/sum/qsumVars/qsum), and arithmetic operator overloads
  * for symbols and polynomials.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import kotlin.jvm.JvmName
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 
 // ========== LinearPolynomial quick constructors ==========
 // 线性多项式快捷构造函数 / Linear polynomial quick constructors

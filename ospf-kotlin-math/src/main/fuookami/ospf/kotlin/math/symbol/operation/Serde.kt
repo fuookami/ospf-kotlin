@@ -8,16 +8,13 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import java.io.ByteArrayInputStream
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int32
+import fuookami.ospf.kotlin.utils.serialization.*
 import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.serde.*
-
-import fuookami.ospf.kotlin.utils.serialization.readFromJson
-import fuookami.ospf.kotlin.utils.serialization.writeJson
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * 将 Flt64 规范多项式序列化为 JSON 字符串

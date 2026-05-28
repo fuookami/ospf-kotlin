@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Shape 边界场景测试

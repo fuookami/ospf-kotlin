@@ -1,3 +1,11 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+
 /**
  * Flt64 编译快捷函数
  * Flt64 Compile Convenience Functions
@@ -7,15 +15,6 @@
  * Provides convenience compile-evaluation and gradient functions for Flt64 polynomials.
  * Wraps generic compile operations with Flt64 zero/one constants.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 
 /**
  * 编译线性多项式为求值函数

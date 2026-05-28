@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.math
 
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 private typealias ScaleBase = Either<FltX, RtnX>
 

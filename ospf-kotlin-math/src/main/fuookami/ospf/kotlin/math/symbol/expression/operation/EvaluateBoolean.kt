@@ -8,11 +8,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
-import java.math.BigDecimal
-import java.math.BigInteger
+import java.math.*
 import kotlin.math.abs
-import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
 
 /**
  * 求值上下文

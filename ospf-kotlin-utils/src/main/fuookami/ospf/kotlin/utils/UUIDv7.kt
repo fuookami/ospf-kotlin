@@ -6,8 +6,8 @@
  */
 package fuookami.ospf.kotlin.utils
 
-import java.security.SecureRandom
 import java.time.Instant
+import java.security.SecureRandom
 
 /**
  * UUIDv7 生成器对象

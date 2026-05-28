@@ -1,10 +1,7 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.NumberRing
-import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
-import fuookami.ospf.kotlin.math.algebra.concept.PlusSemiGroup
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.concept.*
 
 class ConceptCompileTest {
     private interface TestMonoid : Monoid<TestMonoid>
@@ -46,4 +43,3 @@ class ConceptCompileTest {
         requireField<TestNumberField>()
     }
 }
-

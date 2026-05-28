@@ -7,8 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
-import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
-import fuookami.ospf.kotlin.math.symbol.expression.PatternMatchMode
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
  * 词法单元类型

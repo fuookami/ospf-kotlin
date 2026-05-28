@@ -25,12 +25,8 @@
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
-import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
-import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
-import fuookami.ospf.kotlin.quantities.dimension.div
-import fuookami.ospf.kotlin.quantities.dimension.times
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
  * 物理单位抽象类

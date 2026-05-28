@@ -10,7 +10,6 @@
  * - Katal: mol/s (SI derived unit for catalytic activity)
  * - Enzyme Unit (U): 1 μmol/min = 1/60 μmol/s ≈ 16.67 nmol/s
  */
-
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale

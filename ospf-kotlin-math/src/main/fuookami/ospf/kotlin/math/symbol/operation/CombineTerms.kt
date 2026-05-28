@@ -1,3 +1,11 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 /**
  * Flt64 同类项合并快捷函数
  * Flt64 Combine Terms Convenience Functions
@@ -7,14 +15,6 @@
  * Provides Flt64 polynomial like-term combination convenience functions.
  * Wraps generic combine operations with Flt64 zero constant.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
 
 /**
  * 合并 Flt64 线性单项式集合中的同类项

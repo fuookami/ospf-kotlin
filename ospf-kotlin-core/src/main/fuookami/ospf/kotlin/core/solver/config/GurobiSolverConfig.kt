@@ -1,11 +1,12 @@
-/**
- * Gurobi 求解器配置
- * Gurobi solver configuration
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.config
 
 import kotlin.time.Duration
+
+/**
+ * Gurobi 求解器配置
+ * Gurobi solver configuration
+ */
 
 /**
  * Gurobi 求解器的连接配置。

@@ -6,21 +6,17 @@ package fuookami.ospf.kotlin.core.solver
 
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.future.future
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
 
 /**
  * 线性求解器的抽象接口，定义了求解、异步求解和泛型求解等核心能力。

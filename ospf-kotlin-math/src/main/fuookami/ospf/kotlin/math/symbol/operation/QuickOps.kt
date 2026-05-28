@@ -1,3 +1,12 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+
 /**
  * 泛型快捷运算
  * Quick Ops
@@ -5,16 +14,6 @@
  * 提供基于 Flt64ValueConverter 的泛型算术运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
  * Provides generic arithmetic operator overloads based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 
 /**
  * 泛型快捷运算

@@ -1,23 +1,16 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import kotlin.test.*
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 class SemanticEquivalenceTest {
     @Test

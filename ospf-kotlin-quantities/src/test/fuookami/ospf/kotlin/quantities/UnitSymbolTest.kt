@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.quantities
 
-import fuookami.ospf.kotlin.quantities.unit.*
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.quantities.unit.*
 
 class UnitSymbolTest {
     @Test

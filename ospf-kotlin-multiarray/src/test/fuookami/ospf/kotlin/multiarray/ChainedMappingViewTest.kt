@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.multiarray
 
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
 
 /**
  * MappedMultiArrayView 映射测试

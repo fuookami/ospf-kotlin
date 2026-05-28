@@ -1,11 +1,9 @@
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.operator.abs
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class FastSumTest {
 

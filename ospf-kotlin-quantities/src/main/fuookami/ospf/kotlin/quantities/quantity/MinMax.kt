@@ -10,8 +10,7 @@
  */
 package fuookami.ospf.kotlin.quantities.quantity
 
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.PartialOrd
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 获取两个物理量中的较小值

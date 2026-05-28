@@ -1,3 +1,16 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.symbol.function
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+
 /**
  * 半连续变量函数符号 / Semi-continuous variable function symbol
  *
@@ -5,21 +18,6 @@
  *
  * Provides [SemiFunction] for modeling semi-continuous variables where y = 0 or lb <= y <= ub.
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.symbol.function
-
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
  * Semi-continuous variable function.

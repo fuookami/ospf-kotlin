@@ -11,8 +11,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
  * 表达式类型分类基类

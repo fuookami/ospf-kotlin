@@ -20,9 +20,9 @@
  */
 package fuookami.ospf.kotlin.math.fractal
 
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.geometry.*
 
 /**

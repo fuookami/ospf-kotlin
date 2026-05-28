@@ -15,8 +15,8 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.operator.Plus
 import fuookami.ospf.kotlin.math.algebra.number.Int32
+import fuookami.ospf.kotlin.math.operator.Plus
 
 /**
  * 对可迭代对象中所有元素求和。

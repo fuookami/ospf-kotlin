@@ -1,15 +1,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.output
 
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.testing.*
 
 class GenericSolverOutputConversionTest {
     @Test

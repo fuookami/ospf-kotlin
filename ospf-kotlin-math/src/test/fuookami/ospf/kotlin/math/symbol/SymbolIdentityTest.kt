@@ -1,11 +1,7 @@
 package fuookami.ospf.kotlin.math.symbol
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class SymbolIdentityTest {
     private data class TestSymbol(

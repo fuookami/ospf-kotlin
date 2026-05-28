@@ -7,14 +7,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.serde
 
+import kotlinx.serialization.json.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.utils.serialization.writeJson
+import fuookami.ospf.kotlin.math.symbol.*
 
 /**
  * 序列化符号标识前缀

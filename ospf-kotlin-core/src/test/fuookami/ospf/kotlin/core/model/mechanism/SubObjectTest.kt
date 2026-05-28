@@ -1,22 +1,15 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.SubObject
-import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.variable.times
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Category
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * Tests for SubObject constructors using FlattenData

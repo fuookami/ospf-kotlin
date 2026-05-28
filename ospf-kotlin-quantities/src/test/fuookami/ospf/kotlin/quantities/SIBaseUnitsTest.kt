@@ -1,10 +1,9 @@
 package fuookami.ospf.kotlin.quantities
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.dimension.StandardFundamentalQuantityDimension
-import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertSame
 
 class SIBaseUnitsTest {
     @Test

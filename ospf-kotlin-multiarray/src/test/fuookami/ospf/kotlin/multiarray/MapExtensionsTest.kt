@@ -9,9 +9,8 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Map 扩展函数测试

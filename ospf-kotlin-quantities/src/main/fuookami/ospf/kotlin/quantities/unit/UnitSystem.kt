@@ -24,9 +24,9 @@
  */
 package fuookami.ospf.kotlin.quantities.unit
 
+import java.util.concurrent.ConcurrentHashMap
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.*
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 单位制接口

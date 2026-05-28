@@ -7,18 +7,17 @@
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Int32
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 // ============================================================================
 // Generic typed parsing

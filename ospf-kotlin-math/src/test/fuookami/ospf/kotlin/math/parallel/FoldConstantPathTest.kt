@@ -1,16 +1,12 @@
 package fuookami.ospf.kotlin.math.parallel
 
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.parallel.*
+import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.utils.parallel.*
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
 
 class FoldConstantPathTest {
     companion object {

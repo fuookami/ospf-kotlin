@@ -16,9 +16,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 // ============================================================================

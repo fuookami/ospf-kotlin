@@ -1,7 +1,3 @@
-/**
- * 线性模型 IIS 计算
- * Linear model IIS computation
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.iis
 
@@ -9,12 +5,16 @@ import java.io.OutputStreamWriter
 import kotlin.time.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
+
+/**
+ * 线性模型 IIS 计算
+ * Linear model IIS computation
+ */
 
 /**
  * 线性 IIS 模型，包含不可行子系统和可选的守卫约束。

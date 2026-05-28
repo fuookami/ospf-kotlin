@@ -1,10 +1,9 @@
 package fuookami.ospf.kotlin.math.chaotic
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.point3
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.*
 
 class ChaoticContinuousTest {
     @Test

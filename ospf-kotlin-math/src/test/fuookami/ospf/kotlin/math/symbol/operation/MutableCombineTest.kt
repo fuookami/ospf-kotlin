@@ -1,21 +1,11 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
-import fuookami.ospf.kotlin.math.symbol.polynomial.minusAssign
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class MutableCombineTest {
     private data class TestSymbol(

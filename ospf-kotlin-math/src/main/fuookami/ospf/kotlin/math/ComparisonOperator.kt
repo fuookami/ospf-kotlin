@@ -9,9 +9,9 @@
  */
 package fuookami.ospf.kotlin.math
 
+import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
-import fuookami.ospf.kotlin.utils.functional.Ord
 
 /**
  * 相等比较

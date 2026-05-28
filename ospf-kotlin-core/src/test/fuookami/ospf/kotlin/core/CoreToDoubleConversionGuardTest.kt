@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.core
 
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.fail
+import kotlin.test.*
 
 class CoreToDoubleConversionGuardTest {
     private val scanRoot = File("src/main")

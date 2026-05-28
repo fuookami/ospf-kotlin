@@ -1,12 +1,10 @@
 package fuookami.ospf.kotlin.quantities
 
-import fuookami.ospf.kotlin.quantities.dimension.*
-import fuookami.ospf.kotlin.quantities.unit.*
-import org.junit.jupiter.api.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 class ConcurrencyTest {
     @Test

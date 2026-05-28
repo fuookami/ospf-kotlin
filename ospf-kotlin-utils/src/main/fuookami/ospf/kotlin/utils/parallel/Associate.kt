@@ -5,14 +5,7 @@
  */
 package fuookami.ospf.kotlin.utils.parallel
 
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.ExRet
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Warn
-import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
-import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
+import fuookami.ospf.kotlin.utils.functional.*
 
 // ============================================================================
 // associate 系列

@@ -1,26 +1,15 @@
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.DimensionedSymbol
-import fuookami.ospf.kotlin.math.symbol.Operation
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.SymbolDimensionRegistry
-import fuookami.ospf.kotlin.math.symbol.div
-import fuookami.ospf.kotlin.math.symbol.evaluate
-import fuookami.ospf.kotlin.math.symbol.plus
-import fuookami.ospf.kotlin.math.symbol.times
-import fuookami.ospf.kotlin.math.symbol.to
+import java.util.concurrent.*
+import kotlin.test.*
+import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.dimension.*
-import fuookami.ospf.kotlin.quantities.unit.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class SymbolQuantityIntegrationTest {
     private val x = object : Symbol {

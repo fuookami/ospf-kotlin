@@ -21,10 +21,10 @@
 package fuookami.ospf.kotlin.math.combinatorics
 
 import java.util.Collections.swap
-import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 
 /** 使用 QuickPerm 算法生成输入列表的所有全排列 / Generate all full permutations of input list using QuickPerm algorithm */
 fun <T> permute(

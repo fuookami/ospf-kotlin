@@ -23,11 +23,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
-import fuookami.ospf.kotlin.quantities.dimension.div
-import fuookami.ospf.kotlin.quantities.dimension.times
-import fuookami.ospf.kotlin.quantities.quantity.DimensionMismatchException
 import java.util.concurrent.ConcurrentHashMap
+import fuookami.ospf.kotlin.quantities.quantity.DimensionMismatchException
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
  * 运算类型

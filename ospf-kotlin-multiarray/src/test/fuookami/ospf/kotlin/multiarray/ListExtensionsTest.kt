@@ -13,9 +13,8 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * List 扩展函数测试

@@ -1,20 +1,12 @@
 package fuookami.ospf.kotlin.quantities.quantity
 
+import kotlin.test.*
+import kotlin.time.*
+import kotlin.time.Duration.Companion.*
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.microseconds
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import org.junit.jupiter.api.Test
 
 @OptIn(kotlin.time.ExperimentalTime::class)
 class DurationExtensionsTest {

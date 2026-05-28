@@ -1,19 +1,19 @@
-/**
- * 二次模型 IIS 计算
- * Quadratic model IIS computation
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.iis
 
 import kotlin.time.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
+
+/**
+ * 二次模型 IIS 计算
+ * Quadratic model IIS computation
+ */
 
 /**
  * 计算二次模型的不可行子系统（IIS）。

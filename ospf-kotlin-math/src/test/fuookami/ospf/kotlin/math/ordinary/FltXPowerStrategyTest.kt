@@ -1,13 +1,8 @@
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 
 class FltXPowerStrategyTest {
     @Test

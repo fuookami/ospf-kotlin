@@ -10,7 +10,6 @@
  * - RadianPerSecondSquared: rad/s², SI derived unit for angular acceleration
  * - DegreePerSecondSquared: °/s², common unit for angular acceleration
  */
-
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.AngularAcceleration

@@ -1,11 +1,10 @@
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
 
 class SolveOptionsTest {
     @Test

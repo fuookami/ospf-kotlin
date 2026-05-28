@@ -1,9 +1,8 @@
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class LCMTest {
     @Test

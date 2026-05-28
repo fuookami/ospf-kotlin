@@ -1,14 +1,14 @@
-/**
- * IIS 计算配置
- * IIS computation configuration
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.iis
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/**
+ * IIS 计算配置
+ * IIS computation configuration
+ */
 
 /**
  * IIS（不可行子系统）计算配置。

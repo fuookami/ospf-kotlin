@@ -12,19 +12,17 @@
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
-import java.math.BigDecimal
-import java.math.RoundingMode
+import java.math.*
 import kotlin.math.*
 import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.descriptors.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.math.ordinary.*
 
 /**
  * 将浮点数转换为有理数

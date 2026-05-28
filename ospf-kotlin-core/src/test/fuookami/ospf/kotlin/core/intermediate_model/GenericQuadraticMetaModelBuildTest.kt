@@ -1,31 +1,19 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.utils.functional.Ok
+import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.variable.*
 
 class GenericQuadraticMetaModelBuildTest {
     @Test

@@ -1,11 +1,9 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.symbol.Symbol
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Int32
 
 class PowerVectorKeyTest {
     private data class TestSymbol(

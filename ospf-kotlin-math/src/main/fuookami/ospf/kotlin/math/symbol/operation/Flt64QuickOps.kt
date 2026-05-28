@@ -1,3 +1,11 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.math.symbol.operation
+
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+
 /**
  * Flt64 乘除运算符重载
  * Flt64 Multiplication and Division Operator Overloads
@@ -6,15 +14,6 @@
  * Provides multiplication and division operator overloads between
  * Flt64/Int/Double and symbols/linear monomials.
  */
-@file:Suppress("unused")
-
-package fuookami.ospf.kotlin.math.symbol.operation
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-
 
 // ========== Flt64 arithmetic ==========
 

@@ -1,13 +1,10 @@
 package fuookami.ospf.kotlin.math.symbol.parser
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.symbol.operation.Flt64NumberParser
-import fuookami.ospf.kotlin.math.symbol.parse.Int64NumberParser
-import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import fuookami.ospf.kotlin.math.symbol.parse.*
+import fuookami.ospf.kotlin.math.symbol.operation.Flt64NumberParser
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class NumberParserIntegrationTest {
     @Test

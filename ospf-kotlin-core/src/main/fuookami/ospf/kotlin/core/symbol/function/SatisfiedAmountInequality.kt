@@ -1,3 +1,19 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.symbol.function
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
+
 /**
  * 不等式满足数量函数符号 / Satisfied amount inequality function symbols
  *
@@ -9,25 +25,6 @@
  * [AtLeastInequalityFunction], [NotAllFunction], [NumeratorFunction] and more
  * for linearized modeling of inequality satisfaction counts.
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.symbol.function
-
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.BinVar
 
 /**
  * Satisfied Amount function: counts how many inequalities in a list are satisfied.

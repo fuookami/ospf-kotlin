@@ -1,11 +1,10 @@
 package fuookami.ospf.kotlin.quantities
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class QuantityLogicTest {
     @Test

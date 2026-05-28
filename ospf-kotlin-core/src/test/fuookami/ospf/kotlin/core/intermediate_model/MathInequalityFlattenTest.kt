@@ -1,27 +1,15 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.inequality.ge
-import fuookami.ospf.kotlin.math.symbol.inequality.eq
+import kotlin.test.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertNotNull
-import kotlin.test.assertFalse
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.variable.*
 
 class MathInequalityFlattenTest {
 

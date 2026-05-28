@@ -1,45 +1,20 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
-import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.iis.IISConfig
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.variable.Continuous
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
-import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.iis.IISConfig
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.variable.Continuous
 
 class SolverExtIISOptionsTest {
     @Test

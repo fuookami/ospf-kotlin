@@ -13,8 +13,7 @@
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.quantities.dimension.Information
-import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
  * 比特（基本单位） / Bit (base unit)

@@ -18,10 +18,10 @@
 package fuookami.ospf.kotlin.math.combinatorics
 
 import kotlin.math.min
-import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 
 /** 生成输入列表的所有子集组合 / Generate all subset combinations of the input list */
 fun <T> combine(

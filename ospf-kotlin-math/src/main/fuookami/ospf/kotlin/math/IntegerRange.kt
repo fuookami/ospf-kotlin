@@ -9,8 +9,7 @@ package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.operator.Contains
-import fuookami.ospf.kotlin.math.operator.Rem
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 获取区间的最后一个元素

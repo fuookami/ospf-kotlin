@@ -11,9 +11,8 @@ package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.minMaxOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.ordinary.*
 
 /**
  * 二维 Delaunay 三角剖分结果

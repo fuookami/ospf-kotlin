@@ -1,13 +1,10 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.unit.CubicMeter
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.quantities.unit.SquareMeter
-import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class GeometryGenericFltXPathTest {
     @Test
@@ -91,4 +88,3 @@ class GeometryGenericFltXPathTest {
         assertTrue(placement3A.maxZ eq Quantity(FltX(2.0), Meter))
     }
 }
-

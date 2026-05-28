@@ -1,11 +1,9 @@
 package fuookami.ospf.kotlin.core.solver.output
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertSame
+import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class SolverOutputWithIISTest {
     @Test

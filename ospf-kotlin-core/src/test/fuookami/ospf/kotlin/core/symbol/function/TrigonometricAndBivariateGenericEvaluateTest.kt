@@ -1,22 +1,14 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Triangle
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim3
+import kotlin.test.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class TrigonometricAndBivariateGenericEvaluateTest {
     @Test

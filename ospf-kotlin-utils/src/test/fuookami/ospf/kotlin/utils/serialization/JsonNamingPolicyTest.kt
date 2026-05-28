@@ -1,11 +1,10 @@
 package fuookami.ospf.kotlin.utils.serialization
 
-import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.Assertions.*
+import kotlinx.serialization.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
 
 /**
  * JSON 命名策略单元测试

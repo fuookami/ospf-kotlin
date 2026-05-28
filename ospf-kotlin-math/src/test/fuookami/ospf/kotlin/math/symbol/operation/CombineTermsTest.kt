@@ -1,20 +1,12 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.operation.combineCanonicalTerms
-import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class CombineTermsTest {
     private data class TestSymbol(
@@ -150,5 +142,3 @@ class CombineTermsTest {
         assertEquals(listOf(x1, x2), merged.first().factors)
     }
 }
-
-

@@ -4,8 +4,7 @@
  */
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.*
 
 /**
  * 统计线性三元模型视图中非空约束优先级的数量。

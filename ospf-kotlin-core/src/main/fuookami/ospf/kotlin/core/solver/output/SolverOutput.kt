@@ -1,19 +1,17 @@
-/**
- * 求解器输出数据结构
- * Solver output data structures
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+
+/**
+ * 求解器输出数据结构
+ * Solver output data structures
+ */
 
 /**
  * 求解器输出的密封接口。

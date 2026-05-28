@@ -1,10 +1,9 @@
 package fuookami.ospf.kotlin.core.error
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class CoreErrorTest {
     @Test

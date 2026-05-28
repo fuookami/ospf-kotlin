@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**

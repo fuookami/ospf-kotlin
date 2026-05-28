@@ -1,23 +1,16 @@
 package fuookami.ospf.kotlin.core.symbol_regression.linear_regression
 
-import fuookami.ospf.kotlin.core.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.operation.MissingValuePolicy
-import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 private fun sumFlt64(values: List<Flt64>): Flt64 {
     var sum = Flt64.zero

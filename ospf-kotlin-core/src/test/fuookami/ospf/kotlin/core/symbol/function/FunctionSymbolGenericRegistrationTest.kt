@@ -1,28 +1,16 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
+import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.core.variable.*
 
 class FunctionSymbolGenericRegistrationTest {
     @Test

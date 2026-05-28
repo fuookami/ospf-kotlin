@@ -1,3 +1,19 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.symbol.function
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
+
 /**
  * 单变量线性分段函数符号 / Univariate linear piecewise function symbol
  *
@@ -5,23 +21,6 @@
  *
  * Provides [UnivariateLinearPiecewiseFunction] for defining piecewise linear functions using breakpoints and slopes.
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.symbol.function
-
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Dim2
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AddableTokenCollection
-import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * Univariate linear piecewise function: y = f(x) defined by breakpoints and slopes.

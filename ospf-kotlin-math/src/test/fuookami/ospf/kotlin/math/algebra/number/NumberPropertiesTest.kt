@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.math.algebra.number
 
-import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
 
 class NumberPropertiesTest {
     @Test

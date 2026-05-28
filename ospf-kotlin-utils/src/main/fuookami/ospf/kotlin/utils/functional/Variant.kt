@@ -25,8 +25,7 @@
 package fuookami.ospf.kotlin.utils.functional
 
 import kotlin.reflect.KClass
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.concept.Movable
+import fuookami.ospf.kotlin.utils.concept.*
 
 /**
  * 二元变体类型

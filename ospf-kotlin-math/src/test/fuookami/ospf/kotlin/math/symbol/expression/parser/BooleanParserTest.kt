@@ -8,9 +8,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 @DisplayName("Boolean Parser Tests / 布尔表达式解析器测试")
 class BooleanParserTest {

@@ -1,14 +1,10 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.InnerProductSpace
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.math.geometry.vector2
-import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.InnerProductSpace
+import fuookami.ospf.kotlin.math.geometry.*
 
 class VectorTest {
     @Test

@@ -1,12 +1,10 @@
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.CubicMeter
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 class GeometryCylinder3Test {
     @Test
@@ -98,4 +96,3 @@ class GeometryCylinder3Test {
         assertTrue(!cylinderPlacement.overlapped(farPlacement))
     }
 }
-

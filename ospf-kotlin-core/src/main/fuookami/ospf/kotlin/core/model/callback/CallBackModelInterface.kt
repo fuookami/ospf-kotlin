@@ -1,19 +1,17 @@
+@file:Suppress("unused")
+package fuookami.ospf.kotlin.core.model.callback
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+
 /**
  * 回调模型接口
  * Call-back model interfaces
  */
-@file:Suppress("unused")
-package fuookami.ospf.kotlin.core.model.callback
-
-import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 
 /**
  * 回调模型抽象接口，定义约束、目标函数和解比较的通用能力。

@@ -19,10 +19,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
-import fuookami.ospf.kotlin.quantities.dimension.div
-import fuookami.ospf.kotlin.quantities.dimension.times
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
  * 携带量纲信息的符号

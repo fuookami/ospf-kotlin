@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.*
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * Factorization 测试类

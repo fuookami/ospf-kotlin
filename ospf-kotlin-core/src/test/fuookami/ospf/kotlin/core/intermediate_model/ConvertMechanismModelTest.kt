@@ -1,23 +1,14 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class ConvertMechanismModelTest {
     @Test

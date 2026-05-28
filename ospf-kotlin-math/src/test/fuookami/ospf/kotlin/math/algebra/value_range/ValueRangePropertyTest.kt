@@ -1,11 +1,8 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ValueRangePropertyTest {
     private fun range(

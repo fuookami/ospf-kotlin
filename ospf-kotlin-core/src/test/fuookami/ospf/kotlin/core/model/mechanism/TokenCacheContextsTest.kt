@@ -1,24 +1,17 @@
 package fuookami.ospf.kotlin.core.model.mechanism
+
+import kotlin.test.*
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
-
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.token.newTokenCacheKey
-import fuookami.ospf.kotlin.core.token.boundTokenTableContext
-import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class TokenCacheContextsTest {
     @Test

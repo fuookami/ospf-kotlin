@@ -1,23 +1,17 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
-import fuookami.ospf.kotlin.core.test.flt64TestConverter
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Symbol
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.token.register
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
 
 /**
  * MathFunctionSymbol 行为回归测试。

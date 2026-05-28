@@ -4,9 +4,8 @@
  */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 

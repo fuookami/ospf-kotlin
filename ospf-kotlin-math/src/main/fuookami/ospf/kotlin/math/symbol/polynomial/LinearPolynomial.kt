@@ -13,13 +13,13 @@
  */
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
+import kotlin.jvm.JvmName
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
-import kotlin.jvm.JvmName
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
  * 线性多项式

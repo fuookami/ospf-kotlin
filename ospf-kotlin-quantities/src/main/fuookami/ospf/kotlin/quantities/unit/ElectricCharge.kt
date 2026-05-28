@@ -10,8 +10,7 @@
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.quantities.dimension.Capacitance
-import fuookami.ospf.kotlin.quantities.dimension.ElectricCharge
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 // ============================================================================
 // 电荷单位 / Electric Charge Units

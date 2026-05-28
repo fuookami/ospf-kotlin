@@ -9,12 +9,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 将 Flt64 线性不等式规范化为标准形式（LHS - RHS <= 0）

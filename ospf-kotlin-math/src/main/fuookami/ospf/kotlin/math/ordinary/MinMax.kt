@@ -26,8 +26,7 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.functional.Ord
+import fuookami.ospf.kotlin.utils.functional.*
 
 /** 返回两个值中的较小者 / Return the smaller of two values */
 fun <T : Ord<T>> min(lhs: T, rhs: T): T = if (lhs < rhs) lhs else rhs

@@ -1,4 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+package fuookami.ospf.kotlin.utils.functional
+
+import java.util.*
+import kotlin.time.Duration
+import kotlin.random.Random
 
 /**
  * 集合扩展函数
@@ -22,11 +27,6 @@
  * - 使用自定义比较器排序
  * - 具有空值安全性的关联操作
  */
-package fuookami.ospf.kotlin.utils.functional
-
-import java.util.*
-import kotlin.random.Random
-import kotlin.time.Duration
 
 /** 根据键从键值对列表中获取值 / Get value by key from a pair list */
 operator fun <K, V> List<Pair<K, V>>.get(key: K): V? {

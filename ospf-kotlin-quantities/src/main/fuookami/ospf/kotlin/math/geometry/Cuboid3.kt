@@ -8,8 +8,7 @@
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 三维长方体形状

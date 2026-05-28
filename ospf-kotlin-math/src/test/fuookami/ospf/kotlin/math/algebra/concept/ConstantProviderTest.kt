@@ -1,9 +1,8 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class ConstantProviderTest {
     private fun <T> addOne(

@@ -6,8 +6,7 @@ package fuookami.ospf.kotlin.core.model.basic
 
 import kotlin.reflect.full.companionObjectInstance
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
  * 表达式的值域，支持通过交集操作逐步收紧上下界。

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.test
 
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
  * 测试侧通用 Flt64 converter，避免重复样板定义。

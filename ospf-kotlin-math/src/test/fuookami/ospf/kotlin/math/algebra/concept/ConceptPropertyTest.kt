@@ -1,12 +1,8 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int32
-import fuookami.ospf.kotlin.math.algebra.number.UInt32
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class ConceptPropertyTest {
     private data class BoundedBox(

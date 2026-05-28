@@ -1,12 +1,8 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class Flt64ValueConverterTest {
     @Test

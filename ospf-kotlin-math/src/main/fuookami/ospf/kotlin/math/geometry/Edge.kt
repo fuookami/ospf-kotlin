@@ -10,8 +10,8 @@
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
  * 边数据类

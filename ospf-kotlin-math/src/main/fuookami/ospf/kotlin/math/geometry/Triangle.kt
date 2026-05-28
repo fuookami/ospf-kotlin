@@ -9,8 +9,8 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
  * 三角形数据类

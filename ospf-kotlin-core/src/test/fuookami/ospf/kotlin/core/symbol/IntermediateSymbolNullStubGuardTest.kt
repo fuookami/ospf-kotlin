@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.core.symbol
 
 import java.io.File
-import kotlin.test.Test
-import kotlin.test.fail
+import kotlin.test.*
 
 class IntermediateSymbolNullStubGuardTest {
     private val root = File("src/main/fuookami/ospf/kotlin/core/symbol")

@@ -1,18 +1,17 @@
-/**
- * 启发式策略接口与基类
- * Heuristic policy interface and base class
- */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+
+/**
+ * 启发式策略接口与基类
+ * Heuristic policy interface and base class
+ */
 
 /**
  * 启发式策略的抽象接口，定义值约束、状态更新和终止判断。

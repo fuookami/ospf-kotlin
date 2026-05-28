@@ -12,8 +12,8 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Int32
 
 /**
  * 规范单项式幂向量的优化键

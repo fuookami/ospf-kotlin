@@ -1,16 +1,14 @@
 package fuookami.ospf.kotlin.core.symbol
 
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
+import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.multiarray.Shape1
-import fuookami.ospf.kotlin.multiarray.Shape2
-import fuookami.ospf.kotlin.multiarray.Shape4
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Rtn64
 import fuookami.ospf.kotlin.quantities.unit.Meter
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 
 class SymbolCombinationGenericFactoryTest {
     @Test

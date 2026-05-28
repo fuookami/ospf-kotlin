@@ -1,27 +1,13 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
-import fuookami.ospf.kotlin.math.symbol.operation.MissingValuePolicy
-import fuookami.ospf.kotlin.math.symbol.operation.combineCanonicalTerms
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.operation.toLinearPolynomialRet
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomialRet
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class CanonicalOperationTest {
     private data class TestSymbol(
@@ -164,5 +150,3 @@ class CanonicalOperationTest {
         assertEquals(x, linear.monomials.first().symbol)
     }
 }
-
-

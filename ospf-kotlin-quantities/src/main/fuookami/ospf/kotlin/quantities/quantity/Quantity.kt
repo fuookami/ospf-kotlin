@@ -16,13 +16,12 @@
  */
 package fuookami.ospf.kotlin.quantities.quantity
 
+import java.math.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.quantities.unit.*
-import java.math.BigDecimal
-import java.math.BigInteger
 
 /**
  * 物理量类

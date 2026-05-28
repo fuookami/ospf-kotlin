@@ -1,53 +1,20 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import kotlin.test.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.Linear as MechanismLinear
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
-import fuookami.ospf.kotlin.core.model.mechanism.flattenData
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.eq
-import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value

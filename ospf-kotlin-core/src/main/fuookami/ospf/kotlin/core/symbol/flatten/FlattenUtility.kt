@@ -8,11 +8,9 @@
  */
 package fuookami.ospf.kotlin.core.symbol.flatten
 
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**

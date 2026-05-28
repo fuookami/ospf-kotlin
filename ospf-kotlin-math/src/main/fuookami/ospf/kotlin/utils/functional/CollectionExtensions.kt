@@ -22,14 +22,10 @@
  */
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.math.algebra.concept.Arithmetic
-import fuookami.ospf.kotlin.math.algebra.concept.ArithmeticConstants
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.resolveArithmeticConstants
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.operator.Div
-import fuookami.ospf.kotlin.math.operator.Plus
 import kotlin.collections.iterator
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.operator.*
 
 /** 计算 Iterable 元素之和 / Calculate sum of Iterable elements */
 fun <T> Iterable<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {

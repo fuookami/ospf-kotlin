@@ -7,10 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.utils.functional.Ord
-import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 数环接口

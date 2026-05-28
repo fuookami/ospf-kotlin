@@ -1,14 +1,9 @@
 package fuookami.ospf.kotlin.math.ordinary
 
+import kotlin.test.*
+import org.junit.jupiter.api.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class OrdinaryExplicitConstantsPathTest {
     companion object {

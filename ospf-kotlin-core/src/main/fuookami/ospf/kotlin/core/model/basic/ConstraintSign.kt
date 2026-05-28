@@ -4,8 +4,7 @@
  */
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.utils.functional.Comparator
-import fuookami.ospf.kotlin.utils.functional.Ord
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 
 /**
