@@ -5,10 +5,10 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.core.model.intermediate.*
 
 private fun <V> dumpingConstraintsProgressCallback(

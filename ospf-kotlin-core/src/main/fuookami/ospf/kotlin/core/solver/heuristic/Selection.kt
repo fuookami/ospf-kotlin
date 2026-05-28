@@ -8,9 +8,9 @@ import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.functional.sum
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.functional.sum
 
 /**
  * 选择策略接口，定义从种群中选择个体的行为。

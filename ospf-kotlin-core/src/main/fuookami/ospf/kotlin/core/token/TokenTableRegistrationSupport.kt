@@ -9,9 +9,9 @@ package fuookami.ospf.kotlin.core.token
 
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatus
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.*
