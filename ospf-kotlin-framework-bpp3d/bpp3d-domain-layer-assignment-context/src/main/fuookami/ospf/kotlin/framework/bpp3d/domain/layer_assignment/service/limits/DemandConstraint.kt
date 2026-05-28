@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandDomain
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAssignmentScalar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
@@ -42,14 +42,14 @@ data class DemandShadowPriceKey(
     val quantityUnit: PhysicalUnit? = null
 ) : ShadowPriceKey(DemandShadowPriceKey::class)
 
-private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<LayerAssignmentScalar> {
+private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(layerAssignmentOne(), symbol)),
         constant = layerAssignmentZero()
     )
 }
 
-private fun constantPolynomial(value: LayerAssignmentScalar): LinearPolynomial<LayerAssignmentScalar> {
+private fun constantPolynomial(value: Flt64): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), value)
 }
 
@@ -89,7 +89,7 @@ open class DemandConstraint<
         >(
     private val load: Load,
     private val demandEntries: List<Bpp3dDemandEntry> = load.demandEntries,
-    private val shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
+    private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
     companion object {
@@ -99,7 +99,7 @@ open class DemandConstraint<
                 > fromItems(
             load: Load,
             items: List<Pair<Item, UInt64>>,
-            shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
+            shadowPriceExtractor: ((Args) -> Flt64?)? = null,
             name: String = "demand"
         ): DemandConstraint<Args, T> {
             val demands = if (load.demandEntries.isNotEmpty()) {
@@ -116,7 +116,7 @@ open class DemandConstraint<
                 > fromItemRanges(
             load: Load,
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
-            shadowPriceExtractor: ((Args) -> LayerAssignmentScalar?)? = null,
+            shadowPriceExtractor: ((Args) -> Flt64?)? = null,
             name: String = "demand"
         ): DemandConstraint<Args, T> {
             val demands = if (load.demandEntries.isNotEmpty()) {
@@ -145,7 +145,7 @@ open class DemandConstraint<
         map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, T>>,
         demand: Bpp3dDemandEntry,
         concreteMode: Bpp3dDemandMode
-    ): LayerAssignmentScalar {
+    ): Flt64 {
         val keys = LinkedHashSet<DemandShadowPriceKey>()
         keys.add(
             DemandShadowPriceKey(
@@ -186,7 +186,7 @@ open class DemandConstraint<
         return layerAssignmentZero()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel<LayerAssignmentScalar>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, demand) in demandEntries.withIndex()) {
             val upperBound = demand.demandRange.upperBound.value.unwrap()
             val lowerBound = demand.demandRange.lowerBound.value.unwrap()
@@ -293,7 +293,7 @@ open class DemandConstraint<
 
     override fun refresh(
         shadowPriceMap: AbstractBPP3DShadowPriceMap<Args, T>,
-        model: AbstractLinearMetaModel<LayerAssignmentScalar>,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
@@ -311,3 +311,5 @@ typealias ItemDemandConstraint<Args, T> = DemandConstraint<Args, T>
     replaceWith = ReplaceWith("DemandShadowPriceKey(mode, key)")
 )
 typealias ItemDemandShadowPriceKey = DemandShadowPriceKey
+
+

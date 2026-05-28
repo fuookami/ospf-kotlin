@@ -23,9 +23,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackageSelection
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackagedItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingQuantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -336,3 +336,4 @@ class MaterialPacker(
         )
     }
 }
+

@@ -18,28 +18,6 @@ if (-not (Get-Command rg -ErrorAction SilentlyContinue)) {
     throw "rg not found. Please install ripgrep."
 }
 
-$forbiddenPathRules = @(
-    "bpp3d-infrastructure/src/main/.*/Cuboid\.kt$",
-    "bpp3d-infrastructure/src/main/.*/Projection\.kt$",
-    "bpp3d-infrastructure/src/main/.*/Placement\.kt$",
-    "bpp3d-infrastructure/src/main/.*/Container\.kt$",
-    "bpp3d-domain-item-context/src/main/.*/model/.*\.kt$",
-    "bpp3d-domain-item-context/src/main/.*/service/.*\.kt$",
-    "bpp3d-domain-.*/src/main/.*/service/.*\.kt$",
-    "bpp3d-domain-layer-assignment-context/src/main/.*/model/.*\.kt$",
-    "bpp3d-application/src/main/.*/service/.*\.kt$"
-)
-
-$excludedPathRules = @(
-    "/compat/",
-    "LegacyScalars\.kt$",
-    "QuantityDomainAliases\.kt$",
-    "InfraLegacyAliases\.kt$",
-    "ApplicationScalarAliases\.kt$",
-    "LayerGenerationScalarAliases\.kt$",
-    "PackingScalarAliases\.kt$"
-)
-
 $checks = @(
     @{
         Name = "LegacyQuantity"
@@ -68,10 +46,57 @@ $checks = @(
     @{
         Name = "LegacyScalarToken"
         Pattern = "\bLegacyScalar\b"
+    },
+    @{
+        Name = "InfraScalarToken"
+        Pattern = "\bInfraScalar\b"
+    },
+    @{
+        Name = "ItemModelScalarToken"
+        Pattern = "\bItemModelScalar\b"
+    },
+    @{
+        Name = "LayerAssignmentScalarToken"
+        Pattern = "\bLayerAssignmentScalar\b"
+    },
+    @{
+        Name = "ApplicationScalarToken"
+        Pattern = "\bApplicationScalar\b"
+    },
+    @{
+        Name = "PackingScalarToken"
+        Pattern = "\bPackingScalar\b"
+    },
+    @{
+        Name = "BlockLoadingScalarToken"
+        Pattern = "\bBlockLoadingScalar\b"
+    },
+    @{
+        Name = "Bpp3dBlaScalarToken"
+        Pattern = "\bBpp3dBlaScalar\b"
     }
 )
 
 $violations = @()
+
+$compatDirectories = @(
+    "api/compat",
+    "model/compat",
+    "service/compat"
+)
+
+foreach ($dir in $compatDirectories) {
+    $dirs = Get-ChildItem -Path $scanRoot -Recurse -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.FullName.Replace("\", "/") -match "/src/main/.*/$([regex]::Escape($dir))$" }
+    foreach ($d in $dirs) {
+        $violations += [PSCustomObject]@{
+            Check = "CompatDirectory"
+            File = $d.FullName.Replace("\", "/")
+            Line = 1
+            Text = "compat directory is forbidden in strict mode"
+        }
+    }
+}
 
 foreach ($check in $checks) {
     $lines = rg -n --no-heading --color never $check.Pattern $scanRoot -g "**/src/main/**/*.kt" -S
@@ -85,42 +110,21 @@ foreach ($check in $checks) {
         $lineNumber = $match.Groups[2].Value
         $text = $match.Groups[3].Value
 
-        $isExcluded = $false
-        foreach ($rule in $excludedPathRules) {
-            if ($filePath -match $rule) {
-                $isExcluded = $true
-                break
-            }
-        }
-        if ($isExcluded) {
-            continue
-        }
-
-        $isForbidden = $false
-        foreach ($rule in $forbiddenPathRules) {
-            if ($filePath -match $rule) {
-                $isForbidden = $true
-                break
-            }
-        }
-
-        if ($isForbidden) {
-            $violations += [PSCustomObject]@{
-                Check = $check.Name
-                File = $filePath
-                Line = $lineNumber
-                Text = $text
-            }
+        $violations += [PSCustomObject]@{
+            Check = $check.Name
+            File = $filePath
+            Line = $lineNumber
+            Text = $text
         }
     }
 }
 
 if ($violations.Count -eq 0) {
-    Write-Host "GENERIC_BOUNDARY_PASS"
+    Write-Host "STRICT_GENERIC_BOUNDARY_PASS"
     exit 0
 }
 
-Write-Host "GENERIC_BOUNDARY_FAIL: $($violations.Count)"
+Write-Host "STRICT_GENERIC_BOUNDARY_FAIL: $($violations.Count)"
 $violations |
     Sort-Object Check, File, Line |
     ForEach-Object {

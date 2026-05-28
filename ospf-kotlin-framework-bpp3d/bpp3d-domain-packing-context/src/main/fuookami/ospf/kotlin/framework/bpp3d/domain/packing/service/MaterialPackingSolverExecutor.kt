@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class MaterialPackingMipRequest(
@@ -31,3 +31,4 @@ data class MaterialPackingMipResult(
 interface MaterialPackingSolverExecutor {
     suspend fun solve(request: MaterialPackingMipRequest): MaterialPackingMipResult
 }
+

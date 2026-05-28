@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -65,3 +65,4 @@ fun BPP3DShadowPriceMap.reducedCost(
 typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>;
 typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>;
+

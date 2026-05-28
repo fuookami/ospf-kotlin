@@ -1,9 +1,0 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
-
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dSolverFltXScale as CompatBpp3dSolverFltXScale
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dSolverUnitSystem as CompatBpp3dSolverUnitSystem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.ScaledBpp3dSolverValueAdapter as CompatScaledBpp3dSolverValueAdapter
-
-typealias Bpp3dSolverUnitSystem = CompatBpp3dSolverUnitSystem
-typealias Bpp3dSolverFltXScale = CompatBpp3dSolverFltXScale
-typealias ScaledBpp3dSolverValueAdapter = CompatScaledBpp3dSolverValueAdapter

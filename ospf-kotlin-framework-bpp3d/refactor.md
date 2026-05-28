@@ -318,3 +318,54 @@ pwsh.exe -NoLogo -NoProfile -Command "mvn -f ospf-kotlin-framework-bpp3d/pom.xml
 3. 不要把真实数据阈值硬编码进生产主流程。
 4. 不要用新增 compat 层掩盖 legacy 类型未删除的问题。
 5. 不要把本轮目标降级为 `GENERIC_BOUNDARY_PASS`；新的验收是无 compat、无 legacy、纯泛型主链。
+
+## 11. 执行进展（2026-05-28，当前轮次）
+
+### 11.1 已完成
+
+1. strict 扫描脚本保持 strict 模式（不排除 legacy/compat/alias），继续作为唯一边界基线。
+2. 完成 block-loading / bla 的 scalar alias 删除：
+   1. 删除 `bpp3d-domain-block-loading-context/.../compat/BlockLoadingScalarAliases.kt`。
+   2. 删除 `bpp3d-domain-bla-context/.../compat/BlaScalarAliases.kt`。
+   3. 对应服务实现改为直接使用 `Flt64` 类型。
+3. 完成 application 的 `service/compat` 清理：
+   1. 删除 `bpp3d-application/.../service/compat/ApplicationScalarAliases.kt`。
+   2. 删除 `bpp3d-application/.../service/compat/ApplicationRequestLegacyBridge.kt`。
+   3. 新建 `bpp3d-application/.../service/ApplicationRequestLegacyBridge.kt`（迁出 compat 包，保持现有行为不回退）。
+   4. 修复 `ColumnGenerationApplicationService`、`ColumnGenerationStandardExecutors`、`ColumnGenerationPackingAnalyzer`、`PackingProgramLayerCandidateAdapter` 中错误的 compat import。
+4. application 回归通过：
+   1. `mvn -f pom.xml -pl bpp3d-application -am '-Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest' '-Dsurefire.failIfNoSpecifiedTests=false' test '-Dgpg.skip=true'`
+   2. 结果：15 tests, 0 failures, 0 errors。
+
+### 11.2 strict 基线变化
+
+1. 总命中：`723 -> 717`。
+2. 关键条目：
+   1. `ApplicationScalar: 0`（已清零）。
+   2. `BlockLoadingScalar: 0`（已清零）。
+   3. `Bpp3dBlaScalar: 0`（已清零）。
+   4. `CompatDirectory: 4`（application `service/compat` 已移除，剩余来自 item/layer-assignment/packing 相关 compat 目录）。
+
+### 11.3 当前剩余主阻塞
+
+1. `InfraScalar(222)`、`LayerAssignmentScalar(116)`、`ItemModelScalar(98)`、`QuantityFlt64(65)` 仍大量存在。
+2. `toLegacy(21)`、`asScalarF64(22)`、`toFlt64(11)` 仍主要集中在 item-context 与 layer-assignment 的 compat/bridge 代码。
+3. 下一步应按优先级处理 `domain/layer_assignment/model/compat` 与 `domain/item/api|model/compat`，再推进 `domain/packing/model/compat`。
+
+### 11.4 续做结果（2026-05-28，当前追加）
+
+1. 完成 `layer-assignment` compat 目录彻底移除：
+   1. 删除 `domain/layer_assignment/model/compat/**`。
+   2. 将 `Bpp3dSolverValueAdapter`、`ScaledBpp3dSolverValueAdapter`、`LoadLegacyBridge` 迁到 `model/` 主包。
+   3. 删除 `SolverValueAdapterBridge.kt`、`SolverValueAdapterExample.kt`。
+2. 完成 `LayerAssignmentScalar` 文本清零：
+   1. `layer-assignment-context/src/main` 内全部改为直接使用 `Flt64`。
+   2. 保留 `layerAssignmentOne/layerAssignmentZero` 辅助函数以维持现有调用形态。
+3. 构建与回归：
+   1. `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-assignment-context -am compile -DskipTests` 通过。
+   2. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过（15 tests, 0 failures, 0 errors）。
+4. strict 基线更新：
+   1. 总命中：`717 -> 713`。
+   2. `CompatDirectory: 4 -> 3`（`layer-assignment` compat 目录已清零）。
+   3. `LayerAssignmentScalarToken` 已清零（不再出现在 strict 输出）。
+   4. 由于显式替换为 `Flt64`，`Flt64Token` 暂时上升为 `251`，后续需在泛型化迁移时继续消减。

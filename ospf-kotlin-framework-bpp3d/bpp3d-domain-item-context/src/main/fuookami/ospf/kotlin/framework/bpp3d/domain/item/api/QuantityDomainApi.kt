@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat.asScalarF64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.asScalarF64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -272,4 +272,5 @@ data class BinLayer<V : FloatingNumber<V>>(
         )
     }
 }
+
 

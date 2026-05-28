@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.GenericBpp3dDemandKey
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat.asScalarF64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.asScalarF64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -127,3 +127,4 @@ class FltXDirectCompileProofTest {
         assertEquals(Flt64(10.0), weightSolverValue)
     }
 }
+

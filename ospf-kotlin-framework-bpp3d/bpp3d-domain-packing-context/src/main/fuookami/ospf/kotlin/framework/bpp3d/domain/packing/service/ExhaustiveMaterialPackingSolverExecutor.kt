@@ -4,9 +4,9 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.abs
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
@@ -247,3 +247,4 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         )
     }
 }
+

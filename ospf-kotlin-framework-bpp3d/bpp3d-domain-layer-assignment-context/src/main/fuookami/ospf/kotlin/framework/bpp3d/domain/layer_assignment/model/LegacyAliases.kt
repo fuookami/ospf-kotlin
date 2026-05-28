@@ -1,12 +1,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.LayerAssignmentCompatScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.layerAssignmentCompatOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.layerAssignmentCompatProvider
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.layerAssignmentCompatZero
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
-typealias LayerAssignmentScalar = LayerAssignmentCompatScalar
-
-fun layerAssignmentOne(): LayerAssignmentScalar = layerAssignmentCompatOne()
-fun layerAssignmentZero(): LayerAssignmentScalar = layerAssignmentCompatZero()
-fun layerAssignmentScalarProvider() = layerAssignmentCompatProvider()
+fun layerAssignmentOne(): Flt64 = Flt64.one
+fun layerAssignmentZero(): Flt64 = Flt64.zero
+fun layerAssignmentScalarProvider() = Flt64

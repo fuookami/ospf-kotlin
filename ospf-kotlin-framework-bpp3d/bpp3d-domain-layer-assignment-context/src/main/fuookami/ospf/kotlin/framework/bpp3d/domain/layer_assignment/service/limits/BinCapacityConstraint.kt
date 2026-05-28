@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dSolverValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dSolverValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAssignmentScalar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -22,14 +22,14 @@ class BinCapacityConstraint(
     private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter,
     val name: String = "bin_capacity_constraint"
 ) {
-    fun invoke(model: MetaModel<LayerAssignmentScalar>): Try {
-        val linearModel = model as AbstractLinearMetaModel<LayerAssignmentScalar>
+    fun invoke(model: MetaModel<Flt64>): Try {
+        val linearModel = model as AbstractLinearMetaModel<Flt64>
         for ((i, bin) in bins.withIndex()) {
             val lhs = LinearPolynomial(
                 monomials = listOf(LinearMonomial(layerAssignmentOne(), capacity.loadWeight[i])),
                 constant = layerAssignmentZero()
             )
-            val rhs = LinearPolynomial<LayerAssignmentScalar>(emptyList(), solverValueAdapter.weightToSolver(bin.capacity))
+            val rhs = LinearPolynomial<Flt64>(emptyList(), solverValueAdapter.weightToSolver(bin.capacity))
             when (val result = linearModel.addConstraint(
                 relation = LinearInequality(lhs, rhs, Comparison.LE),
                 name = "${name}_${i}"
@@ -49,3 +49,5 @@ class BinCapacityConstraint(
         return ok
     }
 }
+
+

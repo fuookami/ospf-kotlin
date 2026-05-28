@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat
+package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity

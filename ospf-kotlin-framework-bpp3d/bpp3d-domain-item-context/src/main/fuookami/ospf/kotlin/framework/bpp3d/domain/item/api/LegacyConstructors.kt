@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

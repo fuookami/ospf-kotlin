@@ -2,15 +2,15 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.compat.BlockLoadingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.compat.blockLoadingInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.compat.blockLoadingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.min
 
@@ -81,7 +81,7 @@ class SimpleBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         patterns: List<Pattern>,
-        restWeight: BlockLoadingScalar = blockLoadingInfinity()
+        restWeight: Flt64 = legacyInfinity()
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
@@ -344,9 +344,8 @@ class SimpleBlockGenerator(
         return blocks
     }
 
-    private fun UInt64.toFlt64Scalar(): BlockLoadingScalar {
-        return blockLoadingScalar(this)
+    private fun UInt64.toFlt64Scalar(): Flt64 {
+        return legacyScalar(this)
     }
 }
-
 

@@ -11,13 +11,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRender
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.framework.bpp3d.application.service.compat.ApplicationScalar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 data class ColumnGenerationPackingSnapshot(
     val bins: List<LayerBin>,
     val packingResult: PackingResult,
     val schema: SchemaDTO,
-    val demandModeShadowPriceTotals: Map<String, ApplicationScalar> = emptyMap(),
+    val demandModeShadowPriceTotals: Map<String, Flt64> = emptyMap(),
     val demandModeShadowPriceEntryCounts: Map<String, Int> = emptyMap()
 )
 
@@ -38,11 +38,11 @@ class ColumnGenerationPackingAnalyzer(
     private val contextBuilder: (ColumnGenerationState<*>) -> PackingContext = { state ->
         PackingContext(info = mapOf("cg_iteration" to state.iteration.toString()))
     }
-) : ColumnGenerationSolutionAnalyzer<ApplicationScalar> {
+) : ColumnGenerationSolutionAnalyzer<Flt64> {
     var latest: ColumnGenerationPackingSnapshot? = null
         private set
 
-    override suspend fun analyze(state: ColumnGenerationState<ApplicationScalar>) {
+    override suspend fun analyze(state: ColumnGenerationState<Flt64>) {
         val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
@@ -63,11 +63,11 @@ class ColumnGenerationPackingAnalyzer(
             context = contextBuilder(state)
         )
         val schema = rendererAdapter.toSchema(packingResult)
-        val demandModeShadowPriceTotals = LinkedHashMap<String, ApplicationScalar>()
+        val demandModeShadowPriceTotals = LinkedHashMap<String, Flt64>()
         val demandModeShadowPriceEntryCounts = LinkedHashMap<String, Int>()
         for ((key, value) in state.shadowPrices) {
             val modeTag = demandModeTag(key.mode)
-            demandModeShadowPriceTotals[modeTag] = (demandModeShadowPriceTotals[modeTag] ?: ApplicationScalar.zero) + value
+            demandModeShadowPriceTotals[modeTag] = (demandModeShadowPriceTotals[modeTag] ?: Flt64.zero) + value
             demandModeShadowPriceEntryCounts[modeTag] = (demandModeShadowPriceEntryCounts[modeTag] ?: 0) + 1
         }
         val schemaKpi = LinkedHashMap(schema.kpi)

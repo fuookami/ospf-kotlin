@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat.asScalarF64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.asScalarF64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dItemDemand
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dMaterialDemand
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAssignmentScalar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -76,7 +76,7 @@ fun <V : FloatingNumber<V>> toLegacyMaterialDemands(
 
 fun <V : FloatingNumber<V>> toLegacyMaterialWeightDemandsByKey(
     materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>
-): List<Pair<MaterialKey, Quantity<LayerAssignmentScalar>>> {
+): List<Pair<MaterialKey, Quantity<Flt64>>> {
     return materials.map { (material, demand) ->
         Pair(
             MaterialKey(
@@ -89,3 +89,6 @@ fun <V : FloatingNumber<V>> toLegacyMaterialWeightDemandsByKey(
         )
     }
 }
+
+
+

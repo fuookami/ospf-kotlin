@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -110,3 +110,4 @@ data class MaterialPackingPlan(
     val normalizedDemands: Map<MaterialKey, UInt64> = emptyMap(),
     val solveInfo: MaterialPackingSolveInfo
 )
+

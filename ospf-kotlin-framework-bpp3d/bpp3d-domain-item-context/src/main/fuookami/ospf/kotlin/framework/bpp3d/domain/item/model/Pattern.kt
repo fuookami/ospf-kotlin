@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
@@ -624,3 +624,4 @@ abstract class Pattern {
         }
     }
 }
+

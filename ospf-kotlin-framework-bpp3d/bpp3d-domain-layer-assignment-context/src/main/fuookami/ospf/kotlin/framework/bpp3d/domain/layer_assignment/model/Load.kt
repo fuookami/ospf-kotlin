@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -21,15 +22,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItemDemands
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItemRanges
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyMaterialDemands
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyMaterialWeightDemandsByKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItems
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyLayers
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dDemandValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dSolverValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.DefaultBpp3dDemandValueAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyItemDemands
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyItemRanges
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyMaterialDemands
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyMaterialWeightDemandsByKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyItems
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyLayers
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandValueAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dSolverValueAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dDemandValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
@@ -100,8 +101,8 @@ private fun defaultDemandDomain(unit: PhysicalUnit): Bpp3dDemandDomain {
 data class Bpp3dDemandEntry(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey,
-    val demand: LayerAssignmentScalar,
-    val demandRange: ValueRange<LayerAssignmentScalar>,
+    val demand: Flt64,
+    val demandRange: ValueRange<Flt64>,
     val quantityUnit: PhysicalUnit = defaultDemandUnit(),
     val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(quantityUnit)
 )
@@ -116,7 +117,7 @@ private fun defaultDemandValue(
     }
 }
 
-private fun toDiscreteAmount(value: Quantity<LayerAssignmentScalar>): UInt64 {
+private fun toDiscreteAmount(value: Quantity<Flt64>): UInt64 {
     val rounded = ceil(value.value.toDouble()).toLong()
     return if (rounded <= 0L) {
         UInt64.zero
@@ -131,13 +132,13 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
 
 data class Bpp3dItemDemand(
     val item: Item,
-    val quantity: Quantity<LayerAssignmentScalar>,
+    val quantity: Quantity<Flt64>,
     val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
 )
 
 data class Bpp3dMaterialDemand(
     val material: MaterialKey,
-    val quantity: Quantity<LayerAssignmentScalar>,
+    val quantity: Quantity<Flt64>,
     val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
 )
 
@@ -162,9 +163,9 @@ private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
 }
 
 private fun demandValueFromQuantity(
-    quantity: Quantity<LayerAssignmentScalar>,
+    quantity: Quantity<Flt64>,
     demandValueAdapter: Bpp3dDemandValueAdapter
-): LayerAssignmentScalar {
+): Flt64 {
     return if (isDiscreteDemandUnit(quantity.unit)) {
         demandValueAdapter.amountToSolver(toDiscreteAmount(quantity))
     } else {
@@ -172,7 +173,7 @@ private fun demandValueFromQuantity(
     }
 }
 
-private fun exactDemandRange(value: LayerAssignmentScalar): ValueRange<LayerAssignmentScalar> {
+private fun exactDemandRange(value: Flt64): ValueRange<Flt64> {
     return ValueRange(
         value,
         value,
@@ -183,7 +184,7 @@ private fun exactDemandRange(value: LayerAssignmentScalar): ValueRange<LayerAssi
 }
 
 fun demandEntriesFromItemDemands(
-    items: List<Pair<Item, Quantity<LayerAssignmentScalar>>>,
+    items: List<Pair<Item, Quantity<Flt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromLabeledItemDemands(
@@ -300,7 +301,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
 }
 
 fun demandEntriesFromMaterialDemands(
-    materials: List<Pair<Material, Quantity<LayerAssignmentScalar>>>,
+    materials: List<Pair<Material, Quantity<Flt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
@@ -343,7 +344,7 @@ private fun demandEntriesFromMaterialAmountsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
                 material = material,
-                quantity = Quantity(LayerAssignmentScalar(demand.toULong().toDouble()), DemandCountUnit)
+                quantity = Quantity(Flt64(demand.toULong().toDouble()), DemandCountUnit)
             )
         },
         demandValueAdapter = demandValueAdapter
@@ -382,7 +383,7 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialAmounts(
 }
 
 private fun demandEntriesFromMaterialWeightsByKey(
-    materials: List<Pair<MaterialKey, Quantity<LayerAssignmentScalar>>>,
+    materials: List<Pair<MaterialKey, Quantity<Flt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
@@ -397,7 +398,7 @@ private fun demandEntriesFromMaterialWeightsByKey(
 }
 
 fun demandEntriesFromMaterialWeights(
-    materials: List<Pair<Material, Quantity<LayerAssignmentScalar>>>,
+    materials: List<Pair<Material, Quantity<Flt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialWeightsByKey(
@@ -421,21 +422,21 @@ interface Load {
     val demandEntries: List<Bpp3dDemandEntry>
     val demandValueAdapter: Bpp3dDemandValueAdapter
 
-    val load: LinearIntermediateSymbols1<LayerAssignmentScalar>
-    val overLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
-    val lessLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    val load: LinearIntermediateSymbols1<Flt64>
+    val overLoad: LinearIntermediateSymbols1<Flt64>
+    val lessLoad: LinearIntermediateSymbols1<Flt64>
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
 }
 
 abstract class AbstractLoad : Load {
-    override lateinit var overLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
-    override lateinit var lessLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    override lateinit var overLoad: LinearIntermediateSymbols1<Flt64>
+    override lateinit var lessLoad: LinearIntermediateSymbols1<Flt64>
 
-    open fun register(model: MetaModel<LayerAssignmentScalar>): Try {
+    open fun register(model: MetaModel<Flt64>): Try {
         if (overEnabled && !::overLoad.isInitialized) {
-            overLoad = LinearIntermediateSymbols1<LayerAssignmentScalar>(
+            overLoad = LinearIntermediateSymbols1<Flt64>(
                 "over_load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -446,7 +447,7 @@ abstract class AbstractLoad : Load {
             }
         }
         if (lessEnabled && !::lessLoad.isInitialized) {
-            lessLoad = LinearIntermediateSymbols1<LayerAssignmentScalar>(
+            lessLoad = LinearIntermediateSymbols1<Flt64>(
                 "less_load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -479,7 +480,7 @@ abstract class AbstractLoad : Load {
     protected fun loadCoefficient(
         layer: BinLayer,
         demand: Bpp3dDemandEntry
-    ): LayerAssignmentScalar {
+    ): Flt64 {
         val concreteMode = demand.mode.toConcreteMode(demand.quantityDomain == Bpp3dDemandDomain.Discrete)
         val value = layer.statistics(concreteMode)[demand.key]
             ?: defaultDemandValue(demand.quantityDomain)
@@ -574,15 +575,15 @@ class ImpreciseLoad(
         }
     }
 
-    override lateinit var load: LinearExpressionSymbols1<LayerAssignmentScalar>
+    override lateinit var load: LinearExpressionSymbols1<Flt64>
 
-    override fun register(model: MetaModel<LayerAssignmentScalar>): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1<LayerAssignmentScalar>(
+            load = LinearExpressionSymbols1<Flt64>(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
-                LinearExpressionSymbol(LayerAssignmentScalar.zero, name = "load_$i")
+                LinearExpressionSymbol(Flt64.zero, name = "load_$i")
             }
         }
         when (val result = model.add(load)) {
@@ -597,14 +598,14 @@ class ImpreciseLoad(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel<LayerAssignmentScalar>
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<BinLayer>> {
         assert(newLayers.isNotEmpty())
 
         val xi = assignment.x[iteration.toInt()]
 
         for ((i, demand) in demandEntries.withIndex()) {
-            val thisLayers = newLayers.filter { layer -> loadCoefficient(layer, demand) neq LayerAssignmentScalar.zero }
+            val thisLayers = newLayers.filter { layer -> loadCoefficient(layer, demand) neq Flt64.zero }
             if (thisLayers.isNotEmpty()) {
                 val thisLoad = load[i]
                 thisLoad.flush()
@@ -716,11 +717,11 @@ class PreciseLoad(
         }
     }
 
-    override lateinit var load: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    override lateinit var load: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModel<LayerAssignmentScalar>): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::load.isInitialized) {
-            load = LinearIntermediateSymbols1<LayerAssignmentScalar>(
+            load = LinearIntermediateSymbols1<Flt64>(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -747,3 +748,5 @@ class PreciseLoad(
         return super.register(model)
     }
 }
+
+

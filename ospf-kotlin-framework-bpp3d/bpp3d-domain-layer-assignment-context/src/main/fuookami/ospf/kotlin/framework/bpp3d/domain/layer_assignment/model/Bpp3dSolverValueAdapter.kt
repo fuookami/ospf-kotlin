@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toFlt64

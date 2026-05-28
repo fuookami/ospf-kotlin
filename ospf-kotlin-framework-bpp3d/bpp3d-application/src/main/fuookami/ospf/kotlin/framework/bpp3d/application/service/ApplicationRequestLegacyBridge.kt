@@ -1,21 +1,22 @@
-package fuookami.ospf.kotlin.framework.bpp3d.application.service.compat
+package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat.asScalarF64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.asScalarF64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 data class LegacyDemandSlices(
     val itemDemands: List<Pair<Item, UInt64>>,
     val materialAmountDemands: List<Pair<Material, UInt64>>,
-    val materialWeightDemands: List<Pair<Material, Quantity<ApplicationScalar>>>,
+    val materialWeightDemands: List<Pair<Material, Quantity<Flt64>>>,
     val initialColumns: List<BinLayer>
 )
 
@@ -51,3 +52,4 @@ fun <V : FloatingNumber<V>> toLegacyDemandSlices(
         initialColumns = legacyInitialColumns
     )
 }
+
