@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -38,7 +38,7 @@ class MaterialDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-AMOUNT",
-            weight = 1.0 * Kilogram
+            weight = infraScalar(1.0) * Kilogram
         )
 
         val entries = demandEntriesFromMaterialAmounts(
@@ -58,11 +58,11 @@ class MaterialDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT",
-            weight = 1.0 * Kilogram
+            weight = infraScalar(1.0) * Kilogram
         )
 
         val entries = demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(material, 12.5 * Kilogram))
+            materials = listOf(Pair(material, infraScalar(12.5) * Kilogram))
         )
 
         assertEquals(1, entries.size)
@@ -78,12 +78,12 @@ class MaterialDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-DOMAIN",
-            weight = 1.0 * Kilogram
+            weight = infraScalar(1.0) * Kilogram
         )
         val discreteMassUnit = DomainAwareMassUnit(MockDomain.Discrete)
 
         val entries = demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(material, 5.0 * discreteMassUnit))
+            materials = listOf(Pair(material, infraScalar(5.0) * discreteMassUnit))
         )
 
         assertEquals(1, entries.size)
@@ -91,3 +91,5 @@ class MaterialDemandEntriesTest {
         assertEquals(discreteMassUnit, entries.single().quantityUnit)
     }
 }
+
+

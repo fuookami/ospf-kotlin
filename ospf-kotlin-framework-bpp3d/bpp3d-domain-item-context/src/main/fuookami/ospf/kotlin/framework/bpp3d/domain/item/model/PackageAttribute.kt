@@ -60,7 +60,11 @@ interface AbstractDeformationAttribute {
 data class LinearDeformationAttribute(
     val deformationCoefficient: PackageScalar
 ) : AbstractDeformationAttribute {
-    override fun deformationQuantity(volume: PackageScalar) = Vector(volume * deformationCoefficient, volume * deformationCoefficient, volume * deformationCoefficient)
+    override fun deformationQuantity(volume: PackageScalar): PackageVector3 = Vector(
+        volume * deformationCoefficient,
+        volume * deformationCoefficient,
+        volume * deformationCoefficient
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -304,9 +308,9 @@ interface AbstractCargoAttribute
 data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
-    val maxHeight: PackageQuantity = PackageScalar.infinity * Meter,
+    val maxHeight: PackageQuantity = legacyInfinity() * Meter,
     val minDepth: PackageQuantity = PackageScalar.zero * Meter,
-    val maxDepth: PackageQuantity = PackageScalar.infinity * Meter,
+    val maxDepth: PackageQuantity = legacyInfinity() * Meter,
     val overPackageTypes: List<PackageType> = PackageType.entries.toList(),
     val bottomOnly: Boolean = false,
     val topFlat: Boolean = true,

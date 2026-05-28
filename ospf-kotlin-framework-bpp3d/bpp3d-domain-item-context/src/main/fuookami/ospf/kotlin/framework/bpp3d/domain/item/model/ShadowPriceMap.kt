@@ -25,16 +25,20 @@ open class BPP3DShadowPriceArguments(
 typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, Item>;
 
 fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): ShadowPriceScalar {
+    fun shadowPriceOf(item: Item): ShadowPriceScalar {
+        return ShadowPriceScalar(this(BPP3DShadowPriceArguments(item)).toDouble())
+    }
+
     return when (cuboid) {
         is Container3<*> -> cuboid.units.fold(ShadowPriceScalar.zero) { acc, placement ->
             acc + when (val unit = placement.unit) {
                 is Container3<*> -> reducedCost(unit)
-                is Item -> unit.volume.value - this(BPP3DShadowPriceArguments(unit))
+                is Item -> unit.volume.value - shadowPriceOf(unit)
                 else -> ShadowPriceScalar.zero
             }
         }
 
-        is Item -> cuboid.volume.value - this(BPP3DShadowPriceArguments(cuboid))
+        is Item -> cuboid.volume.value - shadowPriceOf(cuboid)
         else -> ShadowPriceScalar.zero
     }
 }
@@ -47,11 +51,16 @@ fun BPP3DShadowPriceMap.reducedCost(
         cuboid = cuboid,
         demandEntries = demandEntries,
         shadowPriceOf = { mode, key ->
-            this.map.entries.firstOrNull { entry ->
+            val price = this.map.entries.firstOrNull { entry ->
                 val thisKey = entry.key
                 runCatching { thisKey::class.members.firstOrNull { it.name == "mode" }?.call(thisKey) == mode }.getOrDefault(false) &&
                         runCatching { thisKey::class.members.firstOrNull { it.name == "key" }?.call(thisKey) == key }.getOrDefault(false)
-            }?.value?.price ?: ShadowPriceScalar.zero
+            }?.value?.price
+            if (price != null) {
+                ShadowPriceScalar(price.toDouble())
+            } else {
+                ShadowPriceScalar.zero
+            }
         },
         demandValueToScalar = { demand ->
             when (demand) {

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -89,24 +89,24 @@ class GenericProjectionPlacementCoreProofTest {
     @Test
     fun legacyPlacementShouldBridgeToGenericPlacement() {
         val box = LegacyBox(
-            width = 1.0 * Meter,
-            height = 2.0 * Meter,
-            depth = 3.0 * Meter,
-            weight = 4.0 * Kilogram
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(3.0) * Meter,
+            weight = infraScalar(4.0) * Kilogram
         )
         val legacyPlacement = QuantityPlacement3(
             view = box.view(Orientation.Upright)!!,
             position = point3(
-                x = 5.0 * Meter,
-                y = 6.0 * Meter,
-                z = 7.0 * Meter
+                x = infraScalar(5.0) * Meter,
+                y = infraScalar(6.0) * Meter,
+                z = infraScalar(7.0) * Meter
             )
         )
         val genericPlacement = legacyPlacement.asGenericPlacement3()
 
-        assertTrue(genericPlacement.x eq (5.0 * Meter))
-        assertTrue(genericPlacement.y eq (6.0 * Meter))
-        assertTrue(genericPlacement.z eq (7.0 * Meter))
+        assertTrue(genericPlacement.x eq (infraScalar(5.0) * Meter))
+        assertTrue(genericPlacement.y eq (infraScalar(6.0) * Meter))
+        assertTrue(genericPlacement.z eq (infraScalar(7.0) * Meter))
         assertTrue(genericPlacement.width eq box.width)
         assertTrue(genericPlacement.depth eq box.depth)
     }
@@ -114,10 +114,10 @@ class GenericProjectionPlacementCoreProofTest {
     @Test
     fun legacyProjectionShouldBridgeToGenericProjection() {
         val box = LegacyBox(
-            width = 1.0 * Meter,
-            height = 2.0 * Meter,
-            depth = 3.0 * Meter,
-            weight = 4.0 * Kilogram
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(3.0) * Meter,
+            weight = infraScalar(4.0) * Kilogram
         )
         val legacyProjection = PileProjection(
             plane = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
@@ -126,8 +126,8 @@ class GenericProjectionPlacementCoreProofTest {
         val genericProjection = legacyProjection.asGenericProjection()
         val placements = genericProjection.toPlacement3At(
             QuantityPoint2G(
-                x = 0.0 * Meter,
-                y = 0.0 * Meter
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(0.0) * Meter
             )
         )
 
@@ -227,3 +227,4 @@ class GenericProjectionPlacementCoreProofTest {
         assertEquals(2, pileProjection.toPlacement3At(QuantityPoint2G(Quantity(FltX.zero, Meter), Quantity(FltX.zero, Meter))).size)
     }
 }
+

@@ -315,7 +315,7 @@ abstract class Pattern {
                 when (planePlacement) {
                     is Ok -> {
                         val placements = planePlacement.value.flatMap { it.toPlacement3() }
-                        val maxZ = placements.fold(PatternScalar.negativeInfinity) { acc, placement ->
+                        val maxZ = placements.fold(legacyNegativeInfinity()) { acc, placement ->
                             val current = PatternScalar(placement.maxZ.toDouble())
                             if (current gr acc) current else acc
                         }
@@ -528,7 +528,7 @@ abstract class Pattern {
                                         (space.height / Bottom.height(item)).floor().toUInt64()
                                     )
                                 if (heightAmount == UInt64.zero) {
-                                    PatternScalar.infinity
+                                    legacyInfinity()
                                 } else {
                                     abs(PatternScalar(heightAmount.toULong().toDouble()) * item.weight.value - thisRestPileAverageWeight)
                                 }

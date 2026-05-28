@@ -90,7 +90,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<HeightScalar, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Pair<HeightScalar, HeightScalar>,
-        restWeight: HeightScalar = HeightScalar.infinity,
+        restWeight: HeightScalar = legacyInfinity(),
         averageWeight: HeightScalar? = null
     ): List<Item>? {
         return getItemCombination(
@@ -108,7 +108,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         heights: Pair<HeightScalar, HeightScalar>,
         mapper: Extractor<Item, T>,
-        restWeight: HeightScalar = HeightScalar.infinity,
+        restWeight: HeightScalar = legacyInfinity(),
         averageWeight: HeightScalar? = null
     ): List<Item>? {
         var items: List<Item>? = null
@@ -162,7 +162,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<HeightScalar, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<HeightScalar, HeightScalar, HeightScalar>,
-        restWeight: HeightScalar = HeightScalar.infinity,
+        restWeight: HeightScalar = legacyInfinity(),
         averageWeight: HeightScalar? = null
     ): List<Item>? {
         return getItemCombination(
@@ -180,7 +180,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<HeightScalar, HeightScalar, HeightScalar>,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = HeightScalar.infinity,
+        restWeight: HeightScalar = legacyInfinity(),
         averageWeight: HeightScalar? = null,
     ): List<Item>? {
         var items: List<Item>? = null
@@ -313,7 +313,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         height: HeightScalar,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = HeightScalar.infinity,
+        restWeight: HeightScalar = legacyInfinity(),
         averageWeight: HeightScalar? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
@@ -353,7 +353,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         height: HeightScalar,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = HeightScalar.infinity,
+        restWeight: HeightScalar = legacyInfinity(),
         averageWeight: HeightScalar? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {

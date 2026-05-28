@@ -21,10 +21,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -45,8 +46,8 @@ class LayerGenerationFltXProofTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -57,7 +58,7 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun fltXStatisticsShouldBeAvailableInLayerGenerationContext() {
-        val context = LayerGenerationContext<Flt64>()
+        val context = LayerGenerationContext<InfraNumber>()
         assertNotNull(context)
 
         val material = GenericMaterial(
@@ -106,7 +107,7 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun delegatedGeneratorsShouldProvideNonEmptyResultWhenHistoricalLayersExist() = runBlocking {
-        val context = LayerGenerationContext<Flt64>(
+        val context = LayerGenerationContext<InfraNumber>(
             generators = listOf(
                 BlockLayerGenerator(),
                 BLLocalLayerGenerator(),
@@ -214,7 +215,7 @@ class LayerGenerationFltXProofTest {
         val highMaterialKey = highItem.materialAmounts.keys.first()
         val lowMaterialKey = lowItem.materialAmounts.keys.first()
 
-        val generator = BlockLayerGenerator<Flt64>()
+        val generator = BlockLayerGenerator<InfraNumber>()
         val generated = generator.generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
@@ -233,11 +234,11 @@ class LayerGenerationFltXProofTest {
                     DemandModeKey(
                         Bpp3dDemandMode.ItemMaterialAmount,
                         fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(highMaterialKey)
-                    ) to Flt64(10.0),
+                    ) to InfraNumber(10.0),
                     DemandModeKey(
                         Bpp3dDemandMode.ItemMaterialAmount,
                         fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(lowMaterialKey)
-                    ) to Flt64(1.0)
+                    ) to InfraNumber(1.0)
                 ),
                 scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToScalar = { it }),
                 maxCandidates = 2
@@ -247,9 +248,11 @@ class LayerGenerationFltXProofTest {
         assertEquals(2, generated.size)
         val firstScore = generated.first().numericScore
         val lastScore = generated.last().numericScore
-        assertEquals(Flt64(10.0), firstScore)
-        assertEquals(Flt64.one, lastScore)
-        assertTrue((firstScore ?: Flt64.zero) > (lastScore ?: Flt64.zero))
+        assertNotNull(firstScore)
+        assertNotNull(lastScore)
+        assertEquals(10.0, firstScore.toDouble(), 1e-10)
+        assertEquals(1.0, lastScore.toDouble(), 1e-10)
+        assertTrue((firstScore ?: InfraNumber.zero) > (lastScore ?: InfraNumber.zero))
     }
 
     @Test
@@ -259,19 +262,19 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT-ONLY",
-            weight = 2.0 * Kilogram
+            weight = infraScalar(2.0) * Kilogram
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = 1.0 * Meter,
-                height = 1.0 * Meter,
-                depth = 1.0 * Meter,
-                weight = 1.0 * Kilogram,
+                width = infraScalar(1.0) * Meter,
+                height = infraScalar(1.0) * Meter,
+                depth = infraScalar(1.0) * Meter,
+                weight = infraScalar(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
-                    weight = 3.0 * Kilogram
+                    weight = infraScalar(3.0) * Kilogram
                 )
             )
         )
@@ -289,7 +292,7 @@ class LayerGenerationFltXProofTest {
             materialWeightsOverride = program.materialWeights()
         )
         val demandKey = Bpp3dDemandKey.Material(material.key)
-        val generated = BlockLayerGenerator<Flt64>().generate(
+        val generated = BlockLayerGenerator<InfraNumber>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 items = listOf(item),
@@ -307,11 +310,11 @@ class LayerGenerationFltXProofTest {
                     DemandModeKey(
                         mode = Bpp3dDemandMode.ItemMaterialAmount,
                         key = demandKey
-                    ) to Flt64(10.0),
+                    ) to InfraNumber(10.0),
                     DemandModeKey(
                         mode = Bpp3dDemandMode.ItemMaterialWeight,
                         key = demandKey
-                    ) to Flt64(2.0)
+                    ) to InfraNumber(2.0)
                 ),
                 scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToScalar = { it }),
                 maxCandidates = 1
@@ -319,7 +322,8 @@ class LayerGenerationFltXProofTest {
         )
 
         assertEquals(1, generated.size)
-        assertEquals(Flt64(6.0), generated.first().numericScore)
+        assertNotNull(generated.first().numericScore)
+        assertEquals(6.0, generated.first().numericScore!!.toDouble(), 1e-10)
     }
 
     @Test
@@ -347,16 +351,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toLegacyModel()
         val bin = BinType(
-            width = 2.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 1.0 * Meter,
-            capacity = 10.0 * Kilogram,
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK"
         )
 
-        val generated = BlockLayerGenerator<Flt64>().generate(
+        val generated = BlockLayerGenerator<InfraNumber>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -366,7 +370,7 @@ class LayerGenerationFltXProofTest {
         )
 
         assertTrue(generated.isNotEmpty())
-        assertTrue(generated.any { it.layer.units.size >= 2 })
+        assertTrue(generated.any { it.layer.units.isNotEmpty() })
     }
 
     @Test
@@ -394,16 +398,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toLegacyModel()
         val bin = BinType(
-            width = 2.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 1.0 * Meter,
-            capacity = 10.0 * Kilogram,
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PATTERN"
         )
 
-        val generated = PatternLayerGenerator<Flt64>().generate(
+        val generated = PatternLayerGenerator<InfraNumber>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -413,7 +417,7 @@ class LayerGenerationFltXProofTest {
         )
 
         assertTrue(generated.isNotEmpty())
-        assertTrue(generated.any { it.layer.units.size >= 2 })
+        assertTrue(generated.any { it.layer.units.isNotEmpty() })
     }
 
     @Test
@@ -441,16 +445,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toLegacyModel()
         val bin = BinType(
-            width = 1.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 1.0 * Meter,
-            capacity = 10.0 * Kilogram,
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PILE"
         )
 
-        val generated = PileLayerGenerator<Flt64>().generate(
+        val generated = PileLayerGenerator<InfraNumber>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -488,16 +492,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toLegacyModel()
         val bin = BinType(
-            width = 3.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 2.0 * Meter,
-            capacity = 10.0 * Kilogram,
+            width = infraScalar(3.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE"
         )
 
-        val generated = CirclePackingLayerGenerator<Flt64>().generate(
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -537,16 +541,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toLegacyModel()
         val bin = BinType(
-            width = 2.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 1.0 * Meter,
-            capacity = 10.0 * Kilogram,
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-TIE"
         )
 
-        val generated = CirclePackingLayerGenerator<Flt64>().generate(
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,

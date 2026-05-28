@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -78,27 +78,27 @@ class GenericContainerCoreProofTest {
     @Test
     fun legacyAdapterShouldBridgeToGenericContainerShape() {
         val box = LegacyBox(
-            width = 2.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 4.0 * Meter,
-            weight = 5.0 * Kilogram
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(4.0) * Meter,
+            weight = infraScalar(5.0) * Kilogram
         )
         val generic = box.asGenericCuboid()
         val space = Container3Shape(
-            width = 4.0 * Meter,
-            height = 4.0 * Meter,
-            depth = 4.0 * Meter
+            width = infraScalar(4.0) * Meter,
+            height = infraScalar(4.0) * Meter,
+            depth = infraScalar(4.0) * Meter
         ).asGenericContainer3Shape()
         val space2 = Container2Shape(
-            length = 5.0 * Meter,
-            width = 6.0 * Meter,
+            length = infraScalar(5.0) * Meter,
+            width = infraScalar(6.0) * Meter,
             plane = Bottom
         ).asGenericContainer2Shape()
 
         assertTrue(generic.enabledOrientationsAt(space).contains(Orientation.Upright))
         assertEquals(Orientation.entries.size, generic.enabledOrientationsAt(space, withRotation = true).size)
-        assertTrue(space2.length eq (5.0 * Meter))
-        assertTrue(space2.width eq (6.0 * Meter))
+        assertTrue(space2.length eq (infraScalar(5.0) * Meter))
+        assertTrue(space2.width eq (infraScalar(6.0) * Meter))
     }
 
     @Test
@@ -171,3 +171,4 @@ class GenericContainerCoreProofTest {
         assertTrue(container.actualVolume eq Quantity(FltX(12.0), container.actualVolume.unit))
     }
 }
+

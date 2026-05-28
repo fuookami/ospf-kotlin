@@ -1,9 +1,8 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -31,7 +30,7 @@ class PackingProgramMaterialValueTest {
 
     private fun material(
         no: String,
-        unitWeightKg: Flt64
+        unitWeightKg: InfraNumber
     ): Material {
         return Material(
             no = MaterialNo(no),
@@ -44,19 +43,23 @@ class PackingProgramMaterialValueTest {
 
     private fun shape(): PackageShape {
         return PackageShape(
-            width = 1.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 1.0 * Meter,
-            weight = 1.0 * Kilogram,
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram,
             packageType = PackageType.CartonContainer
         )
+    }
+
+    private fun assertScalarEquals(expected: Double, actual: InfraNumber?) {
+        assertEquals(expected, requireNotNull(actual).toDouble(), 1e-10)
     }
 
     @Test
     fun amountOnlyShouldExposeAmountAndDeriveWeightWhenCatalogProvided() {
         val material = material(
             no = "M-AMOUNT",
-            unitWeightKg = Flt64(2.0)
+            unitWeightKg = InfraNumber(2.0)
         )
         val program = PackingProgram.innerPackage(
             shape = shape(),
@@ -64,79 +67,79 @@ class PackingProgramMaterialValueTest {
         )
 
         assertEquals(UInt64(3), program.materialAmounts()[material.key])
-        assertEquals(Flt64(6.0), program.materialWeights(mapOf(material.key to material))[material.key]?.value)
+        assertScalarEquals(6.0, program.materialWeights(mapOf(material.key to material))[material.key]?.value)
     }
 
     @Test
     fun weightOnlyShouldNotCreateAmountContribution() {
         val material = material(
             no = "M-WEIGHT",
-            unitWeightKg = Flt64(2.0)
+            unitWeightKg = InfraNumber(2.0)
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = shape(),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
-                    weight = 5.0 * Kilogram
+                    weight = infraScalar(5.0) * Kilogram
                 )
             )
         )
 
         assertTrue(program.materialAmounts().isEmpty())
-        assertEquals(Flt64(5.0), program.materialWeights()[material.key]?.value)
+        assertScalarEquals(5.0, program.materialWeights()[material.key]?.value)
     }
 
     @Test
     fun amountAndWeightShouldPreferExplicitWeight() {
         val material = material(
             no = "M-BOTH",
-            unitWeightKg = Flt64(2.0)
+            unitWeightKg = InfraNumber(2.0)
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = shape(),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
                     amount = UInt64(3),
-                    weight = 9.0 * Kilogram
+                    weight = infraScalar(9.0) * Kilogram
                 )
             )
         )
 
         assertEquals(UInt64(3), program.materialAmounts()[material.key])
-        assertEquals(Flt64(9.0), program.materialWeights(mapOf(material.key to material))[material.key]?.value)
+        assertScalarEquals(9.0, program.materialWeights(mapOf(material.key to material))[material.key]?.value)
     }
 
     @Test
     fun quantityMapShouldSupportDiscreteAndContinuousUnits() {
         val materialAmount = material(
             no = "M-QUANTITY-AMOUNT",
-            unitWeightKg = Flt64.one
+            unitWeightKg = InfraNumber.one
         )
         val materialWeight = material(
             no = "M-QUANTITY-WEIGHT",
-            unitWeightKg = Flt64.one
+            unitWeightKg = InfraNumber.one
         )
         val program = PackingProgram.innerPackageWithMaterialQuantities(
             shape = shape(),
             materials = mapOf(
-                materialAmount.key to Quantity(Flt64(3), DiscreteCountUnit),
-                materialWeight.key to Quantity(Flt64(5), Kilogram)
+                materialAmount.key to Quantity(InfraNumber(3), DiscreteCountUnit),
+                materialWeight.key to Quantity(InfraNumber(5), Kilogram)
             )
         )
 
         assertEquals(UInt64(3), program.materialAmounts()[materialAmount.key])
-        assertEquals(Flt64(5.0), program.materialWeights()[materialWeight.key]?.value)
+        assertScalarEquals(5.0, program.materialWeights()[materialWeight.key]?.value)
 
         val quantities = program.materialQuantities()
-        assertEquals(Flt64(3.0), quantities[materialAmount.key]?.value)
-        assertEquals(Flt64(5.0), quantities[materialWeight.key]?.value)
+        assertScalarEquals(3.0, quantities[materialAmount.key]?.value)
+        assertScalarEquals(5.0, quantities[materialWeight.key]?.value)
     }
 
     @Test
     fun materialQuantityMapShouldAcceptFltXWeightsAndKeepFlt64CompatibilityView() {
         val material = material(
             no = "M-QUANTITY-FLTX",
-            unitWeightKg = Flt64.one
+            unitWeightKg = InfraNumber.one
         )
         val program = PackingProgram.innerPackageWithMaterialQuantities(
             shape = shape(),
@@ -146,7 +149,8 @@ class PackingProgramMaterialValueTest {
         )
 
         assertTrue(program.materials[material.key]?.weight?.value is FltX)
-        assertEquals(Flt64(2.5), program.materialWeights()[material.key]?.value)
-        assertEquals(Flt64(2.5), program.materialQuantities()[material.key]?.value)
+        assertScalarEquals(2.5, program.materialWeights()[material.key]?.value)
+        assertScalarEquals(2.5, program.materialQuantities()[material.key]?.value)
     }
 }
+

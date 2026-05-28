@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -46,8 +45,8 @@ class UnifiedDemandEntriesTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -56,10 +55,10 @@ class UnifiedDemandEntriesTest {
         return ActualItem(
             id = id,
             name = id,
-            width = Flt64.one * Meter,
-            height = Flt64.one * Meter,
-            depth = Flt64.one * Meter,
-            weight = Flt64.one * Kilogram,
+            width = InfraNumber.one * Meter,
+            height = InfraNumber.one * Meter,
+            depth = InfraNumber.one * Meter,
+            weight = InfraNumber.one * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute()
@@ -72,7 +71,7 @@ class UnifiedDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = no,
-            weight = Flt64.one * Kilogram
+            weight = InfraNumber.one * Kilogram
         )
     }
 
@@ -81,22 +80,22 @@ class UnifiedDemandEntriesTest {
         val item = item("item-demand-domain")
         val amountEntries = demandEntriesFromItemDemands(
             items = listOf(
-                Pair(item, Quantity(Flt64(3), DiscreteCountUnit))
+                Pair(item, Quantity(InfraNumber(3), DiscreteCountUnit))
             )
         )
         val weightEntries = demandEntriesFromItemDemands(
             items = listOf(
-                Pair(item, Quantity(Flt64(2), Kilogram))
+                Pair(item, Quantity(InfraNumber(2), Kilogram))
             )
         )
 
         assertEquals(Bpp3dDemandMode.Item::class, amountEntries.single().mode::class)
         assertEquals(Bpp3dDemandDomain.Discrete, amountEntries.single().quantityDomain)
-        assertEquals(Flt64(3), amountEntries.single().demand)
+        assertEquals(3.0, amountEntries.single().demand.toDouble(), 1e-10)
 
         assertEquals(Bpp3dDemandMode.Item::class, weightEntries.single().mode::class)
         assertEquals(Bpp3dDemandDomain.Continuous, weightEntries.single().quantityDomain)
-        assertEquals(Flt64(2), weightEntries.single().demand)
+        assertEquals(2.0, weightEntries.single().demand.toDouble(), 1e-10)
     }
 
     @Test
@@ -104,22 +103,22 @@ class UnifiedDemandEntriesTest {
         val material = material("material-demand-domain")
         val amountEntries = demandEntriesFromMaterialDemands(
             materials = listOf(
-                Pair(material, Quantity(Flt64(4), DiscreteCountUnit))
+                Pair(material, Quantity(InfraNumber(4), DiscreteCountUnit))
             )
         )
         val weightEntries = demandEntriesFromMaterialDemands(
             materials = listOf(
-                Pair(material, Quantity(Flt64(5), Kilogram))
+                Pair(material, Quantity(InfraNumber(5), Kilogram))
             )
         )
 
         assertEquals(Bpp3dDemandMode.Material::class, amountEntries.single().mode::class)
         assertEquals(Bpp3dDemandDomain.Discrete, amountEntries.single().quantityDomain)
-        assertEquals(Flt64(4), amountEntries.single().demand)
+        assertEquals(4.0, amountEntries.single().demand.toDouble(), 1e-10)
 
         assertEquals(Bpp3dDemandMode.Material::class, weightEntries.single().mode::class)
         assertEquals(Bpp3dDemandDomain.Continuous, weightEntries.single().quantityDomain)
-        assertEquals(Flt64(5), weightEntries.single().demand)
+        assertEquals(5.0, weightEntries.single().demand.toDouble(), 1e-10)
     }
 
     @Test
@@ -130,7 +129,7 @@ class UnifiedDemandEntriesTest {
             items = listOf(
                 Bpp3dItemDemand(
                     item = item,
-                    quantity = Quantity(Flt64(6), DiscreteCountUnit),
+                    quantity = Quantity(InfraNumber(6), DiscreteCountUnit),
                     mode = Bpp3dDemandMode.ItemAmount
                 )
             )
@@ -139,7 +138,7 @@ class UnifiedDemandEntriesTest {
             materials = listOf(
                 Bpp3dMaterialDemand(
                     material = material.key,
-                    quantity = Quantity(Flt64(7), Kilogram),
+                    quantity = Quantity(InfraNumber(7), Kilogram),
                     mode = Bpp3dDemandMode.ItemMaterialWeight
                 )
             )
@@ -159,7 +158,7 @@ class UnifiedDemandEntriesTest {
                 items = listOf(
                     Bpp3dItemDemand(
                         item = item,
-                        quantity = Quantity(Flt64.one, DiscreteCountUnit),
+                        quantity = Quantity(InfraNumber.one, DiscreteCountUnit),
                         mode = Bpp3dDemandMode.Material
                     )
                 )
@@ -171,7 +170,7 @@ class UnifiedDemandEntriesTest {
                 materials = listOf(
                     Bpp3dMaterialDemand(
                         material = material.key,
-                        quantity = Quantity(Flt64.one, DiscreteCountUnit),
+                        quantity = Quantity(InfraNumber.one, DiscreteCountUnit),
                         mode = Bpp3dDemandMode.Item
                     )
                 )
@@ -185,26 +184,26 @@ class UnifiedDemandEntriesTest {
         val amountByMode = Bpp3dDemandEntry(
             mode = Bpp3dDemandMode.ItemAmount,
             key = Bpp3dDemandKey.Item(item),
-            demand = Flt64.one,
+            demand = InfraNumber.one,
             demandRange = ValueRange(
-                Flt64.one,
-                Flt64.one,
+                InfraNumber.one,
+                InfraNumber.one,
                 Interval.Closed,
                 Interval.Closed,
-                Flt64
+                InfraNumber
             ).value!!,
             quantityUnit = Kilogram
         )
         val weightByMode = Bpp3dDemandEntry(
             mode = Bpp3dDemandMode.ItemWeight,
             key = Bpp3dDemandKey.Item(item),
-            demand = Flt64.one,
+            demand = InfraNumber.one,
             demandRange = ValueRange(
-                Flt64.one,
-                Flt64.one,
+                InfraNumber.one,
+                InfraNumber.one,
                 Interval.Closed,
                 Interval.Closed,
-                Flt64
+                InfraNumber
             ).value!!,
             quantityUnit = DiscreteCountUnit
         )
@@ -213,3 +212,5 @@ class UnifiedDemandEntriesTest {
         assertEquals(Bpp3dDemandDomain.Discrete, weightByMode.quantityDomain)
     }
 }
+
+

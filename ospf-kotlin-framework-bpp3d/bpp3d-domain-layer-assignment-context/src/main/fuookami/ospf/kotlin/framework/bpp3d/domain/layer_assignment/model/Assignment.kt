@@ -26,12 +26,7 @@ import fuookami.ospf.kotlin.multiarray._a
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter = object : IntoValue<InfraNumber> {
-        override fun intoValue(value: InfraNumber) = value
-        override val zero get() = InfraNumber.zero
-        override val one get() = InfraNumber.one
-        override fun fromValue(value: InfraNumber) = value
-    }
+private val flt64Converter: IntoValue<InfraNumber> = IntoValue.fromConverter(InfraNumber)
 
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,

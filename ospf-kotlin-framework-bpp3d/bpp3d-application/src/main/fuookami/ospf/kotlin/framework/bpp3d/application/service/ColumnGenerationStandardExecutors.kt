@@ -39,6 +39,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKe
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceAwareLayerScore
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
@@ -146,7 +147,7 @@ class ColumnGenerationStandardExecutors(
         return ColumnGenerationRmpSolver { state ->
             val artifacts = buildRmpArtifacts(state)
             val solved = ensureRet(
-                solver.solveLP(
+                solver.solveLPV(
                 name = "${config.rmpSolveNamePrefix}-${state.iteration}",
                 metaModel = artifacts.model,
                 toLogModel = config.rmpToLogModel
@@ -165,17 +166,18 @@ class ColumnGenerationStandardExecutors(
             val shadowPrices = LinkedHashMap<DemandModeKey, InfraNumber>()
             for ((key, value) in shadowPriceMap.map) {
                 val demandKey = key as? DemandShadowPriceKey ?: continue
-                shadowPrices[DemandModeKey(demandKey.mode, demandKey.key, demandKey.quantityUnit)] = value.price
+                val price = InfraNumber(value.price.toDouble())
+                shadowPrices[DemandModeKey(demandKey.mode, demandKey.key, demandKey.quantityUnit)] = price
                 if (demandKey.quantityUnit != null) {
                     shadowPrices.putIfAbsent(
                         DemandModeKey(demandKey.mode, demandKey.key),
-                        value.price
+                        price
                     )
                 }
             }
             ColumnGenerationLpResult(
                 shadowPrices = shadowPrices,
-                objective = solved.obj,
+                objective = InfraNumber(solved.obj.toDouble()),
                 info = mapOf(
                     "solver" to solver.name,
                     "model" to artifacts.model.name,
@@ -261,7 +263,7 @@ class ColumnGenerationStandardExecutors(
             )
 
             val solved = ensureRet(
-                solver.solveMILP(
+                solver.solveMILPV(
                 name = "${config.finalSolveNamePrefix}-${state.iteration}",
                 metaModel = model,
                 toLogModel = config.finalToLogModel
@@ -279,7 +281,7 @@ class ColumnGenerationStandardExecutors(
             ColumnGenerationFinalResult(
                 columns = if (selectedColumns.isNotEmpty()) selectedColumns else state.columns,
                 bins = selectedBins,
-                objective = solved.obj,
+                objective = InfraNumber(solved.obj.toDouble()),
                 info = mapOf(
                     "solver" to solver.name,
                     "model" to model.name,
@@ -452,7 +454,8 @@ class ColumnGenerationStandardExecutors(
         model: LinearMetaModel<InfraNumber>,
         variable: AbstractVariableItem<*, *>
     ): InfraNumber {
-        return model.tokens.find(variable)?.result ?: InfraNumber.zero
+        val token = model.tokens.find(variable) ?: return InfraNumber.zero
+        return token.resultFlt64?.let { infraScalar(it.toDouble()) } ?: InfraNumber.zero
     }
 
     private fun normalizeScalarSolution(values: List<*>): List<InfraNumber> {
@@ -470,7 +473,7 @@ class ColumnGenerationStandardExecutors(
             name = name,
             objectCategory = ObjectCategory.Minimum,
             configuration = MetaModelConfiguration(),
-            converter = IntoValue.Identity
+            converter = IntoValue.fromConverter(InfraNumber)
         )
     }
 

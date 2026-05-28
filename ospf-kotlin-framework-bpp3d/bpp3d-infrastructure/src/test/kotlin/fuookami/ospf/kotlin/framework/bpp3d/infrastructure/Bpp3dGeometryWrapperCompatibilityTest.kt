@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -50,10 +50,10 @@ class Bpp3dGeometryWrapperCompatibilityTest {
     @Test
     fun cuboidViewShouldKeepExistingOrientationBehavior() {
         val box = Box(
-            width = 2.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 4.0 * Meter,
-            weight = 1.0 * Kilogram
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(4.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram
         )
 
         val upright = box.view(Orientation.Upright)
@@ -63,31 +63,31 @@ class Bpp3dGeometryWrapperCompatibilityTest {
         assertNotNull(uprightRotated)
         assertNotNull(side)
 
-        assertTrue(upright.width eq (2.0 * Meter))
-        assertTrue(upright.height eq (3.0 * Meter))
-        assertTrue(upright.depth eq (4.0 * Meter))
-        assertTrue(uprightRotated.width eq (4.0 * Meter))
-        assertTrue(uprightRotated.height eq (3.0 * Meter))
-        assertTrue(uprightRotated.depth eq (2.0 * Meter))
-        assertTrue(side.width eq (3.0 * Meter))
-        assertTrue(side.height eq (2.0 * Meter))
-        assertTrue(side.depth eq (4.0 * Meter))
+        assertTrue(upright.width eq (infraScalar(2.0) * Meter))
+        assertTrue(upright.height eq (infraScalar(3.0) * Meter))
+        assertTrue(upright.depth eq (infraScalar(4.0) * Meter))
+        assertTrue(uprightRotated.width eq (infraScalar(4.0) * Meter))
+        assertTrue(uprightRotated.height eq (infraScalar(3.0) * Meter))
+        assertTrue(uprightRotated.depth eq (infraScalar(2.0) * Meter))
+        assertTrue(side.width eq (infraScalar(3.0) * Meter))
+        assertTrue(side.height eq (infraScalar(2.0) * Meter))
+        assertTrue(side.depth eq (infraScalar(4.0) * Meter))
         assertEquals(Orientation.UprightRotated, upright.rotation?.orientation)
     }
 
     @Test
     fun projectionShouldKeepWeightAndAmountAggregation() {
         val boxA = Box(
-            width = 2.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 4.0 * Meter,
-            weight = 2.0 * Kilogram
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(4.0) * Meter,
+            weight = infraScalar(2.0) * Kilogram
         )
         val boxB = Box(
-            width = 1.0 * Meter,
-            height = 5.0 * Meter,
-            depth = 3.0 * Meter,
-            weight = 4.0 * Kilogram
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(5.0) * Meter,
+            depth = infraScalar(3.0) * Meter,
+            weight = infraScalar(4.0) * Kilogram
         )
         val viewA = boxA.view(Orientation.Upright)
         val viewB = boxB.view(Orientation.Lie)
@@ -98,11 +98,11 @@ class Bpp3dGeometryWrapperCompatibilityTest {
             plane = PlaneProjection(viewA, Bottom),
             layer = UInt64(3)
         )
-        assertTrue(pile.weight eq (6.0 * Kilogram))
+        assertTrue(pile.weight eq (infraScalar(6.0) * Kilogram))
         assertEquals(UInt64(3), pile.amount(boxA))
 
         val multi = MultiPileProjection(listOf(viewA, viewB), Bottom)
-        assertTrue(multi.weight eq (6.0 * Kilogram))
+        assertTrue(multi.weight eq (infraScalar(6.0) * Kilogram))
         assertEquals(UInt64.one, multi.amount(boxA))
         assertEquals(UInt64.one, multi.amount(boxB))
     }
@@ -110,77 +110,77 @@ class Bpp3dGeometryWrapperCompatibilityTest {
     @Test
     fun placementShouldKeepParentAndSupportSemantics() {
         val childBox = Box(
-            width = 2.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 2.0 * Meter,
-            weight = 3.0 * Kilogram
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            weight = infraScalar(3.0) * Kilogram
         )
         val childPlacement = QuantityPlacement3(
             view = childBox.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = 1.0 * Meter,
-                y = 2.0 * Meter,
-                z = 3.0 * Meter
+                x = infraScalar(1.0) * Meter,
+                y = infraScalar(2.0) * Meter,
+                z = infraScalar(3.0) * Meter
             )
         )
         val container = NestingContainer(
             shape = Container3Shape(
-                width = 10.0 * Meter,
-                height = 10.0 * Meter,
-                depth = 10.0 * Meter
+                width = infraScalar(10.0) * Meter,
+                height = infraScalar(10.0) * Meter,
+                depth = infraScalar(10.0) * Meter
             ),
             units = listOf(childPlacement)
         )
         val parentPlacement = QuantityPlacement3(
             view = container.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = 5.0 * Meter,
-                y = 6.0 * Meter,
-                z = 7.0 * Meter
+                x = infraScalar(5.0) * Meter,
+                y = infraScalar(6.0) * Meter,
+                z = infraScalar(7.0) * Meter
             )
         )
 
         assertEquals(parentPlacement, childPlacement.parent)
-        assertTrue(childPlacement.absoluteX eq (6.0 * Meter))
-        assertTrue(childPlacement.absoluteY eq (8.0 * Meter))
-        assertTrue(childPlacement.absoluteZ eq (10.0 * Meter))
+        assertTrue(childPlacement.absoluteX eq (infraScalar(6.0) * Meter))
+        assertTrue(childPlacement.absoluteY eq (infraScalar(8.0) * Meter))
+        assertTrue(childPlacement.absoluteZ eq (infraScalar(10.0) * Meter))
 
         val topPlacement = QuantityPlacement3(
             view = childBox.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = 0.0 * Meter,
-                y = 1.0 * Meter,
-                z = 0.0 * Meter
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(1.0) * Meter,
+                z = infraScalar(0.0) * Meter
             )
         )
         val bottomPlacement = QuantityPlacement3(
             view = childBox.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = 0.0 * Meter,
-                y = 0.0 * Meter,
-                z = 0.0 * Meter
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
             )
         )
         val support = bottomSupport(topPlacement, listOf(bottomPlacement))
 
-        assertTrue(support.area eq (4.0 * SquareMeter))
-        assertTrue(support.weight eq (3.0 * Kilogram))
+        assertTrue(support.area eq (infraScalar(4.0) * SquareMeter))
+        assertTrue(support.weight eq (infraScalar(3.0) * Kilogram))
     }
 
     @Test
     fun cylinderAndOrientationBridgeShouldKeepGeometryContract() {
         val column = Column(
-            radius = 1.0 * Meter,
-            height = 5.0 * Meter,
+            radius = infraScalar(1.0) * Meter,
+            height = infraScalar(5.0) * Meter,
             axis = Axis3.Z,
-            weight = 2.0 * Kilogram,
+            weight = infraScalar(2.0) * Kilogram,
             enabledAxes = listOf(Axis3.X, Axis3.Z)
         )
 
         val defaultGeometry = column.geometry()
         val axisXGeometry = column.geometry(Axis3.X)
-        assertTrue(defaultGeometry.radius eq (1.0 * Meter))
-        assertTrue(defaultGeometry.height eq (5.0 * Meter))
+        assertTrue(defaultGeometry.radius eq (infraScalar(1.0) * Meter))
+        assertTrue(defaultGeometry.height eq (infraScalar(5.0) * Meter))
         assertEquals(Axis3.Z, defaultGeometry.axis)
         assertEquals(Axis3.X, axisXGeometry.axis)
 
@@ -192,3 +192,4 @@ class Bpp3dGeometryWrapperCompatibilityTest {
         assertEquals(QuantityAxisPermutation3.YZX, Orientation.LieRotated.toAxisPermutation3())
     }
 }
+

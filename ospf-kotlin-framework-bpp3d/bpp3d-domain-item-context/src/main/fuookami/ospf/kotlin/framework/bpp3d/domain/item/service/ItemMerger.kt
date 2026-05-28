@@ -198,7 +198,7 @@ data object ItemMerger {
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = MergeScalar.infinity
+        restWeight: MergeScalar = legacyInfinity()
     ): Pair<List<Pile>, List<Item>> {
         val averagePileBottomArea = items.fold(MergeScalar.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
@@ -218,7 +218,7 @@ data object ItemMerger {
                 val visited = enabledItems.map { false }.toMutableList()
                 val pileItems = arrayListOf(thisBottomItem)
                 for (j in enabledItems.indices) {
-                    if (pileItems.sumOf { it.weight } geq averagePileWeight) {
+                    if (pileItems.sumOfQuantity { it.weight } geq averagePileWeight) {
                         break
                     }
 
@@ -227,7 +227,7 @@ data object ItemMerger {
                             bottomItem = pileItems.last(),
                             layer = layer,
                             height = height,
-                            space = space.restSpace(vector3(y = pileItems.sumOf { it.height }))
+                            space = space.restSpace(vector3(y = pileItems.sumOfQuantity { it.height }))
                         ) && (((enabledItems[j].width - pileItems.last().width).abs() + (enabledItems[j].depth - pileItems.last().depth).abs()) leq scalar(50.0))
                     ) {
                         visited[j] = true
@@ -244,7 +244,7 @@ data object ItemMerger {
                             bottomItem = pileItems.last(),
                             layer = layer,
                             height = height,
-                            space = space.restSpace(vector3(y = pileItems.sumOf { it.height }))
+                            space = space.restSpace(vector3(y = pileItems.sumOfQuantity { it.height }))
                         )
                         && (((enabledItems[j].width - pileItems.last().width).abs() + (enabledItems[j].depth - pileItems.last().depth).abs()) leq scalar(50.0))
                     ) {
@@ -272,7 +272,7 @@ data object ItemMerger {
     fun mergeBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = MergeScalar.infinity,
+        restWeight: MergeScalar = legacyInfinity(),
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
         val mergedItems = ArrayList<SimpleBlock>()
@@ -369,7 +369,7 @@ data object ItemMerger {
         items: List<Item>,
         space: AbstractContainer3Shape,
         patterns: List<Pattern>,
-        restWeight: MergeScalar = MergeScalar.infinity,
+        restWeight: MergeScalar = legacyInfinity(),
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
         val mergedItems = ArrayList<CommonBlock>()
@@ -436,7 +436,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = MergeScalar.infinity,
+        restWeight: MergeScalar = legacyInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
@@ -451,7 +451,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = MergeScalar.infinity,
+        restWeight: MergeScalar = legacyInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
         val restItems = items.toMutableMap()

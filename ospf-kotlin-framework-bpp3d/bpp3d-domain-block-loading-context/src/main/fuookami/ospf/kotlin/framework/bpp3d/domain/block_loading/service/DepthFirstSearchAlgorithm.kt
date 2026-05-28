@@ -12,9 +12,6 @@ import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.x
-import fuookami.ospf.kotlin.math.geometry.y
-import fuookami.ospf.kotlin.math.geometry.z
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -23,7 +20,14 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.math.geometry.point3
+
+private fun infraPoint3(
+    x: InfraNumber = infraZero(),
+    y: InfraNumber = infraZero(),
+    z: InfraNumber = infraZero()
+): Point<Dim3, InfraNumber> {
+    return Point(x, y, z)
+}
 
 internal fun fitness(space: Space, block: Block): Quantity<InfraNumber> {
     return when (space.forwardLink?.first ?: Side) {
@@ -53,19 +57,19 @@ internal fun compareWithFitness(
 }
 
 private fun compareSpace(lhs: Space, rhs: Space): Order {
-    when (val result = lhs.position.z ord rhs.position.z) {
+    when (val result = lhs.position[2] ord rhs.position[2]) {
         Order.Equal -> {}
         else -> {
             return result
         }
     }
-    when (val result = lhs.position.x ord rhs.position.x) {
+    when (val result = lhs.position[0] ord rhs.position[0]) {
         Order.Equal -> {}
         else -> {
             return result
         }
     }
-    return lhs.position.y ord rhs.position.y
+    return lhs.position[1] ord rhs.position[1]
 }
 
 class DepthFirstSearchAlgorithm(
@@ -247,7 +251,7 @@ class DepthFirstSearchAlgorithm(
 
         val stack = arrayListOf(
             if (fixedSpaces.isEmpty()) {
-                Pair(mutableListOf(Space(point3(), shape)), emptyList())
+                Pair(mutableListOf(Space(infraPoint3(), shape)), emptyList())
             } else {
                 fixedSpaces
                     .flatMap {
@@ -422,7 +426,7 @@ class DepthFirstSearchAlgorithm(
 
         val restItems = items.toMutableMap()
         val enabledSpaces = if (fixedSpaces.isEmpty()) {
-            listOf(Space(point3(), shape))
+            listOf(Space(infraPoint3(), shape))
         } else {
             fixedSpaces
                 .flatMap {

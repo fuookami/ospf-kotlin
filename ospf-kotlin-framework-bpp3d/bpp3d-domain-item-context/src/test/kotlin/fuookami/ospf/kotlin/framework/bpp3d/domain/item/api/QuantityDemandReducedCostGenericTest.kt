@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -29,8 +28,8 @@ class QuantityDemandReducedCostGenericTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -42,17 +41,17 @@ class QuantityDemandReducedCostGenericTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-G64",
-            weight = 0.5 * Kilogram
+            weight = infraScalar(0.5) * Kilogram
         )
         val item = Item(
             id = "item-rc-g64",
             name = "item-rc-g64",
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = 1.0 * Meter,
-                    height = 1.0 * Meter,
-                    depth = 1.0 * Meter,
-                    weight = 0.2 * Kilogram,
+                    width = infraScalar(1.0) * Meter,
+                    height = infraScalar(1.0) * Meter,
+                    depth = infraScalar(1.0) * Meter,
+                    weight = infraScalar(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(3))
@@ -65,9 +64,9 @@ class QuantityDemandReducedCostGenericTest {
 
         val reducedCost = item.reducedCost(
             demandEntries = listOf(Pair(Bpp3dDemandMode.ItemMaterialAmount, materialKey)),
-            shadowPriceOf = { _, _ -> Flt64(2.0) },
-            amountToScalar = { amount -> Flt64(amount.toULong().toDouble()) },
-            zero = Flt64.zero
+            shadowPriceOf = { _, _ -> InfraNumber(2.0) },
+            amountToScalar = { amount -> InfraNumber(amount.toULong().toDouble()) },
+            zero = InfraNumber.zero
         )
 
         assertEquals(6.0, reducedCost.toDouble(), 1e-10)
@@ -129,17 +128,17 @@ class QuantityDemandReducedCostGenericTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-MAP",
-            weight = 0.5 * Kilogram
+            weight = infraScalar(0.5) * Kilogram
         )
         val item = Item(
             id = "item-rc-map",
             name = "item-rc-map",
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = 1.0 * Meter,
-                    height = 1.0 * Meter,
-                    depth = 1.0 * Meter,
-                    weight = 0.2 * Kilogram,
+                    width = infraScalar(1.0) * Meter,
+                    height = infraScalar(1.0) * Meter,
+                    depth = infraScalar(1.0) * Meter,
+                    weight = infraScalar(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(2))
@@ -153,15 +152,16 @@ class QuantityDemandReducedCostGenericTest {
             mode = Bpp3dDemandMode.ItemMaterialAmount,
             key = materialKey
         )
-        val shadowPrices = mapOf(demandKey to Flt64(3.0))
+        val shadowPrices = mapOf(demandKey to InfraNumber(3.0))
 
         val reducedCost = item.reducedCost(
             demandEntries = listOf(demandKey),
             shadowPrices = shadowPrices,
-            amountToScalar = { amount -> Flt64(amount.toULong().toDouble()) },
-            zero = Flt64.zero
+            amountToScalar = { amount -> InfraNumber(amount.toULong().toDouble()) },
+            zero = InfraNumber.zero
         )
 
         assertEquals(6.0, reducedCost.toDouble(), 1e-10)
     }
 }
+

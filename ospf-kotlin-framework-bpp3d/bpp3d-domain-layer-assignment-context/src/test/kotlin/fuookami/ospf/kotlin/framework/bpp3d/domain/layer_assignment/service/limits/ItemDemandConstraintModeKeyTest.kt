@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
@@ -47,16 +47,16 @@ import kotlin.test.assertTrue
 class ItemDemandConstraintModeKeyTest {
     private val cargo = object : AbstractCargoAttribute {}
 
-    private fun fixedRange(value: Flt64): ValueRange<Flt64> {
-        return ValueRange(value, value, Interval.Closed, Interval.Closed, Flt64).value!!
+    private fun fixedRange(value: InfraNumber): ValueRange<InfraNumber> {
+        return ValueRange(value, value, Interval.Closed, Interval.Closed, InfraNumber).value!!
     }
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -71,10 +71,10 @@ class ItemDemandConstraintModeKeyTest {
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = 1.0 * Meter,
-                    height = 1.0 * Meter,
-                    depth = 1.0 * Meter,
-                    weight = 0.1 * Kilogram,
+                    width = infraScalar(1.0) * Meter,
+                    height = infraScalar(1.0) * Meter,
+                    depth = infraScalar(1.0) * Meter,
+                    weight = infraScalar(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to materialAmount)
@@ -86,24 +86,24 @@ class ItemDemandConstraintModeKeyTest {
     }
 
     private fun testLoad(demandEntries: List<Bpp3dDemandEntry>): Load {
-        val symbols = LinearExpressionSymbols1<Flt64>(
+        val symbols = LinearExpressionSymbols1<InfraNumber>(
             "load",
             Shape1(demandEntries.size)
         ) { i, _ ->
-            LinearExpressionSymbol(Flt64.zero, name = "load_$i")
+            LinearExpressionSymbol(InfraNumber.zero, name = "load_$i")
         }
         return object : Load {
             override val demandEntries: List<Bpp3dDemandEntry> = demandEntries
             override val demandValueAdapter = DefaultBpp3dSolverValueAdapter
-            override val load: LinearIntermediateSymbols1<Flt64> = symbols
-            override val overLoad: LinearIntermediateSymbols1<Flt64> = symbols
-            override val lessLoad: LinearIntermediateSymbols1<Flt64> = symbols
+            override val load: LinearIntermediateSymbols1<InfraNumber> = symbols
+            override val overLoad: LinearIntermediateSymbols1<InfraNumber> = symbols
+            override val lessLoad: LinearIntermediateSymbols1<InfraNumber> = symbols
             override val overEnabled: Boolean = true
             override val lessEnabled: Boolean = true
         }
     }
 
-    private fun demandModesInModel(model: LinearMetaModel<Flt64>): Set<Bpp3dDemandMode> {
+    private fun demandModesInModel(model: LinearMetaModel<InfraNumber>): Set<Bpp3dDemandMode> {
         return model.relationConstraints.mapNotNull {
             (it.args as? DemandShadowPriceKey)?.mode
         }.toSet()
@@ -116,14 +116,17 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-AMOUNT",
-            weight = 1.0 * Kilogram
+            weight = infraScalar(1.0) * Kilogram
         )
         val load = testLoad(
             demandEntriesFromMaterialAmounts(
                 materials = listOf(Pair(material, UInt64(5)))
             )
         )
-        val model = LinearMetaModel()
+        val model = LinearMetaModel(
+            name = "material-amount-only-demand",
+            converter = InfraNumber
+        )
         val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
 
         assertTrue(constraint(model) is Ok)
@@ -137,14 +140,17 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT",
-            weight = 2.0 * Kilogram
+            weight = infraScalar(2.0) * Kilogram
         )
         val load = testLoad(
             demandEntriesFromMaterialWeights(
-                materials = listOf(Pair(material, 12.5 * Kilogram))
+                materials = listOf(Pair(material, infraScalar(12.5) * Kilogram))
             )
         )
-        val model = LinearMetaModel()
+        val model = LinearMetaModel(
+            name = "material-weight-only-demand",
+            converter = InfraNumber
+        )
         val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
 
         assertTrue(constraint(model) is Ok)
@@ -158,7 +164,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-MIX",
-            weight = 3.0 * Kilogram
+            weight = infraScalar(3.0) * Kilogram
         )
         val item = createItem("item-mix", material, UInt64(3))
         val load = testLoad(
@@ -166,12 +172,15 @@ class ItemDemandConstraintModeKeyTest {
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,
                     key = Bpp3dDemandKey.Item(item),
-                    demand = Flt64.one,
-                    demandRange = fixedRange(Flt64.one)
+                    demand = InfraNumber.one,
+                    demandRange = fixedRange(InfraNumber.one)
                 )
-            ) + demandEntriesFromMaterialWeights(listOf(Pair(material, 9.0 * Kilogram)))
+            ) + demandEntriesFromMaterialWeights(listOf(Pair(material, infraScalar(9.0) * Kilogram)))
         )
-        val model = LinearMetaModel()
+        val model = LinearMetaModel(
+            name = "mixed-demand-modes",
+            converter = InfraNumber
+        )
         val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
 
         assertTrue(constraint(model) is Ok)
@@ -188,7 +197,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "A",
-            weight = 5.0 * Kilogram
+            weight = infraScalar(5.0) * Kilogram
         )
         val item = createItem("item-1", material, UInt64(2))
 
@@ -205,28 +214,28 @@ class ItemDemandConstraintModeKeyTest {
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,
                     key = Bpp3dDemandKey.Item(item),
-                    demand = Flt64.one,
-                    demandRange = fixedRange(Flt64.one)
+                    demand = InfraNumber.one,
+                    demandRange = fixedRange(InfraNumber.one)
                 ),
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialAmount,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = Flt64(2.0),
-                    demandRange = fixedRange(Flt64(2.0))
+                    demand = InfraNumber(2.0),
+                    demandRange = fixedRange(InfraNumber(2.0))
                 ),
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialWeight,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = Flt64(10.0),
-                    demandRange = fixedRange(Flt64(10.0))
+                    demand = InfraNumber(10.0),
+                    demandRange = fixedRange(InfraNumber(10.0))
                 )
             )
             override val demandValueAdapter = DefaultBpp3dSolverValueAdapter
-            override val load: LinearIntermediateSymbols1<Flt64>
+            override val load: LinearIntermediateSymbols1<InfraNumber>
                 get() = error("not used in this test")
-            override val overLoad: LinearIntermediateSymbols1<Flt64>
+            override val overLoad: LinearIntermediateSymbols1<InfraNumber>
                 get() = error("not used in this test")
-            override val lessLoad: LinearIntermediateSymbols1<Flt64>
+            override val lessLoad: LinearIntermediateSymbols1<InfraNumber>
                 get() = error("not used in this test")
             override val overEnabled: Boolean = true
             override val lessEnabled: Boolean = true
@@ -252,12 +261,12 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-ACTIVE",
-            weight = 4.0 * Kilogram
+            weight = infraScalar(4.0) * Kilogram
         )
         val item = createItem("item-active", material, UInt64(3))
         val load = testLoad(
             demandEntriesFromMaterialWeights(
-                materials = listOf(Pair(material, 12.0 * Kilogram))
+                materials = listOf(Pair(material, infraScalar(12.0) * Kilogram))
             )
         )
         val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
@@ -277,3 +286,5 @@ class ItemDemandConstraintModeKeyTest {
         assertEquals(24.0, reducedCost.toDouble(), 1e-10)
     }
 }
+
+

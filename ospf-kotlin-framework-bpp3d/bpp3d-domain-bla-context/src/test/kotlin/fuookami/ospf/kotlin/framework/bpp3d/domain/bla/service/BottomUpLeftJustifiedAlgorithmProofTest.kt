@@ -9,10 +9,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Bottom
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PlaneProjection
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -27,8 +28,8 @@ class BottomUpLeftJustifiedAlgorithmProofTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -37,10 +38,10 @@ class BottomUpLeftJustifiedAlgorithmProofTest {
         return ActualItem(
             id = id,
             name = id,
-            width = 1.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 1.0 * Meter,
-            weight = 1.0 * Kilogram,
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute()
@@ -51,7 +52,7 @@ class BottomUpLeftJustifiedAlgorithmProofTest {
     fun singleProjectionShouldProduceAPlacement() = runBlocking {
         val projection = PlaneProjection(item("item-1").view(), Bottom)
         val algorithm = BottomUpLeftJustifiedAlgorithm(
-            space = Container2Shape(length = 5.0 * Meter, width = 5.0 * Meter, plane = Bottom),
+            space = Container2Shape(length = infraScalar(5.0) * Meter, width = infraScalar(5.0) * Meter, plane = Bottom),
             plane = Bottom
         )
 
@@ -65,4 +66,3 @@ class BottomUpLeftJustifiedAlgorithmProofTest {
         assertEquals(0.0, placement.y.value.toDouble(), 1e-10)
     }
 }
-

@@ -7,8 +7,22 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.geometry.point3
-import fuookami.ospf.kotlin.math.geometry.vector3
+
+private fun infraPoint3(
+    x: InfraNumber = infraZero(),
+    y: InfraNumber = infraZero(),
+    z: InfraNumber = infraZero()
+): Point<Dim3, InfraNumber> {
+    return Point(x, y, z)
+}
+
+private fun infraVector3(
+    x: InfraNumber = infraZero(),
+    y: InfraNumber = infraZero(),
+    z: InfraNumber = infraZero()
+): Vector<Dim3, InfraNumber> {
+    return Vector(x, y, z)
+}
 
 data class Space(
     val position: Point<Dim3, InfraNumber>,
@@ -25,7 +39,7 @@ data class Space(
         fun from(
             blocks: List<BlockPlacement3>,
             shape: AbstractContainer3Shape = Container3Shape(),
-            offset: Point<Dim3, InfraNumber> = point3()
+            offset: Point<Dim3, InfraNumber> = infraPoint3()
         ): List<Space>? {
             val absoluteBlocks = blocks.map { BlockPlacement3(it.view.copy(), it.position + offset) }
             val spaces = ArrayList<Space>()
@@ -57,9 +71,9 @@ data class Space(
     val height get() = block?.height ?: shape.height
     val depth get() = block?.depth ?: shape.depth
 
-    val x by position::x
-    val y by position::y
-    val z by position::z
+    val x get() = position[0]
+    val y get() = position[1]
+    val z get() = position[2]
 
     val maxX get() = x + width
     val maxY get() = y + height
@@ -85,7 +99,7 @@ data class Space(
                         if (parentShape.width gr block.width) {
                             links.add(
                                 Space(
-                                    position = position + vector3(x = block.width.value),
+                                    position = position + infraVector3(x = block.width.value),
                                     shape = Container3Shape(
                                         width = parentShape.width - block.width,
                                         height = parentShape.height,
@@ -98,7 +112,7 @@ data class Space(
                         if (block.topFlat && parentShape.height gr block.height) {
                             links.add(
                                 Space(
-                                    position = position + vector3(y = block.height.value),
+                                    position = position + infraVector3(y = block.height.value),
                                     shape = Container3Shape(
                                         width = block.width,
                                         height = parentShape.height - block.height,
@@ -111,7 +125,7 @@ data class Space(
                         if (parentShape.depth gr block.depth) {
                             links.add(
                                 Space(
-                                    position = position + vector3(z = block.depth.value),
+                                    position = position + infraVector3(z = block.depth.value),
                                     shape = Container3Shape(
                                         width = parentShape.width,
                                         height = parentShape.height,
@@ -134,7 +148,7 @@ data class Space(
             val spaces = ArrayList<Space>()
             var forwardSpace = forwardLink
             while (forwardSpace != null) {
-                if (forwardSpace.second.position.y eq infraZero() && forwardSpace.first != Bottom) {
+                if (forwardSpace.second.position[1] eq infraZero() && forwardSpace.first != Bottom) {
                     break
                 }
                 if (forwardSpace.first == Bottom) {

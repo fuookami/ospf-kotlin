@@ -16,13 +16,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -40,8 +40,8 @@ class PackerAndRendererAdapterTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -49,10 +49,10 @@ class PackerAndRendererAdapterTest {
     private fun item(id: String, material: Material): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = 1.0 * Meter,
-                height = 1.0 * Meter,
-                depth = 1.0 * Meter,
-                weight = 1.0 * Kilogram,
+                width = infraScalar(1.0) * Meter,
+                height = infraScalar(1.0) * Meter,
+                depth = infraScalar(1.0) * Meter,
+                weight = infraScalar(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -69,10 +69,10 @@ class PackerAndRendererAdapterTest {
 
     private fun layerBin(items: List<ActualItem>): Bin<BinLayer> {
         val binType = BinType(
-            width = 3.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 3.0 * Meter,
-            capacity = 100.0 * Kilogram,
+            width = infraScalar(3.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(3.0) * Meter,
+            capacity = infraScalar(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-A"
@@ -80,7 +80,11 @@ class PackerAndRendererAdapterTest {
         val placements = items.mapIndexed { index, item ->
             QuantityPlacement3(
                 view = item.view(Orientation.Upright),
-                position = point3(x = index.toDouble() * Meter, y = 0.0 * Meter, z = 0.0 * Meter)
+                position = point3(
+                    x = infraScalar(index.toDouble()) * Meter,
+                    y = infraScalar(0.0) * Meter,
+                    z = infraScalar(0.0) * Meter
+                )
             )
         }
         val layer = BinLayer(
@@ -108,7 +112,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-1",
-            weight = 0.5 * Kilogram
+            weight = infraScalar(0.5) * Kilogram
         )
         val bin = layerBin(listOf(item("item-1", material), item("item-2", material)))
 
@@ -124,6 +128,6 @@ class PackerAndRendererAdapterTest {
         assertEquals("1", schema.kpi["material_count"])
         assertEquals(1, schema.loadingPlans.size)
         assertEquals(2, schema.loadingPlans.first().items.size)
-        assertTrue(schema.loadingPlans.first().loadingRate > FltX.zero)
+        assertTrue(schema.loadingPlans.first().loadingRate > InfraNumber.zero)
     }
 }

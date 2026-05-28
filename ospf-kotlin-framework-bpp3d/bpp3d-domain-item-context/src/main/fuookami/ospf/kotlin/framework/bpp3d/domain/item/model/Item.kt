@@ -17,9 +17,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.x
-import fuookami.ospf.kotlin.math.geometry.y
-import fuookami.ospf.kotlin.math.geometry.z
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlinx.coroutines.*
 
@@ -302,9 +299,9 @@ open class PatternedItem(
             return Triple(
                 PatternedItem(
                     actualItems = actualItems,
-                width = pattern.shape.width + deformation.x,
-                height = pattern.shape.height + deformation.y,
-                depth = pattern.shape.depth + deformation.z,
+                width = pattern.shape.width + deformation[0],
+                height = pattern.shape.height + deformation[1],
+                depth = pattern.shape.depth + deformation[2],
                 weight = actualItems.sumOf { it.first.weight * InfraNumber(it.second.toULong().toDouble()) } / InfraNumber(amount.toULong().toDouble()),
                 enabledOrientations = Orientation.merge(actualItems.first().first, pattern.enabledOrientations),
                 batchNo = pattern.batchNo,

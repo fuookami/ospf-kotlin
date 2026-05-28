@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.GenericBpp3dDemandKey
@@ -21,7 +21,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -40,8 +39,8 @@ class FltXDirectCompileProofTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -50,8 +49,8 @@ class FltXDirectCompileProofTest {
         return value * unit
     }
 
-    private fun toFlt64Quantity(value: Quantity<FltX>): Quantity<Flt64> {
-        return Quantity(Flt64(value.value.toDouble()), value.unit)
+    private fun toFlt64Quantity(value: Quantity<FltX>): Quantity<InfraNumber> {
+        return Quantity(InfraNumber(value.value.toDouble()), value.unit)
     }
 
     @Test
@@ -114,7 +113,7 @@ class FltXDirectCompileProofTest {
             is GenericBpp3dDemandValue.Amount -> adapter.amountToSolver(amountValue.value)
             else -> error("Unexpected amount statistics value: $amountValue")
         }
-        assertEquals(Flt64(6.0), amountSolverValue)
+        assertEquals(InfraNumber(6.0), amountSolverValue)
 
         val layerWeightStats = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         val materialNo = when (val weightKey = layerWeightStats.keys.single()) {
@@ -127,7 +126,9 @@ class FltXDirectCompileProofTest {
             is GenericBpp3dDemandValue.Weight -> adapter.weightToSolver(toFlt64Quantity(weightValue.value))
             else -> error("Unexpected weight statistics value: $weightValue")
         }
-        assertEquals(Flt64(10.0), weightSolverValue)
+        assertEquals(InfraNumber(10.0), weightSolverValue)
     }
 }
+
+
 

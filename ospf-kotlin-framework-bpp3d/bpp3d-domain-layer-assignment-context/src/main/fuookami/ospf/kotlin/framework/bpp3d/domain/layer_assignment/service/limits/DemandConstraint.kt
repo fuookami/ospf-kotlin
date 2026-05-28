@@ -26,6 +26,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -35,6 +36,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.*
+
+private val shadowPriceConverter = IntoValue.fromConverter(InfraNumber)
 
 data class DemandShadowPriceKey(
     val mode: Bpp3dDemandMode,
@@ -180,7 +183,7 @@ open class DemandConstraint<
         for (key in keys) {
             val shadowPrice = map[key]?.price
             if (shadowPrice != null) {
-                return shadowPrice
+                return InfraNumber(shadowPrice.toDouble())
             }
         }
         return layerAssignmentZero()
@@ -263,7 +266,9 @@ open class DemandConstraint<
 
     override fun extractor(): AbstractBPP3DShadowPriceExtractor<Args, T>? {
         if (shadowPriceExtractor != null) {
-            return { _, args -> shadowPriceExtractor.invoke(args) ?: layerAssignmentZero() }
+            return { _, args ->
+                shadowPriceConverter.fromValue(shadowPriceExtractor.invoke(args) ?: layerAssignmentZero())
+            }
         }
 
         if (demandEntries.isEmpty()) {
@@ -287,7 +292,7 @@ open class DemandConstraint<
                     price += shadow * load.demandValueAdapter.toSolver(value)
                 }
             }
-            price
+            shadowPriceConverter.fromValue(price)
         }
     }
 

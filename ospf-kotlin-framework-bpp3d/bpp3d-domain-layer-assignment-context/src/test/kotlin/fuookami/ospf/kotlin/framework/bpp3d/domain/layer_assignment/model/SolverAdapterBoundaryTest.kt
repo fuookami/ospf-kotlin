@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -29,8 +29,8 @@ class SolverAdapterBoundaryTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(fuookami.ospf.kotlin.math.algebra.number.Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(fuookami.ospf.kotlin.math.algebra.number.Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -39,10 +39,10 @@ class SolverAdapterBoundaryTest {
         return ActualItem(
             id = id,
             name = id,
-            width = 1.0 * Meter,
-            height = 1.0 * Meter,
-            depth = 1.0 * Meter,
-            weight = 1.0 * Kilogram,
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute()
@@ -52,8 +52,8 @@ class SolverAdapterBoundaryTest {
     @Test
     fun defaultAdapterShouldKeepLegacyFlt64Path() {
         assertEquals(3.0, DefaultBpp3dSolverValueAdapter.amountToSolver(UInt64(3)).toDouble(), 1e-10)
-        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.lengthToSolver(2.5 * Meter).toDouble(), 1e-10)
-        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.weightToSolver(2.5 * Kilogram).toDouble(), 1e-10)
+        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.lengthToSolver(infraScalar(2.5) * Meter).toDouble(), 1e-10)
+        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.weightToSolver(infraScalar(2.5) * Kilogram).toDouble(), 1e-10)
     }
 
     @Test
@@ -96,11 +96,11 @@ class SolverAdapterBoundaryTest {
         )
 
         assertEquals(6.0, adapter.amountToSolver(UInt64(3)).toDouble(), 1e-10)
-        assertEquals(6.0, adapter.lengthToSolver(2.0 * Meter).toDouble(), 1e-10)
-        assertEquals(8.0, adapter.areaToSolver(2.0 * SquareMeter).toDouble(), 1e-10)
-        assertEquals(10.0, adapter.volumeToSolver(2.0 * fuookami.ospf.kotlin.quantities.unit.CubicMeter).toDouble(), 1e-10)
-        assertEquals(12.0, adapter.depthToSolver(2.0 * Meter).toDouble(), 1e-10)
-        assertEquals(14.0, adapter.weightToSolver(2.0 * Kilogram).toDouble(), 1e-10)
+        assertEquals(6.0, adapter.lengthToSolver(infraScalar(2.0) * Meter).toDouble(), 1e-10)
+        assertEquals(8.0, adapter.areaToSolver(infraScalar(2.0) * SquareMeter).toDouble(), 1e-10)
+        assertEquals(10.0, adapter.volumeToSolver(infraScalar(2.0) * fuookami.ospf.kotlin.quantities.unit.CubicMeter).toDouble(), 1e-10)
+        assertEquals(12.0, adapter.depthToSolver(infraScalar(2.0) * Meter).toDouble(), 1e-10)
+        assertEquals(14.0, adapter.weightToSolver(infraScalar(2.0) * Kilogram).toDouble(), 1e-10)
     }
 
     @Test
@@ -143,3 +143,5 @@ class SolverAdapterBoundaryTest {
         }
     }
 }
+
+

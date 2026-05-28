@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Predicate
-import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
@@ -166,7 +165,11 @@ interface Container2<
     }
 
     fun amount(unit: AbstractCuboid<InfraNumber>) = amounts[unit] ?: UInt64.zero
-    fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
+    fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>): UInt64 =
+        amounts.entries
+            .asSequence()
+            .filter { predicate(it.key) }
+            .fold(UInt64.zero) { acc, entry -> acc + entry.value }
     fun contains(unit: AbstractCuboid<InfraNumber>) = amounts[unit]?.let { it != UInt64.zero } ?: false
     fun contains(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }
@@ -294,7 +297,11 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraNumber>, Copyable<
 
     fun enabled(unit: AbstractCuboid<InfraNumber>, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
     fun amount(unit: AbstractCuboid<InfraNumber>) = amounts[unit] ?: UInt64.zero
-    fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.filter { predicate(it.key) }.sumOf { it.value }
+    fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>): UInt64 =
+        amounts.entries
+            .asSequence()
+            .filter { predicate(it.key) }
+            .fold(UInt64.zero) { acc, entry -> acc + entry.value }
     fun contains(unit: AbstractCuboid<InfraNumber>) = amounts[unit]?.let { it != UInt64.zero } ?: false
     fun contains(predicate: Predicate<AbstractCuboid<InfraNumber>>) = amounts.entries.any { predicate(it.key) && it.value != UInt64.zero }
 }

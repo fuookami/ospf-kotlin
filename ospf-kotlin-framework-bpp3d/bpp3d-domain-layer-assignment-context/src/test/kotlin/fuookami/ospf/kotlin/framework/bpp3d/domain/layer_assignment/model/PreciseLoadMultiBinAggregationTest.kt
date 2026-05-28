@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
@@ -26,7 +26,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
@@ -43,8 +42,8 @@ class PreciseLoadMultiBinAggregationTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -52,10 +51,10 @@ class PreciseLoadMultiBinAggregationTest {
     private fun item(id: String, material: Material): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = 1.0 * Meter,
-                height = 1.0 * Meter,
-                depth = 1.0 * Meter,
-                weight = 1.0 * Kilogram,
+                width = infraScalar(1.0) * Meter,
+                height = infraScalar(1.0) * Meter,
+                depth = infraScalar(1.0) * Meter,
+                weight = infraScalar(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -77,14 +76,14 @@ class PreciseLoadMultiBinAggregationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-LOAD-MULTI-BIN",
-            weight = 1.0 * Kilogram
+            weight = infraScalar(1.0) * Kilogram
         )
         val actualItem = item("item-load-multi-bin", material)
         val sharedBinType = BinType(
-            width = 2.0 * Meter,
-            height = 2.0 * Meter,
-            depth = 2.0 * Meter,
-            capacity = 20.0 * Kilogram,
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LOAD-MULTI-BIN"
@@ -113,7 +112,7 @@ class PreciseLoadMultiBinAggregationTest {
                 batchNo = BatchNo("B-LOAD-MULTI-BIN-1")
             )
         )
-        val demandValue = Flt64.one
+        val demandValue = InfraNumber.one
         val demandEntries = listOf(
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
@@ -124,7 +123,7 @@ class PreciseLoadMultiBinAggregationTest {
                     demandValue,
                     Interval.Closed,
                     Interval.Closed,
-                    Flt64
+                    InfraNumber
                 ).value!!
             )
         )
@@ -133,7 +132,10 @@ class PreciseLoadMultiBinAggregationTest {
             bins = bins,
             layers = listOf(layer)
         )
-        val model = LinearMetaModel()
+        val model = LinearMetaModel(
+            name = "precise-load-multi-bin-aggregation",
+            converter = InfraNumber
+        )
         assertTrue(assignment.register(model) is Ok)
 
         val load = PreciseLoad(
@@ -154,3 +156,5 @@ class PreciseLoadMultiBinAggregationTest {
         assertTrue(symbols.contains(assignment.x[1, 0].name))
     }
 }
+
+

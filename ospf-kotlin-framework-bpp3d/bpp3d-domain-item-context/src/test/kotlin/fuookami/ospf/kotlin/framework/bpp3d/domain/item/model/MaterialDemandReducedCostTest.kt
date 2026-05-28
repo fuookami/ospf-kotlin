@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
@@ -27,8 +27,8 @@ class MaterialDemandReducedCostTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -40,17 +40,17 @@ class MaterialDemandReducedCostTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC",
-            weight = 2.0 * Kilogram
+            weight = infraScalar(2.0) * Kilogram
         )
         val item = ActualItem(
             id = "item-rc",
             name = "item-rc",
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = 1.0 * Meter,
-                    height = 1.0 * Meter,
-                    depth = 1.0 * Meter,
-                    weight = 0.1 * Kilogram,
+                    width = infraScalar(1.0) * Meter,
+                    height = infraScalar(1.0) * Meter,
+                    depth = infraScalar(1.0) * Meter,
+                    weight = infraScalar(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(3))
@@ -70,12 +70,13 @@ class MaterialDemandReducedCostTest {
             cuboid = item,
             demandEntries = listOf(Pair(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))),
             shadowPriceOf = { mode, key ->
-                shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price ?: Flt64.zero
+                shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price?.toDouble()?.let(::InfraNumber)
+                    ?: legacyScalar(0.0)
             },
             demandValueToScalar = { value ->
                 when (value) {
                     is Bpp3dDemandValue.Amount -> legacyScalar(value.value.toULong().toDouble())
-                    is Bpp3dDemandValue.Weight -> value.value.value
+                    is Bpp3dDemandValue.Weight -> legacyScalar(value.value.value.toDouble())
                 }
             }
         )
@@ -83,3 +84,4 @@ class MaterialDemandReducedCostTest {
         assertEquals(6.0, reducedCost.toDouble(), 1e-10)
     }
 }
+

@@ -17,12 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter = object : IntoValue<InfraNumber> {
-    override fun intoValue(value: InfraNumber) = value
-    override val zero get() = InfraNumber.zero
-    override val one get() = InfraNumber.one
-    override fun fromValue(value: InfraNumber) = value
-}
+private val flt64Converter: IntoValue<InfraNumber> = IntoValue.fromConverter(InfraNumber)
 
 interface Capacity {
     val loadWeight: LinearIntermediateSymbols1<InfraNumber>

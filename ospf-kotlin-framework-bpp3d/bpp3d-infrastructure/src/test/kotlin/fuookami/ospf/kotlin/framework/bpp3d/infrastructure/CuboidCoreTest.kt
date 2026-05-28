@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.CubicMeter
@@ -25,13 +25,13 @@ class CuboidCoreTest {
     @Test
     fun abstractCuboidVolumeAndLinearDensityShouldKeepDimensions() {
         val box = Box(
-            width = 2.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 4.0 * Meter,
-            weight = 8.0 * Kilogram
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(4.0) * Meter,
+            weight = infraScalar(8.0) * Kilogram
         )
 
-        assertTrue(box.volume eq (24.0 * CubicMeter))
+        assertTrue(box.volume eq (infraScalar(24.0) * CubicMeter))
         assertEquals((Kilogram / Meter).quantity.dimensionSymbol(), box.linearDensity.unit.quantity.dimensionSymbol())
         assertEquals(2.0, box.linearDensity.value.toDouble(), 1e-10)
     }
@@ -39,37 +39,38 @@ class CuboidCoreTest {
     @Test
     fun bottomSupportPlusShouldWorkWithQuantity() {
         val lhs = BottomSupport(
-            area = 2.0 * SquareMeter,
-            weight = 3.0 * Kilogram
+            area = infraScalar(2.0) * SquareMeter,
+            weight = infraScalar(3.0) * Kilogram
         )
         val rhs = BottomSupport(
-            area = 1.5 * SquareMeter,
-            weight = 1.0 * Kilogram
+            area = infraScalar(1.5) * SquareMeter,
+            weight = infraScalar(1.0) * Kilogram
         )
         val sum = lhs + rhs
 
-        assertTrue(sum.area eq (3.5 * SquareMeter))
-        assertTrue(sum.weight eq (4.0 * Kilogram))
+        assertTrue(sum.area eq (infraScalar(3.5) * SquareMeter))
+        assertTrue(sum.weight eq (infraScalar(4.0) * Kilogram))
     }
 
     @Test
     fun cuboidViewShouldExposeOrientationDimensionsAsQuantity() {
         val box = Box(
-            width = 2.0 * Meter,
-            height = 3.0 * Meter,
-            depth = 4.0 * Meter,
-            weight = 1.0 * Kilogram
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(4.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram
         )
 
         val upright = box.view(Orientation.Upright)!!
         val rotated = box.view(Orientation.UprightRotated)!!
 
-        assertTrue(upright.width eq (2.0 * Meter))
-        assertTrue(upright.height eq (3.0 * Meter))
-        assertTrue(upright.depth eq (4.0 * Meter))
+        assertTrue(upright.width eq (infraScalar(2.0) * Meter))
+        assertTrue(upright.height eq (infraScalar(3.0) * Meter))
+        assertTrue(upright.depth eq (infraScalar(4.0) * Meter))
 
-        assertTrue(rotated.width eq (4.0 * Meter))
-        assertTrue(rotated.height eq (3.0 * Meter))
-        assertTrue(rotated.depth eq (2.0 * Meter))
+        assertTrue(rotated.width eq (infraScalar(4.0) * Meter))
+        assertTrue(rotated.height eq (infraScalar(3.0) * Meter))
+        assertTrue(rotated.depth eq (infraScalar(2.0) * Meter))
     }
 }
+
