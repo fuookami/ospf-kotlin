@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -186,5 +185,4 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
         }
     }
 }
-
 

@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.LayerAssignmentCompatScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.layerAssignmentCompatOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.layerAssignmentCompatProvider
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.layerAssignmentCompatZero
 
-typealias LayerAssignmentScalar = LegacyScalar
+typealias LayerAssignmentScalar = LayerAssignmentCompatScalar
 
-fun layerAssignmentOne(): LayerAssignmentScalar = legacyOne()
-fun layerAssignmentZero(): LayerAssignmentScalar = legacyZero()
+fun layerAssignmentOne(): LayerAssignmentScalar = layerAssignmentCompatOne()
+fun layerAssignmentZero(): LayerAssignmentScalar = layerAssignmentCompatZero()
+fun layerAssignmentScalarProvider() = layerAssignmentCompatProvider()

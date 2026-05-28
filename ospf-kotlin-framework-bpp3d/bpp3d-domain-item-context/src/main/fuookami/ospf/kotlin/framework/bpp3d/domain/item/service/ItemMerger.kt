@@ -3,11 +3,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -23,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 
-private typealias MergeScalar = LegacyScalar
+private typealias MergeScalar = ItemModelScalar
 private fun scalar(value: Number): MergeScalar = MergeScalar(value.toDouble())
 private fun scalar(value: ULong): MergeScalar = MergeScalar(value.toDouble())
 

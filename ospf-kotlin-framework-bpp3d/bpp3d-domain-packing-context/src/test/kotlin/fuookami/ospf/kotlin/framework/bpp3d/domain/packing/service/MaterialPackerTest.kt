@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -89,6 +90,26 @@ class MaterialPackerTest {
             ),
             candidates = listOf(
                 candidate("pack-1", Flt64.one, mapOf(material to UInt64.one))
+            )
+        )
+
+        assertEquals(UInt64(3), plan.normalizedDemands[material.key])
+        assertEquals(UInt64(3), plan.solveInfo.selectedPackageCount)
+        assertEquals(MaterialPackingStatus.Optimal, plan.solveInfo.status)
+    }
+
+    @Test
+    fun shouldConvertFltXWeightDemandToAmountByCeilRule() = runBlocking {
+        val material = material("M-2X", Flt64(2.0))
+        val plan = MaterialPacker().plan(
+            demands = listOf(
+                MaterialPackingDemand(
+                    material = material,
+                    weight = FltX(5.0) * Kilogram
+                )
+            ),
+            candidates = listOf(
+                candidate("pack-1x", Flt64.one, mapOf(material to UInt64.one))
             )
         )
 

@@ -6,17 +6,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.mergePackingProgramMaterialValues
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.plus
 
 sealed interface PackageSolutionLikeQuantity {
     data class Amount(val value: UInt64) : PackageSolutionLikeQuantity
-    data class Weight(val value: Quantity<Flt64>) : PackageSolutionLikeQuantity
-    data class AmountAndWeight(
+    data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : PackageSolutionLikeQuantity
+    data class AmountAndWeight<V : FloatingNumber<V>>(
         val amount: UInt64,
-        val weight: Quantity<Flt64>
+        val weight: Quantity<V>
     ) : PackageSolutionLikeQuantity
 }
 
@@ -35,31 +35,14 @@ private fun mergeMaterialValue(
     lhs: PackingProgramMaterialValue?,
     rhs: PackingProgramMaterialValue
 ): PackingProgramMaterialValue {
-    val lhsAmount = lhs?.amount
-    val rhsAmount = rhs.amount
-    val amount = when {
-        lhsAmount == null -> rhsAmount
-        rhsAmount == null -> lhsAmount
-        else -> lhsAmount + rhsAmount
-    }
-    val lhsWeight = lhs?.weight
-    val rhsWeight = rhs.weight
-    val weight = when {
-        lhsWeight == null -> rhsWeight
-        rhsWeight == null -> lhsWeight
-        else -> lhsWeight + rhsWeight
-    }
-    return PackingProgramMaterialValue(
-        amount = amount,
-        weight = weight
-    )
+    return mergePackingProgramMaterialValues(lhs, rhs)
 }
 
 private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMaterialValue {
     return when (this) {
         is PackageSolutionLikeQuantity.Amount -> PackingProgramMaterialValue(amount = value)
-        is PackageSolutionLikeQuantity.Weight -> PackingProgramMaterialValue(weight = value)
-        is PackageSolutionLikeQuantity.AmountAndWeight -> PackingProgramMaterialValue(
+        is PackageSolutionLikeQuantity.Weight<*> -> PackingProgramMaterialValue(weight = value)
+        is PackageSolutionLikeQuantity.AmountAndWeight<*> -> PackingProgramMaterialValue(
             amount = amount,
             weight = weight
         )

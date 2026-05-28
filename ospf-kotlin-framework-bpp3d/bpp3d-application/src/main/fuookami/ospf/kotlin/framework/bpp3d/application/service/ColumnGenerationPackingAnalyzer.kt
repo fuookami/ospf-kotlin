@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
@@ -10,13 +11,26 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRender
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.application.service.compat.ApplicationScalar
 
 data class ColumnGenerationPackingSnapshot(
     val bins: List<LayerBin>,
     val packingResult: PackingResult,
-    val schema: SchemaDTO
+    val schema: SchemaDTO,
+    val demandModeShadowPriceTotals: Map<String, ApplicationScalar> = emptyMap(),
+    val demandModeShadowPriceEntryCounts: Map<String, Int> = emptyMap()
 )
+
+private fun demandModeTag(mode: Bpp3dDemandMode): String {
+    return when (mode) {
+        is Bpp3dDemandMode.Item -> "item"
+        is Bpp3dDemandMode.Material -> "material"
+        is Bpp3dDemandMode.ItemAmount -> "item_amount"
+        is Bpp3dDemandMode.ItemWeight -> "item_weight"
+        is Bpp3dDemandMode.ItemMaterialAmount -> "material_amount"
+        is Bpp3dDemandMode.ItemMaterialWeight -> "material_weight"
+    }
+}
 
 class ColumnGenerationPackingAnalyzer(
     private val packer: Packer = Packer(),
@@ -24,11 +38,11 @@ class ColumnGenerationPackingAnalyzer(
     private val contextBuilder: (ColumnGenerationState<*>) -> PackingContext = { state ->
         PackingContext(info = mapOf("cg_iteration" to state.iteration.toString()))
     }
-) : ColumnGenerationSolutionAnalyzer<Flt64> {
+) : ColumnGenerationSolutionAnalyzer<ApplicationScalar> {
     var latest: ColumnGenerationPackingSnapshot? = null
         private set
 
-    override suspend fun analyze(state: ColumnGenerationState<Flt64>) {
+    override suspend fun analyze(state: ColumnGenerationState<ApplicationScalar>) {
         val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
@@ -49,10 +63,26 @@ class ColumnGenerationPackingAnalyzer(
             context = contextBuilder(state)
         )
         val schema = rendererAdapter.toSchema(packingResult)
+        val demandModeShadowPriceTotals = LinkedHashMap<String, ApplicationScalar>()
+        val demandModeShadowPriceEntryCounts = LinkedHashMap<String, Int>()
+        for ((key, value) in state.shadowPrices) {
+            val modeTag = demandModeTag(key.mode)
+            demandModeShadowPriceTotals[modeTag] = (demandModeShadowPriceTotals[modeTag] ?: ApplicationScalar.zero) + value
+            demandModeShadowPriceEntryCounts[modeTag] = (demandModeShadowPriceEntryCounts[modeTag] ?: 0) + 1
+        }
+        val schemaKpi = LinkedHashMap(schema.kpi)
+        for ((mode, total) in demandModeShadowPriceTotals) {
+            schemaKpi["shadow_price_mode_${mode}_total"] = total.toString()
+        }
+        for ((mode, count) in demandModeShadowPriceEntryCounts) {
+            schemaKpi["shadow_price_mode_${mode}_entry_count"] = count.toString()
+        }
         latest = ColumnGenerationPackingSnapshot(
             bins = bins,
             packingResult = packingResult,
-            schema = schema
+            schema = schema.copy(kpi = schemaKpi),
+            demandModeShadowPriceTotals = demandModeShadowPriceTotals,
+            demandModeShadowPriceEntryCounts = demandModeShadowPriceEntryCounts
         )
     }
 }

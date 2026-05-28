@@ -3,11 +3,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
@@ -24,7 +23,7 @@ import org.apache.logging.log4j.kotlin.logger
 
 
 
-private typealias HeightScalar = LegacyScalar
+private typealias HeightScalar = ItemModelScalar
 
 data object ItemHeightCombinator {
     private val logger = logger()

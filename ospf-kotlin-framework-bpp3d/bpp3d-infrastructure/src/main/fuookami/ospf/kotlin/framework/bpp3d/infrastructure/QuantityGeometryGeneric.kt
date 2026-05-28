@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
@@ -14,12 +13,12 @@ import fuookami.ospf.kotlin.utils.functional.Order
 private fun <V : FloatingNumber<V>> quantityBinary(
     lhs: Quantity<V>,
     rhs: Quantity<V>,
-    flt64Op: (Quantity<Flt64>, Quantity<Flt64>) -> Quantity<Flt64>,
+    flt64Op: (Quantity<InfraScalar>, Quantity<InfraScalar>) -> Quantity<InfraScalar>,
     fltXOp: (Quantity<FltX>, Quantity<FltX>) -> Quantity<FltX>,
     symbol: String
 ): Quantity<V> {
     return when (lhs.value) {
-        is Flt64 -> flt64Op(lhs as Quantity<Flt64>, rhs as Quantity<Flt64>) as Quantity<V>
+        is InfraScalar -> flt64Op(lhs as Quantity<InfraScalar>, rhs as Quantity<InfraScalar>) as Quantity<V>
         is FltX -> fltXOp(lhs as Quantity<FltX>, rhs as Quantity<FltX>) as Quantity<V>
         else -> throw IllegalArgumentException(
             "Unsupported quantity numeric type for '$symbol': ${lhs.value::class.simpleName}"

@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
@@ -17,20 +16,20 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter = object : IntoValue<Flt64> {
-    override fun intoValue(value: Flt64) = value
-    override val zero get() = Flt64.zero
-    override val one get() = Flt64.one
-    override fun fromValue(value: Flt64) = value
+private val flt64Converter = object : IntoValue<LayerAssignmentScalar> {
+    override fun intoValue(value: LayerAssignmentScalar) = value
+    override val zero get() = LayerAssignmentScalar.zero
+    override val one get() = LayerAssignmentScalar.one
+    override fun fromValue(value: LayerAssignmentScalar) = value
 }
 
 interface Capacity {
-    val loadWeight: LinearIntermediateSymbols1<Flt64>
-    val loadVolume: LinearIntermediateSymbols1<Flt64>
-    val loadDepth: LinearIntermediateSymbols1<Flt64>
+    val loadWeight: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    val loadVolume: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    val loadDepth: LinearIntermediateSymbols1<LayerAssignmentScalar>
 
-    val loadingRate: LinearIntermediateSymbols1<Flt64>
-    val tailLoadingRate: LinearIntermediateSymbols1<Flt64>
+    val loadingRate: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    val tailLoadingRate: LinearIntermediateSymbols1<LayerAssignmentScalar>
 }
 
 class PreciseLoadCapacity(
@@ -39,22 +38,22 @@ class PreciseLoadCapacity(
     private val assignment: PreciseAssignment,
     private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ) : Capacity {
-    override lateinit var loadWeight: LinearIntermediateSymbols1<Flt64>
-    override lateinit var loadVolume: LinearIntermediateSymbols1<Flt64>
-    override lateinit var loadDepth: LinearIntermediateSymbols1<Flt64>
+    override lateinit var loadWeight: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    override lateinit var loadVolume: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    override lateinit var loadDepth: LinearIntermediateSymbols1<LayerAssignmentScalar>
 
-    override lateinit var loadingRate: LinearIntermediateSymbols1<Flt64>
-    override lateinit var tailLoadingRate: LinearIntermediateSymbols1<Flt64>
+    override lateinit var loadingRate: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    override lateinit var tailLoadingRate: LinearIntermediateSymbols1<LayerAssignmentScalar>
 
-    fun register(model: MetaModel<Flt64>): Try {
+    fun register(model: MetaModel<LayerAssignmentScalar>): Try {
         if (!::loadWeight.isInitialized) {
-            loadWeight = LinearIntermediateSymbols1<Flt64>(
+            loadWeight = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 name = "load_weight",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.weightToSolver(layer.weight), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.weightToSolver(layer.weight), assignment.x[i, j])), LayerAssignmentScalar.zero)
                     }),
                     name = "load_weight_${i}"
                 )
@@ -73,13 +72,13 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadVolume.isInitialized) {
-            loadVolume = LinearIntermediateSymbols1<Flt64>(
+            loadVolume = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 name = "load_volume",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), LayerAssignmentScalar.zero)
                     }),
                     name = "load_volume_${i}"
                 )
@@ -98,13 +97,13 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadDepth.isInitialized) {
-            loadDepth = LinearIntermediateSymbols1<Flt64>(
+            loadDepth = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 name = "load_depth",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.depthToSolver(layer.depth), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.depthToSolver(layer.depth), assignment.x[i, j])), LayerAssignmentScalar.zero)
                     }),
                     name = "load_depth_${i}"
                 )
@@ -123,13 +122,13 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadingRate.isInitialized) {
-            loadingRate = LinearIntermediateSymbols1<Flt64>(
+            loadingRate = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 name = "loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), Flt64.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), LayerAssignmentScalar.zero)
                     }) / solverValueAdapter.volumeToSolver(bins[i].volume),
                     name = "loading_rate_${i}"
                 )
@@ -148,7 +147,7 @@ class PreciseLoadCapacity(
         }
 
         if (!::tailLoadingRate.isInitialized) {
-            tailLoadingRate = LinearIntermediateSymbols1<Flt64>(
+            tailLoadingRate = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 name = "tail_loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->

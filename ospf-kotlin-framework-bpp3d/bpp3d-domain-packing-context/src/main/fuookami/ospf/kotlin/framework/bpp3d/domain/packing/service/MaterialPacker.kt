@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.ceil
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -22,7 +23,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackageSelection
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackagedItem
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingQuantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingZero
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class MaterialPacker(
@@ -41,6 +45,18 @@ class MaterialPacker(
         val materials: List<Pair<MaterialKey, UInt64>>
     )
 
+    @Suppress("UNCHECKED_CAST")
+    private fun weightDemandToPackingQuantity(value: Quantity<*>): MaterialPackingQuantity {
+        return when (value.value) {
+            is MaterialPackingScalar -> value as MaterialPackingQuantity
+            is FltX -> {
+                val quantity = value as Quantity<FltX>
+                Quantity(MaterialPackingScalar(quantity.value.toDouble()), quantity.unit)
+            }
+            else -> throw IllegalArgumentException("Unsupported material packing weight scalar: ${value.value}")
+        }
+    }
+
     suspend fun plan(
         demands: List<MaterialPackingDemand>,
         candidates: List<MaterialPackingProgramCandidate>,
@@ -55,7 +71,7 @@ class MaterialPacker(
             val key = material.key
             materialByKey.putIfAbsent(key, material)
             normalizedDemands[key] = (normalizedDemands[key] ?: UInt64.zero) + demand.amount
-            val weightDemand = demand.weight
+            val weightDemand = demand.weight?.let { weightDemandToPackingQuantity(it) }
             if (weightDemand != null && weightDemand.value.toDouble() > 0.0) {
                 val unitWeight = material.weight
                 if (unitWeight.value.toDouble() <= 0.0) {
@@ -80,8 +96,8 @@ class MaterialPacker(
                 normalizedDemands = emptyMap(),
                 solveInfo = MaterialPackingSolveInfo(
                     status = MaterialPackingStatus.Optimal,
-                    objective = Flt64.zero,
-                    gap = Flt64.zero,
+                    objective = materialPackingZero(),
+                    gap = materialPackingZero(),
                     timeMillis = 0L,
                     selectedPackageCount = UInt64.zero,
                     rawStatus = "empty_demand"
@@ -314,8 +330,8 @@ class MaterialPacker(
         return PackageAttribute(
             packageType = candidate.program.packageType,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(materialPackingZero()),
+            hangingPolicy = AbsoluteHangingPolicy(materialPackingZero()),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }

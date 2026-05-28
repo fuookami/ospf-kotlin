@@ -4,11 +4,10 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -27,7 +26,7 @@ import kotlinx.coroutines.coroutineScope
 
 
 
-private typealias PackageScalar = LegacyScalar
+private typealias PackageScalar = ItemModelScalar
 private typealias PackageCuboid = AbstractCuboid<PackageScalar>
 private typealias PackageQuantity = Quantity<PackageScalar>
 private typealias PackageVector3 = Vector<Dim3, PackageScalar>

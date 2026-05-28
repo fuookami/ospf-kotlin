@@ -22,6 +22,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemPlacement as QuantityItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Package as QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.PackageShape as QuantityPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
@@ -37,6 +43,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
@@ -497,6 +504,236 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
+    fun standardExecutorsFactoryShouldSupportQuantityItemDemands() {
+        val quantityMaterial = QuantityMaterial(
+            no = MaterialNo("M-Q"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-Q",
+            weight = FltX.one * Kilogram
+        )
+        val quantityItem = QuantityItem(
+            id = "item-q",
+            name = "item-q",
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
+                    width = FltX.one * Meter,
+                    height = FltX.one * Meter,
+                    depth = FltX.one * Meter,
+                    weight = FltX.one * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(quantityMaterial to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-Q"),
+            packageAttribute = packageAttribute()
+        )
+        val legacyItemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
+        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
+        val legacyItem = quantityItem.toLegacy(materialCache, legacyItemCache)
+        val demandEntries = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(legacyItem),
+                demand = Flt64.one
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name = "stub-generic-factory-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                error("not used in this test")
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                error("not used in this test")
+            }
+        }
+
+        val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
+            solver = solver,
+            itemDemands = listOf(Pair(quantityItem, UInt64.one)),
+            demandEntries = demandEntries,
+            legacyItemCache = legacyItemCache,
+            materialCache = materialCache
+        )
+
+        assertNotNull(executors)
+    }
+
+    @Test
+    fun applicationRequestFactoryShouldSupportQuantityDemands() {
+        val quantityMaterial = QuantityMaterial(
+            no = MaterialNo("M-RQ"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-RQ",
+            weight = FltX(0.5) * Kilogram
+        )
+        val quantityItem = QuantityItem(
+            id = "item-rq",
+            name = "item-rq",
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
+                    width = FltX.one * Meter,
+                    height = FltX.one * Meter,
+                    depth = FltX.one * Meter,
+                    weight = FltX.one * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(quantityMaterial to UInt64(2))
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-RQ"),
+            packageAttribute = packageAttribute()
+        )
+        val quantityInitialLayer = QuantityBinLayer(
+            iteration = Int64.zero,
+            from = ColumnGenerationAlgorithmTest::class,
+            width = FltX(3) * Meter,
+            height = FltX(3) * Meter,
+            depth = FltX(3) * Meter,
+            units = listOf(
+                QuantityItemPlacement(
+                    item = quantityItem,
+                    x = FltX.zero * Meter,
+                    y = FltX.zero * Meter,
+                    z = FltX.zero * Meter,
+                    orientation = Orientation.Upright
+                )
+            )
+        )
+
+        val request = ColumnGenerationApplicationRequest.fromQuantityDemands(
+            itemDemands = listOf(Pair(quantityItem, UInt64(3))),
+            materialAmountDemands = listOf(Pair(quantityMaterial, UInt64(6))),
+            materialWeightDemands = listOf(Pair(quantityMaterial, FltX(2.5) * Kilogram)),
+            quantityInitialColumns = listOf(quantityInitialLayer)
+        )
+
+        assertEquals(1, request.itemDemands.size)
+        assertEquals("item-rq", (request.itemDemands.first().first as ActualItem).id)
+        assertEquals(UInt64(3), request.itemDemands.first().second)
+        assertEquals(1, request.materialAmountDemands.size)
+        assertEquals(UInt64(6), request.materialAmountDemands.first().second)
+        assertEquals(1, request.materialWeightDemands.size)
+        assertEquals(2.5, request.materialWeightDemands.first().second.value.toDouble(), 1e-9)
+        assertEquals(1, request.initialColumns.size)
+        assertEquals(1, request.initialColumns.first().units.size)
+    }
+
+    @Test
+    fun applicationServiceShouldSupportQuantityDemandEntryPoint() = runBlocking {
+        val quantityMaterial = QuantityMaterial(
+            no = MaterialNo("M-SQ"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-SQ",
+            weight = FltX.one * Kilogram
+        )
+        val quantityItem = QuantityItem(
+            id = "item-sq",
+            name = "item-sq",
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
+                    width = FltX.one * Meter,
+                    height = FltX.one * Meter,
+                    depth = FltX.one * Meter,
+                    weight = FltX.one * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(quantityMaterial to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-SQ"),
+            packageAttribute = packageAttribute()
+        )
+        val quantityInitialLayer = QuantityBinLayer(
+            iteration = Int64.zero,
+            from = ColumnGenerationAlgorithmTest::class,
+            width = FltX(3) * Meter,
+            height = FltX(3) * Meter,
+            depth = FltX(3) * Meter,
+            units = listOf(
+                QuantityItemPlacement(
+                    item = quantityItem,
+                    x = FltX.zero * Meter,
+                    y = FltX.zero * Meter,
+                    z = FltX.zero * Meter,
+                    orientation = Orientation.Upright
+                )
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-quantity-entry-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                error("final milp should be disabled in this test")
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val output = FeasibleSolverOutput(
+                    obj = Flt64(3.0),
+                    solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(3.0),
+                    gap = Flt64.zero
+                )
+                return Ok(
+                    ColumnGenerationSolver.LPResult(
+                        result = output,
+                        dualSolution = emptyMap()
+                    )
+                )
+            }
+        }
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solveQuantityDemands(
+            itemDemands = listOf(Pair(quantityItem, UInt64.one)),
+            quantityInitialColumns = listOf(quantityInitialLayer),
+            generators = listOf(
+                object : Bpp3dLayerGenerator<Flt64> {
+                    override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                        return emptyList()
+                    }
+                }
+            ),
+            cgConfig = ColumnGenerationConfig(finalMilpEnabled = false)
+        )
+
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertEquals(listOf(Flt64(3.0)), response.result.lpObjectives)
+        assertEquals(1, response.result.columns.size)
+        assertEquals(1, response.result.columns.first().units.size)
+        assertTrue(!response.result.finalSolved)
+    }
+
+    @Test
     fun applicationServiceShouldBridgeExecutorsLayerGenerationAndPacking() = runBlocking {
         val material = Material(
             no = MaterialNo("M-3"),
@@ -601,6 +838,19 @@ class ColumnGenerationAlgorithmTest {
         assertNotNull(snapshot)
         assertEquals(1, snapshot.bins.size)
         assertEquals("1", snapshot.schema.kpi["bin_count"])
+        val itemAmountEntryCount = snapshot.schema.kpi["shadow_price_mode_item_amount_entry_count"]?.toInt()
+        assertNotNull(itemAmountEntryCount)
+        assertTrue(itemAmountEntryCount >= 1)
+        assertEquals(
+            itemAmountEntryCount,
+            snapshot.demandModeShadowPriceEntryCounts["item_amount"]
+        )
+        val itemAmountTotal = snapshot.schema.kpi["shadow_price_mode_item_amount_total"]?.toDouble()
+        assertNotNull(itemAmountTotal)
+        assertTrue(itemAmountTotal > 0.0)
+        assertTrue(
+            (snapshot.demandModeShadowPriceTotals["item_amount"] ?: Flt64.zero).toDouble() > 0.0
+        )
     }
 
     @Test

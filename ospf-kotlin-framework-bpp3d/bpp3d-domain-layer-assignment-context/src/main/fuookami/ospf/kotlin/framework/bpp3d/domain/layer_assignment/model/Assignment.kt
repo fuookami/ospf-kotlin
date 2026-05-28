@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -26,11 +25,11 @@ import fuookami.ospf.kotlin.multiarray._a
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
+private val flt64Converter = object : IntoValue<LayerAssignmentScalar> {
+        override fun intoValue(value: LayerAssignmentScalar) = value
+        override val zero get() = LayerAssignmentScalar.zero
+        override val one get() = LayerAssignmentScalar.one
+        override fun fromValue(value: LayerAssignmentScalar) = value
     }
 
 class ImpreciseAssignment(
@@ -44,11 +43,11 @@ class ImpreciseAssignment(
     private val _x = ArrayList<UIntVariable1>()
     val x: List<UIntVariable1> by ::_x
 
-    lateinit var volume: LinearExpressionSymbol<Flt64>
+    lateinit var volume: LinearExpressionSymbol<LayerAssignmentScalar>
 
-    fun register(model: MetaModel<Flt64>): Try {
+    fun register(model: MetaModel<LayerAssignmentScalar>): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(Flt64.zero, name = "volume")
+            volume = LinearExpressionSymbol(LayerAssignmentScalar.zero, name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}
@@ -68,7 +67,7 @@ class ImpreciseAssignment(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel<Flt64>
+        model: AbstractLinearMetaModel<LayerAssignmentScalar>
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -117,11 +116,11 @@ class PreciseAssignment(
 ) {
     lateinit var x: UIntVariable2
 
-    lateinit var u: LinearIntermediateSymbols2<Flt64>
-    lateinit var v: LinearIntermediateSymbols1<Flt64>
+    lateinit var u: LinearIntermediateSymbols2<LayerAssignmentScalar>
+    lateinit var v: LinearIntermediateSymbols1<LayerAssignmentScalar>
     lateinit var tail: BinVariable1
 
-    fun register(model: MetaModel<Flt64>): Try {
+    fun register(model: MetaModel<LayerAssignmentScalar>): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",
@@ -156,13 +155,13 @@ class PreciseAssignment(
         }
 
         if (!::u.isInitialized) {
-            u = LinearIntermediateSymbols2<Flt64>(
+            u = LinearIntermediateSymbols2<LayerAssignmentScalar>(
                 name = "u",
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
-                        polynomial = LinearMonomial(Flt64.one, x[v[0], v[1]]).toLinearPolynomial(),
+                        polynomial = LinearMonomial(LayerAssignmentScalar.one, x[v[0], v[1]]).toLinearPolynomial(),
                         converter = flt64Converter,
                         name = "u_$v",
                     ),
@@ -183,13 +182,13 @@ class PreciseAssignment(
         }
 
         if (!::v.isInitialized) {
-            v = LinearIntermediateSymbols1<Flt64>(
+            v = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 name = "v",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
-                        polynomial = sum(x[i, _a].map { LinearMonomial(Flt64.one, it) }),
+                        polynomial = sum(x[i, _a].map { LinearMonomial(LayerAssignmentScalar.one, it) }),
                         converter = flt64Converter,
                         name = "v_$i",
                     ),

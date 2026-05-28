@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageClassification
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -128,5 +129,26 @@ class PackageSolutionLikeAdapterTest {
         assertEquals(2, program.packages?.size)
         assertEquals(UInt64(3), program.materialAmounts()[material.key])
         assertEquals(Flt64(5.0), program.materialWeights()[material.key]?.value)
+    }
+
+    @Test
+    fun fltXMaterialQuantityShouldMapThroughPackageSolutionLikeAdapter() {
+        val material = material(
+            no = "M-APS-FLTX",
+            unitWeightKg = Flt64.one
+        )
+        val node = PackageSolutionLikeNode(
+            shape = shape(Flt64.one),
+            materialItems = listOf(
+                PackageSolutionLikeMaterialItem(
+                    material = material.key,
+                    quantity = PackageSolutionLikeQuantity.Weight(FltX(2.5) * Kilogram)
+                )
+            )
+        )
+
+        val program = node.toPackingProgram()
+        assertTrue(program.materials[material.key]?.weight?.value is FltX)
+        assertEquals(Flt64(2.5), program.materialWeights()[material.key]?.value)
     }
 }

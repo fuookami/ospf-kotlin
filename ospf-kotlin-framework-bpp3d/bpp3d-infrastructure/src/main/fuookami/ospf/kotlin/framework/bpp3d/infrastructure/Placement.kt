@@ -113,9 +113,11 @@ data class QuantityPlacement2<
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
     ): Boolean {
-        return toGeometryPlacement().contains(
-            x = point.x,
-            y = point.y,
+        return asGenericPlacement2().contains(
+            point = QuantityPoint2G(
+                x = point.x,
+                y = point.y
+            ),
             withLowerBound = withLowerBound,
             withUpperBound = withUpperBound,
             withBorder = withBorder
@@ -123,15 +125,11 @@ data class QuantityPlacement2<
     }
 
     fun overlapped(rhs: QuantityPlacement2<*, P>): Boolean {
-        return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
+        return asGenericPlacement2().overlapped(rhs.asGenericPlacement2())
     }
 
     fun intersect(rhs: QuantityPlacement2<*, P>): QuantityRectangle2<InfraScalar>? {
-        val intersection = toGeometryPlacement().intersect(rhs.toGeometryPlacement()) ?: return null
-        return QuantityRectangle2(
-            width = intersection.width,
-            height = intersection.height
-        )
+        return asGenericPlacement2().intersect(rhs.asGenericPlacement2())
     }
 
     fun toPlacement3(): List<QuantityPlacement3<T>> {
@@ -219,10 +217,12 @@ data class QuantityPlacement3<T : Cuboid<T>>(
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
     ): Boolean {
-        return toGeometryPlacement().contains(
-            x = point.x,
-            y = point.y,
-            z = point.z,
+        return asGenericPlacement3().contains(
+            point = QuantityPoint3G(
+                x = point.x,
+                y = point.y,
+                z = point.z
+            ),
             withLowerBound = withLowerBound,
             withUpperBound = withUpperBound,
             withBorder = withBorder
@@ -230,7 +230,7 @@ data class QuantityPlacement3<T : Cuboid<T>>(
     }
 
     infix fun overlapped(rhs: QuantityPlacement3<*>): Boolean {
-        return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
+        return asGenericPlacement3().overlapped(rhs.asGenericPlacement3())
     }
 
     override fun copy() = QuantityPlacement3(view.copy(), position)
@@ -271,25 +271,26 @@ data class QuantityPlacement3<T : Cuboid<T>>(
 }
 
 fun topPlacements(placements: List<QuantityPlacement3<*>>): List<QuantityPlacement3<*>> {
-    val bottomGeometries = placements.associateWith {
-        val p2 = Bottom.point2(it.position)
-        GeometryPlacement2(
-            x = p2.x,
-            y = p2.y,
-            shape = QuantityRectangle2(
-                width = it.depth,
-                height = it.width
+    val genericBottomPlacements = placements.associateWith { placement ->
+        GenericQuantityPlacement2(
+            projection = GenericPlaneProjection(
+                view = placement.unit.asGenericCuboid().view(placement.orientation),
+                plane = Bottom
+            ),
+            position = QuantityPoint2G(
+                x = Bottom.point2(placement.position).x,
+                y = Bottom.point2(placement.position).y
             )
         )
     }
     val topPlacements = ArrayList<QuantityPlacement3<*>>()
     for (placement1 in placements) {
-        val bottom1 = bottomGeometries[placement1]!!
+        val genericBottom1 = genericBottomPlacements[placement1]!!
         var flag = true
-        for (QuantityPlacement2 in placements) {
-            val bottom2 = bottomGeometries[QuantityPlacement2]!!
-            if (bottom1.overlapped(bottom2)
-                && (placement1.maxY ls QuantityPlacement2.maxY) == true
+        for (placement2 in placements) {
+            val genericBottom2 = genericBottomPlacements[placement2]!!
+            if (genericBottom1.overlapped(genericBottom2)
+                && (placement1.maxY ls placement2.maxY) == true
             ) {
                 flag = false
                 break
@@ -303,25 +304,26 @@ fun topPlacements(placements: List<QuantityPlacement3<*>>): List<QuantityPlaceme
 }
 
 fun bottomPlacements(placements: List<QuantityPlacement3<*>>): List<QuantityPlacement3<*>> {
-    val bottomGeometries = placements.associateWith {
-        val p2 = Bottom.point2(it.position)
-        GeometryPlacement2(
-            x = p2.x,
-            y = p2.y,
-            shape = QuantityRectangle2(
-                width = it.depth,
-                height = it.width
+    val genericBottomPlacements = placements.associateWith { placement ->
+        GenericQuantityPlacement2(
+            projection = GenericPlaneProjection(
+                view = placement.unit.asGenericCuboid().view(placement.orientation),
+                plane = Bottom
+            ),
+            position = QuantityPoint2G(
+                x = Bottom.point2(placement.position).x,
+                y = Bottom.point2(placement.position).y
             )
         )
     }
     val bottomPlacements = ArrayList<QuantityPlacement3<*>>()
     for (placement1 in placements) {
-        val bottom1 = bottomGeometries[placement1]!!
+        val genericBottom1 = genericBottomPlacements[placement1]!!
         var flag = true
-        for (QuantityPlacement2 in placements) {
-            val bottom2 = bottomGeometries[QuantityPlacement2]!!
-            if (bottom1.overlapped(bottom2)
-                && (placement1.y gr QuantityPlacement2.y) == true
+        for (placement2 in placements) {
+            val genericBottom2 = genericBottomPlacements[placement2]!!
+            if (genericBottom1.overlapped(genericBottom2)
+                && (placement1.y gr placement2.y) == true
             ) {
                 flag = false
                 break

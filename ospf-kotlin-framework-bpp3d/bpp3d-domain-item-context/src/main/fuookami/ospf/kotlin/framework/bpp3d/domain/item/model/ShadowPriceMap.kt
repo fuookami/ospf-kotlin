@@ -3,11 +3,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -17,7 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 
 
-typealias ShadowPriceScalar = LegacyScalar
+typealias ShadowPriceScalar = ItemModelScalar
 
 open class BPP3DShadowPriceArguments(
     override val cuboid: Item
@@ -56,7 +55,7 @@ fun BPP3DShadowPriceMap.reducedCost(
         },
         demandValueToScalar = { demand ->
             when (demand) {
-                is Bpp3dDemandValue.Amount -> legacyScalar(demand.value.toULong().toDouble())
+                is Bpp3dDemandValue.Amount -> ItemModelScalar(demand.value.toULong().toDouble())
                 is Bpp3dDemandValue.Weight -> demand.value.value
             }
         }

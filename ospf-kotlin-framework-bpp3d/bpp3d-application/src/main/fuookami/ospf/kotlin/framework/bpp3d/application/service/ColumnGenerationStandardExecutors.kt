@@ -10,11 +10,15 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseLoad
@@ -23,6 +27,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Precis
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoad
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoadCapacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinAmountMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
@@ -36,8 +41,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceA
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
+import fuookami.ospf.kotlin.framework.bpp3d.application.service.compat.ApplicationScalar
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -53,12 +59,12 @@ data class ColumnGenerationStandardExecutorConfig(
     val finalSolveNamePrefix: String = "bpp3d-final",
     val rmpToLogModel: Boolean = false,
     val finalToLogModel: Boolean = false,
-    val rmpVolumeCoefficient: Flt64 = Flt64.one,
-    val finalBinAmountCoefficient: Flt64 = Flt64.one,
+    val rmpVolumeCoefficient: ApplicationScalar = ApplicationScalar.one,
+    val finalBinAmountCoefficient: ApplicationScalar = ApplicationScalar.one,
     val enableFinalBinDepthConstraint: Boolean = true,
     val enableFinalBinCapacityConstraint: Boolean = true,
     val enableShadowPriceAwareRequestScore: Boolean = true,
-    val integralityTolerance: Flt64 = Flt64(1e-6)
+    val integralityTolerance: ApplicationScalar = ApplicationScalar(1e-6)
 )
 
 class ColumnGenerationStandardExecutors(
@@ -84,9 +90,59 @@ class ColumnGenerationStandardExecutors(
                 config = config
             )
         }
+
+        fun <V : FloatingNumber<V>> fromQuantityItems(
+            solver: ColumnGenerationSolver,
+            itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
+            finalBins: List<LayerBin> = emptyList(),
+            config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
+            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
+        ): ColumnGenerationStandardExecutors {
+            val legacyItemDemands = toLegacyItems(
+                items = itemDemands,
+                legacyItemCache = legacyItemCache,
+                materialCache = materialCache
+            )
+            val demandEntries = demandEntriesFromItems(
+                items = itemDemands,
+                legacyItemCache = legacyItemCache,
+                materialCache = materialCache
+            )
+            return ColumnGenerationStandardExecutors(
+                solver = solver,
+                itemDemands = legacyItemDemands,
+                demandEntries = demandEntries,
+                finalBins = finalBins,
+                config = config
+            )
+        }
+
+        fun <V : FloatingNumber<V>> fromDemandEntries(
+            solver: ColumnGenerationSolver,
+            itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
+            demandEntries: List<Bpp3dDemandEntry>,
+            finalBins: List<LayerBin> = emptyList(),
+            config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
+            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
+        ): ColumnGenerationStandardExecutors {
+            val legacyItemDemands = toLegacyItems(
+                items = itemDemands,
+                legacyItemCache = legacyItemCache,
+                materialCache = materialCache
+            )
+            return ColumnGenerationStandardExecutors(
+                solver = solver,
+                itemDemands = legacyItemDemands,
+                demandEntries = demandEntries,
+                finalBins = finalBins,
+                config = config
+            )
+        }
     }
 
-    fun rmpSolver(): ColumnGenerationRmpSolver<Flt64> {
+    fun rmpSolver(): ColumnGenerationRmpSolver<ApplicationScalar> {
         return ColumnGenerationRmpSolver { state ->
             val artifacts = buildRmpArtifacts(state)
             val solved = ensureRet(
@@ -106,7 +162,7 @@ class ColumnGenerationStandardExecutors(
                 ),
                 stage = "refresh demand shadow prices"
             )
-            val shadowPrices = LinkedHashMap<DemandModeKey, Flt64>()
+            val shadowPrices = LinkedHashMap<DemandModeKey, ApplicationScalar>()
             for ((key, value) in shadowPriceMap.map) {
                 val demandKey = key as? DemandShadowPriceKey ?: continue
                 shadowPrices[DemandModeKey(demandKey.mode, demandKey.key, demandKey.quantityUnit)] = value.price
@@ -131,7 +187,7 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    fun finalSolver(): ColumnGenerationFinalSolver<Flt64> {
+    fun finalSolver(): ColumnGenerationFinalSolver<ApplicationScalar> {
         return ColumnGenerationFinalSolver { state ->
             val bins = if (finalBins.isNotEmpty()) {
                 finalBins
@@ -212,7 +268,7 @@ class ColumnGenerationStandardExecutors(
                 ),
                 stage = "solve MILP"
             )
-            model.setSolution(normalizeFlt64Solution(solved.solution))
+            model.setSolution(normalizeScalarSolution(solved.solution))
             val selectedBins = collectSelectedBins(model, bins, state.columns, assignment)
             val selectedColumns = collectSelectedColumns(
                 model = model,
@@ -237,7 +293,7 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    fun requestBuilder(): ColumnGenerationLayerRequestBuilder<Flt64> {
+    fun requestBuilder(): ColumnGenerationLayerRequestBuilder<ApplicationScalar> {
         val requestDemandEntries = demandEntries.map {
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
         }
@@ -259,12 +315,12 @@ class ColumnGenerationStandardExecutors(
     }
 
     private data class RmpArtifacts(
-        val model: LinearMetaModel<Flt64>,
+        val model: LinearMetaModel<ApplicationScalar>,
         val demandConstraint: DemandConstraint<BPP3DShadowPriceArguments, Item>
     )
 
     private suspend fun buildRmpArtifacts(
-        state: ColumnGenerationState<Flt64>
+        state: ColumnGenerationState<ApplicationScalar>
     ): RmpArtifacts {
         val model = newModel("${config.rmpSolveNamePrefix}-${state.iteration}")
         val aggregation = LayerAggregation()
@@ -324,14 +380,14 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun collectSelectedColumns(
-        model: LinearMetaModel<Flt64>,
+        model: LinearMetaModel<ApplicationScalar>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment,
         binAmount: Int
     ): List<BinLayer> {
         val selected = ArrayList<BinLayer>()
         for ((columnIndex, column) in columns.withIndex()) {
-            var amount = Flt64.zero
+            var amount = ApplicationScalar.zero
             for (binIndex in 0 until binAmount) {
                 amount += tokenValue(model, assignment.x[binIndex, columnIndex])
             }
@@ -343,7 +399,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun collectSelectedBins(
-        model: LinearMetaModel<Flt64>,
+        model: LinearMetaModel<ApplicationScalar>,
         bins: List<LayerBin>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment
@@ -393,23 +449,23 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun tokenValue(
-        model: LinearMetaModel<Flt64>,
+        model: LinearMetaModel<ApplicationScalar>,
         variable: AbstractVariableItem<*, *>
-    ): Flt64 {
-        return model.tokens.find(variable)?.result ?: Flt64.zero
+    ): ApplicationScalar {
+        return model.tokens.find(variable)?.result ?: ApplicationScalar.zero
     }
 
-    private fun normalizeFlt64Solution(values: List<*>): List<Flt64> {
+    private fun normalizeScalarSolution(values: List<*>): List<ApplicationScalar> {
         return values.mapIndexed { index, value ->
             when (value) {
-                is Flt64 -> value
-                is Number -> Flt64(value.toDouble())
+                is ApplicationScalar -> value
+                is Number -> ApplicationScalar(value.toDouble())
                 else -> throw IllegalStateException("unsupported solution value at $index: ${value?.javaClass?.name}")
             }
         }
     }
 
-    private fun newModel(name: String): LinearMetaModel<Flt64> {
+    private fun newModel(name: String): LinearMetaModel<ApplicationScalar> {
         return LinearMetaModel(
             name = name,
             objectCategory = ObjectCategory.Minimum,

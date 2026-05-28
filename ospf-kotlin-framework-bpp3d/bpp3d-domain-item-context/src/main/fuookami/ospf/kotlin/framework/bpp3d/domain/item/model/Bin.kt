@@ -3,13 +3,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.compat.ItemModelScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -33,23 +31,23 @@ import kotlinx.coroutines.coroutineScope
 
 class BinType(
     // inherited from Container3Shape
-    override val width: Quantity<Flt64>,
-    override val height: Quantity<Flt64>,
-    override val depth: Quantity<Flt64>,
-    val capacity: Quantity<Flt64>,
-    val longitudinalBalance: LegacyScalar?,
-    val lateralBalance: LegacyScalar?,
+    override val width: Quantity<ItemModelScalar>,
+    override val height: Quantity<ItemModelScalar>,
+    override val depth: Quantity<ItemModelScalar>,
+    val capacity: Quantity<ItemModelScalar>,
+    val longitudinalBalance: ItemModelScalar?,
+    val lateralBalance: ItemModelScalar?,
     val typeCode: String,
     val isMain: Boolean = false,
     val extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
 ) : AbstractContainer3Shape {
     fun new(
-        width: Quantity<Flt64>? = null,
-        height: Quantity<Flt64>? = null,
-        depth: Quantity<Flt64>? = null,
-        capacity: Quantity<Flt64>? = null,
-        longitudinalBalance: LegacyScalar? = null,
-        lateralBalance: LegacyScalar? = null,
+        width: Quantity<ItemModelScalar>? = null,
+        height: Quantity<ItemModelScalar>? = null,
+        depth: Quantity<ItemModelScalar>? = null,
+        capacity: Quantity<ItemModelScalar>? = null,
+        longitudinalBalance: ItemModelScalar? = null,
+        lateralBalance: ItemModelScalar? = null,
         typeCode: String? = null,
         isMain: Boolean? = null,
         extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
@@ -81,10 +79,10 @@ class BinType(
     }
 
     fun estimateAmount(
-        totalVolume: Quantity<Flt64>,
-        totalWeight: Quantity<Flt64>,
-        estimatedLoadingRate: LegacyScalar = legacyOne()
-    ): LegacyScalar {
+        totalVolume: Quantity<ItemModelScalar>,
+        totalWeight: Quantity<ItemModelScalar>,
+        estimatedLoadingRate: ItemModelScalar = legacyOne()
+    ): ItemModelScalar {
         return max(
             ((totalVolume / volume).value / estimatedLoadingRate),
             (totalWeight / capacity).value
@@ -262,4 +260,3 @@ typealias ItemBin = Bin<Item>
 fun LayerBin.dump(): ItemBin {
     return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
 }
-

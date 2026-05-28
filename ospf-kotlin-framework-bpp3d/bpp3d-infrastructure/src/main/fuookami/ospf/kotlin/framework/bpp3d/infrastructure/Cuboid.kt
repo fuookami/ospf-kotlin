@@ -32,18 +32,11 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraScalar> {
     val enabledOrientations: List<Orientation>
 
     fun geometryView(orientation: Orientation = Orientation.Upright): QuantityCuboid3View<InfraScalar> {
-        return QuantityCuboid3View(
-            origin = QuantityCuboid3(
-                width = width,
-                height = height,
-                depth = depth
-            ),
-            permutation = orientation.toAxisPermutation3()
-        )
+        return self.asGenericCuboid().geometryView(orientation)
     }
 
     fun geometry(orientation: Orientation = Orientation.Upright): QuantityCuboid3<InfraScalar> {
-        return geometryView(orientation).cuboid
+        return self.asGenericCuboid().geometry(orientation)
     }
 
     fun enabledOrientationsAt(
@@ -61,12 +54,7 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid<InfraScalar> {
         space: AbstractContainer3Shape,
         withRotation: Boolean = true
     ): List<Orientation> {
-        return enabledOrientations.filter {
-            (space.width geq it.width(this)) == true
-                    && (space.height geq it.height(this)) == true
-                    && (space.depth geq it.depth(this)) == true
-                    && (withRotation || !it.rotated)
-        }
+        return self.asGenericCuboid().enabledOrientationsAt(space.asGenericContainer3Shape(), withRotation)
     }
 
     fun view(orientation: Orientation = Orientation.Upright): CuboidView<T>? {

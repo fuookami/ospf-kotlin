@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -129,5 +130,23 @@ class PackingProgramMaterialValueTest {
         val quantities = program.materialQuantities()
         assertEquals(Flt64(3.0), quantities[materialAmount.key]?.value)
         assertEquals(Flt64(5.0), quantities[materialWeight.key]?.value)
+    }
+
+    @Test
+    fun materialQuantityMapShouldAcceptFltXWeightsAndKeepFlt64CompatibilityView() {
+        val material = material(
+            no = "M-QUANTITY-FLTX",
+            unitWeightKg = Flt64.one
+        )
+        val program = PackingProgram.innerPackageWithMaterialQuantities(
+            shape = shape(),
+            materials = mapOf(
+                material.key to Quantity(FltX(2.5), Kilogram)
+            )
+        )
+
+        assertTrue(program.materials[material.key]?.weight?.value is FltX)
+        assertEquals(Flt64(2.5), program.materialWeights()[material.key]?.value)
+        assertEquals(Flt64(2.5), program.materialQuantities()[material.key]?.value)
     }
 }

@@ -21,8 +21,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.compat.asScalarF64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItemDemands
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItemRanges
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyMaterialDemands
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyMaterialWeightDemandsByKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.toLegacyLayers
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.compat.Bpp3dDemandValueAdapter
@@ -34,7 +36,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -88,55 +89,34 @@ private fun resolveUnitDomain(unit: PhysicalUnit, fallback: Bpp3dDemandDomain): 
     return fallback
 }
 
-private fun defaultDemandUnit(mode: Bpp3dDemandMode): PhysicalUnit {
-    return when (mode) {
-        is Bpp3dDemandMode.Item -> DemandCountUnit
-        is Bpp3dDemandMode.Material -> DemandCountUnit
-        is Bpp3dDemandMode.ItemAmount -> DemandCountUnit
-        is Bpp3dDemandMode.ItemWeight -> noWeightDemandValue().value.unit
-        is Bpp3dDemandMode.ItemMaterialAmount -> DemandCountUnit
-        is Bpp3dDemandMode.ItemMaterialWeight -> noWeightDemandValue().value.unit
-    }
+private fun defaultDemandUnit(): PhysicalUnit {
+    return DemandCountUnit
 }
 
-private fun defaultDemandDomain(
-    mode: Bpp3dDemandMode,
-    unit: PhysicalUnit
-): Bpp3dDemandDomain {
-    return when (mode) {
-        is Bpp3dDemandMode.Item -> resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
-        is Bpp3dDemandMode.Material -> resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
-        is Bpp3dDemandMode.ItemAmount -> resolveUnitDomain(unit, Bpp3dDemandDomain.Discrete)
-        is Bpp3dDemandMode.ItemWeight -> resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
-        is Bpp3dDemandMode.ItemMaterialAmount -> resolveUnitDomain(unit, Bpp3dDemandDomain.Discrete)
-        is Bpp3dDemandMode.ItemMaterialWeight -> resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
-    }
+private fun defaultDemandDomain(unit: PhysicalUnit): Bpp3dDemandDomain {
+    return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
 }
 
 data class Bpp3dDemandEntry(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey,
-    val demand: Flt64,
-    val demandRange: ValueRange<Flt64>,
-    val quantityUnit: PhysicalUnit = defaultDemandUnit(mode),
-    val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(mode, quantityUnit)
+    val demand: LayerAssignmentScalar,
+    val demandRange: ValueRange<LayerAssignmentScalar>,
+    val quantityUnit: PhysicalUnit = defaultDemandUnit(),
+    val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(quantityUnit)
 )
 
 private fun defaultDemandValue(
-    mode: Bpp3dDemandMode,
     domain: Bpp3dDemandDomain = Bpp3dDemandDomain.Discrete
 ): Bpp3dDemandValue {
-    return when (mode) {
-        is Bpp3dDemandMode.Item -> if (domain == Bpp3dDemandDomain.Discrete) Bpp3dDemandValue.Amount(UInt64.zero) else noWeightDemandValue()
-        is Bpp3dDemandMode.Material -> if (domain == Bpp3dDemandDomain.Discrete) Bpp3dDemandValue.Amount(UInt64.zero) else noWeightDemandValue()
-        is Bpp3dDemandMode.ItemAmount -> Bpp3dDemandValue.Amount(UInt64.zero)
-        is Bpp3dDemandMode.ItemWeight -> noWeightDemandValue()
-        is Bpp3dDemandMode.ItemMaterialAmount -> Bpp3dDemandValue.Amount(UInt64.zero)
-        is Bpp3dDemandMode.ItemMaterialWeight -> noWeightDemandValue()
+    return if (domain == Bpp3dDemandDomain.Discrete) {
+        Bpp3dDemandValue.Amount(UInt64.zero)
+    } else {
+        noWeightDemandValue()
     }
 }
 
-private fun toDiscreteAmount(value: Quantity<Flt64>): UInt64 {
+private fun toDiscreteAmount(value: Quantity<LayerAssignmentScalar>): UInt64 {
     val rounded = ceil(value.value.toDouble()).toLong()
     return if (rounded <= 0L) {
         UInt64.zero
@@ -149,18 +129,42 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
     return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous) == Bpp3dDemandDomain.Discrete
 }
 
-private fun modeFromItemDemand(quantity: Quantity<Flt64>): Bpp3dDemandMode {
-    return Bpp3dDemandMode.Item
+data class Bpp3dItemDemand(
+    val item: Item,
+    val quantity: Quantity<LayerAssignmentScalar>,
+    val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
+)
+
+data class Bpp3dMaterialDemand(
+    val material: MaterialKey,
+    val quantity: Quantity<LayerAssignmentScalar>,
+    val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
+)
+
+private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
+    return when (mode) {
+        is Bpp3dDemandMode.Item,
+        is Bpp3dDemandMode.ItemAmount,
+        is Bpp3dDemandMode.ItemWeight -> mode
+
+        else -> throw IllegalArgumentException("Item demand mode must be Item/ItemAmount/ItemWeight, but was $mode")
+    }
 }
 
-private fun modeFromMaterialDemand(quantity: Quantity<Flt64>): Bpp3dDemandMode {
-    return Bpp3dDemandMode.Material
+private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
+    return when (mode) {
+        is Bpp3dDemandMode.Material,
+        is Bpp3dDemandMode.ItemMaterialAmount,
+        is Bpp3dDemandMode.ItemMaterialWeight -> mode
+
+        else -> throw IllegalArgumentException("Material demand mode must be Material/ItemMaterialAmount/ItemMaterialWeight, but was $mode")
+    }
 }
 
 private fun demandValueFromQuantity(
-    quantity: Quantity<Flt64>,
+    quantity: Quantity<LayerAssignmentScalar>,
     demandValueAdapter: Bpp3dDemandValueAdapter
-): Flt64 {
+): LayerAssignmentScalar {
     return if (isDiscreteDemandUnit(quantity.unit)) {
         demandValueAdapter.amountToSolver(toDiscreteAmount(quantity))
     } else {
@@ -168,25 +172,44 @@ private fun demandValueFromQuantity(
     }
 }
 
+private fun exactDemandRange(value: LayerAssignmentScalar): ValueRange<LayerAssignmentScalar> {
+    return ValueRange(
+        value,
+        value,
+        Interval.Closed,
+        Interval.Closed,
+        layerAssignmentScalarProvider()
+    ).value!!
+}
+
 fun demandEntriesFromItemDemands(
-    items: List<Pair<Item, Quantity<Flt64>>>,
+    items: List<Pair<Item, Quantity<LayerAssignmentScalar>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
-    return items.map { (item, quantity) ->
-        val mode = modeFromItemDemand(quantity)
-        val demandValue = demandValueFromQuantity(quantity, demandValueAdapter)
+    return demandEntriesFromLabeledItemDemands(
+        items = items.map { (item, quantity) ->
+            Bpp3dItemDemand(
+                item = item,
+                quantity = quantity
+            )
+        },
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
+fun demandEntriesFromLabeledItemDemands(
+    items: List<Bpp3dItemDemand>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return items.map { demand ->
+        val mode = resolveItemDemandMode(demand.mode)
+        val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
         Bpp3dDemandEntry(
             mode = mode,
-            key = Bpp3dDemandKey.Item(item),
+            key = Bpp3dDemandKey.Item(demand.item),
             demand = demandValue,
-            demandRange = ValueRange(
-                demandValue,
-                demandValue,
-                Interval.Closed,
-                Interval.Closed,
-                Flt64
-            ).value!!,
-            quantityUnit = quantity.unit
+            demandRange = exactDemandRange(demandValue),
+            quantityUnit = demand.quantity.unit
         )
     }
 }
@@ -198,13 +221,8 @@ fun <V : FloatingNumber<V>> demandEntriesFromItemDemands(
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
-    return demandEntriesFromItemDemands(
-        items = items.map { (item, quantity) ->
-            Pair(
-                item.toLegacy(materialCache, legacyItemCache),
-                quantity.asScalarF64()
-            )
-        },
+    return demandEntriesFromLabeledItemDemands(
+        items = toLegacyItemDemands(items, legacyItemCache, materialCache),
         demandValueAdapter = demandValueAdapter
     )
 }
@@ -219,7 +237,7 @@ fun demandEntriesFromItems(
             mode = Bpp3dDemandMode.Item,
             key = Bpp3dDemandKey.Item(item),
             demand = demandValue,
-            demandRange = ValueRange(demandValue, demandValue).value!!,
+            demandRange = exactDemandRange(demandValue),
             quantityUnit = DemandCountUnit
         )
     }
@@ -264,44 +282,44 @@ fun <V : FloatingNumber<V>> demandEntriesFromItemRanges(
     )
 }
 
-private fun <V : FloatingNumber<V>> toLegacyMaterialKey(material: QuantityMaterial<V>): MaterialKey {
-    return MaterialKey(
-        no = material.no,
-        type = material.type,
-        manufacturer = material.manufacturer,
-        supplier = material.supplier
-    )
-}
-
 private fun demandEntriesFromMaterialDemandsByKey(
-    materials: List<Pair<MaterialKey, Quantity<Flt64>>>,
+    materials: List<Bpp3dMaterialDemand>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
-    return materials.map { (material, demand) ->
-        val mode = modeFromMaterialDemand(demand)
-        val demandValue = demandValueFromQuantity(demand, demandValueAdapter)
+    return materials.map { demand ->
+        val mode = resolveMaterialDemandMode(demand.mode)
+        val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
         Bpp3dDemandEntry(
             mode = mode,
-            key = Bpp3dDemandKey.Material(material),
+            key = Bpp3dDemandKey.Material(demand.material),
             demand = demandValue,
-            demandRange = ValueRange(
-                demandValue,
-                demandValue,
-                Interval.Closed,
-                Interval.Closed,
-                Flt64
-            ).value!!,
-            quantityUnit = demand.unit
+            demandRange = exactDemandRange(demandValue),
+            quantityUnit = demand.quantity.unit
         )
     }
 }
 
 fun demandEntriesFromMaterialDemands(
-    materials: List<Pair<Material, Quantity<Flt64>>>,
+    materials: List<Pair<Material, Quantity<LayerAssignmentScalar>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
-        materials = materials.map { (material, demand) -> Pair(material.key, demand) },
+        materials = materials.map { (material, demand) ->
+            Bpp3dMaterialDemand(
+                material = material.key,
+                quantity = demand
+            )
+        },
+        demandValueAdapter = demandValueAdapter
+    )
+}
+
+fun demandEntriesFromLabeledMaterialDemands(
+    materials: List<Bpp3dMaterialDemand>,
+    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+): List<Bpp3dDemandEntry> {
+    return demandEntriesFromMaterialDemandsByKey(
+        materials = materials,
         demandValueAdapter = demandValueAdapter
     )
 }
@@ -312,9 +330,7 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialDemands(
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
-        materials = materials.map { (material, demand) ->
-            Pair(toLegacyMaterialKey(material), demand.asScalarF64())
-        },
+        materials = toLegacyMaterialDemands(materials),
         demandValueAdapter = demandValueAdapter
     )
 }
@@ -325,7 +341,10 @@ private fun demandEntriesFromMaterialAmountsByKey(
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
-            Pair(material, Quantity(Flt64(demand.toULong().toDouble()), DemandCountUnit))
+            Bpp3dMaterialDemand(
+                material = material,
+                quantity = Quantity(LayerAssignmentScalar(demand.toULong().toDouble()), DemandCountUnit)
+            )
         },
         demandValueAdapter = demandValueAdapter
     )
@@ -348,24 +367,37 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialAmounts(
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialAmountsByKey(
         materials = materials.map { (material, demand) ->
-            Pair(toLegacyMaterialKey(material), demand)
+            Pair(
+                MaterialKey(
+                    no = material.no,
+                    type = material.type,
+                    manufacturer = material.manufacturer,
+                    supplier = material.supplier
+                ),
+                demand
+            )
         },
         demandValueAdapter = demandValueAdapter
     )
 }
 
 private fun demandEntriesFromMaterialWeightsByKey(
-    materials: List<Pair<MaterialKey, Quantity<Flt64>>>,
+    materials: List<Pair<MaterialKey, Quantity<LayerAssignmentScalar>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialDemandsByKey(
-        materials = materials,
+        materials = materials.map { (material, demand) ->
+            Bpp3dMaterialDemand(
+                material = material,
+                quantity = demand
+            )
+        },
         demandValueAdapter = demandValueAdapter
     )
 }
 
 fun demandEntriesFromMaterialWeights(
-    materials: List<Pair<Material, Quantity<Flt64>>>,
+    materials: List<Pair<Material, Quantity<LayerAssignmentScalar>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialWeightsByKey(
@@ -380,9 +412,7 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialWeights(
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
 ): List<Bpp3dDemandEntry> {
     return demandEntriesFromMaterialWeightsByKey(
-        materials = materials.map { (material, demand) ->
-            Pair(toLegacyMaterialKey(material), demand.asScalarF64())
-        },
+        materials = toLegacyMaterialWeightDemandsByKey(materials),
         demandValueAdapter = demandValueAdapter
     )
 }
@@ -391,21 +421,21 @@ interface Load {
     val demandEntries: List<Bpp3dDemandEntry>
     val demandValueAdapter: Bpp3dDemandValueAdapter
 
-    val load: LinearIntermediateSymbols1<Flt64>
-    val overLoad: LinearIntermediateSymbols1<Flt64>
-    val lessLoad: LinearIntermediateSymbols1<Flt64>
+    val load: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    val overLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    val lessLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
 }
 
 abstract class AbstractLoad : Load {
-    override lateinit var overLoad: LinearIntermediateSymbols1<Flt64>
-    override lateinit var lessLoad: LinearIntermediateSymbols1<Flt64>
+    override lateinit var overLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
+    override lateinit var lessLoad: LinearIntermediateSymbols1<LayerAssignmentScalar>
 
-    open fun register(model: MetaModel<Flt64>): Try {
+    open fun register(model: MetaModel<LayerAssignmentScalar>): Try {
         if (overEnabled && !::overLoad.isInitialized) {
-            overLoad = LinearIntermediateSymbols1<Flt64>(
+            overLoad = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 "over_load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -416,7 +446,7 @@ abstract class AbstractLoad : Load {
             }
         }
         if (lessEnabled && !::lessLoad.isInitialized) {
-            lessLoad = LinearIntermediateSymbols1<Flt64>(
+            lessLoad = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 "less_load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
@@ -449,10 +479,10 @@ abstract class AbstractLoad : Load {
     protected fun loadCoefficient(
         layer: BinLayer,
         demand: Bpp3dDemandEntry
-    ): Flt64 {
+    ): LayerAssignmentScalar {
         val concreteMode = demand.mode.toConcreteMode(demand.quantityDomain == Bpp3dDemandDomain.Discrete)
         val value = layer.statistics(concreteMode)[demand.key]
-            ?: defaultDemandValue(demand.mode, demand.quantityDomain)
+            ?: defaultDemandValue(demand.quantityDomain)
         return demandValueAdapter.toSolver(value)
     }
 }
@@ -544,15 +574,15 @@ class ImpreciseLoad(
         }
     }
 
-    override lateinit var load: LinearExpressionSymbols1<Flt64>
+    override lateinit var load: LinearExpressionSymbols1<LayerAssignmentScalar>
 
-    override fun register(model: MetaModel<Flt64>): Try {
+    override fun register(model: MetaModel<LayerAssignmentScalar>): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1<Flt64>(
+            load = LinearExpressionSymbols1<LayerAssignmentScalar>(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->
-                LinearExpressionSymbol(Flt64.zero, name = "load_$i")
+                LinearExpressionSymbol(LayerAssignmentScalar.zero, name = "load_$i")
             }
         }
         when (val result = model.add(load)) {
@@ -567,14 +597,14 @@ class ImpreciseLoad(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel<Flt64>
+        model: AbstractLinearMetaModel<LayerAssignmentScalar>
     ): Ret<List<BinLayer>> {
         assert(newLayers.isNotEmpty())
 
         val xi = assignment.x[iteration.toInt()]
 
         for ((i, demand) in demandEntries.withIndex()) {
-            val thisLayers = newLayers.filter { layer -> loadCoefficient(layer, demand) neq Flt64.zero }
+            val thisLayers = newLayers.filter { layer -> loadCoefficient(layer, demand) neq LayerAssignmentScalar.zero }
             if (thisLayers.isNotEmpty()) {
                 val thisLoad = load[i]
                 thisLoad.flush()
@@ -686,11 +716,11 @@ class PreciseLoad(
         }
     }
 
-    override lateinit var load: LinearIntermediateSymbols1<Flt64>
+    override lateinit var load: LinearIntermediateSymbols1<LayerAssignmentScalar>
 
-    override fun register(model: MetaModel<Flt64>): Try {
+    override fun register(model: MetaModel<LayerAssignmentScalar>): Try {
         if (!::load.isInitialized) {
-            load = LinearIntermediateSymbols1<Flt64>(
+            load = LinearIntermediateSymbols1<LayerAssignmentScalar>(
                 "load",
                 Shape1(demandEntries.size)
             ) { i, _ ->

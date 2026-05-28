@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttri
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -16,14 +17,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class UnifiedDemandEntriesTest {
     private object CargoAttr : AbstractCargoAttribute
@@ -116,5 +120,96 @@ class UnifiedDemandEntriesTest {
         assertEquals(Bpp3dDemandMode.Material::class, weightEntries.single().mode::class)
         assertEquals(Bpp3dDemandDomain.Continuous, weightEntries.single().quantityDomain)
         assertEquals(Flt64(5), weightEntries.single().demand)
+    }
+
+    @Test
+    fun labeledDemandEntriesShouldKeepDemandMode() {
+        val item = item("item-labeled-mode")
+        val material = material("material-labeled-mode")
+        val itemEntries = demandEntriesFromLabeledItemDemands(
+            items = listOf(
+                Bpp3dItemDemand(
+                    item = item,
+                    quantity = Quantity(Flt64(6), DiscreteCountUnit),
+                    mode = Bpp3dDemandMode.ItemAmount
+                )
+            )
+        )
+        val materialEntries = demandEntriesFromLabeledMaterialDemands(
+            materials = listOf(
+                Bpp3dMaterialDemand(
+                    material = material.key,
+                    quantity = Quantity(Flt64(7), Kilogram),
+                    mode = Bpp3dDemandMode.ItemMaterialWeight
+                )
+            )
+        )
+
+        assertEquals(Bpp3dDemandMode.ItemAmount::class, itemEntries.single().mode::class)
+        assertEquals(Bpp3dDemandMode.ItemMaterialWeight::class, materialEntries.single().mode::class)
+    }
+
+    @Test
+    fun labeledDemandEntriesShouldRejectIncompatibleMode() {
+        val item = item("item-invalid-mode")
+        val material = material("material-invalid-mode")
+
+        assertFailsWith<IllegalArgumentException> {
+            demandEntriesFromLabeledItemDemands(
+                items = listOf(
+                    Bpp3dItemDemand(
+                        item = item,
+                        quantity = Quantity(Flt64.one, DiscreteCountUnit),
+                        mode = Bpp3dDemandMode.Material
+                    )
+                )
+            )
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            demandEntriesFromLabeledMaterialDemands(
+                materials = listOf(
+                    Bpp3dMaterialDemand(
+                        material = material.key,
+                        quantity = Quantity(Flt64.one, DiscreteCountUnit),
+                        mode = Bpp3dDemandMode.Item
+                    )
+                )
+            )
+        }
+    }
+
+    @Test
+    fun quantityDomainShouldDependOnUnitOnly() {
+        val item = item("item-domain-only")
+        val amountByMode = Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.ItemAmount,
+            key = Bpp3dDemandKey.Item(item),
+            demand = Flt64.one,
+            demandRange = ValueRange(
+                Flt64.one,
+                Flt64.one,
+                Interval.Closed,
+                Interval.Closed,
+                Flt64
+            ).value!!,
+            quantityUnit = Kilogram
+        )
+        val weightByMode = Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.ItemWeight,
+            key = Bpp3dDemandKey.Item(item),
+            demand = Flt64.one,
+            demandRange = ValueRange(
+                Flt64.one,
+                Flt64.one,
+                Interval.Closed,
+                Interval.Closed,
+                Flt64
+            ).value!!,
+            quantityUnit = DiscreteCountUnit
+        )
+
+        assertEquals(Bpp3dDemandDomain.Continuous, amountByMode.quantityDomain)
+        assertEquals(Bpp3dDemandDomain.Discrete, weightByMode.quantityDomain)
     }
 }

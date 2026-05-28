@@ -18,7 +18,6 @@ import fuookami.ospf.kotlin.quantities.quantity.div
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.quantity.geq
 import fuookami.ospf.kotlin.quantities.quantity.gr
-import fuookami.ospf.kotlin.quantities.quantity.leq
 import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -46,6 +45,47 @@ private fun merge(
             counter[unit] = (counter[unit] ?: UInt64.zero) + UInt64.one
         }
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun toLegacyCountMap(
+    genericCounts: Map<AbstractCuboid<InfraScalar>, UInt64>
+): Map<AbstractCuboid<InfraScalar>, UInt64> {
+    val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
+    for ((unit, amount) in genericCounts) {
+        val legacyUnit = when (unit) {
+            is LegacyCuboidGenericAdapter<*> -> unit.cuboid as AbstractCuboid<InfraScalar>
+            else -> unit
+        }
+        counter[legacyUnit] = (counter[legacyUnit] ?: UInt64.zero) + amount
+    }
+    return counter
+}
+
+private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+    val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
+    if (hasNestedContainer) {
+        val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
+        for (placement in units) {
+            merge(counter, placement.unit)
+        }
+        return counter
+    }
+    val genericCounts = GenericContainer2.count(units.map { it.asGenericPlacement2() })
+    return toLegacyCountMap(genericCounts)
+}
+
+private fun count3ByGenericOrLegacy(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
+    val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
+    if (hasNestedContainer) {
+        val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
+        for (placement in units) {
+            merge(counter, placement.unit)
+        }
+        return counter
+    }
+    val genericCounts = GenericContainer3.count(units.map { it.asGenericPlacement3() })
+    return toLegacyCountMap(genericCounts)
 }
 
 private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): Quantity<V>? {
@@ -121,11 +161,7 @@ interface Container2<
 
     companion object {
         fun <P : ProjectivePlane> count(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
-            val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
-            for (placement in units) {
-                merge(counter, placement.unit)
-            }
-            return counter
+            return count2ByGenericOrLegacy(units)
         }
     }
 
@@ -151,32 +187,11 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
     }
 
     fun enabled(unit: QuantityPlacement3<*>): Boolean {
-        if ((unit.maxX gr width) == true) {
-            return false
-        }
-        if ((unit.maxY gr height) == true) {
-            return false
-        }
-        if ((unit.maxZ gr depth) == true) {
-            return false
-        }
-        return true
+        return asGenericContainer3Shape().enabled(unit.asGenericPlacement3())
     }
 
     fun enabled(units: List<QuantityPlacement3<*>>): Boolean {
-        val maxX = maxQuantity(units.map { it.maxX })
-        if (maxX != null && (maxX gr width) == true) {
-            return false
-        }
-        val maxY = maxQuantity(units.map { it.maxY })
-        if (maxY != null && (maxY gr height) == true) {
-            return false
-        }
-        val maxZ = maxQuantity(units.map { it.maxZ })
-        if (maxZ != null && (maxZ gr depth) == true) {
-            return false
-        }
-        return true
+        return asGenericContainer3Shape().enabled(units.map { it.asGenericPlacement3() })
     }
 
     fun maxAmount(
@@ -273,11 +288,7 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraScalar>, Copyable<
 
     companion object {
         fun count(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraScalar>, UInt64> {
-            val counter = HashMap<AbstractCuboid<InfraScalar>, UInt64>()
-            for (placement in units) {
-                merge(counter, placement.unit)
-            }
-            return counter
+            return count3ByGenericOrLegacy(units)
         }
     }
 
@@ -292,5 +303,4 @@ interface Container3CuboidUnit<S> : Container3<S>, Cuboid<S> where S : Container
     override val self: S
         get() = copy()
 }
-
 

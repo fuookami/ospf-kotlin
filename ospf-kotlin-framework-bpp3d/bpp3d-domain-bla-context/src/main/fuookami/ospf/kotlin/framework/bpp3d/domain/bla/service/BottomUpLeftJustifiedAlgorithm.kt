@@ -2,8 +2,8 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.bla.compat.Bpp3dBlaScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -85,7 +85,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 ) {
     private val logger = logger()
 
-    constructor(length: LegacyScalar, width: LegacyScalar, plane: P, config: Config<P> = Config()) : this(
+    constructor(length: Bpp3dBlaScalar, width: Bpp3dBlaScalar, plane: P, config: Config<P> = Config()) : this(
         space = Container2Shape(length * Meter, width * Meter, plane),
         plane = plane,
         config = config
@@ -475,6 +475,5 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
     }
 }
-
 
 

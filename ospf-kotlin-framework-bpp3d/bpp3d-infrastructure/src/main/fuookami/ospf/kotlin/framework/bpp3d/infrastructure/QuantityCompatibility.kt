@@ -1,8 +1,7 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
@@ -27,9 +26,9 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 
-typealias QuantityFlt64 = Quantity<Flt64>
+typealias QuantityFlt64 = Quantity<InfraScalar>
 
-private fun QuantityFlt64.toScalar(unit: PhysicalUnit): Flt64 {
+private fun QuantityFlt64.toScalar(unit: PhysicalUnit): InfraScalar {
     return if (this.unit == unit) {
         this.value
     } else {
@@ -38,7 +37,7 @@ private fun QuantityFlt64.toScalar(unit: PhysicalUnit): Flt64 {
     }
 }
 
-operator fun Flt64.times(unit: PhysicalUnit): QuantityFlt64 = Quantity(this, unit)
+operator fun InfraScalar.times(unit: PhysicalUnit): QuantityFlt64 = Quantity(this, unit)
 
 infix fun QuantityFlt64.eq(rhs: QuantityFlt64): Boolean = this.quantityEq(rhs)
 infix fun QuantityFlt64.neq(rhs: QuantityFlt64): Boolean = !this.quantityEq(rhs)
@@ -47,53 +46,53 @@ infix fun QuantityFlt64.geq(rhs: QuantityFlt64): Boolean = this.quantityGeq(rhs)
 infix fun QuantityFlt64.ls(rhs: QuantityFlt64): Boolean = this.quantityLs(rhs) ?: false
 infix fun QuantityFlt64.gr(rhs: QuantityFlt64): Boolean = this.quantityGr(rhs) ?: false
 
-infix fun QuantityFlt64.eq(rhs: Flt64): Boolean = this.value == rhs
-infix fun QuantityFlt64.neq(rhs: Flt64): Boolean = this.value != rhs
-infix fun QuantityFlt64.leq(rhs: Flt64): Boolean = this.value <= rhs
-infix fun QuantityFlt64.geq(rhs: Flt64): Boolean = this.value >= rhs
-infix fun QuantityFlt64.ls(rhs: Flt64): Boolean = this.value < rhs
-infix fun QuantityFlt64.gr(rhs: Flt64): Boolean = this.value > rhs
+infix fun QuantityFlt64.eq(rhs: InfraScalar): Boolean = this.value == rhs
+infix fun QuantityFlt64.neq(rhs: InfraScalar): Boolean = this.value != rhs
+infix fun QuantityFlt64.leq(rhs: InfraScalar): Boolean = this.value <= rhs
+infix fun QuantityFlt64.geq(rhs: InfraScalar): Boolean = this.value >= rhs
+infix fun QuantityFlt64.ls(rhs: InfraScalar): Boolean = this.value < rhs
+infix fun QuantityFlt64.gr(rhs: InfraScalar): Boolean = this.value > rhs
 
-infix fun Flt64.eq(rhs: QuantityFlt64): Boolean = this == rhs.value
-infix fun Flt64.neq(rhs: QuantityFlt64): Boolean = this != rhs.value
-infix fun Flt64.leq(rhs: QuantityFlt64): Boolean = this <= rhs.value
-infix fun Flt64.geq(rhs: QuantityFlt64): Boolean = this >= rhs.value
-infix fun Flt64.ls(rhs: QuantityFlt64): Boolean = this < rhs.value
-infix fun Flt64.gr(rhs: QuantityFlt64): Boolean = this > rhs.value
+infix fun InfraScalar.eq(rhs: QuantityFlt64): Boolean = this == rhs.value
+infix fun InfraScalar.neq(rhs: QuantityFlt64): Boolean = this != rhs.value
+infix fun InfraScalar.leq(rhs: QuantityFlt64): Boolean = this <= rhs.value
+infix fun InfraScalar.geq(rhs: QuantityFlt64): Boolean = this >= rhs.value
+infix fun InfraScalar.ls(rhs: QuantityFlt64): Boolean = this < rhs.value
+infix fun InfraScalar.gr(rhs: QuantityFlt64): Boolean = this > rhs.value
 
 operator fun QuantityFlt64.plus(rhs: QuantityFlt64): QuantityFlt64 = this.quantityPlus(rhs)
 operator fun QuantityFlt64.minus(rhs: QuantityFlt64): QuantityFlt64 = this.quantityMinus(rhs)
 operator fun QuantityFlt64.times(rhs: QuantityFlt64): QuantityFlt64 = this.quantityTimes(rhs)
 operator fun QuantityFlt64.div(rhs: QuantityFlt64): QuantityFlt64 = this.quantityDiv(rhs)
 
-operator fun QuantityFlt64.plus(rhs: Flt64): QuantityFlt64 = this + (rhs * this.unit)
-operator fun QuantityFlt64.minus(rhs: Flt64): QuantityFlt64 = this - (rhs * this.unit)
-operator fun QuantityFlt64.times(rhs: Flt64): QuantityFlt64 = this.quantityTimes(rhs)
-operator fun QuantityFlt64.div(rhs: Flt64): QuantityFlt64 = this.quantityDiv(rhs)
+operator fun QuantityFlt64.plus(rhs: InfraScalar): QuantityFlt64 = this + (rhs * this.unit)
+operator fun QuantityFlt64.minus(rhs: InfraScalar): QuantityFlt64 = this - (rhs * this.unit)
+operator fun QuantityFlt64.times(rhs: InfraScalar): QuantityFlt64 = this.quantityTimes(rhs)
+operator fun QuantityFlt64.div(rhs: InfraScalar): QuantityFlt64 = this.quantityDiv(rhs)
 
-operator fun Flt64.plus(rhs: QuantityFlt64): QuantityFlt64 = (this * rhs.unit) + rhs
-operator fun Flt64.minus(rhs: QuantityFlt64): QuantityFlt64 = (this * rhs.unit) - rhs
-operator fun Flt64.times(rhs: QuantityFlt64): QuantityFlt64 = this.quantityTimes(rhs)
+operator fun InfraScalar.plus(rhs: QuantityFlt64): QuantityFlt64 = (this * rhs.unit) + rhs
+operator fun InfraScalar.minus(rhs: QuantityFlt64): QuantityFlt64 = (this * rhs.unit) - rhs
+operator fun InfraScalar.times(rhs: QuantityFlt64): QuantityFlt64 = this.quantityTimes(rhs)
 
 operator fun QuantityFlt64.rem(rhs: QuantityFlt64): QuantityFlt64 {
     val right = rhs.toScalar(this.unit)
     return (this.value % right) * this.unit
 }
 
-operator fun QuantityFlt64.rem(rhs: Flt64): QuantityFlt64 {
+operator fun QuantityFlt64.rem(rhs: InfraScalar): QuantityFlt64 {
     return (this.value % rhs) * this.unit
 }
 
-operator fun Flt64.rem(rhs: QuantityFlt64): QuantityFlt64 {
+operator fun InfraScalar.rem(rhs: QuantityFlt64): QuantityFlt64 {
     return (this % rhs.value) * rhs.unit
 }
 
-fun QuantityFlt64.floor(): Flt64 = this.quantityFloor().value
-fun QuantityFlt64.ceil(): Flt64 = this.quantityCeil().value
-fun QuantityFlt64.round(): Flt64 = this.quantityRound().value
+fun QuantityFlt64.floor(): InfraScalar = this.quantityFloor().value
+fun QuantityFlt64.ceil(): InfraScalar = this.quantityCeil().value
+fun QuantityFlt64.round(): InfraScalar = this.quantityRound().value
 fun QuantityFlt64.toDouble(): Double = this.value.toDouble()
-fun QuantityFlt64.toFlt64(): Flt64 = this.value
-fun QuantityFlt64.abs(): QuantityFlt64 = if (this.value >= Flt64.zero) this else (-this.value) * this.unit
+fun QuantityFlt64.toFlt64(): InfraScalar = this.value
+fun QuantityFlt64.abs(): QuantityFlt64 = if (this.value >= infraZero()) this else (-this.value) * this.unit
 
 infix fun QuantityFlt64.ord(rhs: QuantityFlt64): Order {
     return this.quantityPartialOrd(rhs)
@@ -127,7 +126,7 @@ fun min(lhs: QuantityFlt64, rhs: QuantityFlt64, vararg rest: QuantityFlt64): Qua
 fun <T> Iterable<T>.sumOfQuantity(selector: (T) -> QuantityFlt64): QuantityFlt64 {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
-        return Flt64.zero * Meter
+        return infraZero() * Meter
     }
     var sum = selector(iterator.next())
     while (iterator.hasNext()) {
@@ -220,7 +219,7 @@ fun <T> Iterable<T>.maxBy(selector: (T) -> QuantityFlt64): T {
     return bestItem
 }
 
-operator fun QuantityPoint2.plus(offset: Point<Dim2, Flt64>): QuantityPoint2 {
+operator fun QuantityPoint2.plus(offset: Point<Dim2, InfraScalar>): QuantityPoint2 {
     return QuantityPoint2(
         x = x + (offset[0] * x.unit),
         y = y + (offset[1] * y.unit)
@@ -240,14 +239,14 @@ infix fun QuantityPoint2.eq(rhs: QuantityPoint2): Boolean {
 
 infix fun QuantityPoint2.neq(rhs: QuantityPoint2): Boolean = !(this eq rhs)
 
-operator fun QuantityPoint2.plus(offset: Vector<Dim2, Flt64>): QuantityPoint2 {
+operator fun QuantityPoint2.plus(offset: Vector<Dim2, InfraScalar>): QuantityPoint2 {
     return QuantityPoint2(
         x = x + (offset[0] * x.unit),
         y = y + (offset[1] * y.unit)
     )
 }
 
-operator fun QuantityPoint3.plus(offset: Point<Dim3, Flt64>): QuantityPoint3 {
+operator fun QuantityPoint3.plus(offset: Point<Dim3, InfraScalar>): QuantityPoint3 {
     return QuantityPoint3(
         x = x + (offset[0] * x.unit),
         y = y + (offset[1] * y.unit),
@@ -269,7 +268,7 @@ infix fun QuantityPoint3.eq(rhs: QuantityPoint3): Boolean {
 
 infix fun QuantityPoint3.neq(rhs: QuantityPoint3): Boolean = !(this eq rhs)
 
-operator fun QuantityPoint3.plus(offset: Vector<Dim3, Flt64>): QuantityPoint3 {
+operator fun QuantityPoint3.plus(offset: Vector<Dim3, InfraScalar>): QuantityPoint3 {
     return QuantityPoint3(
         x = x + (offset[0] * x.unit),
         y = y + (offset[1] * y.unit),
@@ -278,99 +277,100 @@ operator fun QuantityPoint3.plus(offset: Vector<Dim3, Flt64>): QuantityPoint3 {
 }
 
 fun point2(
-    x: QuantityFlt64 = Flt64.zero * Meter,
-    y: QuantityFlt64 = Flt64.zero * Meter
+    x: QuantityFlt64 = infraZero() * Meter,
+    y: QuantityFlt64 = infraZero() * Meter
 ): QuantityPoint2 {
     return QuantityPoint2(x = x, y = y)
 }
 
-fun point2(): QuantityPoint2 = QuantityPoint2(x = Flt64.zero * Meter, y = Flt64.zero * Meter)
+fun point2(): QuantityPoint2 = QuantityPoint2(x = infraZero() * Meter, y = infraZero() * Meter)
 
 fun point2(
-    x: Flt64 = Flt64.zero,
-    y: Flt64 = Flt64.zero,
+    x: InfraScalar = infraZero(),
+    y: InfraScalar = infraZero(),
     unit: PhysicalUnit = Meter
 ): QuantityPoint2 {
     return QuantityPoint2(x = x * unit, y = y * unit)
 }
 
 fun point2(
-    point: Point<Dim2, Flt64>,
+    point: Point<Dim2, InfraScalar>,
     unit: PhysicalUnit = Meter
 ): QuantityPoint2 {
     return point2(point[0], point[1], unit)
 }
 
 fun point3(
-    x: QuantityFlt64 = Flt64.zero * Meter,
-    y: QuantityFlt64 = Flt64.zero * Meter,
-    z: QuantityFlt64 = Flt64.zero * Meter
+    x: QuantityFlt64 = infraZero() * Meter,
+    y: QuantityFlt64 = infraZero() * Meter,
+    z: QuantityFlt64 = infraZero() * Meter
 ): QuantityPoint3 {
     return QuantityPoint3(x = x, y = y, z = z)
 }
 
 fun point3(): QuantityPoint3 = QuantityPoint3(
-    x = Flt64.zero * Meter,
-    y = Flt64.zero * Meter,
-    z = Flt64.zero * Meter
+    x = infraZero() * Meter,
+    y = infraZero() * Meter,
+    z = infraZero() * Meter
 )
 
 fun point3(
-    x: Flt64 = Flt64.zero,
-    y: Flt64 = Flt64.zero,
-    z: Flt64 = Flt64.zero,
+    x: InfraScalar = infraZero(),
+    y: InfraScalar = infraZero(),
+    z: InfraScalar = infraZero(),
     unit: PhysicalUnit = Meter
 ): QuantityPoint3 {
     return QuantityPoint3(x = x * unit, y = y * unit, z = z * unit)
 }
 
 fun point3(
-    point: Point<Dim3, Flt64>,
+    point: Point<Dim3, InfraScalar>,
     unit: PhysicalUnit = Meter
 ): QuantityPoint3 {
     return point3(point[0], point[1], point[2], unit)
 }
 
-fun point3(vector: Vector<Dim3, Flt64>, unit: PhysicalUnit = Meter): QuantityPoint3 {
+fun point3(vector: Vector<Dim3, InfraScalar>, unit: PhysicalUnit = Meter): QuantityPoint3 {
     return point3(vector[0], vector[1], vector[2], unit)
 }
 
 fun vector2(
-    x: QuantityFlt64 = Flt64.zero * Meter,
-    y: QuantityFlt64 = Flt64.zero * Meter
+    x: QuantityFlt64 = infraZero() * Meter,
+    y: QuantityFlt64 = infraZero() * Meter
 ): QuantityVector2 {
     return QuantityVector2(x = x, y = y)
 }
 
 fun vector2(
-    x: Flt64 = Flt64.zero,
-    y: Flt64 = Flt64.zero,
+    x: InfraScalar = infraZero(),
+    y: InfraScalar = infraZero(),
     unit: PhysicalUnit = Meter
 ): QuantityVector2 {
     return QuantityVector2(x = x * unit, y = y * unit)
 }
 
-fun vector2(vector: Vector<Dim2, Flt64>, unit: PhysicalUnit = Meter): QuantityVector2 {
+fun vector2(vector: Vector<Dim2, InfraScalar>, unit: PhysicalUnit = Meter): QuantityVector2 {
     return vector2(vector[0], vector[1], unit)
 }
 
 fun vector3(
-    x: QuantityFlt64 = Flt64.zero * Meter,
-    y: QuantityFlt64 = Flt64.zero * Meter,
-    z: QuantityFlt64 = Flt64.zero * Meter
+    x: QuantityFlt64 = infraZero() * Meter,
+    y: QuantityFlt64 = infraZero() * Meter,
+    z: QuantityFlt64 = infraZero() * Meter
 ): QuantityVector3 {
     return QuantityVector3(x = x, y = y, z = z)
 }
 
 fun vector3(
-    x: Flt64 = Flt64.zero,
-    y: Flt64 = Flt64.zero,
-    z: Flt64 = Flt64.zero,
+    x: InfraScalar = infraZero(),
+    y: InfraScalar = infraZero(),
+    z: InfraScalar = infraZero(),
     unit: PhysicalUnit = Meter
 ): QuantityVector3 {
     return QuantityVector3(x = x * unit, y = y * unit, z = z * unit)
 }
 
-fun vector3(vector: Vector<Dim3, Flt64>, unit: PhysicalUnit = Meter): QuantityVector3 {
+fun vector3(vector: Vector<Dim3, InfraScalar>, unit: PhysicalUnit = Meter): QuantityVector3 {
     return vector3(vector[0], vector[1], vector[2], unit)
 }
+

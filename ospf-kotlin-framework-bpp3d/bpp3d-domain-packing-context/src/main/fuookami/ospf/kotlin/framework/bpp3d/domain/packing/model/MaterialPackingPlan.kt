@@ -8,9 +8,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.compat.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -19,9 +21,9 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * Material packing objective weights.
  */
 data class MaterialPackingObjectiveConfig(
-    val packageCountWeight: Flt64 = Flt64(1_000_000.0),
-    val volumeWeight: Flt64 = Flt64(1_000.0),
-    val slackWeight: Flt64 = Flt64.one
+    val packageCountWeight: MaterialPackingScalar = materialPackingScalar(1_000_000.0),
+    val volumeWeight: MaterialPackingScalar = materialPackingScalar(1_000.0),
+    val slackWeight: MaterialPackingScalar = materialPackingOne()
 )
 
 /**
@@ -31,7 +33,7 @@ data class MaterialPackingObjectiveConfig(
 data class MaterialPackingDemand(
     val material: Material,
     val amount: UInt64 = UInt64.zero,
-    val weight: Quantity<Flt64>? = null
+    val weight: Quantity<*>? = null
 )
 
 /**
@@ -88,8 +90,8 @@ enum class MaterialPackingStatus {
  */
 data class MaterialPackingSolveInfo(
     val status: MaterialPackingStatus,
-    val objective: Flt64? = null,
-    val gap: Flt64? = null,
+    val objective: MaterialPackingScalar? = null,
+    val gap: MaterialPackingScalar? = null,
     val timeMillis: Long = 0L,
     val selectedPackageCount: UInt64 = UInt64.zero,
     val rawStatus: String? = null
