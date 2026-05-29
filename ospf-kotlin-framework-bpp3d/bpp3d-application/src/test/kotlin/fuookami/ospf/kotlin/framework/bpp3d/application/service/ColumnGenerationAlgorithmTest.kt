@@ -52,6 +52,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -455,12 +456,7 @@ class ColumnGenerationAlgorithmTest {
                     possibleBestObj = Flt64(11.0),
                     gap = Flt64.zero
                 )
-                return Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = output,
-                        dualSolution = dual
-                    )
-                )
+                return Ok(lpResultOf(output, dual))
             }
         }
         val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
@@ -706,12 +702,7 @@ class ColumnGenerationAlgorithmTest {
                     possibleBestObj = Flt64(3.0),
                     gap = Flt64.zero
                 )
-                return Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = output,
-                        dualSolution = emptyMap()
-                    )
-                )
+                return Ok(lpResultOf(output, emptyMap<Constraint<Flt64, Linear>, Flt64>()))
             }
         }
         val service = ColumnGenerationApplicationService(solver)
@@ -807,12 +798,7 @@ class ColumnGenerationAlgorithmTest {
                     possibleBestObj = Flt64(11.0),
                     gap = Flt64.zero
                 )
-                return Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = output,
-                        dualSolution = dual
-                    )
-                )
+                return Ok(lpResultOf(output, dual))
             }
         }
         val service = ColumnGenerationApplicationService(solver)
@@ -927,12 +913,7 @@ class ColumnGenerationAlgorithmTest {
                     possibleBestObj = Flt64(13.0),
                     gap = Flt64.zero
                 )
-                return Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = output,
-                        dualSolution = dual
-                    )
-                )
+                return Ok(lpResultOf(output, dual))
             }
         }
         val service = ColumnGenerationApplicationService(solver)
@@ -1064,12 +1045,7 @@ class ColumnGenerationAlgorithmTest {
                     possibleBestObj = Flt64(19.0),
                     gap = Flt64.zero
                 )
-                return Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = output,
-                        dualSolution = dual
-                    )
-                )
+                return Ok(lpResultOf(output, dual))
             }
         }
 
@@ -1206,12 +1182,7 @@ class ColumnGenerationAlgorithmTest {
                     possibleBestObj = Flt64(37.0),
                     gap = Flt64.zero
                 )
-                return Ok(
-                    ColumnGenerationSolver.LPResult(
-                        result = output,
-                        dualSolution = dual
-                    )
-                )
+                return Ok(lpResultOf(output, dual))
             }
         }
 
@@ -1254,6 +1225,17 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun lpResultOf(
+        result: FeasibleSolverOutput<Flt64>,
+        dualSolution: Map<*, *>
+    ): ColumnGenerationSolver.LPResult {
+        val constructor = ColumnGenerationSolver.LPResult::class.java.declaredConstructors
+            .first { it.parameterCount == 2 }
+        constructor.isAccessible = true
+        return constructor.newInstance(result, dualSolution) as ColumnGenerationSolver.LPResult
+    }
+
     private fun fakeConstraint(origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint): Constraint<Flt64, Linear> {
         return object : Constraint<Flt64, Linear> {
             override val lhs: List<Cell<Flt64>> = emptyList()
@@ -1262,7 +1244,7 @@ class ColumnGenerationAlgorithmTest {
             override val lazy: Boolean = false
             override val name: String = "fake-dual"
             override val origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint = origin
-            override val from: Pair<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>, Boolean>? = null
+            override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
 
             override fun isTrue(): Boolean? = true
             override fun isTrue(results: List<Flt64>): Boolean? = true

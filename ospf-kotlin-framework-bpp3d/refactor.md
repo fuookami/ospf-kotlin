@@ -538,3 +538,84 @@ pwsh.exe -NoLogo -NoProfile -Command "mvn -f ospf-kotlin-framework-bpp3d/pom.xml
 3. 交接结论：
    1. 本轮“推进 InfraNumber 脱 Flt64 的系统迁移”按 strict+回归双标准完成收口。
    2. 当前仓库可作为下一会话新基线继续推进后续泛型深化（若有）。
+
+### 11.15 续做结果（2026-05-29，当前追加）
+
+1. 基线复验：
+   1. strict 扫描：`pwsh.exe -NoLogo -NoProfile -File scripts/generic-boundary-check.ps1 -ProjectRoot .` 通过（`STRICT_GENERIC_BOUNDARY_PASS`）。
+   2. application 关键回归：`mvn --% -f pom.xml -pl bpp3d-application -am clean test -Dtest=ColumnGenerationAlgorithmTest,Bpp3dGenericBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true` 通过（`Tests run: 15, Failures: 0, Errors: 0`）。
+2. FltX 关键业务验证补充通过：
+   1. 执行 `FltXDirectCompileProofTest`、`LayerGenerationFltXProofTest`、`QuantityDemandStatisticsGenericTest`、`QuantityDemandReducedCostGenericTest`、`MaterialPackerTest`、`QuantityGeometrySpikeTest`、`ProjectionTest`、`OrientationTest` 均通过。
+3. Gurobi 回归推进：
+   1. 原始 `gurobi-test` 在本轮起点存在大量 `Flt64/FltX` 编译不匹配，导致 `-Pgurobi-cg-test` 不能进入执行阶段。
+   2. 对 `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt` 做了最小口径修复后，已可通过编译并进入执行。
+4. 当前新阻塞（待下一轮处理）：
+   1. Gurobi 执行期失败：`ClassCastException: FltX cannot be cast to Flt64`（发生于 solver LP 注册路径）。
+   2. 结论：问题已从“测试编译期类型不一致”推进为“solver 边界数值类型转换缺失/不一致”，后续应在 solver adapter 边界处理 `InfraNumber(FltX) -> solver(Flt64)`，而非在主域回退。
+
+### 11.16 续做结果（2026-05-29，当前追加）
+
+1. solver 边界适配（core）：
+   1. 在 `ospf-kotlin-core/src/main/.../SolverBoundaryCasts.kt` 将以下危险强转改为显式数值转换（`toFlt64()`）：
+      1. `linearPolynomialAsFlt64`
+      2. `quadraticPolynomialAsFlt64`
+      3. `linearSolverFlattenedMonomials`
+      4. `quadraticSolverFlattenedMonomials`
+   2. 目标：避免 `Linear/QuadraticIntermediateSymbol<FltX>` 进入 token 注册与 flatten 缓存路径时发生 `FltX -> Flt64` 运行期强转异常。
+2. 本地构建验证（可达范围）：
+   1. `mvn --% -f ospf-kotlin-core/pom.xml install -Dmaven.test.skip=true -Dgpg.skip=true` 通过，core 新改动已安装到本地仓库。
+3. 当前阻塞（与本轮 solver 边界修复无关）：
+   1. bpp3d 聚合链路在当前工作区存在大量跨模块编译错误（`domain-layer-assignment-context`、`bpp3d-application` 若干未解析符号），导致 `GurobiColumnGenerationTest` 无法在本地完成端到端复验。
+   2. 因此本轮尚未拿到“Gurobi 用例从运行期类型异常恢复”的最终测试结论；需先恢复 bpp3d 当前源码基线可编译后再复跑 `-Pgurobi-cg-test`。
+
+### 11.17 续做结果（2026-05-29，当前追加）
+
+1. bpp3d 编译链恢复（按本轮目标）：
+   1. 修复 `domain-layer-assignment-context` 主源码中旧命名空间引用：
+      1. `core.intermediate_symbol.*` -> `core.symbol.*`
+      2. `core.intermediate_symbol.function.*` -> `core.symbol.function.*`
+   2. 涉及文件：
+      1. `bpp3d-domain-layer-assignment-context/src/main/.../model/Assignment.kt`
+      2. `bpp3d-domain-layer-assignment-context/src/main/.../model/Load.kt`
+      3. `bpp3d-domain-layer-assignment-context/src/main/.../model/Capacity.kt`
+2. application 侧补充兼容修复：
+   1. `bpp3d-application/src/main/.../service/ColumnGenerationStandardExecutors.kt`
+   2. 将 `solved.dualSolution.toMeta()` 改为反射提取 dual map + 本地 `MetaDualSolution` 构建，规避当前 classpath 上 `Linear` 元数据访问冲突。
+3. 编译验证（本会话实测通过）：
+   1. 命令：`mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -DskipTests compile -Dgpg.skip=true`
+   2. 结果：`BUILD SUCCESS`（9/9 模块全部编译通过）。
+
+### 11.18 续做结果（2026-05-29，当前追加）
+
+1. 先清理 `-Pgurobi-cg-test` 进入执行期前的测试编译阻塞：
+   1. `bpp3d-domain-layer-assignment-context` 测试 `ItemDemandConstraintModeKeyTest.kt` 的 `core.intermediate_symbol.*` import 迁到 `core.symbol.*`。
+   2. `bpp3d-application` 测试 `ColumnGenerationAlgorithmTest.kt`、`MaterialPackingApplicationIntegrationTest.kt`：
+      1. 残留 `core.intermediate_symbol.IntermediateSymbol` 迁到 `core.symbol.IntermediateSymbol`。
+      2. 对 `ColumnGenerationSolver.LPResult(...)` 的直接构造改为反射工厂 `lpResultOf(...)`，规避当前 classpath 下 `Linear` 元数据签名冲突。
+2. 执行期阻塞推进路径（按实际报错逐步收敛）：
+   1. 第一阶段：`NoClassDefFoundError: core/intermediate_symbol/SolverBoundaryCastsKt`。
+      1. 处理：重装本地 `framework` 新构建产物  
+         `mvn --% -f ospf-kotlin-framework/pom.xml install -Dmaven.test.skip=true -Dgpg.skip=true`。
+   2. 第二阶段：恢复到目标问题 `ClassCastException: FltX cannot be cast to Flt64`。
+      1. 位置 1：`LinearTriadDumpBuilders.kt`（objective/constraint dump）。
+      2. 位置 2：`LinearTriadModel.kt`（`isBound` 与 bounds dump 路径）。
+      3. 处理：在上述两处增加 solver 边界数值读取兜底，将运行时 `RealNumber(*)` 统一 `toFlt64()` 后再参与比较与组装，移除对 `Flt64` 直接强转假设。
+      4. 同步重装 core：  
+         `mvn --% -f ospf-kotlin-core/pom.xml install -Dmaven.test.skip=true -Dgpg.skip=true`。
+3. 目标回归验证（本会话实测）：
+   1. 命令：`mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+   2. 结果：`BUILD SUCCESS`；`GurobiColumnGenerationTest` `Tests run: 10, Failures: 0, Errors: 0, Skipped: 1`。
+4. 结论：
+   1. 本轮已完成“solver 边界适配让 gurobi 测试从运行期类型异常恢复”的目标，`FltX -> Flt64` 运行时异常在目标用例中已消失。
+
+### 11.19 最终收口（2026-05-29）
+
+1. `refactor.md` 主线目标达成状态：
+   1. `bpp3d` 编译链恢复：`-pl bpp3d-application -am` 可通过。
+   2. strict 泛型边界：`STRICT_GENERIC_BOUNDARY_PASS`（见 11.14/11.15）。
+   3. Gurobi 执行期类型异常：已恢复，`GurobiColumnGenerationTest` 通过（见 11.18）。
+2. 验证结论（最终）：
+   1. 命令：`mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+   2. 结果：`BUILD SUCCESS`；`Tests run: 10, Failures: 0, Errors: 0, Skipped: 1`。
+3. 备注：
+   1. 本轮 Gurobi 恢复依赖 core 边界修复（`LinearTriadDumpBuilders.kt`、`LinearTriadModel.kt` 的 `toFlt64()` 兜底）；bpp3d 侧已完成适配与回归闭环。

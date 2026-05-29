@@ -4,10 +4,13 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
-import fuookami.ospf.kotlin.core.model.mechanism.toMeta
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.MathConstraint
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -44,6 +47,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -54,6 +58,35 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import kotlin.math.roundToInt
+
+private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): MetaDualSolution {
+    val constraints = LinkedHashMap<MathConstraint, Flt64>()
+    val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<Flt64, *>, Flt64>>>()
+
+    for ((key, value) in dualSolution) {
+        val constraint = key as? Constraint<*, *> ?: continue
+        val dual = value as? Flt64 ?: continue
+        constraint.origin?.let { constraints[it] = dual }
+        constraint.from?.let { (symbol, _) ->
+            @Suppress("UNCHECKED_CAST")
+            val typedConstraint = constraint as Constraint<Flt64, *>
+            symbols.getOrPut(symbol) { mutableListOf() }.add(typedConstraint to dual)
+        }
+    }
+
+    return MetaDualSolution(
+        constraints = constraints,
+        symbols = symbols.mapValues { it.value.toList() }
+    )
+}
+
+private fun extractDualSolutionMap(result: Any): Map<*, *> {
+    return runCatching {
+        result.javaClass.methods
+            .firstOrNull { it.name == "getDualSolution" && it.parameterCount == 0 }
+            ?.invoke(result) as? Map<*, *>
+    }.getOrNull() ?: emptyMap<Any?, Any?>()
+}
 
 data class ColumnGenerationStandardExecutorConfig(
     val rmpSolveNamePrefix: String = "bpp3d-rmp",
@@ -159,7 +192,7 @@ class ColumnGenerationStandardExecutors(
                 artifacts.demandConstraint.refresh(
                     shadowPriceMap = shadowPriceMap,
                     model = artifacts.model,
-                    shadowPrices = solved.dualSolution.toMeta()
+                    shadowPrices = dualSolutionToMetaUnchecked(extractDualSolutionMap(solved))
                 ),
                 stage = "refresh demand shadow prices"
             )

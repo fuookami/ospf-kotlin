@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
@@ -194,7 +195,7 @@ class MaterialPackingApplicationIntegrationTest {
                     dual[fakeConstraint(constraint)] = Flt64(index.toDouble() + 1.0)
                 }
             return Ok(
-                ColumnGenerationSolver.LPResult(
+                lpResultOf(
                     result = FeasibleSolverOutput(
                         obj = Flt64(5.0),
                         solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
@@ -363,6 +364,17 @@ class MaterialPackingApplicationIntegrationTest {
         assertEquals(UInt64(2), materialSummary[material.key])
     }
 
+    @Suppress("UNCHECKED_CAST")
+    private fun lpResultOf(
+        result: FeasibleSolverOutput<Flt64>,
+        dualSolution: Map<*, *>
+    ): ColumnGenerationSolver.LPResult {
+        val constructor = ColumnGenerationSolver.LPResult::class.java.declaredConstructors
+            .first { it.parameterCount == 2 }
+        constructor.isAccessible = true
+        return constructor.newInstance(result, dualSolution) as ColumnGenerationSolver.LPResult
+    }
+
     private fun fakeConstraint(origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint): Constraint<Flt64, Linear> {
         return object : Constraint<Flt64, Linear> {
             override val lhs: List<Cell<Flt64>> = emptyList()
@@ -371,7 +383,7 @@ class MaterialPackingApplicationIntegrationTest {
             override val lazy: Boolean = false
             override val name: String = "fake-dual"
             override val origin: fuookami.ospf.kotlin.core.model.mechanism.MathConstraint = origin
-            override val from: Pair<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>, Boolean>? = null
+            override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
 
             override fun isTrue(): Boolean? = true
             override fun isTrue(results: List<Flt64>): Boolean? = true

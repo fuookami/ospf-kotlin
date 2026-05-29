@@ -30,8 +30,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber as Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64 as SolverFlt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
@@ -109,7 +110,7 @@ class GurobiColumnGenerationTest {
         val placements = items.mapIndexed { index, item ->
             QuantityPlacement3(
                 view = item.view(Orientation.Upright),
-                position = point3(x = Flt64(index) * Meter, y = Flt64.zero * Meter, z = Flt64.zero * Meter)
+                position = point3(x = Flt64(index.toLong()) * Meter, y = Flt64.zero * Meter, z = Flt64.zero * Meter)
             )
         }
         val layer = BinLayer(
@@ -184,7 +185,7 @@ class GurobiColumnGenerationTest {
         return SolverConfig(
             time = timeSeconds.toDouble().seconds,
             threadNum = UInt64(threadNum.toULong()),
-            gap = gap,
+            gap = SolverFlt64(gap.toDouble()),
             notImprovementTime = notImprovementTimeSeconds.toDouble().seconds
         )
     }
@@ -310,9 +311,9 @@ class GurobiColumnGenerationTest {
             val layerCount = rowsByLayer.size
             val maxItemsPerLayer = rowsByLayer.values.maxOf { it.size }
             val binType = BinType(
-                width = Flt64(maxItemsPerLayer) * Meter,
+                width = Flt64(maxItemsPerLayer.toLong()) * Meter,
                 height = Flt64(3.0) * Meter,
-                depth = Flt64(layerCount) * Meter,
+                depth = Flt64(layerCount.toLong()) * Meter,
                 capacity = Flt64(1500.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
@@ -333,9 +334,9 @@ class GurobiColumnGenerationTest {
                 val bin = layerBin(
                     items = layerItems,
                     typeCode = binType.typeCode,
-                    depthInMeter = Flt64(layerCount),
+                    depthInMeter = Flt64(layerCount.toLong()),
                     binType = binType,
-                    widthInMeter = Flt64(maxItemsPerLayer)
+                    widthInMeter = Flt64(maxItemsPerLayer.toLong())
                 )
                 val rawLayer = bin.units.first().unit
                 initialColumns.add(
@@ -367,7 +368,7 @@ class GurobiColumnGenerationTest {
                 ?: throw IllegalStateException("missing material in weight map: ${entry.key}")
             val weightKg = materialWeightKgByNo[entry.key]
                 ?: throw IllegalStateException("missing material weight in map: ${entry.key}")
-            Pair(material, (Flt64(entry.value) * weightKg) * Kilogram)
+            Pair(material, (Flt64(entry.value.toLong()) * weightKg) * Kilogram)
         }
         val demandEntries = demandEntriesFromItems(items = itemDemands) +
                 demandEntriesFromMaterialAmounts(
@@ -488,7 +489,7 @@ class GurobiColumnGenerationTest {
         val maxWidthInMeter = widthsInMeter.maxOrNull() ?: Flt64.one
         val totalDepthInMeter = maxOf(
             Flt64(totalAmount.toLong().toDouble()),
-            Flt64(defaultBinDepth)
+            Flt64(defaultBinDepth.toLong())
         )
         val binType = BinType(
             width = maxWidthInMeter * Meter,
@@ -699,7 +700,7 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI",
-            weight = 0.5 * Kilogram
+            weight = Flt64(0.5) * Kilogram
         )
         val actualItem = item("item-gurobi", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -777,7 +778,7 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-SVC",
-            weight = 0.5 * Kilogram
+            weight = Flt64(0.5) * Kilogram
         )
         val actualItem = item("item-gurobi-svc", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -840,14 +841,14 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-A",
-            weight = 1.0 * Kilogram
+            weight = Flt64(1.0) * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("M-GUROBI-B"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-B",
-            weight = 1.0 * Kilogram
+            weight = Flt64(1.0) * Kilogram
         )
         val itemA = item("item-gurobi-a", materialA)
         val itemB = item("item-gurobi-b", materialB)
@@ -916,10 +917,10 @@ class GurobiColumnGenerationTest {
         val itemsPerLayer = 12
         val finalBinCount = 1
         val sharedBinType = BinType(
-            width = itemsPerLayer.toDouble() * Meter,
-            height = 3.0 * Meter,
-            depth = 2.0 * Meter,
-            capacity = 300.0 * Kilogram,
+            width = Flt64(itemsPerLayer.toDouble()) * Meter,
+            height = Flt64(3.0) * Meter,
+            depth = Flt64(2.0) * Meter,
+            capacity = Flt64(300.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-MEDIUM"
@@ -930,7 +931,7 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-MEDIUM-$index",
-                weight = 1.0 * Kilogram
+                weight = Flt64(1.0) * Kilogram
             )
         }
         val items = (0 until (layerCount * itemsPerLayer)).map { index ->
@@ -943,7 +944,7 @@ class GurobiColumnGenerationTest {
                 typeCode = sharedBinType.typeCode,
                 depthInMeter = Flt64(2.0),
                 binType = sharedBinType,
-                widthInMeter = Flt64(itemsPerLayer)
+                widthInMeter = Flt64(itemsPerLayer.toLong())
             )
             val rawLayer = bin.units.first().unit
             BinLayer(
@@ -962,7 +963,7 @@ class GurobiColumnGenerationTest {
             config = SolverConfig(
                 time = 20.seconds,
                 threadNum = UInt64(2),
-                gap = Flt64(0.01),
+                gap = SolverFlt64(0.01),
                 notImprovementTime = 5.seconds
             )
         )
@@ -1025,10 +1026,10 @@ class GurobiColumnGenerationTest {
         val itemsPerLayer = 10
         val finalBinCount = 1
         val sharedBinType = BinType(
-            width = itemsPerLayer.toDouble() * Meter,
-            height = 3.0 * Meter,
-            depth = layerCount.toDouble() * Meter,
-            capacity = 600.0 * Kilogram,
+            width = Flt64(itemsPerLayer.toDouble()) * Meter,
+            height = Flt64(3.0) * Meter,
+            depth = Flt64(layerCount.toDouble()) * Meter,
+            capacity = Flt64(600.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-LARGE"
@@ -1039,7 +1040,7 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-LARGE-$index",
-                weight = 1.0 * Kilogram
+                weight = Flt64(1.0) * Kilogram
             )
         }
         val items = (0 until (layerCount * itemsPerLayer)).map { index ->
@@ -1050,9 +1051,9 @@ class GurobiColumnGenerationTest {
             val bin = layerBin(
                 items = chunk,
                 typeCode = sharedBinType.typeCode,
-                depthInMeter = Flt64(layerCount),
+                depthInMeter = Flt64(layerCount.toLong()),
                 binType = sharedBinType,
-                widthInMeter = Flt64(itemsPerLayer)
+                widthInMeter = Flt64(itemsPerLayer.toLong())
             )
             val rawLayer = bin.units.first().unit
             BinLayer(
@@ -1071,7 +1072,7 @@ class GurobiColumnGenerationTest {
             config = SolverConfig(
                 time = 30.seconds,
                 threadNum = UInt64(4),
-                gap = Flt64(0.01),
+                gap = SolverFlt64(0.01),
                 notImprovementTime = 10.seconds
             )
         )
@@ -1141,15 +1142,15 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-MIXED-$index",
-                weight = 1.0 * Kilogram
+                weight = Flt64(1.0) * Kilogram
             )
         }
         val binTypes = (0 until groupCount).map { index ->
             BinType(
-                width = itemsPerLayer.toDouble() * Meter,
-                height = 3.0 * Meter,
-                depth = layersPerGroup.toDouble() * Meter,
-                capacity = 600.0 * Kilogram,
+                width = Flt64(itemsPerLayer.toDouble()) * Meter,
+                height = Flt64(3.0) * Meter,
+                depth = Flt64(layersPerGroup.toDouble()) * Meter,
+                capacity = Flt64(600.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
                 typeCode = "BIN-GUROBI-MIXED-$index"
@@ -1173,9 +1174,9 @@ class GurobiColumnGenerationTest {
                 val bin = layerBin(
                     items = layerItems,
                     typeCode = binTypes[groupIndex].typeCode,
-                    depthInMeter = Flt64(layersPerGroup),
+                    depthInMeter = Flt64(layersPerGroup.toLong()),
                     binType = binTypes[groupIndex],
-                    widthInMeter = Flt64(itemsPerLayer)
+                    widthInMeter = Flt64(itemsPerLayer.toLong())
                 )
                 val rawLayer = bin.units.first().unit
                 layers.add(
@@ -1203,7 +1204,7 @@ class GurobiColumnGenerationTest {
             config = SolverConfig(
                 time = 30.seconds,
                 threadNum = UInt64(4),
-                gap = Flt64(0.01),
+                gap = SolverFlt64(0.01),
                 notImprovementTime = 10.seconds
             )
         )
@@ -1577,15 +1578,15 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-MIXED-WEIGHT-$index",
-                weight = (index + 1).toDouble() * Kilogram
+                weight = Flt64((index + 1).toDouble()) * Kilogram
             )
         }
         val binTypes = (0 until groupCount).map { index ->
             BinType(
-                width = itemsPerLayer.toDouble() * Meter,
-                height = 3.0 * Meter,
-                depth = layersPerGroup.toDouble() * Meter,
-                capacity = 1200.0 * Kilogram,
+                width = Flt64(itemsPerLayer.toDouble()) * Meter,
+                height = Flt64(3.0) * Meter,
+                depth = Flt64(layersPerGroup.toDouble()) * Meter,
+                capacity = Flt64(1200.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
                 typeCode = "BIN-GUROBI-MIXED-WEIGHT-$index"
@@ -1609,9 +1610,9 @@ class GurobiColumnGenerationTest {
                 val bin = layerBin(
                     items = layerItems,
                     typeCode = binTypes[groupIndex].typeCode,
-                    depthInMeter = Flt64(layersPerGroup),
+                    depthInMeter = Flt64(layersPerGroup.toLong()),
                     binType = binTypes[groupIndex],
-                    widthInMeter = Flt64(itemsPerLayer)
+                    widthInMeter = Flt64(itemsPerLayer.toLong())
                 )
                 val rawLayer = bin.units.first().unit
                 layers.add(
@@ -1631,7 +1632,7 @@ class GurobiColumnGenerationTest {
         val materialWeightDemands = materials.mapIndexed { index, material ->
             Pair(
                 material,
-                (expectedMaterialAmount.toLong() * (index + 1L)).toDouble() * Kilogram
+                Flt64((expectedMaterialAmount.toLong() * (index + 1L)).toDouble()) * Kilogram
             )
         }
         val demandEntries = demandEntriesFromItems(items = itemDemands) +
@@ -1647,7 +1648,7 @@ class GurobiColumnGenerationTest {
             config = SolverConfig(
                 time = 40.seconds,
                 threadNum = UInt64(4),
-                gap = Flt64(0.01),
+                gap = SolverFlt64(0.01),
                 notImprovementTime = 15.seconds
             )
         )
