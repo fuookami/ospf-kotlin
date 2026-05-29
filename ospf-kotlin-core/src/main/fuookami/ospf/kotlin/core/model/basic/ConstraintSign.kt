@@ -24,15 +24,18 @@ class InvalidConstraintSignFromComparison(
  * Constraint relation enumeration representing three constraint directions: less-equal, equal, greater-equal.
  */
 enum class ConstraintRelation {
+    /** 小于等于 / Less than or equal */
     LessEqual {
         override val reverse get() = GreaterEqual
         override fun <T : Ord<T>> operator(): Comparator<T> = { lhs, rhs -> lhs.compareTo(rhs) <= 0 }
         override fun toString() = "<="
     },
+    /** 等于 / Equal */
     Equal {
         override fun <T : Ord<T>> operator(): Comparator<T> = { lhs, rhs -> lhs.compareTo(rhs) == 0 }
         override fun toString() = "="
     },
+    /** 大于等于 / Greater than or equal */
     GreaterEqual {
         override val reverse get() = LessEqual
         override fun <T : Ord<T>> operator(): Comparator<T> = { lhs, rhs -> lhs.compareTo(rhs) >= 0 }

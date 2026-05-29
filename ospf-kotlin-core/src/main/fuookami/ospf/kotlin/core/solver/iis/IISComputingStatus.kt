@@ -25,8 +25,11 @@ data class IISComputingStatus(
     val restConstraintAmount: UInt64,
     val totalConstraintAmount: UInt64
 ) {
+    /** 边界计算进度 / Bound computation progress */
     val boundProgress: Flt64 get() = restBoundAmount.toFlt64() / totalBoundAmount.toFlt64()
+    /** 约束计算进度 / Constraint computation progress */
     val constraintProgress: Flt64 get() = restConstraintAmount.toFlt64() / totalConstraintAmount.toFlt64()
+    /** 总进度 / Total progress */
     val totalProgress: Flt64 get() = (restBoundAmount.toFlt64() + restConstraintAmount.toFlt64()) / (totalBoundAmount.toFlt64() + totalConstraintAmount.toFlt64())
 }
 

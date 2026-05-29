@@ -60,31 +60,37 @@ class Variable(
     val upperBound by ::_upperBound
     val type by ::_type
 
+    /** 是否无界（正负方向均自由） / Whether the variable is free (unbounded in both directions) */
     val free: Boolean
         get() {
             return negativeFree && positiveFree
         }
 
+    /** 是否已归一化（正方向或负方向归一化） / Whether the variable is normalized (in either direction) */
     val normalized: Boolean
         get() {
             return negativeNormalized || positiveNormalized
         }
 
+    /** 负方向是否归一化（负自由且上界为零） / Whether negative-normalized (negative-free and upper bound is zero) */
     val negativeNormalized: Boolean
         get() {
             return negativeFree && upperBound eq Flt64.zero
         }
 
+    /** 负方向是否自由（下界为负无穷） / Whether negative-free (lower bound is negative infinity) */
     val negativeFree: Boolean
         get() {
             return (lowerBound eq Flt64.negativeInfinity || lowerBound leq -Flt64.decimalPrecision.reciprocal())
         }
 
+    /** 正方向是否归一化（正自由且下界为零） / Whether positive-normalized (positive-free and lower bound is zero) */
     val positiveNormalized: Boolean
         get() {
             return positiveFree && lowerBound eq Flt64.zero
         }
 
+    /** 正方向是否自由（上界为正无穷） / Whether positive-free (upper bound is positive infinity) */
     val positiveFree: Boolean
         get() {
             return (upperBound eq Flt64.infinity || upperBound geq Flt64.decimalPrecision.reciprocal())
@@ -119,16 +125,27 @@ interface ConstraintCell<Self : ConstraintCell<Self>> : ModelCell<Self> {
  * Constraint source enumeration indicating how a constraint was produced.
  */
 enum class ConstraintSource {
+    /** 原始约束 / Original constraint */
     Origin,
+    /** 下界约束 / Lower bound constraint */
     LowerBound,
+    /** 上界约束 / Upper bound constraint */
     UpperBound,
+    /** 对偶约束 / Dual constraint */
     Dual,
+    /** Farkas 对偶约束 / Farkas dual constraint */
     FarkasDual,
+    /** 可行性约束 / Feasibility constraint */
     Feasibility,
+    /** 弹性约束 / Elastic constraint */
     Elastic,
+    /** 弹性下界约束 / Elastic lower bound constraint */
     ElasticLowerBound,
+    /** 弹性上界约束 / Elastic upper bound constraint */
     ElasticUpperBound,
+    /** 弹性松弛二元约束 / Elastic slack binary constraint */
     ElasticSlackBinary,
+    /** 弹性松弛最小最大约束 / Elastic slack minmax constraint */
     ElasticSlackMinmax
 }
 

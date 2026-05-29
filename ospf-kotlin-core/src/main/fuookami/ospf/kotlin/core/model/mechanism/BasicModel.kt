@@ -37,17 +37,21 @@ open class BasicModel<V>(
 
     // ── Variable management ──────────────────────────────────────────────
 
+    /** 添加变量项。 / Add a single variable item. */
     open fun add(item: AbstractVariableItem<*, *>): Try = tokens.add(item)
 
+    /** 批量添加变量项。 / Add variable items in batch. */
     open fun add(items: Iterable<AbstractVariableItem<*, *>>): Try = tokens.add(items)
 
     // ── Symbol management ────────────────────────────────────────────────
 
+    /** 添加符号到模型。 / Add a symbol to the model. */
     fun addSymbol(symbol: IntermediateSymbol<*>): Try {
         symbols.add(symbol)
         return tokens.add(symbol)
     }
 
+    /** 添加符号及其依赖项到模型。 / Add a symbol and its dependencies to the model. */
     fun addSymbolWithDependencies(
         symbol: IntermediateSymbol<*>,
         dependencies: Set<IntermediateSymbol<*>>
@@ -73,6 +77,7 @@ open class BasicModel<V>(
         return tokens.add(symbol)
     }
 
+    /** 从模型中移除符号。 / Remove a symbol from the model. */
     fun removeSymbol(symbol: IntermediateSymbol<*>) {
         symbols.remove(symbol)
         tokens.remove(symbol)
@@ -80,6 +85,7 @@ open class BasicModel<V>(
 
     // ── Lifecycle ────────────────────────────────────────────────────────
 
+    /** 刷新模型状态；当 [force] 为 `true` 时同时清除已缓存的求解结果。 / Flush model state; when [force] is `true`, also clear cached solution data. */
     open fun flush(force: Boolean) {
         if (force) {
             tokens.clearSolution()

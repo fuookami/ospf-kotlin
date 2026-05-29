@@ -14,6 +14,10 @@ import fuookami.ospf.kotlin.core.solver.*
 /**
  * 求解线性三元模型的对偶问题。
  * Solve the dual problem of a linear triad model.
+ *
+ * @param model 线性三元模型 / The linear triad model
+ * @param solver 线性求解器 / The linear solver
+ * @return 约束到对偶值的映射，或错误 / Mapping of constraints to dual values, or error
  */
 suspend fun solveDual(
     model: LinearTriadModel,
@@ -31,6 +35,10 @@ suspend fun solveDual(
 /**
  * 三元 Farkas 对偶求解辅助函数。
  * Triad Farkas dual solver helpers.
+ *
+ * @param model 线性三元模型视图 / The linear triad model view
+ * @param solver 线性求解器 / The linear solver
+ * @return 约束到 Farkas 对偶值的映射，或错误 / Mapping of constraints to Farkas dual values, or error
  */
 suspend fun solveFarkasDual(
     model: LinearTriadModelView,
@@ -48,6 +56,10 @@ suspend fun solveFarkasDual(
 /**
  * 四元二次对偶求解辅助函数。
  * Quadratic dual solver helpers.
+ *
+ * @param model 二次四元模型 / The quadratic tetrad model
+ * @param solver 二次求解器 / The quadratic solver
+ * @return 约束到对偶值的映射，或错误 / Mapping of constraints to dual values, or error
  */
 suspend fun solveDual(
     model: QuadraticTetradModel,
@@ -65,6 +77,10 @@ suspend fun solveDual(
 /**
  * 四元二次 Farkas 对偶求解辅助函数。
  * Quadratic Farkas dual solver helpers.
+ *
+ * @param model 二次四元模型视图 / The quadratic tetrad model view
+ * @param solver 二次求解器 / The quadratic solver
+ * @return 约束到 Farkas 对偶值的映射，或错误 / Mapping of constraints to Farkas dual values, or error
  */
 suspend fun solveFarkasDual(
     model: QuadraticTetradModelView,

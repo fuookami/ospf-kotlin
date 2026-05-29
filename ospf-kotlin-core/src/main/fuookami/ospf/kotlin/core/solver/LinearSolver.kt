@@ -25,11 +25,13 @@ import fuookami.ospf.kotlin.core.solver.output.*
 interface AbstractLinearSolver {
     val name: String
 
+    /** 求解线性模型（阻塞）/ Solve linear model (blocking) */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
 
+    /** 求解线性模型并启用 IIS 诊断（阻塞）/ Solve linear model with IIS diagnostics (blocking) */
     suspend operator fun invoke(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -44,6 +46,7 @@ interface AbstractLinearSolver {
         )
     }
 
+    /** 异步求解线性模型 / Solve linear model asynchronously */
         fun solveAsync(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -59,6 +62,7 @@ interface AbstractLinearSolver {
         }
     }
 
+    /** 异步求解线性模型并启用 IIS 诊断 / Solve linear model asynchronously with IIS diagnostics */
         fun solveAsync(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -76,12 +80,14 @@ interface AbstractLinearSolver {
         }
     }
 
+    /** 求解线性模型获取多个解（阻塞）/ Solve linear model for multiple solutions (blocking) */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>
 
+    /** 求解线性模型获取多个解并启用 IIS 诊断（阻塞）/ Solve linear model for multiple solutions with IIS diagnostics (blocking) */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -98,6 +104,7 @@ interface AbstractLinearSolver {
         )
     }
 
+    /** 异步求解线性模型获取多个解 / Solve linear model asynchronously for multiple solutions */
         fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -115,6 +122,7 @@ interface AbstractLinearSolver {
         }
     }
 
+    /** 异步求解线性模型获取多个解并启用 IIS 诊断 / Solve linear model asynchronously for multiple solutions with IIS diagnostics */
         fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -137,6 +145,7 @@ interface AbstractLinearSolver {
     // ========== 泛型主接口 / Generic primary interface ==========
     // solve 是泛型主入口；triad solve 调用仍是求解器边界。 / solve is the primary generic entry point; triad solve calls remain the solver boundary.
 
+    /** 泛型求解线性模型 / Solve linear model with generic value conversion */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         converter: IntoValue<V>,
@@ -149,6 +158,7 @@ interface AbstractLinearSolver {
         }
     }
 
+    /** 泛型求解线性模型获取多个解 / Solve linear model with generic value conversion for multiple solutions */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -166,6 +176,7 @@ interface AbstractLinearSolver {
     }
 
     // MechanismModel<V> 的泛型 solve 全链路：dump -> solve -> convert。 / Generic solve for MechanismModel<V>: full pipeline (dump -> solve -> convert)
+    /** 从机制模型求解线性问题（全链路：转储 -> 求解 -> 转换）/ Solve linear problem from mechanism model (full pipeline: dump -> solve -> convert) */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
@@ -188,6 +199,7 @@ interface AbstractLinearSolver {
         }
     }
 
+    /** 从机制模型求解线性问题获取多个解（全链路：转储 -> 求解 -> 转换）/ Solve linear problem from mechanism model for multiple solutions (full pipeline: dump -> solve -> convert) */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
@@ -211,10 +223,12 @@ interface AbstractLinearSolver {
         }
     }
 
+    /** 转储线性机制模型为三元组模型 / Dump linear mechanism model to triad model */
     suspend fun dump(model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearTriadModel {
         return LinearTriadModel(model)
     }
 
+    /** 转储线性元模型为机制模型 / Dump linear meta model to mechanism model */
     suspend fun dump(
         model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,

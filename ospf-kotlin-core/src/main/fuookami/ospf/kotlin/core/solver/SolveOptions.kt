@@ -24,6 +24,7 @@ data class SolveOptions(
     val solvingStatusCallBack: SolvingStatusCallBack? = null,
     val valueConversionPolicy: SolveValueConversionPolicy? = null
 ) {
+    /** 有效的值转换策略 / Effective value conversion policy */
     val effectiveValueConversionPolicy: SolveValueConversionPolicy
         get() = valueConversionPolicy ?: SolveValueConversionPolicy.AllowRounding
 

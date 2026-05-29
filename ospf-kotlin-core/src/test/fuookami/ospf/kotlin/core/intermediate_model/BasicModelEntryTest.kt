@@ -73,8 +73,8 @@ class BasicModelEntryTest {
             converter = IntoValue.Identity,
             name = "c1"
         )
-        val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "factory-parent", converter = flt64TestConverter),
+        val mechanismModel = LinearMechanismModel(
+            parent = LinearMetaModel(name = "factory-parent", converter = flt64TestConverter),
             name = "factory-model",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),

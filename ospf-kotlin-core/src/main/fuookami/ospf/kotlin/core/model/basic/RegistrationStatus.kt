@@ -20,9 +20,12 @@ data class RegistrationStatus(
     val readySymbolAmount: UInt64,
     val totalSymbolAmount: UInt64
 ) {
+    /** 非空符号数量 / Non-empty symbol count */
     val notEmptySymbolAmount: UInt64 get() = totalSymbolAmount - emptySymbolAmount
+    /** 已就绪的非空符号数量 / Ready non-empty symbol count */
     val readyNotEmptySymbolAmount: UInt64 get() = readySymbolAmount - emptySymbolAmount
 
+    /** 总进度 / Total progress */
     val totalProgress: Flt64
         get() = if (totalSymbolAmount neq UInt64.zero) {
             readySymbolAmount.toFlt64() / totalSymbolAmount.toFlt64()
@@ -30,6 +33,7 @@ data class RegistrationStatus(
             Flt64.one
         }
 
+    /** 非空进度 / Non-empty progress */
     val notEmptyProgress: Flt64
         get() = if (notEmptySymbolAmount neq UInt64.zero) {
             (readyNotEmptySymbolAmount.toFlt64() / notEmptySymbolAmount.toFlt64())

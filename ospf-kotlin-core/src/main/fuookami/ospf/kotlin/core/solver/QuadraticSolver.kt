@@ -25,11 +25,13 @@ import fuookami.ospf.kotlin.core.solver.output.*
 interface AbstractQuadraticSolver {
     val name: String
 
+    /** 求解二次模型（阻塞）/ Solve quadratic model (blocking) */
     suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
 
+    /** 求解二次模型并启用 IIS 诊断（阻塞）/ Solve quadratic model with IIS diagnostics (blocking) */
     suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -44,6 +46,7 @@ interface AbstractQuadraticSolver {
         )
     }
 
+    /** 异步求解二次模型 / Solve quadratic model asynchronously */
         fun solveAsync(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -59,6 +62,7 @@ interface AbstractQuadraticSolver {
         }
     }
 
+    /** 异步求解二次模型并启用 IIS 诊断 / Solve quadratic model asynchronously with IIS diagnostics */
         fun solveAsync(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -76,12 +80,14 @@ interface AbstractQuadraticSolver {
         }
     }
 
+    /** 求解二次模型获取多个解（阻塞）/ Solve quadratic model for multiple solutions (blocking) */
     suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>
 
+    /** 求解二次模型获取多个解并启用 IIS 诊断（阻塞）/ Solve quadratic model for multiple solutions with IIS diagnostics (blocking) */
     suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
@@ -98,6 +104,7 @@ interface AbstractQuadraticSolver {
         )
     }
 
+    /** 异步求解二次模型获取多个解 / Solve quadratic model asynchronously for multiple solutions */
         fun solveAsync(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
@@ -115,6 +122,7 @@ interface AbstractQuadraticSolver {
         }
     }
 
+    /** 异步求解二次模型获取多个解并启用 IIS 诊断 / Solve quadratic model asynchronously for multiple solutions with IIS diagnostics */
         fun solveAsync(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
@@ -137,6 +145,7 @@ interface AbstractQuadraticSolver {
     // ========== 泛型主接口 / Generic primary interface ==========
     // solve 是泛型主入口；tetrad solve 调用仍是求解器边界。 / solve is the primary generic entry point; tetrad solve calls remain the solver boundary.
 
+    /** 泛型求解二次模型 / Solve quadratic model with generic value conversion */
     suspend fun <V> solve(
         model: QuadraticTetradModelView,
         converter: IntoValue<V>,
@@ -149,6 +158,7 @@ interface AbstractQuadraticSolver {
         }
     }
 
+    /** 泛型求解二次模型获取多个解 / Solve quadratic model with generic value conversion for multiple solutions */
     suspend fun <V> solve(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
@@ -166,6 +176,7 @@ interface AbstractQuadraticSolver {
     }
 
     // MechanismModel<V> 的泛型 solve 全链路：dump -> solve -> convert。 / Generic solve for MechanismModel<V>: full pipeline (dump -> solve -> convert)
+    /** 从机制模型求解二次问题（全链路：转储 -> 求解 -> 转换）/ Solve quadratic problem from mechanism model (full pipeline: dump -> solve -> convert) */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
@@ -188,6 +199,7 @@ interface AbstractQuadraticSolver {
         }
     }
 
+    /** 从机制模型求解二次问题获取多个解（全链路：转储 -> 求解 -> 转换）/ Solve quadratic problem from mechanism model for multiple solutions (full pipeline: dump -> solve -> convert) */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
@@ -211,10 +223,12 @@ interface AbstractQuadraticSolver {
         }
     }
 
+    /** 转储二次机制模型为四元组模型 / Dump quadratic mechanism model to tetrad model */
     suspend fun dump(model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticTetradModel {
         return QuadraticTetradModel(model)
     }
 
+    /** 转储二次元模型为机制模型 / Dump quadratic meta model to mechanism model */
     suspend fun dump(
         model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,

@@ -19,6 +19,7 @@ data class IntermediateModelDumpingStatus(
     val readyConstraintAmount: UInt64,
     val totalConstraintAmount: UInt64,
 ) {
+    /** 总进度 / Total progress */
     val totalProgress: Flt64 get() = readyConstraintAmount.toFlt64() / totalConstraintAmount.toFlt64()
 }
 

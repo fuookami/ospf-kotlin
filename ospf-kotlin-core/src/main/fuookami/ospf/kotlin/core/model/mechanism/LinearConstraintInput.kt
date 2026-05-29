@@ -166,14 +166,24 @@ private fun <V> ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toVal
 }
 
 /**
- * Flt64LinearConstraintInput - Flt64 boundary data used by legacy callback paths.
  * Flt64LinearConstraintInput - 旧回调路径使用的 Flt64 边界数据。
+ * Flt64LinearConstraintInput - Flt64 boundary data used by legacy callback paths.
+ *
+ * 携带以下信息：
+ * - `LinearFlattenData<Flt64>` 用于约束表达式（单项式 + 常量）
+ * - `Comparison` 用于关系类型
+ * - 范围元数据（`lhsRange`），Big-M 寄存器公式需要
+ * - `name` / `displayName` 用于标识
  *
  * It carries:
  * - `LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>` for the constraint expression (monomials + constant)
  * - `Comparison` for the relation type
  * - Range metadata (`lhsRange`) needed by the Big-M register formulation
  * - `name` / `displayName` for identification
+ *
+ * 构造方式：
+ * - 从 `LinearInequality<Flt64>` 创建：`Flt64LinearConstraintInput.from(relation, lhsRange)`
+ * - 直接构造：`Flt64LinearConstraintInput(flattenData, sign, lhsRange, name, displayName)`
  *
  * Construction:
  * - From `LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>`: `Flt64LinearConstraintInput.from(relation, lhsRange)`

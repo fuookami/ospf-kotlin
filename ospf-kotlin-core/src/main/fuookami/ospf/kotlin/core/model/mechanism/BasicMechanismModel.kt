@@ -24,5 +24,6 @@ open class BasicMechanismModel<V>(
 
     // Query helpers
 
+    /** 变量数量。 / Number of variables. */
     val numVariables: Int get() = tokens.tokens.size
 }

@@ -18,5 +18,6 @@ enum class ObjectCategory {
         override fun toString() = "Minimum"
     };
 
+    /** 反转的目标类型 / Reversed objective category */
     abstract val reverse: ObjectCategory
 }

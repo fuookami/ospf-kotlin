@@ -417,6 +417,17 @@ class LinearMechanismModel<V>(
         return ok
     }
 
+    /**
+     * 生成最优性 cut / Generate optimality cut
+     *
+     * 基于对偶解为 Benders 分解生成最优性割平面。
+     * Generates optimality cuts for Benders decomposition based on the dual solution.
+     *
+     * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param dualSolution 对偶解，约束到对偶值的映射 / Dual solution, mapping from constraint to dual value
+     * @return 线性不等式列表 / List of linear inequalities representing the cut
+     */
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -433,6 +444,16 @@ class LinearMechanismModel<V>(
         )
     }
 
+    /**
+     * 生成可行性 cut / Generate feasibility cut
+     *
+     * 基于 Farkas 对偶解为 Benders 分解生成可行性割平面。
+     * Generates feasibility cuts for Benders decomposition based on the Farkas dual solution.
+     *
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param farkasDualSolution Farkas 对偶解，约束到对偶值的映射 / Farkas dual solution, mapping from constraint to dual value
+     * @return 线性不等式列表 / List of linear inequalities representing the cut
+     */
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
@@ -498,6 +519,19 @@ class LinearMechanismModel<V>(
         return generateFeasibleCut(fixedVariables, dualSolution)
     }
 
+    /**
+     * 生成 Flt64 最优性 cut / Generate Flt64 optimality cut
+     *
+     * 基于 Flt64 类型对偶解生成最优性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateOptimalCut]，
+     * 返回值也转换为 Flt64。
+     * Generates optimality cuts from Flt64-typed dual solution. Converts dual values from solver
+     * raw Flt64 type, delegates to [generateOptimalCut], and converts the result back to Flt64.
+     *
+     * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param dualSolution Flt64 类型对偶解 / Flt64-typed dual solution mapping from constraint to dual value
+     * @return Flt64 线性不等式列表 / List of Flt64 linear inequalities representing the cut
+     */
     fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -520,6 +554,18 @@ class LinearMechanismModel<V>(
         ).map { toFlt64LinearCut(it) }
     }
 
+    /**
+     * 生成 Flt64 可行性 cut / Generate Flt64 feasibility cut
+     *
+     * 基于 Flt64 类型 Farkas 对偶解生成可行性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateFeasibleCut]，
+     * 返回值也转换为 Flt64。
+     * Generates feasibility cuts from Flt64-typed Farkas dual solution. Converts dual values from
+     * solver raw Flt64 type, delegates to [generateFeasibleCut], and converts the result back to Flt64.
+     *
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64-typed Farkas dual solution mapping from constraint to dual value
+     * @return Flt64 线性不等式列表 / List of Flt64 linear inequalities representing the cut
+     */
     fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
@@ -596,6 +642,12 @@ class LinearMechanismModel<V>(
         return generateFlt64FeasibleCut(fixedVariables, farkasDualSolution)
     }
 
+    /**
+     * 约束数量 / Number of constraints
+     *
+     * 返回模型中当前存储的线性约束总数。
+     * Returns the total number of linear constraints currently stored in the model.
+     */
     val numConstraints: Int get() = _constraints.size
 
     override fun close() {
@@ -894,6 +946,17 @@ class QuadraticMechanismModel<V>(
         return ok
     }
 
+    /**
+     * 生成最优性 cut / Generate optimality cut
+     *
+     * 基于对偶解为 Benders 分解生成最优性割平面（线性或二次）。
+     * Generates optimality cuts (linear or quadratic) for Benders decomposition based on the dual solution.
+     *
+     * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param dualSolution 对偶解，约束到对偶值的映射 / Dual solution, mapping from constraint to dual value
+     * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
+     */
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -910,6 +973,16 @@ class QuadraticMechanismModel<V>(
         )
     }
 
+    /**
+     * 生成可行性 cut / Generate feasibility cut
+     *
+     * 基于 Farkas 对偶解为 Benders 分解生成可行性割平面（线性或二次）。
+     * Generates feasibility cuts (linear or quadratic) for Benders decomposition based on the Farkas dual solution.
+     *
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param farkasDualSolution Farkas 对偶解，约束到对偶值的映射 / Farkas dual solution, mapping from constraint to dual value
+     * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
+     */
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
@@ -998,6 +1071,19 @@ class QuadraticMechanismModel<V>(
         return generateFeasibleCut(fixedVariables, dualSolution)
     }
 
+    /**
+     * 生成 Flt64 最优性 cut / Generate Flt64 optimality cut
+     *
+     * 基于 Flt64 类型对偶解生成最优性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateOptimalCut]，
+     * 返回值也转换为 Flt64。
+     * Generates optimality cuts from Flt64-typed dual solution. Converts dual values from solver
+     * raw Flt64 type, delegates to [generateOptimalCut], and converts the result back to Flt64.
+     *
+     * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param dualSolution Flt64 类型对偶解 / Flt64-typed dual solution mapping from constraint to dual value
+     * @return Flt64 割平面列表 / List of Flt64 cuts (linear or quadratic inequalities)
+     */
     fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1020,6 +1106,18 @@ class QuadraticMechanismModel<V>(
         return Ok(cutsFlt64)
     }
 
+    /**
+     * 生成 Flt64 可行性 cut / Generate Flt64 feasibility cut
+     *
+     * 基于 Flt64 类型 Farkas 对偶解生成可行性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateFeasibleCut]，
+     * 返回值也转换为 Flt64。
+     * Generates feasibility cuts from Flt64-typed Farkas dual solution. Converts dual values from
+     * solver raw Flt64 type, delegates to [generateFeasibleCut], and converts the result back to Flt64.
+     *
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64-typed Farkas dual solution mapping from constraint to dual value
+     * @return Flt64 割平面列表 / List of Flt64 cuts (linear or quadratic inequalities)
+     */
     fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
@@ -1098,6 +1196,12 @@ class QuadraticMechanismModel<V>(
         return generateFlt64FeasibleCut(fixedVariables, farkasDualSolution)
     }
 
+    /**
+     * 约束数量 / Number of constraints
+     *
+     * 返回模型中当前存储的二次约束总数。
+     * Returns the total number of quadratic constraints currently stored in the model.
+     */
     val numConstraints: Int get() = _constraints.size
 
     override fun close() {

@@ -228,6 +228,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 }
 
 /**
+ * 通用可变 Token 表接口骨架（C2-2.5a 声明层）。
  * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
  */
 interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenCollection<V>, Copyable<AbstractMutableTokenTable<V>> where V : RealNumber<V>, V : NumberField<V> {

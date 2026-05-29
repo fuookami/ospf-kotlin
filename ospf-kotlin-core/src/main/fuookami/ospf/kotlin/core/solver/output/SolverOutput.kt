@@ -23,10 +23,15 @@ sealed interface SolverOutput {}
  * Unified solver output interface, containing common solving statistics.
  */
 sealed interface UnifiedSolverOutput : SolverOutput {
+    /** 迭代次数（可选） / Iteration count (optional) */
     val iterations: UInt64?
+    /** 节点数（可选） / Node count (optional) */
     val nodeCount: UInt64?
+    /** 最优界（可选） / Best bound (optional) */
     val bestBound: Flt64?
+    /** MIP 间隙（可选） / MIP gap (optional) */
     val mipGap: Flt64?
+    /** 求解时间（可选） / Solve time (optional) */
     val solveTime: Duration?
 }
 /**
@@ -87,6 +92,14 @@ data class FeasibleSolverOutput<V>(
     val bestBoundValue: V? = bestBound?.let { castSolverFlt64FallbackToValueOrThrow("bestBoundValue", it, solution) }
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
 
+/**
+ * 将 Flt64 可行求解器输出转换为目标值类型的输出。
+ * Convert a Flt64 feasible solver output to the target value type.
+ *
+ * @param V 目标值类型 / Target value type
+ * @param converter 值转换器 / Value converter
+ * @return 转换后的可行求解器输出 / Converted feasible solver output
+ */
 fun <V> FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
         where V : RealNumber<V>, V : NumberField<V> {
     return FeasibleSolverOutput(
@@ -159,6 +172,14 @@ data class SolverOutputWithIIS<out IIS>(
     val iis: IIS?
 )
 
+/**
+ * 将求解器输出与 IIS 信息组合。
+ * Combine solver output with IIS information.
+ *
+ * @param IIS IIS 类型 / IIS type
+ * @param iis IIS 信息（可为 null） / IIS information (nullable)
+ * @return 带 IIS 的求解器输出 / Solver output with IIS
+ */
 fun <IIS> SolverOutput.withIIS(iis: IIS?): SolverOutputWithIIS<IIS> {
     return SolverOutputWithIIS(
         output = this,
@@ -166,6 +187,12 @@ fun <IIS> SolverOutput.withIIS(iis: IIS?): SolverOutputWithIIS<IIS> {
     )
 }
 
+/**
+ * 将求解器输出包装为无 IIS 信息的形式。
+ * Wrap solver output without IIS information.
+ *
+ * @return 无 IIS 的求解器输出 / Solver output without IIS
+ */
 fun SolverOutput.withoutIIS(): SolverOutputWithIIS<Nothing> {
     return SolverOutputWithIIS(
         output = this,
@@ -173,6 +200,12 @@ fun SolverOutput.withoutIIS(): SolverOutputWithIIS<Nothing> {
     )
 }
 
+/**
+ * 将线性不可行求解器输出与内置 IIS 信息组合。
+ * Combine linear infeasible solver output with its built-in IIS information.
+ *
+ * @return 带 IIS 的求解器输出 / Solver output with IIS
+ */
 fun LinearInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<BasicLinearTriadModelView> {
     return SolverOutputWithIIS(
         output = this,
@@ -180,6 +213,12 @@ fun LinearInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<BasicLinearTriad
     )
 }
 
+/**
+ * 将二次不可行求解器输出与内置 IIS 信息组合。
+ * Combine quadratic infeasible solver output with its built-in IIS information.
+ *
+ * @return 带 IIS 的求解器输出 / Solver output with IIS
+ */
 fun QuadraticInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<QuadraticTetradModelView> {
     return SolverOutputWithIIS(
         output = this,

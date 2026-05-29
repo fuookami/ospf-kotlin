@@ -180,7 +180,9 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
  * @param V 数值类型 / The numeric type
  */
 interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<Pair<MultiObjectLocation<V>, V>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
+    /** 目标函数位置列表 / Objective function location list */
     val objectiveLocation: List<MultiObjectLocation<V>>
+    /** 目标函数数量 / Objective function count */
     val objectiveSize get() = objectiveLocation.size
 
     override val defaultObjective: List<V>

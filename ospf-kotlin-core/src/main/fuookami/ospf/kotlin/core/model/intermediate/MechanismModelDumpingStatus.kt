@@ -26,6 +26,7 @@ data class MechanismModelDumpingStatus(
     val readySymbolAmount: UInt64,
     val totalSymbolAmount: UInt64
 ) {
+    /** 约束转储进度 / Constraint dump progress */
     val constraintProgress: Flt64
         get() = if (totalConstraintAmount neq UInt64.zero) {
             readyConstraintAmount.toFlt64() / totalConstraintAmount.toFlt64()
@@ -33,6 +34,7 @@ data class MechanismModelDumpingStatus(
             Flt64.one
         }
 
+    /** 符号转储进度 / Symbol dump progress */
     val symbolProgress: Flt64
         get() = if (totalSymbolAmount != UInt64.zero) {
             readySymbolAmount.toFlt64() / totalSymbolAmount.toFlt64()

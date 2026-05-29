@@ -22,6 +22,7 @@ data class ModelBuildingStatus(
     val ready: UInt64,
     val total: UInt64
 ) {
+    /** 构建进度 / Build progress */
     val progress: Flt64
         get() = if (total neq UInt64.zero) {
             ready.toFlt64() / total.toFlt64()
