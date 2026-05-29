@@ -1,3 +1,6 @@
+/**
+ * 中间符号 / Intermediate symbols
+ */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol
 

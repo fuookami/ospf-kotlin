@@ -1,3 +1,4 @@
+/** 选一函数符号 / One-of function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,20 +23,25 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 选一函数：恰好一个输入多项式必须非零。
  * OneOf function: exactly one of the input polynomials must be nonzero.
  *
+ * 结果：
  * Result:
+ * - 若恰好一个输入多项式非零则 y = 1
  * - y = 1 if exactly one of the input polynomials is nonzero
+ * - 否则 y = 0
  * - y = 0 otherwise
  *
+ * 使用非零指示变量与类 XOR 链接约束。
  * Uses nonzero indicators with XOR-like linking constraints.
  *
- * @param polynomials the list of input linear polynomials
- * @param bigM Big-M bound (default 1e6)
- * @param tolerance zero tolerance (default 1e-6)
- * @param strictBoundary strict boundary value (default 0.5)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param polynomials 输入线性多项式列表 / the list of input linear polynomials
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
+ * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class OneOfFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,

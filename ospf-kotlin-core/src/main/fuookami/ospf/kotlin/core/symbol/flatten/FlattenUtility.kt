@@ -14,7 +14,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
+ * 表达式扁平化工具 - 统一的表达式扁平化操作
  * Flatten Utility - Unified flatten operations for expression system
+ *
+ * 提供以下单一实现：
+ * - 合并：合并同类项（相同变量/键）
+ * - 乘法：展开表达式乘积
+ * - 归一化：清理并规范化表达式
  *
  * This utility provides single-point implementations for:
  * - Merge: Combine like terms (same variable/key)
@@ -25,11 +31,12 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 // ========== Merge Operations ==========
 
 /**
+ * 合并线性单项式，将相同变量的系数相加。
  * Merge linear monomials by combining coefficients of same variables.
  *
- * @param monomials List of linear monomials to merge
- * @param constant Base constant value
- * @return Merged LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> with combined coefficients
+ * @param monomials 待合并的线性单项式列表 / List of linear monomials to merge
+ * @param constant 基础常量值 / Base constant value
+ * @return 合并后的 LinearFlattenData，系数已合并 / Merged LinearFlattenData with combined coefficients
  */
 internal fun mergeLinearMonomials(
     monomials: List<LinearMonomial<Flt64>>,
@@ -58,7 +65,8 @@ internal fun mergeLinearMonomials(
 }
 
 /**
- * Merge multiple LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> by combining all monomials and constants.
+ * 合并多个 LinearFlattenData，将所有单项式和常量合并。
+ * Merge multiple LinearFlattenData by combining all monomials and constants.
  */
 internal fun mergeLinearFlattenDataFlt64(
     flattenDataList: List<LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
@@ -90,12 +98,14 @@ internal fun mergeLinearFlattenDataFlt64(
 }
 
 /**
+ * 合并二次单项式，将相同变量对的系数相加。
+ * 使用基于标识符的确定性键排序以保证对称性。
  * Merge quadratic monomials by combining coefficients of same variable pairs.
  * Uses deterministic key ordering based on identifier for symmetry.
  *
- * @param monomials List of quadratic monomials to merge
- * @param constant Base constant value
- * @return Merged QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> with combined coefficients
+ * @param monomials 待合并的二次单项式列表 / List of quadratic monomials to merge
+ * @param constant 基础常量值 / Base constant value
+ * @return 合并后的 QuadraticFlattenData，系数已合并 / Merged QuadraticFlattenData with combined coefficients
  */
 internal fun mergeQuadraticMonomials(
     monomials: List<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
@@ -138,7 +148,8 @@ internal fun mergeQuadraticMonomials(
 }
 
 /**
- * Merge multiple QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> by combining all monomials and constants.
+ * 合并多个 QuadraticFlattenData，将所有单项式和常量合并。
+ * Merge multiple QuadraticFlattenData by combining all monomials and constants.
  */
 internal fun mergeQuadraticFlattenDataFlt64(
     flattenDataList: List<QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
@@ -182,6 +193,8 @@ internal fun mergeQuadraticFlattenDataFlt64(
 // ========== Multiply Operations ==========
 
 /**
+ * 将两个线性扁平化数据相乘。
+ * 结果为二次形式，因为线性 * 线性可能产生二次项。
  * Multiply two linear flatten data.
  * Result is quadratic because linear * linear can produce quadratic terms.
  *
@@ -230,6 +243,9 @@ internal fun multiplyLinear(
 }
 
 /**
+ * 将线性扁平化数据与二次扁平化数据相乘。
+ *
+ * 线性 * 二次 -> 二次
  * Multiply linear by quadratic flatten data.
  *
  * Linear * Quadratic -> Quadratic
@@ -276,6 +292,9 @@ internal fun multiplyLinearQuadratic(
 }
 
 /**
+ * 将两个二次扁平化数据相乘。
+ * 注意：二次 * 二次会产生四次项，本函数不支持四次项。
+ * 此函数仅处理保持在二次范围内的部分。
  * Multiply two quadratic flatten data.
  * Note: Quadratic * Quadratic would produce Quartic terms, which we don't support.
  * This function handles the parts that stay within quadratic bounds.
@@ -316,6 +335,7 @@ internal fun multiplyQuadratic(
 // ========== Normalize Operations ==========
 
 /**
+ * 归一化线性扁平化数据，移除零系数项。
  * Normalize linear flatten data by removing zero coefficients.
  */
 internal fun normalizeLinear(data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
@@ -326,6 +346,7 @@ internal fun normalizeLinear(data: LinearFlattenData<fuookami.ospf.kotlin.math.a
 }
 
 /**
+ * 归一化二次扁平化数据，移除零系数项并规范化键。
  * Normalize quadratic flatten data by removing zero coefficients and canonicalizing keys.
  */
 internal fun normalizeQuadratic(data: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {

@@ -1,3 +1,4 @@
+/** 不等式函数符号 / Inequality function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -23,20 +24,22 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 不等式满足指示函数。
  * Inequality satisfaction indicator function.
  *
+ * 给定线性表达式和比较类型，返回：
  * Given a linear expression and a comparison type, returns:
- * - 1 if the inequality is satisfied
- * - 0 if the inequality is violated
+ * - 1 若不等式满足 / if the inequality is satisfied
+ * - 0 若不等式违反 / if the inequality is violated
  *
- * @param lhs the left-hand side linear polynomial
- * @param rhs the right-hand side constant value
- * @param sign the comparison type
- * @param bigM Big-M bound (default 1e6)
- * @param tolerance zero tolerance (default 1e-6)
- * @param strictBoundary strict boundary value (default 0.5)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param lhs 左侧线性多项式 / the left-hand side linear polynomial
+ * @param rhs 右侧常数值 / the right-hand side constant value
+ * @param sign 比较类型 / the comparison type
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
+ * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class InequalityFunction<V>(
     val lhs: LinearPolynomial<V>,

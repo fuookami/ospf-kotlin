@@ -25,6 +25,8 @@ import kotlin.io.path.Path
 private val solverValueConverter = IntoValue.fromConverter(Flt64)
 
 /**
+ * 根据配置创建合适的 [AbstractMutableTokenTable<V>] 工厂函数。
+ * 由 [AbstractMetaModel] 用于在传递给 [BasicModel] 超类构造函数之前构建符号表。
  * Factory function to create the appropriate [AbstractMutableTokenTable<V>]
  * based on configuration. Used by [AbstractMetaModel] to construct the token
  * table before passing it to the [BasicModel] superclass constructor.
@@ -50,8 +52,39 @@ private fun <V> createTokenTable(
     }
 }
 
+/**
+ * 元模型密封接口
+ * Sealed interface for meta models
+ *
+ * 元模型是优化模型的高层表示，包含约束、子目标和符号表。
+ * 用户通过元模型定义优化问题，然后展开为机制模型进行求解。
+ * A meta model is a high-level representation of an optimization problem,
+ * containing constraints, sub-objectives, and token table.
+ * Users define optimization problems through meta models, then unfold them into mechanism models for solving.
+ *
+ * @param V 数值类型 / The number type
+ * @property converter 值转换器 / Value converter
+ * @property name 模型名称 / Model name
+ * @property constraints 约束列表 / Constraint list
+ * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
+ * @property subObjects 子目标列表 / Sub-objective list
+ * @property tokens 可变符号表 / Mutable token table
+ * @property symbolDependencies 符号依赖关系 / Symbol dependency map
+ */
 sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val converter: IntoValue<V>
+
+    /**
+     * 元模型子目标
+     * Meta model sub-objective
+     *
+     * @param V 数值类型 / The number type
+     * @property parent 父元模型 / Parent meta model
+     * @property category 目标类型 / Objective category
+     * @property name 子目标名称 / Sub-objective name
+     * @property displayName 显示名称 / Display name
+     * @property polynomial 线性多项式 / Linear polynomial
+     */
     class SubObject<V>(
         val parent: MetaModel<V>,
         val category: ObjectCategory,
@@ -348,6 +381,15 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 }
 
+/**
+ * 线性元模型抽象接口
+ * Abstract linear meta model interface
+ *
+ * 支持添加线性约束和分区约束。
+ * Supports adding linear constraints and partition constraints.
+ *
+ * @param V 数值类型 / The number type
+ */
 interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintVariableWithGroup")
@@ -421,6 +463,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     /**
+     * 使用数学 LinearInequality 添加约束
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
@@ -500,6 +543,15 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 }
 
+/**
+ * 二次元模型抽象接口
+ * Abstract quadratic meta model interface
+ *
+ * 扩展线性元模型，支持添加二次约束和分区约束。
+ * Extends linear meta model, supports adding quadratic constraints and partition constraints.
+ *
+ * @param V 数值类型 / The number type
+ */
 interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
     fun addConstraint(
         constraint: QuadraticPolynomial<V>,
@@ -545,6 +597,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     }
 
     /**
+     * 使用数学 QuadraticInequality 添加约束
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
@@ -601,6 +654,16 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     }
 }
 
+/**
+ * 元模型配置
+ * Meta model configuration
+ *
+ * @property manualTokenAddition 是否手动添加符号 / Whether to manually add tokens
+ * @property concurrent 是否并发 / Whether to use concurrency
+ * @property dumpBlocking 是否阻塞式转储 / Whether to use blocking dump
+ * @property withRangeSet 是否包含范围集 / Whether to include range set
+ * @property checkTokenExists 是否检查符号存在性 / Whether to check token existence
+ */
 data class MetaModelConfiguration(
     internal val manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
@@ -609,6 +672,18 @@ data class MetaModelConfiguration(
     internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
 )
 
+/**
+ * 元模型抽象基类
+ * Abstract meta model base class
+ *
+ * 提供元模型的通用实现，包括约束组管理和符号表操作。
+ * Provides common implementation for meta models, including constraint group management and token table operations.
+ *
+ * @param V 数值类型 / The number type
+ * @property category 模型类别（线性/二次）/ Model category (linear/quadratic)
+ * @property configuration 元模型配置 / Meta model configuration
+ * @property converter 值转换器 / Value converter
+ */
 abstract class AbstractMetaModel<V>(
     val category: Category,
     internal val configuration: MetaModelConfiguration,
@@ -670,6 +745,17 @@ abstract class AbstractMetaModel<V>(
     }
 }
 
+/**
+ * 线性元模型
+ * Linear meta model
+ *
+ * 用于定义线性优化问题，支持线性约束和线性目标函数。
+ * Used to define linear optimization problems, supporting linear constraints and linear objective functions.
+ *
+ * @param V 数值类型 / The number type
+ * @property name 模型名称 / Model name
+ * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
+ */
 class LinearMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -707,7 +793,8 @@ class LinearMetaModel<V>(
     }
 
     /**
-     * Add objective using LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API)
+     * 使用 LinearFlattenData 添加目标函数（新 API）
+     * Add objective using LinearFlattenData (new API)
      */
     override fun addObject(
         category: ObjectCategory,
@@ -727,6 +814,7 @@ class LinearMetaModel<V>(
     }
 
     /**
+     * 使用数学 LinearInequality 添加约束（LinearModel 接口）
      * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
@@ -753,6 +841,7 @@ class LinearMetaModel<V>(
     }
 
     /**
+     * 使用数学 LinearInequality 添加约束（新 API）
      * Add constraint using math LinearInequality (new API)
      */
     override fun addConstraint(
@@ -806,6 +895,17 @@ class LinearMetaModel<V>(
     }
 }
 
+/**
+ * 二次元模型
+ * Quadratic meta model
+ *
+ * 用于定义二次优化问题，支持线性和二次约束以及二次目标函数。
+ * Used to define quadratic optimization problems, supporting linear and quadratic constraints and quadratic objective functions.
+ *
+ * @param V 数值类型 / The number type
+ * @property name 模型名称 / Model name
+ * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
+ */
 class QuadraticMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -825,6 +925,7 @@ class QuadraticMetaModel<V>(
     internal val flattenSubObjects: List<QuadraticFlattenSubObject<V>> by ::_flattenSubObjects
 
     /**
+     * 添加数学 LinearInequality 约束 - 内部转换为 QuadraticInequality
      * Add math LinearInequality constraint - converts to QuadraticInequality internally
      */
     override fun addConstraint(
@@ -860,6 +961,7 @@ class QuadraticMetaModel<V>(
     }
 
     /**
+     * 使用数学 LinearInequality 添加约束（LinearModel 接口）
      * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
@@ -882,6 +984,7 @@ class QuadraticMetaModel<V>(
     }
 
     /**
+     * 使用数学 QuadraticInequality 添加约束（QuadraticModel 接口）
      * Add constraint using math QuadraticInequality (QuadraticModel interface)
      */
     override fun addConstraint(
@@ -904,8 +1007,10 @@ class QuadraticMetaModel<V>(
     }
 
     /**
-     * Add objective using LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API - LinearModel interface)
-     * Converts to QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> internally.
+     * 使用 LinearFlattenData 添加目标函数（新 API - LinearModel 接口），
+     * 内部转换为 QuadraticFlattenData。
+     * Add objective using LinearFlattenData (new API - LinearModel interface).
+     * Converts to QuadraticFlattenData internally.
      */
     override fun addObject(
         category: ObjectCategory,
@@ -922,6 +1027,7 @@ class QuadraticMetaModel<V>(
     }
 
     /**
+     * 使用数学 QuadraticInequality 添加约束（新 API）
      * Add constraint using math QuadraticInequality (new API)
      */
     override fun addConstraint(
@@ -986,7 +1092,9 @@ class QuadraticMetaModel<V>(
     }
 
     /**
-     * Add objective using QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API)
+     * 使用 QuadraticFlattenData 添加目标函数（新 API），
+     * 使用转换器将 Flt64 系数转换为 V 类型。
+     * Add objective using QuadraticFlattenData (new API).
      * Converts Flt64 coefficients to V-typed using converter.
      */
     override fun addObject(

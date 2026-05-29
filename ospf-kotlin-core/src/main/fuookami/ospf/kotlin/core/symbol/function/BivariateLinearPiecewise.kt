@@ -1,3 +1,4 @@
+/** 双变量线性分段函数符号 / Bivariate linear piecewise function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -24,11 +25,24 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 双变量分段线性函数：使用三角形插值的两变量分段线性函数。
  * BivariateLinearPiecewiseFunction - Piecewise linear function of two variables using triangle interpolation.
+ *
+ * 给定输入变量 x 和 y，以及一组顶点为 (x_i, y_i, z_i) 的三角形：
+ * - 点 (x, y) 处的函数值 z 由包含该点的三角形插值得出
+ * - 在每个三角形内使用重心坐标
  *
  * Given input variables x and y, and a set of triangles with vertices (x_i, y_i, z_i):
  * - The function value z at point (x, y) is interpolated from the containing triangle
  * - Uses barycentric coordinates within each triangle
+ *
+ * 约束：
+ * - 对每个三角形 i，为每个顶点 j=0,1,2 创建 lambda 变量 lambda_i_j (PctVariable1)
+ * - 对每个三角形 i，创建二值变量 z_i (BinVar) 用于三角形选择
+ * - x = x 坐标的加权和，y = y 坐标的加权和
+ * - output = z 坐标的加权和
+ * - sum(all lambda) = 1
+ * - SOS2：仅一个三角形激活 (lambda_i_sum <= 3 * z_i, sum(z_i) = 1)
  *
  * Constraints:
  * - For each triangle i, create lambda variables lambda_i_j (PctVariable1) for each vertex j=0,1,2
@@ -70,7 +84,9 @@ class BivariateLinearPiecewiseFunction<V>(
         get() = lambdaVars.flatMap { it.items } + zVars.items
 
     /**
+     * 结果多项式：lambda 加权的 z 坐标之和。
      * Result polynomial: sum of z-coordinates weighted by lambdas.
+     * 对每个三角形 i，顶点 p1, p2, p3：
      * For each triangle i, vertices p1, p2, p3:
      * result = sum over all i,j of (triangle_i.vertex_j.z * lambda_i_j)
      */

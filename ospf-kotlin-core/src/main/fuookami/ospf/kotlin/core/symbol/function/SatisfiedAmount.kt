@@ -1,3 +1,4 @@
+/** 满足数量函数符号 / Satisfied amount function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,10 +23,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 满足数量函数：统计列表中有多少不等式被满足。
  * SatisfiedAmountFunction - Counts how many of a list of inequalities are satisfied.
  *
+ * 对每个不等式，创建 BigM 标志 u[i]（满足时为 1，不满足时为 0）。
  * For each inequality, creates a BigM flag u[i] (1 if satisfied, 0 if not).
+ * 输出：y = sum(u[i])（满足的不等式数量）。
  * Output: y = sum(u[i]) (count of satisfied inequalities).
+ * 若设置了 `amount`，则添加约束 y >= amount（至少 `amount` 个必须满足）。
  * If `amount` is set, adds constraint y >= amount (at least `amount` must be satisfied).
  */
 class SatisfiedAmountFunction<V>(
@@ -49,6 +54,7 @@ class SatisfiedAmountFunction<V>(
         get() = _uVars
 
     /**
+     * 结果多项式：sum(u[i]) - 满足的不等式数量。
      * Result polynomial: sum(u[i]) - the count of satisfied inequalities.
      */
     val result: LinearPolynomial<V> by lazy {

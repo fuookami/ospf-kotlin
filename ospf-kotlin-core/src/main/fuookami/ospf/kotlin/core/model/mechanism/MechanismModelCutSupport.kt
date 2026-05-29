@@ -45,6 +45,16 @@ private data class OrderedVariablePair(
 /**
  * 构造线性最优性 cut。
  * Build linear optimality cuts.
+ *
+ * @param V 数值类型 / The number type
+ * @param constraints 约束列表 / Constraint list
+ * @param objectCategory 目标类型（最小化/最大化）/ Objective category
+ * @param objectVariable 目标变量 / Objective variable
+ * @param fixedVariables 固定变量及其值 / Fixed variables and their values
+ * @param dualSolution 对偶解 / Dual solution
+ * @param zero 零值 / Zero value
+ * @param one 一值 / One value
+ * @return 线性不等式列表 / List of linear inequalities
  */
 internal fun <V> buildLinearOptimalCut(
     constraints: List<LinearConstraintImpl<V>>,
@@ -94,6 +104,15 @@ internal fun <V> buildLinearOptimalCut(
 /**
  * 构造线性可行性 cut（Farkas）。
  * Build linear feasibility cuts (Farkas).
+ *
+ * @param V 数值类型 / The number type
+ * @param constraints 约束列表 / Constraint list
+ * @param fixedVariables 固定变量及其值 / Fixed variables and their values
+ * @param farkasDualSolution Farkas 对偶解 / Farkas dual solution
+ * @param zero 零值 / Zero value
+ * @param one 一值 / One value
+ * @param logger 日志记录器 / Logger
+ * @return 线性不等式列表 / List of linear inequalities
  */
 internal fun <V> buildLinearFeasibleCut(
     constraints: List<LinearConstraintImpl<V>>,
@@ -140,6 +159,16 @@ internal fun <V> buildLinearFeasibleCut(
 /**
  * 构造二次最优性 cut；二次项为空时自动退化为线性 cut。
  * Build quadratic optimality cuts; degrades to linear cuts when no quadratic terms remain.
+ *
+ * @param V 数值类型 / The number type
+ * @param constraints 约束列表 / Constraint list
+ * @param objectCategory 目标类型 / Objective category
+ * @param objectVariable 目标变量 / Objective variable
+ * @param fixedVariables 固定变量及其值 / Fixed variables and their values
+ * @param dualSolution 对偶解 / Dual solution
+ * @param zero 零值 / Zero value
+ * @param one 一值 / One value
+ * @return cut 列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
  */
 internal fun <V> buildQuadraticOptimalCut(
     constraints: List<QuadraticConstraintImpl<V>>,
@@ -233,6 +262,15 @@ internal fun <V> buildQuadraticOptimalCut(
 /**
  * 构造二次可行性 cut（Farkas）；二次项为空时自动退化为线性 cut。
  * Build quadratic feasibility cuts (Farkas); degrades to linear cuts when no quadratic terms remain.
+ *
+ * @param V 数值类型 / The number type
+ * @param constraints 约束列表 / Constraint list
+ * @param fixedVariables 固定变量及其值 / Fixed variables and their values
+ * @param farkasDualSolution Farkas 对偶解 / Farkas dual solution
+ * @param zero 零值 / Zero value
+ * @param one 一值 / One value
+ * @param logger 日志记录器 / Logger
+ * @return cut 列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
  */
 internal fun <V> buildQuadraticFeasibleCut(
     constraints: List<QuadraticConstraintImpl<V>>,

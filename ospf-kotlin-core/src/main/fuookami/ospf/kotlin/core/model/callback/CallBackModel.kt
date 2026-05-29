@@ -23,6 +23,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     val comparator: ThreeWayComparator<V>
 
+    /** 比较两个目标值的优先级顺序，任一为 null 时另一个更优。 / Compare the ordering of two objective values; when either is null, the other is preferred. */
     fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
@@ -35,6 +36,7 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
         }
     }
 
+    /** 根据指定的初始解数量和变量数量生成初始解列表。 / Generate a list of initial solutions based on the given solution count and variable count. */
     fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<V>> {
         return listOf((UInt64.zero until variableAmount).map { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") })
     }
@@ -263,6 +265,7 @@ class CallBackModel<V> internal constructor(
         tokens.remove(item)
     }
 
+    /** 添加 Flt64 线性不等式约束。 / Add a Flt64 linear inequality constraint. */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Flt64LinearConstraintInput,
@@ -277,6 +280,7 @@ class CallBackModel<V> internal constructor(
         )
     }
 
+    /** 添加泛型线性不等式约束。 / Add a generic linear inequality constraint. */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: LinearConstraintInput<V>,
@@ -320,6 +324,7 @@ class CallBackModel<V> internal constructor(
         )
     }
 
+    /** 通过回调函数添加目标子项，根据类别自动取反。 / Add an objective sub-item via a callback function, automatically negating based on category. */
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -342,6 +347,7 @@ class CallBackModel<V> internal constructor(
         return ok
     }
 
+    /** 添加最大化目标子项。 / Add a maximization objective sub-item. */
     fun maximize(
         func: Extractor<V?, Solution<V>>,
         name: String?,
@@ -355,6 +361,7 @@ class CallBackModel<V> internal constructor(
         )
     }
 
+    /** 添加最小化目标子项。 / Add a minimization objective sub-item. */
     fun minimize(
         func: Extractor<V?, Solution<V>>,
         name: String?,
@@ -507,6 +514,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         tokens.remove(item)
     }
 
+    /** 添加 Flt64 线性不等式约束。 / Add a Flt64 linear inequality constraint. */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Flt64LinearConstraintInput,
@@ -521,6 +529,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         )
     }
 
+    /** 添加泛型线性不等式约束。 / Add a generic linear inequality constraint. */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: LinearConstraintInput<V>,
@@ -566,6 +575,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         )
     }
 
+    /** 通过回调函数和指定位置添加多目标子项。 / Add a multi-objective sub-item via a callback function at the specified location. */
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,

@@ -217,14 +217,17 @@ interface BasicModelView<ConCell> : AutoCloseable
             return variables.any { it.type.isNotBinaryIntegerType }
         }
 
+    /** 使用默认路径和指定格式导出模型。 / Export the model using the default path and specified format. */
     fun export(format: ModelFileFormat): Try {
         return export(Path("."), format)
     }
 
+    /** 使用指定文件名和格式导出模型到当前目录。 / Export the model to the current directory using the given file name and format. */
     fun export(name: String, format: ModelFileFormat): Try {
         return export(Path(".").resolve(name), format)
     }
 
+    /** 使用指定路径和格式导出模型到文件。 / Export the model to a file at the given path using the specified format. */
     fun export(path: Path, format: ModelFileFormat): Try {
         val file = if (path.isDirectory()) {
             path.resolve("$name.${format}").toFile()
@@ -245,6 +248,7 @@ interface BasicModelView<ConCell> : AutoCloseable
         return result
     }
 
+    /** 将模型以 LP 格式写入给定输出流。 / Write the model in LP format to the given output stream. */
     fun exportLP(writer: OutputStreamWriter): Try
 
     override fun close() {

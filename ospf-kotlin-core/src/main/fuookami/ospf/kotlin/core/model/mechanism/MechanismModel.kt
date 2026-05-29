@@ -26,6 +26,20 @@ import fuookami.ospf.kotlin.utils.functional.*
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
+/**
+ * 机制模型密封接口
+ * Sealed interface for mechanism models
+ *
+ * 机制模型是从元模型展开后的求解就绪模型，包含约束列表、目标函数和符号表。
+ * A mechanism model is a solver-ready model unfolded from a meta model,
+ * containing constraint list, objective function, and token table.
+ *
+ * @param V 数值类型 / The number type
+ * @property name 模型名称 / Model name
+ * @property constraints 约束列表 / Constraint list
+ * @property objectFunction 目标函数 / Objective function
+ * @property tokens 符号表 / Token table
+ */
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
     val constraints: List<Constraint<V, *>>
@@ -37,8 +51,18 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
     }
 }
 
+/**
+ * 线性机制模型抽象接口
+ * Abstract linear mechanism model interface
+ *
+ * 支持添加线性不等式约束。
+ * Supports adding linear inequality constraints.
+ *
+ * @param V 数值类型 / The number type
+ */
 interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
+     * 使用数学 LinearInequality 添加约束
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
@@ -60,8 +84,18 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
     }
 }
 
+/**
+ * 二次机制模型抽象接口
+ * Abstract quadratic mechanism model interface
+ *
+ * 扩展线性机制模型，支持添加二次不等式约束。
+ * Extends linear mechanism model, supports adding quadratic inequality constraints.
+ *
+ * @param V 数值类型 / The number type
+ */
 interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
+     * 使用数学 QuadraticInequality 添加约束
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
@@ -83,6 +117,13 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
     }
 }
 
+/**
+ * 单目标机制模型接口
+ * Single-objective mechanism model interface
+ *
+ * @param V 数值类型 / The number type
+ * @property objectFunction 单目标函数 / Single objective function
+ */
 interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<SubObject<V>>
 }
@@ -112,6 +153,17 @@ private fun validateDualById(
     }
 }
 
+/**
+ * 线性机制模型
+ * Linear mechanism model
+ *
+ * 从线性元模型展开后的求解就绪模型，包含线性约束和单目标函数。
+ * A solver-ready model unfolded from a linear meta model, containing linear constraints and single objective.
+ *
+ * @param V 数值类型 / The number type
+ * @property parent 父元模型 / Parent meta model
+ * @property name 模型名称 / Model name
+ */
 class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
@@ -123,6 +175,7 @@ class LinearMechanismModel<V>(
     private val logger = logger()
 
     /**
+     * 约束存储。从 BasicMechanismModel 继承查询辅助方法（numVariables）。
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
     private val _constraints: MutableList<LinearConstraintImpl<V>> = constraints.toMutableList()
@@ -134,6 +187,8 @@ class LinearMechanismModel<V>(
         private val logger = logger()
 
         /**
+         * V 类型工厂方法：从 LinearMetaModel<V> 创建 LinearMechanismModel<V>。
+         * 使用 V 类型 SubObject 伴随对象重载和 IntoValue<V> 转换器。
          * V-typed factory: create LinearMechanismModel<V> from LinearMetaModel<V>.
          * Uses the V-typed SubObject companion overload with IntoValue<V> converter.
          */
@@ -552,6 +607,17 @@ class LinearMechanismModel<V>(
     }
 }
 
+/**
+ * 二次机制模型
+ * Quadratic mechanism model
+ *
+ * 从二次元模型展开后的求解就绪模型，包含二次约束和单目标函数。
+ * A solver-ready model unfolded from a quadratic meta model, containing quadratic constraints and single objective.
+ *
+ * @param V 数值类型 / The number type
+ * @property parent 父元模型 / Parent meta model
+ * @property name 模型名称 / Model name
+ */
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
     override var name: String,
@@ -563,6 +629,7 @@ class QuadraticMechanismModel<V>(
     private val logger = logger()
 
     /**
+     * 约束存储。从 BasicMechanismModel 继承查询辅助方法（numVariables）。
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
     private val _constraints: MutableList<QuadraticConstraintImpl<V>> = constraints.toMutableList()
@@ -574,6 +641,8 @@ class QuadraticMechanismModel<V>(
         private val logger = logger()
 
         /**
+         * V 类型工厂方法：从 QuadraticMetaModel<V> 创建 QuadraticMechanismModel<V>。
+         * 使用 V 类型 SubObject 伴随对象重载和 IntoValue<V> 转换器。
          * V-typed factory: create QuadraticMechanismModel<V> from QuadraticMetaModel<V>.
          * Uses the V-typed SubObject companion overload with IntoValue<V> converter.
          */

@@ -1,3 +1,4 @@
+/** 四舍五入函数符号 / Rounding function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,8 +23,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 四舍五入函数：y = round(x)。
  * Rounding function: y = round(x).
  *
+ * 使用整数变量 k 和二值变量 r 处理 0.5 的情况。
  * Uses integer variable k and binary r to handle the 0.5 case.
  */
 class RoundingFunction<V>(

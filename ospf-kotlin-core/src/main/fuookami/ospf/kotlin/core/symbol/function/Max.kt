@@ -1,3 +1,4 @@
+/** 最大值函数符号 / Maximum function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 

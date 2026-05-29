@@ -1,3 +1,6 @@
+/**
+ * 符号组合 / Symbol combination
+ */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol
 
@@ -105,41 +108,72 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     }
 }
 
+/** 一维线性表达式符号组合 / 1D linear expression symbol combination */
 typealias LinearExpressionSymbols1<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape1>
+/** 二维线性表达式符号组合 / 2D linear expression symbol combination */
 typealias LinearExpressionSymbols2<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape2>
+/** 三维线性表达式符号组合 / 3D linear expression symbol combination */
 typealias LinearExpressionSymbols3<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape3>
+/** 四维线性表达式符号组合 / 4D linear expression symbol combination */
 typealias LinearExpressionSymbols4<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape4>
+/** 动态维度线性表达式符号组合 / Dynamic-dimension linear expression symbol combination */
 typealias DynLinearExpressionSymbols<V> = SymbolCombination<LinearExpressionSymbol<V>, DynShape>
 
+/** 一维量纲线性表达式符号组合 / 1D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols1<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape1>
+/** 二维量纲线性表达式符号组合 / 2D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols2<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape2>
+/** 三维量纲线性表达式符号组合 / 3D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols3<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape3>
+/** 四维量纲线性表达式符号组合 / 4D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols4<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape4>
+/** 动态维度量纲线性表达式符号组合 / Dynamic-dimension quantity linear expression symbol combination */
 typealias DynQuantityLinearExpressionSymbols<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, DynShape>
 
+/** 一维线性中间符号组合 / 1D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols1<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape1>
+/** 二维线性中间符号组合 / 2D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols2<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape2>
+/** 三维线性中间符号组合 / 3D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols3<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape3>
+/** 四维线性中间符号组合 / 4D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols4<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape4>
+/** 动态维度线性中间符号组合 / Dynamic-dimension linear intermediate symbol combination */
 typealias DynLinearIntermediateSymbols<V> = SymbolCombination<LinearIntermediateSymbol<V>, DynShape>
 
+/** 一维量纲线性中间符号组合 / 1D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols1<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape1>
+/** 二维量纲线性中间符号组合 / 2D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols2<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape2>
+/** 三维量纲线性中间符号组合 / 3D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols3<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape3>
+/** 四维量纲线性中间符号组合 / 4D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols4<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape4>
+/** 动态维度量纲线性中间符号组合 / Dynamic-dimension quantity linear intermediate symbol combination */
 typealias DynQuantityLinearIntermediateSymbols<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, DynShape>
+/** 量纲线性中间符号 / Quantity linear intermediate symbol */
 typealias QuantityLinearIntermediateSymbol<V> = Quantity<LinearIntermediateSymbol<V>>
 
+/** 一维二次表达式符号组合 / 1D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols1<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
+/** 二维二次表达式符号组合 / 2D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols2<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
+/** 三维二次表达式符号组合 / 3D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols3<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape3>
+/** 四维二次表达式符号组合 / 4D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols4<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape4>
+/** 动态维度二次表达式符号组合 / Dynamic-dimension quadratic expression symbol combination */
 typealias DynQuadraticExpressionSymbols<V> = SymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
+/** 一维量纲二次表达式符号组合 / 1D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols1<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
+/** 二维量纲二次表达式符号组合 / 2D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols2<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
+/** 三维量纲二次表达式符号组合 / 3D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols3<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape3>
+/** 四维量纲二次表达式符号组合 / 4D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols4<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape4>
+/** 动态维度量纲二次表达式符号组合 / Dynamic-dimension quantity quadratic expression symbol combination */
 typealias DynQuantityQuadraticExpressionSymbols<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
 private fun symbolName(name: String, indices: IntArray): String {

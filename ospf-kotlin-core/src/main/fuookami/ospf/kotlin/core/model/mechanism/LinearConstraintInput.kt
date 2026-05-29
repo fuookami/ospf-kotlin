@@ -16,6 +16,21 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 线性约束输入
+ * Linear constraint input
+ *
+ * 表示一个线性约束的输入数据，包含扁平化的表达式、比较符号和范围信息。
+ * Represents the input data for a linear constraint, containing flattened expression, comparison sign, and range info.
+ *
+ * @param V 数值类型 / The number type
+ * @property flattenData 扁平化的线性数据 / Flattened linear data
+ * @property sign 比较符号 / Comparison sign
+ * @property lhsRange 左侧值范围 / Left-hand side value range
+ * @property name 约束名称 / Constraint name
+ * @property displayName 显示名称 / Display name
+ * @property rhsConstant 右侧常量 / Right-hand side constant
+ */
 data class LinearConstraintInput<V>(
     val flattenData: LinearFlattenData<V>,
     val sign: Comparison,
@@ -24,6 +39,15 @@ data class LinearConstraintInput<V>(
     val displayName: String? = null,
     val rhsConstant: V
 ) where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 判断约束是否满足
+     * Check if the constraint is satisfied
+     *
+     * @param results 求解结果列表 / Solution result list
+     * @param tokenTable 符号表 / Token table
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
+     */
     fun isTrue(
         results: List<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -35,6 +59,18 @@ data class LinearConstraintInput<V>(
     }
 
     companion object {
+        /**
+         * 从线性不等式创建约束输入
+         * Create constraint input from linear inequality
+         *
+         * @param V 数值类型 / The number type
+         * @param relation 线性不等式 / Linear inequality
+         * @param lhsRange 左侧值范围 / Left-hand side value range
+         * @param rhsConstant 右侧常量 / Right-hand side constant
+         * @param name 约束名称 / Constraint name
+         * @param displayName 显示名称 / Display name
+         * @return 约束输入 / Constraint input
+         */
         fun <V> from(
             relation: LinearInequality<V>,
             lhsRange: ValueRange<V>,
@@ -52,6 +88,19 @@ data class LinearConstraintInput<V>(
             )
         }
 
+        /**
+         * 从线性不等式和转换器创建约束输入
+         * Create constraint input from linear inequality with converter
+         *
+         * @param V 数值类型 / The number type
+         * @param relation 线性不等式 / Linear inequality
+         * @param converter 值转换器 / Value converter
+         * @param lhsRange Flt64 左侧值范围 / Flt64 left-hand side value range
+         * @param rhsConstant 右侧常量 / Right-hand side constant
+         * @param name 约束名称 / Constraint name
+         * @param displayName 显示名称 / Display name
+         * @return 约束输入 / Constraint input
+         */
         fun <V> from(
             relation: LinearInequality<V>,
             converter: IntoValue<V>,
@@ -71,6 +120,14 @@ data class LinearConstraintInput<V>(
     }
 }
 
+/**
+ * 将 Flt64 约束输入转换为泛型约束输入
+ * Convert Flt64 constraint input to generic constraint input
+ *
+ * @param V 目标数值类型 / Target number type
+ * @param converter 值转换器 / Value converter
+ * @return 泛型约束输入 / Generic constraint input
+ */
 fun <V> Flt64LinearConstraintInput.toLinearConstraintInput(
     converter: IntoValue<V>
 ): LinearConstraintInput<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -129,6 +186,8 @@ data class Flt64LinearConstraintInput(
     val name: String = "",
     val displayName: String? = null,
     /**
+     * 归一化前的原始右侧常量值（lhs - rhs <= 0 形式）。
+     * 函数符号基于范围的预计算需要此值（如 IfFunction.possibleRange）。
      * The original RHS constant value before normalization (lhs - rhs <= 0 form).
      * Needed by function symbols for range-based pre-computation (e.g., IfFunction.possibleRange).
      */
@@ -164,8 +223,14 @@ data class Flt64LinearConstraintInput(
     }
 
     /**
-     * Evaluate whether this constraint is satisfied given token values.
+     * 判断约束是否满足（使用符号表）
+     * Check if constraint is satisfied (using token table)
+     *
      * Replaces `LinearInequality.isTrue()` for function symbol runtime evaluation.
+     *
+     * @param tokenTable 符号表 / Token table
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
      */
     fun <V> isTrue(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Boolean?
             where V : RealNumber<V>, V : NumberField<V> {
@@ -174,6 +239,15 @@ data class Flt64LinearConstraintInput(
         return sign.compare(lhsValue, Flt64.zero)
     }
 
+    /**
+     * 判断约束是否满足（使用符号值映射和符号表）
+     * Check if constraint is satisfied (using symbol value map and token table)
+     *
+     * @param values 符号到值的映射 / Symbol to value mapping
+     * @param tokenTable 符号表（可选） / Token table (optional)
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
+     */
     fun <V> isTrue(
         values: Map<Symbol, Flt64>,
         tokenTable: AbstractTokenTable<V>?,
@@ -184,6 +258,15 @@ data class Flt64LinearConstraintInput(
         return sign.compare(lhsValue, Flt64.zero)
     }
 
+    /**
+     * 判断约束是否满足（使用求解结果和符号表）
+     * Check if constraint is satisfied (using results and token table)
+     *
+     * @param results 求解结果列表 / Solution result list
+     * @param tokenTable 符号表 / Token table
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
+     */
     fun <V> isTrue(
         results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         tokenTable: AbstractTokenTable<V>,
@@ -195,8 +278,16 @@ data class Flt64LinearConstraintInput(
     }
 
     /**
-     * Evaluate constraint with V-typed solution values.
+     * 判断约束是否满足（使用 V 类型求解结果和转换器）
+     * Check if constraint is satisfied (using V-typed solution results and converter)
+     *
      * Converts V to Flt64 via converter, then delegates to Flt64 evaluation.
+     *
+     * @param results 求解结果列表 / Solution result list
+     * @param converter 值转换器 / Value converter
+     * @param tokenTable 符号表 / Token table
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
      */
     fun <V> isTrue(
         results: List<V>,
@@ -208,12 +299,29 @@ data class Flt64LinearConstraintInput(
         return isTrue(flt64Results, tokenTable, zeroIfNone)
     }
 
+    /**
+     * 判断约束是否满足（使用符号列表）
+     * Check if constraint is satisfied (using token list)
+     *
+     * @param tokenList 符号列表 / Token list
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
+     */
     internal fun isTrue(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean = false): Boolean? {
         val lhsValue = evaluateFlattenDataFromTokenList(flattenData, tokenList, zeroIfNone = zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
     }
 
+    /**
+     * 判断约束是否满足（使用求解结果和符号列表）
+     * Check if constraint is satisfied (using results and token list)
+     *
+     * @param results 求解结果列表 / Solution result list
+     * @param tokenList 符号列表 / Token list
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
+     */
     fun isTrue(
         results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -225,7 +333,15 @@ data class Flt64LinearConstraintInput(
     }
 
     /**
-     * Evaluate with symbol values, falling back to token list for unresolved variables.
+     * 判断约束是否满足（使用符号值映射和符号列表）
+     * Check if constraint is satisfied (using symbol value map and token list)
+     *
+     * Falls back to token list for unresolved variables.
+     *
+     * @param values 符号到值的映射 / Symbol to value mapping
+     * @param tokenList 符号列表（可选） / Token list (optional)
+     * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+     * @return 是否满足约束，如果无法判断返回 null / Whether constraint is satisfied, or null if undetermined
      */
     fun isTrue(
         values: Map<Symbol, Flt64>,
@@ -239,7 +355,8 @@ data class Flt64LinearConstraintInput(
 }
 
 /**
- * Evaluate LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> against a token table.
+ * 使用符号表评估 LinearFlattenData<Flt64>。
+ * Evaluate LinearFlattenData<Flt64> against a token table.
  */
 internal fun <V> evaluateFlattenData(
     data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -274,7 +391,8 @@ private fun <V> evaluateFlattenDataWithValues(
 }
 
 /**
- * Evaluate LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> with values map and AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64> fallback.
+ * 使用值映射和 AbstractTokenList<Flt64> 回退来评估 LinearFlattenData<Flt64>。
+ * Evaluate LinearFlattenData<Flt64> with values map and AbstractTokenList<Flt64> fallback.
  */
 private fun evaluateFlattenDataWithValuesAndTokenList(
     data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -410,6 +528,7 @@ private fun evaluateFlattenDataWithResultsFromTokenList(
 }
 
 /**
+ * 比较辅助函数 - 返回 `value` 是否满足相对于 `rhs` 的关系。
  * Comparison helper - returns whether `value` satisfies the relation against `rhs`.
  */
 internal fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this) {
@@ -422,6 +541,7 @@ internal fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this)
 }
 
 /**
+ * 使用符号表和求解值评估二次扁平化数据。
  * Evaluate quadratic flatten data given token table and solution values.
  */
 internal fun <V> evaluateQuadraticFlattenData(

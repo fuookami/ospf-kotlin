@@ -1,3 +1,4 @@
+/** Sigmoid 函数符号 / Sigmoid function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,8 +23,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * Sigmoid/阶跃函数：当 condition > 0 时 y = 1，否则为 0。
  * Sigmoid/step function: y = 1 if condition > 0, else 0.
  *
+ * 使用 Big-M 线性化与非零指示变量。
  * Uses Big-M linearization with nonzero indicators.
  */
 class SigmoidFunction<V>(

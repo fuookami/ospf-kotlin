@@ -10,6 +10,15 @@ import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 构建弹性模型
+ * Build elastic model
+ *
+ * 为二次四元模型添加松弛变量，使其成为弹性模型。
+ * Adds slack variables to the quadratic tetrad model to make it an elastic model.
+ *
+ * @return 弹性模型 / Elastic model
+ */
 internal fun QuadraticTetradModel.buildElasticModel(): QuadraticTetradModel {
     var colIndex = this.variables.size
     val slackVariables = ArrayList<Pair<Variable?, Variable?>>()

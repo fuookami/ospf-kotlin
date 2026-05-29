@@ -1,3 +1,4 @@
+/** 半连续函数符号 / Semi-continuous function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -20,16 +21,20 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 半连续变量函数。
  * Semi-continuous variable function.
  *
+ * 建模 y = 0 或 lb <= y <= ub 的半连续变量。
  * Models y where either y = 0 or lb <= y <= ub.
+ * 这通常由求解器内置的半连续支持处理，
  * This is typically handled by the solver's built-in semi-continuous support,
+ * 因此这是一个不产生额外约束的标记类。
  * so this is a marker class that produces no additional constraints.
  *
- * @param lb lower bound when active
- * @param ub upper bound when active
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param lb 激活时的下界 / lower bound when active
+ * @param ub 激活时的上界 / upper bound when active
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SemiFunction<V>(
     lb: V? = null,

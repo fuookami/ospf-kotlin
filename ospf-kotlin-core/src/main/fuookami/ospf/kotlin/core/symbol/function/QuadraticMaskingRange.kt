@@ -1,3 +1,4 @@
+/** 二次掩码范围函数符号 / Quadratic masking range function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -24,13 +25,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 二次掩码范围：当 z = 1 时，y 被强制等于多项式；当 z = 0 时，y 自由（在边界内）。
  * Quadratic masking range: when z = 1, y is forced to equal polynomial;
  * when z = 0, y is free (within bounds).
+ * 使用 Big-M 公式：y <= polynomial + M*(1-z), y >= polynomial - M*(1-z)。
  * Uses Big-M formulation: y <= polynomial + M*(1-z), y >= polynomial - M*(1-z).
  *
- * @param polynomial the quadratic polynomial to mask
- * @param z the binary control variable
- * @param bigM Big-M constant (default 1e6)
+ * @param polynomial 要掩码的二次多项式 / the quadratic polynomial to mask
+ * @param z 二值控制变量 / the binary control variable
+ * @param bigM Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
  */
 class QuadraticMaskingRangeFunction<V>(
     val _polynomial: QuadraticPolynomial<V>,
@@ -189,6 +192,7 @@ class QuadraticMaskingRangeFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
+     * 将辅助变量 (resultVar) 注册到 token 集合中。
      * Register helper variable (resultVar) with the token collection.
      */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
@@ -200,6 +204,7 @@ class QuadraticMaskingRangeFunction<V>(
     }
 
     /**
+     * 注册 Big-M 掩码约束。
      * Register Big-M masking constraints.
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {

@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.variable.Percentage
 import fuookami.ospf.kotlin.core.variable.Ternary
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.*
@@ -27,12 +28,33 @@ import java.io.OutputStreamWriter
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
+private fun Any?.toSolverFlt64(): Flt64 {
+    return when (this) {
+        is Flt64 -> this
+        is RealNumber<*> -> this.toFlt64()
+        else -> error("Unsupported solver-boundary numeric value: ${this?.javaClass?.name}")
+    }
+}
+
 private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
+    val lhs = (this as LinearConstraintImpl<*>).lhs
     return lhs.size == 1
-            && lhs.first().coefficient eq Flt64.one
+            && lhs.first().coefficient.toSolverFlt64() eq Flt64.one
     // && from?.second != true
 }
 
+/**
+ * 线性约束单元
+ * Linear constraint cell
+ *
+ * 表示线性约束矩阵中的一个非零元素，包含行索引、列索引和系数。
+ * Represents a non-zero element in the linear constraint matrix,
+ * containing row index, column index, and coefficient.
+ *
+ * @property rowIndex 行索引 / Row index
+ * @property colIndex 列索引 / Column index
+ * @property coefficient 系数 / Coefficient
+ */
 class LinearConstraintCell(
     override val rowIndex: Int,
     val colIndex: Int,
@@ -62,6 +84,19 @@ class LinearConstraintCell(
     }
 }
 
+/**
+ * 线性约束批次
+ * Linear constraint batch
+ *
+ * 存储一组线性约束的稀疏矩阵表示，包括约束符号、右侧常量和约束来源。
+ * Stores a batch of linear constraints in sparse matrix representation,
+ * including constraint signs, right-hand side constants, and constraint sources.
+ *
+ * @property sparseLhs 稀疏矩阵（左侧）/ Sparse matrix (left-hand side)
+ * @property origins 约束来源列表 / Constraint origin list
+ * @property froms 约束来源符号列表 / Constraint from-symbol list
+ * @property priorities 约束优先级列表 / Constraint priority list
+ */
 class LinearConstraintBatch(
     val sparseLhs: SparseMatrix<Flt64>,
     signs: List<ConstraintRelation>,
@@ -73,6 +108,10 @@ class LinearConstraintBatch(
     priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
 ) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
     /**
+     * 稀疏矩阵（左侧）的稀疏表示。
+     * 每行为一个 SparseVector<Flt64>，其中 entry.index = 列索引，entry.value = 系数。
+     * 这是主要的约束表示形式。
+     *
      * Sparse representation of the LHS matrix.
      * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
@@ -99,6 +138,13 @@ class LinearConstraintBatch(
     private val _priorities: MutableList<Int?> = priorities.toMutableList()
     val priorities: List<Int?> by ::_priorities
 
+    /**
+     * 按条件过滤约束批次
+     * Filter constraint batch by condition
+     *
+     * @param condition 过滤条件，参数为行索引 / Filter condition, parameter is row index
+     * @return 过滤后的约束批次 / Filtered constraint batch
+     */
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
         val filteredSparseLhs = SparseMatrix<Flt64>()
         for ((i, row) in sparseLhs.rows.withIndex()) {
@@ -145,6 +191,17 @@ class LinearConstraintBatch(
     }
 }
 
+/**
+ * 线性目标单元
+ * Linear objective cell
+ *
+ * 表示线性目标函数中的一个非零元素，包含列索引和系数。
+ * Represents a non-zero element in the linear objective function,
+ * containing column index and coefficient.
+ *
+ * @property colIndex 列索引 / Column index
+ * @property coefficient 系数 / Coefficient
+ */
 class LinearObjectiveCell(
     val colIndex: Int,
     coefficient: Flt64
@@ -164,38 +221,51 @@ class LinearObjectiveCell(
     }
 }
 
+/**
+ * 线性目标函数类型别名
+ * Type alias for linear objective function
+ */
 typealias LinearObjective = Objective<LinearObjectiveCell>
 
+/**
+ * 基础线性三元模型视图类型别名
+ * Type alias for basic linear triad model view
+ */
 typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
 
 /**
- * A basic linear intermediate model (triad: variables + constraints, no objective).
+ * 基础线性三元模型
+ * Basic linear triad model
  *
- * This is the solver-standard form for linear problems without an objective function.
- * It is used directly by IIS (Irreducible Infeasible Subsystem) computation and
+ * 线性问题的求解器标准形式（三元：变量 + 约束，无目标函数）。
+ * 直接用于 IIS（不可约不可行子系统）计算，以及作为 [LinearTriadModel] 的 [impl] 委托。
+ * Solver-standard form for linear problems (triad: variables + constraints, no objective).
+ * Used directly by IIS (Irreducible Infeasible Subsystem) computation and
  * as the [impl] delegate inside [LinearTriadModel].
  *
- * ### Construction
+ * ### 构造方式 / Construction
  *
- * Direct constructor:
+ * 直接构造 / Direct constructor:
  * ```kotlin
  * BasicLinearTriadModel(variables, constraints, name)
  * ```
  *
- * Factory from a [LinearMechanismModel]:
+ * 从 LinearMechanismModel 工厂方法 / Factory from LinearMechanismModel:
  * ```kotlin
  * BasicLinearTriadModel.from(mechanismModel, tokenIndexMap, bounds, fixedVariables)
  * ```
  *
- * ### Relationship to [LinearTriadModel]
+ * ### 与 LinearTriadModel 的关系 / Relationship to [LinearTriadModel]
  *
+ * [LinearTriadModel] 包装 [BasicLinearTriadModel] 作为其 `impl`，添加目标函数和符号到求解器的映射。
+ * [BasicLinearTriadModel] 是仅包含变量和约束的子集。
  * [LinearTriadModel] wraps a [BasicLinearTriadModel] as its `impl`, adding
  * objective function and token-to-solver mapping. [BasicLinearTriadModel] is
  * the subset that only contains variables and constraints.
  *
- * @param variables   solver-indexed variable list
- * @param constraints linear constraint batch (sparse lhs, signs, rhs, origins)
- * @param name        model name for logging and debugging
+ * @property variables 求解器索引的变量列表 / Solver-indexed variable list
+ * @property constraints 线性约束批次 / Linear constraint batch
+ * @property name 模型名称（用于日志和调试）/ Model name (for logging and debugging)
  */
 class BasicLinearTriadModel(
     override val variables: List<Variable>,
@@ -204,17 +274,23 @@ class BasicLinearTriadModel(
 ) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
     companion object {
         /**
+         * 从 [LinearMechanismModel<Flt64>] 创建 [BasicLinearTriadModel]，
+         * 将变量和约束提取为求解器标准形式。
+         *
+         * 这是一个便捷工厂方法，复用 [LinearTriadModel.invoke] 中的变量/约束提取逻辑，
+         * 但不包含目标函数步骤。
+         *
          * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
          * logic in [LinearTriadModel.invoke] without the objective function step.
          *
-         * @param model           the source mechanism model
-         * @param tokenIndexMap   mapping from tokens to solver column indices
-         * @param bounds          pre-computed bound constraints per token
-         * @param fixedVariables  variables fixed to constant values (substituted out)
-         * @return a [BasicLinearTriadModel] containing the extracted variables and constraints
+         * @param model           源机制模型 / the source mechanism model
+         * @param tokenIndexMap   符号到求解器列索引的映射 / mapping from tokens to solver column indices
+         * @param bounds          每个符号的预计算边界约束 / pre-computed bound constraints per token
+         * @param fixedVariables  固定为常量值的变量（将被代换消除）/ variables fixed to constant values (substituted out)
+         * @return 包含提取的变量和约束的 [BasicLinearTriadModel] / a [BasicLinearTriadModel] containing the extracted variables and constraints
          */
         fun from(
             model: LinearMechanismModel<Flt64>,
@@ -243,6 +319,13 @@ class BasicLinearTriadModel(
 
     override fun clone() = copy()
 
+    /**
+     * 就地线性松弛
+     * In-place linear relaxation
+     *
+     * 将整数变量类型松弛为连续类型（Binary->Percentage, Integer->Continuous 等）。
+     * Relaxes integer variable types to continuous types (Binary->Percentage, Integer->Continuous, etc.).
+     */
     fun linearRelax() {
         variables.forEach {
             when (it.type) {
@@ -263,6 +346,12 @@ class BasicLinearTriadModel(
         }
     }
 
+    /**
+     * 返回线性松弛后的副本
+     * Return a linearly relaxed copy
+     *
+     * @return 线性松弛后的模型副本 / Linearly relaxed model copy
+     */
     fun linearRelaxed(): BasicLinearTriadModel {
         return BasicLinearTriadModel(
             variables = variables.map {
@@ -376,14 +465,63 @@ class BasicLinearTriadModel(
     }
 }
 
+/**
+ * 线性三元模型视图
+ * Linear triad model view
+ *
+ * 线性优化模型的视图接口，提供变量、约束、目标函数的统一访问，
+ * 以及线性松弛、对偶模型、可行性模型、弹性模型等变换操作。
+ * View interface for linear optimization models, providing unified access
+ * to variables, constraints, and objective function, as well as transformation
+ * operations such as linear relaxation, dual model, feasibility model, and elastic model.
+ *
+ * @property constraints 线性约束批次 / Linear constraint batch
+ * @property dual 是否为对偶模型 / Whether this is a dual model
+ */
 interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjectiveCell> {
     override val constraints: LinearConstraintBatch
     val dual: Boolean
 
+    /**
+     * 就地线性松弛（修改当前模型）
+     * In-place linear relaxation (modifies the current model)
+     *
+     * @return 松弛后的自身引用 / Self reference after relaxation
+     */
     fun linearRelax(): LinearTriadModelView
+
+    /**
+     * 返回线性松弛后的副本
+     * Return a linearly relaxed copy
+     *
+     * @return 线性松弛后的模型视图副本 / Linearly relaxed model view copy
+     */
     fun linearRelaxed(): LinearTriadModelView
+
+    /**
+     * 构建 Farkas 对偶模型
+     * Build Farkas dual model
+     *
+     * @return Farkas 对偶线性三元模型视图 / Farkas dual linear triad model view
+     */
     suspend fun farkasDual(): LinearTriadModelView
+
+    /**
+     * 构建可行性模型（最小化人工变量）
+     * Build feasibility model (minimize artificial variables)
+     *
+     * @return 可行性线性三元模型视图 / Feasibility linear triad model view
+     */
     fun feasibility(): LinearTriadModelView
+
+    /**
+     * 构建弹性模型（允许约束松弛）
+     * Build elastic model (allow constraint relaxation)
+     *
+     * @param minmaxSlack  是否启用最小-最大松弛 / Whether to enable min-max slack
+     * @param minSlackAmount  最小松弛量限制 / Minimum slack amount limit
+     * @return 弹性线性三元模型视图 / Elastic linear triad model view
+     */
     fun elastic(
         minmaxSlack: Boolean = false,
         minSlackAmount: Pair<UInt64, Flt64>? = null
@@ -410,6 +548,18 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
     }
 }
 
+/**
+ * 线性三元模型
+ * Linear triad model
+ *
+ * 求解器标准形式的线性优化模型，包含变量、约束和目标函数。
+ * Solver-standard form of linear optimization model, containing variables, constraints, and objective function.
+ *
+ * @property impl 基础模型实现 / Basic model implementation
+ * @property tokensInSolver 求解器中的符号列表 / Token list in solver
+ * @property objective 目标函数 / Objective function
+ * @property dualOrigin 对偶模型来源 / Dual model origin
+ */
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
     val tokensInSolver: List<Token<Flt64>>,
@@ -419,7 +569,7 @@ data class LinearTriadModel(
     companion object {
         private val logger = logger()
 
-        /** V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
+        /** V->Flt64 转换边界：泛型 V 在线性中间模型构造时解析为具体的 Flt64 类型。 / V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
             model: LinearMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
@@ -436,21 +586,29 @@ data class LinearTriadModel(
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
             val bounds = model.linearConstraints
                 .flatMap { constraint ->
+                    val thisConstraint = constraint as LinearConstraintImpl<*>
                     if ((dumpConstraintsToBounds ?: true) && constraint.isBound()) {
-                        listOf(Quadruple(constraint, constraint.lhs.first().token, constraint.sign, constraint.rhs))
+                        listOf(Quadruple(constraint, thisConstraint.lhs.first().token as Token<Flt64>, constraint.sign, thisConstraint.rhs.toSolverFlt64()))
                     } else if (forceDumpBounds ?: false) {
-                        if (constraint.lhs.size == 1) {
-                            listOf(Quadruple(constraint, constraint.lhs.first().token, constraint.sign, constraint.rhs / constraint.lhs.first().coefficient))
-                        } else if (constraint.lhs.all { it.coefficient eq Flt64.one && it.token.lowerBound!!.value.unwrap() geq Flt64.zero }
+                        if (thisConstraint.lhs.size == 1) {
+                            listOf(
+                                Quadruple(
+                                    constraint,
+                                    thisConstraint.lhs.first().token as Token<Flt64>,
+                                    constraint.sign,
+                                    thisConstraint.rhs.toSolverFlt64() / thisConstraint.lhs.first().coefficient.toSolverFlt64()
+                                )
+                            )
+                        } else if (thisConstraint.lhs.all { it.coefficient.toSolverFlt64() eq Flt64.one && it.token.lowerBound!!.value.unwrap().toSolverFlt64() geq Flt64.zero }
                             && (constraint.sign == ConstraintRelation.LessEqual || constraint.sign == ConstraintRelation.Equal)
-                            && constraint.rhs eq Flt64.zero
+                            && thisConstraint.rhs.toSolverFlt64() eq Flt64.zero
                         ) {
-                            constraint.lhs.map { Quadruple(constraint, it.token, ConstraintRelation.Equal, Flt64.zero) }
-                        } else if (constraint.lhs.all { it.coefficient eq -Flt64.one && it.token.lowerBound!!.value.unwrap() geq Flt64.zero }
+                            thisConstraint.lhs.map { Quadruple(constraint, it.token as Token<Flt64>, ConstraintRelation.Equal, Flt64.zero) }
+                        } else if (thisConstraint.lhs.all { it.coefficient.toSolverFlt64() eq -Flt64.one && it.token.lowerBound!!.value.unwrap().toSolverFlt64() geq Flt64.zero }
                             && (constraint.sign == ConstraintRelation.GreaterEqual || constraint.sign == ConstraintRelation.Equal)
-                            && constraint.rhs eq Flt64.zero
+                            && thisConstraint.rhs.toSolverFlt64() eq Flt64.zero
                         ) {
-                            constraint.lhs.map { Quadruple(constraint, it.token, ConstraintRelation.Equal, Flt64.zero) }
+                            thisConstraint.lhs.map { Quadruple(constraint, it.token as Token<Flt64>, ConstraintRelation.Equal, Flt64.zero) }
                         } else {
                             emptyList()
                         }
@@ -548,6 +706,12 @@ data class LinearTriadModel(
         )
     }
 
+    /**
+     * 构建对偶模型
+     * Build dual model
+     *
+     * @return 对偶线性三元模型 / Dual linear triad model
+     */
     @Suppress("DEPRECATION")
     suspend fun dual(): LinearTriadModel {
         val dualVariables = this.constraints.indices.map {

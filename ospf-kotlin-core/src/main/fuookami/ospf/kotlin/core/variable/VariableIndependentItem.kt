@@ -33,23 +33,73 @@ sealed class IndependentVariableItem<T, Type : VariableType<T>>(
     }
 }
 
+/** 独立变量项类型别名 / Independent variable item type alias */
 typealias Variable<Type> = IndependentVariableItem<*, Type>
+/** 物理量独立变量项类型别名 / Quantity independent variable item type alias */
 typealias QuantityVariable<Type> = Quantity<IndependentVariableItem<*, Type>>
 
+/**
+ * 二值标量变量 / Binary scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class BinVar(name: String = "") : IndependentVariableItem<UInt8, Binary>(Binary, name, UInt8)
+/**
+ * 三值标量变量 / Ternary scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class TerVar(name: String = "") : IndependentVariableItem<UInt8, Ternary>(Ternary, name, UInt8)
+/**
+ * 平衡三值标量变量 / Balanced ternary scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class BTerVar(name: String = "") : IndependentVariableItem<Int8, BalancedTernary>(BalancedTernary, name, Int8)
+/**
+ * 百分比标量变量 / Percentage scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class PctVar(name: String = "") : IndependentVariableItem<Flt64, Percentage>(Percentage, name, Flt64)
+/**
+ * 整数标量变量 / Integer scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class IntVar(name: String = "") : IndependentVariableItem<Int64, Integer>(Integer, name, Int64)
+/**
+ * 无符号整数标量变量 / Unsigned integer scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class UIntVar(name: String = "") : IndependentVariableItem<UInt64, UInteger>(UInteger, name, UInt64)
+/**
+ * 连续标量变量 / Continuous scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class RealVar(name: String = "") : IndependentVariableItem<Flt64, Continuous>(Continuous, name, Flt64)
+/**
+ * 无符号连续标量变量 / Unsigned continuous scalar variable
+ *
+ * @param name 变量名称 / Variable name
+ */
 class URealVar(name: String = "") : IndependentVariableItem<Flt64, UContinuous>(UContinuous, name, Flt64)
 
+/** 物理量二值标量变量 / Quantity binary scalar variable */
 typealias QuantityBinVar = QuantityVariable<Binary>
+/** 物理量三值标量变量 / Quantity ternary scalar variable */
 typealias QuantityTerVar = QuantityVariable<Ternary>
+/** 物理量平衡三值标量变量 / Quantity balanced ternary scalar variable */
 typealias QuantityBTerVar = QuantityVariable<BalancedTernary>
+/** 物理量百分比标量变量 / Quantity percentage scalar variable */
 typealias QuantityPctVar = QuantityVariable<Percentage>
+/** 物理量整数标量变量 / Quantity integer scalar variable */
 typealias QuantityIntVar = QuantityVariable<Integer>
+/** 物理量无符号整数标量变量 / Quantity unsigned integer scalar variable */
 typealias QuantityUIntVar = QuantityVariable<UInteger>
+/** 物理量连续标量变量 / Quantity continuous scalar variable */
 typealias QuantityRealVar = QuantityVariable<Continuous>
+/** 物理量无符号连续标量变量 / Quantity unsigned continuous scalar variable */
 typealias QuantityURealVar = QuantityVariable<UContinuous>

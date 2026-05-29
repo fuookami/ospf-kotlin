@@ -1,3 +1,4 @@
+/** 蕴含函数符号 / Implication function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,18 +23,21 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 蕴含函数：若 antecedent > 0 则 consequent > 0。
  * Implication function: `if antecedent > 0 then consequent > 0`.
  *
+ * 对前件和后件均使用非零指示变量，
  * Uses nonzero indicators for both antecedent and consequent,
+ * 通过链接约束：indicator_antecedent <= indicator_consequent。
  * with a linking constraint: indicator_antecedent <= indicator_consequent.
  *
- * @param antecedent the antecedent (condition) linear polynomial
- * @param consequent the consequent linear polynomial
- * @param bigM Big-M bound (default 1e6)
- * @param tolerance zero tolerance (default 1e-6)
- * @param strictBoundary strict boundary value (default 0.5)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param antecedent 前件（条件）线性多项式 / the antecedent (condition) linear polynomial
+ * @param consequent 后件线性多项式 / the consequent linear polynomial
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
+ * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class ImplyFunction<V>(
     val antecedent: LinearPolynomial<V>,

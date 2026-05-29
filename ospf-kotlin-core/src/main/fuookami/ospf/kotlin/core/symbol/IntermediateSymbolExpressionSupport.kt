@@ -1,3 +1,6 @@
+/**
+ * 中间符号表达式支持 / Intermediate symbol expression support
+ */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol
 
@@ -201,6 +204,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     }
 }
 
+/** 线性中间符号表达式，由线性多项式支持，可在求解器边界进行缓存求值。 / Linear intermediate symbol expression backed by a linear polynomial, supporting cached evaluation at solver boundaries. */
 class LinearExpressionSymbol<V>(
     internal val _utilsPolynomial: MutableLinearPolynomial<V>,
     category: Category = Linear,
@@ -688,6 +692,7 @@ class LinearExpressionSymbol<V>(
     }
 }
 
+/** 二次中间符号表达式，由二次多项式支持，可在求解器边界进行缓存求值。 / Quadratic intermediate symbol expression backed by a quadratic polynomial, supporting cached evaluation at solver boundaries. */
 class QuadraticExpressionSymbol<V>(
     internal val _utilsPolynomial: MutableQuadraticPolynomial<V>,
     category: Category = _utilsPolynomial.category,

@@ -1,3 +1,6 @@
+/**
+ * 符号缓存上下文 / Token cache context
+ */
 @file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.token
 

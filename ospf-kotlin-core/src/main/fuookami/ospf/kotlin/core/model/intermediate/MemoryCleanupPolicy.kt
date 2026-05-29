@@ -37,6 +37,7 @@ internal object MemoryCleanupPolicy {
         }
     }
 
+    /** 模型构建完成后执行内存清理（激进模式下无条件触发）。 / Perform memory cleanup after model is built (always triggered in aggressive mode). */
     fun cleanupAfterModelBuilt() {
         if (!enabled()) {
             return
@@ -44,6 +45,7 @@ internal object MemoryCleanupPolicy {
         cleanupIfNeeded(aggressive() || shouldCleanup())
     }
 
+    /** 仅在内存压力超过阈值时执行清理。 / Perform cleanup only when memory pressure exceeds the threshold. */
     fun cleanupOnPressure() {
         if (!enabled()) {
             return
@@ -51,18 +53,22 @@ internal object MemoryCleanupPolicy {
         cleanupIfNeeded(shouldCleanup())
     }
 
+    /** 批处理完成后按内存压力策略清理。 / Cleanup after batch processing based on memory pressure policy. */
     fun cleanupAfterBatch() {
         cleanupOnPressure()
     }
 
+    /** 异步批处理完成后按内存压力策略清理。 / Cleanup after async batch processing based on memory pressure policy. */
     fun cleanupAfterAsyncBatch() {
         cleanupOnPressure()
     }
 
+    /** 并发批处理开始前按内存压力策略清理。 / Cleanup before concurrent batch processing based on memory pressure policy. */
     fun cleanupBeforeConcurrentBatch() {
         cleanupOnPressure()
     }
 
+    /** 符号注册完成后执行内存清理（与模型构建策略一致）。 / Cleanup after symbol registration (same policy as model-built cleanup). */
     fun cleanupAfterSymbolRegistration() {
         cleanupAfterModelBuilt()
     }

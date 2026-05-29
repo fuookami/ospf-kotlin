@@ -1,3 +1,4 @@
+/** 函数符号基类 / Function symbol base class */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -52,41 +53,52 @@ interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> 
 }
 
 /**
+ * 可选接口，用于暴露结果多项式的 [MathFunctionSymbol] 实现。
  * Optional interface for [MathFunctionSymbol] implementations that expose
  * a result polynomial. [LinearFunctionSymbolAdapter] uses this to provide
  * a non-zero [polynomial] so that model.maximize(fn) and LinearPolynomial(fn)
  * produce the correct objective term.
+ * [LinearFunctionSymbolAdapter] 使用此接口提供非零 [polynomial]，
+ * 使 model.maximize(fn) 和 LinearPolynomial(fn) 产生正确的目标项。
  */
 interface HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     val resultPolynomial: LinearPolynomial<V>
 }
 
 /**
+ * 基于数学符号的函数符号的基础接口。
  * Base interface for math-symbol-based function symbols.
+ * 每个函数符号创建辅助变量并生成线性约束。
  * Each function symbol creates helper variables and generates linear constraints.
  *
- * @param V the numeric type (must implement RealNumber and NumberField).
+ * @param V 数值类型（必须实现 RealNumber 和 NumberField）/ the numeric type (must implement RealNumber and NumberField).
  */
 interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     var name: String
     var displayName: String?
 
     /**
+     * 此函数创建的辅助变量（如正/负松弛变量）。
      * Helper variables created by this function (e.g. pos/neg slack variables).
+     * 暴露出来以便框架在目标函数中引用它们。
      * Exposed so the framework can reference them in objectives.
      */
     val helperVariables: List<AbstractVariableItem<*, *>>
 
     /**
+     * 在给定已解析的符号值下计算此函数符号。
      * Evaluate this function symbol given resolved symbol values.
      */
     fun evaluate(values: Map<Symbol, V>): V?
 }
 
 /**
+ * 二次函数符号注册的内部非泛型基类。
  * Internal non-generic base for quadratic function symbol registration.
  *
+ * 镜像 [MathFunctionSymbolBase]，但用于二次机制模型。
  * Mirrors [MathFunctionSymbolBase] but for quadratic mechanism models.
+ * 这是一个内部求解器边界接口。
  * This is an internal solver-boundary interface.
  */
 internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -95,10 +107,14 @@ internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V
 }
 
 /**
+ * 将 [MathFunctionSymbol]<V> 包装为同时实现 [LinearIntermediateSymbol]<V> 的适配器。
  * Adapter that wraps a [MathFunctionSymbol]<V> to also implement
  * [LinearIntermediateSymbol]<V>. This allows function symbols to be stored in
  * `LinearIntermediateSymbols1/2` containers used throughout the framework.
+ * 这允许函数符号存储在框架中使用的 `LinearIntermediateSymbols1/2` 容器中。
  *
+ * 所有 [LinearIntermediateSymbol] 成员都有合理的默认值，因为函数符号通过
+ * [MathFunctionSymbol.register] 而非传统的 prepare/flatten 管道生成约束。
  * All [LinearIntermediateSymbol] members have sensible defaults since function
  * symbols generate constraints via [MathFunctionSymbol.register] rather than
  * through the traditional prepare/flatten pipeline.
@@ -134,7 +150,9 @@ class LinearFunctionSymbolAdapter<V>(
         get() = delegate.helperVariables
 
     /**
+     * 将正松弛变量暴露为 LinearPolynomial<V>。
      * Expose positive slack variable as a LinearPolynomial<V>.
+     * 仅当委托是 withPositive=true 的 SlackFunction 时才有意义。
      * Only meaningful when the delegate is a SlackFunction with withPositive=true.
      */
     val pos: LinearPolynomial<V>? by lazy {
@@ -283,7 +301,7 @@ class LinearFunctionSymbolAdapter<V>(
 
 // ---- Converter-based helpers (safe, no unchecked casts) ----
 
-/** Convert LinearPolynomial<V> to LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> using the provided converter. */
+/** 使用提供的转换器将 LinearPolynomial<V> 转换为 LinearPolynomial<Flt64>。 / Convert LinearPolynomial<V> to LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> using the provided converter. */
 internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
@@ -291,7 +309,7 @@ internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): Linea
     )
 }
 
-/** Convert QuadraticPolynomial<V> to QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> using the provided converter. */
+/** 使用提供的转换器将 QuadraticPolynomial<V> 转换为 QuadraticPolynomial<Flt64>。 / Convert QuadraticPolynomial<V> to QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> using the provided converter. */
 internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
@@ -299,7 +317,7 @@ internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValu
     )
 }
 
-/** Convert QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> to QuadraticPolynomial<V> using the provided converter. */
+/** 使用提供的转换器将 QuadraticPolynomial<Flt64> 转换为 QuadraticPolynomial<V>。 / Convert QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> to QuadraticPolynomial<V> using the provided converter. */
 internal fun <V> QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.asVQuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },

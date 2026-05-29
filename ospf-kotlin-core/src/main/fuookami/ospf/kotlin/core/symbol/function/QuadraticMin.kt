@@ -1,3 +1,4 @@
+/** 二次最小值函数符号 / Quadratic minimum function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -24,13 +25,16 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 二次最小值函数：y = min(p1, p2, ..., pn)。
  * Quadratic min function: y = min(p1, p2, ..., pn).
+ * 使用 Big-M 公式与二值选择变量实现精确最小值，
  * Uses Big-M formulation with binary selection variables for exact min,
+ * 或使用简单下界约束实现松弛最小值。
  * or simple lower-bound constraints for relaxed min.
  *
- * @param polynomials list of quadratic polynomials to take the min of
- * @param exact if true, uses binary variables for exact min; if false, only enforces y <= pi
- * @param bigM Big-M constant for exact formulation (default 1e6)
+ * @param polynomials 要取最小值的二次多项式列表 / list of quadratic polynomials to take the min of
+ * @param exact 若为 true，使用二值变量实现精确最小值；若为 false，仅强制 y <= pi / if true, uses binary variables for exact min; if false, only enforces y <= pi
+ * @param bigM 精确公式的 Big-M 常量（默认 1e6）/ Big-M constant for exact formulation (default 1e6)
  */
 class QuadraticMinFunction<V>(
     val polynomials: List<QuadraticPolynomial<V>>,
@@ -202,6 +206,7 @@ class QuadraticMinFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
+     * 将辅助变量 (resultVar, binVars) 注册到 token 集合中。
      * Register helper variables (resultVar, binVars) with the token collection.
      */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
@@ -215,6 +220,7 @@ class QuadraticMinFunction<V>(
     }
 
     /**
+     * 注册最小值约束（y <= pi，精确模式下：y >= pi - M*(1-ui), sum(ui)=1）。
      * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {

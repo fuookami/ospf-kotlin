@@ -1,3 +1,4 @@
+/** 松弛范围函数符号 / Slack range function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,17 +23,20 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 松弛范围函数：使用松弛变量将 x 约束在 [lb, ub] 范围内。
  * Slack range function: bounds x within [lb, ub] using slack variables.
  *
+ * 原始语义：polyX = x + neg - pos，约束 polyX leq ub / geq lb。
  * Original semantics: polyX = x + neg - pos, with constraints polyX leq ub / geq lb.
+ * neg = 下松弛（x 低于 lb），pos = 上松弛（x 高于 ub）。
  * neg = lower slack (x below lb), pos = upper slack (x above ub).
  *
- * @param x the expression to bound
- * @param lb lower bound polynomial
- * @param ub upper bound polynomial
- * @param type variable type kind (UInteger or UContinuous)
- * @param constraint whether to add polyX leq ub / geq lb constraints
- * @param converter value type converter
+ * @param x 要约束的表达式 / the expression to bound
+ * @param lb 下界多项式 / lower bound polynomial
+ * @param ub 上界多项式 / upper bound polynomial
+ * @param type 变量类型（UInteger 或 UContinuous）/ variable type kind (UInteger or UContinuous)
+ * @param constraint 是否添加 polyX leq ub / geq lb 约束 / whether to add polyX leq ub / geq lb constraints
+ * @param converter 值类型转换器 / value type converter
  */
 class SlackRangeFunction<V>(
     val x: LinearPolynomial<V>,
@@ -105,7 +109,7 @@ class SlackRangeFunction<V>(
     }
 
     companion object {
-        /** V-generic factory with lb/ub polynomials. */
+        /** 使用 lb/ub 多项式的 V 泛型工厂。 / V-generic factory with lb/ub polynomials. */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lb: LinearPolynomial<V>,
@@ -118,7 +122,7 @@ class SlackRangeFunction<V>(
         ): SlackRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SlackRangeFunction(x, lb, ub, type, constraint, converter, name, displayName)
 
-        /** V-generic factory with LinearIntermediateSymbol and lb/ub polynomials. */
+        /** 使用 LinearIntermediateSymbol 和 lb/ub 多项式的 V 泛型工厂。 / V-generic factory with LinearIntermediateSymbol and lb/ub polynomials. */
         @JvmStatic
         fun <V> fromLinearIntermediateSymbol(
             x: LinearIntermediateSymbol<V>,

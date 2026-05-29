@@ -25,14 +25,15 @@ private val solverValueConverter = object : IntoValue<Flt64> {
 // ========== Recursive expansion of intermediate symbols ==========
 
 /**
+ * 递归展开可能为 [LinearIntermediateSymbol] 的 [LinearMonomial]，
+ * 返回 (变量单项式列表, 常量贡献) 对。
  * Recursively expand a [LinearMonomial] whose symbol may be a [LinearIntermediateSymbol]
  * into a pair of (variable-item monomials, constant contribution).
  *
- * - [AbstractVariableItem]: returned as-is with zero constant contribution.
- * - [LinearIntermediateSymbol]: its [polynomial][LinearIntermediateSymbol.polynomial]
- *   monomials are scaled by the original coefficient and recursively expanded.
- *   The polynomial's constant is also scaled and accumulated.
- * - Other symbol types: treated as an error (returns a [Failed] result).
+ * - [AbstractVariableItem]: 直接返回，常量贡献为零 / returned as-is with zero constant contribution
+ * - [LinearIntermediateSymbol]: 其多项式单项式按原系数缩放后递归展开，常量也缩放累加
+ *   its monomials are scaled by the original coefficient and recursively expanded
+ * - 其他符号类型：视为错误（返回 [Failed] 结果）/ Other symbol types: treated as an error
  */
 @Suppress("UNCHECKED_CAST")
 private fun <V> expandLinearMonomial(mono: LinearMonomial<V>): Result<Pair<List<LinearMonomial<V>>, V>>
@@ -58,6 +59,8 @@ private fun <V> expandLinearMonomial(mono: LinearMonomial<V>): Result<Pair<List<
 }
 
 /**
+ * 展开 [LinearPolynomial] 中的所有单项式，仅返回变量单项式。
+ * 将中间符号展开的常量累加到多项式常量中。
  * Expand all monomials in a [LinearPolynomial], returning only variable-item monomials.
  * Accumulates constants from intermediate symbol expansion into the polynomial's constant.
  */
@@ -78,11 +81,13 @@ private fun <V> expandLinearPolynomial(poly: LinearPolynomial<V>): Result<Pair<L
 // ========== Converter-based flatten: V-typed inequality -> V-typed flatten data ==========
 
 /**
+ * 将 V 类型 [LinearInequality] 扁平化为 [LinearFlattenData]<V>（恒等扁平化，无转换）。
  * Flatten a V-typed [LinearInequality] into [LinearFlattenData]<V> (identity flatten, no conversion).
  *
- * Intermediate symbols ([LinearIntermediateSymbol]) are recursively expanded into
- * their constituent variable-item monomials before merging. Unsupported symbol types
- * produce a [Failed] result instead of a [ClassCastException].
+ * 中间符号 ([LinearIntermediateSymbol]) 在合并前递归展开为变量单项式。
+ * 不支持的符号类型会产生 [Failed] 结果而非 [ClassCastException]。
+ * Intermediate symbols are recursively expanded before merging.
+ * Unsupported symbol types produce a [Failed] result instead of a [ClassCastException].
  */
 internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlattenData<V>>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -120,8 +125,9 @@ internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlatten
 }
 
 /**
+ * 将 V 类型 [QuadraticInequalityOf] 扁平化为 [QuadraticFlattenData]<V>（恒等扁平化，无转换）。
+ * 将 lhs - rhs 转换为单一二次形式。
  * Flatten a V-typed [QuadraticInequalityOf] into [QuadraticFlattenData]<V> (identity flatten, no conversion).
- *
  * Converts lhs - rhs into a single quadratic form.
  */
 internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFlattenData<V>
@@ -163,8 +169,10 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
 // ========== Converter-based flatten: V-typed inequality -> Flt64 flatten data ==========
 
 /**
+ * 使用显式转换器将 V 类型 [LinearInequality] 扁平化为 [LinearFlattenData]<Flt64>。
  * Flatten a V-typed [LinearInequality] into [LinearFlattenData]<Flt64> using an explicit converter.
  *
+ * 中间符号在合并前递归展开。不支持的符号类型会产生 [Failed] 结果。
  * Intermediate symbols are recursively expanded before merging.
  * Unsupported symbol types produce a [Failed] result instead of a [ClassCastException].
  */
@@ -206,9 +214,10 @@ internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoVal
 }
 
 /**
+ * 使用显式转换器将 V 类型 [QuadraticInequalityOf] 扁平化为 [QuadraticFlattenData]<Flt64>。
  * Flatten a V-typed [QuadraticInequalityOf] into [QuadraticFlattenData]<Flt64> using an explicit converter.
  *
- * Converts lhs - rhs into a single quadratic form.
+ * 将 lhs - rhs 转换为单一二次形式。/ Converts lhs - rhs into a single quadratic form.
  */
 internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter: IntoValue<V>): QuadraticFlattenData<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -250,13 +259,16 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
 
 // ========== Flt64-specific flatten extensions (for Flt64-typed inequalities) ==========
 
-/** Alias for comparison, matching the old Relation.sign property */
+/** 比较类型的别名，对应旧的 Relation.sign 属性 / Alias for comparison, matching the old Relation.sign property */
 internal val LinearInequality<Flt64>.sign: Comparison get() = comparison
 
-/** Alias for comparison, matching the old Relation.sign property */
+/** 比较类型的别名，对应旧的 Relation.sign 属性 / Alias for comparison, matching the old Relation.sign property */
 internal val QuadraticInequalityOf<Flt64>.sign: Comparison get() = comparison
 
 /**
+ * 从 [LinearInequality]<Flt64> 计算 [LinearFlattenData]<Flt64>。
+ * 将 lhs - rhs 展平为单一线性形式。
+ * 这是当已知 V=Flt64 时的 Flt64 特定便捷属性。
  * Compute [LinearFlattenData]<Flt64> from [LinearInequality]<Flt64>.
  * Flattens lhs - rhs into a single linear form.
  *
@@ -266,6 +278,9 @@ internal val LinearInequality<Flt64>.flattenData: Result<LinearFlattenData<Flt64
     get() = toLinearFlattenDataFlt64(solverValueConverter)
 
 /**
+ * 从 QuadraticInequality (Flt64) 计算 [QuadraticFlattenData]<Flt64>。
+ * 将 lhs - rhs 展平为单一二次形式。
+ * 这是当已知 V=Flt64 时的 Flt64 特定便捷属性。
  * Compute [QuadraticFlattenData]<Flt64> from QuadraticInequality (Flt64).
  * Flattens lhs - rhs into a single quadratic form.
  *
@@ -276,7 +291,13 @@ internal val QuadraticInequalityOf<Flt64>.flattenData: QuadraticFlattenData<Flt6
 
 // ========== Internal key for merging quadratic monomials ==========
 
-/** Internal key for merging quadratic monomials (handles commutativity of x*y = y*x) */
+/**
+ * 合并二次单项式的内部键（处理 x*y = y*x 的交换性）。
+ * Internal key for merging quadratic monomials (handles commutativity of x*y = y*x).
+ *
+ * @property sym1Id 第一个符号的 identityHashCode / identityHashCode of first symbol
+ * @property sym2Id 第二个符号的 identityHashCode（null 表示线性项）/ identityHashCode of second symbol (null for linear term)
+ */
 private data class QuadraticMonomialKey(
     val sym1Id: Int,
     val sym2Id: Int?
@@ -322,6 +343,8 @@ private data class QuadraticMonomialKey(
 // ========== Conversion from math types to frontend types ==========
 
 /**
+ * 从数学 [LinearPolynomial] 直接创建 [LinearFlattenData]<Flt64>。
+ * 仅需要不等式一侧时使用。
  * Create [LinearFlattenData]<Flt64> directly from math [LinearPolynomial].
  * Used when only one side of the inequality is needed.
  */
@@ -333,6 +356,8 @@ internal fun LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenData<Flt64> {
 }
 
 /**
+ * 从数学 [QuadraticPolynomial] 直接创建 [QuadraticFlattenData]<Flt64>。
+ * 仅需要不等式一侧时使用。
  * Create [QuadraticFlattenData]<Flt64> directly from math [QuadraticPolynomial].
  * Used when only one side of the inequality is needed.
  */

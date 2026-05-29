@@ -14,21 +14,24 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 模型层级结构的基础层：变量 + 约束 + 符号 + 缓存（无目标函数）。
  * Base layer of the model hierarchy: variables + constraints + symbols + caches (no objective).
  *
- * This corresponds to `BasicModel<V>` in the Rust implementation.
- * `MetaModel` extends this with objective functions and higher-level semantics.
+ * 对应 Rust 实现中的 `BasicModel<V>`。
+ * `MetaModel` 在此基础上扩展了目标函数和更高层语义。
  *
  * BasicModel delegates token storage to a [AbstractMutableTokenTable<V>] provided
  * at construction time -- the same mechanism used by MetaModel.
+ *
+ * This corresponds to `BasicModel<V>` in the Rust implementation.
+ * `MetaModel` extends this with objective functions and higher-level semantics.
  */
 open class BasicModel<V>(
     open val name: String,
     open val tokens: AbstractMutableTokenTable<V>
 ) : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
 
-    /** Symbol table. */
+    /** 符号表。 / Symbol table. */
     val symbols: MutableList<IntermediateSymbol<*>> = mutableListOf()
 
-    /** Symbol dependency graph, delegated to the token table where available. */
+    /** 符号依赖图，委托给 token 表实现。 / Symbol dependency graph, delegated to the token table where available. */
     open val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>>
         get() = tokens.symbolDependencies
 

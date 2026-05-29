@@ -169,6 +169,7 @@ interface MetaConstraintGroup {
     // ========== Math Inequality-based API ==========
 
     /**
+     * 使用数学 LinearInequality<V> 添加约束
      * Add constraint using math LinearInequality<V>
      */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
@@ -191,6 +192,7 @@ interface MetaConstraintGroup {
     }
 
     /**
+     * 使用数学 QuadraticInequalityOf<V> 添加约束
      * Add constraint using math QuadraticInequalityOf<V>
      */
     fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
@@ -222,9 +224,6 @@ fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathCo
 
 // ========== Math Inequality-based Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64> Types ==========
 
-/**
- * Common interface for math-based constraints.
- */
 /**
  * 数学约束通用接口。
  * Common interface for math-based constraints.

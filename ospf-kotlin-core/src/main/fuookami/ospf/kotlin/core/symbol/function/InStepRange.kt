@@ -1,3 +1,4 @@
+/** 阶梯范围函数符号 / Step range function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -21,21 +22,25 @@ import fuookami.ospf.kotlin.utils.functional.Try
  */
 
 /**
+ * 步进区间函数：y = lb + floor((ub - lb) / step) * step。
  * In-Step-Range function: `y = lb + floor((ub - lb) / step) * step`.
  *
+ * 查找满足以下条件的最大值 y：
  * Finds the largest value y such that:
  * - y >= lb
  * - y <= ub
+ * - y = lb + n * step，其中 n 为 >= 0 的整数
  * - y = lb + n * step for some integer n >= 0
  *
+ * 委托给 FloorFunction 进行商计算。
  * Delegates to FloorFunction for the quotient computation.
  *
- * @param lb the lower bound linear polynomial
- * @param ub the upper bound linear polynomial
- * @param step the step size (must be positive, default 1)
- * @param m Big-M bound (default 1e6)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param lb 下界线性多项式 / the lower bound linear polynomial
+ * @param ub 上界线性多项式 / the upper bound linear polynomial
+ * @param step 步长（必须为正，默认 1）/ the step size (must be positive, default 1)
+ * @param m Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class InStepRangeFunction<V>(
     val lb: LinearPolynomial<V>,

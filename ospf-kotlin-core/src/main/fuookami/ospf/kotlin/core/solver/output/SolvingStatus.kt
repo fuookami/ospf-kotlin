@@ -56,4 +56,5 @@ data class SolvingStatus(
     val solveTime: Duration = time
 )
 
+/** 求解状态回调函数类型 / Solving status callback function type */
 typealias SolvingStatusCallBack = (SolvingStatus) -> Try

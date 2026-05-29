@@ -1,3 +1,4 @@
+/** 区间条件函数符号 / If-in-range condition function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,19 +23,21 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 区间条件函数：当 a <= x <= b 时 y = 1，否则 y = 0。
  * If-In function: `y = 1 if a <= x <= b, else y = 0`.
  *
+ * 使用两个二值指示变量进行下界和上界检查，通过类 AND 约束组合。
  * Uses two binary indicators for the lower and upper bound checks,
  * combined via an AND-like constraint.
  *
- * @param x the input linear polynomial
- * @param lower the lower bound (a)
- * @param upper the upper bound (b)
- * @param bigM Big-M bound (default 1e6)
- * @param tolerance zero tolerance (default 1e-6)
- * @param strictBoundary strict boundary value (default 0.5)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param x 输入线性多项式 / the input linear polynomial
+ * @param lower 下界 (a) / the lower bound (a)
+ * @param upper 上界 (b) / the upper bound (b)
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
+ * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class IfInFunction<V>(
     val x: LinearPolynomial<V>,

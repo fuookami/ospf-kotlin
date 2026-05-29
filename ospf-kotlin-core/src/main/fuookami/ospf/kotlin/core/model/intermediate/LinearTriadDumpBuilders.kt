@@ -9,10 +9,19 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.Quadruple
 import kotlinx.coroutines.*
+
+private fun Any?.toSolverFlt64(): Flt64 {
+    return when (this) {
+        is Flt64 -> this
+        is RealNumber<*> -> this.toFlt64()
+        else -> error("Unsupported solver-boundary numeric value: ${this?.javaClass?.name}")
+    }
+}
 
 internal fun buildLinearSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<Flt64> {
     val matrix = SparseMatrix<Flt64>()
@@ -38,21 +47,23 @@ internal fun dumpLinearTriadVariables(
         val thisBounds = bounds[token] ?: emptyList()
         val lb = thisBounds
             .filter { it.third == ConstraintRelation.GreaterEqual || it.third == ConstraintRelation.Equal }
-            .maxOfOrNull { it.fourth }
+            .maxOfOrNull { (it as Quadruple<*, *, *, *>).fourth.toSolverFlt64() }
         val ub = thisBounds
             .filter { it.third == ConstraintRelation.LessEqual || it.third == ConstraintRelation.Equal }
-            .minOfOrNull { it.fourth }
+            .minOfOrNull { (it as Quadruple<*, *, *, *>).fourth.toSolverFlt64() }
+        val tokenLowerBound = token.lowerBound!!.value.unwrap().toSolverFlt64()
+        val tokenUpperBound = token.upperBound!!.value.unwrap().toSolverFlt64()
         variables[i] = Variable(
             index = i,
             lowerBound = if (lb != null) {
-                max(lb, token.lowerBound!!.value.unwrap())
+                max(lb, tokenLowerBound)
             } else {
-                token.lowerBound!!.value.unwrap()
+                tokenLowerBound
             },
             upperBound = if (ub != null) {
-                min(ub, token.upperBound!!.value.unwrap())
+                min(ub, tokenUpperBound)
             } else {
-                token.upperBound!!.value.unwrap()
+                tokenUpperBound
             },
             type = token.variable.type,
             origin = token.variable,
@@ -77,19 +88,21 @@ internal fun dumpLinearTriadConstraints(
     val notBoundConstraints = model.linearConstraints.filter { !boundConstraints.contains(it) }
 
     val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
+        val thisConstraint = constraint as LinearConstraintImpl<*>
         val lhs = ArrayList<LinearConstraintCell>()
-        var rhs = constraint.rhs
-        for (cell in constraint.lhs) {
-            if (tokenIndexes.containsKey(cell.token)) {
+        var rhs = thisConstraint.rhs.toSolverFlt64()
+        for (cell in thisConstraint.lhs) {
+            val token = cell.token as Token<Flt64>
+            if (tokenIndexes.containsKey(token)) {
                 lhs.add(
                     LinearConstraintCell(
                         rowIndex = index,
-                        colIndex = tokenIndexes[cell.token]!!,
-                        coefficient = cell.coefficient.clampCoefficient()
+                        colIndex = tokenIndexes[token]!!,
+                        coefficient = cell.coefficient.toSolverFlt64().clampCoefficient()
                     )
                 )
             } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                rhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                rhs -= cell.coefficient.toSolverFlt64() * fixedVariables[cell.token.variable]!!
             }
         }
         lhs to rhs
@@ -148,20 +161,21 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
                 async(Dispatchers.Default) {
                     val constraints = ArrayList<Pair<List<LinearConstraintCell>, Flt64>>()
                     for (i in slice.fromIndex until slice.toIndexExclusive) {
-                        val constraint = notBoundConstraints[i]
+                        val constraint = notBoundConstraints[i] as LinearConstraintImpl<*>
                         val lhs = ArrayList<LinearConstraintCell>()
-                        var rhs = constraint.rhs
+                        var rhs = constraint.rhs.toSolverFlt64()
                         for (cell in constraint.lhs) {
-                            if (tokenIndexes.containsKey(cell.token)) {
+                            val token = cell.token as Token<Flt64>
+                            if (tokenIndexes.containsKey(token)) {
                                 lhs.add(
                                     LinearConstraintCell(
                                         rowIndex = i,
-                                        colIndex = tokenIndexes[cell.token]!!,
-                                        coefficient = cell.coefficient.clampCoefficient()
+                                        colIndex = tokenIndexes[token]!!,
+                                        coefficient = cell.coefficient.toSolverFlt64().clampCoefficient()
                                     )
                                 )
                             } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                                rhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                                rhs -= cell.coefficient.toSolverFlt64() * fixedVariables[cell.token.variable]!!
                             }
                         }
                         constraints.add(lhs to rhs)
@@ -213,19 +227,21 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
         val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
         val priorities = ArrayList<Int?>()
         for ((index, constraint) in notBoundConstraints.withIndex()) {
+            val thisConstraint = constraint as LinearConstraintImpl<*>
             val thisLhs = ArrayList<LinearConstraintCell>()
-            var thisRhs = constraint.rhs
-            for (cell in constraint.lhs) {
-                if (tokenIndexes.containsKey(cell.token)) {
+            var thisRhs = thisConstraint.rhs.toSolverFlt64()
+            for (cell in thisConstraint.lhs) {
+                val token = cell.token as Token<Flt64>
+                if (tokenIndexes.containsKey(token)) {
                     thisLhs.add(
                         LinearConstraintCell(
                             rowIndex = index,
-                            colIndex = tokenIndexes[cell.token]!!,
-                            coefficient = cell.coefficient.clampCoefficient()
+                            colIndex = tokenIndexes[token]!!,
+                            coefficient = cell.coefficient.toSolverFlt64().clampCoefficient()
                         )
                     )
                 } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                    thisRhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                    thisRhs -= cell.coefficient.toSolverFlt64() * fixedVariables[cell.token.variable]!!
                 }
             }
             lhs.add(thisLhs)
@@ -264,26 +280,31 @@ internal fun dumpLinearTriadObjectives(
     val coefficient = (0 until tokenIndexes.size).map { Flt64.zero }.toMutableList()
     var constant = Flt64.zero
     for (subObject in model.objectFunction.subObjects) {
+        val thisSubObject = subObject as LinearSubObject<*>
         if (subObject.category == objectiveCategory) {
-            for (cell in subObject.cells) {
+            for (cell in thisSubObject.cells) {
+                val token = cell.token as Token<Flt64>
+                val cellCoefficient = cell.coefficient.toSolverFlt64()
                 if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                    constant += cell.coefficient * fixedVariables[cell.token.variable]!!
+                    constant += cellCoefficient * fixedVariables[cell.token.variable]!!
                 } else {
-                    val index = tokenIndexes[cell.token] ?: continue
-                    coefficient[index] = coefficient[index] + cell.coefficient
+                    val index = tokenIndexes[token] ?: continue
+                    coefficient[index] = coefficient[index] + cellCoefficient
                 }
             }
-            constant += subObject.constant
+            constant += thisSubObject.constant.toSolverFlt64()
         } else {
-            for (cell in subObject.cells) {
+            for (cell in thisSubObject.cells) {
+                val token = cell.token as Token<Flt64>
+                val cellCoefficient = cell.coefficient.toSolverFlt64()
                 if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                    constant -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                    constant -= cellCoefficient * fixedVariables[cell.token.variable]!!
                 } else {
-                    val index = tokenIndexes[cell.token] ?: continue
-                    coefficient[index] = coefficient[index] - cell.coefficient
+                    val index = tokenIndexes[token] ?: continue
+                    coefficient[index] = coefficient[index] - cellCoefficient
                 }
             }
-            constant -= subObject.constant
+            constant -= thisSubObject.constant.toSolverFlt64()
         }
     }
     val objective = ArrayList<LinearObjectiveCell>()

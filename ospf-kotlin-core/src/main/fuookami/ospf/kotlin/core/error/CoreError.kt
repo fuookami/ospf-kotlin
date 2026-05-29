@@ -15,10 +15,12 @@ interface StructuredCoreError {
     val errorCode: ErrorCode
     val message: String
 
+    /** 将此错误转换为通用 Error 对象 / Convert this error to a generic Error object */
     fun toError(): Error<ErrorCode> {
         return Err(errorCode, message)
     }
 
+    /** 将此错误转换为失败的 Ret 结果 / Convert this error to a failed Ret result */
     fun <T> toFailed(): Ret<T> {
         return Failed(toError())
     }
@@ -35,13 +37,18 @@ sealed class CoreError(
     override val errorCode: ErrorCode,
     override val message: String
 ) : StructuredCoreError {
+    /** 变量相关错误的包装器 / Wrapper for variable-related errors */
     data class Variable(val detail: VariableError) : CoreError(detail.errorCode, detail.message)
+    /** 模型相关错误的包装器 / Wrapper for model-related errors */
     data class Model(val detail: ModelError) : CoreError(detail.errorCode, detail.message)
+    /** 求解器相关错误的包装器 / Wrapper for solver-related errors */
     data class Solver(val detail: SolverError) : CoreError(detail.errorCode, detail.message)
+    /** 功能未实现错误 / Feature not implemented error */
     data class NotImplemented(val detail: String) : CoreError(
         ErrorCode.IllegalArgument,
         "Not implemented: $detail"
     )
+    /** 内部错误 / Internal error */
     data class Internal(val detail: String) : CoreError(
         ErrorCode.ApplicationException,
         "Internal error: $detail"
@@ -59,22 +66,27 @@ sealed class VariableError(
     override val errorCode: ErrorCode,
     override val message: String
 ) : StructuredCoreError {
+    /** 变量未找到错误 / Variable not found error */
     data class NotFound(val variable: String) : VariableError(
         ErrorCode.DataNotFound,
         "Variable not found: $variable"
     )
+    /** 变量已存在错误 / Variable already exists error */
     data class AlreadyExists(val variable: String) : VariableError(
         ErrorCode.TokenExisted,
         "Variable already exists: $variable"
     )
+    /** 变量范围无效错误（下界大于上界）/ Invalid variable range error (lower bound exceeds upper bound) */
     data class InvalidRange(val lower: String?, val upper: String?) : VariableError(
         ErrorCode.IllegalArgument,
         "Invalid variable range: lower bound $lower > upper bound $upper"
     )
+    /** 变量值无效错误 / Invalid variable value error */
     data class InvalidValue(val variable: String, val value: String) : VariableError(
         ErrorCode.IllegalArgument,
         "Invalid variable value: $value for variable $variable"
     )
+    /** 变量名冲突错误 / Variable name conflict error */
     data class NameConflict(val name: String) : VariableError(
         ErrorCode.SymbolRepetitive,
         "Variable name conflict: $name"
@@ -92,26 +104,32 @@ sealed class ModelError(
     override val errorCode: ErrorCode,
     override val message: String
 ) : StructuredCoreError {
+    /** 模型未初始化错误 / Model not initialized error */
     data object NotInitialized : ModelError(
         ErrorCode.ApplicationError,
         "Model not initialized"
     )
+    /** 模型已求解错误 / Model already solved error */
     data object AlreadySolved : ModelError(
         ErrorCode.ApplicationError,
         "Model already solved"
     )
+    /** 约束冲突错误 / Constraint conflict error */
     data class ConstraintConflict(val detail: String) : ModelError(
         ErrorCode.IllegalArgument,
         "Constraint conflict: $detail"
     )
+    /** 缺少目标函数错误 / Missing objective function error */
     data object MissingObjective : ModelError(
         ErrorCode.DataEmpty,
         "Missing objective function"
     )
+    /** 无效约束错误 / Invalid constraint error */
     data class InvalidConstraint(val detail: String) : ModelError(
         ErrorCode.IllegalArgument,
         "Invalid constraint: $detail"
     )
+    /** 符号未注册错误 / Symbol not registered error */
     data class SymbolNotRegistered(val symbol: String) : ModelError(
         ErrorCode.DataNotFound,
         "Symbol not registered: $symbol"
@@ -129,56 +147,71 @@ sealed class SolverError(
     override val errorCode: ErrorCode,
     override val message: String
 ) : StructuredCoreError {
+    /** 求解器不可用错误 / Solver not available error */
     data class NotAvailable(val solver: String) : SolverError(
         ErrorCode.SolverNotFound,
         "Solver not available: $solver"
     )
+    /** 求解失败错误 / Solve failed error */
     data class SolveFailed(val detail: String) : SolverError(
         ErrorCode.OREngineSolvingException,
         "Solve failed: $detail"
     )
+    /** 无可行解错误 / No solution found error */
     data object NoSolution : SolverError(
         ErrorCode.ORSolutionInvalid,
         "No solution found"
     )
+    /** 解无界错误 / Solution unbounded error */
     data object Unbounded : SolverError(
         ErrorCode.ORModelUnbounded,
         "Solution is unbounded"
     )
+    /** 问题不可行错误 / Problem infeasible error */
     data object Infeasible : SolverError(
         ErrorCode.ORModelInfeasible,
         "Problem is infeasible"
     )
+    /** 数值计算错误 / Numerical computation error */
     data class NumericalError(val detail: String) : SolverError(
         ErrorCode.OREngineSolvingException,
         "Numerical error: $detail"
     )
+    /** 精度损失错误 / Precision loss error */
     data class PrecisionLoss(val detail: String) : SolverError(
         ErrorCode.ORSolutionInvalid,
         "Precision loss: $detail"
     )
+    /** 数值溢出错误 / Numerical overflow error */
     data class Overflow(val detail: String) : SolverError(
         ErrorCode.ORSolutionInvalid,
         "Overflow: $detail"
     )
+    /** 非有限值错误 / Non-finite value error */
     data class NonFinite(val detail: String) : SolverError(
         ErrorCode.ORSolutionInvalid,
         "Non-finite value: $detail"
     )
+    /** 不支持的值类型错误 / Unsupported value type error */
     data class UnsupportedValueType(val type: String) : SolverError(
         ErrorCode.IllegalArgument,
         "Unsupported value type: $type"
     )
+    /** 求解器超时错误 / Solver timeout error */
     data class Timeout(val detail: String) : SolverError(
         ErrorCode.OREngineTerminated,
         "Solver timeout: $detail"
     )
+    /** 许可证错误 / License error */
     data class LicenseError(val detail: String) : SolverError(
         ErrorCode.AuthenticationError,
         "License error: $detail"
     )
 }
 
+/** 将变量错误转换为核心错误 / Convert a variable error to a core error */
 fun VariableError.asCoreError(): CoreError = CoreError.Variable(this)
+/** 将模型错误转换为核心错误 / Convert a model error to a core error */
 fun ModelError.asCoreError(): CoreError = CoreError.Model(this)
+/** 将求解器错误转换为核心错误 / Convert a solver error to a core error */
 fun SolverError.asCoreError(): CoreError = CoreError.Solver(this)

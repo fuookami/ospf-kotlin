@@ -8,15 +8,22 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
+ * 值类型转换接口（与 Rust IntoValue<V> 对齐）。
+ * 将源数值类型转换为统一的泛型值类型 V。
  * Value type conversion trait (aligns with Rust IntoValue<V>).
  * Converts source numeric types into a unified generic value type V.
  *
  * Rust: `pub trait IntoValue<V>: Clone + Debug + PartialOrd + Send + Sync + 'static`
+ * Kotlin: V 受 RealNumber<V> 约束，提供所有算术和排序操作。
  * Kotlin: V is bounded by RealNumber<V> which provides all arithmetic + ordering.
  *
+ * 主要用途：将 Flt64（求解器标准类型）转换为 V（泛型值类型），
+ * 使函数符号能将字面量 f64 常量转换为 V。
  * The primary use case: converting Flt64 (solver standard) → V (generic value type).
  * This enables function symbols to convert literal f64 constants to V.
  *
+ * 还提供 V 类型常量（零、一）和反向转换（fromValue），
+ * 以消除不安全的 `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` 强制转换。
  * Also provides V-typed constants (zero, one) and reverse conversion (fromValue)
  * to eliminate unsafe `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` casts.
  */

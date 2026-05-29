@@ -51,11 +51,40 @@ enum class ConstraintRelation {
         }
     }
 
+    /**
+     * 获取此约束关系的反转关系（如小于等于变为大于等于）。
+     * Get the reverse of this constraint relation (e.g. less-equal becomes greater-equal).
+     *
+     * @return 反转后的约束关系，默认返回自身（等于的反转仍为等于） / The reversed constraint relation; defaults to self (equal reverses to equal)
+     */
     open val reverse: ConstraintRelation get() = this
 
+    /**
+     * 获取此约束关系对应的比较器。
+     * Get the comparator corresponding to this constraint relation.
+     *
+     * @param T 可比较的有序类型 / An ordered type
+     * @return 比较器，对满足约束关系的 lhs 和 rhs 返回 true / A comparator that returns true when lhs and rhs satisfy this constraint relation
+     */
     abstract fun <T : Ord<T>> operator(): Comparator<T>
+
+    /**
+     * 直接判断两个值是否满足此约束关系。
+     * Directly check whether two values satisfy this constraint relation.
+     *
+     * @param T 可比较的有序类型 / An ordered type
+     * @param lhs 左操作数 / The left-hand operand
+     * @param rhs 右操作数 / The right-hand operand
+     * @return 若 lhs 和 rhs 满足约束关系则返回 true / True if lhs and rhs satisfy this constraint relation
+     */
     operator fun <T : Ord<T>> invoke(lhs: T, rhs: T) = this.operator<T>()(lhs, rhs)
 
+    /**
+     * 将此约束关系转换为通用比较枚举。
+     * Convert this constraint relation to the generic comparison enumeration.
+     *
+     * @return 对应的 Comparison 枚举值 / The corresponding Comparison enum value
+     */
     fun toComparison(): Comparison = when (this) {
         LessEqual -> Comparison.LE
         Equal -> Comparison.EQ

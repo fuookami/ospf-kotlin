@@ -1,3 +1,4 @@
+/** 平衡三值化函数符号 / Balanced ternaryzation function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -20,21 +21,28 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 平衡三值化函数：将 x 映射为 sign(x) 取值 {-1, 0, 1}。
  * Balance Ternaryzation function: maps x to sign(x) in {-1, 0, 1}.
+ *
+ * 输出：
+ * - y = 1  当 x > epsilon
+ * - y = 0  当 -epsilon <= x <= epsilon
+ * - y = -1 当 x < -epsilon
  *
  * Output:
  * - y = 1  when x > epsilon
  * - y = 0  when -epsilon <= x <= epsilon
  * - y = -1 when x < -epsilon
  *
+ * 使用 [UnivariateLinearPiecewiseFunction] 的分段线性近似，断点位于符号转换边界。
  * Uses piecewise linear approximation via [UnivariateLinearPiecewiseFunction]
  * with breakpoints at the sign transition boundaries.
  *
- * @param x the input linear polynomial
- * @param epsilon zero threshold (default 1e-6)
- * @param extract reserved parameter; currently unused (piecewise is always used)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param x 输入线性多项式 / the input linear polynomial
+ * @param epsilon 零阈值（默认 1e-6）/ zero threshold (default 1e-6)
+ * @param extract 保留参数，当前未使用（始终使用分段线性）/ reserved parameter; currently unused (piecewise is always used)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class BalanceTernaryzationFunction<V>(
     val x: LinearPolynomial<V>,

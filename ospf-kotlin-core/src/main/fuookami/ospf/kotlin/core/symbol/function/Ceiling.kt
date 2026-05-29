@@ -1,3 +1,4 @@
+/** 向上取整函数符号 / Ceiling function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,8 +23,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 向上取整函数：y = ceil(x)。
  * Ceiling function: y = ceil(x).
  *
+ * 使用整数变量 k = ceil(x) 和小数二值变量 b。
  * Uses integer variable k = ceil(x) with fractional binary variable b.
  * k - 1 < x <= k, b = x - floor(x), k = floor(x) + b.
  */

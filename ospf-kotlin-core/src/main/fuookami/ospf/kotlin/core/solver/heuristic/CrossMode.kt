@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  * @param V 值类型 / Value type
  */
 interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    /** 交叉选择方法枚举，支持加权/随机、环形/双向策略。 / Crossover selection method enum, supporting weighted/random and ring/bidirectional strategies. */
     enum class Method {
         WeightedRing,
         WeightedBidirectional,

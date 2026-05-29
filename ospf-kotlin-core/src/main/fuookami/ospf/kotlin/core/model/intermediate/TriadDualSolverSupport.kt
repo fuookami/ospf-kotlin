@@ -29,8 +29,8 @@ suspend fun solveDual(
 }
 
 /**
+ * 三元 Farkas 对偶求解辅助函数。
  * Triad Farkas dual solver helpers.
- * Triad FarkasDual 求解辅助函数。
  */
 suspend fun solveFarkasDual(
     model: LinearTriadModelView,
@@ -46,8 +46,8 @@ suspend fun solveFarkasDual(
 }
 
 /**
+ * 四元二次对偶求解辅助函数。
  * Quadratic dual solver helpers.
- * Quadratic dual 求解辅助函数。
  */
 suspend fun solveDual(
     model: QuadraticTetradModel,
@@ -63,8 +63,8 @@ suspend fun solveDual(
 }
 
 /**
+ * 四元二次 Farkas 对偶求解辅助函数。
  * Quadratic Farkas dual solver helpers.
- * Quadratic FarkasDual 求解辅助函数。
  */
 suspend fun solveFarkasDual(
     model: QuadraticTetradModelView,

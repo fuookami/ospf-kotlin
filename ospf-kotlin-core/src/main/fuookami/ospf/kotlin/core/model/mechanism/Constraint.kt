@@ -27,8 +27,21 @@ class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequali
 // ========== Constraint<V, P> ==========
 
 /**
- * Generic constraint with V-typed values.
- * Flt64 evaluation is handled by the solver adapter, not the core chain.
+ * 泛型约束接口
+ * Generic constraint interface
+ *
+ * 包含 V 类型值的约束。Flt64 求值由求解器适配器处理。
+ * Constraint with V-typed values. Flt64 evaluation is handled by the solver adapter.
+ *
+ * @param V 数值类型 / The number type
+ * @param P 多项式类别（线性/二次）/ Polynomial category (linear/quadratic)
+ * @property lhs 左侧单元列表 / Left-hand side cell list
+ * @property sign 约束关系符号 / Constraint relation sign
+ * @property rhs 右侧常量 / Right-hand side constant
+ * @property lazy 是否延迟求值 / Whether lazy evaluation
+ * @property name 约束名称 / Constraint name
+ * @property origin 来源约束 / Origin constraint
+ * @property from 来源符号和标志 / Source symbol and flag
  */
 interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Category {
     val lhs: List<Cell<V>>
@@ -84,8 +97,20 @@ fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDu
 }
 
 /**
- * 约束实现密封基类，提供 LHS 求值和约束判断能力。
- * Sealed constraint implementation base class providing LHS evaluation and constraint checking.
+ * 约束实现密封基类
+ * Sealed constraint implementation base class
+ *
+ * 提供 LHS 求值和约束判断能力。
+ * Provides LHS evaluation and constraint checking.
+ *
+ * @param V 数值类型 / The number type
+ * @param P 多项式类别 / Polynomial category
+ * @property lhs 左侧单元列表 / Left-hand side cell list
+ * @property sign 约束关系符号 / Constraint relation sign
+ * @property lazy 是否延迟求值 / Whether lazy evaluation
+ * @property name 约束名称 / Constraint name
+ * @property origin 来源约束 / Origin constraint
+ * @property from 来源符号和标志 / Source symbol and flag
  */
 sealed class ConstraintImpl<V, P : Category>(
     override val lhs: List<Cell<V>>,
@@ -116,8 +141,11 @@ sealed class ConstraintImpl<V, P : Category>(
 }
 
 /**
- * 线性约束实现。
- * Linear constraint implementation.
+ * 线性约束实现
+ * Linear constraint implementation
+ *
+ * @param V 数值类型 / The number type
+ * @property lhs 线性单元列表 / Linear cell list
  */
 class LinearConstraintImpl<V>(
     override val lhs: List<LinearCell<V>>,
@@ -164,8 +192,11 @@ class LinearConstraintImpl<V>(
 }
 
 /**
- * 二次约束实现。
- * Quadratic constraint implementation.
+ * 二次约束实现
+ * Quadratic constraint implementation
+ *
+ * @param V 数值类型 / The number type
+ * @property lhs 二次单元列表 / Quadratic cell list
  */
 class QuadraticConstraintImpl<V>(
     override val lhs: List<QuadraticCell<V>>,
@@ -213,6 +244,16 @@ class QuadraticConstraintImpl<V>(
 
 // Type aliases for Constraint<V, P> with specific polynomial kinds
 
+/**
+ * 从线性单项式和符号表创建线性单元列表
+ * Create linear cells from linear monomials and token table
+ *
+ * @param V 数值类型 / The number type
+ * @param monomials Flt64 线性单项式列表 / Flt64 linear monomial list
+ * @param tokens 符号表 / Token table
+ * @param converter 值转换器 / Value converter
+ * @return 线性单元列表 / Linear cell list
+ */
 internal fun <V> createLinearCells(
     monomials: List<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     tokens: AbstractTokenTable<V>,
@@ -229,6 +270,16 @@ internal fun <V> createLinearCells(
     return cells
 }
 
+/**
+ * 从二次单项式和符号表创建二次单元列表
+ * Create quadratic cells from quadratic monomials and token table
+ *
+ * @param V 数值类型 / The number type
+ * @param monomials Flt64 二次单项式列表 / Flt64 quadratic monomial list
+ * @param tokens 符号表 / Token table
+ * @param converter 值转换器 / Value converter
+ * @return 二次单元列表 / Quadratic cell list
+ */
 internal fun <V> createQuadraticCells(
     monomials: List<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     tokens: AbstractTokenTable<V>,

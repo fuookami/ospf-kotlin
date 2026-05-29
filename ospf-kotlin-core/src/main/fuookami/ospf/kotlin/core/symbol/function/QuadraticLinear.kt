@@ -1,3 +1,4 @@
+/** 二次线性函数符号 / Quadratic linear function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -24,8 +25,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 二次线性函数：将 QuadraticPolynomial 包装为二次中间符号。
  * Quadratic linear function: wraps a QuadraticPolynomial as a quadratic intermediate symbol.
+ * 若多项式为纯线性，则不需要辅助变量或约束。
  * If the polynomial is purely linear, no helper variable or constraint is needed.
+ * 若包含二次项，则创建辅助变量 y 并约束 y = polynomial。
  * If it contains quadratic terms, creates a helper variable y with constraint y = polynomial.
  */
 class QuadraticLinearFunction<V>(
@@ -177,6 +181,7 @@ class QuadraticLinearFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
+     * 将辅助变量 y 注册到 token 集合中（仅当为二次时）。
      * Register helper variable y with the token collection (only if quadratic).
      */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
@@ -191,6 +196,7 @@ class QuadraticLinearFunction<V>(
     }
 
     /**
+     * 注册二次等式约束 y = polynomial（仅当为二次时）。
      * Register the quadratic equality constraint y = polynomial (only if quadratic).
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {

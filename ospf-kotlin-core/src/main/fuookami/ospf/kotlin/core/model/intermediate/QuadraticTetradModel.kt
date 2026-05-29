@@ -34,6 +34,19 @@ private fun QuadraticConstraintImpl<Flt64>.isBound(): Boolean {
     // && from?.second != true
 }
 
+/**
+ * 二次约束单元
+ * Quadratic constraint cell
+ *
+ * 表示二次约束矩阵中的一个非零元素，包含行索引、列索引和系数。
+ * Represents a non-zero element in the quadratic constraint matrix,
+ * containing row index, column indices, and coefficient.
+ *
+ * @property rowIndex 行索引 / Row index
+ * @property colIndex1 第一列索引 / First column index
+ * @property colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
+ * @property coefficient 系数 / Coefficient
+ */
 class QuadraticConstraintCell(
     override val rowIndex: Int,
     val colIndex1: Int,
@@ -62,6 +75,16 @@ class QuadraticConstraintCell(
     override fun clone() = copy()
 }
 
+/**
+ * 二次约束批次
+ * Quadratic constraint batch
+ *
+ * 存储一组二次约束的稀疏矩阵表示，包括约束符号、右侧常量和约束来源。
+ * Stores a batch of quadratic constraints in sparse matrix representation,
+ * including constraint signs, right-hand side constants, and constraint sources.
+ *
+ * @property sparseLhs 稀疏二次矩阵（左侧）/ Sparse quadratic matrix (left-hand side)
+ */
 class QuadraticConstraintBatch(
     val sparseLhs: SparseQuadraticMatrix,
     signs: List<ConstraintRelation>,
@@ -73,6 +96,10 @@ class QuadraticConstraintBatch(
     priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
 ) : ModelConstraint<QuadraticConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
     /**
+     * 二次左侧矩阵的稀疏表示。
+     * 每一行是一个 SparseQuadraticVector，其中条目携带 (colIndex1, colIndex2?, coefficient)。
+     * 这是主要的约束表示形式。
+     *
      * Sparse representation of the quadratic LHS matrix.
      * Each row is a SparseQuadraticVector where entries carry (colIndex1, colIndex2?, coefficient).
      * This is the primary constraint representation.
@@ -127,6 +154,18 @@ class QuadraticConstraintBatch(
     }
 }
 
+/**
+ * 二次目标单元
+ * Quadratic objective cell
+ *
+ * 表示二次目标函数中的一个非零元素，包含列索引和系数。
+ * Represents a non-zero element in the quadratic objective function,
+ * containing column indices and coefficient.
+ *
+ * @property colIndex1 第一列索引 / First column index
+ * @property colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
+ * @property coefficient 系数 / Coefficient
+ */
 class QuadraticObjectiveCell(
     val colIndex1: Int,
     val colIndex2: Int?,
@@ -152,36 +191,43 @@ class QuadraticObjectiveCell(
     override fun clone() = copy()
 }
 
+/**
+ * 二次目标函数类型别名
+ * Type alias for quadratic objective function
+ */
 typealias QuadraticObjective = Objective<QuadraticObjectiveCell>
 
 /**
- * A basic quadratic intermediate model (tetrad: variables + constraints, no objective).
+ * 基础二次四元模型
+ * Basic quadratic tetrad model
  *
- * This is the solver-standard form for quadratic problems without an objective function.
- * It is used directly by IIS (Irreducible Infeasible Subsystem) computation and
+ * 二次问题的求解器标准形式（四元：变量 + 约束，无目标函数）。
+ * 直接用于 IIS（不可约不可行子系统）计算，以及作为 [QuadraticTetradModel] 的 [impl] 委托。
+ * Solver-standard form for quadratic problems (tetrad: variables + constraints, no objective).
+ * Used directly by IIS (Irreducible Infeasible Subsystem) computation and
  * as the [impl] delegate inside [QuadraticTetradModel].
  *
- * ### Construction
+ * ### 构造方式 / Construction
  *
- * Direct constructor:
+ * 直接构造 / Direct constructor:
  * ```kotlin
  * BasicQuadraticTetradModel(variables, constraints, name)
  * ```
  *
- * Factory from a [QuadraticMechanismModel]:
+ * 从 QuadraticMechanismModel 工厂方法 / Factory from QuadraticMechanismModel:
  * ```kotlin
  * BasicQuadraticTetradModel.from(mechanismModel, tokenIndexMap, bounds, fixedVariables)
  * ```
  *
- * ### Relationship to [QuadraticTetradModel]
+ * ### 与 QuadraticTetradModel 的关系 / Relationship to [QuadraticTetradModel]
  *
+ * [QuadraticTetradModel] 包装 [BasicQuadraticTetradModel] 作为其 `impl`，添加目标函数和符号到求解器的映射。
  * [QuadraticTetradModel] wraps a [BasicQuadraticTetradModel] as its `impl`, adding
- * objective function and token-to-solver mapping. [BasicQuadraticTetradModel] is
- * the subset that only contains variables and constraints.
+ * objective function and token-to-solver mapping.
  *
- * @param variables   solver-indexed variable list
- * @param constraints quadratic constraint batch (sparse lhs, signs, rhs, origins)
- * @param name        model name for logging and debugging
+ * @property variables 求解器索引的变量列表 / Solver-indexed variable list
+ * @property constraints 二次约束批次 / Quadratic constraint batch
+ * @property name 模型名称（用于日志和调试）/ Model name (for logging and debugging)
  */
 class BasicQuadraticTetradModel(
     override val variables: List<Variable>,
@@ -190,17 +236,23 @@ class BasicQuadraticTetradModel(
 ) : BasicModelView<QuadraticConstraintCell>, Cloneable, Copyable<BasicQuadraticTetradModel> {
     companion object {
         /**
+         * 从 [QuadraticMechanismModel<Flt64>] 创建 [BasicQuadraticTetradModel]，
+         * 将变量和约束提取到求解器标准形式。
+         *
+         * 这是一个便捷工厂方法，镜像了 [QuadraticTetradModel.invoke] 中的变量/约束提取逻辑，
+         * 但不包含目标函数步骤。
+         *
          * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
          * logic in [QuadraticTetradModel.invoke] without the objective function step.
          *
-         * @param model           the source mechanism model
-         * @param tokenIndexMap   mapping from tokens to solver column indices
-         * @param bounds          pre-computed bound constraints per token
-         * @param fixedVariables  variables fixed to constant values (substituted out)
-         * @return a [BasicQuadraticTetradModel] containing the extracted variables and constraints
+         * @param model           源机制模型 / the source mechanism model
+         * @param tokenIndexMap   符号到求解器列索引的映射 / mapping from tokens to solver column indices
+         * @param bounds          每个符号的预计算边界约束 / pre-computed bound constraints per token
+         * @param fixedVariables  固定为常量值的变量（被替换掉）/ variables fixed to constant values (substituted out)
+         * @return 包含提取的变量和约束的 [BasicQuadraticTetradModel] / a [BasicQuadraticTetradModel] containing the extracted variables and constraints
          */
         fun from(
             model: QuadraticMechanismModel<Flt64>,
@@ -229,6 +281,13 @@ class BasicQuadraticTetradModel(
 
     override fun clone() = copy()
 
+    /**
+     * 就地线性松弛
+     * In-place linear relaxation
+     *
+     * 将整数变量类型松弛为连续类型（Binary->Percentage, Integer->Continuous 等）。
+     * Relaxes integer variable types to continuous types (Binary->Percentage, Integer->Continuous, etc.).
+     */
     fun linearRelax() {
         variables.forEach {
             when (it.type) {
@@ -249,6 +308,12 @@ class BasicQuadraticTetradModel(
         }
     }
 
+    /**
+     * 返回线性松弛后的副本
+     * Return a linearly relaxed copy
+     *
+     * @return 线性松弛后的模型副本 / Linearly relaxed model copy
+     */
     fun linearRelaxed(): BasicQuadraticTetradModel {
         return BasicQuadraticTetradModel(
             variables = variables.map {
@@ -364,15 +429,28 @@ class BasicQuadraticTetradModel(
     }
 }
 
+/**
+ * 二次四元模型视图接口
+ * Quadratic tetrad model view interface
+ *
+ * 提供二次模型的视图操作，包括线性松弛、对偶、可行性和弹性模型。
+ * Provides view operations for quadratic models, including linear relaxation, dual, feasibility, and elastic models.
+ */
 interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, QuadraticObjectiveCell> {
     override val constraints: QuadraticConstraintBatch
     val dual: Boolean
 
+    /** 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model) */
     fun linearRelax(): QuadraticTetradModelView
+    /** 返回线性松弛后的副本 / Return a linearly relaxed copy */
     fun linearRelaxed(): QuadraticTetradModelView
+    /** 构造对偶模型 / Construct the dual model */
     suspend fun dual(): QuadraticTetradModel
+    /** 构造 Farkas 对偶模型 / Construct the Farkas dual model */
     suspend fun farkasDual(): QuadraticTetradModel
+    /** 构造可行性模型 / Construct the feasibility model */
     fun feasibility(): QuadraticTetradModelView
+    /** 构造弹性模型 / Construct the elastic model */
     fun elastic(): QuadraticTetradModelView
 
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> {
@@ -396,6 +474,18 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     }
 }
 
+/**
+ * 二次四元模型
+ * Quadratic tetrad model
+ *
+ * 求解器标准形式的二次优化模型，包含变量、约束和目标函数。
+ * Solver-standard form of quadratic optimization model, containing variables, constraints, and objective function.
+ *
+ * @property impl 基础模型实现 / Basic model implementation
+ * @property tokensInSolver 求解器中的符号列表 / Token list in solver
+ * @property objective 目标函数 / Objective function
+ * @property dualOrigin 对偶模型来源 / Dual model origin
+ */
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
     val tokensInSolver: List<Token<Flt64>>,
@@ -410,7 +500,7 @@ data class QuadraticTetradModel(
     companion object {
         private val logger = logger()
 
-        /** V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
+        /** V->Flt64 转换边界：泛型 V 在二次中间模型构造时解析为具体类型 Flt64。 / V->Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
             model: QuadraticMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,

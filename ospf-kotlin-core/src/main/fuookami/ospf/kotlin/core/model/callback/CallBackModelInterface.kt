@@ -30,15 +30,39 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
 
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<SolutionValue>>, String>>
 
+    /** 生成初始解列表，默认为空。 / Generate a list of initial solutions, empty by default. */
     fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution<SolutionValue>> {
         return emptyList()
     }
 
+    /**
+     * 合并两个目标值。
+     * Combine two objective values.
+     *
+     * @param lhs 左侧目标值 / The left-hand side objective value
+     * @param rhs 右侧目标值 / The right-hand side objective value
+     * @return 合并后的目标值 / The combined objective value
+     */
     fun operation(lhs: ObjValue, rhs: ObjValue): ObjValue
 
+    /**
+     * 获取零目标值（单位元）。
+     * Get the zero objective value (identity element).
+     *
+     * @return 零目标值 / The zero objective value
+     */
     fun objectiveValue(): ObjValue
+
+    /**
+     * 将原始目标对象转换为目标聚合值。
+     * Convert a raw objective object into an aggregated objective value.
+     *
+     * @param obj 原始目标对象 / The raw objective object
+     * @return 聚合后的目标值 / The aggregated objective value
+     */
     fun objectiveValue(obj: Obj): ObjValue
 
+    /** 计算解的目标值，遍历所有目标函数并聚合。 / Compute the objective value of a solution by aggregating all objective functions. */
     fun objective(solution: Solution<SolutionValue>): ObjValue? {
         var obj = objectiveValue()
         for ((objectiveFunction, _) in objectiveFunctions) {
@@ -48,8 +72,10 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
         return obj
     }
 
+    /** 比较两个非空目标值的优先级顺序。 / Compare the ordering of two non-null objective values. */
     fun compareObjective(lhs: ObjValue, rhs: ObjValue): Order?
 
+    /** 比较两个可空目标值的优先级顺序，null 视为最差。 / Compare the ordering of two nullable objective values, treating null as worst. */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("comparePartialObjective")
     fun compareObjective(lhs: ObjValue?, rhs: ObjValue?): Order? {
@@ -64,8 +90,19 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
         }
     }
 
+    /**
+     * 检查解是否满足所有约束。
+     * Check whether a solution satisfies all constraints.
+     *
+     * @param solution 待检查的解 / The solution to check
+     * @return `true` 表示满足，`false` 表示违反，`null` 表示无法确定 / `true` if satisfied, `false` if violated, `null` if undetermined
+     */
     fun constraintSatisfied(solution: Solution<SolutionValue>): Boolean?
 
+    /**
+     * 刷新模型内部状态。
+     * Flush the internal state of the model.
+     */
     fun flush()
 
     override fun close() {
@@ -117,13 +154,22 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
         return true
     }
 
-    /** Provide the IntoValue<V> converter for this V type. */
+    /**
+     * 提供当前 V 类型的 IntoValue<V> 转换器。
+     * Provide the IntoValue<V> converter for this V type.
+     */
     fun converter(): IntoValue<V>
 
-    /** Provide negative infinity for this V type. */
+    /**
+     * 提供当前 V 类型的负无穷值。
+     * Provide negative infinity for this V type.
+     */
     fun negativeInfinity(): V
 
-    /** Provide positive infinity for this V type. */
+    /**
+     * 提供当前 V 类型的正无穷值。
+     * Provide positive infinity for this V type.
+     */
     fun infinity(): V
 }
 
@@ -182,12 +228,21 @@ interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<
         return true
     }
 
-    /** Provide the IntoValue<V> converter for this V type. */
+    /**
+     * 提供当前 V 类型的 IntoValue<V> 转换器。
+     * Provide the IntoValue<V> converter for this V type.
+     */
     fun converter(): IntoValue<V>
 
-    /** Provide negative infinity for this V type. */
+    /**
+     * 提供当前 V 类型的负无穷值。
+     * Provide negative infinity for this V type.
+     */
     fun negativeInfinity(): V
 
-    /** Provide positive infinity for this V type. */
+    /**
+     * 提供当前 V 类型的正无穷值。
+     * Provide positive infinity for this V type.
+     */
     fun infinity(): V
 }

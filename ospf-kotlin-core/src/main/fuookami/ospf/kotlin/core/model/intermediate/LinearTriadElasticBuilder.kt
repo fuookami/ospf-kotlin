@@ -12,6 +12,17 @@ import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.abs
 
+/**
+ * 构建弹性模型
+ * Build elastic model
+ *
+ * 为线性三元模型添加松弛变量，使其成为弹性模型。
+ * Adds slack variables to the linear triad model to make it an elastic model.
+ *
+ * @param minmaxSlack 是否添加最小最大松弛变量 / Whether to add minmax slack variable
+ * @param minSlackAmount 最小松弛量约束（二元变量阈值，松弛量阈值）/ Minimum slack amount constraint (binary threshold, slack threshold)
+ * @return 弹性模型 / Elastic model
+ */
 internal fun LinearTriadModel.buildElasticModel(
     minmaxSlack: Boolean,
     minSlackAmount: Pair<UInt64, Flt64>?

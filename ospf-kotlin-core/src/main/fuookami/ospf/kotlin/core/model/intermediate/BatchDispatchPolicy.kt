@@ -19,6 +19,17 @@ internal data class BatchDispatchPlan(
     val shouldSplitIntoSegments: Boolean
 )
 
+/**
+ * 计算批处理调度计划
+ * Compute batch dispatch plan
+ *
+ * 根据项目数量和可用处理器数，计算最优的批处理调度策略。
+ * Computes the optimal batch dispatch strategy based on item count and available processors.
+ *
+ * @param itemCount 项目数量 / Item count
+ * @param availableProcessors 可用处理器数 / Available processors
+ * @return 批处理调度计划 / Batch dispatch plan
+ */
 internal fun computeBatchDispatchPlan(
     itemCount: Int,
     availableProcessors: Int = Runtime.getRuntime().availableProcessors()
@@ -52,6 +63,17 @@ internal fun computeBatchDispatchPlan(
     )
 }
 
+/**
+ * 构建批处理切片列表
+ * Build batch slice list
+ *
+ * 将项目按指定段大小分割为多个切片。
+ * Splits items into multiple slices by specified segment size.
+ *
+ * @param itemCount 项目数量 / Item count
+ * @param segmentSize 段大小 / Segment size
+ * @return 批处理切片列表 / Batch slice list
+ */
 internal fun buildBatchSlices(
     itemCount: Int,
     segmentSize: Int

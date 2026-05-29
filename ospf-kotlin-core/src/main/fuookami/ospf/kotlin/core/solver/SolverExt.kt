@@ -447,6 +447,13 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+/**
+ * 从包含解列表的求解结果中提取求解器输出。
+ * Extract the solver output from a solve result that includes a solution list.
+ *
+ * @param result 包含求解器输出与解列表的配对结果 / A paired result containing solver output and solution list
+ * @return 仅包含求解器输出的求解结果 / Solve result containing only the solver output
+ */
 private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return when (result) {
         is Ok -> {

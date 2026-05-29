@@ -41,8 +41,14 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
 }
 
 /**
- * 线性约束关系实现。
- * Linear constraint relation implementation.
+ * 线性约束关系实现
+ * Linear constraint relation implementation
+ *
+ * @param V 数值类型 / The number type
+ * @property flattenData 扁平化的线性数据 / Flattened linear data
+ * @property sign 比较符号 / Comparison sign
+ * @property name 约束名称 / Constraint name
+ * @property displayName 显示名称 / Display name
  */
 data class LinearRelationImpl<V>(
     override val flattenData: LinearFlattenData<V>,
@@ -77,8 +83,14 @@ data class LinearRelationImpl<V>(
 }
 
 /**
- * 二次约束关系实现。
- * Quadratic constraint relation implementation.
+ * 二次约束关系实现
+ * Quadratic constraint relation implementation
+ *
+ * @param V 数值类型 / The number type
+ * @property flattenData 扁平化的二次数据 / Flattened quadratic data
+ * @property sign 比较符号 / Comparison sign
+ * @property name 约束名称 / Constraint name
+ * @property displayName 显示名称 / Display name
  */
 data class QuadraticRelationImpl<V>(
     override val flattenData: QuadraticFlattenData<V>,

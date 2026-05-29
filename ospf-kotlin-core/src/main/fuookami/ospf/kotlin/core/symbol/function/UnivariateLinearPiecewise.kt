@@ -1,3 +1,4 @@
+/** 单变量线性分段函数符号 / Univariate linear piecewise function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -23,8 +24,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 单变量线性分段函数：由断点和斜率定义的 y = f(x)。
  * Univariate linear piecewise function: y = f(x) defined by breakpoints and slopes.
  *
+ * 使用二值选择变量选择激活的线段。
  * Uses binary selector variables to choose the active segment.
  */
 class UnivariateLinearPiecewiseFunction<V>(

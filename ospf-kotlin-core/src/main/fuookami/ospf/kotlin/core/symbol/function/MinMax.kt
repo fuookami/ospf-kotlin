@@ -1,3 +1,4 @@
+/** 最小最大值函数符号 / Min-max function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -23,10 +24,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 最小-最大值函数：result = max(polynomials[0], polynomials[1], ...)。
  * MinMax function: result = max(polynomials[0], polynomials[1], ...).
  *
+ * 命名为"MinMax"是因为在优化上下文中它计算最大值的最小值。
  * Named "MinMax" because it computes the minimum of the maximum values
  * in optimization contexts. Delegates to MaxFunction internally.
+ * 内部委托给 MaxFunction。
  */
 class MinMaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -96,10 +100,13 @@ class MinMaxFunction<V>(
 }
 
 /**
+ * 最大-最小值函数：result = min(polynomials[0], polynomials[1], ...)。
  * MaxMin function: result = min(polynomials[0], polynomials[1], ...).
  *
+ * 命名为"MaxMin"是因为在优化上下文中它计算最小值的最大值。
  * Named "MaxMin" because it computes the maximum of the minimum values
  * in optimization contexts. Delegates to MinFunction internally.
+ * 内部委托给 MinFunction。
  */
 class MaxMinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,

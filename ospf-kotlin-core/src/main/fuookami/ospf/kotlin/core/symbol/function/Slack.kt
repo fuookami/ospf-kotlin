@@ -1,3 +1,4 @@
+/** 松弛变量函数符号 / Slack variable function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -147,7 +148,7 @@ class SlackFunction<V>(
     }
 
     companion object {
-        /** Generic V-typed invoke: primary entry point with x and y polynomials. */
+        /** 通用 V 类型调用：使用 x 和 y 多项式的主入口点。 / Generic V-typed invoke: primary entry point with x and y polynomials. */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
@@ -174,7 +175,7 @@ class SlackFunction<V>(
             )
         }
 
-        /** Generic V-typed invoke with LinearIntermediateSymbol<V>. */
+        /** 使用 LinearIntermediateSymbol<V> 的通用 V 类型调用。 / Generic V-typed invoke with LinearIntermediateSymbol<V>. */
         operator fun <V> invoke(
             x: LinearIntermediateSymbol<V>,
             y: LinearPolynomial<V>,
@@ -201,7 +202,7 @@ class SlackFunction<V>(
             )
         }
 
-        /** Generic V-typed invoke with ToLinearPolynomial<V>. */
+        /** 使用 ToLinearPolynomial<V> 的通用 V 类型调用。 / Generic V-typed invoke with ToLinearPolynomial<V>. */
         operator fun <V> invoke(
             x: ToLinearPolynomial<V>,
             y: ToLinearPolynomial<V>,

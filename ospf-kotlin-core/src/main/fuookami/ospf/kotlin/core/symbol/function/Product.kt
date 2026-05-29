@@ -25,9 +25,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
 
 /**
+ * 两个线性多项式的乘积：y = left * right。
  * Product of two linear polynomials: y = left * right.
  *
- * @param V value type for the polynomial coefficients.
+ * @param V 多项式系数的值类型 / value type for the polynomial coefficients.
  */
 class ProductFunction<V>(
     val left: LinearPolynomial<V>,
@@ -173,6 +174,7 @@ class ProductFunction<V>(
     }
 
     /**
+     * 将 left * right 展开为 V 类型二次多项式。
      * Expand left * right into a V-typed quadratic polynomial.
      */
     private fun expandedQuadraticPoly(): QuadraticPolynomial<V> {

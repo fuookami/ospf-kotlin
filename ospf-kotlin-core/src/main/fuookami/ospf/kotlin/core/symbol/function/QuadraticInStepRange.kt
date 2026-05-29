@@ -1,3 +1,4 @@
+/** 二次阶梯范围函数符号 / Quadratic step range function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -24,9 +25,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 二次步进区间函数：若 x 在 [lower, upper] 范围内则 y = x，否则 y = 0。
  * Quadratic in-step-range function: y = x if x in [lower, upper], else y = 0.
+ * 使用二值变量 z，其中 z=1 表示 x 在范围内。
  * Uses binary variable z where z=1 means x is in range.
  *
+ * 约束：
  * Constraints:
  * - x - lower >= -M*(1-z)   =>   x - lower + M - M*z >= 0
  * - x - upper <= M*(1-z)    =>   x - upper - M + M*z <= 0
@@ -35,10 +39,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - y <= M*z
  * - y >= -M*z
  *
- * @param x quadratic polynomial input
- * @param lower lower bound of the range
- * @param upper upper bound of the range
- * @param bigM Big-M constant (default 1e6)
+ * @param x 二次多项式输入 / quadratic polynomial input
+ * @param lower 范围的下界 / lower bound of the range
+ * @param upper 范围的上界 / upper bound of the range
+ * @param bigM Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
  */
 class QuadraticInStepRangeFunction<V>(
     val x: QuadraticPolynomial<V>,
@@ -207,6 +211,7 @@ class QuadraticInStepRangeFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
+     * 将辅助变量 (z, y) 注册到 token 集合中。
      * Register helper variables (z, y) with the token collection.
      */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
@@ -218,6 +223,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     /**
+     * 为步进区间函数注册 Big-M 约束。
      * Register Big-M constraints for the in-step-range function.
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {

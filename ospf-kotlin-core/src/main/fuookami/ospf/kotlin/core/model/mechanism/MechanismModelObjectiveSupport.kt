@@ -10,6 +10,15 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 
+/**
+ * 构建线性目标子对象列表
+ * Build linear objective sub-object list
+ *
+ * @param V 数值类型 / The number type
+ * @param metaModel 线性元模型 / Linear meta model
+ * @param tokens 符号表 / Token table
+ * @return 线性子目标列表 / List of linear sub-objectives
+ */
 internal fun <V> buildLinearObjectiveSubObjects(
     metaModel: LinearMetaModel<V>,
     tokens: AbstractTokenTable<V>
@@ -46,6 +55,15 @@ internal fun <V> buildLinearObjectiveSubObjects(
     }
 }
 
+/**
+ * 构建二次目标子对象列表
+ * Build quadratic objective sub-object list
+ *
+ * @param V 数值类型 / The number type
+ * @param metaModel 二次元模型 / Quadratic meta model
+ * @param tokens 符号表 / Token table
+ * @return 二次子目标列表 / List of quadratic sub-objectives
+ */
 internal fun <V> buildQuadraticObjectiveSubObjects(
     metaModel: QuadraticMetaModel<V>,
     tokens: AbstractTokenTable<V>

@@ -1,3 +1,4 @@
+/** 大M法函数符号 / Big-M method function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -20,20 +21,22 @@ import fuookami.ospf.kotlin.utils.functional.*
  * for nonzero indicator constraints and simple indicator constraints.
  */
 
-/** Default Big-M constant for linearization. */
+/** 默认 Big-M 线性化常量。 / Default Big-M constant for linearization. */
 const val BIG_M_DEFAULT: Double = 1_000_000.0
 
-/** Minimum viable Big-M value. */
+/** 最小可用 Big-M 值。 / Minimum viable Big-M value. */
 const val BIG_M_MIN: Double = 1.0
 
-/** Tolerance for treating a value as zero. */
+/** 将值视为零的容差。 / Tolerance for treating a value as zero. */
 const val NONZERO_TOLERANCE: Double = 1e-10
 
-/** Strict boundary for nonzero detection (tolerance + epsilon margin). */
+/** 非零检测的严格边界（容差 + epsilon 边距）。 / Strict boundary for nonzero detection (tolerance + epsilon margin). */
 val STRICT_BOUNDARY: Double = NONZERO_TOLERANCE * 16 + Math.pow(2.0, -52.0) * 16
 
 /**
+ * 在给定 Symbol -> V 值映射下计算线性多项式的值。
  * Evaluate a linear polynomial given a map of Symbol -> V values.
+ * 如果多项式中的任何符号不在映射中，则返回 null。
  * Returns null if any symbol in the polynomial is missing from the map.
  */
 fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : RealNumber<V>, V : NumberField<V> {
@@ -46,7 +49,9 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
 }
 
 /**
+ * 将约束列表添加到模型中，失败时提前返回。
  * Add a list of constraints to the model, returning early on failure.
+ * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
  */
 internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
@@ -61,7 +66,9 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
 }
 
 /**
+ * 将 V 类型约束列表直接添加到 V 类型机制模型中。
  * Add a list of V-typed constraints directly to a V-typed MechanismModel.
+ * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
  */
 internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
@@ -76,7 +83,9 @@ internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constrai
 }
 
 /**
+ * 将 V 类型二次约束列表直接添加到 V 类型二次机制模型中。
  * Add a list of V-typed quadratic constraints directly to a V-typed QuadraticMechanismModel.
+ * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
  */
 internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
@@ -91,12 +100,17 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
 }
 
 /**
+ * 为多项式构建 4 个非零指示约束。
  * Build the 4 nonzero-indicator constraints for a polynomial.
  *
+ * 当 `indicator = 1` 时：多项式被约束为接近零（在容差范围内）。
  * When `indicator = 1`: polynomial is constrained to be near zero (within tolerance).
+ * 当 `indicator = 0` 时：多项式可以非零（通过 Big-M 放松）。
  * When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
+ * `sideVar` 用于区分正负偏差以进行等式检查。
  * The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
+ * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。
  * This avoids the V -> Flt64 -> V conversion round-trip and keeps
  * intermediate-symbol constraints typed as V inside generic paths.
  */
@@ -142,9 +156,12 @@ fun <V> nonzeroIndicatorConstraints(
 }
 
 /**
+ * 为简单不等式（LE 或 GE）构建指示约束。
  * Build indicator constraints for a simple inequality (LE or GE).
  *
+ * 对于 LE：当 indicator=1 时，强制 poly <= rhs。
  * For LE: when indicator=1, poly <= rhs is enforced.
+ * 对于 GE：当 indicator=1 时，强制 poly >= rhs。
  * For GE: when indicator=1, poly >= rhs is enforced.
  */
 fun <V> simpleIndicatorConstraints(

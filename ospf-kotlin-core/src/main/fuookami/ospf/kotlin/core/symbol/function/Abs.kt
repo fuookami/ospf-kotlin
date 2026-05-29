@@ -1,3 +1,4 @@
+/** 绝对值函数符号 / Absolute value function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 

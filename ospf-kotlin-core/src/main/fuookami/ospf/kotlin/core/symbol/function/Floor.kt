@@ -1,3 +1,4 @@
+/** 向下取整函数符号 / Floor function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,9 +23,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 向下取整函数：y = floor(x)。
  * Floor function: y = floor(x).
  *
+ * 使用整数变量 k = floor(x) 和小数二值变量 b。
  * Uses integer variable k = floor(x) with fractional binary variable b.
+ * k <= x < k+1, b = x - k（0 或小数）, result = k。
  * k <= x < k+1, b = x - k (0 or fractional), result = k.
  */
 class FloorFunction<V>(

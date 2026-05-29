@@ -27,6 +27,7 @@ data class SolveOptions(
     val effectiveValueConversionPolicy: SolveValueConversionPolicy
         get() = valueConversionPolicy ?: SolveValueConversionPolicy.AllowRounding
 
+    /** 求解选项构建器，通过链式调用逐步配置各项参数。 / Solve options builder that configures parameters step by step via chaining. */
     class Builder {
         var solutionAmount: UInt64? = null
         var modelBuildingStatusCallBack: ModelBuildingStatusCallBack? = null

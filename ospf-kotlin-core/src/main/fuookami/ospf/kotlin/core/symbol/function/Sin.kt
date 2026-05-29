@@ -1,3 +1,4 @@
+/** 正弦函数符号 / Sine function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -21,16 +22,19 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 通过分段线性插值近似的正弦函数。
  * Sine function approximated by piecewise linear interpolation.
  *
+ * 这是 [UnivariateLinearPiecewiseFunction] 的薄包装。
  * This is a thin wrapper around [UnivariateLinearPiecewiseFunction].
+ * 正弦函数 sin(v) 在关键点处采样用于 MIP 编码。
  * The sine function sin(v) is sampled at strategic points for MIP encoding.
  *
- * @param x the input linear polynomial
- * @param samplingPoints pre-computed (x, sin(x)) break points
- * @param converter value type converter
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param x 输入线性多项式 / the input linear polynomial
+ * @param samplingPoints 预计算的 (x, sin(x)) 断点 / pre-computed (x, sin(x)) break points
+ * @param converter 值类型转换器 / value type converter
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SinFunction<V>(
     val x: LinearPolynomial<V>,

@@ -1,3 +1,4 @@
+/** 相等函数符号 / Same-as equality function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,21 +23,27 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 相等函数符号：当所有不等式具有相同的满足状态时返回 1（全满足或全不满足），否则返回 0。
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
+ * 约束模式：
  * Constraint pattern:
+ * - 每个输入不等式获得二值标志 `u[i]`（满足时为 1，不满足时为 0）
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
+ * - BigM 约束将每个标志链接到其不等式
  * - BigM constraints link each flag to its inequality
+ * - 约束模式下：所有标志被强制相等（全满足或全不满足）
  * - In constraint mode: all flags are forced equal (all satisfied or all unsatisfied)
+ * - 度量模式下：y 度量是否全部相同
  * - In measurement mode: y measures whether all are the same
  *
- * @param inequalities list of linear inequalities to compare
- * @param constraint if true, force all inequalities to have same satisfaction; if false, measure only
- * @param epsilon minimum gap for relaxed inequality (default 1e-6)
- * @param m Big-M constant for indicator constraints (default 1e6)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * @param inequalities 要比较的线性不等式列表 / list of linear inequalities to compare
+ * @param constraint 若为 true，强制所有不等式具有相同满足状态；若为 false，仅度量 / if true, force all inequalities to have same satisfaction; if false, measure only
+ * @param epsilon 松弛不等式的最小间隙（默认 1e-6）/ minimum gap for relaxed inequality (default 1e-6)
+ * @param m 指示约束的 Big-M 常量（默认 1e6）/ Big-M constant for indicator constraints (default 1e6)
+ * @param name 此函数的唯一名称 / unique name for this function
+ * @param displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SameAsFunction<V>(
     val inequalities: List<LinearInequality<V>>,

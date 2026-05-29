@@ -1,3 +1,4 @@
+/** 取模函数符号 / Modulo function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -22,8 +23,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 取模函数：y = x mod d。
  * Modulo function: y = x mod d.
  *
+ * y = x - d*q，其中 q = floor(x/d)。
  * y = x - d*q where q = floor(x/d).
  */
 class ModFunction<V>(

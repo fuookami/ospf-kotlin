@@ -27,7 +27,21 @@ sealed class SubObject<V : RealNumber<V>>(
     abstract val cells: List<Cell<V>>
     abstract val constant: V
 
+    /**
+     * 使用标记的已知结果求值。
+     * Evaluate using the tokens' known results.
+     *
+     * @return 求值结果（含常数项），若任一单元格结果未知则返回 null / The evaluation result (including the constant), or null if any cell result is unknown
+     */
     abstract fun evaluate(): V?
+
+    /**
+     * 使用解向量按索引求值。
+     * Evaluate using a solution vector by index lookup.
+     *
+     * @param results 解向量，索引对应标记在标记表中的位置 / The solution vector whose indices correspond to token positions in the token table
+     * @return 求值结果（含常数项），若任一单元格结果未知则返回 null / The evaluation result (including the constant), or null if any cell result is unknown
+     */
     abstract fun evaluate(results: List<V>): V?
 }
 
@@ -43,6 +57,12 @@ class LinearSubObject<V : RealNumber<V>>(
 ) : SubObject<V>(category, name) {
     override val constant: V get() = _constant
 
+    /**
+     * 提取所有线性项为（系数, 变量）对列表。
+     * Extract all linear terms as a list of (coefficient, variable) pairs.
+     *
+     * @return 线性项列表，每项包含系数和对应的变量 / A list of linear terms, each containing a coefficient and its corresponding variable
+     */
     fun linearTerms(): List<Pair<V, AbstractVariableItem<*, *>>> {
         return cells.map { it.coefficient to it.token.variable }
     }
@@ -98,6 +118,12 @@ class QuadraticSubObject<V : RealNumber<V>>(
 ) : SubObject<V>(category, name) {
     override val constant: V get() = _constant
 
+    /**
+     * 提取所有二次项为（系数, 变量1, 变量2）三元组列表。
+     * Extract all quadratic terms as a list of (coefficient, variable1, variable2) triples.
+     *
+     * @return 二次项列表，每项包含系数和两个变量（第二个可能为 null） / A list of quadratic terms, each containing a coefficient and two variables (the second may be null)
+     */
     fun quadraticTerms(): List<Triple<V, AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>> {
         return cells.map { cell ->
             Triple(cell.coefficient, cell.token1.variable, cell.token2?.variable)

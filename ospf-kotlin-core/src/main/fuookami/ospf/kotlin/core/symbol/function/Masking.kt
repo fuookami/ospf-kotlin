@@ -1,3 +1,4 @@
+/** 掩码函数符号 / Masking function symbol */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
@@ -28,7 +29,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
+ * 掩码函数：y = x * mask，其中 mask 为二值变量。
  * Masking function: y = x * mask where mask is binary.
+ * 当 mask=1 时，y=x。当 mask=0 时，y=0。
  * When mask=1, y=x. When mask=0, y=0.
  */
 class MaskingFunction<V>(
@@ -174,8 +177,11 @@ class MaskingFunction<V>(
 }
 
 /**
+ * 掩码函数变体：mask 为多项式而非单个变量。
  * Masking function variant where mask is a polynomial instead of a single variable.
+ * y = x * mask，其中 mask 为多项式表达式。
  * y = x * mask where mask is a polynomial expression.
+ * 创建内部变量 `m` 并约束 m = maskPoly，然后以 m 作为二值掩码应用标准 Big-M 掩码约束。
  * Creates an internal variable `m` with constraint m = maskPoly, then applies
  * standard Big-M masking constraints with m as the binary mask.
  */
@@ -332,7 +338,9 @@ class MaskingWithPolyMaskFunction<V>(
     }}
 
 /**
+ * 掩码范围函数：y 在 [lower*mask, upper*mask] 范围内。
  * Masking range function: y in [lower*mask, upper*mask].
+ * 当 mask=0 时，y=0。当 mask=1 时，y 在 [lower, upper] 范围内。
  * When mask=0, y=0. When mask=1, y in [lower, upper].
  */
 class MaskingRangeFunction<V>(
