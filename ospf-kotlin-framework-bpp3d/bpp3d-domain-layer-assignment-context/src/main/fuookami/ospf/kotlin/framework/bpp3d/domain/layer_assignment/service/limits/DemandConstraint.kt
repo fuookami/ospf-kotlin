@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandDomain
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
@@ -90,8 +90,8 @@ open class DemandConstraint<
         Args : AbstractBPP3DShadowPriceArguments<T>,
         T : Cuboid<T>
         >(
-    private val load: Load,
-    private val demandEntries: List<Bpp3dDemandEntry> = load.demandEntries,
+    private val load: Load<InfraNumber>,
+    private val demandEntries: List<DemandEntry<InfraNumber>> = load.demandEntries,
     private val shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
     override val name: String = "demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
@@ -100,7 +100,7 @@ open class DemandConstraint<
                 Args : AbstractBPP3DShadowPriceArguments<T>,
                 T : Cuboid<T>
                 > fromItems(
-            load: Load,
+            load: Load<InfraNumber>,
             items: List<Pair<Item, UInt64>>,
             shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
             name: String = "demand"
@@ -117,7 +117,7 @@ open class DemandConstraint<
                 Args : AbstractBPP3DShadowPriceArguments<T>,
                 T : Cuboid<T>
                 > fromItemRanges(
-            load: Load,
+            load: Load<InfraNumber>,
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
             shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
             name: String = "demand"
@@ -146,7 +146,7 @@ open class DemandConstraint<
 
     private fun resolveShadowPrice(
         map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, T>>,
-        demand: Bpp3dDemandEntry,
+        demand: DemandEntry<InfraNumber>,
         concreteMode: Bpp3dDemandMode
     ): InfraNumber {
         val keys = LinkedHashSet<DemandShadowPriceKey>()

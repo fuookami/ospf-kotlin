@@ -3,13 +3,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
@@ -152,7 +151,7 @@ interface Item : Cuboid<Item>, Indexed {
     fun enabledStackingOn(
         bottomItem: Item,
         layer: UInt64 = UInt64.zero,
-        height: Quantity<InfraNumber> = width * itemZero(),
+        height: Quantity<InfraNumber> = width * infraZero(),
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return packageAttribute.enabledStackingOn(
@@ -209,7 +208,7 @@ open class ActualItem(
         for ((material, amount) in pack?.materials ?: emptyMap()) {
             val key = material.key
             val weight = material.weight * InfraNumber(amount.toULong().toDouble())
-            counter[key] = (counter[key] ?: (weight * itemZero())) + weight
+            counter[key] = (counter[key] ?: (weight * infraZero())) + weight
         }
         counter
     }
@@ -260,9 +259,9 @@ open class PatternedItem(
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
     override val volume: Quantity<InfraNumber> = run {
-        val totalAmount = actualItems.fold(itemZero()) { acc, (_, amount, _) -> acc + InfraNumber(amount.toULong().toDouble()) }
-        if (totalAmount eq itemZero()) {
-            width * height * depth * itemZero()
+        val totalAmount = actualItems.fold(infraZero()) { acc, (_, amount, _) -> acc + InfraNumber(amount.toULong().toDouble()) }
+        if (totalAmount eq infraZero()) {
+            width * height * depth * infraZero()
         } else {
             actualItems.sumOf { it.first.volume * InfraNumber(it.second.toULong().toDouble()) } / totalAmount
         }
@@ -281,7 +280,7 @@ open class PatternedItem(
         for ((item, amount, _) in actualItems) {
             for ((material, weight) in item.materialWeights) {
                 val thisWeight = weight * InfraNumber(amount.toULong().toDouble())
-                counter[material] = (counter[material] ?: (thisWeight * itemZero())) + thisWeight
+                counter[material] = (counter[material] ?: (thisWeight * infraZero())) + thisWeight
             }
         }
         counter
@@ -451,7 +450,7 @@ open class ItemView(
     fun enabledStackingOn(
         bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
-        height: Quantity<InfraNumber> = this.height * itemZero(),
+        height: Quantity<InfraNumber> = this.height * infraZero(),
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return unit.packageAttribute.enabledStackingOn(
@@ -692,7 +691,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val bottomPlacement = QuantityPlacement2(this, Bottom)
-    return if (absoluteY eq itemZero()) {
+    return if (absoluteY eq infraZero()) {
         unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItems = emptyList(),

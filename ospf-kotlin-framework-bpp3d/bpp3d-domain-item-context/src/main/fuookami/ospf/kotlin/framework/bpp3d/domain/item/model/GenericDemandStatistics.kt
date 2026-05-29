@@ -1,10 +1,8 @@
 @file:Suppress("DEPRECATION")
 
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -14,21 +12,25 @@ import fuookami.ospf.kotlin.math.algebra.number.toFltX
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 
-
-
-
-
+/**
+ * 泛型需求键。
+ * Generic demand key.
+ */
 sealed interface GenericBpp3dDemandKey<V : FloatingNumber<V>> {
-    data class Item<V : FloatingNumber<V>>(val item: fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item<V>) : GenericBpp3dDemandKey<V>
+    data class Item<V : FloatingNumber<V>>(val item: GenericItem<V>) : GenericBpp3dDemandKey<V>
     data class Material<V : FloatingNumber<V>>(val material: MaterialKey) : GenericBpp3dDemandKey<V>
 }
 
+/**
+ * 泛型需求值。
+ * Generic demand value.
+ */
 sealed interface GenericBpp3dDemandValue<V : FloatingNumber<V>> {
     data class Amount<V : FloatingNumber<V>>(val value: UInt64) : GenericBpp3dDemandValue<V>
     data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : GenericBpp3dDemandValue<V>
 }
 
-private fun <V : FloatingNumber<V>> Material<V>.materialKey(): MaterialKey {
+private fun <V : FloatingNumber<V>> GenericMaterial<V>.materialKey(): MaterialKey {
     return MaterialKey(
         no = no,
         type = type,
@@ -107,7 +109,7 @@ private fun <V : FloatingNumber<V>> Map<GenericBpp3dDemandKey<V>, GenericBpp3dDe
     return mapValues { (_, value) -> scaleDemandValue(value, multiplier) }
 }
 
-fun <V : FloatingNumber<V>> Item<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+fun <V : FloatingNumber<V>> GenericItem<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
     return when (mode) {
         is Bpp3dDemandMode.Item -> {
             mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Amount(UInt64.one))
@@ -151,18 +153,18 @@ fun <V : FloatingNumber<V>> Item<V>.statistics(mode: Bpp3dDemandMode): Map<Gener
     }
 }
 
-fun <V : FloatingNumber<V>> Item<V>.statistics(
+fun <V : FloatingNumber<V>> GenericItem<V>.statistics(
     mode: Bpp3dDemandMode,
     amount: UInt64
 ): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
     return statistics(mode).scale(amount)
 }
 
-fun <V : FloatingNumber<V>> ItemPlacement<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+fun <V : FloatingNumber<V>> GenericItemPlacement<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
     return item.statistics(mode)
 }
 
-fun <V : FloatingNumber<V>> BinLayer<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+fun <V : FloatingNumber<V>> GenericBinLayer<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
     val counter = mutableMapOf<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>()
     for (unit in units) {
         for ((key, value) in unit.statistics(mode)) {
@@ -172,7 +174,7 @@ fun <V : FloatingNumber<V>> BinLayer<V>.statistics(mode: Bpp3dDemandMode): Map<G
     return counter
 }
 
-fun <V : FloatingNumber<V>> Iterable<BinLayer<V>>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+fun <V : FloatingNumber<V>> Iterable<GenericBinLayer<V>>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
     val counter = mutableMapOf<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>()
     for (layer in this) {
         for ((key, value) in layer.statistics(mode)) {

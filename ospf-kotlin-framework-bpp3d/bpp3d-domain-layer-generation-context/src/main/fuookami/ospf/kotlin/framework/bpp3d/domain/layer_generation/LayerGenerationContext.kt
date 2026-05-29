@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.ComplexBlockGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.SimpleBlockGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -20,6 +19,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.plus
@@ -317,7 +317,7 @@ private suspend fun <V> mapItemsToPileLayers(
         for (index in UInt64.zero until maxByBinHeight) {
             val placement = ItemPlacement3(
                 view = itemView,
-                position = point3(y = itemView.height * itemScalar(index.toULong().toDouble()))
+                position = point3(y = itemView.height * infraScalar(index.toULong().toDouble()))
             )
             val isEnabled = item.packageAttribute.enabledStackingOn(
                 item = placement,
@@ -393,9 +393,9 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         if (rectCols > 0 && rectRows > 0) {
             val placements = ArrayList<ItemPlacement3>(rectCols * rectRows)
             for (row in 0 until rectRows) {
-                val z = diameter * itemScalar(row.toDouble())
+                val z = diameter * infraScalar(row.toDouble())
                 for (col in 0 until rectCols) {
-                    val x = diameter * itemScalar(col.toDouble())
+                    val x = diameter * infraScalar(col.toDouble())
                     placements.add(
                         ItemPlacement3(
                             view = itemView,
@@ -422,13 +422,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         }
 
         val hexRowStepScale = sqrt(3.0) / 2.0
-        val hexRowStep = diameter * itemScalar(hexRowStepScale)
+        val hexRowStep = diameter * infraScalar(hexRowStepScale)
         val hexRowStepValue = hexRowStep.value.toDouble()
         if (hexRowStepValue > 0.0) {
             val placements = ArrayList<ItemPlacement3>()
             var row = 0
             while (true) {
-                val z = hexRowStep * itemScalar(row.toDouble())
+                val z = hexRowStep * infraScalar(row.toDouble())
                 if (z.value.toDouble() + diameterValue > binDepth) {
                     break
                 }
@@ -436,7 +436,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                 var col = 0
                 while (true) {
                     val xScale = col.toDouble() + offset
-                    val x = diameter * itemScalar(xScale)
+                    val x = diameter * infraScalar(xScale)
                     if (x.value.toDouble() + diameterValue > binWidth) {
                         break
                     }

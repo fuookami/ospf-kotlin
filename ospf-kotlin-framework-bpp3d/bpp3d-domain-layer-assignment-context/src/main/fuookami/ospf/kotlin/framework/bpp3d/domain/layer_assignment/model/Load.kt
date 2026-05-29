@@ -15,25 +15,16 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelItemDemands
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelItemRanges
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelMaterialDemands
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelMaterialWeightDemandsByKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelItems
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelLayers
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dSolverValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dDemandValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.functional.*
@@ -98,14 +89,37 @@ private fun defaultDemandDomain(unit: PhysicalUnit): Bpp3dDemandDomain {
     return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
 }
 
-data class Bpp3dDemandEntry(
-    val mode: Bpp3dDemandMode,
-    val key: Bpp3dDemandKey,
-    val demand: InfraNumber,
-    val demandRange: ValueRange<InfraNumber>,
-    val quantityUnit: PhysicalUnit = defaultDemandUnit(),
-    val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(quantityUnit)
-)
+interface DemandEntry<V : FloatingNumber<V>> {
+    val mode: Bpp3dDemandMode
+    val key: Bpp3dDemandKey
+    val demand: V
+    val demandRange: ValueRange<V>
+    val quantityUnit: PhysicalUnit
+    val quantityDomain: Bpp3dDemandDomain
+}
+
+interface ItemDemand<V : FloatingNumber<V>> {
+    val item: Item
+    val quantity: Quantity<V>
+    val mode: Bpp3dDemandMode
+}
+
+interface MaterialDemand<V : FloatingNumber<V>> {
+    val material: MaterialKey
+    val quantity: Quantity<V>
+    val mode: Bpp3dDemandMode
+}
+
+data class Bpp3dDemandEntry<V : FloatingNumber<V>>(
+    override val mode: Bpp3dDemandMode,
+    override val key: Bpp3dDemandKey,
+    override val demand: V,
+    override val demandRange: ValueRange<V>,
+    override val quantityUnit: PhysicalUnit = defaultDemandUnit(),
+    override val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(quantityUnit)
+) : DemandEntry<V>
+
+typealias InfraBpp3dDemandEntry = Bpp3dDemandEntry<InfraNumber>
 
 private fun defaultDemandValue(
     domain: Bpp3dDemandDomain = Bpp3dDemandDomain.Discrete
@@ -130,17 +144,46 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
     return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous) == Bpp3dDemandDomain.Discrete
 }
 
-data class Bpp3dItemDemand(
-    val item: Item,
-    val quantity: Quantity<InfraNumber>,
-    val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
-)
+data class Bpp3dItemDemand<V : FloatingNumber<V>>(
+    override val item: Item,
+    override val quantity: Quantity<V>,
+    override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
+) : ItemDemand<V>
 
-data class Bpp3dMaterialDemand(
-    val material: MaterialKey,
-    val quantity: Quantity<InfraNumber>,
-    val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
-)
+typealias InfraBpp3dItemDemand = Bpp3dItemDemand<InfraNumber>
+
+data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
+    override val material: MaterialKey,
+    override val quantity: Quantity<V>,
+    override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
+) : MaterialDemand<V>
+
+typealias InfraBpp3dMaterialDemand = Bpp3dMaterialDemand<InfraNumber>
+
+fun Bpp3dDemandEntry<InfraNumber>.toModelDemandEntry(): Bpp3dDemandEntry<InfraNumber> {
+    return Bpp3dDemandEntry(
+        mode = mode,
+        key = key,
+        demand = demand,
+        demandRange = demandRange,
+        quantityUnit = quantityUnit,
+        quantityDomain = quantityDomain
+    )
+}
+
+fun DemandEntry<InfraNumber>.toModelDemandEntry(): Bpp3dDemandEntry<InfraNumber> {
+    return when (this) {
+        is Bpp3dDemandEntry<*> -> this.toModelDemandEntry()
+        else -> Bpp3dDemandEntry(
+            mode = mode,
+            key = key,
+            demand = demand,
+            demandRange = demandRange,
+            quantityUnit = quantityUnit,
+            quantityDomain = quantityDomain
+        )
+    }
+}
 
 private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
     return when (mode) {
@@ -186,7 +229,7 @@ private fun exactDemandRange(value: InfraNumber): ValueRange<InfraNumber> {
 fun demandEntriesFromItemDemands(
     items: List<Pair<Item, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromLabeledItemDemands(
         items = items.map { (item, quantity) ->
             Bpp3dItemDemand(
@@ -199,9 +242,9 @@ fun demandEntriesFromItemDemands(
 }
 
 fun demandEntriesFromLabeledItemDemands(
-    items: List<Bpp3dItemDemand>,
+    items: List<ItemDemand<InfraNumber>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return items.map { demand ->
         val mode = resolveItemDemandMode(demand.mode)
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
@@ -215,23 +258,10 @@ fun demandEntriesFromLabeledItemDemands(
     }
 }
 
-@JvmName("demandEntriesFromGenericItemDemands")
-fun <V : FloatingNumber<V>> demandEntriesFromItemDemands(
-    items: List<Pair<QuantityItem<V>, Quantity<V>>>,
-    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-    materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
-    return demandEntriesFromLabeledItemDemands(
-        items = toModelItemDemands(items, itemCache, materialCache),
-        demandValueAdapter = demandValueAdapter
-    )
-}
-
 fun demandEntriesFromItems(
     items: List<Pair<Item, UInt64>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return items.map { (item, demand) ->
         val demandValue = demandValueAdapter.amountToSolver(demand)
         Bpp3dDemandEntry(
@@ -244,22 +274,10 @@ fun demandEntriesFromItems(
     }
 }
 
-fun <V : FloatingNumber<V>> demandEntriesFromItems(
-    items: List<Pair<QuantityItem<V>, UInt64>>,
-    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-    materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
-    return demandEntriesFromItems(
-        items = toModelItems(items, itemCache, materialCache),
-        demandValueAdapter = demandValueAdapter
-    )
-}
-
 fun demandEntriesFromItemRanges(
     items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return items.map { (item, demand, demandRange) ->
         Bpp3dDemandEntry(
             mode = Bpp3dDemandMode.Item,
@@ -271,22 +289,10 @@ fun demandEntriesFromItemRanges(
     }
 }
 
-fun <V : FloatingNumber<V>> demandEntriesFromItemRanges(
-    items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
-    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-    materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
-    return demandEntriesFromItemRanges(
-        items = toModelItemRanges(items, itemCache, materialCache),
-        demandValueAdapter = demandValueAdapter
-    )
-}
-
 private fun demandEntriesFromMaterialDemandsByKey(
-    materials: List<Bpp3dMaterialDemand>,
+    materials: List<MaterialDemand<InfraNumber>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return materials.map { demand ->
         val mode = resolveMaterialDemandMode(demand.mode)
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
@@ -303,7 +309,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
 fun demandEntriesFromMaterialDemands(
     materials: List<Pair<Material, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
@@ -316,22 +322,11 @@ fun demandEntriesFromMaterialDemands(
 }
 
 fun demandEntriesFromLabeledMaterialDemands(
-    materials: List<Bpp3dMaterialDemand>,
+    materials: List<MaterialDemand<InfraNumber>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials,
-        demandValueAdapter = demandValueAdapter
-    )
-}
-
-@JvmName("demandEntriesFromGenericMaterialDemands")
-fun <V : FloatingNumber<V>> demandEntriesFromMaterialDemands(
-    materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
-    return demandEntriesFromMaterialDemandsByKey(
-        materials = toModelMaterialDemands(materials),
         demandValueAdapter = demandValueAdapter
     )
 }
@@ -339,7 +334,7 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialDemands(
 private fun demandEntriesFromMaterialAmountsByKey(
     materials: List<Pair<MaterialKey, UInt64>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
@@ -354,30 +349,9 @@ private fun demandEntriesFromMaterialAmountsByKey(
 fun demandEntriesFromMaterialAmounts(
     materials: List<Pair<Material, UInt64>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialAmountsByKey(
         materials = materials.map { (material, demand) -> Pair(material.key, demand) },
-        demandValueAdapter = demandValueAdapter
-    )
-}
-
-@JvmName("demandEntriesFromGenericMaterialAmounts")
-fun <V : FloatingNumber<V>> demandEntriesFromMaterialAmounts(
-    materials: List<Pair<QuantityMaterial<V>, UInt64>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
-    return demandEntriesFromMaterialAmountsByKey(
-        materials = materials.map { (material, demand) ->
-            Pair(
-                MaterialKey(
-                    no = material.no,
-                    type = material.type,
-                    manufacturer = material.manufacturer,
-                    supplier = material.supplier
-                ),
-                demand
-            )
-        },
         demandValueAdapter = demandValueAdapter
     )
 }
@@ -385,7 +359,7 @@ fun <V : FloatingNumber<V>> demandEntriesFromMaterialAmounts(
 private fun demandEntriesFromMaterialWeightsByKey(
     materials: List<Pair<MaterialKey, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
@@ -400,28 +374,16 @@ private fun demandEntriesFromMaterialWeightsByKey(
 fun demandEntriesFromMaterialWeights(
     materials: List<Pair<Material, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
+): List<DemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialWeightsByKey(
         materials = materials.map { (material, demand) -> Pair(material.key, demand) },
         demandValueAdapter = demandValueAdapter
     )
 }
 
-@JvmName("demandEntriesFromGenericMaterialWeights")
-fun <V : FloatingNumber<V>> demandEntriesFromMaterialWeights(
-    materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<Bpp3dDemandEntry> {
-    return demandEntriesFromMaterialWeightsByKey(
-        materials = toModelMaterialWeightDemandsByKey(materials),
-        demandValueAdapter = demandValueAdapter
-    )
-}
-
-interface Load {
-    val demandEntries: List<Bpp3dDemandEntry>
+interface Load<V : FloatingNumber<V>> {
+    val demandEntries: List<DemandEntry<V>>
     val demandValueAdapter: Bpp3dDemandValueAdapter
-
     val load: LinearIntermediateSymbols1<InfraNumber>
     val overLoad: LinearIntermediateSymbols1<InfraNumber>
     val lessLoad: LinearIntermediateSymbols1<InfraNumber>
@@ -430,7 +392,9 @@ interface Load {
     val lessEnabled: Boolean
 }
 
-abstract class AbstractLoad : Load {
+typealias InfraLoad = Load<InfraNumber>
+
+abstract class AbstractLoad : InfraLoad {
     override lateinit var overLoad: LinearIntermediateSymbols1<InfraNumber>
     override lateinit var lessLoad: LinearIntermediateSymbols1<InfraNumber>
 
@@ -479,7 +443,7 @@ abstract class AbstractLoad : Load {
 
     protected fun loadCoefficient(
         layer: BinLayer,
-        demand: Bpp3dDemandEntry
+        demand: DemandEntry<InfraNumber>
     ): InfraNumber {
         val concreteMode = demand.mode.toConcreteMode(demand.quantityDomain == Bpp3dDemandDomain.Discrete)
         val value = layer.statistics(concreteMode)[demand.key]
@@ -489,12 +453,12 @@ abstract class AbstractLoad : Load {
 }
 
 class ImpreciseLoad(
-    override val demandEntries: List<Bpp3dDemandEntry>,
+    override val demandEntries: List<DemandEntry<InfraNumber>>,
     private val assignment: ImpreciseAssignment,
     override val overEnabled: Boolean = true,
     override val lessEnabled: Boolean = true,
     override val demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-) : AbstractLoad() {
+ ) : AbstractLoad() {
     companion object {
         fun fromItems(
             items: List<Pair<Item, UInt64>>,
@@ -505,29 +469,6 @@ class ImpreciseLoad(
         ): ImpreciseLoad {
             return ImpreciseLoad(
                 demandEntries = demandEntriesFromItems(items, demandValueAdapter),
-                assignment = assignment,
-                overEnabled = overEnabled,
-                lessEnabled = lessEnabled,
-                demandValueAdapter = demandValueAdapter
-            )
-        }
-
-        fun <V : FloatingNumber<V>> fromItems(
-            items: List<Pair<QuantityItem<V>, UInt64>>,
-            assignment: ImpreciseAssignment,
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-            overEnabled: Boolean = true,
-            lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-        ): ImpreciseLoad {
-            return ImpreciseLoad(
-                demandEntries = demandEntriesFromItems(
-                    items = items,
-                    itemCache = itemCache,
-                    materialCache = materialCache,
-                    demandValueAdapter = demandValueAdapter
-                ),
                 assignment = assignment,
                 overEnabled = overEnabled,
                 lessEnabled = lessEnabled,
@@ -551,28 +492,6 @@ class ImpreciseLoad(
             )
         }
 
-        fun <V : FloatingNumber<V>> fromItemRanges(
-            items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
-            assignment: ImpreciseAssignment,
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-            overEnabled: Boolean = true,
-            lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-        ): ImpreciseLoad {
-            return ImpreciseLoad(
-                demandEntries = demandEntriesFromItemRanges(
-                    items = items,
-                    itemCache = itemCache,
-                    materialCache = materialCache,
-                    demandValueAdapter = demandValueAdapter
-                ),
-                assignment = assignment,
-                overEnabled = overEnabled,
-                lessEnabled = lessEnabled,
-                demandValueAdapter = demandValueAdapter
-            )
-        }
     }
 
     override lateinit var load: LinearExpressionSymbols1<InfraNumber>
@@ -620,13 +539,13 @@ class ImpreciseLoad(
 }
 
 class PreciseLoad(
-    override val demandEntries: List<Bpp3dDemandEntry>,
+    override val demandEntries: List<DemandEntry<InfraNumber>>,
     private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = true,
     override val demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-) : AbstractLoad() {
+ ) : AbstractLoad() {
     companion object {
         fun fromItems(
             items: List<Pair<Item, UInt64>>,
@@ -639,32 +558,6 @@ class PreciseLoad(
             return PreciseLoad(
                 demandEntries = demandEntriesFromItems(items, demandValueAdapter),
                 layers = layers,
-                assignment = assignment,
-                overEnabled = overEnabled,
-                lessEnabled = lessEnabled,
-                demandValueAdapter = demandValueAdapter
-            )
-        }
-
-        fun <V : FloatingNumber<V>> fromItems(
-            items: List<Pair<QuantityItem<V>, UInt64>>,
-            layers: List<QuantityBinLayer<V>>,
-            assignment: PreciseAssignment,
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-            overEnabled: Boolean = false,
-            lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-        ): PreciseLoad {
-            val modelLayers = toModelLayers(layers, itemCache, materialCache)
-            return PreciseLoad(
-                demandEntries = demandEntriesFromItems(
-                    items = items,
-                    itemCache = itemCache,
-                    materialCache = materialCache,
-                    demandValueAdapter = demandValueAdapter
-                ),
-                layers = modelLayers,
                 assignment = assignment,
                 overEnabled = overEnabled,
                 lessEnabled = lessEnabled,
@@ -690,31 +583,6 @@ class PreciseLoad(
             )
         }
 
-        fun <V : FloatingNumber<V>> fromItemRanges(
-            items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
-            layers: List<QuantityBinLayer<V>>,
-            assignment: PreciseAssignment,
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-            overEnabled: Boolean = false,
-            lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-        ): PreciseLoad {
-            val modelLayers = toModelLayers(layers, itemCache, materialCache)
-            return PreciseLoad(
-                demandEntries = demandEntriesFromItemRanges(
-                    items = items,
-                    itemCache = itemCache,
-                    materialCache = materialCache,
-                    demandValueAdapter = demandValueAdapter
-                ),
-                layers = modelLayers,
-                assignment = assignment,
-                overEnabled = overEnabled,
-                lessEnabled = lessEnabled,
-                demandValueAdapter = demandValueAdapter
-            )
-        }
     }
 
     override lateinit var load: LinearIntermediateSymbols1<InfraNumber>

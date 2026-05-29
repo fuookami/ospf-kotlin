@@ -5,13 +5,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemScalar
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -71,12 +71,12 @@ class MaterialDemandReducedCostTest {
             demandEntries = listOf(Pair(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))),
             shadowPriceOf = { mode, key ->
                 shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price?.toDouble()?.let(::InfraNumber)
-                    ?: itemScalar(0.0)
+                    ?: infraScalar(0.0)
             },
             demandValueToScalar = { value ->
                 when (value) {
-                    is Bpp3dDemandValue.Amount -> itemScalar(value.value.toULong().toDouble())
-                    is Bpp3dDemandValue.Weight -> itemScalar(value.value.value.toDouble())
+                    is Bpp3dDemandValue.Amount -> infraScalar(value.value.toULong().toDouble())
+                    is Bpp3dDemandValue.Weight -> infraScalar(value.value.value.toDouble())
                 }
             }
         )

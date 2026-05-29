@@ -1,22 +1,22 @@
 ﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.GenericBpp3dDemandKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.GenericBpp3dDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemPlacement as GenericItemPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as GenericMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Package as GenericPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.PackageShape as GenericPackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBpp3dDemandKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBpp3dDemandValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation

@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.ExhaustiveMaterialPackingSolverExecutor
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPacker
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPackingSolverExecutor
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
@@ -29,11 +29,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.HistoricalLa
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PatternLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PileLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -53,61 +49,13 @@ data class ColumnGenerationApplicationRequest(
     val programMaterialCatalog: Map<MaterialKey, Material> = emptyMap(),
     val materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
-    val demandEntries: List<Bpp3dDemandEntry>? = null,
+    val demandEntries: List<DemandEntry<InfraNumber>>? = null,
     val initialColumns: List<BinLayer> = emptyList(),
     val finalBins: List<LayerBin> = emptyList(),
     val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
-) {
-    companion object {
-        fun <V : FloatingNumber<V>> fromQuantityDemands(
-            itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
-            materialAmountDemands: List<Pair<QuantityMaterial<V>, UInt64>> = emptyList(),
-            materialWeightDemands: List<Pair<QuantityMaterial<V>, Quantity<V>>> = emptyList(),
-            materialPackingCandidates: List<MaterialPackingProgramCandidate> = emptyList(),
-            layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate, UInt64>> = emptyList(),
-            programMaterialCatalog: Map<MaterialKey, Material> = emptyMap(),
-            materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
-            mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
-            demandEntries: List<Bpp3dDemandEntry>? = null,
-            initialColumns: List<BinLayer> = emptyList(),
-            quantityInitialColumns: List<QuantityBinLayer<V>> = emptyList(),
-            finalBins: List<LayerBin> = emptyList(),
-            generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
-            cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
-            executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
-        ): ColumnGenerationApplicationRequest {
-            val slices = toDemandSlices(
-                itemDemands = itemDemands,
-                materialAmountDemands = materialAmountDemands,
-                materialWeightDemands = materialWeightDemands,
-                initialColumns = initialColumns,
-                quantityInitialColumns = quantityInitialColumns,
-                materialCache = materialCache,
-                itemCache = itemCache
-            )
-            return ColumnGenerationApplicationRequest(
-                itemDemands = slices.itemDemands,
-                materialAmountDemands = slices.materialAmountDemands,
-                materialWeightDemands = slices.materialWeightDemands,
-                materialPackingCandidates = materialPackingCandidates,
-                layerGenerationProgramDemands = layerGenerationProgramDemands,
-                programMaterialCatalog = programMaterialCatalog,
-                materialPackingObjectiveConfig = materialPackingObjectiveConfig,
-                mixedDemandPolicy = mixedDemandPolicy,
-                demandEntries = demandEntries,
-                initialColumns = slices.initialColumns,
-                finalBins = finalBins,
-                generators = generators,
-                cgConfig = cgConfig,
-                executorConfig = executorConfig
-            )
-        }
-    }
-}
+)
 
 data class ColumnGenerationApplicationResponse(
     val result: ColumnGenerationResult<InfraNumber>,
@@ -245,52 +193,6 @@ class ColumnGenerationApplicationService(
             result = result,
             packingSnapshot = packingAnalyzer?.latest,
             materialPackingPlan = materialPackingPlan
-        )
-    }
-
-    suspend fun <V : FloatingNumber<V>> solveQuantityDemands(
-        itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
-        materialAmountDemands: List<Pair<QuantityMaterial<V>, UInt64>> = emptyList(),
-        materialWeightDemands: List<Pair<QuantityMaterial<V>, Quantity<V>>> = emptyList(),
-        materialPackingCandidates: List<MaterialPackingProgramCandidate> = emptyList(),
-        layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate, UInt64>> = emptyList(),
-        programMaterialCatalog: Map<MaterialKey, Material> = emptyMap(),
-        materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
-        mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
-        demandEntries: List<Bpp3dDemandEntry>? = null,
-        initialColumns: List<BinLayer> = emptyList(),
-        quantityInitialColumns: List<QuantityBinLayer<V>> = emptyList(),
-        finalBins: List<LayerBin> = emptyList(),
-        generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
-        cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
-        executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-        packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
-        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<InfraNumber>? = null,
-        materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
-        itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
-    ): ColumnGenerationApplicationResponse {
-        return solve(
-            request = ColumnGenerationApplicationRequest.fromQuantityDemands(
-                itemDemands = itemDemands,
-                materialAmountDemands = materialAmountDemands,
-                materialWeightDemands = materialWeightDemands,
-                materialPackingCandidates = materialPackingCandidates,
-                layerGenerationProgramDemands = layerGenerationProgramDemands,
-                programMaterialCatalog = programMaterialCatalog,
-                materialPackingObjectiveConfig = materialPackingObjectiveConfig,
-                mixedDemandPolicy = mixedDemandPolicy,
-                demandEntries = demandEntries,
-                initialColumns = initialColumns,
-                quantityInitialColumns = quantityInitialColumns,
-                finalBins = finalBins,
-                generators = generators,
-                cgConfig = cgConfig,
-                executorConfig = executorConfig,
-                materialCache = materialCache,
-                itemCache = itemCache
-            ),
-            packingAnalyzer = packingAnalyzer,
-            solutionAnalyzer = solutionAnalyzer
         )
     }
 

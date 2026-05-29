@@ -13,16 +13,12 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseLoad
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAggregation
@@ -30,7 +26,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Precis
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoad
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoadCapacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinAmountMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
@@ -46,7 +41,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -105,7 +99,7 @@ data class ColumnGenerationStandardExecutorConfig(
 class ColumnGenerationStandardExecutors(
     private val solver: ColumnGenerationSolver,
     private val itemDemands: List<Pair<Item, UInt64>>,
-    private val demandEntries: List<Bpp3dDemandEntry> = demandEntriesFromItems(itemDemands),
+    private val demandEntries: List<DemandEntry<InfraNumber>> = demandEntriesFromItems(itemDemands),
     private val finalBins: List<LayerBin> = emptyList(),
     private val config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
@@ -113,7 +107,7 @@ class ColumnGenerationStandardExecutors(
         fun fromDemandEntries(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<Item, UInt64>>,
-            demandEntries: List<Bpp3dDemandEntry>,
+            demandEntries: List<DemandEntry<InfraNumber>>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
         ): ColumnGenerationStandardExecutors {
@@ -126,55 +120,6 @@ class ColumnGenerationStandardExecutors(
             )
         }
 
-        fun <V : FloatingNumber<V>> fromQuantityItems(
-            solver: ColumnGenerationSolver,
-            itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
-            finalBins: List<LayerBin> = emptyList(),
-            config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
-        ): ColumnGenerationStandardExecutors {
-            val modelItemDemands = toModelItems(
-                items = itemDemands,
-                itemCache = itemCache,
-                materialCache = materialCache
-            )
-            val demandEntries = demandEntriesFromItems(
-                items = itemDemands,
-                itemCache = itemCache,
-                materialCache = materialCache
-            )
-            return ColumnGenerationStandardExecutors(
-                solver = solver,
-                itemDemands = modelItemDemands,
-                demandEntries = demandEntries,
-                finalBins = finalBins,
-                config = config
-            )
-        }
-
-        fun <V : FloatingNumber<V>> fromDemandEntries(
-            solver: ColumnGenerationSolver,
-            itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
-            demandEntries: List<Bpp3dDemandEntry>,
-            finalBins: List<LayerBin> = emptyList(),
-            config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
-            materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
-        ): ColumnGenerationStandardExecutors {
-            val modelItemDemands = toModelItems(
-                items = itemDemands,
-                itemCache = itemCache,
-                materialCache = materialCache
-            )
-            return ColumnGenerationStandardExecutors(
-                solver = solver,
-                itemDemands = modelItemDemands,
-                demandEntries = demandEntries,
-                finalBins = finalBins,
-                config = config
-            )
-        }
     }
 
     fun rmpSolver(): ColumnGenerationRmpSolver<InfraNumber> {

@@ -3,13 +3,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -122,8 +121,8 @@ class HollowSquareBlock(
     override fun copy() = HollowSquareBlock(units.map { it.copy() })
 
     override fun toString(): String {
-        val amount = units.count { it.view == itemView && it.position.y eq itemZero() }
-        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq itemZero() }.size
+        val amount = units.count { it.view == itemView && it.position.y eq infraZero() }
+        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq infraZero() }.size
         return "$item (${amount} + ${rotationAmount})*$layer"
     }
 }
@@ -134,7 +133,7 @@ class Pile(
     companion object {
         private fun dump(items: List<ItemView>): List<ItemPlacement3> {
             val units = ArrayList<ItemPlacement3>()
-            var y = itemZero() * items.first().height.unit
+            var y = infraZero() * items.first().height.unit
             for (item in items) {
                 units.add(QuantityPlacement3(item, point3(y = y)))
                 y += item.height
@@ -162,7 +161,7 @@ class Pile(
                 }
                 Pair(UInt64(sameItems.size), sameItems.sumOf { it.height })
             } else {
-                Pair(UInt64.zero, item.height * itemZero())
+                Pair(UInt64.zero, item.height * infraZero())
             }
         }
     }
@@ -210,7 +209,7 @@ class LayeredBlock(
 ) : Block(dump(blocks)) {
     companion object {
         private fun dump(blocks: List<SimpleBlock>): List<ItemPlacement3> {
-            var y = itemZero() * blocks.first().height.unit
+            var y = infraZero() * blocks.first().height.unit
             val placements = ArrayList<ItemPlacement3>()
             for (block in blocks) {
                 placements.addAll(block.units.dump(point3(y = y)))

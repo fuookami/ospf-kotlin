@@ -28,7 +28,6 @@ class Bpp3dGenericBoundaryTest {
         val normalized = path.pathString.replace('\\', '/')
         return normalized.contains("/api/compat/")
                 || normalized.contains("/model/compat/")
-                || normalized.contains("/LegacyScalars.kt")
                 || normalized.contains("/legacy/")
                 || normalized.contains("/compat/")
     }

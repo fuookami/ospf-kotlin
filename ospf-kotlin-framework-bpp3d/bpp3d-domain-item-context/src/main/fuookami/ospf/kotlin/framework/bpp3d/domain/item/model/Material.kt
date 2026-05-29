@@ -3,13 +3,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 
@@ -60,7 +59,7 @@ open class Material(
     val manufacturer: String? = null,
     val supplier: String? = null,
     val warehouse: String? = null,
-    val weight: Quantity<InfraNumber> = Quantity(itemZero(), Kilogram)
+    val weight: Quantity<InfraNumber> = Quantity(infraZero(), Kilogram)
 ) {
     open val key: MaterialKey
         get() = MaterialKey(

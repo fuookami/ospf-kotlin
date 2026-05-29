@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
@@ -151,7 +152,7 @@ class GurobiColumnGenerationTest {
 
     private data class CsvDrivenScenario(
         val itemDemands: List<Pair<ActualItem, UInt64>>,
-        val demandEntries: List<Bpp3dDemandEntry>,
+        val demandEntries: List<DemandEntry<InfraNumber>>,
         val initialColumns: List<BinLayer>,
         val finalBins: List<Bin<BinLayer>>,
         val materialAmountDemands: Map<Material, UInt64>,

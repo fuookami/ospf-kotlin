@@ -3,13 +3,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
@@ -81,7 +80,7 @@ class BinType(
     fun estimateAmount(
         totalVolume: Quantity<InfraNumber>,
         totalWeight: Quantity<InfraNumber>,
-        estimatedLoadingRate: InfraNumber = itemOne()
+        estimatedLoadingRate: InfraNumber = infraOne()
     ): InfraNumber {
         return max(
             ((totalVolume / volume).value / estimatedLoadingRate),
@@ -121,7 +120,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * itemZero()
+                                it.y * infraZero()
                             }
                         }
 
@@ -130,7 +129,7 @@ class BinType(
                         }
 
                         else -> {
-                            it.y * itemZero()
+                            it.y * infraZero()
                         }
                     }
                 }
@@ -140,7 +139,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * itemZero()
+                                it.y * infraZero()
                             }
                         }
 
@@ -149,7 +148,7 @@ class BinType(
                         }
 
                         else -> {
-                            it.y * itemZero()
+                            it.y * infraZero()
                         }
                     }
                 }
@@ -171,7 +170,7 @@ class BinType(
                     scope = this
                 )
                 for (thisLayers in layersPromise) {
-                    var z = itemZero() * depth.unit
+                    var z = infraZero() * depth.unit
                     val thisPlacements = thisLayers.map {
                         val ret = QuantityPlacement3(BinLayerView(it.copy()), point3(z = z))
                         z += it.depth

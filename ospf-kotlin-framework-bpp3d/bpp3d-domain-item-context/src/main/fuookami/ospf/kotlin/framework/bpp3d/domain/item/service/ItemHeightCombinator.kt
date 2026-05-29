@@ -2,13 +2,13 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -90,7 +90,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<HeightScalar, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Pair<HeightScalar, HeightScalar>,
-        restWeight: HeightScalar = itemInfinity(),
+        restWeight: HeightScalar = infraInfinity(),
         averageWeight: HeightScalar? = null
     ): List<Item>? {
         return getItemCombination(
@@ -108,7 +108,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         heights: Pair<HeightScalar, HeightScalar>,
         mapper: Extractor<Item, T>,
-        restWeight: HeightScalar = itemInfinity(),
+        restWeight: HeightScalar = infraInfinity(),
         averageWeight: HeightScalar? = null
     ): List<Item>? {
         var items: List<Item>? = null
@@ -162,7 +162,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<HeightScalar, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<HeightScalar, HeightScalar, HeightScalar>,
-        restWeight: HeightScalar = itemInfinity(),
+        restWeight: HeightScalar = infraInfinity(),
         averageWeight: HeightScalar? = null
     ): List<Item>? {
         return getItemCombination(
@@ -180,7 +180,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<HeightScalar, HeightScalar, HeightScalar>,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = itemInfinity(),
+        restWeight: HeightScalar = infraInfinity(),
         averageWeight: HeightScalar? = null,
     ): List<Item>? {
         var items: List<Item>? = null
@@ -313,7 +313,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         height: HeightScalar,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = itemInfinity(),
+        restWeight: HeightScalar = infraInfinity(),
         averageWeight: HeightScalar? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
@@ -353,7 +353,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         height: HeightScalar,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = itemInfinity(),
+        restWeight: HeightScalar = infraInfinity(),
         averageWeight: HeightScalar? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {

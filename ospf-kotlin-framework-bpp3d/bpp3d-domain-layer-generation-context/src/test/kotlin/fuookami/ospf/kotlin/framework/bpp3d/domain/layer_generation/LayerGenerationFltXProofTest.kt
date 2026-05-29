@@ -1,10 +1,5 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as GenericMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Package as GenericPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.PackageShape as GenericPackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -12,6 +7,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
@@ -20,6 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
@@ -144,14 +146,14 @@ class LayerGenerationFltXProofTest {
             batchNo = BatchNo("B-LG2"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer(
+        val layer = GenericBinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
             from = LayerGenerationFltXProofTest::class,
             width = q(FltX(3.0), Meter),
             height = q(FltX(3.0), Meter),
             depth = q(FltX(3.0), Meter),
             units = listOf(
-                fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemPlacement(
+                GenericItemPlacement(
                     item = item,
                     x = q(FltX(0.0), Meter),
                     y = q(FltX(0.0), Meter),

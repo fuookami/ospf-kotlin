@@ -22,12 +22,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.BinLayer as QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemPlacement as QuantityItemPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Package as QuantityPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.PackageShape as QuantityPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer as QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem as QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement as QuantityItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial as QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage as QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape as QuantityPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
@@ -104,7 +104,7 @@ class ColumnGenerationAlgorithmTest {
         mode: Bpp3dDemandMode,
         key: Bpp3dDemandKey,
         demand: InfraNumber
-    ): Bpp3dDemandEntry {
+    ): Bpp3dDemandEntry<InfraNumber> {
         return Bpp3dDemandEntry(
             mode = mode,
             key = key,
@@ -502,7 +502,7 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
-    fun standardExecutorsFactoryShouldSupportQuantityItemDemands() {
+    fun standardExecutorsFactoryShouldUseModelItemDemands() {
         val quantityMaterial = QuantityMaterial(
             no = MaterialNo("M-Q"),
             type = MaterialType.RawMaterial,
@@ -530,7 +530,7 @@ class ColumnGenerationAlgorithmTest {
         val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
         val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
         val modelItem = quantityItem.toModel(materialCache, itemCache)
-        val demandEntries = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(modelItem),
@@ -563,10 +563,8 @@ class ColumnGenerationAlgorithmTest {
 
         val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
             solver = solver,
-            itemDemands = listOf(Pair(quantityItem, UInt64.one)),
-            demandEntries = demandEntries,
-            itemCache = itemCache,
-            materialCache = materialCache
+            itemDemands = listOf(Pair(modelItem, UInt64.one)),
+            demandEntries = demandEntries
         )
 
         assertNotNull(executors)
@@ -615,11 +613,15 @@ class ColumnGenerationAlgorithmTest {
             )
         )
 
-        val request = ColumnGenerationApplicationRequest.fromQuantityDemands(
-            itemDemands = listOf(Pair(quantityItem, UInt64(3))),
-            materialAmountDemands = listOf(Pair(quantityMaterial, UInt64(6))),
-            materialWeightDemands = listOf(Pair(quantityMaterial, FltX(2.5) * Kilogram)),
-            quantityInitialColumns = listOf(quantityInitialLayer)
+        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
+        val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
+        val modelItem = quantityItem.toModel(materialCache, itemCache)
+        val modelMaterial = quantityMaterial.toModel()
+        val request = ColumnGenerationApplicationRequest(
+            itemDemands = listOf(Pair(modelItem, UInt64(3))),
+            materialAmountDemands = listOf(Pair(modelMaterial, UInt64(6))),
+            materialWeightDemands = listOf(Pair(modelMaterial, infraScalar(2.5) * Kilogram)),
+            initialColumns = listOf(quantityInitialLayer.toModel(materialCache, itemCache))
         )
 
         assertEquals(1, request.itemDemands.size)
@@ -634,7 +636,7 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
-    fun applicationServiceShouldSupportQuantityDemandEntryPoint() = runBlocking {
+    fun applicationServiceShouldSupportModelDemandEntryPoint() = runBlocking {
         val quantityMaterial = QuantityMaterial(
             no = MaterialNo("M-SQ"),
             type = MaterialType.RawMaterial,
@@ -706,17 +708,22 @@ class ColumnGenerationAlgorithmTest {
             }
         }
         val service = ColumnGenerationApplicationService(solver)
-        val response = service.solveQuantityDemands(
-            itemDemands = listOf(Pair(quantityItem, UInt64.one)),
-            quantityInitialColumns = listOf(quantityInitialLayer),
-            generators = listOf(
-                object : Bpp3dLayerGenerator<InfraNumber> {
-                    override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
-                        return emptyList()
+        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
+        val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
+        val modelItem = quantityItem.toModel(materialCache, itemCache)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(modelItem, UInt64.one)),
+                initialColumns = listOf(quantityInitialLayer.toModel(materialCache, itemCache)),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<InfraNumber> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                            return emptyList()
+                        }
                     }
-                }
-            ),
-            cgConfig = ColumnGenerationConfig(finalMilpEnabled = false)
+                ),
+                cgConfig = ColumnGenerationConfig(finalMilpEnabled = false)
+            )
         )
 
         assertEquals(1, response.result.lpSolvedTimes)
@@ -981,7 +988,7 @@ class ColumnGenerationAlgorithmTest {
                 batchNo = seedBinB.batchNo
             )
         )
-        val demandEntries = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(itemA),
@@ -1124,7 +1131,7 @@ class ColumnGenerationAlgorithmTest {
                 batchNo = seedBin.batchNo
             )
         }
-        val demandEntries = buildList {
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = buildList {
             addAll(items.map { actualItem ->
                 fixedDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,

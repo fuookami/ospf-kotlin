@@ -2,13 +2,13 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -198,7 +198,7 @@ data object ItemMerger {
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = itemInfinity()
+        restWeight: MergeScalar = infraInfinity()
     ): Pair<List<Pile>, List<Item>> {
         val averagePileBottomArea = items.fold(MergeScalar.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
@@ -272,7 +272,7 @@ data object ItemMerger {
     fun mergeBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = itemInfinity(),
+        restWeight: MergeScalar = infraInfinity(),
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
         val mergedItems = ArrayList<SimpleBlock>()
@@ -369,7 +369,7 @@ data object ItemMerger {
         items: List<Item>,
         space: AbstractContainer3Shape,
         patterns: List<Pattern>,
-        restWeight: MergeScalar = itemInfinity(),
+        restWeight: MergeScalar = infraInfinity(),
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
         val mergedItems = ArrayList<CommonBlock>()
@@ -436,7 +436,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = itemInfinity(),
+        restWeight: MergeScalar = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
@@ -451,7 +451,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = itemInfinity(),
+        restWeight: MergeScalar = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
         val restItems = items.toMutableMap()
