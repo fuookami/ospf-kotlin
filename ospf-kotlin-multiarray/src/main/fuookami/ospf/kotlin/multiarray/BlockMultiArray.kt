@@ -79,6 +79,12 @@ private class IndexKey private constructor(
 
 private object InternalIndexKeyBlocks
 
+/**
+ * 将 List<Int> 键的 Map 转换为 IndexKey 键的 Map
+ * Convert Map with List<Int> keys to Map with IndexKey keys
+ *
+ * @return 以 IndexKey 为键的可变映射 / Mutable map with IndexKey as keys
+ */
 private fun <T : Any> Map<List<Int>, T>.toIndexKeyBlocks(): MutableMap<IndexKey, T> {
     val converted = LinkedHashMap<IndexKey, T>(size)
     for ((indices, value) in this) {

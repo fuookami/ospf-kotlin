@@ -43,7 +43,7 @@ package fuookami.ospf.kotlin.multiarray
  * Used to store potentially null values in MultiArray.
  *
  * @param T 值类型 / Value type
- * @param value 包装的值 / Wrapped value
+ * @property value 包装的值 / Wrapped value
  */
 data class NullableValue<T>(val value: T?) {
     override fun toString(): String = value?.toString() ?: "null"
@@ -523,7 +523,7 @@ fun <T> dataFrameFromRows(
     val df = DataFrame<T>(rows.size, columnNames.size, columnNames)
     for ((rowIdx, row) in rows.withIndex()) {
         require(row.size == columnNames.size) {
-            "行 ${rowIdx} 的长度 (${row.size}) 与列数 (${columnNames.size}) 不匹配 / Row length mismatch"
+            "行 $rowIdx 的长度 (${row.size}) 与列数 (${columnNames.size}) 不匹配 / Row length mismatch"
         }
         for ((colIdx, value) in row.withIndex()) {
             df.set(rowIdx, colIdx, value)

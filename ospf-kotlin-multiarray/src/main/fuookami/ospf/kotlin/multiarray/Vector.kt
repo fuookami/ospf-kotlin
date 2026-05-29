@@ -113,18 +113,24 @@ sealed class DummyIndex {
     /**
      * 单个索引
      * Single index
+     *
+     * @property index 索引值 / Index value
      */
     data class Index(val index: Int) : DummyIndex()
 
     /**
      * 范围索引
      * Range index
+     *
+     * @property range 虚拟索引范围 / Dummy index range
      */
     data class Range(val range: DummyIndexRange) : DummyIndex()
 
     /**
      * 索引数组
      * Index array
+     *
+     * @property indices 索引列表 / Index list
      */
     data class IndexArray(val indices: List<Int>) : DummyIndex()
 
@@ -198,6 +204,17 @@ sealed class DummyIndex {
         }
     }
 
+    /**
+     * 计算实际边界值
+     * Calculate actual bound value
+     *
+     * 将边界值转换为实际索引值，支持负数索引（从末尾计数）。
+     * Converts bound value to actual index value, supporting negative indices (counting from the end).
+     *
+     * @param bound 边界值，null 表示无边界 / Bound value, null means no bound
+     * @param len 维度长度 / Dimension length
+     * @return 实际边界值，null 表示无边界 / Actual bound value, null means no bound
+     */
     private fun actualBound(bound: Int?, len: Int): Int? {
         if (bound == null) return null
         return if (bound >= 0) {
@@ -260,18 +277,24 @@ sealed class DummyIndexIterator {
     /**
      * 单个索引
      * Single index
+     *
+     * @property index 索引值 / Index value
      */
     data class Single(val index: Int) : DummyIndexIterator()
 
     /**
      * 连续范围索引
      * Continuous range indices
+     *
+     * @property range 整数范围 / Integer range
      */
     data class Continuous(val range: IntRange) : DummyIndexIterator()
 
     /**
      * 离散索引集合
      * Discrete index collection
+     *
+     * @property indices 索引列表 / Index list
      */
     data class Discrete(val indices: List<Int>) : DummyIndexIterator()
 
@@ -320,6 +343,8 @@ sealed class MapIndex {
     /**
      * 虚拟索引
      * Dummy index
+     *
+     * @property dummy 虚拟索引 / Dummy index
      */
     data class Dummy(val dummy: DummyIndex) : MapIndex()
 
@@ -327,7 +352,7 @@ sealed class MapIndex {
      * 映射占位符
      * Map placeholder
      *
-     * @param index 映射到的目标维度索引
+     * @property index 映射到的目标维度索引 / Target dimension index to map to
      */
     data class Map(val index: Int) : MapIndex()
 

@@ -364,17 +364,35 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         }
     }
 
-    /** 通过线性索引获取元素 / Get element by linear index */
+    /**
+     * 通过线性索引获取元素
+     * Get element by linear index
+     *
+     * @param i 线性索引 / Linear index
+     * @return 元素值 / Element value
+     */
     operator fun get(i: Int): T {
         return origin[mapVector(shape.vector(i))]
     }
 
-    /** 通过 ULong 线性索引获取元素 / Get element by ULong linear index */
+    /**
+     * 通过 ULong 线性索引获取元素
+     * Get element by ULong linear index
+     *
+     * @param i ULong 线性索引 / ULong linear index
+     * @return 元素值 / Element value
+     */
     operator fun get(i: ULong): T {
         return get(i.toInt())
     }
 
-    /** 通过 Indexed 接口获取元素 / Get element by Indexed interface */
+    /**
+     * 通过 Indexed 接口获取元素
+     * Get element by Indexed interface
+     *
+     * @param e Indexed 接口实例 / Indexed interface instance
+     * @return 元素值 / Element value
+     */
     operator fun get(e: Indexed): T {
         return origin[mapVector(shape.vector(e.index))]
     }
@@ -391,7 +409,13 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         return origin[mapVector(v)]
     }
 
-    /** 通过 vararg Any 创建子映射视图 / Create sub-mapped view by vararg Any indices */
+    /**
+     * 通过 vararg Any 创建子映射视图
+     * Create sub-mapped view by vararg Any indices
+     *
+     * @param v 索引参数 / Index parameters
+     * @return 子映射视图 / Sub-mapped view
+     */
     operator fun get(vararg v: Any): MappedMultiArrayView<T, S> {
         val newMapVector = ArrayList<MapIndex>()
         val subDummyVector = shape.dummyVector(*v)
@@ -413,6 +437,13 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         return MappedMultiArrayView(origin, newMapVector)
     }
 
+    /**
+     * 将视图索引向量映射为原始数组索引向量
+     * Map view index vector to original array index vector
+     *
+     * @param v 视图索引向量 / View index vector
+     * @return 原始数组索引向量 / Original array index vector
+     */
     private fun mapVector(v: IntArray): IntArray {
         if (v.size != shape.dimension) {
             throw DimensionMismatchingException(

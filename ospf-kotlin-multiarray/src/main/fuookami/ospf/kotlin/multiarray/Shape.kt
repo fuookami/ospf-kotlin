@@ -339,16 +339,51 @@ data class Shape1 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
-        /** 使用默认行主序创建一维形状 / Create 1D shape with default row-major order */
+        /**
+         * 使用默认行主序创建一维形状
+         * Create 1D shape with default row-major order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @return 一维形状实例 / 1D shape instance
+         */
         operator fun invoke(d1: Int): Shape1 = Shape1(d1, StorageOrder.Default)
-        /** 使用默认行主序从 ULong 创建一维形状 / Create 1D shape from ULong with default row-major order */
+
+        /**
+         * 使用默认行主序从 ULong 创建一维形状
+         * Create 1D shape from ULong with default row-major order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @return 一维形状实例 / 1D shape instance
+         */
         operator fun invoke(d1: ULong): Shape1 = Shape1(d1.toInt(), StorageOrder.Default)
-        /** 使用默认行主序从集合大小创建一维形状 / Create 1D shape from collection size with default row-major order */
+
+        /**
+         * 使用默认行主序从集合大小创建一维形状
+         * Create 1D shape from collection size with default row-major order
+         *
+         * @param d1 用于推断维度大小的集合 / Collection used to infer dimension size
+         * @return 一维形状实例 / 1D shape instance
+         */
         operator fun invoke(d1: Collection<*>): Shape1 = Shape1(d1.size, StorageOrder.Default)
 
-        /** 使用指定存储顺序创建一维形状 / Create 1D shape with specified storage order */
+        /**
+         * 使用指定存储顺序创建一维形状
+         * Create 1D shape with specified storage order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param order 存储顺序 / Storage order
+         * @return 一维形状实例 / 1D shape instance
+         */
         fun withOrder(d1: Int, order: StorageOrder): Shape1 = Shape1(d1, order)
-        /** 使用指定存储顺序从 ULong 创建一维形状 / Create 1D shape from ULong with specified storage order */
+
+        /**
+         * 使用指定存储顺序从 ULong 创建一维形状
+         * Create 1D shape from ULong with specified storage order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param order 存储顺序 / Storage order
+         * @return 一维形状实例 / 1D shape instance
+         */
         fun withOrder(d1: ULong, order: StorageOrder): Shape1 = Shape1(d1.toInt(), order)
     }
 
@@ -394,7 +429,13 @@ data class Shape1 private constructor(
         }
     }
 
-    /** 使用指定存储顺序创建一维形状副本 / Create 1D shape copy with specified storage order */
+    /**
+     * 使用指定存储顺序创建一维形状副本
+     * Create 1D shape copy with specified storage order
+     *
+     * @param order 存储顺序 / Storage order
+     * @return 使用指定存储顺序的一维形状副本 / 1D shape copy with specified storage order
+     */
     fun withStorageOrder(order: StorageOrder): Shape1 = Shape1(d1, order)
 }
 
@@ -409,16 +450,56 @@ data class Shape2 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
-        /** 使用默认行主序创建二维形状 / Create 2D shape with default row-major order */
+        /**
+         * 使用默认行主序创建二维形状
+         * Create 2D shape with default row-major order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param d2 第二维度长度 / Length of the second dimension
+         * @return 二维形状实例 / 2D shape instance
+         */
         operator fun invoke(d1: Int, d2: Int): Shape2 = Shape2(d1, d2, StorageOrder.Default)
-        /** 使用默认行主序从 ULong 创建二维形状 / Create 2D shape from ULong with default row-major order */
+
+        /**
+         * 使用默认行主序从 ULong 创建二维形状
+         * Create 2D shape from ULong with default row-major order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
+         * @return 二维形状实例 / 2D shape instance
+         */
         operator fun invoke(d1: ULong, d2: ULong): Shape2 = Shape2(d1.toInt(), d2.toInt(), StorageOrder.Default)
-        /** 使用默认行主序从集合大小创建二维形状 / Create 2D shape from collection sizes with default row-major order */
+
+        /**
+         * 使用默认行主序从集合大小创建二维形状
+         * Create 2D shape from collection sizes with default row-major order
+         *
+         * @param d1 用于推断第一维度大小的集合 / Collection used to infer first dimension size
+         * @param d2 用于推断第二维度大小的集合 / Collection used to infer second dimension size
+         * @return 二维形状实例 / 2D shape instance
+         */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>): Shape2 = Shape2(d1.size, d2.size, StorageOrder.Default)
 
-        /** 使用指定存储顺序创建二维形状 / Create 2D shape with specified storage order */
+        /**
+         * 使用指定存储顺序创建二维形状
+         * Create 2D shape with specified storage order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param d2 第二维度长度 / Length of the second dimension
+         * @param order 存储顺序 / Storage order
+         * @return 二维形状实例 / 2D shape instance
+         */
         fun withOrder(d1: Int, d2: Int, order: StorageOrder): Shape2 = Shape2(d1, d2, order)
-        /** 使用指定存储顺序从 ULong 创建二维形状 / Create 2D shape from ULong with specified storage order */
+
+        /**
+         * 使用指定存储顺序从 ULong 创建二维形状
+         * Create 2D shape from ULong with specified storage order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
+         * @param order 存储顺序 / Storage order
+         * @return 二维形状实例 / 2D shape instance
+         */
         fun withOrder(d1: ULong, d2: ULong, order: StorageOrder): Shape2 = Shape2(d1.toInt(), d2.toInt(), order)
     }
 
@@ -487,7 +568,13 @@ data class Shape2 private constructor(
         }
     }
 
-    /** 使用指定存储顺序创建二维形状副本 / Create 2D shape copy with specified storage order */
+    /**
+     * 使用指定存储顺序创建二维形状副本
+     * Create 2D shape copy with specified storage order
+     *
+     * @param order 存储顺序 / Storage order
+     * @return 使用指定存储顺序的二维形状副本 / 2D shape copy with specified storage order
+     */
     fun withStorageOrder(order: StorageOrder): Shape2 = Shape2(d1, d2, order)
 }
 
@@ -503,16 +590,61 @@ data class Shape3 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
-        /** 使用默认行主序创建三维形状 / Create 3D shape with default row-major order */
+        /**
+         * 使用默认行主序创建三维形状
+         * Create 3D shape with default row-major order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param d2 第二维度长度 / Length of the second dimension
+         * @param d3 第三维度长度 / Length of the third dimension
+         * @return 三维形状实例 / 3D shape instance
+         */
         operator fun invoke(d1: Int, d2: Int, d3: Int): Shape3 = Shape3(d1, d2, d3, StorageOrder.Default)
-        /** 使用默认行主序从 ULong 创建三维形状 / Create 3D shape from ULong with default row-major order */
+
+        /**
+         * 使用默认行主序从 ULong 创建三维形状
+         * Create 3D shape from ULong with default row-major order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
+         * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
+         * @return 三维形状实例 / 3D shape instance
+         */
         operator fun invoke(d1: ULong, d2: ULong, d3: ULong): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt(), StorageOrder.Default)
-        /** 使用默认行主序从集合大小创建三维形状 / Create 3D shape from collection sizes with default row-major order */
+
+        /**
+         * 使用默认行主序从集合大小创建三维形状
+         * Create 3D shape from collection sizes with default row-major order
+         *
+         * @param d1 用于推断第一维度大小的集合 / Collection used to infer first dimension size
+         * @param d2 用于推断第二维度大小的集合 / Collection used to infer second dimension size
+         * @param d3 用于推断第三维度大小的集合 / Collection used to infer third dimension size
+         * @return 三维形状实例 / 3D shape instance
+         */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>): Shape3 = Shape3(d1.size, d2.size, d3.size, StorageOrder.Default)
 
-        /** 使用指定存储顺序创建三维形状 / Create 3D shape with specified storage order */
+        /**
+         * 使用指定存储顺序创建三维形状
+         * Create 3D shape with specified storage order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param d2 第二维度长度 / Length of the second dimension
+         * @param d3 第三维度长度 / Length of the third dimension
+         * @param order 存储顺序 / Storage order
+         * @return 三维形状实例 / 3D shape instance
+         */
         fun withOrder(d1: Int, d2: Int, d3: Int, order: StorageOrder): Shape3 = Shape3(d1, d2, d3, order)
-        /** 使用指定存储顺序从 ULong 创建三维形状 / Create 3D shape from ULong with specified storage order */
+
+        /**
+         * 使用指定存储顺序从 ULong 创建三维形状
+         * Create 3D shape from ULong with specified storage order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
+         * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
+         * @param order 存储顺序 / Storage order
+         * @return 三维形状实例 / 3D shape instance
+         */
         fun withOrder(d1: ULong, d2: ULong, d3: ULong, order: StorageOrder): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt(), order)
     }
 
@@ -596,7 +728,13 @@ data class Shape3 private constructor(
         }
     }
 
-    /** 使用指定存储顺序创建三维形状副本 / Create 3D shape copy with specified storage order */
+    /**
+     * 使用指定存储顺序创建三维形状副本
+     * Create 3D shape copy with specified storage order
+     *
+     * @param order 存储顺序 / Storage order
+     * @return 使用指定存储顺序的三维形状副本 / 3D shape copy with specified storage order
+     */
     fun withStorageOrder(order: StorageOrder): Shape3 = Shape3(d1, d2, d3, order)
 }
 
@@ -613,16 +751,66 @@ data class Shape4 private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
-        /** 使用默认行主序创建四维形状 / Create 4D shape with default row-major order */
+        /**
+         * 使用默认行主序创建四维形状
+         * Create 4D shape with default row-major order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param d2 第二维度长度 / Length of the second dimension
+         * @param d3 第三维度长度 / Length of the third dimension
+         * @param d4 第四维度长度 / Length of the fourth dimension
+         * @return 四维形状实例 / 4D shape instance
+         */
         operator fun invoke(d1: Int, d2: Int, d3: Int, d4: Int): Shape4 = Shape4(d1, d2, d3, d4, StorageOrder.Default)
-        /** 使用默认行主序从 ULong 创建四维形状 / Create 4D shape from ULong with default row-major order */
+
+        /**
+         * 使用默认行主序从 ULong 创建四维形状
+         * Create 4D shape from ULong with default row-major order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
+         * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
+         * @param d4 第四维度长度（ULong） / Length of the fourth dimension (ULong)
+         * @return 四维形状实例 / 4D shape instance
+         */
         operator fun invoke(d1: ULong, d2: ULong, d3: ULong, d4: ULong): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt(), StorageOrder.Default)
-        /** 使用默认行主序从集合大小创建四维形状 / Create 4D shape from collection sizes with default row-major order */
+
+        /**
+         * 使用默认行主序从集合大小创建四维形状
+         * Create 4D shape from collection sizes with default row-major order
+         *
+         * @param d1 用于推断第一维度大小的集合 / Collection used to infer first dimension size
+         * @param d2 用于推断第二维度大小的集合 / Collection used to infer second dimension size
+         * @param d3 用于推断第三维度大小的集合 / Collection used to infer third dimension size
+         * @param d4 用于推断第四维度大小的集合 / Collection used to infer fourth dimension size
+         * @return 四维形状实例 / 4D shape instance
+         */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>, d4: Collection<*>): Shape4 = Shape4(d1.size, d2.size, d3.size, d4.size, StorageOrder.Default)
 
-        /** 使用指定存储顺序创建四维形状 / Create 4D shape with specified storage order */
+        /**
+         * 使用指定存储顺序创建四维形状
+         * Create 4D shape with specified storage order
+         *
+         * @param d1 第一维度长度 / Length of the first dimension
+         * @param d2 第二维度长度 / Length of the second dimension
+         * @param d3 第三维度长度 / Length of the third dimension
+         * @param d4 第四维度长度 / Length of the fourth dimension
+         * @param order 存储顺序 / Storage order
+         * @return 四维形状实例 / 4D shape instance
+         */
         fun withOrder(d1: Int, d2: Int, d3: Int, d4: Int, order: StorageOrder): Shape4 = Shape4(d1, d2, d3, d4, order)
-        /** 使用指定存储顺序从 ULong 创建四维形状 / Create 4D shape from ULong with specified storage order */
+
+        /**
+         * 使用指定存储顺序从 ULong 创建四维形状
+         * Create 4D shape from ULong with specified storage order
+         *
+         * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
+         * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
+         * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
+         * @param d4 第四维度长度（ULong） / Length of the fourth dimension (ULong)
+         * @param order 存储顺序 / Storage order
+         * @return 四维形状实例 / 4D shape instance
+         */
         fun withOrder(d1: ULong, d2: ULong, d3: ULong, d4: ULong, order: StorageOrder): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt(), order)
     }
 
@@ -716,13 +904,22 @@ data class Shape4 private constructor(
         }
     }
 
-    /** 使用指定存储顺序创建四维形状副本 / Create 4D shape copy with specified storage order */
+    /**
+     * 使用指定存储顺序创建四维形状副本
+     * Create 4D shape copy with specified storage order
+     *
+     * @param order 存储顺序 / Storage order
+     * @return 使用指定存储顺序的四维形状副本 / 4D shape copy with specified storage order
+     */
     fun withStorageOrder(order: StorageOrder): Shape4 = Shape4(d1, d2, d3, d4, order)
 }
 
 /**
  * 动态维度形状
  * Dynamic dimension shape
+ *
+ * @property shape 各维度长度的数组 / Array of dimension lengths
+ * @property storageOrder 存储顺序 / Storage order
  */
 @ConsistentCopyVisibility
 data class DynShape private constructor(
@@ -740,6 +937,13 @@ data class DynShape private constructor(
             return ret
         }
 
+        /**
+         * 计算行主序偏移量
+         * Calculate row-major offsets
+         *
+         * @param shape 各维度长度的数组 / Array of dimension lengths
+         * @return 行主序偏移量数组 / Row-major offset array
+         */
         @JvmStatic
         private fun calculateOffsetsRowMajor(shape: IntArray): IntArray {
             if (shape.isEmpty()) return intArrayOf()
@@ -751,6 +955,13 @@ data class DynShape private constructor(
             return offsets
         }
 
+        /**
+         * 计算列主序偏移量
+         * Calculate column-major offsets
+         *
+         * @param shape 各维度长度的数组 / Array of dimension lengths
+         * @return 列主序偏移量数组 / Column-major offset array
+         */
         @JvmStatic
         private fun calculateOffsetsColumnMajor(shape: IntArray): IntArray {
             if (shape.isEmpty()) return intArrayOf()
@@ -762,31 +973,70 @@ data class DynShape private constructor(
             return offsets
         }
 
-        /** 使用默认行主序从 IntArray 创建动态形状 / Create dynamic shape from IntArray with default row-major order */
+        /**
+         * 使用默认行主序从 IntArray 创建动态形状
+         * Create dynamic shape from IntArray with default row-major order
+         *
+         * @param shape 各维度长度的数组 / Array of dimension lengths
+         * @return 动态形状实例 / Dynamic shape instance
+         */
         operator fun invoke(shape: IntArray): DynShape {
             // Defensive copy to prevent external mutation
             return DynShape(shape.copyOf(), StorageOrder.Default)
         }
 
-        /** 使用默认行主序从 ULong 迭代创建动态形状 / Create dynamic shape from ULong iterable with default row-major order */
+        /**
+         * 使用默认行主序从 ULong 迭代创建动态形状
+         * Create dynamic shape from ULong iterable with default row-major order
+         *
+         * @param shape 各维度长度的 ULong 可迭代对象 / Iterable of ULong dimension lengths
+         * @return 动态形状实例 / Dynamic shape instance
+         */
         @JvmName("constructByULongList")
         operator fun invoke(shape: Iterable<ULong>): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), StorageOrder.Default)
 
-        /** 使用默认行主序从集合大小迭代创建动态形状 / Create dynamic shape from collection sizes iterable with default row-major order */
+        /**
+         * 使用默认行主序从集合大小迭代创建动态形状
+         * Create dynamic shape from collection sizes iterable with default row-major order
+         *
+         * @param shape 各维度大小的集合可迭代对象 / Iterable of collections for dimension sizes
+         * @return 动态形状实例 / Dynamic shape instance
+         */
         @JvmName("constructByCollectionList")
         operator fun invoke(shape: Iterable<Collection<*>>): DynShape = DynShape(shape.map { it.size }.toIntArray(), StorageOrder.Default)
 
-        /** 使用指定存储顺序从 IntArray 创建动态形状 / Create dynamic shape from IntArray with specified storage order */
+        /**
+         * 使用指定存储顺序从 IntArray 创建动态形状
+         * Create dynamic shape from IntArray with specified storage order
+         *
+         * @param shape 各维度长度的数组 / Array of dimension lengths
+         * @param order 存储顺序 / Storage order
+         * @return 动态形状实例 / Dynamic shape instance
+         */
         fun withOrder(shape: IntArray, order: StorageOrder): DynShape {
             // Defensive copy
             return DynShape(shape.copyOf(), order)
         }
 
-        /** 使用指定存储顺序从 ULong 迭代创建动态形状 / Create dynamic shape from ULong iterable with specified storage order */
+        /**
+         * 使用指定存储顺序从 ULong 迭代创建动态形状
+         * Create dynamic shape from ULong iterable with specified storage order
+         *
+         * @param shape 各维度长度的 ULong 可迭代对象 / Iterable of ULong dimension lengths
+         * @param order 存储顺序 / Storage order
+         * @return 动态形状实例 / Dynamic shape instance
+         */
         @JvmName("withOrderFromULongList")
         fun withOrder(shape: Iterable<ULong>, order: StorageOrder): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), order)
 
-        /** 使用指定存储顺序从集合大小迭代创建动态形状 / Create dynamic shape from collection sizes iterable with specified storage order */
+        /**
+         * 使用指定存储顺序从集合大小迭代创建动态形状
+         * Create dynamic shape from collection sizes iterable with specified storage order
+         *
+         * @param shape 各维度大小的集合可迭代对象 / Iterable of collections for dimension sizes
+         * @param order 存储顺序 / Storage order
+         * @return 动态形状实例 / Dynamic shape instance
+         */
         @JvmName("withOrderFromCollectionList")
         fun withOrder(shape: Iterable<Collection<*>>, order: StorageOrder): DynShape = DynShape(shape.map { it.size }.toIntArray(), order)
     }
@@ -855,7 +1105,13 @@ data class DynShape private constructor(
         }
     }
 
-    /** 使用指定存储顺序创建动态形状副本 / Create dynamic shape copy with specified storage order */
+    /**
+     * 使用指定存储顺序创建动态形状副本
+     * Create dynamic shape copy with specified storage order
+     *
+     * @param order 存储顺序 / Storage order
+     * @return 使用指定存储顺序的动态形状副本 / Dynamic shape copy with specified storage order
+     */
     fun withStorageOrder(order: StorageOrder): DynShape = DynShape(shape.copyOf(), order)
 
     override fun equals(other: Any?): Boolean {

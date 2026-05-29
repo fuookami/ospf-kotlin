@@ -201,6 +201,12 @@ class MultiIndexIterator(
     }
 }
 
+/**
+ * 将存储顺序转换为访问顺序
+ * Convert storage order to access order
+ *
+ * @return 对应的访问顺序 / Corresponding access order
+ */
 private fun StorageOrder.toAccessOrder(): AccessOrder {
     return when (this) {
         StorageOrder.RowMajor -> AccessOrder.RowMajor
@@ -208,6 +214,15 @@ private fun StorageOrder.toAccessOrder(): AccessOrder {
     }
 }
 
+/**
+ * 按照存储顺序重新排列元素列表
+ * Reorder element list according to storage order
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 按存储顺序排列的数组 / Array reordered to storage order
+ */
 private fun <T : Any, S : Shape> reorderToStorageOrder(
     shape: S,
     list: List<T>,
