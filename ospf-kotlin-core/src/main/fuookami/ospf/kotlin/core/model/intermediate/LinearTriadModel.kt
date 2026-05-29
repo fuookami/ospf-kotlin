@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.core.variable.UInteger
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
 import java.io.OutputStreamWriter

@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.Linear as MechanismLinear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
+import fuookami.ospf.kotlin.math.symbol.Linear as MechanismLinear
+import fuookami.ospf.kotlin.math.symbol.Quadratic as MechanismQuadratic
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
@@ -32,7 +32,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismLinear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = LinearInequality<Flt64>(
@@ -73,7 +73,7 @@ class BendersCutApiTest {
     fun linearFeasibleCutByIdShouldMatchDirectCall() {
         val x = RealVar("x")
 
-        val tokens = AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismLinear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = LinearInequality<Flt64>(
@@ -118,7 +118,7 @@ class BendersCutApiTest {
         val y = RealVar("y")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismQuadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = QuadraticInequalityOf(
@@ -166,7 +166,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismQuadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = QuadraticInequalityOf(
@@ -213,7 +213,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismLinear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = LinearInequality<Flt64>(
@@ -259,7 +259,7 @@ class BendersCutApiTest {
     fun linearFeasibleCutFromOutputShouldMatchDirectCall() {
         val x = RealVar("x")
 
-        val tokens = AutoTokenTable<Flt64>(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismLinear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = LinearInequality<Flt64>(
@@ -309,7 +309,7 @@ class BendersCutApiTest {
         val y = RealVar("y")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismQuadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = QuadraticInequalityOf(
@@ -364,7 +364,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(MechanismQuadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = QuadraticInequalityOf(

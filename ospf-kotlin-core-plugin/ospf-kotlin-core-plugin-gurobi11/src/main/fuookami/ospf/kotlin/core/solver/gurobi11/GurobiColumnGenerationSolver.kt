@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.gurobi11
+package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import com.gurobi.gurobi.GRB
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 

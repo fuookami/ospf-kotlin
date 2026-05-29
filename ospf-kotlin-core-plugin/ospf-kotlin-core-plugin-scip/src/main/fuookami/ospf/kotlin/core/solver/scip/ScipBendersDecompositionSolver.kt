@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.model.intermediate.solveDual
 import fuookami.ospf.kotlin.core.model.intermediate.solveFarkasDual
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus

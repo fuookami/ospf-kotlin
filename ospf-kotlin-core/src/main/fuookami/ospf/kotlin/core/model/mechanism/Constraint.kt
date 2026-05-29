@@ -1,27 +1,22 @@
 /**
- * 约束与多项式类型
- * Constraint and polynomial kind types
+ * 约束与表达式分类
+ * Constraint and expression category types
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.functional.Either
-
-/** 多项式类型标记接口 / Polynomial kind marker interface */
-sealed interface PolynomialKind
-/** 线性多项式标记 / Linear polynomial marker */
-object Linear : PolynomialKind
-/** 二次多项式标记 / Quadratic polynomial marker */
-object Quadratic : PolynomialKind
 
 /** 符号线性不等式包装 / Symbolic linear inequality wrapper */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
@@ -35,7 +30,7 @@ class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequali
  * Generic constraint with V-typed values.
  * Flt64 evaluation is handled by the solver adapter, not the core chain.
  */
-interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : PolynomialKind {
+interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Category {
     val lhs: List<Cell<V>>
     val sign: ConstraintRelation
     val rhs: V
@@ -92,7 +87,7 @@ fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDu
  * 约束实现密封基类，提供 LHS 求值和约束判断能力。
  * Sealed constraint implementation base class providing LHS evaluation and constraint checking.
  */
-sealed class ConstraintImpl<V, P : PolynomialKind>(
+sealed class ConstraintImpl<V, P : Category>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
     private val _rhs: V,

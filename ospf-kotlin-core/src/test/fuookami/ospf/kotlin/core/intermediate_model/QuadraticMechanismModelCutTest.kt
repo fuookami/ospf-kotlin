@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
+import fuookami.ospf.kotlin.math.symbol.Quadratic as MechanismQuadratic
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.token.AutoTokenTable

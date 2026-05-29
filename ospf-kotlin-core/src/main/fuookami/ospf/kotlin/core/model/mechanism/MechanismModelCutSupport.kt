@@ -5,6 +5,8 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import org.apache.logging.log4j.kotlin.KotlinLogger
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*

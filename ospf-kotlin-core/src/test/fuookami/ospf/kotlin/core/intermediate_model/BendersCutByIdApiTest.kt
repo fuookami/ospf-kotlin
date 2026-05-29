@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.mechanism.Linear as MechanismLinear
-import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
+import fuookami.ospf.kotlin.math.symbol.Linear as MechanismLinear
+import fuookami.ospf.kotlin.math.symbol.Quadratic as MechanismQuadratic
 import fuookami.ospf.kotlin.core.testing.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.*
@@ -39,7 +39,7 @@ class BendersCutByIdApiTest {
         val x = RealVar("${numberCase.name.lowercase()}_lin_x")
         val theta = RealVar("${numberCase.name.lowercase()}_lin_theta")
 
-        val tokens = AutoTokenTable<V>(Linear, false)
+        val tokens = AutoTokenTable<V>(MechanismLinear, false)
         assertTrue(tokens.add(x) is Ok, "${numberCase.name}: add variable should succeed")
 
         val relation = LinearInequality(
@@ -110,7 +110,7 @@ class BendersCutByIdApiTest {
         val y = RealVar("${numberCase.name.lowercase()}_quad_y")
         val theta = RealVar("${numberCase.name.lowercase()}_quad_theta")
 
-        val tokens = AutoTokenTable<V>(Quadratic, false)
+        val tokens = AutoTokenTable<V>(MechanismQuadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok, "${numberCase.name}: add variables should succeed")
 
         val relation = QuadraticInequalityOf(
