@@ -15,15 +15,16 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 
 
-typealias LegacyCuboid = AbstractCuboid<InfraNumber>
+typealias ItemCuboid = AbstractCuboid<InfraNumber>
 
-fun legacyZero(): InfraNumber = infraZero()
-fun legacyOne(): InfraNumber = infraOne()
-fun legacyTwo(): InfraNumber = infraOne() + infraOne()
-fun legacyInfinity(): InfraNumber = infraInfinity()
-fun legacyNegativeInfinity(): InfraNumber = infraNegativeInfinity()
+fun itemZero(): InfraNumber = infraZero()
+fun itemOne(): InfraNumber = infraOne()
+fun itemTwo(): InfraNumber = infraOne() + infraOne()
+fun itemInfinity(): InfraNumber = infraInfinity()
+fun itemNegativeInfinity(): InfraNumber = infraNegativeInfinity()
 
-fun legacyScalar(value: UInt64): InfraNumber = infraScalar(value)
-fun legacyScalar(value: Int): InfraNumber = infraScalar(value.toDouble())
-fun legacyScalar(value: Long): InfraNumber = infraScalar(value.toDouble())
-fun legacyScalar(value: Double): InfraNumber = infraScalar(value)
+fun itemScalar(value: UInt64): InfraNumber = infraScalar(value)
+fun itemScalar(value: Int): InfraNumber = infraScalar(value.toDouble())
+fun itemScalar(value: Long): InfraNumber = infraScalar(value.toDouble())
+fun itemScalar(value: Double): InfraNumber = infraScalar(value)
+

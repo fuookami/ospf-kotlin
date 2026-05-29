@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.ComplexBlockGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.SimpleBlockGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -317,7 +317,7 @@ private suspend fun <V> mapItemsToPileLayers(
         for (index in UInt64.zero until maxByBinHeight) {
             val placement = ItemPlacement3(
                 view = itemView,
-                position = point3(y = itemView.height * legacyScalar(index.toULong().toDouble()))
+                position = point3(y = itemView.height * itemScalar(index.toULong().toDouble()))
             )
             val isEnabled = item.packageAttribute.enabledStackingOn(
                 item = placement,
@@ -393,9 +393,9 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         if (rectCols > 0 && rectRows > 0) {
             val placements = ArrayList<ItemPlacement3>(rectCols * rectRows)
             for (row in 0 until rectRows) {
-                val z = diameter * legacyScalar(row.toDouble())
+                val z = diameter * itemScalar(row.toDouble())
                 for (col in 0 until rectCols) {
-                    val x = diameter * legacyScalar(col.toDouble())
+                    val x = diameter * itemScalar(col.toDouble())
                     placements.add(
                         ItemPlacement3(
                             view = itemView,
@@ -422,13 +422,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         }
 
         val hexRowStepScale = sqrt(3.0) / 2.0
-        val hexRowStep = diameter * legacyScalar(hexRowStepScale)
+        val hexRowStep = diameter * itemScalar(hexRowStepScale)
         val hexRowStepValue = hexRowStep.value.toDouble()
         if (hexRowStepValue > 0.0) {
             val placements = ArrayList<ItemPlacement3>()
             var row = 0
             while (true) {
-                val z = hexRowStep * legacyScalar(row.toDouble())
+                val z = hexRowStep * itemScalar(row.toDouble())
                 if (z.value.toDouble() + diameterValue > binDepth) {
                     break
                 }
@@ -436,7 +436,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                 var col = 0
                 while (true) {
                     val xScale = col.toDouble() + offset
-                    val x = diameter * legacyScalar(xScale)
+                    val x = diameter * itemScalar(xScale)
                     if (x.value.toDouble() + diameterValue > binWidth) {
                         break
                     }
@@ -703,5 +703,6 @@ class LayerGenerationContext<V>(
             .take(request.maxCandidates)
     }
 }
+
 
 

@@ -410,7 +410,7 @@ fun <T : GenericCuboid<T, V>, V : FloatingNumber<V>> bottomPlacements(
     return bottomPlacements
 }
 
-fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantityPlacement3<LegacyCuboidGenericAdapter<T>, InfraNumber> {
+fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantityPlacement3<ModelCuboidAdapter<T>, InfraNumber> {
     return GenericQuantityPlacement3(
         view = unit.asGenericCuboid().view(orientation),
         position = QuantityPoint3G(
@@ -421,7 +421,7 @@ fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantity
     )
 }
 
-fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlacement2(): GenericQuantityPlacement2<LegacyCuboidGenericAdapter<T>, InfraNumber, P> {
+fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlacement2(): GenericQuantityPlacement2<ModelCuboidAdapter<T>, InfraNumber, P> {
     return GenericQuantityPlacement2(
         projection = GenericPlaneProjection(
             view = unit.asGenericCuboid().view(orientation),
@@ -434,7 +434,7 @@ fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlace
     )
 }
 
-fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asGenericProjection(): GenericProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> {
+fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asGenericProjection(): GenericProjection<ModelCuboidAdapter<T>, InfraNumber, P> {
     return when (this) {
         is PlaneProjection -> GenericPlaneProjection(
             view = unit.asGenericCuboid().view(orientation),
@@ -453,3 +453,4 @@ fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asGenericProjection():
         )
     }
 }
+

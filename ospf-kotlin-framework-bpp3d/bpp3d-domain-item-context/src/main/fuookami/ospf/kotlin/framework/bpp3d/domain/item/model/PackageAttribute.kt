@@ -3,13 +3,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Vector
@@ -308,9 +308,9 @@ interface AbstractCargoAttribute
 data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
-    val maxHeight: PackageQuantity = legacyInfinity() * Meter,
+    val maxHeight: PackageQuantity = itemInfinity() * Meter,
     val minDepth: PackageQuantity = PackageScalar.zero * Meter,
-    val maxDepth: PackageQuantity = legacyInfinity() * Meter,
+    val maxDepth: PackageQuantity = itemInfinity() * Meter,
     val overPackageTypes: List<PackageType> = PackageType.entries.toList(),
     val bottomOnly: Boolean = false,
     val topFlat: Boolean = true,
@@ -580,5 +580,6 @@ data class PackageAttribute(
         return result
     }
 }
+
 
 

@@ -3,13 +3,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -87,7 +87,7 @@ private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
 }
 
 private fun statisticsOf(
-    unit: LegacyCuboid,
+    unit: ItemCuboid,
     mode: Bpp3dDemandMode
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (unit) {
@@ -192,7 +192,8 @@ fun Iterable<QuantityPlacement3<*>>.statistics(mode: Bpp3dDemandMode): Map<Bpp3d
     return counter
 }
 
-fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(legacyZero() * Kilogram)
+fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(itemZero() * Kilogram)
+
 
 
 

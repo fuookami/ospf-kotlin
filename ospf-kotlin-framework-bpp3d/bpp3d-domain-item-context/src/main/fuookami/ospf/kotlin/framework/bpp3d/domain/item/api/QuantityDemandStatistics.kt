@@ -53,7 +53,7 @@ private fun <V : FloatingNumber<V>> quantityScale(
     value: Quantity<V>,
     amount: UInt64
 ): Quantity<V> {
-    val scalarF64 = legacyScalar(amount)
+    val scalarF64 = itemScalar(amount)
     return when (value.value) {
         is InfraNumber -> ((value as Quantity<InfraNumber>) * scalarF64) as Quantity<V>
         is FltX -> ((value as Quantity<FltX>) * scalarF64.toFltX()) as Quantity<V>
@@ -180,3 +180,4 @@ fun <V : FloatingNumber<V>> Iterable<BinLayer<V>>.statistics(mode: Bpp3dDemandMo
     }
     return counter
 }
+

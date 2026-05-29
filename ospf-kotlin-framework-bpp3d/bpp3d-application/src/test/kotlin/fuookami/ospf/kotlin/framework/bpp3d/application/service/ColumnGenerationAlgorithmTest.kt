@@ -527,13 +527,13 @@ class ColumnGenerationAlgorithmTest {
             batchNo = BatchNo("B-Q"),
             packageAttribute = packageAttribute()
         )
-        val legacyItemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
+        val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
         val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
-        val legacyItem = quantityItem.toLegacyModel(materialCache, legacyItemCache)
+        val modelItem = quantityItem.toModel(materialCache, itemCache)
         val demandEntries = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
-                key = Bpp3dDemandKey.Item(legacyItem),
+                key = Bpp3dDemandKey.Item(modelItem),
                 demand = InfraNumber.one
             )
         )
@@ -565,7 +565,7 @@ class ColumnGenerationAlgorithmTest {
             solver = solver,
             itemDemands = listOf(Pair(quantityItem, UInt64.one)),
             demandEntries = demandEntries,
-            legacyItemCache = legacyItemCache,
+            itemCache = itemCache,
             materialCache = materialCache
         )
 
@@ -1251,6 +1251,9 @@ class ColumnGenerationAlgorithmTest {
         }
     }
 }
+
+
+
 
 
 

@@ -47,16 +47,16 @@ private fun merge(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun toLegacyCountMap(
+private fun toModelCountMap(
     genericCounts: Map<AbstractCuboid<InfraNumber>, UInt64>
 ): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
     for ((unit, amount) in genericCounts) {
-        val legacyUnit = when (unit) {
-            is LegacyCuboidGenericAdapter<*> -> unit.cuboid as AbstractCuboid<InfraNumber>
+        val modelUnit = when (unit) {
+            is ModelCuboidAdapter<*> -> unit.cuboid as AbstractCuboid<InfraNumber>
             else -> unit
         }
-        counter[legacyUnit] = (counter[legacyUnit] ?: UInt64.zero) + amount
+        counter[modelUnit] = (counter[modelUnit] ?: UInt64.zero) + amount
     }
     return counter
 }
@@ -71,7 +71,7 @@ private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPl
         return counter
     }
     val genericCounts = GenericContainer2.count(units.map { it.asGenericPlacement2() })
-    return toLegacyCountMap(genericCounts)
+    return toModelCountMap(genericCounts)
 }
 
 private fun count3ByGenericOrLegacy(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
@@ -84,7 +84,7 @@ private fun count3ByGenericOrLegacy(units: List<QuantityPlacement3<*>>): Map<Abs
         return counter
     }
     val genericCounts = GenericContainer3.count(units.map { it.asGenericPlacement3() })
-    return toLegacyCountMap(genericCounts)
+    return toModelCountMap(genericCounts)
 }
 
 private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): Quantity<V>? {
@@ -310,4 +310,6 @@ interface Container3CuboidUnit<S> : Container3<S>, Cuboid<S> where S : Container
     override val self: S
         get() = copy()
 }
+
+
 

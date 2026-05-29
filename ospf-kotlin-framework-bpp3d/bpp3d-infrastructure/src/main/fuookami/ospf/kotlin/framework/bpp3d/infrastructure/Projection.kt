@@ -44,12 +44,12 @@ data class ProjectionShapeG<V : FloatingNumber<V>>(
 
 typealias ProjectionShape = ProjectionShapeG<InfraNumber>
 
-private fun <T : Cuboid<T>> GenericQuantityPlacement3<LegacyCuboidGenericAdapter<T>, InfraNumber>.toLegacyPlacement3(): QuantityPlacement3<T> {
-    val legacyUnit = view.unit.cuboid
-    val legacyView = legacyUnit.view(orientation)
-        ?: throw IllegalStateException("Legacy cuboid view is unavailable for orientation $orientation")
+private fun <T : Cuboid<T>> GenericQuantityPlacement3<ModelCuboidAdapter<T>, InfraNumber>.toModelPlacement3(): QuantityPlacement3<T> {
+    val modelUnit = view.unit.cuboid
+    val modelView = modelUnit.view(orientation)
+        ?: throw IllegalStateException("Model cuboid view is unavailable for orientation $orientation")
     return QuantityPlacement3(
-        view = legacyView,
+        view = modelView,
         position = QuantityPoint3(
             x = position.x,
             y = position.y,
@@ -225,7 +225,7 @@ data class PlaneProjection<
     override val view: CuboidView<T>,
     override val plane: P
 ) : Projection<T, P> {
-    private val genericProjection: GenericPlaneProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> by lazy {
+    private val genericProjection: GenericPlaneProjection<ModelCuboidAdapter<T>, InfraNumber, P> by lazy {
         GenericPlaneProjection(
             view = unit.asGenericCuboid().view(orientation),
             plane = plane
@@ -246,7 +246,7 @@ data class PlaneProjection<
                 x = position.x,
                 y = position.y
             )
-        ).map { it.toLegacyPlacement3() }
+        ).map { it.toModelPlacement3() }
     }
 
     override fun copy() = PlaneProjection(view.copy(), plane)
@@ -260,7 +260,7 @@ data class PileProjection<
     override val plane: P,
     val layer: UInt64,
 ) : Projection<T, P> {
-    private val genericProjection: GenericPileProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> by lazy {
+    private val genericProjection: GenericPileProjection<ModelCuboidAdapter<T>, InfraNumber, P> by lazy {
         GenericPileProjection(
             view = unit.asGenericCuboid().view(orientation),
             plane = plane,
@@ -289,7 +289,7 @@ data class PileProjection<
                 x = position.x,
                 y = position.y
             )
-        ).map { it.toLegacyPlacement3() }
+        ).map { it.toModelPlacement3() }
     }
 
     override fun copy() = PileProjection(view.copy(), plane, layer)
@@ -304,7 +304,7 @@ data class MultiPileProjection<
 ) : Projection<T, P> {
     override val view = views.first()
 
-    private val genericProjection: GenericMultiPileProjection<LegacyCuboidGenericAdapter<T>, InfraNumber, P> by lazy {
+    private val genericProjection: GenericMultiPileProjection<ModelCuboidAdapter<T>, InfraNumber, P> by lazy {
         GenericMultiPileProjection(
             views = views.map { it.unit.asGenericCuboid().view(it.orientation) },
             plane = plane
@@ -328,8 +328,9 @@ data class MultiPileProjection<
                 x = position.x,
                 y = position.y
             )
-        ).map { it.toLegacyPlacement3() }
+        ).map { it.toModelPlacement3() }
     }
 
     override fun copy() = MultiPileProjection(views.map { it.copy() }, plane)
 }
+

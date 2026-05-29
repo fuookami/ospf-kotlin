@@ -13,18 +13,18 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
-private fun <V : FloatingNumber<V>> Quantity<V>.toFlt64Quantity(): Quantity<InfraNumber> {
+private fun <V : FloatingNumber<V>> Quantity<V>.toInfraQuantity(): Quantity<InfraNumber> {
     return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
 }
 
-data class LegacyDemandSlices(
+data class DemandSlices(
     val itemDemands: List<Pair<Item, UInt64>>,
     val materialAmountDemands: List<Pair<Material, UInt64>>,
     val materialWeightDemands: List<Pair<Material, Quantity<InfraNumber>>>,
     val initialColumns: List<BinLayer>
 )
 
-fun <V : FloatingNumber<V>> toLegacyDemandSlices(
+fun <V : FloatingNumber<V>> toDemandSlices(
     itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
     materialAmountDemands: List<Pair<QuantityMaterial<V>, UInt64>>,
     materialWeightDemands: List<Pair<QuantityMaterial<V>, Quantity<V>>>,
@@ -32,29 +32,27 @@ fun <V : FloatingNumber<V>> toLegacyDemandSlices(
     quantityInitialColumns: List<QuantityBinLayer<V>>,
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
-): LegacyDemandSlices {
-    val legacyItemDemands = itemDemands.map { (item, amount) ->
-        Pair(itemCache.getOrPut(item) { item.toLegacyModel(materialCache, itemCache) }, amount)
+): DemandSlices {
+    val modelItemDemands = itemDemands.map { (item, amount) ->
+        Pair(itemCache.getOrPut(item) { item.toModel(materialCache, itemCache) }, amount)
     }
-    val legacyMaterialAmountDemands = materialAmountDemands.map { (material, amount) ->
-        Pair(materialCache.getOrPut(material) { material.toLegacyModel() }, amount)
+    val modelMaterialAmountDemands = materialAmountDemands.map { (material, amount) ->
+        Pair(materialCache.getOrPut(material) { material.toModel() }, amount)
     }
-    val legacyMaterialWeightDemands = materialWeightDemands.map { (material, weight) ->
-        Pair(materialCache.getOrPut(material) { material.toLegacyModel() }, weight.toFlt64Quantity())
+    val modelMaterialWeightDemands = materialWeightDemands.map { (material, weight) ->
+        Pair(materialCache.getOrPut(material) { material.toModel() }, weight.toInfraQuantity())
     }
-    val legacyInitialColumns = initialColumns + quantityInitialColumns.map { quantityLayer ->
-        quantityLayer.toLegacyModel(
+    val modelInitialColumns = initialColumns + quantityInitialColumns.map { quantityLayer ->
+        quantityLayer.toModel(
             materialCache = materialCache,
             itemCache = itemCache
         )
     }
 
-    return LegacyDemandSlices(
-        itemDemands = legacyItemDemands,
-        materialAmountDemands = legacyMaterialAmountDemands,
-        materialWeightDemands = legacyMaterialWeightDemands,
-        initialColumns = legacyInitialColumns
+    return DemandSlices(
+        itemDemands = modelItemDemands,
+        materialAmountDemands = modelMaterialAmountDemands,
+        materialWeightDemands = modelMaterialWeightDemands,
+        initialColumns = modelInitialColumns
     )
 }
-
-

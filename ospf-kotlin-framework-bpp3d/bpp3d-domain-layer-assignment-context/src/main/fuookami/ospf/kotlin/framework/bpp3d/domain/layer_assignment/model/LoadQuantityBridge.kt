@@ -5,11 +5,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Item as QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.Material as QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dItemDemand
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dMaterialDemand
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -17,52 +15,52 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
-private fun <V : FloatingNumber<V>> Quantity<V>.toFlt64Quantity(): Quantity<InfraNumber> {
+private fun <V : FloatingNumber<V>> Quantity<V>.toInfraQuantity(): Quantity<InfraNumber> {
     return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
 }
 
-fun <V : FloatingNumber<V>> toLegacyItems(
+fun <V : FloatingNumber<V>> toModelItems(
     items: List<Pair<QuantityItem<V>, UInt64>>,
-    legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<Pair<Item, UInt64>> {
     return items.map { (item, demand) ->
-        Pair(item.toLegacyModel(materialCache, legacyItemCache), demand)
+        Pair(item.toModel(materialCache, itemCache), demand)
     }
 }
 
-fun <V : FloatingNumber<V>> toLegacyItemRanges(
+fun <V : FloatingNumber<V>> toModelItemRanges(
     items: List<Triple<QuantityItem<V>, UInt64, ValueRange<UInt64>>>,
-    legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<Triple<Item, UInt64, ValueRange<UInt64>>> {
     return items.map { (item, demand, demandRange) ->
-        Triple(item.toLegacyModel(materialCache, legacyItemCache), demand, demandRange)
+        Triple(item.toModel(materialCache, itemCache), demand, demandRange)
     }
 }
 
-fun <V : FloatingNumber<V>> toLegacyLayers(
+fun <V : FloatingNumber<V>> toModelLayers(
     layers: List<QuantityBinLayer<V>>,
-    legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<BinLayer> {
-    return layers.map { it.toLegacyModel(materialCache, legacyItemCache) }
+    return layers.map { it.toModel(materialCache, itemCache) }
 }
 
-fun <V : FloatingNumber<V>> toLegacyItemDemands(
+fun <V : FloatingNumber<V>> toModelItemDemands(
     items: List<Pair<QuantityItem<V>, Quantity<V>>>,
-    legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
     materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
 ): List<Bpp3dItemDemand> {
     return items.map { (item, quantity) ->
         Bpp3dItemDemand(
-            item = item.toLegacyModel(materialCache, legacyItemCache),
-            quantity = quantity.toFlt64Quantity()
+            item = item.toModel(materialCache, itemCache),
+            quantity = quantity.toInfraQuantity()
         )
     }
 }
 
-fun <V : FloatingNumber<V>> toLegacyMaterialDemands(
+fun <V : FloatingNumber<V>> toModelMaterialDemands(
     materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>
 ): List<Bpp3dMaterialDemand> {
     return materials.map { (material, demand) ->
@@ -73,12 +71,12 @@ fun <V : FloatingNumber<V>> toLegacyMaterialDemands(
                 manufacturer = material.manufacturer,
                 supplier = material.supplier
             ),
-            quantity = demand.toFlt64Quantity()
+            quantity = demand.toInfraQuantity()
         )
     }
 }
 
-fun <V : FloatingNumber<V>> toLegacyMaterialWeightDemandsByKey(
+fun <V : FloatingNumber<V>> toModelMaterialWeightDemandsByKey(
     materials: List<Pair<QuantityMaterial<V>, Quantity<V>>>
 ): List<Pair<MaterialKey, Quantity<InfraNumber>>> {
     return materials.map { (material, demand) ->
@@ -89,11 +87,7 @@ fun <V : FloatingNumber<V>> toLegacyMaterialWeightDemandsByKey(
                 manufacturer = material.manufacturer,
                 supplier = material.supplier
             ),
-            demand.toFlt64Quantity()
+            demand.toInfraQuantity()
         )
     }
 }
-
-
-
-

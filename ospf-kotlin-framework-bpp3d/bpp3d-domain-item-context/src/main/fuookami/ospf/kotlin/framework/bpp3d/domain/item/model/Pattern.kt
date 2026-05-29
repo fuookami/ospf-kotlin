@@ -2,13 +2,13 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -315,7 +315,7 @@ abstract class Pattern {
                 when (planePlacement) {
                     is Ok -> {
                         val placements = planePlacement.value.flatMap { it.toPlacement3() }
-                        val maxZ = placements.fold(legacyNegativeInfinity()) { acc, placement ->
+                        val maxZ = placements.fold(itemNegativeInfinity()) { acc, placement ->
                             val current = PatternScalar(placement.maxZ.toDouble())
                             if (current gr acc) current else acc
                         }
@@ -528,7 +528,7 @@ abstract class Pattern {
                                         (space.height / Bottom.height(item)).floor().toUInt64()
                                     )
                                 if (heightAmount == UInt64.zero) {
-                                    legacyInfinity()
+                                    itemInfinity()
                                 } else {
                                     abs(PatternScalar(heightAmount.toULong().toDouble()) * item.weight.value - thisRestPileAverageWeight)
                                 }
@@ -624,5 +624,6 @@ abstract class Pattern {
         }
     }
 }
+
 
 

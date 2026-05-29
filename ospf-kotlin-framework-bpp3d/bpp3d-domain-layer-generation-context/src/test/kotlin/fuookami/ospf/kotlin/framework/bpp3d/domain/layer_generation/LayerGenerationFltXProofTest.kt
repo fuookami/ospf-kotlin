@@ -158,12 +158,12 @@ class LayerGenerationFltXProofTest {
                     z = q(FltX(0.0), Meter)
                 )
             )
-        ).toLegacyModel()
+        ).toModel()
 
         val generated = context.generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 1,
-                items = listOf(item.toLegacyModel()),
+                items = listOf(item.toModel()),
                 existingLayers = listOf(layer),
                 maxCandidates = 8
             )
@@ -203,7 +203,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-LOW"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val highItem = GenericItem(
             id = "item-high",
             name = "item-high",
@@ -211,7 +211,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-HIGH"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val highMaterialKey = highItem.materialAmounts.keys.first()
         val lowMaterialKey = lowItem.materialAmounts.keys.first()
 
@@ -349,7 +349,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-BLOCK"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val bin = BinType(
             width = infraScalar(2.0) * Meter,
             height = infraScalar(1.0) * Meter,
@@ -396,7 +396,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-PATTERN"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val bin = BinType(
             width = infraScalar(2.0) * Meter,
             height = infraScalar(1.0) * Meter,
@@ -443,7 +443,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-PILE"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val bin = BinType(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(3.0) * Meter,
@@ -490,7 +490,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CIRCLE"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val bin = BinType(
             width = infraScalar(3.0) * Meter,
             height = infraScalar(1.0) * Meter,
@@ -539,7 +539,7 @@ class LayerGenerationFltXProofTest {
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CIRCLE-TIE"),
             packageAttribute = defaultPackageAttribute()
-        ).toLegacyModel()
+        ).toModel()
         val bin = BinType(
             width = infraScalar(2.0) * Meter,
             height = infraScalar(1.0) * Meter,
@@ -563,5 +563,6 @@ class LayerGenerationFltXProofTest {
         assertEquals("circle-packing-hex", generated.first().source)
     }
 }
+
 
 

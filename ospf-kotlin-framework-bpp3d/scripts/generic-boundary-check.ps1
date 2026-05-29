@@ -20,12 +20,40 @@ if (-not (Get-Command rg -ErrorAction SilentlyContinue)) {
 
 $checks = @(
     @{
+        Name = "LegacyUpperToken"
+        Pattern = "\bLegacy[A-Za-z0-9_]*\b"
+    },
+    @{
+        Name = "LegacyLowerToken"
+        Pattern = "\blegacy[A-Za-z0-9_]*\b"
+    },
+    @{
         Name = "LegacyQuantity"
         Pattern = "\bLegacyQuantity\b"
     },
     @{
+        Name = "toLegacyModel"
+        Pattern = "toLegacyModel\("
+    },
+    @{
+        Name = "toLegacyItems"
+        Pattern = "toLegacyItems\("
+    },
+    @{
+        Name = "toLegacyLayers"
+        Pattern = "toLegacyLayers\("
+    },
+    @{
+        Name = "toLegacyPlacement3"
+        Pattern = "toLegacyPlacement3\("
+    },
+    @{
         Name = "toLegacy"
         Pattern = "toLegacy\("
+    },
+    @{
+        Name = "toFlt64Quantity"
+        Pattern = "toFlt64Quantity\("
     },
     @{
         Name = "asScalarF64"
@@ -74,6 +102,42 @@ $checks = @(
     @{
         Name = "Bpp3dBlaScalarToken"
         Pattern = "\bBpp3dBlaScalar\b"
+    },
+    @{
+        Name = "LegacyDemandSlicesToken"
+        Pattern = "\bLegacyDemandSlices\b"
+    },
+    @{
+        Name = "LegacyCuboidToken"
+        Pattern = "\bLegacyCuboid\b"
+    },
+    @{
+        Name = "LegacyCuboidGenericAdapterToken"
+        Pattern = "\bLegacyCuboidGenericAdapter\b"
+    },
+    @{
+        Name = "legacyZeroToken"
+        Pattern = "\blegacyZero\b"
+    },
+    @{
+        Name = "legacyOneToken"
+        Pattern = "\blegacyOne\b"
+    },
+    @{
+        Name = "legacyTwoToken"
+        Pattern = "\blegacyTwo\b"
+    },
+    @{
+        Name = "legacyInfinityToken"
+        Pattern = "\blegacyInfinity\b"
+    },
+    @{
+        Name = "legacyNegativeInfinityToken"
+        Pattern = "\blegacyNegativeInfinity\b"
+    },
+    @{
+        Name = "legacyScalarToken"
+        Pattern = "\blegacyScalar\b"
     }
 )
 

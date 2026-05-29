@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -192,10 +192,11 @@ class QuantityDemandStatisticsGenericTest {
             units = listOf(ItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter))
         )
 
-        val legacyLayer = layer.toLegacyModel()
-        assertEquals(1, legacyLayer.units.size)
-        assertTrue(legacyLayer.shape.width eq (infraScalar(2.0) * Meter))
-        assertTrue(legacyLayer.units.first().unit.weight eq (infraScalar(0.1) * Kilogram))
+        val modelLayer = layer.toModel()
+        assertEquals(1, modelLayer.units.size)
+        assertTrue(modelLayer.shape.width eq (infraScalar(2.0) * Meter))
+        assertTrue(modelLayer.units.first().view.unit.weight eq (infraScalar(0.1) * Kilogram))
     }
 }
+
 

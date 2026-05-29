@@ -349,12 +349,12 @@ open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
 
 /**
  * 旧版 `Cuboid<T>` 的泛型适配器（`InfraNumber`）。
- * Generic adapter for legacy `Cuboid<T>` (`InfraNumber`).
+ * Generic adapter for model `Cuboid<T>` (`InfraNumber`).
  */
-data class LegacyCuboidGenericAdapter<T : Cuboid<T>>(
+data class ModelCuboidAdapter<T : Cuboid<T>>(
     val cuboid: T
-) : GenericCuboid<LegacyCuboidGenericAdapter<T>, InfraNumber> {
-    override val self: LegacyCuboidGenericAdapter<T>
+) : GenericCuboid<ModelCuboidAdapter<T>, InfraNumber> {
+    override val self: ModelCuboidAdapter<T>
         get() = this
     override val width by cuboid::width
     override val height by cuboid::height
@@ -363,8 +363,8 @@ data class LegacyCuboidGenericAdapter<T : Cuboid<T>>(
     override val enabledOrientations by cuboid::enabledOrientations
 }
 
-fun <T : Cuboid<T>> T.asGenericCuboid(): LegacyCuboidGenericAdapter<T> {
-    return LegacyCuboidGenericAdapter(this)
+fun <T : Cuboid<T>> T.asGenericCuboid(): ModelCuboidAdapter<T> {
+    return ModelCuboidAdapter(this)
 }
 
 fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asGenericContainer2Shape(): GenericContainer2Shape<P, InfraNumber> {
@@ -382,3 +382,4 @@ fun AbstractContainer3Shape.asGenericContainer3Shape(): GenericContainer3Shape<I
         depth = depth
     )
 }
+

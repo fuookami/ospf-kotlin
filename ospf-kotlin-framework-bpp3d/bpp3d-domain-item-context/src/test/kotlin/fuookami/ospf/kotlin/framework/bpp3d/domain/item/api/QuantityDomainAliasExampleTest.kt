@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -75,7 +75,7 @@ class QuantityDomainAliasExampleTest {
 
         assertTrue(layer.width eq (infraScalar(5.0) * Meter))
         assertEquals(1, layer.units.size)
-        assertTrue(layer.toLegacyModel().shape.width eq (infraScalar(5.0) * Meter))
+        assertTrue(layer.toModel().shape.width eq (infraScalar(5.0) * Meter))
     }
 
     @Test
@@ -119,7 +119,8 @@ class QuantityDomainAliasExampleTest {
         assertEquals(Meter, layer.width.unit)
         assertEquals(5.0, layer.width.value.toDouble(), 1e-10)
         assertEquals(1, layer.units.size)
-        assertTrue(layer.toLegacyModel().shape.width eq (infraScalar(5.0) * Meter))
+        assertTrue(layer.toModel().shape.width eq (infraScalar(5.0) * Meter))
     }
 }
+
 

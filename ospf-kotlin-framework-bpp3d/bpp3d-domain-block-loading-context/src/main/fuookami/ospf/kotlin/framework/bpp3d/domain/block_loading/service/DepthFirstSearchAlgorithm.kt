@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -582,9 +582,10 @@ class DepthFirstSearchAlgorithm(
             mergedSpaces[i] = space1
         }
         return mergedSpaces
-            .filter { it.value.shape.volume neq legacyZero() }
+            .filter { it.value.shape.volume neq itemZero() }
             .sortedWith(compareBy { it.index })
             .map { it.value }
     }
 }
+
 

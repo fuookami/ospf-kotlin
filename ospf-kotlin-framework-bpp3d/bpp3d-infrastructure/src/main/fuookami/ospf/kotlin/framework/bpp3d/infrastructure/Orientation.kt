@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -27,7 +27,7 @@ enum class OrientationCategory {
  *
  * 从 enum 迁移为 sealed class，同时保持字符串序列化/反序列化与旧枚举名称兼容。
  * Migrated from enum to sealed class while preserving string serialization/deserialization
- * compatibility with legacy enum names.
+ * compatibility with previous enum names.
  */
 @Serializable(with = OrientationSerializer::class)
 sealed class Orientation {
@@ -185,4 +185,5 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
         }
     }
 }
+
 

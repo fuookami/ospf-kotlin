@@ -3,13 +3,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
@@ -66,7 +66,7 @@ class BinType(
     }
 
     // inherited from Container3Shape
-    override fun enabled(unit: LegacyCuboid, orientation: Orientation): Boolean {
+    override fun enabled(unit: ItemCuboid, orientation: Orientation): Boolean {
         return super.enabled(unit, orientation) && unit.weight leq capacity
     }
 
@@ -81,7 +81,7 @@ class BinType(
     fun estimateAmount(
         totalVolume: Quantity<InfraNumber>,
         totalWeight: Quantity<InfraNumber>,
-        estimatedLoadingRate: InfraNumber = legacyOne()
+        estimatedLoadingRate: InfraNumber = itemOne()
     ): InfraNumber {
         return max(
             ((totalVolume / volume).value / estimatedLoadingRate),
@@ -121,7 +121,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * legacyZero()
+                                it.y * itemZero()
                             }
                         }
 
@@ -130,7 +130,7 @@ class BinType(
                         }
 
                         else -> {
-                            it.y * legacyZero()
+                            it.y * itemZero()
                         }
                     }
                 }
@@ -140,7 +140,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * legacyZero()
+                                it.y * itemZero()
                             }
                         }
 
@@ -149,7 +149,7 @@ class BinType(
                         }
 
                         else -> {
-                            it.y * legacyZero()
+                            it.y * itemZero()
                         }
                     }
                 }
@@ -171,7 +171,7 @@ class BinType(
                     scope = this
                 )
                 for (thisLayers in layersPromise) {
-                    var z = legacyZero() * depth.unit
+                    var z = itemZero() * depth.unit
                     val thisPlacements = thisLayers.map {
                         val ret = QuantityPlacement3(BinLayerView(it.copy()), point3(z = z))
                         z += it.depth
@@ -260,5 +260,6 @@ typealias ItemBin = Bin<Item>
 fun LayerBin.dump(): ItemBin {
     return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
 }
+
 
 

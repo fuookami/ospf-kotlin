@@ -21,14 +21,14 @@ import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import kotlin.reflect.KClass
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer as LegacyBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem as LegacyItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material as LegacyMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package as LegacyPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape as LegacyPackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3 as LegacyPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer as ModelBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem as ModelItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material as ModelMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package as ModelPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape as ModelPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3 as ModelPlacement3
 
-private fun <V : FloatingNumber<V>> Quantity<V>.toFlt64Quantity(): Quantity<InfraNumber> {
+private fun <V : FloatingNumber<V>> Quantity<V>.toInfraQuantity(): Quantity<InfraNumber> {
     return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
 }
 
@@ -46,8 +46,8 @@ data class Material<V : FloatingNumber<V>>(
     val warehouse: String? = null,
     val weight: Quantity<V>
 ) {
-    fun toLegacyModel(): LegacyMaterial {
-        return LegacyMaterial(
+    fun toModel(): ModelMaterial {
+        return ModelMaterial(
             no = no,
             type = type,
             cargo = cargo,
@@ -55,7 +55,7 @@ data class Material<V : FloatingNumber<V>>(
             manufacturer = manufacturer,
             supplier = supplier,
             warehouse = warehouse,
-            weight = weight.toFlt64Quantity()
+            weight = weight.toInfraQuantity()
         )
     }
 }
@@ -69,12 +69,12 @@ data class PackageShape<V : FloatingNumber<V>>(
 ) {
     val volume: Quantity<V> = width * height * depth
 
-    fun toLegacyModel(): LegacyPackageShape {
-        return LegacyPackageShape(
-            width = width.toFlt64Quantity(),
-            height = height.toFlt64Quantity(),
-            depth = depth.toFlt64Quantity(),
-            weight = weight.toFlt64Quantity(),
+    fun toModel(): ModelPackageShape {
+        return ModelPackageShape(
+            width = width.toInfraQuantity(),
+            height = height.toInfraQuantity(),
+            depth = depth.toInfraQuantity(),
+            weight = weight.toInfraQuantity(),
             packageType = packageType
         )
     }
@@ -141,27 +141,27 @@ data class Package<V : FloatingNumber<V>>(
     val packageType by shape::packageType
     val volume by shape::volume
 
-    fun toLegacyModel(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap()
-    ): LegacyPackage {
+    fun toModel(
+        materialCache: MutableMap<Material<V>, ModelMaterial> = LinkedHashMap()
+    ): ModelPackage {
         return if (packages.isNullOrEmpty()) {
-            LegacyPackage.innerPackage(
+            ModelPackage.innerPackage(
                 code = code,
                 pattern = pattern,
-                shape = shape.toLegacyModel(),
+                shape = shape.toModel(),
                 materials = materials.map { (material, amount) ->
-                    val legacyMaterial = materialCache.getOrPut(material) { material.toLegacyModel() }
-                    Pair(legacyMaterial, amount)
+                    val modelMaterial = materialCache.getOrPut(material) { material.toModel() }
+                    Pair(modelMaterial, amount)
                 }.toMap(),
                 amount = amount,
                 pending = pending
             )
         } else {
-            LegacyPackage.outerPackage(
+            ModelPackage.outerPackage(
                 code = code,
                 pattern = pattern,
-                shape = shape.toLegacyModel(),
-                packages = packages.map { it.toLegacyModel(materialCache) },
+                shape = shape.toModel(),
+                packages = packages.map { it.toModel(materialCache) },
                 amount = amount,
                 pending = pending
             )
@@ -206,21 +206,21 @@ data class Item<V : FloatingNumber<V>>(
         packageAttribute = packageAttribute
     )
 
-    fun toLegacyModel(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap(),
-        itemCache: MutableMap<Item<V>, LegacyItem> = LinkedHashMap()
-    ): LegacyItem {
+    fun toModel(
+        materialCache: MutableMap<Material<V>, ModelMaterial> = LinkedHashMap(),
+        itemCache: MutableMap<Item<V>, ModelItem> = LinkedHashMap()
+    ): ModelItem {
         return itemCache.getOrPut(this) {
-            val legacyPack = pack?.toLegacyModel(materialCache)
-            LegacyItem(
+            val modelPack = pack?.toModel(materialCache)
+            ModelItem(
                 id = id,
                 name = name,
-                packageCode = packageCode ?: legacyPack?.code,
-                pack = legacyPack,
-                width = width.toFlt64Quantity(),
-                height = height.toFlt64Quantity(),
-                depth = depth.toFlt64Quantity(),
-                weight = weight.toFlt64Quantity(),
+                packageCode = packageCode ?: modelPack?.code,
+                pack = modelPack,
+                width = width.toInfraQuantity(),
+                height = height.toInfraQuantity(),
+                depth = depth.toInfraQuantity(),
+                weight = weight.toInfraQuantity(),
                 enabledOrientations = enabledOrientations,
                 batchNo = batchNo,
                 warehouse = warehouse,
@@ -237,17 +237,17 @@ data class ItemPlacement<V : FloatingNumber<V>>(
     val z: Quantity<V>,
     val orientation: Orientation = Orientation.Upright
 ) {
-    fun toLegacyModel(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap(),
-        itemCache: MutableMap<Item<V>, LegacyItem> = LinkedHashMap()
-    ): LegacyPlacement3<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item> {
-        val legacyItem = item.toLegacyModel(materialCache, itemCache)
-        return LegacyPlacement3(
-            view = legacyItem.view(orientation),
+    fun toModel(
+        materialCache: MutableMap<Material<V>, ModelMaterial> = LinkedHashMap(),
+        itemCache: MutableMap<Item<V>, ModelItem> = LinkedHashMap()
+    ): ModelPlacement3<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item> {
+        val modelItem = item.toModel(materialCache, itemCache)
+        return ModelPlacement3(
+            view = modelItem.view(orientation),
             position = point3(
-                x = x.toFlt64Quantity().value,
-                y = y.toFlt64Quantity().value,
-                z = z.toFlt64Quantity().value
+                x = x.toInfraQuantity().value,
+                y = y.toInfraQuantity().value,
+                z = z.toInfraQuantity().value
             )
         )
     }
@@ -261,22 +261,24 @@ data class BinLayer<V : FloatingNumber<V>>(
     val depth: Quantity<V>,
     val units: List<ItemPlacement<V>>
 ) {
-    fun toLegacyModel(
-        materialCache: MutableMap<Material<V>, LegacyMaterial> = LinkedHashMap(),
-        itemCache: MutableMap<Item<V>, LegacyItem> = LinkedHashMap()
-    ): LegacyBinLayer {
-        return LegacyBinLayer(
+    fun toModel(
+        materialCache: MutableMap<Material<V>, ModelMaterial> = LinkedHashMap(),
+        itemCache: MutableMap<Item<V>, ModelItem> = LinkedHashMap()
+    ): ModelBinLayer {
+        return ModelBinLayer(
             iteration = iteration,
             from = from,
             shape = Container3Shape(
-                width = width.toFlt64Quantity(),
-                height = height.toFlt64Quantity(),
-                depth = depth.toFlt64Quantity()
+                width = width.toInfraQuantity(),
+                height = height.toInfraQuantity(),
+                depth = depth.toInfraQuantity()
             ),
-            units = units.map { it.toLegacyModel(materialCache, itemCache) }
+            units = units.map { it.toModel(materialCache, itemCache) }
         )
     }
 }
+
+
 
 
 

@@ -80,7 +80,7 @@ data class ColumnGenerationApplicationRequest(
             materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap(),
             itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
         ): ColumnGenerationApplicationRequest {
-            val slices = toLegacyDemandSlices(
+            val slices = toDemandSlices(
                 itemDemands = itemDemands,
                 materialAmountDemands = materialAmountDemands,
                 materialWeightDemands = materialWeightDemands,
@@ -324,4 +324,5 @@ class ColumnGenerationApplicationService(
         return catalog
     }
 }
+
 

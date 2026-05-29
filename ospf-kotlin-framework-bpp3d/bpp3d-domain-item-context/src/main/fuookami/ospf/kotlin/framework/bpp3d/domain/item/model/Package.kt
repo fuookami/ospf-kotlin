@@ -5,13 +5,13 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.LegacyCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.ItemCuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyTwo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.legacyZero
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemOne
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemTwo
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.api.itemZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
@@ -52,7 +52,7 @@ data class PackageBottomShape(
     override fun eq(rhs: PackageBottomShape): Boolean {
         if (width neq rhs.width) return false
         if (depth neq rhs.depth) return false
-        if ((weight - rhs.weight).abs() gr (legacyTwo() * weight.unit)) return false
+        if ((weight - rhs.weight).abs() gr (itemTwo() * weight.unit)) return false
 
         return packageType == rhs.packageType
     }
@@ -113,7 +113,7 @@ data class PackageShape(
         if (width neq rhs.width) return false
         if (height neq rhs.height) return false
         if (depth neq rhs.depth) return false
-        if ((weight - rhs.weight).abs() gr (legacyTwo() * weight.unit)) return false
+        if ((weight - rhs.weight).abs() gr (itemTwo() * weight.unit)) return false
 
         return packageType == rhs.packageType
     }
@@ -633,6 +633,7 @@ open class Package(
         return materialType != null && materials.keys.any { it.type == materialType }
     }
 }
+
 
 
 

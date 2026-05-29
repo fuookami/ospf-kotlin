@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Precis
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoad
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoadCapacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toLegacyItems
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.toModelItems
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinAmountMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
@@ -47,7 +47,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -60,24 +59,26 @@ import fuookami.ospf.kotlin.quantities.quantity.plus
 import kotlin.math.roundToInt
 
 private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): MetaDualSolution {
-    val constraints = LinkedHashMap<MathConstraint, Flt64>()
-    val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<Flt64, *>, Flt64>>>()
+    val constraints = LinkedHashMap<MathConstraint, Any>()
+    val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<*, *>, Any>>>()
 
     for ((key, value) in dualSolution) {
         val constraint = key as? Constraint<*, *> ?: continue
-        val dual = value as? Flt64 ?: continue
+        val dual = value ?: continue
         constraint.origin?.let { constraints[it] = dual }
         constraint.from?.let { (symbol, _) ->
-            @Suppress("UNCHECKED_CAST")
-            val typedConstraint = constraint as Constraint<Flt64, *>
-            symbols.getOrPut(symbol) { mutableListOf() }.add(typedConstraint to dual)
+            symbols.getOrPut(symbol) { mutableListOf() }.add(constraint to dual)
         }
     }
 
-    return MetaDualSolution(
-        constraints = constraints,
-        symbols = symbols.mapValues { it.value.toList() }
-    )
+    val ctor = MetaDualSolution::class.java.declaredConstructors
+        .firstOrNull { it.parameterCount == 2 }
+        ?: throw IllegalStateException("MetaDualSolution constructor is unavailable")
+    @Suppress("UNCHECKED_CAST")
+    return ctor.newInstance(
+        constraints,
+        symbols.mapValues { it.value.toList() }
+    ) as MetaDualSolution
 }
 
 private fun extractDualSolutionMap(result: Any): Map<*, *> {
@@ -130,22 +131,22 @@ class ColumnGenerationStandardExecutors(
             itemDemands: List<Pair<QuantityItem<V>, UInt64>>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
             materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
         ): ColumnGenerationStandardExecutors {
-            val legacyItemDemands = toLegacyItems(
+            val modelItemDemands = toModelItems(
                 items = itemDemands,
-                legacyItemCache = legacyItemCache,
+                itemCache = itemCache,
                 materialCache = materialCache
             )
             val demandEntries = demandEntriesFromItems(
                 items = itemDemands,
-                legacyItemCache = legacyItemCache,
+                itemCache = itemCache,
                 materialCache = materialCache
             )
             return ColumnGenerationStandardExecutors(
                 solver = solver,
-                itemDemands = legacyItemDemands,
+                itemDemands = modelItemDemands,
                 demandEntries = demandEntries,
                 finalBins = finalBins,
                 config = config
@@ -158,17 +159,17 @@ class ColumnGenerationStandardExecutors(
             demandEntries: List<Bpp3dDemandEntry>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            legacyItemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
+            itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap(),
             materialCache: MutableMap<QuantityMaterial<V>, Material> = LinkedHashMap()
         ): ColumnGenerationStandardExecutors {
-            val legacyItemDemands = toLegacyItems(
+            val modelItemDemands = toModelItems(
                 items = itemDemands,
-                legacyItemCache = legacyItemCache,
+                itemCache = itemCache,
                 materialCache = materialCache
             )
             return ColumnGenerationStandardExecutors(
                 solver = solver,
-                itemDemands = legacyItemDemands,
+                itemDemands = modelItemDemands,
                 demandEntries = demandEntries,
                 finalBins = finalBins,
                 config = config
@@ -526,4 +527,5 @@ class ColumnGenerationStandardExecutors(
         }
     }
 }
+
 
