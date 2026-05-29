@@ -117,6 +117,7 @@ object NumericDispatcher {
         registry[ops.type] = ops
     }
 
+    /** 根据运行时类型获取类型化的数值运算处理器 / Get typed numeric operation handler by runtime type */
     @Suppress("UNCHECKED_CAST")
     private fun <T : Any> typedOpsFor(type: KClass<out Any>): NumericOps<T>? {
         // 注册时 key 来自 ops.type，读取时只按同一个运行时 KClass 取回。

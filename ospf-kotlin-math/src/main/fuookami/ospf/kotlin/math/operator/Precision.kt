@@ -37,10 +37,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * All comparison operations consider the precision tolerance, suitable for
  * comparing real number types like floating-point numbers.
  *
- * @param T 数值类型，必须是实数、加法群且支持绝对值运箌
- * @param precision 比较精度，用于判断两个数是否相等
+ * @param T 数值类型，必须是实数、加法群且支持绝对值运算
+ * @property precision 比较精度，用于判断两个数是否相等
  *
- * @property T Numeric type, must be a real number, plus group, and support absolute value operation
+ * @param T Numeric type, must be a real number, plus group, and support absolute value operation
  * @property precision Comparison precision used to determine if two numbers are equal
  */
 class Precision<T>(

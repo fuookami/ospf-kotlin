@@ -13,6 +13,16 @@ import kotlin.math.sqrt
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 将向量转换为单位向量并保持类型
+ * Convert a vector to a unit vector while preserving its type
+ *
+ * @param D 维度类型 / The dimension type
+ * @param Va 数值类型 / The numeric type
+ * @param Vec 向量类型 / The vector type
+ * @param radiusVec 半径向量 / The radius vector
+ * @return 单位向量（保持原类型） / The unit vector (preserving the original type)
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <D : Dimension, Va : FloatingNumber<Va>, Vec : Vector<D, Va>> unitAsSameVectorType(radiusVec: Vec): Vec {
     // 安全不变量：unit 保持 Vector<D, Va> 数域与维度不变，仅回收为调用方 Vec 视图。
@@ -38,7 +48,13 @@ data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : Flo
     val radius: Va
 ) {
     companion object {}
-    /** 通过圆心和半径向量构造 / Construct from center and radius vector */
+    /**
+     * 通过圆心和半径向量构造
+     * Construct from center and radius vector
+     *
+     * @param center 圆心 / The center point
+     * @param radiusVec 半径向量（方向和长度） / The radius vector (direction and length)
+     */
     constructor(center: P, radiusVec: Vec) : this(
         center = center,
         direction = unitAsSameVectorType(radiusVec),
@@ -58,7 +74,13 @@ val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.circumference: 
 /** 直径 / Diameter */
 val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.diameter: Flt64 get() = Flt64.two * radius
 
-/** 判断二维点是否在圆内（含边界） / Check whether a 2D point is inside the circle (inclusive) */
+/**
+ * 判断二维点是否在圆内（含边界）
+ * Check whether a 2D point is inside the circle (inclusive)
+ *
+ * @param point 待检测的点 / The point to check
+ * @return 点是否在圆内 / Whether the point is inside the circle
+ */
 @JvmName("containsPoint2D")
 infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<Dim2, Flt64>): Boolean {
     val dx = point.x - center.x
@@ -67,7 +89,13 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsP
     return distSq leq radius * radius
 }
 
-/** 判断二维点是否严格在圆内（不含边界） / Check whether a 2D point is strictly inside the circle (exclusive) */
+/**
+ * 判断二维点是否严格在圆内（不含边界）
+ * Check whether a 2D point is strictly inside the circle (exclusive)
+ *
+ * @param point 待检测的点 / The point to check
+ * @return 点是否严格在圆内 / Whether the point is strictly inside the circle
+ */
 infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsPointStrict(point: Point<Dim2, Flt64>): Boolean {
     val dx = point.x - center.x
     val dy = point.y - center.y
@@ -75,7 +103,13 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsP
     return distSq ls radius * radius
 }
 
-/** 判断两个二维圆是否相交 / Check whether two 2D circles intersect */
+/**
+ * 判断两个二维圆是否相交
+ * Check whether two 2D circles intersect
+ *
+ * @param other 另一个圆 / The other circle
+ * @return 是否相交 / Whether they intersect
+ */
 infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
@@ -83,7 +117,13 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.intersect
     return dist <= (radius + other.radius).toDouble()
 }
 
-/** 判断另一个圆是否完全在本圆内 / Check whether another circle is entirely inside this circle */
+/**
+ * 判断另一个圆是否完全在本圆内
+ * Check whether another circle is entirely inside this circle
+ *
+ * @param other 另一个圆 / The other circle
+ * @return 另一个圆是否完全在本圆内 / Whether the other circle is entirely inside this circle
+ */
 infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsCircle(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
@@ -91,7 +131,14 @@ infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsC
     return dist + other.radius.toDouble() <= radius.toDouble()
 }
 
-/** 判断点是否在圆的边界上 / Check whether a point is on the circle's boundary */
+/**
+ * 判断点是否在圆的边界上
+ * Check whether a point is on the circle's boundary
+ *
+ * @param point 待检测的点 / The point to check
+ * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
+ * @return 点是否在边界上 / Whether the point is on the boundary
+ */
 fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.pointOnBoundary(point: Point<Dim2, Flt64>, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
     val dx = point.x - center.x
     val dy = point.y - center.y
@@ -99,7 +146,14 @@ fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.pointOnBoundary
     return (dist - radius).abs() <= epsilon
 }
 
-/** 判断两个圆是否相切 / Check whether two circles are tangent */
+/**
+ * 判断两个圆是否相切
+ * Check whether two circles are tangent
+ *
+ * @param other 另一个圆 / The other circle
+ * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
+ * @return 是否相切 / Whether they are tangent
+ */
 fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.isTangent(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
@@ -113,7 +167,13 @@ fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.isTangent(other
     return externalTangent || internalTangent
 }
 
-/** 计算两个圆的交点 / Compute intersection points of two circles */
+/**
+ * 计算两个圆的交点
+ * Compute intersection points of two circles
+ *
+ * @param other 另一个圆 / The other circle
+ * @return 交点列表（0、1 或 2 个） / List of intersection points (0, 1, or 2)
+ */
 infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.intersectionPoints(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>): List<Point<Dim2, Flt64>> {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
@@ -168,7 +228,13 @@ val Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.volume: Flt64
 /** 球表面积 / Sphere surface area */
 val Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.surfaceArea: Flt64 get() = Flt64(4.0) * Flt64.pi * radius * radius
 
-/** 判断三维点是否在球内（含边界） / Check whether a 3D point is inside the sphere (inclusive) */
+/**
+ * 判断三维点是否在球内（含边界）
+ * Check whether a 3D point is inside the sphere (inclusive)
+ *
+ * @param point 待检测的点 / The point to check
+ * @return 点是否在球内 / Whether the point is inside the sphere
+ */
 @JvmName("containsPoint3D")
 infix fun Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.containsPoint(point: Point<Dim3, Flt64>): Boolean {
     val dx = point.x - center.x
@@ -178,7 +244,13 @@ infix fun Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.containsP
     return distSq leq radius * radius
 }
 
-/** 计算三角形的外接圆 / Compute the circumcircle of a triangle */
+/**
+ * 计算三角形的外接圆
+ * Compute the circumcircle of a triangle
+ *
+ * @param triangle 三角形 / The triangle
+ * @return 外接圆 / The circumcircle
+ */
 fun Circle.Companion.circumcircleOf(triangle: Triangle<Point<Dim2, Flt64>, Dim2, Flt64>): Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64> {
     val ax = triangle.p2.x - triangle.p1.x
     val ay = triangle.p2.y - triangle.p1.y

@@ -31,14 +31,28 @@ data class Cuboid3<V : FloatingNumber<V>>(
     /** 在原点处创建包围盒 / Create a bounding box at the origin */
     fun atOrigin(): Box3<V> = Box3.atOrigin(this)
 
-    /** 在指定位置创建包围盒 / Create a bounding box at the specified position */
+    /**
+     * 在指定位置创建包围盒
+     * Create a bounding box at the specified position
+     *
+     * @param x X 坐标 / X coordinate
+     * @param y Y 坐标 / Y coordinate
+     * @param z Z 坐标 / Z coordinate
+     * @return 指定位置的包围盒 / The bounding box at the specified position
+     */
     fun at(
         x: V,
         y: V,
         z: V
     ): Box3<V> = Box3(x = x, y = y, z = z, cuboid = this)
 
-    /** 沿指定轴的尺寸 / Dimension along the specified axis */
+    /**
+     * 沿指定轴的尺寸
+     * Dimension along the specified axis
+     *
+     * @param axis 目标轴 / The target axis
+     * @return 沿该轴的尺寸 / The dimension along the axis
+     */
     fun along(axis: Axis3): V {
         return when (axis) {
             Axis3.X -> width

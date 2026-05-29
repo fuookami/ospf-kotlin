@@ -67,6 +67,10 @@ data class CapacitanceEquation<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 电容方程生成器
+ * Capacitance Equation Generator
+ */
 data class CapacitanceEquationGenerator(
     val capacitanceEquation: CapacitanceEquation<Flt64> = CapacitanceEquation(),
     private var _x: Point<Dim3, Flt64> = point3(

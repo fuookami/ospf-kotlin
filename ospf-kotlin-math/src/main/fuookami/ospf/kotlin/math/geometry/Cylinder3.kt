@@ -50,7 +50,13 @@ data class Cylinder3<V : FloatingNumber<V>>(
             }
         }
 
-    /** 沿指定轴的尺寸（轴向为高度，其余为直径） / Dimension along the specified axis (axial=height, others=diameter) */
+    /**
+     * 沿指定轴的尺寸（轴向为高度，其余为直径）
+     * Dimension along the specified axis (axial=height, others=diameter)
+     *
+     * @param axis 目标轴 / The target axis
+     * @return 沿该轴的尺寸 / The dimension along the axis
+     */
     fun along(axis: Axis3): V {
         return if (axis == this.axis) {
             height
@@ -67,7 +73,13 @@ data class Cylinder3<V : FloatingNumber<V>>(
             to = height
         )
 
-    /** 在指定平面上的投影形状 / The projection shape on the specified plane */
+    /**
+     * 在指定平面上的投影形状
+     * The projection shape on the specified plane
+     *
+     * @param plane 目标平面 / The target plane
+     * @return 投影形状 / The projection shape
+     */
     fun projectionOn(plane: AxisPlane3): Projection2<V> {
         return if (plane.contains(axis)) {
             Rectangle2(
@@ -79,19 +91,45 @@ data class Cylinder3<V : FloatingNumber<V>>(
         }
     }
 
-    /** 计算底面积 / Compute the base area */
+    /**
+     * 计算底面积
+     * Compute the base area
+     *
+     * @param pi 圆周率值 / The pi value
+     * @return 底面积 / The base area
+     */
     fun baseArea(pi: V): V = (radius * radius) * pi
 
-    /** 计算体积 / Compute the volume */
+    /**
+     * 计算体积
+     * Compute the volume
+     *
+     * @param pi 圆周率值 / The pi value
+     * @return 体积 / The volume
+     */
     fun volume(pi: V): V = baseArea(pi) * height
 
-    /** 按轴置换 / Permute by axes */
+    /**
+     * 按轴置换
+     * Permute by axes
+     *
+     * @param permutation 轴置换方案 / The axis permutation
+     * @return 置换后的圆柱 / The permuted cylinder
+     */
     fun permute(permutation: AxisPermutation3): Cylinder3<V> = permutation.apply(this)
 
     /** 在原点处创建包围盒 / Create a bounding box at the origin */
     fun boundingBoxAtOrigin(): Box3<V> = Box3.atOrigin(boundingCuboid)
 
-    /** 在指定位置创建包围盒 / Create a bounding box at the specified position */
+    /**
+     * 在指定位置创建包围盒
+     * Create a bounding box at the specified position
+     *
+     * @param x X 坐标 / X coordinate
+     * @param y Y 坐标 / Y coordinate
+     * @param z Z 坐标 / Z coordinate
+     * @return 指定位置的包围盒 / The bounding box at the specified position
+     */
     fun toBoundingBox(
         x: V,
         y: V,
@@ -106,5 +144,11 @@ data class Cylinder3<V : FloatingNumber<V>>(
     }
 }
 
-/** @see Cylinder3 */
+/**
+ * 三维轴对齐圆柱体，等同于 Cylinder3。
+ * 3D axis-aligned cylinder, equivalent to Cylinder3.
+ *
+ * @param V 数值类型 / The numeric type
+ * @see Cylinder3
+ */
 typealias AxisAlignedCylinder3<V> = Cylinder3<V>

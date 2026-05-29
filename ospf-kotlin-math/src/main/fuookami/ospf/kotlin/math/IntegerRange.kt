@@ -120,7 +120,13 @@ class IntegerRange<I>(
         )
     }
 
-    /** 指定步长 / Specify step size */
+    /**
+     * 指定步长
+     * Specify step size
+     *
+     * @param step 步长值 / Step size value
+     * @return 指定步长后的新区间 / New range with specified step size
+     */
     infix fun step(step: I) = IntegerRange(
         start = start,
         endInclusive = endInclusive,
@@ -223,7 +229,13 @@ class NumericUIntegerRange<NI, I>(
         )
     }
 
-    /** 指定步长 / Specify step size */
+    /**
+     * 指定步长
+     * Specify step size
+     *
+     * @param step 步长值 / Step size value
+     * @return 指定步长后的新区间 / New range with specified step size
+     */
     infix fun step(step: NI) = NumericUIntegerRange(
         start = start,
         endInclusive = endInclusive,

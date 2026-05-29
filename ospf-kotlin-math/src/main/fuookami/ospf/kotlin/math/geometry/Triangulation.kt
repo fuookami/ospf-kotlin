@@ -44,6 +44,14 @@ data class DelaunayTriangulation2(
         result
     }
 
+    /**
+     * 查找两个点在点集中的索引
+     * Find the indices of two points in the point set
+     *
+     * @param p1 第一个点 / The first point
+     * @param p2 第二个点 / The second point
+     * @return 两个点的索引对 / The pair of indices
+     */
     private fun findPointIndices(p1: Point<Dim2, Flt64>, p2: Point<Dim2, Flt64>): Pair<Int, Int> {
         var i1 = 0
         var i2 = 0
@@ -208,6 +216,13 @@ data object Delaunay {
         return Ok(invoke(points))
     }
 
+    /**
+     * 删除重复边
+     * Delete duplicate edges
+     *
+     * @param edges 边列表 / The list of edges
+     * @return 去重后的边列表 / The deduplicated list of edges
+     */
     private fun deleteDuplicateEdges(edges: List<Edge<Point<Dim2, Flt64>, Dim2, Flt64>>): List<Edge<Point<Dim2, Flt64>, Dim2, Flt64>> {
         val duplication = edges.map { false }.toMutableList()
         for (i in edges.indices) {
@@ -225,10 +240,26 @@ data object Delaunay {
         return edges.indices.filter { !duplication[it] }.map { edges[it] }
     }
 
+    /**
+     * 使用新点和边界更新三角形列表
+     * Update triangle list with a new point and edges
+     *
+     * @param triangles 三角形列表（可变） / The mutable triangle list
+     * @param point 新插入的点 / The newly inserted point
+     * @param edges 边界列表 / The list of edges
+     */
     private fun updateTriangles(triangles: MutableList<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>, point: Point<Dim2, Flt64>, edges: List<Edge<Point<Dim2, Flt64>, Dim2, Flt64>>) {
         triangles.addAll(edges.map { Triangle<Point<Dim2, Flt64>, Dim2, Flt64>(it.from, it.to, point) })
     }
 
+    /**
+     * 移除原始超级三角形及其关联三角形
+     * Remove the original super triangle and its associated triangles
+     *
+     * @param triangles 三角形列表（可变） / The mutable triangle list
+     * @param superTriangle 超级三角形 / The super triangle
+     * @param undeterminedTriangles 未确定的三角形列表 / The list of undetermined triangles
+     */
     private fun removeOriginSuperTriangle(
         triangles: MutableList<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>,
         superTriangle: Triangle<Point<Dim2, Flt64>, Dim2, Flt64>,
@@ -244,6 +275,13 @@ data object Delaunay {
         triangles.addAll(undeterminedTriangles.filter { !isSuperTriangle(it) })
     }
 
+    /**
+     * 计算包围所有点的超级三角形
+     * Compute the super triangle that encloses all points
+     *
+     * @param points 二维点集 / The 2D point set
+     * @return 超级三角形 / The super triangle
+     */
     private fun getSuperTriangle(points: List<Point<Dim2, Flt64>>): Triangle<Point<Dim2, Flt64>, Dim2, Flt64> {
         val (minX, maxX) = points.minMaxOf { point: Point<Dim2, Flt64> -> point.x }
         val dx = maxX - minX
@@ -262,25 +300,49 @@ data object Delaunay {
     }
 }
 
-/** 对二维点集进行 Delaunay 三角剖分，返回完整结果 / Perform Delaunay triangulation on a 2D point set, returning full result */
+/**
+ * 对二维点集进行 Delaunay 三角剖分，返回完整结果
+ * Perform Delaunay triangulation on a 2D point set, returning full result
+ *
+ * @param points 二维点集 / 2D point set
+ * @return 三角剖分结果 / The triangulation result
+ */
 @JvmName("delaunayTriangulate2")
 fun delaunayTriangulate(points: List<Point<Dim2, Flt64>>): DelaunayTriangulation2 {
     return Delaunay.triangulate(points)
 }
 
-/** 对二维点集进行 Delaunay 三角剖分（带错误处理） / Perform Delaunay triangulation on a 2D point set (with error handling) */
+/**
+ * 对二维点集进行 Delaunay 三角剖分（带错误处理）
+ * Perform Delaunay triangulation on a 2D point set (with error handling)
+ *
+ * @param points 二维点集（至少 3 个点） / 2D point set (at least 3 points)
+ * @return 三角剖分结果或错误 / The triangulation result or error
+ */
 @JvmName("delaunayTriangulate2Ret")
 fun delaunayTriangulateRet(points: List<Point<Dim2, Flt64>>): Ret<DelaunayTriangulation2> {
     return Delaunay.triangulateRet(points)
 }
 
-/** 对二维点集进行三角剖分，返回三角形列表 / Triangulate a 2D point set, returning triangle list */
+/**
+ * 对二维点集进行三角剖分，返回三角形列表
+ * Triangulate a 2D point set, returning triangle list
+ *
+ * @param points 二维点集 / 2D point set
+ * @return 三角形列表 / List of triangles
+ */
 @JvmName("triangulate2")
 fun triangulate(points: List<Point<Dim2, Flt64>>): List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>> {
     return Delaunay(points)
 }
 
-/** 对二维点集进行三角剖分（带错误处理） / Triangulate a 2D point set (with error handling) */
+/**
+ * 对二维点集进行三角剖分（带错误处理）
+ * Triangulate a 2D point set (with error handling)
+ *
+ * @param points 二维点集（至少 3 个点） / 2D point set (at least 3 points)
+ * @return 三角形列表或错误 / Triangle list or error
+ */
 @JvmName("triangulate2Ret")
 fun triangulateRet(points: List<Point<Dim2, Flt64>>): Ret<List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>> {
     return Delaunay.invokeRet(points)

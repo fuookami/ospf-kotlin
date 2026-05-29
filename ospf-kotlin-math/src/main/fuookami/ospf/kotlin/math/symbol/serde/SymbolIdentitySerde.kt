@@ -26,6 +26,7 @@ private data class DefaultSymbol(
     override val displayName: String? = null
 ) : Symbol
 
+/** 根据名称创建默认符号 / Create a default symbol from a name */
 private fun defaultSymbolOf(name: String): Symbol {
     return DefaultSymbol(name)
 }
@@ -113,10 +114,12 @@ private data class SerializedIdentitySymbol(
     override val symbolId: String = identityExpr.toSerializedIdentifier()
 }
 
+/** 将字节数组转换为十六进制字符串 / Convert a byte array to a hex string */
 private fun ByteArray.toHexString(): String {
     return joinToString(separator = "") { value -> "%02x".format(value) }
 }
 
+/** 将十六进制字符串转换为字节数组，格式无效时返回 null / Convert a hex string to a byte array, or null if invalid */
 private fun String.hexToByteArrayOrNull(): ByteArray? {
     if (length % 2 != 0) {
         return null
@@ -135,6 +138,13 @@ private val symbolIdentityJson = Json {
     ignoreUnknownKeys = true
 }
 
+/**
+ * 安全地从 JSON 对象中获取字符串字段
+ * Safely get a string field from a JSON object
+ *
+ * @param key 字段名 / Field name
+ * @return 字符串值，不存在或类型不匹配时返回 null / String value, or null if absent or type mismatch
+ */
 private fun JsonObject.stringOrNull(key: String): String? {
     val element = this[key] ?: return null
     return try {
@@ -144,6 +154,13 @@ private fun JsonObject.stringOrNull(key: String): String? {
     }
 }
 
+/**
+ * 从 JSON 元素递归解析符号标识表达式
+ * Recursively parse a symbol identity expression from a JSON element
+ *
+ * @param element JSON 元素 / JSON element
+ * @return 解析后的符号标识表达式，失败时返回 null / Parsed symbol identity expression, or null on failure
+ */
 private fun identityExprFromJsonElement(element: JsonElement): SymbolIdentityExpr? {
     val objectValue = element as? JsonObject ?: return null
     val name = objectValue.stringOrNull("name")
@@ -196,6 +213,13 @@ private fun identityExprFromJsonElement(element: JsonElement): SymbolIdentityExp
     }
 }
 
+/**
+ * 从 JSON 字符串解析符号标识表达式，失败时返回 null
+ * Parse a symbol identity expression from a JSON string, or null on failure
+ *
+ * @param json JSON 字符串 / JSON string
+ * @return 符号标识表达式 / Symbol identity expression
+ */
 private fun parseIdentityExprOrNull(json: String): SymbolIdentityExpr? {
     return try {
         identityExprFromJsonElement(symbolIdentityJson.parseToJsonElement(json))

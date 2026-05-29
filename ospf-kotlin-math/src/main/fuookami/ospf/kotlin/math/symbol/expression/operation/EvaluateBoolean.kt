@@ -297,6 +297,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
         }
     }
 
+    /** 计算绝对值，支持多种数值类型 / Compute absolute value, supporting multiple numeric types */
     private fun evaluateAbs(arguments: List<Any?>): Any? {
         require(arguments.size == 1) { "Function abs expects exactly one argument" }
         val value = arguments[0] ?: return null
@@ -314,6 +315,15 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
         }
     }
 
+    /**
+     * 对字符串参数执行一元运算
+     * Apply a unary operation to a string argument
+     *
+     * @param name 函数名称 / Function name
+     * @param arguments 参数列表 / Argument list
+     * @param operation 字符串变换运算 / String transformation operation
+     * @return 运算结果，参数为 null 时返回 null / Operation result, or null if the argument is null
+     */
     private fun evaluateStringUnary(
         name: String,
         arguments: List<Any?>,
@@ -325,6 +335,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
         return operation(value)
     }
 
+    /** 返回参数列表中第一个非空值 / Return the first non-null value from the argument list */
     private fun evaluateCoalesce(arguments: List<Any?>): Any? {
         require(arguments.isNotEmpty()) { "Function coalesce expects at least one argument" }
         return arguments.firstOrNull { it != null }
@@ -389,6 +400,14 @@ private fun compareOrder(left: Any, right: Any): Int? {
     }
 }
 
+/**
+ * 比较两个相同运行时类型的 Comparable 值
+ * Compare two Comparable values of the same runtime type
+ *
+ * @param left 左操作数 / Left operand
+ * @param right 右操作数 / Right operand
+ * @return 比较结果，负值表示小于，零表示相等，正值表示大于 / Comparison result: negative if less, zero if equal, positive if greater
+ */
 @Suppress("UNCHECKED_CAST")
 private fun compareSameTypeComparable(left: Any, right: Any): Int {
     // 安全不变量：调用点先保证 right::class == left::class，compareTo 的参数类型与 left 运行时类型一致。
@@ -410,12 +429,21 @@ private fun valuesEqual(left: Any?, right: Any?): Boolean {
     }
 }
 
+/**
+ * 通过 BigDecimal 比较两个数值
+ * Compare two numbers via BigDecimal conversion
+ *
+ * @param left 左操作数 / Left operand
+ * @param right 右操作数 / Right operand
+ * @return 比较结果，无法转换时返回 null / Comparison result, or null if conversion fails
+ */
 private fun compareNumbers(left: Number, right: Number): Int? {
     val leftDecimal = left.toBigDecimalOrNull() ?: return null
     val rightDecimal = right.toBigDecimalOrNull() ?: return null
     return leftDecimal.compareTo(rightDecimal)
 }
 
+/** 将数值安全转换为 BigDecimal，非有限浮点数返回 null / Safely convert a Number to BigDecimal, returning null for non-finite floats */
 private fun Number.toBigDecimalOrNull(): BigDecimal? {
     return when (this) {
         is BigDecimal -> this

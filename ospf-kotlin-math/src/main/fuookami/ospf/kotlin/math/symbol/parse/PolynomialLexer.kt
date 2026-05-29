@@ -126,6 +126,7 @@ internal class PolynomialLexer(
         }
     }
 
+    /** 读取数字字面量（整数或小数） / Read a numeric literal (integer or decimal) */
     private fun readNumber(): PolynomialToken {
         val start = index
         var hasDot = false
@@ -154,6 +155,7 @@ internal class PolynomialLexer(
         )
     }
 
+    /** 读取标识符（字母、数字或下划线组成的词） / Read an identifier (word composed of letters, digits, or underscores) */
     private fun readIdentifier(): PolynomialToken {
         val start = index
         while (!isEnd()) {
@@ -171,16 +173,19 @@ internal class PolynomialLexer(
         )
     }
 
+    /** 跳过空白字符 / Skip whitespace characters */
     private fun skipWhitespace() {
         while (!isEnd() && input[index].isWhitespace()) {
             index += 1
         }
     }
 
+    /** 判断是否已到达输入末尾 / Check whether the end of input has been reached */
     private fun isEnd(): Boolean {
         return index >= input.length
     }
 
+    /** 查看下一个字符，不存在则返回 null / Peek at the next character, or null if absent */
     private fun peekNext(): Char? {
         return if (index + 1 < input.length) {
             input[index + 1]

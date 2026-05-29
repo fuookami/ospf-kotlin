@@ -61,10 +61,12 @@ private data class SignedTerm(
     val negative: Boolean
 )
 
+/** 获取符号的 LaTeX 显示名称，优先使用 displayName / Get the LaTeX display name of a symbol, preferring displayName */
 private fun Symbol.latexName(): String {
     return displayName ?: name
 }
 
+/** 根据选项获取乘法符号字符串 / Get multiplication symbol string based on options */
 private fun mulSymbol(options: LatexOptions): String {
     return if (options.useCdot) {
         if (options.compact) {
@@ -77,6 +79,14 @@ private fun mulSymbol(options: LatexOptions): String {
     }
 }
 
+/**
+ * 将带符号的项列表合并为 LaTeX 字符串
+ * Merge a list of signed terms into a LaTeX string
+ *
+ * @param terms 带符号的项列表 / List of signed terms
+ * @param options LaTeX 格式化选项 / LaTeX formatting options
+ * @return 合并后的 LaTeX 字符串 / Merged LaTeX string
+ */
 private fun mergeTerms(
     terms: List<SignedTerm>,
     options: LatexOptions
@@ -101,6 +111,16 @@ private fun mergeTerms(
     return builder.toString()
 }
 
+/**
+ * 格式化单项式项为 LaTeX 字符串
+ * Format a monomial term as a LaTeX string
+ *
+ * @param coefficient 系数 / Coefficient
+ * @param variable 变量部分的 LaTeX 字符串 / LaTeX string of the variable part
+ * @param options LaTeX 格式化选项 / LaTeX formatting options
+ * @param ops 数值运算接口 / Number operations interface
+ * @return LaTeX 格式字符串 / LaTeX format string
+ */
 private fun <T> formatMonomialTerm(
     coefficient: T,
     variable: String,

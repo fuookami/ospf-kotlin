@@ -25,10 +25,9 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
+/** 归一化 FltX 精度，非 FltX 类型保持不变 / Normalize FltX scale; non-FltX types remain unchanged */
 @Suppress("UNCHECKED_CAST")
 private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {
-    // 安全不变量：当值为 FltX 时 withScale 仍返回 FltX；否则保持原类型 T。
-    // Safety invariant: when value is FltX, withScale still returns FltX; otherwise keep original T.
     return if (value is FltX) {
         value.withScale(digits, RoundingMode.HALF_UP) as T
     } else {
@@ -36,7 +35,16 @@ private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T
     }
 }
 
-/** 计算自然对数 ln(x)，使用泰勒级数展开 / Compute natural logarithm ln(x) using Taylor series expansion */
+/**
+ * 计算自然对数 ln(x)，使用泰勒级数展开
+ * Compute natural logarithm ln(x) using Taylor series expansion
+ *
+ * @param x 真数 / Argument
+ * @param constants 浮点数常量提供器 / Floating number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 自然对数值，x <= 0 时返回 NaN / Natural logarithm value, or NaN if x <= 0
+ */
 fun <T : FloatingNumber<T>> ln(
     x: T,
     constants: FloatingNumberConstants<T>,
@@ -78,7 +86,15 @@ fun <T : FloatingNumber<T>> ln(
         ln(m, constants)!! + k * constants.lg2
     }
 }
-/** 计算自然对数 ln(x)（自动解析常量） / Compute natural logarithm ln(x) (auto-resolve constants) */
+/**
+ * 计算自然对数 ln(x)（自动解析常量）
+ * Compute natural logarithm ln(x) (auto-resolve constants)
+ *
+ * @param x 真数 / Argument
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 自然对数值，x <= 0 时返回 NaN / Natural logarithm value, or NaN if x <= 0
+ */
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
     digits: Int = x.constants.decimalDigits!!,
@@ -92,7 +108,17 @@ inline fun <reified T : FloatingNumber<T>> ln(
     )
 }
 
-/** 计算任意底数对数 log(x, base)，使用换底公式 / Compute arbitrary-base logarithm log(x, base) using change-of-base formula */
+/**
+ * 计算任意底数对数 log(x, base)，使用换底公式
+ * Compute arbitrary-base logarithm log(x, base) using change-of-base formula
+ *
+ * @param x 真数 / Argument
+ * @param base 对数底数 / Logarithm base
+ * @param constants 浮点数常量提供器 / Floating number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 对数值，x <= 0 或 base <= 0 时返回 NaN / Logarithm value, or NaN if x <= 0 or base <= 0
+ */
 fun <T : FloatingNumber<T>> log(
     x: T,
     base: T,
@@ -116,7 +142,16 @@ fun <T : FloatingNumber<T>> log(
         }
     } ?: constants.nan
 }
-/** 计算任意底数对数 log(x, base)（自动解析常量） / Compute arbitrary-base logarithm log(x, base) (auto-resolve constants) */
+/**
+ * 计算任意底数对数 log(x, base)（自动解析常量）
+ * Compute arbitrary-base logarithm log(x, base) (auto-resolve constants)
+ *
+ * @param x 真数 / Argument
+ * @param base 对数底数 / Logarithm base
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 对数值，x <= 0 或 base <= 0 时返回 NaN / Logarithm value, or NaN if x <= 0 or base <= 0
+ */
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,

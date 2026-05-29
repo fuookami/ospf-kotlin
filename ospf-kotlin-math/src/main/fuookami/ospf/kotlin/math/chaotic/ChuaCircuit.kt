@@ -59,6 +59,10 @@ data class ChuaCircuit<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 蔡氏电路生成器
+ * Chua's Circuit Generator
+ */
 data class ChuaCircuitGenerator(
     val chuaCircuit: ChuaCircuit<Flt64> = ChuaCircuit(),
     private var _x: Point<Dim3, Flt64> = point3(

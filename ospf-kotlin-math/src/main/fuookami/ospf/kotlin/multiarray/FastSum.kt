@@ -24,7 +24,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 // ============================================================================
 
 /**
- * Exception thrown when axis index is out of bounds.
+ * 轴索引越界异常
+ * Exception thrown when axis index is out of bounds
+ *
+ * @property axis 越界的轴索引 / The out-of-bounds axis index
+ * @property maxAxis 最大合法轴索引 / The maximum valid axis index
  */
 class AxisOutOfBoundsException(
     val axis: Int,
@@ -39,12 +43,11 @@ class AxisOutOfBoundsException(
 // ============================================================================
 
 /**
- * Sum all elements in the array.
+ * 对数组所有元素求和
+ * Sum all elements in the array
  *
- * This is the simplest FastSum operation - iterate and accumulate.
- *
- * @param zero The zero value for type T
- * @return The sum of all elements
+ * @param zero 零值（累加初始值） / The zero value for type T (initial accumulator)
+ * @return 所有元素之和 / The sum of all elements
  */
 fun <T> AbstractMultiArray<T, *>.sumAll(zero: T): T where T : Ring<T> {
     var acc = zero
@@ -59,14 +62,16 @@ fun <T> AbstractMultiArray<T, *>.sumAll(zero: T): T where T : Ring<T> {
 // ============================================================================
 
 /**
- * Sum along a specified axis.
+ * 沿指定轴求和
+ * Sum along a specified axis
  *
+ * 返回一个减少一个维度的新 MultiArray。
  * Returns a new MultiArray with one fewer dimension.
  *
- * @param axis The axis to sum along (0-indexed)
- * @param zero The zero value for type T
- * @return A new MultiArray with the summed axis removed
- * @throws AxisOutOfBoundsException if axis is out of bounds
+ * @param axis 求和轴索引（从 0 开始） / The axis to sum along (0-indexed)
+ * @param zero 零值（累加初始值） / The zero value for type T
+ * @return 移除求和轴后的新数组 / A new MultiArray with the summed axis removed
+ * @throws AxisOutOfBoundsException 轴索引越界时抛出 / If axis is out of bounds
  */
 fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): MultiArray<T, DynShape> where T : Ring<T> {
     val ndim = shape.dimension
@@ -104,14 +109,16 @@ fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): MultiArray<T, DynS
 // ============================================================================
 
 /**
- * Sum along multiple axes.
+ * 沿多个轴求和
+ * Sum along multiple axes
  *
+ * 返回一个移除指定轴后的新 MultiArray。
  * Returns a new MultiArray with the specified axes removed.
  *
- * @param axes The axes to sum along
- * @param zero The zero value for type T
- * @return A new MultiArray with the summed axes removed
- * @throws AxisOutOfBoundsException if any axis is out of bounds
+ * @param axes 求和轴索引数组 / The axes to sum along
+ * @param zero 零值（累加初始值） / The zero value for type T
+ * @return 移除求和轴后的新数组 / A new MultiArray with the summed axes removed
+ * @throws AxisOutOfBoundsException 任一轴索引越界时抛出 / If any axis is out of bounds
  */
 fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): MultiArray<T, DynShape> where T : Ring<T> {
     if (axes.isEmpty()) {
@@ -158,15 +165,17 @@ fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): MultiArray<T,
 // ============================================================================
 
 /**
- * Cumulative sum along an axis (prefix sum).
+ * 沿指定轴累积求和（前缀和）
+ * Cumulative sum along an axis (prefix sum)
  *
+ * 返回一个形状相同的新 MultiArray，其中每个元素是指定轴方向上的累积和。
  * Returns a new MultiArray with the same shape, where each element
  * is the cumulative sum along the specified axis.
  *
- * @param axis The axis to cumsum along
- * @param zero The zero value for type T
- * @return A new MultiArray with cumulative sums
- * @throws AxisOutOfBoundsException if axis is out of bounds
+ * @param axis 累积求和轴索引 / The axis to cumsum along
+ * @param zero 零值（累加初始值） / The zero value for type T
+ * @return 包含累积和的新数组 / A new MultiArray with cumulative sums
+ * @throws AxisOutOfBoundsException 轴索引越界时抛出 / If axis is out of bounds
  */
 fun <T> AbstractMultiArray<T, *>.cumsumAxis(axis: Int, zero: T): MultiArray<T, DynShape> where T : Ring<T> {
     val ndim = shape.dimension

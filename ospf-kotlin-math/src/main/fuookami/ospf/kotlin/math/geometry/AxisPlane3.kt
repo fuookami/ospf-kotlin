@@ -27,7 +27,13 @@ enum class AxisPlane3(
     /** YZ 平面，法向为 X / YZ plane, normal is X */
     YZ(Axis3.Y, Axis3.Z, Axis3.X);
 
-    /** 判断指定轴是否属于该平面 / Check whether the specified axis belongs to this plane */
+    /**
+     * 判断指定轴是否属于该平面
+     * Check whether the specified axis belongs to this plane
+     *
+     * @param axis 待检测的轴 / The axis to check
+     * @return 是否属于该平面 / Whether the axis belongs to this plane
+     */
     fun contains(axis: Axis3): Boolean {
         return axis == firstAxis || axis == secondAxis
     }

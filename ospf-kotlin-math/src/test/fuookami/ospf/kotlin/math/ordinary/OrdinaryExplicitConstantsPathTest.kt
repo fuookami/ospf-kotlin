@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.math.ordinary
 
 import kotlin.test.*
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
 

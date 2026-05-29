@@ -18,6 +18,13 @@ import fuookami.ospf.kotlin.math.operator.*
  * Defines total ordering relation, extending from Ord interface.
  */
 interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
+    /**
+     * 获取自身（CRTP 模式的类型安全转换）
+     * Get self (type-safe cast for CRTP pattern)
+     *
+     * @return 当前实例的 Self 类型引用
+     * @return The Self-typed reference to this instance
+     */
     @Suppress("UNCHECKED_CAST")
     private fun self(): Self {
         // 安全不变量：实现方通过 CRTP 模式声明为 TotallyOrdered<Self>，运行时 this 即 Self。
@@ -129,10 +136,24 @@ interface NormedSpace<Self : VectorSpace<Self, Scalar>, Scalar> : VectorSpace<Se
      */
     val unit: Self
 
+    /**
+     * 计算范数的平方
+     * Compute the squared norm
+     *
+     * @return 范数的平方值
+     * @return The squared norm value
+     */
     fun normSquared(): Scalar {
         return norm * norm
     }
 
+    /**
+     * 归一化向量，返回单位向量
+     * Normalize the vector to return a unit vector
+     *
+     * @return 归一化后的单位向量，若范数为零则返回 null
+     * @return The normalized unit vector, or null if the norm is zero
+     */
     fun normalize(): Self? {
         return if (norm eq norm.constants.zero) {
             null
@@ -167,6 +188,15 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
      */
     infix fun dot(rhs: Self): Scalar
 
+    /**
+     * 计算两个向量之间的夹角（弧度）
+     * Compute the angle (in radians) between two vectors
+     *
+     * @param rhs 另一个向量
+     * @param rhs The other vector
+     * @return 夹角（弧度），若任一范数为零则返回 null
+     * @return The angle in radians, or null if either vector has zero norm
+     */
     fun angle(rhs: Self): FloatingNumber<*>? {
         val cosine = cosineSimilarity(rhs) ?: return null
         val one = cosine.constants.one
@@ -178,10 +208,30 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
         return clamped.acos()
     }
 
+    /**
+     * 判断两个向量是否正交
+     * Check whether two vectors are orthogonal
+     *
+     * @param rhs 另一个向量
+     * @param rhs The other vector
+     * @param epsilon 容差值
+     * @param epsilon The tolerance value
+     * @return 是否正交（内积的绝对值小于等于 epsilon）
+     * @return Whether the vectors are orthogonal (absolute dot product <= epsilon)
+     */
     fun isOrthogonal(rhs: Self, epsilon: Scalar): Boolean {
         return (this dot rhs).abs() <= epsilon
     }
 
+    /**
+     * 计算两个向量的余弦相似度
+     * Compute the cosine similarity between two vectors
+     *
+     * @param rhs 另一个向量
+     * @param rhs The other vector
+     * @return 余弦相似度值，若任一范数为零则返回 null
+     * @return The cosine similarity value, or null if either vector has zero norm
+     */
     fun cosineSimilarity(rhs: Self): Scalar? {
         val denominator = norm * rhs.norm
         return if (denominator eq denominator.constants.zero) {
@@ -191,6 +241,15 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
         }
     }
 
+    /**
+     * 计算当前向量在另一个向量上的投影
+     * Compute the projection of this vector onto another vector
+     *
+     * @param rhs 目标向量
+     * @param rhs The target vector
+     * @return 投影向量，若目标向量范数为零则返回 null
+     * @return The projection vector, or null if the target vector has zero norm
+     */
     fun project(rhs: Self): Self? {
         val denominator = rhs dot rhs
         return if (denominator eq denominator.constants.zero) {
@@ -200,6 +259,15 @@ interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : No
         }
     }
 
+    /**
+     * 计算当前向量相对于另一个向量的正交分量
+     * Compute the orthogonal component of this vector with respect to another vector
+     *
+     * @param rhs 参考向量
+     * @param rhs The reference vector
+     * @return 正交分量，若投影不存在则返回 null
+     * @return The orthogonal component, or null if projection is not possible
+     */
     fun orthogonalComponent(rhs: Self): Self? {
         val projection = project(rhs) ?: return null
         return this - projection

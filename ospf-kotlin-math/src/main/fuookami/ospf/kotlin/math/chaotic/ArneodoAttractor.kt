@@ -53,6 +53,10 @@ data class ArneodoAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Arneodo 吸引子生成器
+ * Arneodo Attractor Generator
+ */
 data class ArneodoAttractorGenerator(
     val arneodoAttractor: ArneodoAttractor<Flt64> = ArneodoAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -27,7 +27,14 @@ data class Box3<V : FloatingNumber<V>>(
     val cuboid: Cuboid3<V>
 ) {
     companion object {
-        /** 在原点处创建包围盒 / Create a bounding box at the origin */
+        /**
+         * 在原点处创建包围盒
+         * Create a bounding box at the origin
+         *
+         * @param V 数值类型 / The numeric type
+         * @param cuboid 长方体 / The cuboid
+         * @return 原点处的包围盒 / The bounding box at the origin
+         */
         fun <V : FloatingNumber<V>> atOrigin(cuboid: Cuboid3<V>): Box3<V> {
             return Box3(
                 x = quantityZeroOf(cuboid.width),
@@ -52,7 +59,18 @@ data class Box3<V : FloatingNumber<V>>(
     /** Z 轴最大值 / Maximum Z value */
     val maxZ: V get() = quantityPlus(z, depth)
 
-    /** 判断指定点是否在包围盒内 / Check whether a point is inside the bounding box */
+    /**
+     * 判断指定点是否在包围盒内
+     * Check whether a point is inside the bounding box
+     *
+     * @param x X 坐标 / X coordinate
+     * @param y Y 坐标 / Y coordinate
+     * @param z Z 坐标 / Z coordinate
+     * @param withLowerBound 是否包含下界 / Whether to include the lower bound
+     * @param withUpperBound 是否包含上界 / Whether to include the upper bound
+     * @param withBorder 是否包含边界 / Whether to include the border
+     * @return 点是否在包围盒内 / Whether the point is inside the bounding box
+     */
     fun contains(
         x: V,
         y: V,
@@ -68,7 +86,13 @@ data class Box3<V : FloatingNumber<V>>(
                 && quantityContainsInRange(z, this.z, maxZ, includeLower, includeUpper, "z")
     }
 
-    /** 判断两个包围盒是否重叠 / Check whether two bounding boxes overlap */
+    /**
+     * 判断两个包围盒是否重叠
+     * Check whether two bounding boxes overlap
+     *
+     * @param rhs 另一个包围盒 / The other bounding box
+     * @return 是否重叠 / Whether they overlap
+     */
     fun overlapped(rhs: Box3<V>): Boolean {
         if (quantityOrd(maxX, rhs.x, "x") !is Order.Greater) {
             return false
@@ -91,7 +115,13 @@ data class Box3<V : FloatingNumber<V>>(
         return true
     }
 
-    /** 计算两个包围盒的交集，无交集返回 null / Compute intersection of two boxes, returns null if no overlap */
+    /**
+     * 计算两个包围盒的交集，无交集返回 null
+     * Compute intersection of two boxes, returns null if no overlap
+     *
+     * @param rhs 另一个包围盒 / The other bounding box
+     * @return 交集包围盒，无交集返回 null / The intersection box, or null if no overlap
+     */
     fun intersect(rhs: Box3<V>): Box3<V>? {
         val minX = quantityMax(x, rhs.x, "x")
         val maxX = quantityMin(this.maxX, rhs.maxX, "x")
@@ -121,5 +151,11 @@ data class Box3<V : FloatingNumber<V>>(
     }
 }
 
-/** @see Box3 */
+/**
+ * 三维轴对齐包围盒，等同于 Box3。
+ * 3D axis-aligned bounding box, equivalent to Box3.
+ *
+ * @param V 数值类型 / The numeric type
+ * @see Box3
+ */
 typealias AxisAlignedBox3<V> = Box3<V>

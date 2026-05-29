@@ -33,6 +33,14 @@ data class DoublePendulumSystem(
     val g: Flt64 = Flt64(9.80665),
     val h: Flt64 = Flt64(0.01)
 ) {
+    /**
+     * 计算双摆系统的下一步状态
+     * Compute the next state of the double pendulum system
+     *
+     * @param x 第一个摆的状态（角度，角速度） / State of the first pendulum (angle, angular velocity)
+     * @param y 第二个摆的状态（角度，角速度） / State of the second pendulum (angle, angular velocity)
+     * @return 两个摆的下一步状态 / Next state of both pendulums
+     */
     operator fun invoke(x: Point<Dim2, Flt64>, y: Point<Dim2, Flt64>): Pair<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
         val theta1 = x[0]
         val omega1 = x[1]

@@ -27,7 +27,12 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
 
-/** 计算 Iterable 元素之和 / Calculate sum of Iterable elements */
+/**
+ * 计算 Iterable 元素之和 / Calculate sum of Iterable elements
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @return 元素之和 / Sum of elements
+ */
 fun <T> Iterable<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
@@ -41,7 +46,12 @@ inline fun <reified T> Iterable<T>.sum(): T where T : Arithmetic<T>, T : Plus<T,
     return sum(resolveArithmeticConstants<T>("Collection"))
 }
 
-/** 计算 Iterable 可空元素之和，含 null 时返回 null / Calculate sum of nullable Iterable elements, null if contains null */
+/**
+ * 计算 Iterable 可空元素之和，含 null 时返回 null / Calculate sum of nullable Iterable elements, null if contains null
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @return 元素之和，含 null 时返回 null / Sum of elements, or null if contains null
+ */
 fun <T> Iterable<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
@@ -58,7 +68,13 @@ inline fun <reified T> Iterable<T?>.sumOrNull(): T? where T : Arithmetic<T>, T :
     return sumOrNull(resolveArithmeticConstants<T>("Collection"))
 }
 
-/** 通过提取器计算 Iterable 元素属性之和 / Calculate sum of element properties via extractor */
+/**
+ * 通过提取器计算 Iterable 元素属性之和 / Calculate sum of element properties via extractor
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从元素提取属性的函数 / Function to extract property from element
+ * @return 属性之和 / Sum of extracted properties
+ */
 inline fun <T, U> Iterable<T>.sumOf(
     constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U, T>
@@ -70,14 +86,25 @@ inline fun <T, U> Iterable<T>.sumOf(
     return sum
 }
 
-/** 通过提取器计算 Iterable 元素属性之和（自动解析常量） / Calculate sum via extractor (auto-resolve) */
+/**
+ * 通过提取器计算 Iterable 元素属性之和（自动解析常量） / Calculate sum via extractor (auto-resolve)
+ *
+ * @param extractor 从元素提取属性的函数 / Function to extract property from element
+ * @return 属性之和 / Sum of extracted properties
+ */
 inline fun <T, reified U> Iterable<T>.sumOf(
     crossinline extractor: Extractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
     return sumOf(resolveArithmeticConstants<U>("Collection"), extractor)
 }
 
-/** 通过提取器计算 Iterable 元素可空属性之和，含 null 时返回 null / Calculate sum of nullable properties, null if null */
+/**
+ * 通过提取器计算 Iterable 元素可空属性之和，含 null 时返回 null / Calculate sum of nullable properties, null if null
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, U> Iterable<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U?, T>
@@ -85,14 +112,26 @@ inline fun <T, U> Iterable<T>.sumOfOrNull(
     return this.sumOfOrNull(constants, extractor) { null }
 }
 
-/** 通过提取器计算 Iterable 元素可空属性之和（自动解析常量） / Calculate sum of nullable properties (auto-resolve) */
+/**
+ * 通过提取器计算 Iterable 元素可空属性之和（自动解析常量） / Calculate sum of nullable properties (auto-resolve)
+ *
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor) { null }
 }
 
-/** 通过提取器计算 Iterable 元素可空属性之和，支持自定义默认值 / Calculate sum of nullable properties with default value */
+/**
+ * 通过提取器计算 Iterable 元素可空属性之和，支持自定义默认值 / Calculate sum of nullable properties with default value
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @param defaultValue 属性为 null 时的默认值函数 / Default value function when property is null
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, U> Iterable<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U?, T>,
@@ -109,7 +148,13 @@ inline fun <T, U> Iterable<T>.sumOfOrNull(
     return sum
 }
 
-/** 通过提取器计算 Iterable 元素可空属性之和（自动解析常量，自定义默认值） / Sum of nullable properties (auto-resolve, with default) */
+/**
+ * 通过提取器计算 Iterable 元素可空属性之和（自动解析常量，自定义默认值） / Sum of nullable properties (auto-resolve, with default)
+ *
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @param defaultValue 属性为 null 时的默认值函数 / Default value function when property is null
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U?
@@ -117,7 +162,12 @@ inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor, defaultValue)
 }
 
-/** 计算 Map 值之和 / Calculate sum of Map values */
+/**
+ * 计算 Map 值之和 / Calculate sum of Map values
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @return 值之和 / Sum of values
+ */
 fun <K, V> Map<K, V>.sum(constants: ArithmeticConstants<V>): V where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = constants.zero
     for (element in this) {
@@ -131,7 +181,12 @@ inline fun <K, reified V> Map<K, V>.sum(): V where V : Arithmetic<V>, V : Plus<V
     return sum(resolveArithmeticConstants<V>("Collection"))
 }
 
-/** 计算 Map 可空值之和，含 null 时返回 null / Calculate sum of nullable Map values, null if contains null */
+/**
+ * 计算 Map 可空值之和，含 null 时返回 null / Calculate sum of nullable Map values, null if contains null
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @return 值之和，含 null 时返回 null / Sum of values, or null if contains null
+ */
 fun <K, V> Map<K, V?>.sumOrNull(constants: ArithmeticConstants<V>): V? where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = constants.zero
     for (element in this) {
@@ -146,7 +201,13 @@ inline fun <K, reified V> Map<K, V?>.sumOrNull(): V? where V : Arithmetic<V>, V 
     return sumOrNull(resolveArithmeticConstants<V>("Collection"))
 }
 
-/** 通过提取器计算 Map 元素属性之和 / Calculate sum of Map entry properties via extractor */
+/**
+ * 通过提取器计算 Map 元素属性之和 / Calculate sum of Map entry properties via extractor
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从 Map 条目提取属性的函数 / Function to extract property from Map entry
+ * @return 属性之和 / Sum of extracted properties
+ */
 inline fun <K, V, T> Map<K, V>.sumOf(
     constants: ArithmeticConstants<T>,
     crossinline extractor: Extractor<T, Map.Entry<K, V>>
@@ -158,14 +219,25 @@ inline fun <K, V, T> Map<K, V>.sumOf(
     return sum
 }
 
-/** 通过提取器计算 Map 元素属性之和（自动解析常量） / Calculate sum of Map entry properties (auto-resolve) */
+/**
+ * 通过提取器计算 Map 元素属性之和（自动解析常量） / Calculate sum of Map entry properties (auto-resolve)
+ *
+ * @param extractor 从 Map 条目提取属性的函数 / Function to extract property from Map entry
+ * @return 属性之和 / Sum of extracted properties
+ */
 inline fun <K, V, reified T> Map<K, V>.sumOf(
     crossinline extractor: Extractor<T, Map.Entry<K, V>>
 ): T where T : Arithmetic<T>, T : Plus<T, T> {
     return sumOf(resolveArithmeticConstants<T>("Collection"), extractor)
 }
 
-/** 通过提取器计算 Map 元素可空属性之和，含 null 时返回 null / Sum of nullable Map entry properties, null if null */
+/**
+ * 通过提取器计算 Map 元素可空属性之和，含 null 时返回 null / Sum of nullable Map entry properties, null if null
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从 Map 条目提取可空属性的函数 / Function to extract nullable property from Map entry
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <K, V, T> Map<K, V>.sumOfOrNull(
     constants: ArithmeticConstants<T>,
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>
@@ -173,14 +245,26 @@ inline fun <K, V, T> Map<K, V>.sumOfOrNull(
     return this.sumOfOrNull(constants, extractor) { null }
 }
 
-/** 通过提取器计算 Map 元素可空属性之和（自动解析常量） / Sum of nullable Map entry properties (auto-resolve) */
+/**
+ * 通过提取器计算 Map 元素可空属性之和（自动解析常量） / Sum of nullable Map entry properties (auto-resolve)
+ *
+ * @param extractor 从 Map 条目提取可空属性的函数 / Function to extract nullable property from Map entry
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
     return this.sumOfOrNull(resolveArithmeticConstants<T>("Collection"), extractor) { null }
 }
 
-/** 通过提取器计算 Map 元素可空属性之和，支持自定义默认值 / Sum of nullable Map properties with default value */
+/**
+ * 通过提取器计算 Map 元素可空属性之和，支持自定义默认值 / Sum of nullable Map properties with default value
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从 Map 条目提取可空属性的函数 / Function to extract nullable property from Map entry
+ * @param defaultValue 属性为 null 时的默认值函数 / Default value function when property is null
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <K, V, T> Map<K, V>.sumOfOrNull(
     constants: ArithmeticConstants<T>,
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
@@ -197,7 +281,13 @@ inline fun <K, V, T> Map<K, V>.sumOfOrNull(
     return sum
 }
 
-/** 通过提取器计算 Map 元素可空属性之和（自动解析常量，自定义默认值） / Sum of nullable Map properties (auto-resolve, default) */
+/**
+ * 通过提取器计算 Map 元素可空属性之和（自动解析常量，自定义默认值） / Sum of nullable Map properties (auto-resolve, default)
+ *
+ * @param extractor 从 Map 条目提取可空属性的函数 / Function to extract nullable property from Map entry
+ * @param defaultValue 属性为 null 时的默认值函数 / Default value function when property is null
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
     crossinline defaultValue: (Map.Entry<K, V>) -> T?
@@ -205,7 +295,12 @@ inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     return this.sumOfOrNull(resolveArithmeticConstants<T>("Collection"), extractor, defaultValue)
 }
 
-/** 计算 Sequence 元素之和 / Calculate sum of Sequence elements */
+/**
+ * 计算 Sequence 元素之和 / Calculate sum of Sequence elements
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @return 元素之和 / Sum of elements
+ */
 fun <T> Sequence<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
@@ -219,7 +314,12 @@ inline fun <reified T> Sequence<T>.sum(): T where T : Arithmetic<T>, T : Plus<T,
     return sum(resolveArithmeticConstants<T>("Collection"))
 }
 
-/** 计算 Sequence 可空元素之和，含 null 时返回 null / Calculate sum of nullable Sequence elements, null if null */
+/**
+ * 计算 Sequence 可空元素之和，含 null 时返回 null / Calculate sum of nullable Sequence elements, null if null
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @return 元素之和，含 null 时返回 null / Sum of elements, or null if contains null
+ */
 fun <T> Sequence<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
@@ -236,7 +336,13 @@ inline fun <reified T> Sequence<T?>.sumOrNull(): T? where T : Arithmetic<T>, T :
     return sumOrNull(resolveArithmeticConstants<T>("Collection"))
 }
 
-/** 通过提取器计算 Sequence 元素属性之和 / Calculate sum of Sequence element properties via extractor */
+/**
+ * 通过提取器计算 Sequence 元素属性之和 / Calculate sum of Sequence element properties via extractor
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从元素提取属性的函数 / Function to extract property from element
+ * @return 属性之和 / Sum of extracted properties
+ */
 inline fun <T, U> Sequence<T>.sumOf(
     constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U, T>
@@ -248,14 +354,25 @@ inline fun <T, U> Sequence<T>.sumOf(
     return sum
 }
 
-/** 通过提取器计算 Sequence 元素属性之和（自动解析常量） / Calculate sum of Sequence properties (auto-resolve) */
+/**
+ * 通过提取器计算 Sequence 元素属性之和（自动解析常量） / Calculate sum of Sequence properties (auto-resolve)
+ *
+ * @param extractor 从元素提取属性的函数 / Function to extract property from element
+ * @return 属性之和 / Sum of extracted properties
+ */
 inline fun <T, reified U> Sequence<T>.sumOf(
     crossinline extractor: Extractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
     return sumOf(resolveArithmeticConstants<U>("Collection"), extractor)
 }
 
-/** 通过提取器计算 Sequence 元素可空属性之和，含 null 时返回 null / Sum of nullable Sequence properties, null if null */
+/**
+ * 通过提取器计算 Sequence 元素可空属性之和，含 null 时返回 null / Sum of nullable Sequence properties, null if null
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, U> Sequence<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U?, T>
@@ -263,14 +380,26 @@ inline fun <T, U> Sequence<T>.sumOfOrNull(
     return this.sumOfOrNull(constants, extractor) { null }
 }
 
-/** 通过提取器计算 Sequence 元素可空属性之和（自动解析常量） / Sum of nullable Sequence properties (auto-resolve) */
+/**
+ * 通过提取器计算 Sequence 元素可空属性之和（自动解析常量） / Sum of nullable Sequence properties (auto-resolve)
+ *
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, reified U> Sequence<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
     return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor) { null }
 }
 
-/** 通过提取器计算 Sequence 元素可空属性之和，支持自定义默认值 / Sum of nullable Sequence properties with default */
+/**
+ * 通过提取器计算 Sequence 元素可空属性之和，支持自定义默认值 / Sum of nullable Sequence properties with default
+ *
+ * @param constants 算术常量（提供零值） / Arithmetic constants (provides zero value)
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @param defaultValue 属性为 null 时的默认值函数 / Default value function when property is null
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, U> Sequence<T>.sumOfOrNull(
     constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U?, T>,
@@ -287,7 +416,13 @@ inline fun <T, U> Sequence<T>.sumOfOrNull(
     return sum
 }
 
-/** 通过提取器计算 Sequence 元素可空属性之和（自动解析常量，自定义默认值） / Sum of nullable Seq properties (auto-resolve) */
+/**
+ * 通过提取器计算 Sequence 元素可空属性之和（自动解析常量，自定义默认值） / Sum of nullable Seq properties (auto-resolve)
+ *
+ * @param extractor 从元素提取可空属性的函数 / Function to extract nullable property from element
+ * @param defaultValue 属性为 null 时的默认值函数 / Default value function when property is null
+ * @return 属性之和，含 null 时返回 null / Sum of properties, or null if contains null
+ */
 inline fun <T, reified U> Sequence<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U? = { null }
@@ -297,7 +432,12 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
 
 // Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
 
-/** 计算 Iterable 元素平均值，返回 Flt64 / Calculate average of Iterable elements, returns Flt64 */
+/**
+ * 计算 Iterable 元素平均值，返回 Flt64 / Calculate average of Iterable elements, returns Flt64
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（Flt64） / Average of elements as Flt64
+ */
 fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : RealNumber<T> {
     var sum = constants.zero
     var count = constants.zero
@@ -318,7 +458,12 @@ inline fun <reified T> Iterable<T>.average(): Flt64 where T : RealNumber<T> {
 
 // Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
 
-/** 计算 Iterable 元素平均值，返回同类型 / Calculate average of Iterable elements, returns same type */
+/**
+ * 计算 Iterable 元素平均值，返回同类型 / Calculate average of Iterable elements, returns same type
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（同类型） / Average of elements as same type
+ */
 fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): T where T : RealNumber<T>, T : Div<T, T> {
     var sum = constants.zero
     var count = constants.zero
@@ -339,7 +484,12 @@ inline fun <reified T> Iterable<T>.average(): T where T : RealNumber<T>, T : Div
 
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
 
-/** 计算 Iterable 可空元素平均值，返回 Flt64，含 null 或空集合返回 null / Average of nullable elements as Flt64, null if null/empty */
+/**
+ * 计算 Iterable 可空元素平均值，返回 Flt64，含 null 或空集合返回 null / Average of nullable elements as Flt64, null if null/empty
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（Flt64），含 null 或空集合返回 null / Average as Flt64, or null if null/empty
+ */
 fun <T> Iterable<T?>.averageOrNull(constants: ArithmeticConstants<T>): Flt64? where T : RealNumber<T> {
     var sum = constants.zero
     var count = constants.zero
@@ -363,7 +513,12 @@ inline fun <reified T> Iterable<T?>.averageOrNull(): Flt64? where T : RealNumber
 
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
 
-/** 计算 Iterable 可空元素平均值，返回同类型，含 null 或空集合返回 null / Average of nullable elements, null if null/empty */
+/**
+ * 计算 Iterable 可空元素平均值，返回同类型，含 null 或空集合返回 null / Average of nullable elements, null if null/empty
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（同类型），含 null 或空集合返回 null / Average as same type, or null if null/empty
+ */
 fun <T> Iterable<T?>.averageOrNull(constants: ArithmeticConstants<T>): T? where T : RealNumber<T>, T : Div<T, T> {
     var sum = constants.zero
     var count = constants.zero
@@ -387,7 +542,12 @@ inline fun <reified T> Iterable<T?>.averageOrNull(): T? where T : RealNumber<T>,
 
 // Throw on empty map to avoid division by zero / 空Map抛异常避免除零
 
-/** 计算 Map 值平均值，返回 Flt64 / Calculate average of Map values, returns Flt64 */
+/**
+ * 计算 Map 值平均值，返回 Flt64 / Calculate average of Map values, returns Flt64
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 值平均值（Flt64） / Average of values as Flt64
+ */
 fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Flt64 where V : RealNumber<V> {
     var sum = constants.zero
     var count = constants.zero
@@ -408,7 +568,12 @@ inline fun <K, reified V> Map<K, V>.average(): Flt64 where V : RealNumber<V> {
 
 // Throw on empty map to avoid division by zero / 空Map抛异常避免除零
 
-/** 计算 Map 值平均值，返回同类型 / Calculate average of Map values, returns same type */
+/**
+ * 计算 Map 值平均值，返回同类型 / Calculate average of Map values, returns same type
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 值平均值（同类型） / Average of values as same type
+ */
 fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): V where V : RealNumber<V>, V : Div<V, V> {
     var sum = constants.zero
     var count = constants.zero
@@ -429,7 +594,12 @@ inline fun <K, reified V> Map<K, V>.average(): V where V : RealNumber<V>, V : Di
 
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
 
-/** 计算 Map 可空值平均值，返回 Flt64，含 null 或空返回 null / Average of nullable Map values as Flt64, null if null/empty */
+/**
+ * 计算 Map 可空值平均值，返回 Flt64，含 null 或空返回 null / Average of nullable Map values as Flt64, null if null/empty
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 值平均值（Flt64），含 null 或空返回 null / Average as Flt64, or null if null/empty
+ */
 fun <K, V> Map<K, V?>.averageOrNull(constants: ArithmeticConstants<V>): Flt64? where V : RealNumber<V> {
     var sum = constants.zero
     var count = constants.zero
@@ -451,7 +621,12 @@ inline fun <K, reified V> Map<K, V?>.averageOrNull(): Flt64? where V : RealNumbe
 
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
 
-/** 计算 Map 可空值平均值，返回同类型，含 null 或空返回 null / Average of nullable Map values, null if null/empty */
+/**
+ * 计算 Map 可空值平均值，返回同类型，含 null 或空返回 null / Average of nullable Map values, null if null/empty
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 值平均值（同类型），含 null 或空返回 null / Average as same type, or null if null/empty
+ */
 fun <K, V> Map<K, V?>.averageOrNull(constants: ArithmeticConstants<V>): V? where V : RealNumber<V>, V : Div<V, V> {
     var sum = constants.zero
     var count = constants.zero
@@ -473,7 +648,12 @@ inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>
 
 // Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
 
-/** 计算 Sequence 元素平均值，返回 Flt64 / Calculate average of Sequence elements, returns Flt64 */
+/**
+ * 计算 Sequence 元素平均值，返回 Flt64 / Calculate average of Sequence elements, returns Flt64
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（Flt64） / Average of elements as Flt64
+ */
 fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : RealNumber<T> {
     var sum = constants.zero
     var count = constants.zero
@@ -494,7 +674,12 @@ inline fun <reified T> Sequence<T>.average(): Flt64 where T : RealNumber<T> {
 
 // Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
 
-/** 计算 Sequence 元素平均值，返回同类型 / Calculate average of Sequence elements, returns same type */
+/**
+ * 计算 Sequence 元素平均值，返回同类型 / Calculate average of Sequence elements, returns same type
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（同类型） / Average of elements as same type
+ */
 fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): T where T : RealNumber<T>, T : Div<T, T> {
     var sum = constants.zero
     var count = constants.zero
@@ -515,7 +700,12 @@ inline fun <reified T> Sequence<T>.average(): T where T : RealNumber<T>, T : Div
 
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
 
-/** 计算 Sequence 可空元素平均值，返回 Flt64，含 null 或空返回 null / Average of nullable Sequence as Flt64, null if null/empty */
+/**
+ * 计算 Sequence 可空元素平均值，返回 Flt64，含 null 或空返回 null / Average of nullable Sequence as Flt64, null if null/empty
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（Flt64），含 null 或空返回 null / Average as Flt64, or null if null/empty
+ */
 fun <T> Sequence<T?>.averageOrNull(constants: ArithmeticConstants<T>): Flt64? where T : RealNumber<T> {
     var sum = constants.zero
     var count = constants.zero
@@ -539,7 +729,12 @@ inline fun <reified T> Sequence<T?>.averageOrNull(): Flt64? where T : RealNumber
 
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
 
-/** 计算 Sequence 可空元素平均值，返回同类型，含 null 或空返回 null / Average of nullable Sequence, null if null/empty */
+/**
+ * 计算 Sequence 可空元素平均值，返回同类型，含 null 或空返回 null / Average of nullable Sequence, null if null/empty
+ *
+ * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
+ * @return 元素平均值（同类型），含 null 或空返回 null / Average as same type, or null if null/empty
+ */
 fun <T> Sequence<T?>.averageOrNull(constants: ArithmeticConstants<T>): T? where T : RealNumber<T>, T : Div<T, T> {
     var sum = constants.zero
     var count = constants.zero

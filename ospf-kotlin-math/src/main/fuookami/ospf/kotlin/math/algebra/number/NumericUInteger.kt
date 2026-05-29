@@ -39,18 +39,27 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  */
 interface NumericUInteger<Self, I>
     : NumericUIntegerNumber<Self, I> where Self : NumericUInteger<Self, I>, I : UIntegerNumber<I>, I : NumberField<I> {
+    /** 自增 / Increment */
     override operator fun inc() = this + constants.one
 
+    /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(Flt64.ten)
+    /** 二进制对数（以 2 为底）/ Binary logarithm (base 2) */
     override fun lg2() = log(Flt64.two)
+    /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(Flt64.e)
 
+    /** 平方 / Square */
     override fun sqr() = pow(2)
+    /** 立方 / Cube */
     override fun cub() = pow(3)
 
+    /** 平方根 / Square root */
     override fun sqrt() = pow(Flt64.two.reciprocal())
+    /** 立方根 / Cube root */
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
+    /** 以指定基数计算对数 / Calculate logarithm with specified base */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
@@ -59,6 +68,7 @@ interface NumericUInteger<Self, I>
         else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.log: ${base.javaClass}")
     }
 
+    /** 计算浮点数次幂 / Calculate floating-point power */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> toFlt32().pow(index)
@@ -67,34 +77,59 @@ interface NumericUInteger<Self, I>
         else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.pow: ${index.javaClass}")
     }
 
+    /** 指数函数 e^x / Exponential function e^x */
     override fun exp(): FloatingNumber<*> = toFlt64().exp()
 
+    /** 正弦 / Sine */
     override fun sin(): FloatingNumber<*> = toFlt64().sin()
+    /** 余弦 / Cosine */
     override fun cos(): FloatingNumber<*> = toFlt64().cos()
+    /** 正割 / Secant */
     override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+    /** 余割 / Cosecant */
     override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+    /** 正切 / Tangent */
     override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+    /** 余切 / Cotangent */
     override fun cot(): FloatingNumber<*>? = toFlt64().cot()
 
+    /** 反正弦 / Arcsine */
     override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+    /** 反余弦 / Arccosine */
     override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+    /** 反正割 / Arcsecant */
     override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+    /** 反余割 / Arccosecant */
     override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+    /** 反正切 / Arctangent */
     override fun atan(): FloatingNumber<*> = toFlt64().atan()
+    /** 反余切 / Arccotangent */
     override fun acot(): FloatingNumber<*>? = toFlt64().acot()
 
+    /** 双曲正弦 / Hyperbolic sine */
     override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+    /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+    /** 双曲正割 / Hyperbolic secant */
     override fun sech(): FloatingNumber<*> = toFlt64().sech()
+    /** 双曲余割 / Hyperbolic cosecant */
     override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+    /** 双曲正切 / Hyperbolic tangent */
     override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+    /** 双曲余切 / Hyperbolic cotangent */
     override fun coth(): FloatingNumber<*>? = toFlt64().coth()
 
+    /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+    /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+    /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+    /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+    /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+    /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
 }
 
@@ -176,27 +211,115 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
 
     override val constants: RealNumberConstants<NUInt8> get() = NUInt8
 
+    /** 创建副本 / Create a copy */
     override fun copy(): NUInt8 = NUInt8(value)
 
+    /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     fun toString(radix: Int) = value.toString(radix)
 
+    /** 自减 / Decrement */
     override operator fun dec(): NUInt8 = NUInt8(value - UInt8.one)
 
+    /**
+     * 偏序比较
+     * Partial order comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 比较结果
+     *         The comparison result
+     */
     override fun partialOrd(rhs: NUInt8) = orderOf(value.compareTo(rhs.value))
+    /**
+     * 相等性比较
+     * Equality comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 是否相等
+     *         Whether they are equal
+     */
     override fun partialEq(rhs: NUInt8) = (value.compareTo(rhs.value) == 0)
 
+    /** 倒数（返回无符号有理数）/ Reciprocal (returns unsigned rational number) */
     override fun reciprocal() = URtn8(UInt8.one, value)
+    /** 取负（返回有符号整数）/ Negation (returns signed integer) */
     override operator fun unaryMinus() = NInt8(-value.toInt8())
+    /** 绝对值 / Absolute value */
     override fun abs() = NUInt8(value.abs())
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: NUInt8) = NUInt8(value + rhs.value)
+    /**
+     * 减法（返回有符号整数）
+     * Subtraction (returns signed integer)
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 有符号整数减法结果
+     *         The signed integer subtraction result
+     */
     override operator fun minus(rhs: NUInt8) = NInt8(value.toInt8() - rhs.toInt8())
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: NUInt8) = NUInt8(value * rhs.value)
+    /**
+     * 除法（返回无符号有理数）
+     * Division (returns unsigned rational number)
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 无符号有理数除法结果
+     *         The unsigned rational number division result
+     */
     override operator fun div(rhs: NUInt8) = URtn8(value, rhs.value)
+    /**
+     * 取余
+     * Remainder
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 余数
+     *         The remainder
+     */
     override operator fun rem(rhs: NUInt8) = NUInt8(value % rhs.value)
+    /**
+     * 整数除法
+     * Integer division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 整数除法结果
+     *         The integer division result
+     */
     override fun intDiv(rhs: NUInt8) = NUInt8(value / rhs.value)
 
+    /** 计算整数次幂（返回无符号有理数）/ Calculate integer power (returns unsigned rational number) */
     override fun pow(index: Int): URtn8 {
         return if (index >= 1) {
             URtn8(value.pow(index), UInt8.one)
@@ -207,6 +330,7 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
         }
     }
 
+    /** 创建数值无符号整数范围 / Create numeric unsigned integer range */
     override fun rangeTo(rhs: NUInt8) = NumericUIntegerRange(
         start = copy(),
         endInclusive = rhs,
@@ -216,26 +340,40 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
         converter = NUInt8::toUInt8
     )
 
+    /** 创建不包含终点的范围 / Create range excluding end */
     override infix fun until(rhs: NUInt8) = if (rhs == zero) {
         rangeTo(zero)
     } else {
         rangeTo((rhs - one).toNUInt8())
     }
 
+    /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+    /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+    /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+    /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+    /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
+    /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+    /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+    /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+    /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+    /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
+    /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+    /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+    /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
 
@@ -287,27 +425,115 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
 
     override val constants: RealNumberConstants<NUInt16> get() = NUInt16
 
+    /** 创建副本 / Create a copy */
     override fun copy(): NUInt16 = NUInt16(value)
 
+    /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     fun toString(radix: Int) = value.toString(radix)
 
+    /** 自减 / Decrement */
     override operator fun dec(): NUInt16 = NUInt16(value - UInt16.one)
 
+    /**
+     * 偏序比较
+     * Partial order comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 比较结果
+     *         The comparison result
+     */
     override fun partialOrd(rhs: NUInt16) = orderOf(value.compareTo(rhs.value))
+    /**
+     * 相等性比较
+     * Equality comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 是否相等
+     *         Whether they are equal
+     */
     override fun partialEq(rhs: NUInt16) = (value.compareTo(rhs.value) == 0)
 
+    /** 倒数（返回无符号有理数）/ Reciprocal (returns unsigned rational number) */
     override fun reciprocal() = URtn16(UInt16.one, value)
+    /** 取负（返回有符号整数）/ Negation (returns signed integer) */
     override operator fun unaryMinus() = NInt16(-value.toInt16())
+    /** 绝对值 / Absolute value */
     override fun abs() = NUInt16(value.abs())
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: NUInt16) = NUInt16(value + rhs.value)
+    /**
+     * 减法（返回有符号整数）
+     * Subtraction (returns signed integer)
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 有符号整数减法结果
+     *         The signed integer subtraction result
+     */
     override operator fun minus(rhs: NUInt16) = NInt16(value.toInt16() - rhs.toInt16())
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: NUInt16) = NUInt16(value * rhs.value)
+    /**
+     * 除法（返回无符号有理数）
+     * Division (returns unsigned rational number)
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 无符号有理数除法结果
+     *         The unsigned rational number division result
+     */
     override operator fun div(rhs: NUInt16) = URtn16(value, rhs.value)
+    /**
+     * 取余
+     * Remainder
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 余数
+     *         The remainder
+     */
     override operator fun rem(rhs: NUInt16) = NUInt16(value % rhs.value)
+    /**
+     * 整数除法
+     * Integer division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 整数除法结果
+     *         The integer division result
+     */
     override fun intDiv(rhs: NUInt16) = NUInt16(value / rhs.value)
 
+    /** 计算整数次幂（返回无符号有理数）/ Calculate integer power (returns unsigned rational number) */
     override fun pow(index: Int): URtn16 {
         return if (index >= 1) {
             URtn16(value.pow(index), UInt16.one)
@@ -318,6 +544,7 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
         }
     }
 
+    /** 创建数值无符号整数范围 / Create numeric unsigned integer range */
     override fun rangeTo(rhs: NUInt16) = NumericUIntegerRange(
         start = copy(),
         endInclusive = rhs,
@@ -327,26 +554,40 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
         converter = NUInt16::toUInt16
     )
 
+    /** 创建不包含终点的范围 / Create range excluding end */
     override infix fun until(rhs: NUInt16) = if (rhs == zero) {
         rangeTo(zero)
     } else {
         rangeTo((rhs - one).toNUInt16())
     }
 
+    /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+    /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+    /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+    /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+    /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
+    /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+    /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+    /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+    /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+    /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
+    /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+    /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+    /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
 
@@ -400,27 +641,115 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
 
     override val constants: RealNumberConstants<NUInt32> get() = NUInt32
 
+    /** 创建副本 / Create a copy */
     override fun copy(): NUInt32 = NUInt32(value)
 
+    /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     fun toString(radix: Int) = value.toString(radix)
 
+    /** 自减 / Decrement */
     override operator fun dec(): NUInt32 = NUInt32(value - UInt32.one)
 
+    /**
+     * 偏序比较
+     * Partial order comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 比较结果
+     *         The comparison result
+     */
     override fun partialOrd(rhs: NUInt32) = orderOf(value.compareTo(rhs.value))
+    /**
+     * 相等性比较
+     * Equality comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 是否相等
+     *         Whether they are equal
+     */
     override fun partialEq(rhs: NUInt32) = (value.compareTo(rhs.value) == 0)
 
+    /** 倒数（返回无符号有理数）/ Reciprocal (returns unsigned rational number) */
     override fun reciprocal() = URtn32(UInt32.one, value)
+    /** 取负（返回有符号整数）/ Negation (returns signed integer) */
     override operator fun unaryMinus() = NInt32(-value.toInt32())
+    /** 绝对值 / Absolute value */
     override fun abs() = NUInt32(value.abs())
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: NUInt32) = NUInt32(value + rhs.value)
+    /**
+     * 减法（返回有符号整数）
+     * Subtraction (returns signed integer)
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 有符号整数减法结果
+     *         The signed integer subtraction result
+     */
     override operator fun minus(rhs: NUInt32) = NInt32(value.toInt32() - rhs.toInt32())
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: NUInt32) = NUInt32(value * rhs.value)
+    /**
+     * 除法（返回无符号有理数）
+     * Division (returns unsigned rational number)
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 无符号有理数除法结果
+     *         The unsigned rational number division result
+     */
     override operator fun div(rhs: NUInt32) = URtn32(value, rhs.value)
+    /**
+     * 取余
+     * Remainder
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 余数
+     *         The remainder
+     */
     override operator fun rem(rhs: NUInt32) = NUInt32(value % rhs.value)
+    /**
+     * 整数除法
+     * Integer division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 整数除法结果
+     *         The integer division result
+     */
     override fun intDiv(rhs: NUInt32) = NUInt32(value / rhs.value)
 
+    /** 计算整数次幂（返回无符号有理数）/ Calculate integer power (returns unsigned rational number) */
     override fun pow(index: Int): URtn32 {
         return if (index >= 1) {
             URtn32(value.pow(index), UInt32.one)
@@ -431,6 +760,7 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
         }
     }
 
+    /** 创建数值无符号整数范围 / Create numeric unsigned integer range */
     override fun rangeTo(rhs: NUInt32) = NumericUIntegerRange(
         start = copy(),
         endInclusive = rhs,
@@ -440,26 +770,40 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
         converter = NUInt32::toUInt32
     )
 
+    /** 创建不包含终点的范围 / Create range excluding end */
     override infix fun until(rhs: NUInt32) = if (rhs == zero) {
         rangeTo(zero)
     } else {
         rangeTo((rhs - one).toNUInt32())
     }
 
+    /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+    /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+    /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+    /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+    /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
+    /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+    /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+    /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+    /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+    /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
+    /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+    /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+    /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
 
@@ -513,27 +857,115 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
 
     override val constants: RealNumberConstants<NUInt64> get() = NUInt64
 
+    /** 创建副本 / Create a copy */
     override fun copy(): NUInt64 = NUInt64(value)
 
+    /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     fun toString(radix: Int) = value.toString(radix)
 
+    /** 自减 / Decrement */
     override operator fun dec(): NUInt64 = NUInt64(value - UInt64.one)
 
+    /**
+     * 偏序比较
+     * Partial order comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 比较结果
+     *         The comparison result
+     */
     override fun partialOrd(rhs: NUInt64) = orderOf(value.compareTo(rhs.value))
+    /**
+     * 相等性比较
+     * Equality comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 是否相等
+     *         Whether they are equal
+     */
     override fun partialEq(rhs: NUInt64) = (value.compareTo(rhs.value) == 0)
 
+    /** 倒数（返回无符号有理数）/ Reciprocal (returns unsigned rational number) */
     override fun reciprocal() = URtn64(UInt64.one, value)
+    /** 取负（返回有符号整数）/ Negation (returns signed integer) */
     override operator fun unaryMinus() = NInt64(-value.toInt64())
+    /** 绝对值 / Absolute value */
     override fun abs() = NUInt64(value.abs())
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: NUInt64) = NUInt64(value + rhs.value)
+    /**
+     * 减法（返回有符号整数）
+     * Subtraction (returns signed integer)
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 有符号整数减法结果
+     *         The signed integer subtraction result
+     */
     override operator fun minus(rhs: NUInt64) = NInt64(value.toInt64() - rhs.toInt64())
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: NUInt64) = NUInt64(value * rhs.value)
+    /**
+     * 除法（返回无符号有理数）
+     * Division (returns unsigned rational number)
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 无符号有理数除法结果
+     *         The unsigned rational number division result
+     */
     override operator fun div(rhs: NUInt64) = URtn64(value, rhs.value)
+    /**
+     * 取余
+     * Remainder
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 余数
+     *         The remainder
+     */
     override operator fun rem(rhs: NUInt64) = NUInt64(value % rhs.value)
+    /**
+     * 整数除法
+     * Integer division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 整数除法结果
+     *         The integer division result
+     */
     override fun intDiv(rhs: NUInt64) = NUInt64(value / rhs.value)
 
+    /** 计算整数次幂（返回无符号有理数）/ Calculate integer power (returns unsigned rational number) */
     override fun pow(index: Int): URtn64 {
         return if (index >= 1) {
             URtn64(value.pow(index), UInt64.one)
@@ -544,6 +976,7 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
         }
     }
 
+    /** 创建数值无符号整数范围 / Create numeric unsigned integer range */
     override fun rangeTo(rhs: NUInt64) = NumericUIntegerRange(
         start = copy(),
         endInclusive = rhs,
@@ -553,26 +986,40 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
         converter = NUInt64::toUInt64
     )
 
+    /** 创建不包含终点的范围 / Create range excluding end */
     override infix fun until(rhs: NUInt64) = if (rhs == zero) {
         rangeTo(zero)
     } else {
         rangeTo((rhs - one).toNUInt64())
     }
 
+    /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+    /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+    /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+    /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+    /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
+    /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+    /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+    /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+    /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+    /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
+    /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+    /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+    /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
 
@@ -629,30 +1076,128 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
 
     override val constants: RealNumberConstants<NUIntX> get() = NUIntX
 
+    /** 创建副本 / Create a copy */
     override fun copy(): NUIntX = NUIntX(value)
 
+    /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     fun toString(radix: Int) = value.toString(radix)
 
+    /** 自减 / Decrement */
     override operator fun dec(): NUIntX = NUIntX(value - UIntX.one)
 
+    /**
+     * 偏序比较
+     * Partial order comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 比较结果
+     *         The comparison result
+     */
     override fun partialOrd(rhs: NUIntX) = orderOf(value.compareTo(rhs.value))
+    /**
+     * 相等性比较
+     * Equality comparison
+     *
+     * @param rhs 要比较的右侧值
+     *            The right-hand side value to compare
+     * @return 是否相等
+     *         Whether they are equal
+     */
     override fun partialEq(rhs: NUIntX) = (value.compareTo(rhs.value) == 0)
 
+    /** 倒数（返回无符号有理数）/ Reciprocal (returns unsigned rational number) */
     override fun reciprocal() = URtnX(UIntX.one, value)
+    /** 取负（返回有符号整数）/ Negation (returns signed integer) */
     override operator fun unaryMinus() = NIntX(-value.toIntX())
+    /** 绝对值 / Absolute value */
     override fun abs() = NUIntX(value.abs())
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: NUIntX) = NUIntX(value + rhs.value)
+    /**
+     * 减法（返回有符号整数）
+     * Subtraction (returns signed integer)
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 有符号整数减法结果
+     *         The signed integer subtraction result
+     */
     override operator fun minus(rhs: NUIntX) = NIntX(value.toIntX() - rhs.toIntX())
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: NUIntX) = NUIntX(value * rhs.value)
+    /**
+     * 除法（返回无符号有理数）
+     * Division (returns unsigned rational number)
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 无符号有理数除法结果
+     *         The unsigned rational number division result
+     */
     override operator fun div(rhs: NUIntX) = URtnX(value, rhs.value)
+    /**
+     * 取余
+     * Remainder
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 余数
+     *         The remainder
+     */
     override operator fun rem(rhs: NUIntX) = NUIntX(value % rhs.value)
+    /**
+     * 整数除法
+     * Integer division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 整数除法结果
+     *         The integer division result
+     */
     override fun intDiv(rhs: NUIntX) = NUIntX(value / rhs.value)
 
+    /** 平方 / Square */
     override fun sqr() = pow(2)
+    /** 立方 / Cube */
     override fun cub() = pow(3)
 
+    /**
+     * 以指定基数计算对数
+     * Calculate logarithm with specified base
+     *
+     * @param base 对数基数
+     *             The logarithm base
+     * @return 对数结果
+     *         The logarithm result
+     */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFltX().log(base)
@@ -661,9 +1206,12 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
         else -> throw IllegalArgumentException("Unknown argument type to NUIntX.log: ${base.javaClass}")
     }
 
+    /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(FltX(10.0))
+    /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(FltX.e)
 
+    /** 计算整数次幂（返回无符号有理数）/ Calculate integer power (returns unsigned rational number) */
     override fun pow(index: Int): URtnX {
         return if (index >= 1) {
             URtnX(value.pow(index), UIntX.one)
@@ -674,6 +1222,15 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
         }
     }
 
+    /**
+     * 计算浮点数次幂
+     * Calculate floating-point power
+     *
+     * @param index 指数
+     *              The exponent
+     * @return 幂运算结果
+     *         The power result
+     */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
         is Flt32 -> toFltX().pow(index)
@@ -682,39 +1239,67 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
         else -> throw IllegalArgumentException("Unknown argument type to NUIntX.pow: ${index.javaClass}")
     }
 
+    /** 平方根 / Square root */
     override fun sqrt() = pow(FltX(1.0 / 2.0))
+    /** 立方根 / Cube root */
     override fun cbrt() = pow(FltX(1.0 / 3.0))
 
+    /** 指数函数 e^x / Exponential function e^x */
     override fun exp() = toFltX().exp()
 
+    /** 正弦 / Sine */
     override fun sin() = toFltX().sin()
+    /** 余弦 / Cosine */
     override fun cos() = toFltX().cos()
+    /** 正割 / Secant */
     override fun sec() = toFltX().sec()
+    /** 余割 / Cosecant */
     override fun csc() = toFltX().csc()
+    /** 正切 / Tangent */
     override fun tan() = toFltX().tan()
+    /** 余切 / Cotangent */
     override fun cot() = toFltX().cot()
 
+    /** 反正弦 / Arcsine */
     override fun asin() = toFltX().asin()
+    /** 反余弦 / Arccosine */
     override fun acos() = toFltX().acos()
+    /** 反正割 / Arcsecant */
     override fun asec() = toFltX().asec()
+    /** 反余割 / Arccosecant */
     override fun acsc() = toFltX().acsc()
+    /** 反正切 / Arctangent */
     override fun atan() = toFltX().atan()
+    /** 反余切 / Arccotangent */
     override fun acot() = toFltX().acot()
 
+    /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = toFltX().sinh()
+    /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = toFltX().cosh()
+    /** 双曲正割 / Hyperbolic secant */
     override fun sech() = toFltX().sech()
+    /** 双曲余割 / Hyperbolic cosecant */
     override fun csch() = toFltX().csch()
+    /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = toFltX().tanh()
+    /** 双曲余切 / Hyperbolic cotangent */
     override fun coth() = toFltX().coth()
 
+    /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = toFltX().asinh()
+    /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh() = toFltX().acosh()
+    /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech() = toFltX().asech()
+    /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch() = toFltX().acsch()
+    /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh() = toFltX().atanh()
+    /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth() = toFltX().acoth()
 
+    /** 创建数值无符号整数范围 / Create numeric unsigned integer range */
     override fun rangeTo(rhs: NUIntX) = NumericUIntegerRange(
         start = copy(),
         endInclusive = rhs,
@@ -724,25 +1309,39 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
         converter = NUIntX::toUIntX
     )
 
+    /** 创建不包含终点的范围 / Create range excluding end */
     override infix fun until(rhs: NUIntX) = if (rhs == zero) {
         rangeTo(zero)
     } else {
         rangeTo((rhs - one).toNUIntX())
     }
 
+    /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+    /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+    /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+    /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+    /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
+    /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+    /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+    /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+    /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+    /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
+    /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+    /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+    /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }

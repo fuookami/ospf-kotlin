@@ -29,7 +29,17 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.*
 
-/** 使用减法实现的 GCD 算法（内部实现） / GCD using subtraction-based algorithm (internal implementation) */
+/**
+ * 使用减法实现的 GCD 算法（内部实现）
+ * GCD using subtraction-based algorithm (internal implementation)
+ *
+ * 通过反复相减将较大值减小，直到其中一个为零。
+ * Repeatedly subtracts the smaller value until one becomes zero.
+ *
+ * @param x 第一个非负整数 / First non-negative integer
+ * @param y 第二个非负整数 / Second non-negative integer
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     val zero = x.constants.zero
     assert(x >= zero)
@@ -55,7 +65,17 @@ fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     return a
 }
 
-/** 使用取模实现的 GCD 算法（内部实现） / GCD using modulo-based algorithm (internal implementation) */
+/**
+ * 使用取模实现的 GCD 算法（内部实现）
+ * GCD using modulo-based algorithm (internal implementation)
+ *
+ * 使用欧几里得算法（辗转相除法），比减法版本效率更高。
+ * Uses the Euclidean algorithm (division-based method), more efficient than the subtraction version.
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcdModImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     val zero = x.constants.zero
     var a = x.abs()
@@ -68,7 +88,17 @@ fun <I> gcdModImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     return a
 }
 
-/** 计算多个整数的 GCD（内部实现） / Compute GCD of multiple integers (internal implementation) */
+/**
+ * 计算多个整数的 GCD（内部实现）
+ * Compute GCD of multiple integers (internal implementation)
+ *
+ * 通过迭代对每对相邻元素调用取模 GCD 实现累积计算。
+ * Computes by iteratively calling modulo GCD on each adjacent pair.
+ *
+ * @param numbers 整数集合，需已排序且取绝对值 / Collection of integers, must be sorted and absolute-valued
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最大公约数，空集合返回 one / Greatest common divisor; returns one for empty collection
+ */
 fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Rem<I, I> {
     val iter = numbers.iterator()
     if (!iter.hasNext()) return constants.one
@@ -79,12 +109,26 @@ fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
     }
     return acc
 }
-/** 计算两个整数的最大公约数 / Compute greatest common divisor of two integers */
+/**
+ * 计算两个整数的最大公约数
+ * Compute greatest common divisor of two integers
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     return gcdImpl(x, y)
 }
 
-/** 计算多个整数的最大公约数 / Compute greatest common divisor of multiple integers */
+/**
+ * 计算多个整数的最大公约数
+ * Compute greatest common divisor of multiple integers
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcd(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -95,7 +139,13 @@ fun <I> gcd(
     )
 }
 
-/** 计算多个整数的最大公约数（自动解析常量） / Compute GCD of multiple integers (auto-resolve constants) */
+/**
+ * 计算多个整数的最大公约数（自动解析常量）
+ * Compute GCD of multiple integers (auto-resolve constants)
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @return 最大公约数 / Greatest common divisor
+ */
 inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
     return gcd(
         numbers = numbers,
@@ -103,7 +153,17 @@ inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Re
     )
 }
 
-/** 计算多个整数的最大公约数（可变参数） / Compute GCD of multiple integers (vararg) */
+/**
+ * 计算多个整数的最大公约数（可变参数）
+ * Compute GCD of multiple integers (vararg)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcd(
     x: I,
     y: I,
@@ -117,7 +177,16 @@ fun <I> gcd(
     )
 }
 
-/** 计算多个整数的最大公约数（可变参数，自动解析常量） / Compute GCD of multiple integers (vararg, auto-resolve constants) */
+/**
+ * 计算多个整数的最大公约数（可变参数，自动解析常量）
+ * Compute GCD of multiple integers (vararg, auto-resolve constants)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @return 最大公约数 / Greatest common divisor
+ */
 inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
     return gcd(
         x = x,
@@ -128,12 +197,26 @@ inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): I where I : Int
     )
 }
 
-/** 使用取模算法计算两个整数的 GCD / Compute GCD of two integers using modulo algorithm */
+/**
+ * 使用取模算法计算两个整数的 GCD
+ * Compute GCD of two integers using modulo algorithm
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcdMod(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     return gcdModImpl(x, y)
 }
 
-/** 使用取模算法计算多个整数的 GCD / Compute GCD of multiple integers using modulo algorithm */
+/**
+ * 使用取模算法计算多个整数的 GCD
+ * Compute GCD of multiple integers using modulo algorithm
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcdMod(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -141,7 +224,13 @@ fun <I> gcdMod(
     return gcd(numbers, constants)
 }
 
-/** 使用取模算法计算多个整数的 GCD（自动解析常量） / Compute GCD of multiple integers using modulo (auto-resolve constants) */
+/**
+ * 使用取模算法计算多个整数的 GCD（自动解析常量）
+ * Compute GCD of multiple integers using modulo (auto-resolve constants)
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @return 最大公约数 / Greatest common divisor
+ */
 inline fun <reified I> gcdMod(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
     return gcdMod(
         numbers = numbers,
@@ -149,7 +238,17 @@ inline fun <reified I> gcdMod(numbers: Iterable<I>): I where I : Integer<I>, I :
     )
 }
 
-/** 使用取模算法计算多个整数的 GCD（可变参数） / Compute GCD of multiple integers using modulo (vararg) */
+/**
+ * 使用取模算法计算多个整数的 GCD（可变参数）
+ * Compute GCD of multiple integers using modulo (vararg)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <I> gcdMod(
     x: I,
     y: I,
@@ -163,7 +262,16 @@ fun <I> gcdMod(
     )
 }
 
-/** 使用取模算法计算多个整数的 GCD（可变参数，自动解析常量） / Compute GCD using modulo (vararg, auto-resolve constants) */
+/**
+ * 使用取模算法计算多个整数的 GCD（可变参数，自动解析常量）
+ * Compute GCD using modulo (vararg, auto-resolve constants)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @return 最大公约数 / Greatest common divisor
+ */
 inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
     return gcdMod(
         x = x,
@@ -188,7 +296,14 @@ data class ExtendedGcdResult<I>(
     val y: I
 )
 
-/** 扩展欧几里得算法，求解 gcd(a, b) = ax + by / Extended Euclidean algorithm, solves gcd(a, b) = ax + by */
+/**
+ * 扩展欧几里得算法，求解 gcd(a, b) = ax + by
+ * Extended Euclidean algorithm, solves gcd(a, b) = ax + by
+ *
+ * @param a 第一个整数 / First integer
+ * @param b 第二个整数 / Second integer
+ * @return 包含 GCD 和贝祖等式系数的结果 / Result containing GCD and Bezout identity coefficients
+ */
 fun <I> extendedGcd(
     a: I,
     b: I
@@ -226,12 +341,25 @@ fun <I> extendedGcd(
     }
 }
 
-/** 计算两个浮点数的最大公约数 / Compute greatest common divisor of two floating-point numbers */
+/**
+ * 计算两个浮点数的最大公约数
+ * Compute greatest common divisor of two floating-point numbers
+ *
+ * @param x 第一个浮点数 / First floating-point number
+ * @param y 第二个浮点数 / Second floating-point number
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun gcd(x: FltX, y: FltX): FltX {
     return gcd(listOf(x, y))
 }
 
-/** 计算多个浮点数的最大公约数 / Compute greatest common divisor of multiple floating-point numbers */
+/**
+ * 计算多个浮点数的最大公约数
+ * Compute greatest common divisor of multiple floating-point numbers
+ *
+ * @param numbers 浮点数集合 / Collection of floating-point numbers
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun gcd(numbers: Iterable<FltX>): FltX {
     var factor = 0
     var scaledNumbers = numbers.toList()
@@ -258,17 +386,39 @@ fun gcd(numbers: Iterable<FltX>): FltX {
     return integerGCD / FltX.ten.pow(factor)
 }
 
-/** 计算多个浮点数的最大公约数（可变参数） / Compute GCD of multiple floating-point numbers (vararg) */
+/**
+ * 计算多个浮点数的最大公约数（可变参数）
+ * Compute GCD of multiple floating-point numbers (vararg)
+ *
+ * @param x 第一个浮点数 / First floating-point number
+ * @param y 第二个浮点数 / Second floating-point number
+ * @param z 第三个浮点数 / Third floating-point number
+ * @param numbers 其余浮点数 / Remaining floating-point numbers
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun <F : FloatingNumber<*>> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
     return gcd(listOf(x, y, z) + numbers.map { it.toFltX() })
 }
 
-/** 计算两个有理数的最大公约数 / Compute greatest common divisor of two rational numbers */
+/**
+ * 计算两个有理数的最大公约数
+ * Compute greatest common divisor of two rational numbers
+ *
+ * @param x 第一个有理数 / First rational number
+ * @param y 第二个有理数 / Second rational number
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun gcd(x: RtnX, y: RtnX): RtnX {
     return gcd(listOf(x, y))
 }
 
-/** 计算多个有理数的最大公约数 / Compute greatest common divisor of multiple rational numbers */
+/**
+ * 计算多个有理数的最大公约数
+ * Compute greatest common divisor of multiple rational numbers
+ *
+ * @param numbers 有理数集合 / Collection of rational numbers
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun gcd(numbers: Iterable<RtnX>): RtnX {
     return RtnX(
         gcd(numbers.map { it.num }),
@@ -276,7 +426,16 @@ fun gcd(numbers: Iterable<RtnX>): RtnX {
     )
 }
 
-/** 计算多个有理数的最大公约数（可变参数） / Compute GCD of multiple rational numbers (vararg) */
+/**
+ * 计算多个有理数的最大公约数（可变参数）
+ * Compute GCD of multiple rational numbers (vararg)
+ *
+ * @param x 第一个有理数 / First rational number
+ * @param y 第二个有理数 / Second rational number
+ * @param z 第三个有理数 / Third rational number
+ * @param numbers 其余有理数 / Remaining rational numbers
+ * @return 最大公约数 / Greatest common divisor
+ */
 fun gcd(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return gcd(listOf(x, y, z) + numbers.toList())
 }

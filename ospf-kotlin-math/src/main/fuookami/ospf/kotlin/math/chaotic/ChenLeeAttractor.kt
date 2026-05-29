@@ -54,6 +54,10 @@ data class ChenLeeAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Chen-Lee 吸引子生成器
+ * Chen-Lee Attractor Generator
+ */
 data class ChenLeeAttractorGenerator(
     val chenLeeAttractor: ChenLeeAttractor<Flt64> = ChenLeeAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -1153,6 +1153,16 @@ data class ValueRange<T>(
         return true
     }
 
+    /**
+     * 判断两个值范围的边界是否相同
+     * Determines if two value ranges have the same bounds
+     *
+     * 比较上下边界的值和区间类型是否分别相等。
+     * Compares whether the values and interval types of upper and lower bounds are respectively equal.
+     *
+     * @param other 另一个值范围对象（已通过 javaClass 和 constants 校验）
+     * @return 边界是否相同
+     */
     @Suppress("UNCHECKED_CAST")
     private fun hasSameBounds(other: Any): Boolean {
         // 安全不变量：equals 已校验 javaClass 与 constants，当前对象与 other 共享同一运行时数值类型。

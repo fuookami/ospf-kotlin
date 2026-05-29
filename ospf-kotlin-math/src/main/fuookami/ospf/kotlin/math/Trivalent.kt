@@ -69,6 +69,9 @@ sealed class Trivalent {
         /**
          * 从布尔值创建
          * Create from boolean
+         *
+         * @param value 布尔值 / Boolean value
+         * @return 对应的三值逻辑 / Corresponding trivalent value
          */
         operator fun invoke(value: Boolean): Trivalent {
             return when (value) {
@@ -80,6 +83,9 @@ sealed class Trivalent {
         /**
          * 从可空布尔值创建
          * Create from nullable boolean
+         *
+         * @param value 可空布尔值 / Nullable boolean value
+         * @return 对应的三值逻辑 / Corresponding trivalent value
          */
         operator fun invoke(value: Boolean?): Trivalent {
             return when (value) {
@@ -92,6 +98,9 @@ sealed class Trivalent {
         /**
          * 从 BalancedTrivalent 创建
          * Create from BalancedTrivalent
+         *
+         * @param value 平衡三值逻辑 / Balanced trivalent value
+         * @return 对应的三值逻辑 / Corresponding trivalent value
          */
         operator fun invoke(value: BalancedTrivalent): Trivalent {
             return when (value) {
@@ -154,7 +163,13 @@ sealed class BalancedTrivalent {
     }
 
     companion object {
-        /** 从布尔值创建 / Create from boolean */
+        /**
+         * 从布尔值创建
+         * Create from boolean
+         *
+         * @param value 布尔值 / Boolean value
+         * @return 对应的平衡三值逻辑 / Corresponding balanced trivalent value
+         */
         operator fun invoke(value: Boolean): BalancedTrivalent {
             return when (value) {
                 true -> True
@@ -162,7 +177,13 @@ sealed class BalancedTrivalent {
             }
         }
 
-        /** 从可空布尔值创建 / Create from nullable boolean */
+        /**
+         * 从可空布尔值创建
+         * Create from nullable boolean
+         *
+         * @param value 可空布尔值 / Nullable boolean value
+         * @return 对应的平衡三值逻辑 / Corresponding balanced trivalent value
+         */
         operator fun invoke(value: Boolean?): BalancedTrivalent {
             return when (value) {
                 true -> True
@@ -171,7 +192,13 @@ sealed class BalancedTrivalent {
             }
         }
 
-        /** 从 Trivalent 创建 / Create from Trivalent */
+        /**
+         * 从 Trivalent 创建
+         * Create from Trivalent
+         *
+         * @param value 三值逻辑 / Trivalent value
+         * @return 对应的平衡三值逻辑 / Corresponding balanced trivalent value
+         */
         operator fun invoke(value: Trivalent): BalancedTrivalent {
             return when (value) {
                 Trivalent.True -> True

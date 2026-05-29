@@ -12,25 +12,76 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 
 /** 生成随机 Int64 / Generate random Int64 */
 fun Random.nextInt64() = Int64(nextLong())
-/** 生成 [0, until) 范围的随机 Int64 / Generate random Int64 in [0, until) */
+/**
+ * 生成 [0, until) 范围的随机 Int64
+ * Generate random Int64 in [0, until)
+ *
+ * @param until 上界（不含） / Upper bound (exclusive)
+ * @return 随机 Int64 值 / Random Int64 value
+ */
 fun Random.nextInt64(until: Int64) = Int64(nextLong(until.value))
-/** 生成指定区间内的随机 Int64 / Generate random Int64 in specified range */
+/**
+ * 生成指定区间内的随机 Int64
+ * Generate random Int64 in specified range
+ *
+ * @param range 整数区间 / Integer range
+ * @return 随机 Int64 值 / Random Int64 value
+ */
 fun Random.nextInt64(range: IntegerRange<Int64>) = Int64(nextLong(LongRange(range.first.value, range.last.value)))
-/** 生成 [lowerBound, upperBound) 范围的随机 Int64 / Generate random Int64 in [lowerBound, upperBound) */
+/**
+ * 生成 [lowerBound, upperBound) 范围的随机 Int64
+ * Generate random Int64 in [lowerBound, upperBound)
+ *
+ * @param lowerBound 下界（含） / Lower bound (inclusive)
+ * @param upperBound 上界（不含） / Upper bound (exclusive)
+ * @return 随机 Int64 值 / Random Int64 value
+ */
 fun Random.nextInt64(lowerBound: Int64, upperBound: Int64) = Int64(nextLong(lowerBound.value, upperBound.value))
 
 /** 生成随机 UInt64 / Generate random UInt64 */
 fun Random.nextUInt64() = UInt64(nextULong())
-/** 生成 [0, until) 范围的随机 UInt64 / Generate random UInt64 in [0, until) */
+/**
+ * 生成 [0, until) 范围的随机 UInt64
+ * Generate random UInt64 in [0, until)
+ *
+ * @param until 上界（不含） / Upper bound (exclusive)
+ * @return 随机 UInt64 值 / Random UInt64 value
+ */
 fun Random.nextUInt64(until: UInt64) = UInt64(nextULong(until.value))
-/** 生成指定区间内的随机 UInt64 / Generate random UInt64 in specified range */
+/**
+ * 生成指定区间内的随机 UInt64
+ * Generate random UInt64 in specified range
+ *
+ * @param range 整数区间 / Integer range
+ * @return 随机 UInt64 值 / Random UInt64 value
+ */
 fun Random.nextUInt64(range: IntegerRange<UInt64>) = UInt64(nextULong(ULongRange(range.first.value, range.last.value)))
-/** 生成 [lowerBound, upperBound) 范围的随机 UInt64 / Generate random UInt64 in [lowerBound, upperBound) */
+/**
+ * 生成 [lowerBound, upperBound) 范围的随机 UInt64
+ * Generate random UInt64 in [lowerBound, upperBound)
+ *
+ * @param lowerBound 下界（含） / Lower bound (inclusive)
+ * @param upperBound 上界（不含） / Upper bound (exclusive)
+ * @return 随机 UInt64 值 / Random UInt64 value
+ */
 fun Random.nextUInt64(lowerBound: UInt64, upperBound: UInt64) = UInt64(nextULong(lowerBound.value, upperBound.value))
 
 /** 生成随机 Flt64 / Generate random Flt64 */
 fun Random.nextFlt64() = Flt64(nextDouble())
-/** 生成 [0, until) 范围的随机 Flt64 / Generate random Flt64 in [0, until) */
+/**
+ * 生成 [0, until) 范围的随机 Flt64
+ * Generate random Flt64 in [0, until)
+ *
+ * @param until 上界（不含） / Upper bound (exclusive)
+ * @return 随机 Flt64 值 / Random Flt64 value
+ */
 fun Random.nextFlt64(until: Flt64) = Flt64(nextDouble(until.value))
-/** 生成 [lowerBound, upperBound) 范围的随机 Flt64 / Generate random Flt64 in [lowerBound, upperBound) */
+/**
+ * 生成 [lowerBound, upperBound) 范围的随机 Flt64
+ * Generate random Flt64 in [lowerBound, upperBound)
+ *
+ * @param lowerBound 下界（含） / Lower bound (inclusive)
+ * @param upperBound 上界（不含） / Upper bound (exclusive)
+ * @return 随机 Flt64 值 / Random Flt64 value
+ */
 fun Random.nextFlt64(lowerBound: Flt64, upperBound: Flt64) = Flt64(nextDouble(lowerBound.value, upperBound.value))

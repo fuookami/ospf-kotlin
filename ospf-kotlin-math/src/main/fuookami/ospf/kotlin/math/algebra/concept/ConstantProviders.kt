@@ -168,6 +168,15 @@ data object CompanionConstantProviderResolver {
     val reflectionFallbackEnabled: Boolean
         get() = parseBoolean(System.getProperty(reflectionFallbackEnabledProperty))
 
+    /**
+     * 解析字符串为布尔值
+     * Parse a string to boolean value
+     *
+     * @param value 待解析的字符串
+     * @param value The string to parse
+     * @return 解析后的布尔值
+     * @return The parsed boolean value
+     */
     private fun parseBoolean(value: String?): Boolean {
         return when (value?.trim()?.lowercase()) {
             "1", "true", "yes", "on" -> true

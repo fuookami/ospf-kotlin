@@ -146,6 +146,13 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      */
     fun isInfinity(): Boolean = isPositiveInfinity()
 
+    /**
+     * 判断当前值是否为正无穷
+     * Check whether the current value is positive infinity
+     *
+     * @return 是否为正无穷
+     * @return Whether the value is positive infinity
+     */
     fun isPositiveInfinity(): Boolean = positiveInfinity?.let { this == it } ?: false
 
     /**
@@ -157,8 +164,22 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      */
     fun isNegativeInfinity(): Boolean = negativeInfinityValue?.let { this == it } ?: false
 
+    /**
+     * 判断当前值是否为无穷（正无穷或负无穷）
+     * Check whether the current value is infinite (positive or negative infinity)
+     *
+     * @return 是否为无穷
+     * @return Whether the value is infinite
+     */
     fun isInfinite(): Boolean = isPositiveInfinity() || isNegativeInfinity()
 
+    /**
+     * 判断当前值是否为有限值
+     * Check whether the current value is finite
+     *
+     * @return 是否为有限值
+     * @return Whether the value is finite
+     */
     fun isFinite(): Boolean = !isInfinite()
 
     override fun isWithinBounds(value: Self): Boolean {
@@ -175,6 +196,13 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
         }
     }
 
+    /**
+     * 获取自身（CRTP 模式的类型安全转换）
+     * Get self (type-safe cast for CRTP pattern)
+     *
+     * @return 当前实例的 Self 类型引用
+     * @return The Self-typed reference to this instance
+     */
     @Suppress("UNCHECKED_CAST")
     private fun self(): Self {
         // 安全不变量：RealNumber<Self> 使用自类型约束，运行时 this 与 Self 一致。
@@ -182,7 +210,21 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
         return this as Self
     }
 
+    /**
+     * 判断当前值是否在边界范围内
+     * Check whether the current value is within bounds
+     *
+     * @return 是否在边界内
+     * @return Whether the value is within bounds
+     */
     fun isSelfWithinBounds(): Boolean = isWithinBounds(self())
+    /**
+     * 将当前值限制在边界范围内
+     * Clamp the current value to within bounds
+     *
+     * @return 限制后的值
+     * @return The clamped value
+     */
     fun clampSelfToBounds(): Self = clampToBounds(self())
 
     /**

@@ -38,6 +38,7 @@ internal class QuadraticTermKey private constructor(
             }
         }
 
+        /** 计算两个符号的组合哈希值 / Compute combined hash of two symbols */
         private fun hashOf(symbol1: Symbol, symbol2: Symbol?): Int {
             var result = symbol1.hashCode()
             result = 31 * result + (symbol2?.hashCode() ?: 0)
@@ -102,6 +103,15 @@ internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
     return combinedMonomials
 }
 
+/**
+ * 构建有序符号到索引的映射
+ * Build a mapping from ordered symbols to indices
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @param valuesSize 值列表大小，需与 order 大小一致 / Size of values list, must match order size
+ * @return 符号到索引的映射 / Map from symbol to index
+ * @throws IllegalArgumentException 若大小不匹配或存在重复符号 / If sizes mismatch or duplicate symbols exist
+ */
 private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Map<Symbol, Int> {
     require(order.size == valuesSize) {
         "Order and values size mismatch: order.size=${order.size}, values.size=$valuesSize."

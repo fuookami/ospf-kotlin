@@ -22,8 +22,11 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 // ============================================================================
 
 /**
- * 通过 UInt64 线性索引获取元紌
+ * 通过 UInt64 线性索引获取元素
  * Get element by UInt64 linear index
+ *
+ * @param i UInt64 线性索引 / The UInt64 linear index
+ * @return 该索引处的元素 / The element at the given index
  */
 operator fun <T : Any, S : Shape> AbstractMultiArray<T, S>.get(i: UInt64): T {
     return this[i.toInt()]
@@ -32,6 +35,9 @@ operator fun <T : Any, S : Shape> AbstractMultiArray<T, S>.get(i: UInt64): T {
 /**
  * 通过 UInt64 迭代获取元素
  * Get element by UInt64 iterable
+ *
+ * @param v UInt64 索引迭代器 / The UInt64 index iterable
+ * @return 该索引处的元素 / The element at the given indices
  */
 @JvmName("getByUInt64Iterable")
 operator fun <T : Any, S : Shape> AbstractMultiArray<T, S>.get(v: Iterable<UInt64>): T {
@@ -43,8 +49,11 @@ operator fun <T : Any, S : Shape> AbstractMultiArray<T, S>.get(v: Iterable<UInt6
 // ============================================================================
 
 /**
- * 通过 UInt64 线性索引设置元紌
+ * 通过 UInt64 线性索引设置元素
  * Set element by UInt64 linear index
+ *
+ * @param i UInt64 线性索引 / The UInt64 linear index
+ * @param value 要设置的值 / The value to set
  */
 operator fun <T : Any, S : Shape> MutableMultiArray<T, S>.set(i: UInt64, value: T) {
     this[i.toInt()] = value
@@ -53,6 +62,9 @@ operator fun <T : Any, S : Shape> MutableMultiArray<T, S>.set(i: UInt64, value: 
 /**
  * 通过 UInt64 迭代设置元素
  * Set element by UInt64 iterable
+ *
+ * @param v UInt64 索引迭代器 / The UInt64 index iterable
+ * @param value 要设置的值 / The value to set
  */
 @JvmName("setByUInt64Iterable")
 operator fun <T : Any, S : Shape> MutableMultiArray<T, S>.set(v: Iterable<UInt64>, value: T) {
@@ -64,8 +76,11 @@ operator fun <T : Any, S : Shape> MutableMultiArray<T, S>.set(v: Iterable<UInt64
 // ============================================================================
 
 /**
- * 通过 UInt64 线性索引获取元紌
+ * 通过 UInt64 线性索引获取元素
  * Get element by UInt64 linear index
+ *
+ * @param i UInt64 线性索引 / The UInt64 linear index
+ * @return 该索引处的元素 / The element at the given index
  */
 operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(i: UInt64): T {
     return this[i.toInt()]
@@ -74,6 +89,9 @@ operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(i: UInt64): T {
 /**
  * 通过 UInt64 迭代获取元素
  * Get element by UInt64 iterable
+ *
+ * @param v UInt64 索引迭代器 / The UInt64 index iterable
+ * @return 该索引处的元素 / The element at the given indices
  */
 @JvmName("viewGetByUInt64Iterable")
 operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(v: Iterable<UInt64>): T {
@@ -85,8 +103,11 @@ operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(v: Iterable<UInt64>):
 // ============================================================================
 
 /**
- * 通过 UInt64 线性索引获取元紌
+ * 通过 UInt64 线性索引获取元素
  * Get element by UInt64 linear index
+ *
+ * @param i UInt64 线性索引 / The UInt64 linear index
+ * @return 该索引处的元素 / The element at the given index
  */
 operator fun <T : Any, S : Shape> MappedMultiArrayView<T, S>.get(i: UInt64): T {
     return this[i.toInt()]
@@ -97,13 +118,13 @@ operator fun <T : Any, S : Shape> MappedMultiArrayView<T, S>.get(i: UInt64): T {
 // ============================================================================
 
 /**
- * 维度数量（UInt64，
+ * 维度数量（UInt64）
  * Number of dimensions (UInt64)
  */
 val Shape.udimensionUInt64: UInt64 get() = UInt64(dimension.toULong())
 
 /**
- * 元素总数（UInt64，
+ * 元素总数（UInt64）
  * Total number of elements (UInt64)
  */
 val Shape.usizeUInt64: UInt64 get() = UInt64(size.toULong())
@@ -113,32 +134,53 @@ val Shape.usizeUInt64: UInt64 get() = UInt64(size.toULong())
 // ============================================================================
 
 /**
- * 使用 UInt64 创建一维形犌
+ * 使用 UInt64 创建一维形状
  * Create one-dimensional shape with UInt64
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @return 一维形状 / One-dimensional shape
  */
 fun Shape1(d1: UInt64): Shape1 = Shape1(d1.toInt())
 
 /**
  * 使用 UInt64 创建二维形状
  * Create two-dimensional shape with UInt64
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @return 二维形状 / Two-dimensional shape
  */
 fun Shape2(d1: UInt64, d2: UInt64): Shape2 = Shape2(d1.toInt(), d2.toInt())
 
 /**
  * 使用 UInt64 创建三维形状
  * Create three-dimensional shape with UInt64
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @param d3 第三维度大小 / Third dimension size
+ * @return 三维形状 / Three-dimensional shape
  */
 fun Shape3(d1: UInt64, d2: UInt64, d3: UInt64): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt())
 
 /**
  * 使用 UInt64 创建四维形状
  * Create four-dimensional shape with UInt64
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @param d3 第三维度大小 / Third dimension size
+ * @param d4 第四维度大小 / Fourth dimension size
+ * @return 四维形状 / Four-dimensional shape
  */
 fun Shape4(d1: UInt64, d2: UInt64, d3: UInt64, d4: UInt64): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt())
 
 /**
- * 使用 UInt64 列表创建动态形犌
+ * 使用 UInt64 列表创建动态形状
  * Create dynamic shape with UInt64 list
+ *
+ * @param shape UInt64 维度大小列表 / List of UInt64 dimension sizes
+ * @return 动态形状 / Dynamic shape
  */
 fun DynShape(shape: List<UInt64>): DynShape = DynShape(shape.map { it.toInt() }.toIntArray())
 

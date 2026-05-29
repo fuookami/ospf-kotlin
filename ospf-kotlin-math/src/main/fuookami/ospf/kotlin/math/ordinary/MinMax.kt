@@ -28,10 +28,24 @@ package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.utils.functional.*
 
-/** 返回两个值中的较小者 / Return the smaller of two values */
+/**
+ * 返回两个值中的较小者
+ * Return the smaller of two values
+ *
+ * @param lhs 左值 / Left value
+ * @param rhs 右值 / Right value
+ * @return 较小的值 / The smaller value
+ */
 fun <T : Ord<T>> min(lhs: T, rhs: T): T = if (lhs < rhs) lhs else rhs
 
-/** 返回多个值中的最小值 / Return the minimum of multiple values */
+/**
+ * 返回多个值中的最小值
+ * Return the minimum of multiple values
+ *
+ * @param lhs 第一个值 / First value
+ * @param rhs 其余值 / Remaining values
+ * @return 最小值 / Minimum value
+ */
 fun <T : Ord<T>> min(lhs: T, vararg rhs: T): T {
     var min = lhs
     for (e in rhs) {
@@ -42,7 +56,15 @@ fun <T : Ord<T>> min(lhs: T, vararg rhs: T): T {
     return min
 }
 
-/** 通过提取器返回多个值中的最小值 / Return the minimum of multiple values via extractor */
+/**
+ * 通过提取器返回多个值中的最小值
+ * Return the minimum of multiple values via extractor
+ *
+ * @param lhs 第一个值 / First value
+ * @param rhs 其余值 / Remaining values
+ * @param extractor 值提取器 / Value extractor
+ * @return 提取后的最小值 / Minimum extracted value
+ */
 inline fun <T : Ord<T>, U> minOf(
     lhs: U,
     vararg rhs: U,
@@ -58,10 +80,24 @@ inline fun <T : Ord<T>, U> minOf(
     return min
 }
 
-/** 返回两个值中的较大者 / Return the larger of two values */
+/**
+ * 返回两个值中的较大者
+ * Return the larger of two values
+ *
+ * @param lhs 左值 / Left value
+ * @param rhs 右值 / Right value
+ * @return 较大的值 / The larger value
+ */
 fun <T : Ord<T>> max(lhs: T, rhs: T): T = if (lhs > rhs) lhs else rhs
 
-/** 返回多个值中的最大值 / Return the maximum of multiple values */
+/**
+ * 返回多个值中的最大值
+ * Return the maximum of multiple values
+ *
+ * @param lhs 第一个值 / First value
+ * @param rhs 其余值 / Remaining values
+ * @return 最大值 / Maximum value
+ */
 fun <T : Ord<T>> max(lhs: T, vararg rhs: T): T {
     var max = lhs
     for (e in rhs) {
@@ -72,7 +108,15 @@ fun <T : Ord<T>> max(lhs: T, vararg rhs: T): T {
     return max
 }
 
-/** 通过提取器返回多个值中的最大值 / Return the maximum of multiple values via extractor */
+/**
+ * 通过提取器返回多个值中的最大值
+ * Return the maximum of multiple values via extractor
+ *
+ * @param lhs 第一个值 / First value
+ * @param rhs 其余值 / Remaining values
+ * @param extractor 值提取器 / Value extractor
+ * @return 提取后的最大值 / Maximum extracted value
+ */
 inline fun <T : Ord<T>, U> maxOf(
     lhs: U,
     vararg rhs: U,
@@ -88,10 +132,24 @@ inline fun <T : Ord<T>, U> maxOf(
     return max
 }
 
-/** 同时返回两个值的最小值和最大值 / Return both min and max of two values simultaneously */
+/**
+ * 同时返回两个值的最小值和最大值
+ * Return both min and max of two values simultaneously
+ *
+ * @param lhs 左值 / Left value
+ * @param rhs 右值 / Right value
+ * @return 最小值和最大值对 / Pair of minimum and maximum values
+ */
 fun <T : Ord<T>> minmax(lhs: T, rhs: T): Pair<T, T> = Pair(min(lhs, rhs), max(lhs, rhs))
 
-/** 同时返回多个值的最小值和最大值 / Return both min and max of multiple values simultaneously */
+/**
+ * 同时返回多个值的最小值和最大值
+ * Return both min and max of multiple values simultaneously
+ *
+ * @param lhs 第一个值 / First value
+ * @param rhs 其余值 / Remaining values
+ * @return 最小值和最大值对 / Pair of minimum and maximum values
+ */
 fun <T : Ord<T>> minMax(lhs: T, vararg rhs: T): Pair<T, T> {
     var min = lhs
     var max = lhs
@@ -106,7 +164,15 @@ fun <T : Ord<T>> minMax(lhs: T, vararg rhs: T): Pair<T, T> {
     return Pair(min, max)
 }
 
-/** 通过提取器同时返回多个值的最小值和最大值 / Return both min and max of multiple values via extractor */
+/**
+ * 通过提取器同时返回多个值的最小值和最大值
+ * Return both min and max of multiple values via extractor
+ *
+ * @param lhs 第一个值 / First value
+ * @param rhs 其余值 / Remaining values
+ * @param extractor 值提取器 / Value extractor
+ * @return 提取后的最小值和最大值对 / Pair of minimum and maximum extracted values
+ */
 inline fun <T : Ord<T>, U> minMaxOf(
     lhs: U,
     vararg rhs: U,
@@ -168,7 +234,13 @@ fun <T : Ord<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     return Pair(min, max)
 }
 
-/** 通过提取器返回集合中最小和最大元素本身 / Return the min and max elements themselves via extractor */
+/**
+ * 通过提取器返回集合中最小和最大元素本身
+ * Return the min and max elements themselves via extractor
+ *
+ * @param extractor 值提取器 / Value extractor
+ * @return 最小和最大元素对 / Pair of minimum and maximum elements
+ */
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(
     crossinline extractor: Extractor<T, U>
 ): Pair<U, U> {
@@ -192,7 +264,13 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(
     return Pair(minE, maxE)
 }
 
-/** 通过提取器返回集合中最小和最大元素本身，空集合返回 null / Return min and max elements via extractor, null for empty */
+/**
+ * 通过提取器返回集合中最小和最大元素本身，空集合返回 null
+ * Return min and max elements via extractor, null for empty
+ *
+ * @param extractor 值提取器 / Value extractor
+ * @return 最小和最大元素对，空集合返回 null / Pair of min and max elements, or null for empty
+ */
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(
     crossinline extractor: Extractor<T, U>
 ): Pair<U, U>? {
@@ -219,7 +297,13 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(
     return Pair(minE, maxE)
 }
 
-/** 通过提取器返回集合中最小和最大提取值 / Return the min and max extracted values from collection */
+/**
+ * 通过提取器返回集合中最小和最大提取值
+ * Return the min and max extracted values from collection
+ *
+ * @param extractor 值提取器 / Value extractor
+ * @return 最小和最大提取值对 / Pair of minimum and maximum extracted values
+ */
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(
     crossinline extractor: Extractor<T, U>
 ): Pair<T, T> {
@@ -238,7 +322,13 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(
     return Pair(min, max)
 }
 
-/** 通过提取器返回集合中最小和最大提取值，空集合返回 null / Return min and max extracted values, null for empty */
+/**
+ * 通过提取器返回集合中最小和最大提取值，空集合返回 null
+ * Return min and max extracted values, null for empty
+ *
+ * @param extractor 值提取器 / Value extractor
+ * @return 最小和最大提取值对，空集合返回 null / Pair of min and max extracted values, or null for empty
+ */
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(
     crossinline extractor: Extractor<T, U>
 ): Pair<T, T>? {
@@ -260,7 +350,13 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(
     return Pair(min, max)
 }
 
-/** 使用自定义比较器返回集合的最小值和最大值 / Return min and max using custom comparator */
+/**
+ * 使用自定义比较器返回集合的最小值和最大值
+ * Return min and max using custom comparator
+ *
+ * @param comparator 自定义比较器 / Custom comparator
+ * @return 最小值和最大值对 / Pair of minimum and maximum values
+ */
 fun <T> Iterable<T>.minMaxWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
     val iterator = this.iterator()
     var min = iterator().next()
@@ -277,7 +373,13 @@ fun <T> Iterable<T>.minMaxWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
     return Pair(min, max)
 }
 
-/** 使用自定义比较器返回集合的最小值和最大值，空集合返回 null / Return min and max using comparator, null for empty */
+/**
+ * 使用自定义比较器返回集合的最小值和最大值，空集合返回 null
+ * Return min and max using comparator, null for empty
+ *
+ * @param comparator 自定义比较器 / Custom comparator
+ * @return 最小值和最大值对，空集合返回 null / Pair of min and max values, or null for empty
+ */
 fun <T> Iterable<T>.minMaxWithOrNull(comparator: kotlin.Comparator<T>): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {

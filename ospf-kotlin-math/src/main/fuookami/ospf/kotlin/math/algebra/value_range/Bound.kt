@@ -25,7 +25,8 @@ import fuookami.ospf.kotlin.math.operator.*
  *
  * @param T 数值类型，必须是实数和数域
  * @property value 边界值的包装噌
- * @property interval 边界的区间类型（开区间或闭区间，
+ * @property interval 边界的区间类型（开区间或闭区间）。当值为无穷大时，自动设置为开区间
+ *   Interval type of the bound (open or closed). Automatically set to Open when the value is infinity.
  */
 class Bound<T>(
     val value: ValueWrapper<T>,

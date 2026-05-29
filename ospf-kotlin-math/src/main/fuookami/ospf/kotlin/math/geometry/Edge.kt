@@ -38,6 +38,13 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 
     val length by lazy { from distance to }
 
+    /**
+     * 使用指定距离度量计算长度
+     * Compute length using the specified distance metric
+     *
+     * @param distance 距离度量策略，默认为欧几里得距离 / The distance metric strategy, defaults to Euclidean
+     * @return 边的长度 / The length of the edge
+     */
     fun length(distance: Distance = Distance.Euclidean): V {
         return distance(from, to)
     }
@@ -61,6 +68,13 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         }
     }
 
+    /**
+     * 将坐标列表转换为点类型
+     * Cast a coordinate list to the point type
+     *
+     * @param position 坐标列表 / The coordinate list
+     * @return 转换后的点 / The casted point
+     */
     @Suppress("UNCHECKED_CAST")
     private fun castPoint(position: List<V>): P {
         // 安全不变量：P 约束为 Point<D, V>，此处只改变具体子类型视图，不改变坐标维度与数值类型。
@@ -68,35 +82,86 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         return Point(position, from.dim) as P
     }
 
+    /**
+     * 计算边的中点
+     * Compute the midpoint of the edge
+     *
+     * @return 中点 / The midpoint
+     */
     fun midpoint(): P {
         val v = from[0]
         val two = v.constants.two
         return castPoint(from.indices.map { (from[it] + to[it]) / two })
     }
 
+    /**
+     * 计算边上参数 t 处的点
+     * Compute the point at parameter t on the edge
+     *
+     * @param t 参数值（0 为起点，1 为终点） / The parameter value (0 for start, 1 for end)
+     * @return 边上对应位置的点 / The point at the corresponding position on the edge
+     */
     fun pointAt(t: V): P {
         return castPoint(from.indices.map { from[it] + t * (to[it] - from[it]) })
     }
 
+    /**
+     * 判断点是否在边上（含容差）
+     * Check whether a point is on the edge (with tolerance)
+     *
+     * @param point 待检测的点 / The point to check
+     * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
+     * @return 点是否在边上 / Whether the point is on the edge
+     */
     fun containsPoint(point: P, epsilon: V = from[0].constants.decimalPrecision): Boolean {
         val distToFrom = point distance from
         val distToTo = point distance to
         return (distToFrom + distToTo - length).abs() <= epsilon
     }
 
+    /**
+     * 使用默认精度判断两条边是否近似相等（有向）
+     * Check approximate equality with default precision (directed)
+     *
+     * @param other 另一条边 / The other edge
+     * @return 是否近似相等 / Whether approximately equal
+     */
     infix fun approxEq(other: Edge<P, D, V>): Boolean {
         return from.approxEq(other.from) && to.approxEq(other.to)
     }
 
+    /**
+     * 使用指定精度判断两条边是否近似相等（有向）
+     * Check approximate equality with specified precision (directed)
+     *
+     * @param other 另一条边 / The other edge
+     * @param epsilon 容差值 / The tolerance value
+     * @return 是否近似相等 / Whether approximately equal
+     */
     fun approxEq(other: Edge<P, D, V>, epsilon: V): Boolean {
         return from.approxEq(other.from, epsilon) && to.approxEq(other.to, epsilon)
     }
 
+    /**
+     * 使用默认精度判断两条边是否近似相等（无向）
+     * Check approximate equality with default precision (undirected)
+     *
+     * @param other 另一条边 / The other edge
+     * @return 是否近似相等 / Whether approximately equal
+     */
     infix fun approxEqUndirected(other: Edge<P, D, V>): Boolean {
         return (from.approxEq(other.from) && to.approxEq(other.to))
             || (from.approxEq(other.to) && to.approxEq(other.from))
     }
 
+    /**
+     * 使用指定精度判断两条边是否近似相等（无向）
+     * Check approximate equality with specified precision (undirected)
+     *
+     * @param other 另一条边 / The other edge
+     * @param epsilon 容差值 / The tolerance value
+     * @return 是否近似相等 / Whether approximately equal
+     */
     fun approxEqUndirected(other: Edge<P, D, V>, epsilon: V): Boolean {
         return (from.approxEq(other.from, epsilon) && to.approxEq(other.to, epsilon))
             || (from.approxEq(other.to, epsilon) && to.approxEq(other.from, epsilon))
@@ -105,12 +170,24 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = "$from -> $to"
 }
 
-/** 判断两条二维边是否相交 / Check whether two 2D edges intersect */
+/**
+ * 判断两条二维边是否相交
+ * Check whether two 2D edges intersect
+ *
+ * @param other 另一条边 / The other edge
+ * @return 是否相交 / Whether they intersect
+ */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     return intersectionPoint(other) != null
 }
 
-/** 计算两条二维边的交点，无交点返回 null / Compute intersection point of two 2D edges, returns null if none */
+/**
+ * 计算两条二维边的交点，无交点返回 null
+ * Compute intersection point of two 2D edges, returns null if none
+ *
+ * @param other 另一条边 / The other edge
+ * @return 交点，无交点返回 null / The intersection point, or null if none
+ */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Point<Dim2, Flt64>? {
     val p1 = from
     val p2 = to
@@ -141,7 +218,13 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Po
     return null
 }
 
-/** 计算边上离给定点最近的点 / Compute the closest point on the edge to the given point */
+/**
+ * 计算边上离给定点最近的点
+ * Compute the closest point on the edge to the given point
+ *
+ * @param point 给定的点 / The given point
+ * @return 边上最近的点 / The closest point on the edge
+ */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
     val direction = this.direction
     val dx = point.x - from.x
@@ -164,7 +247,13 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, 
     return pointAt(tClamped)
 }
 
-/** 计算边到给定点的距离 / Compute the distance from the edge to the given point */
+/**
+ * 计算边到给定点的距离
+ * Compute the distance from the edge to the given point
+ *
+ * @param point 给定的点 / The given point
+ * @return 边到该点的距离 / The distance from the edge to the point
+ */
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.distanceToPoint(point: Point<Dim2, Flt64>): Flt64 {
     val closest = closestPoint(point)
     return point distance closest

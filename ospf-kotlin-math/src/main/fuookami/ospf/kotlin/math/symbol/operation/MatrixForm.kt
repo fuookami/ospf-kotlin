@@ -50,18 +50,42 @@ data class QuadraticMatrixForm<T>(
     val order: List<Symbol>
 ) where T : Ring<T>
 
+/**
+ * 验证符号顺序列表无重复符号
+ * Validate that the symbol order list contains no duplicate symbols
+ *
+ * @param order 符号顺序列表 / Symbol order list
+ * @throws IllegalArgumentException 若存在重复符号 / If duplicate symbols exist
+ */
 private fun validateOrder(order: List<Symbol>) {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
     }
 }
 
+/**
+ * 验证线性矩阵形式的维度一致性
+ * Validate dimension consistency of linear matrix form
+ *
+ * @param c 系数向量 / Coefficient vector
+ * @param order 符号顺序列表 / Symbol order list
+ * @throws IllegalArgumentException 若维度不匹配 / If dimensions mismatch
+ */
 private fun <T> validateLinearMatrixDimensions(c: List<T>, order: List<Symbol>) {
     require(c.size == order.size) {
         "Linear matrix form dimension mismatch: c.size=${c.size}, order.size=${order.size}."
     }
 }
 
+/**
+ * 验证二次矩阵形式的维度一致性
+ * Validate dimension consistency of quadratic matrix form
+ *
+ * @param q 二次项系数矩阵 / Quadratic coefficient matrix
+ * @param c 一次项系数向量 / Linear coefficient vector
+ * @param order 符号顺序列表 / Symbol order list
+ * @throws IllegalArgumentException 若维度不匹配 / If dimensions mismatch
+ */
 private fun <T> validateQuadraticMatrixDimensions(q: List<List<T>>, c: List<T>, order: List<Symbol>) {
     val n = order.size
     require(q.size == n) {

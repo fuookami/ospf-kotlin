@@ -50,6 +50,10 @@ data class BurkeShawAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Burke-Shaw 吸引子生成器
+ * Burke-Shaw Attractor Generator
+ */
 data class BurkeShawAttractorGenerator(
     val burkeShawAttractor: BurkeShawAttractor<Flt64> = BurkeShawAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

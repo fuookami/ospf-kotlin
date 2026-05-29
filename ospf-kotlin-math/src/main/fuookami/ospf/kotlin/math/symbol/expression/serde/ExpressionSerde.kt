@@ -165,6 +165,7 @@ private val json = Json {
     classDiscriminator = "type"
 }
 
+/** 将 ScalarExpression<Any?> 安全转换为 ScalarExpression<Any>，用于 JSON 反序列化边界 / Safely cast ScalarExpression<Any?> to ScalarExpression<Any> at the JSON deserialization boundary */
 @Suppress("UNCHECKED_CAST")
 private fun ScalarExpression<Any?>.asAnyScalarExpression(): ScalarExpression<Any> {
     // JSON 反序列化边界只恢复表达式树结构，调用方按 ScalarExpression<Any> 继续处理。

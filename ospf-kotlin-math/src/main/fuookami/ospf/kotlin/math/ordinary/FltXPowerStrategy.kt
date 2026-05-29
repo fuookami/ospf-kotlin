@@ -49,7 +49,13 @@ data class FltXSeriesResult(
  * Provides high-precision power, exponential, and logarithm operations for FltX.
  */
 object FltXPowerStrategy {
-    /** 根据精度位数计算默认精度阈值 / Compute default precision threshold from digit count */
+    /**
+     * 根据精度位数计算默认精度阈值
+     * Compute default precision threshold from digit count
+     *
+     * @param digits 精度位数 / Number of precision digits
+     * @return 默认精度阈值 / Default precision threshold
+     */
     fun defaultPrecision(digits: Int): FltX {
         val normalizedDigits = if (digits <= 0) {
             1
@@ -65,7 +71,16 @@ object FltXPowerStrategy {
         return min(threshold, FltX.epsilon)
     }
 
-    /** 计算 FltX 自然对数 / Compute FltX natural logarithm */
+    /**
+     * 计算 FltX 自然对数
+     * Compute FltX natural logarithm
+     *
+     * @param x 真数 / Argument
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 自然对数值，x <= 0 时返回 null / Natural logarithm value, or null if x <= 0
+     */
     fun ln(
         x: FltX,
         digits: Int,
@@ -73,7 +88,16 @@ object FltXPowerStrategy {
         maxIterations: Int = 8192
     ): FltX? = lnWithStats(x, digits, precision, maxIterations)?.value
 
-    /** 计算 FltX 自然对数，返回包含迭代统计的结果 / Compute FltX natural logarithm with iteration statistics */
+    /**
+     * 计算 FltX 自然对数，返回包含迭代统计的结果
+     * Compute FltX natural logarithm with iteration statistics
+     *
+     * @param x 真数 / Argument
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 包含结果和迭代统计的 FltXSeriesResult，x <= 0 时返回 null / FltXSeriesResult with value and stats, or null if x <= 0
+     */
     fun lnWithStats(
         x: FltX,
         digits: Int,
@@ -104,6 +128,7 @@ object FltXPowerStrategy {
         return FltXSeriesResult(value, core.iterations, core.converged)
     }
 
+    /** 计算 [1, 2) 区间内 FltX 的自然对数（泰勒级数） / Compute natural logarithm of FltX in [1, 2) via Taylor series */
     private fun lnUnitInterval(
         x: FltX,
         scale: Int,
@@ -129,7 +154,16 @@ object FltXPowerStrategy {
         return FltXSeriesResult((value * FltX.two).withScale(scale, RoundingMode.HALF_UP), iterations, false)
     }
 
-    /** 计算 FltX 指数函数 / Compute FltX exponential function */
+    /**
+     * 计算 FltX 指数函数
+     * Compute FltX exponential function
+     *
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 指数值 / Exponential value
+     */
     fun exp(
         index: FltX,
         digits: Int,
@@ -137,7 +171,16 @@ object FltXPowerStrategy {
         maxIterations: Int = 8192
     ): FltX = expWithStats(index, digits, precision, maxIterations).value
 
-    /** 计算 FltX 指数函数，返回包含迭代统计的结果 / Compute FltX exponential with iteration statistics */
+    /**
+     * 计算 FltX 指数函数，返回包含迭代统计的结果
+     * Compute FltX exponential with iteration statistics
+     *
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 包含结果和迭代统计的 FltXSeriesResult / FltXSeriesResult with value and stats
+     */
     fun expWithStats(
         index: FltX,
         digits: Int,
@@ -167,7 +210,17 @@ object FltXPowerStrategy {
         return FltXSeriesResult(value, iterations, false)
     }
 
-    /** 计算 FltX 幂函数，通过 ln 和 exp 实现 / Compute FltX power function via ln and exp */
+    /**
+     * 计算 FltX 幂函数，通过 ln 和 exp 实现
+     * Compute FltX power function via ln and exp
+     *
+     * @param base 底数 / Base
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 幂函数值 / Power value
+     */
     fun pow(
         base: FltX,
         index: FltX,

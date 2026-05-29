@@ -54,6 +54,13 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     /** 周长 / Perimeter */
     val perimeter: V by lazy { e1.length + e2.length + e3.length }
 
+    /**
+     * 将坐标列表转换为点类型
+     * Cast a coordinate list to the point type
+     *
+     * @param position 坐标列表 / The coordinate list
+     * @return 转换后的点 / The casted point
+     */
     @Suppress("UNCHECKED_CAST")
     private fun castPoint(position: List<V>): P {
         // 安全不变量：P 受限于 Point<D, V>，构造结果保持相同维度与数值类型。
@@ -61,6 +68,13 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         return Point(position, p1.dim) as P
     }
 
+    /**
+     * 将计算结果转换为目标数值类型
+     * Cast the calculation result to the target numeric type
+     *
+     * @param value 计算结果 / The calculation result
+     * @return 转换后的数值 / The casted numeric value
+     */
     @Suppress("UNCHECKED_CAST")
     private fun castValue(value: Any): V {
         // 安全不变量：当前三角形数值泛型为 V，sqrt 结果与输入域一致。
@@ -105,7 +119,12 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = "Triangle($p1, $p2, $p3)"
 }
 
-/** 计算二维三角形面积（叉积法） / Compute 2D triangle area (cross product method) */
+/**
+ * 计算二维三角形面积（叉积法）
+ * Compute 2D triangle area (cross product method)
+ *
+ * @return 三角形面积 / The triangle area
+ */
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.area2D(): Flt64 {
     val v1x = p2.x - p1.x
     val v1y = p2.y - p1.y
@@ -115,7 +134,13 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.area2D(): Flt64 {
     return cross.abs() / Flt64.two
 }
 
-/** 判断二维点是否在三角形内（含边界） / Check whether a 2D point is inside the triangle (inclusive) */
+/**
+ * 判断二维点是否在三角形内（含边界）
+ * Check whether a 2D point is inside the triangle (inclusive)
+ *
+ * @param point 待检测的点 / The point to check
+ * @return 点是否在三角形内 / Whether the point is inside the triangle
+ */
 infix fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<Dim2, Flt64>): Boolean {
     val v0x = p3.x - p1.x
     val v0y = p3.y - p1.y
@@ -141,18 +166,33 @@ infix fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<D
     return u geq Flt64.zero && v geq Flt64.zero && u + v leq Flt64.one
 }
 
-/** 计算二维三角形的外接圆 / Compute the circumcircle of a 2D triangle */
+/**
+ * 计算二维三角形的外接圆
+ * Compute the circumcircle of a 2D triangle
+ *
+ * @return 外接圆 / The circumcircle
+ */
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcircle(): Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64> {
     return Circle.circumcircleOf(this)
 }
 
-/** 计算二维三角形的外心 / Compute the circumcenter of a 2D triangle */
+/**
+ * 计算二维三角形的外心
+ * Compute the circumcenter of a 2D triangle
+ *
+ * @return 外心点 / The circumcenter point
+ */
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcenter(): Point<Dim2, Flt64> {
     val cc = circumcircle()
     return cc.center
 }
 
-/** 计算二维三角形的内心 / Compute the incenter of a 2D triangle */
+/**
+ * 计算二维三角形的内心
+ * Compute the incenter of a 2D triangle
+ *
+ * @return 内心点 / The incenter point
+ */
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.incenter(): Point<Dim2, Flt64> {
     val a = e2.length
     val b = e3.length
@@ -169,7 +209,12 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.incenter(): Point<Dim2, Flt64> {
     )
 }
 
-/** 计算三维三角形面积（叉积法） / Compute 3D triangle area (cross product method) */
+/**
+ * 计算三维三角形面积（叉积法）
+ * Compute 3D triangle area (cross product method)
+ *
+ * @return 三角形面积 / The triangle area
+ */
 fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.area3D(): Flt64 {
     val v1 = vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
     val v2 = vector3(p3.x - p1.x, p3.y - p1.y, p3.z - p1.z)
@@ -177,7 +222,12 @@ fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.area3D(): Flt64 {
     return cross.norm / Flt64.two
 }
 
-/** 计算三维三角形的法向量（单位向量），退化时返回 null / Compute the normal vector (unit) of a 3D triangle, returns null if degenerate */
+/**
+ * 计算三维三角形的法向量（单位向量），退化时返回 null
+ * Compute the normal vector (unit) of a 3D triangle, returns null if degenerate
+ *
+ * @return 法向量（退化时返回 null） / The normal vector (null if degenerate)
+ */
 fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.normal(): Vector<Dim3, Flt64>? {
     val v1 = vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
     val v2 = vector3(p3.x - p1.x, p3.y - p1.y, p3.z - p1.z)

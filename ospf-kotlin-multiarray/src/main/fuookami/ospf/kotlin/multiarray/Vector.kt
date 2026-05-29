@@ -183,7 +183,7 @@ sealed class DummyIndex {
                 if (start < end) {
                     DummyIndexIterator.Continuous(start until end)
                 } else {
-                    DummyIndexIterator.Continuous(0 until 0)
+                    DummyIndexIterator.Continuous(0..0)
                 }
             }
 

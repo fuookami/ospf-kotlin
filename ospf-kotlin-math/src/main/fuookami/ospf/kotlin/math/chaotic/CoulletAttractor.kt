@@ -56,6 +56,10 @@ data class CoulletAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Coullet 吸引子生成器
+ * Coullet Attractor Generator
+ */
 data class CoulletAttractorGenerator(
     val coulletAttractor: CoulletAttractor<Flt64> = CoulletAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

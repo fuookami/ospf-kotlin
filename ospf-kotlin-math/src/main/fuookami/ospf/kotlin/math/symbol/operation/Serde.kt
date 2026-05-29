@@ -165,10 +165,12 @@ fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::s
 // Flt64-specific DTO conversions (internal to adapter)
 // ============================================================================
 
+/** 将符号转换为 DTO 标识符字符串 / Convert a symbol to a DTO identifier string */
 private fun Symbol.toDtoIdentifier(): String {
     return toSymbolIdentityExpr().toSerializedIdentifier()
 }
 
+/** 将比较运算符转换为 DTO 字符串 / Convert a comparison operator to a DTO string */
 private fun Comparison.toDtoString(): String {
     return when (this) {
         Comparison.LT -> "LT"
@@ -180,6 +182,14 @@ private fun Comparison.toDtoString(): String {
     }
 }
 
+/**
+ * 从 DTO 字符串解析比较运算符
+ * Parse a comparison operator from a DTO string
+ *
+ * @param str 比较运算符字符串 / Comparison operator string
+ * @return 比较运算符 / Comparison operator
+ * @throws IllegalArgumentException 若字符串未知 / If string is unknown
+ */
 private fun comparisonFromDtoString(str: String): Comparison {
     return when (str) {
         "LT" -> Comparison.LT

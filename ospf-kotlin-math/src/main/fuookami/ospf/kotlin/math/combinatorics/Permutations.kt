@@ -26,7 +26,15 @@ import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 
-/** 使用 QuickPerm 算法生成输入列表的所有全排列 / Generate all full permutations of input list using QuickPerm algorithm */
+/**
+ * 使用 QuickPerm 算法生成输入列表的所有全排列
+ * Generate all full permutations of input list using QuickPerm algorithm
+ *
+ * @param input 输入列表 / The input list
+ * @param callBack 每个排列生成时的回调函数（可选） / Callback function invoked for each generated permutation (optional)
+ * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
+ * @return 所有全排列的列表 / List of all full permutations
+ */
 fun <T> permute(
     input: List<T>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -62,7 +70,14 @@ fun <T> permute(
     return perms
 }
 
-/** 计算排列数 P(n, choose) / Calculate permutation count P(n, choose) */
+/**
+ * 计算排列数 P(n, choose)
+ * Calculate permutation count P(n, choose)
+ *
+ * @param n 元素总数 / Total number of elements
+ * @param choose 选取的元素个数（默认为 n，即全排列） / Number of elements to choose (defaults to n for full permutations)
+ * @return 排列数 / The permutation count
+ */
 fun permuteCount(n: Int, choose: Int = n): Long {
     if (choose < 0 || choose > n) {
         return 0L
@@ -74,12 +89,25 @@ fun permuteCount(n: Int, choose: Int = n): Long {
     return value
 }
 
-/** 惰性序列生成所有全排列 / Lazy sequence generation of all full permutations */
+/**
+ * 惰性序列生成所有全排列
+ * Lazy sequence generation of all full permutations
+ *
+ * @param input 输入列表 / The input list
+ * @return 所有全排列的惰性序列 / Lazy sequence of all full permutations
+ */
 fun <T> permuteSequence(input: List<T>): Sequence<List<T>> = sequence {
     yieldAll(permuteSequence(input, input.size))
 }
 
-/** 惰性序列生成指定大小的排列 / Lazy sequence generation of permutations of specified size */
+/**
+ * 惰性序列生成指定大小的排列
+ * Lazy sequence generation of permutations of specified size
+ *
+ * @param input 输入列表 / The input list
+ * @param choose 每个排列的元素个数 / Number of elements per permutation
+ * @return 指定大小排列的惰性序列 / Lazy sequence of permutations of specified size
+ */
 fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
     if (choose < 0 || choose > input.size) {
         return@sequence
@@ -111,7 +139,16 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     dfs()
 }
 
-/** 生成指定大小的所有排列 / Generate all permutations of specified size */
+/**
+ * 生成指定大小的所有排列
+ * Generate all permutations of specified size
+ *
+ * @param input 输入列表 / The input list
+ * @param choose 每个排列的元素个数 / Number of elements per permutation
+ * @param callBack 每个排列生成时的回调函数（可选） / Callback function invoked for each generated permutation (optional)
+ * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
+ * @return 指定大小的所有排列列表 / List of all permutations of specified size
+ */
 fun <T> permute(
     input: List<T>,
     choose: Int,
@@ -129,7 +166,14 @@ fun <T> permute(
     return result
 }
 
-/** 异步生成所有排列，通过协程通道返回 / Async permutation generation via coroutine channel */
+/**
+ * 异步生成所有排列，通过协程通道返回
+ * Async permutation generation via coroutine channel
+ *
+ * @param input 输入列表 / The input list
+ * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)
+ * @return 通道守护，用于异步接收排列结果 / Channel guard for receiving permutation results asynchronously
+ */
 fun <T> permuteAsync(
     input: List<T>,
     scope: CoroutineScope = combinatoricsAsyncScope

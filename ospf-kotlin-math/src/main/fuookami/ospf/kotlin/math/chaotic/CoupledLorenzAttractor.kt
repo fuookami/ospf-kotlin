@@ -50,10 +50,25 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
             Point<Dim3, V>(listOf(x2[0] + h * dx2, x2[1] + h * dy2, x2[2] + h * dz2), Dim3)
     }
 
+    /**
+     * 计算 y 方向的导数
+     * Compute the derivative in the y direction
+     *
+     * @param gamma 系统参数 gamma / System parameter gamma
+     * @param x 当前状态点 / Current state point
+     * @return y 方向的导数值 / Derivative value in the y direction
+     */
     private fun dy(gamma: V, x: Point<Dim3, V>): V {
         return gamma * x[0] - x[1] - x[0] * x[2]
     }
 
+    /**
+     * 计算 z 方向的导数
+     * Compute the derivative in the z direction
+     *
+     * @param x 当前状态点 / Current state point
+     * @return z 方向的导数值 / Derivative value in the z direction
+     */
     private fun dz(x: Point<Dim3, V>): V {
         return beta * x[2] + x[0] * x[1]
     }
@@ -72,6 +87,10 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 耦合洛伦兹吸引子生成器
+ * Coupled Lorenz Attractor Generator
+ */
 data class CoupledLorenzAttractorGenerator(
     val coupledLorenzAttractor: CoupledLorenzAttractor<Flt64> = CoupledLorenzAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

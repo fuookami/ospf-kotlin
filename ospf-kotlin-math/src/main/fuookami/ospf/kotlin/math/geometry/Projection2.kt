@@ -16,7 +16,13 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
  * @param V 数值类型 / The numeric type
  */
 sealed interface Projection2<V : FloatingNumber<V>>
-/** @see Projection2 */
+/**
+ * 二维形状，等同于 Projection2。
+ * 2D shape, equivalent to Projection2.
+ *
+ * @param V 数值类型 / The numeric type
+ * @see Projection2
+ */
 typealias Shape2<V> = Projection2<V>
 
 /**
@@ -32,7 +38,13 @@ data class Circle2<V : FloatingNumber<V>>(
     /** 直径 / The diameter */
     val diameter: V get() = quantityPlus(radius, radius)
 
-    /** 计算面积 / Compute the area */
+    /**
+     * 计算面积
+     * Compute the area
+     *
+     * @param pi 圆周率值 / The pi value
+     * @return 面积 / The area
+     */
     fun area(pi: V): V = (radius * radius) * pi
 
     /** 在原点处创建包围盒 / Create a bounding box at the origin */
@@ -54,7 +66,13 @@ data class Rectangle2<V : FloatingNumber<V>>(
     /** 面积 / Area */
     val area: V get() = width * height
 
-    /** 沿指定轴的尺寸 / Dimension along the specified axis */
+    /**
+     * 沿指定轴的尺寸
+     * Dimension along the specified axis
+     *
+     * @param axis 目标轴 / The target axis
+     * @return 沿该轴的尺寸 / The dimension along the axis
+     */
     fun along(axis: Axis2): V {
         return when (axis) {
             Axis2.X -> width
@@ -62,7 +80,13 @@ data class Rectangle2<V : FloatingNumber<V>>(
         }
     }
 
-    /** 按轴置换宽高 / Permute width and height by axes */
+    /**
+     * 按轴置换宽高
+     * Permute width and height by axes
+     *
+     * @param permutation 轴置换方案 / The axis permutation
+     * @return 置换后的矩形 / The permuted rectangle
+     */
     fun permute(permutation: AxisPermutation2): Rectangle2<V> {
         return permutation.apply(this)
     }

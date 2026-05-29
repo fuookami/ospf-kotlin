@@ -76,6 +76,7 @@ private class DirectPolynomialParser(
         return ParsedInequality(lhs, rhs, comparison)
     }
 
+    /** 解析表达式（加减法层级） / Parse expression (addition/subtraction level) */
     private fun parseExpression(): ParsedPolynomial {
         var result = parseTerm()
         while (true) {
@@ -99,6 +100,7 @@ private class DirectPolynomialParser(
         return result
     }
 
+    /** 解析项（乘法层级） / Parse term (multiplication level) */
     private fun parseTerm(): ParsedPolynomial {
         var result = parsePower()
         while (true) {
@@ -116,6 +118,7 @@ private class DirectPolynomialParser(
         return result
     }
 
+    /** 解析幂运算层级 / Parse power operation level */
     private fun parsePower(): ParsedPolynomial {
         var result = parseFactor()
         val token = current()
@@ -140,6 +143,7 @@ private class DirectPolynomialParser(
         return result
     }
 
+    /** 解析因子（数字、变量、括号、负号） / Parse factor (number, variable, parentheses, negation) */
     private fun parseFactor(): ParsedPolynomial {
         val token = current()
         return when (token.type) {
@@ -176,16 +180,25 @@ private class DirectPolynomialParser(
         }
     }
 
+    /** 获取当前 token / Get current token */
     private fun current(): PolynomialToken {
         return tokens[position]
     }
 
+    /** 前进到下一个 token / Advance to next token */
     private fun advance() {
         if (position < tokens.size - 1) {
             position += 1
         }
     }
 
+    /**
+     * 期望当前 token 为指定类型并前进
+     * Expect current token to be of given type and advance
+     *
+     * @param type 期望的 token 类型 / Expected token type
+     * @throws DirectParseError 若当前 token 类型不匹配 / If current token type does not match
+     */
     private fun expect(type: PolynomialTokenType) {
         val token = current()
         if (token.type != type) {
@@ -199,6 +212,14 @@ private class DirectPolynomialParser(
 // Internal polynomial arithmetic on ParsedPolynomial
 // ============================================================================
 
+/**
+ * 将两个已解析多项式相加
+ * Add two parsed polynomials
+ *
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 相加结果 / Addition result
+ */
 private fun addParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): ParsedPolynomial {
     return ParsedPolynomial(
         terms = lhs.terms + rhs.terms,
@@ -206,6 +227,13 @@ private fun addParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): 
     )
 }
 
+/**
+ * 对已解析多项式取反
+ * Negate a parsed polynomial
+ *
+ * @param poly 输入多项式 / Input polynomial
+ * @return 取反结果 / Negated result
+ */
 private fun negateParsedPolynomial(poly: ParsedPolynomial): ParsedPolynomial {
     return ParsedPolynomial(
         terms = poly.terms.map { it.copy(coefficient = -it.coefficient) },
@@ -213,10 +241,26 @@ private fun negateParsedPolynomial(poly: ParsedPolynomial): ParsedPolynomial {
     )
 }
 
+/**
+ * 将两个已解析多项式相减
+ * Subtract two parsed polynomials
+ *
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 相减结果 / Subtraction result
+ */
 private fun subtractParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): ParsedPolynomial {
     return addParsedPolynomials(lhs, negateParsedPolynomial(rhs))
 }
 
+/**
+ * 将两个已解析多项式相乘
+ * Multiply two parsed polynomials
+ *
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 相乘结果 / Multiplication result
+ */
 private fun multiplyParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): ParsedPolynomial {
     val terms = ArrayList<ParsedTerm>(lhs.terms.size * rhs.terms.size + lhs.terms.size + rhs.terms.size)
     for (left in lhs.terms) {
@@ -249,6 +293,13 @@ private fun multiplyParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomi
 // Conversion from ParsedPolynomial to CanonicalPolynomial
 // ============================================================================
 
+/**
+ * 将已解析多项式转换为规范多项式
+ * Convert a parsed polynomial to canonical polynomial
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范多项式 / Canonical polynomial
+ */
 private fun ParsedPolynomial.toCanonicalPolynomial(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<Flt64> {
@@ -264,6 +315,13 @@ private fun ParsedPolynomial.toCanonicalPolynomial(
     ).combineTerms(symbolComparator)
 }
 
+/**
+ * 将已解析不等式转换为规范不等式
+ * Convert a parsed inequality to canonical inequality
+ *
+ * @param symbolComparator 符号比较器 / Symbol comparator
+ * @return 规范不等式 / Canonical inequality
+ */
 private fun ParsedInequality.toCanonicalInequality(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalInequality<Flt64> {
@@ -389,6 +447,13 @@ fun parseCanonicalInequality(
 // Ret-wrapped parsing API (Flt64)
 // ============================================================================
 
+/**
+ * 根据解析错误判断问题类型
+ * Determine issue type from parse error
+ *
+ * @param error 直接解析错误 / Direct parse error
+ * @return 解析问题类型 / Parse issue type
+ */
 private fun parseIssueTypeOf(error: DirectParseError): ParseIssueType {
     val message = error.message.orEmpty()
     return if (message.startsWith("Unexpected") || message.startsWith("Invalid number")) {
@@ -398,6 +463,14 @@ private fun parseIssueTypeOf(error: DirectParseError): ParseIssueType {
     }
 }
 
+/**
+ * 从解析错误构建解析问题对象
+ * Build a parse issue object from a parse error
+ *
+ * @param error 直接解析错误 / Direct parse error
+ * @param input 原始输入字符串 / Original input string
+ * @return 解析问题 / Parse issue
+ */
 private fun parseIssueOf(error: DirectParseError, input: String): ParseIssue {
     val normalizedMessage = error.message?.removeSuffix(" at position ${error.position}") ?: "Parse error."
     return ParseIssue(
@@ -408,10 +481,19 @@ private fun parseIssueOf(error: DirectParseError, input: String): ParseIssue {
     )
 }
 
+/** 构建失败的解析结果 / Build a failed parse result */
 private fun <T> parseFailed(issue: ParseIssue): ParseResult<T> {
     return Failed(ErrorCode.IllegalArgument, issue)
 }
 
+/**
+ * 构建转换失败的解析结果
+ * Build a parse result for conversion failure
+ *
+ * @param input 原始输入字符串 / Original input string
+ * @param message 错误消息 / Error message
+ * @return 失败的解析结果 / Failed parse result
+ */
 private fun <T> parseConversionFailed(input: String, message: String): ParseResult<T> {
     return parseFailed(
         ParseIssue(
@@ -422,6 +504,14 @@ private fun <T> parseConversionFailed(input: String, message: String): ParseResu
     )
 }
 
+/**
+ * 以 Ret 方式包装解析块，捕获异常并转换为失败结果
+ * Wrap a parsing block in Ret style, catching exceptions and converting to failure results
+ *
+ * @param input 原始输入字符串 / Original input string
+ * @param block 解析代码块 / Parsing code block
+ * @return 解析结果 / Parse result
+ */
 private inline fun <T> wrapRet(
     input: String,
     crossinline block: () -> T

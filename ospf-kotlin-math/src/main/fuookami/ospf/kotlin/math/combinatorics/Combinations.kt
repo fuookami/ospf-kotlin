@@ -23,7 +23,15 @@ import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 
-/** 生成输入列表的所有子集组合 / Generate all subset combinations of the input list */
+/**
+ * 生成输入列表的所有子集组合
+ * Generate all subset combinations of the input list
+ *
+ * @param input 输入列表 / The input list
+ * @param callBack 每个组合生成时的回调函数（可选） / Callback function invoked for each generated combination (optional)
+ * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
+ * @return 所有子集组合的列表 / List of all subset combinations
+ */
 fun <T> combine(
     input: List<T>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -47,7 +55,14 @@ fun <T> combine(
     return result
 }
 
-/** 计算组合数 C(n, choose) / Calculate combination count C(n, choose) */
+/**
+ * 计算组合数 C(n, choose)
+ * Calculate combination count C(n, choose)
+ *
+ * @param n 元素总数 / Total number of elements
+ * @param choose 选取的元素个数 / Number of elements to choose
+ * @return 组合数 / The combination count
+ */
 fun combineCount(n: Int, choose: Int): Long {
     if (choose < 0 || choose > n) {
         return 0L
@@ -63,14 +78,27 @@ fun combineCount(n: Int, choose: Int): Long {
     return value
 }
 
-/** 惰性序列生成所有子集组合 / Lazy sequence generation of all subset combinations */
+/**
+ * 惰性序列生成所有子集组合
+ * Lazy sequence generation of all subset combinations
+ *
+ * @param input 输入列表 / The input list
+ * @return 所有子集组合的惰性序列 / Lazy sequence of all subset combinations
+ */
 fun <T> combineSequence(input: List<T>): Sequence<List<T>> = sequence {
     for (k in 1..input.size) {
         yieldAll(combineSequence(input, k))
     }
 }
 
-/** 惰性序列生成指定大小的组合 / Lazy sequence generation of combinations of specified size */
+/**
+ * 惰性序列生成指定大小的组合
+ * Lazy sequence generation of combinations of specified size
+ *
+ * @param input 输入列表 / The input list
+ * @param choose 每个组合的元素个数 / Number of elements per combination
+ * @return 指定大小组合的惰性序列 / Lazy sequence of combinations of specified size
+ */
 fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
     if (choose < 0 || choose > input.size) {
         return@sequence
@@ -96,7 +124,16 @@ fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     }
 }
 
-/** 生成指定大小的所有组合 / Generate all combinations of specified size */
+/**
+ * 生成指定大小的所有组合
+ * Generate all combinations of specified size
+ *
+ * @param input 输入列表 / The input list
+ * @param choose 每个组合的元素个数 / Number of elements per combination
+ * @param callBack 每个组合生成时的回调函数（可选） / Callback function invoked for each generated combination (optional)
+ * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
+ * @return 指定大小的所有组合列表 / List of all combinations of specified size
+ */
 fun <T> combine(
     input: List<T>,
     choose: Int,
@@ -114,7 +151,14 @@ fun <T> combine(
     return result
 }
 
-/** 异步生成所有子集组合，通过协程通道返回 / Async generation of all subset combinations via coroutine channel */
+/**
+ * 异步生成所有子集组合，通过协程通道返回
+ * Async generation of all subset combinations via coroutine channel
+ *
+ * @param input 输入列表 / The input list
+ * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)
+ * @return 通道守护，用于异步接收组合结果 / Channel guard for receiving combination results asynchronously
+ */
 fun <T> combineAsync(
     input: List<T>,
     scope: CoroutineScope = combinatoricsAsyncScope,

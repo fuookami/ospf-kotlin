@@ -31,9 +31,21 @@ fun String.toInt32OrNull() = toIntOrNull()?.let { Int32(it) }
 fun String.toInt64() = Int64(toLong())
 /** String 转 Int64，失败返回 null / Convert String to Int64, return null on failure */
 fun String.toInt64OrNull() = toLongOrNull()?.let { Int64(it) }
-/** String 转 IntX / Convert String to IntX */
+/**
+ * String 转 IntX
+ * Convert String to IntX
+ *
+ * @param radix 进制基数，默认为 10 / Radix base, defaults to 10
+ * @return 转换后的 IntX 值 / Converted IntX value
+ */
 fun String.toIntX(radix: Int = 10) = IntX(this, radix)
-/** String 转 IntX，失败返回 null / Convert String to IntX, return null on failure */
+/**
+ * String 转 IntX，失败返回 null
+ * Convert String to IntX, return null on failure
+ *
+ * @param radix 进制基数，默认为 10 / Radix base, defaults to 10
+ * @return 转换后的 IntX 值，失败时返回 null / Converted IntX value, or null on failure
+ */
 fun String.toIntXOrNull(radix: Int = 10) = runCatching { IntX(this, radix) }.getOrNull()
 
 /** Boolean 转 UInt8 / Convert Boolean to UInt8 */
@@ -57,9 +69,21 @@ fun String.toUInt32OrNull() = toUIntOrNull()?.let { UInt32(it) }
 fun String.toUInt64() = UInt64(toULong())
 /** String 转 UInt64，失败返回 null / Convert String to UInt64, return null on failure */
 fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
-/** String 转 UIntX / Convert String to UIntX */
+/**
+ * String 转 UIntX
+ * Convert String to UIntX
+ *
+ * @param radix 进制基数，默认为 10 / Radix base, defaults to 10
+ * @return 转换后的 UIntX 值 / Converted UIntX value
+ */
 fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
-/** String 转 UIntX，失败返回 null / Convert String to UIntX, return null on failure */
+/**
+ * String 转 UIntX，失败返回 null
+ * Convert String to UIntX, return null on failure
+ *
+ * @param radix 进制基数，默认为 10 / Radix base, defaults to 10
+ * @return 转换后的 UIntX 值，失败时返回 null / Converted UIntX value, or null on failure
+ */
 fun String.toUIntXOrNull(radix: Int = 10) = runCatching { UIntX(this, radix) }.getOrNull()
 
 /** Boolean 转 Flt64 / Convert Boolean to Flt64 */

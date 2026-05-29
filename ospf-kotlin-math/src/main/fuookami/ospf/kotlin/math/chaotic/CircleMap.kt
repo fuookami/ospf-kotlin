@@ -45,10 +45,15 @@ data class CircleMap<V : FloatingImpl<V>>(
         return raw - (raw / v.constants.one).floor() * v.constants.one
     }
 
+    /**
+     * 将 sin 运算结果转换为类型 V
+     * Cast sin operation result to type V
+     *
+     * 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
+     * Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
+     */
     @Suppress("UNCHECKED_CAST")
     private fun castToV(value: Any): V {
-        // 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
-        // Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
         return value as V
     }
 }

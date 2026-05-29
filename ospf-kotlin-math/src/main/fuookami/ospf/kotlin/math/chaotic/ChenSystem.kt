@@ -53,6 +53,10 @@ data class ChenSystem<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 陈氏系统生成器
+ * Chen System Generator
+ */
 data class ChenSystemGenerator(
     val chenSystem: ChenSystem<Flt64> = ChenSystem(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -10,6 +10,14 @@ package fuookami.ospf.kotlin.math.geometry
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 将距离计算结果转换为目标数值类型
+ * Cast the distance calculation result to the target numeric type
+ *
+ * @param V 数值类型 / The numeric type
+ * @param value 距离计算结果 / The distance calculation result
+ * @return 转换后的数值 / The casted numeric value
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> castDistanceValue(value: Any): V {
     // 安全不变量：距离运算在同一 V 数域中闭包，sqrt/pow 结果与输入域一致。
@@ -22,7 +30,16 @@ private fun <V : FloatingNumber<V>> castDistanceValue(value: Any): V {
  * Sealed interface for distance metric strategies, supporting Euclidean, Manhattan, Minkowski, and Chebyshev distances.
  */
 sealed interface Distance {
-    /** 计算两点之间的距离 / Compute the distance between two points */
+    /**
+     * 计算两点之间的距离
+     * Compute the distance between two points
+     *
+     * @param D 维度类型 / The dimension type
+     * @param V 数值类型 / The numeric type
+     * @param lhs 第一个点 / The first point
+     * @param rhs 第二个点 / The second point
+     * @return 两点之间的距离 / The distance between the two points
+     */
     operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V
 
     /**

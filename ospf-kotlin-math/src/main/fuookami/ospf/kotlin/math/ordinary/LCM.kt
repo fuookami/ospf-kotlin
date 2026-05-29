@@ -32,7 +32,17 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.*
 
-/** 通过因式分解计算多个整数的最小公倍数（内部实现） / Compute LCM of multiple integers via factorization (internal implementation) */
+/**
+ * 通过因式分解计算多个整数的最小公倍数（内部实现）
+ * Compute LCM of multiple integers via factorization (internal implementation)
+ *
+ * 对每个数进行质因数分解，合并后取各质因数的最大指数。
+ * Factorizes each number and merges results by taking the maximum exponent per prime.
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数，空集合返回 one，含零返回 zero / Least common multiple; one for empty, zero if any element is zero
+ */
 fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     val factors = numbers.map { factorizeImpl(it, constants) }
     if (factors.isEmpty()) {
@@ -51,7 +61,14 @@ fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
         lhs * factor.pow(index)
     }
 }
-/** 通过因式分解计算多个整数的最小公倍数 / Compute LCM of multiple integers via factorization */
+/**
+ * 通过因式分解计算多个整数的最小公倍数
+ * Compute LCM of multiple integers via factorization
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <I> lcmByFactorization(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -59,7 +76,13 @@ fun <I> lcmByFactorization(
     return lcmImpl(numbers, constants)
 }
 
-/** 通过因式分解计算多个整数的最小公倍数（自动解析常量） / Compute LCM via factorization (auto-resolve constants) */
+/**
+ * 通过因式分解计算多个整数的最小公倍数（自动解析常量）
+ * Compute LCM via factorization (auto-resolve constants)
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @return 最小公倍数 / Least common multiple
+ */
 inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     return lcmByFactorization(
         numbers = numbers,
@@ -67,7 +90,15 @@ inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Int
     )
 }
 
-/** 通过因式分解计算两个整数的最小公倍数 / Compute LCM of two integers via factorization */
+/**
+ * 通过因式分解计算两个整数的最小公倍数
+ * Compute LCM of two integers via factorization
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <I> lcmByFactorization(
     x: I,
     y: I,
@@ -79,7 +110,14 @@ fun <I> lcmByFactorization(
     )
 }
 
-/** 通过因式分解计算两个整数的最小公倍数（自动解析常量） / Compute LCM of two integers via factorization (auto-resolve) */
+/**
+ * 通过因式分解计算两个整数的最小公倍数（自动解析常量）
+ * Compute LCM of two integers via factorization (auto-resolve)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @return 最小公倍数 / Least common multiple
+ */
 inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     return lcmByFactorization(
         x = x,
@@ -88,7 +126,17 @@ inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I
     )
 }
 
-/** 通过因式分解计算多个整数的最小公倍数（可变参数） / Compute LCM via factorization (vararg) */
+/**
+ * 通过因式分解计算多个整数的最小公倍数（可变参数）
+ * Compute LCM via factorization (vararg)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <I> lcmByFactorization(
     x: I,
     y: I,
@@ -102,7 +150,16 @@ fun <I> lcmByFactorization(
     )
 }
 
-/** 通过因式分解计算多个整数的最小公倍数（可变参数，自动解析常量） / Compute LCM via factorization (vararg, auto-resolve) */
+/**
+ * 通过因式分解计算多个整数的最小公倍数（可变参数，自动解析常量）
+ * Compute LCM via factorization (vararg, auto-resolve)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @return 最小公倍数 / Least common multiple
+ */
 inline fun <reified I> lcmByFactorization(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     return lcmByFactorization(
         x = x,
@@ -113,7 +170,15 @@ inline fun <reified I> lcmByFactorization(x: I, y: I, z: I, vararg numbers: I): 
     )
 }
 
-/** 使用 GCD 公式计算两个整数的最小公倍数 / Compute LCM of two integers using GCD formula */
+/**
+ * 使用 GCD 公式计算两个整数的最小公倍数
+ * Compute LCM of two integers using GCD formula
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <I> lcm(
     x: I,
     y: I,
@@ -131,7 +196,14 @@ fun <I> lcm(
     return (px / thisGCD) * py
 }
 
-/** 计算两个整数的最小公倍数（自动解析常量） / Compute LCM of two integers (auto-resolve constants) */
+/**
+ * 计算两个整数的最小公倍数（自动解析常量）
+ * Compute LCM of two integers (auto-resolve constants)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @return 最小公倍数 / Least common multiple
+ */
 inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I : Div<I, I> {
     return lcm(
         x = x,
@@ -139,7 +211,14 @@ inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I
         constants = resolveRealNumberConstants<I>("LCM")
     )
 }
-/** 计算多个整数的最小公倍数 / Compute LCM of multiple integers */
+/**
+ * 计算多个整数的最小公倍数
+ * Compute LCM of multiple integers
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <I> lcm(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -147,7 +226,13 @@ fun <I> lcm(
     return lcmImpl(numbers, constants)
 }
 
-/** 计算多个整数的最小公倍数（自动解析常量） / Compute LCM of multiple integers (auto-resolve constants) */
+/**
+ * 计算多个整数的最小公倍数（自动解析常量）
+ * Compute LCM of multiple integers (auto-resolve constants)
+ *
+ * @param numbers 整数集合 / Collection of integers
+ * @return 最小公倍数 / Least common multiple
+ */
 inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
     return lcm(
         numbers = numbers,
@@ -155,7 +240,17 @@ inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Po
     )
 }
 
-/** 计算多个整数的最小公倍数（可变参数） / Compute LCM of multiple integers (vararg) */
+/**
+ * 计算多个整数的最小公倍数（可变参数）
+ * Compute LCM of multiple integers (vararg)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <I> lcm(
     x: I,
     y: I,
@@ -169,7 +264,16 @@ fun <I> lcm(
     )
 }
 
-/** 计算多个整数的最小公倍数（可变参数，自动解析常量） / Compute LCM (vararg, auto-resolve constants) */
+/**
+ * 计算多个整数的最小公倍数（可变参数，自动解析常量）
+ * Compute LCM (vararg, auto-resolve constants)
+ *
+ * @param x 第一个整数 / First integer
+ * @param y 第二个整数 / Second integer
+ * @param z 第三个整数 / Third integer
+ * @param numbers 其余整数 / Remaining integers
+ * @return 最小公倍数 / Least common multiple
+ */
 inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
     return lcm(
         x = x,
@@ -180,7 +284,14 @@ inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Int
     )
 }
 
-/** 计算两个浮点数的最小公倍数 / Compute LCM of two floating-point numbers */
+/**
+ * 计算两个浮点数的最小公倍数
+ * Compute LCM of two floating-point numbers
+ *
+ * @param x 第一个浮点数 / First floating-point number
+ * @param y 第二个浮点数 / Second floating-point number
+ * @return 最小公倍数 / Least common multiple
+ */
 fun lcm(x: FltX, y: FltX): FltX {
     val px = x.abs()
     val py = y.abs()
@@ -188,7 +299,13 @@ fun lcm(x: FltX, y: FltX): FltX {
     return (px / thisGCD) * py
 }
 
-/** 计算多个浮点数的最小公倍数 / Compute LCM of multiple floating-point numbers */
+/**
+ * 计算多个浮点数的最小公倍数
+ * Compute LCM of multiple floating-point numbers
+ *
+ * @param numbers 浮点数集合 / Collection of floating-point numbers
+ * @return 最小公倍数 / Least common multiple
+ */
 fun lcm(numbers: Iterable<FltX>): FltX {
     var factor = 0
     var scaledNumbers = numbers.toList()
@@ -211,17 +328,39 @@ fun lcm(numbers: Iterable<FltX>): FltX {
     return lcmImpl(integerNumbers.sortedDescending(), IntX).toFltX() / FltX.ten.pow(factor)
 }
 
-/** 计算多个浮点数的最小公倍数（可变参数） / Compute LCM of multiple floating-point numbers (vararg) */
+/**
+ * 计算多个浮点数的最小公倍数（可变参数）
+ * Compute LCM of multiple floating-point numbers (vararg)
+ *
+ * @param x 第一个浮点数 / First floating-point number
+ * @param y 第二个浮点数 / Second floating-point number
+ * @param z 第三个浮点数 / Third floating-point number
+ * @param numbers 其余浮点数 / Remaining floating-point numbers
+ * @return 最小公倍数 / Least common multiple
+ */
 fun <F : FloatingNumber<*>> lcm(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
     return lcm(listOf(x, y, z) + numbers.map { it.toFltX() })
 }
 
-/** 计算两个有理数的最小公倍数 / Compute LCM of two rational numbers */
+/**
+ * 计算两个有理数的最小公倍数
+ * Compute LCM of two rational numbers
+ *
+ * @param x 第一个有理数 / First rational number
+ * @param y 第二个有理数 / Second rational number
+ * @return 最小公倍数 / Least common multiple
+ */
 fun lcm(x: RtnX, y: RtnX): RtnX {
     return lcm(listOf(x, y))
 }
 
-/** 计算多个有理数的最小公倍数 / Compute LCM of multiple rational numbers */
+/**
+ * 计算多个有理数的最小公倍数
+ * Compute LCM of multiple rational numbers
+ *
+ * @param numbers 有理数集合 / Collection of rational numbers
+ * @return 最小公倍数 / Least common multiple
+ */
 fun lcm(numbers: Iterable<RtnX>): RtnX {
     return RtnX(
         lcm(numbers.map { it.num }),
@@ -229,7 +368,16 @@ fun lcm(numbers: Iterable<RtnX>): RtnX {
     )
 }
 
-/** 计算多个有理数的最小公倍数（可变参数） / Compute LCM of multiple rational numbers (vararg) */
+/**
+ * 计算多个有理数的最小公倍数（可变参数）
+ * Compute LCM of multiple rational numbers (vararg)
+ *
+ * @param x 第一个有理数 / First rational number
+ * @param y 第二个有理数 / Second rational number
+ * @param z 第三个有理数 / Third rational number
+ * @param numbers 其余有理数 / Remaining rational numbers
+ * @return 最小公倍数 / Least common multiple
+ */
 fun lcm(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return lcm(listOf(x, y, z) + numbers.toList())
 }

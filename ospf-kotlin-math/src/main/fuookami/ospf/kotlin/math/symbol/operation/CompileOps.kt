@@ -41,6 +41,13 @@ private data class CompiledCanonicalGradientMonomial<T>(
     val factorCounts: List<Pair<Int, Int32>>
 ) where T : Ring<T>
 
+/**
+ * 将符号顺序列表编译为符号-索引映射
+ * Compile an ordered symbol list into a symbol-to-index map
+ *
+ * @param order 符号顺序列表 / Ordered list of symbols
+ * @return 符号到索引的映射 / Map from symbol to its index
+ */
 private fun compileOrderIndex(order: List<Symbol>): Map<Symbol, Int> {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
@@ -48,6 +55,13 @@ private fun compileOrderIndex(order: List<Symbol>): Map<Symbol, Int> {
     return order.withIndex().associate { it.value to it.index }
 }
 
+/**
+ * 验证值列表大小与预期一致
+ * Assert that the value list size matches the expected size
+ *
+ * @param values 值列表 / Value list
+ * @param expectedSize 预期大小 / Expected size
+ */
 private fun requireValuesSize(
     values: List<*>,
     expectedSize: Int
@@ -57,6 +71,14 @@ private fun requireValuesSize(
     }
 }
 
+/**
+ * 从索引映射中获取符号的位置，不存在时抛出异常
+ * Get the index of a symbol from the index map, throwing if not found
+ *
+ * @param symbol 目标符号 / Target symbol
+ * @param indexOfSymbol 符号-索引映射 / Symbol-to-index map
+ * @return 符号在顺序中的索引 / Index of the symbol in the order
+ */
 private fun requireSymbolIndex(
     symbol: Symbol,
     indexOfSymbol: Map<Symbol, Int>
@@ -240,6 +262,15 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
 // Compiled Gradient Operations (Ring-based, no Generic conversion)
 // ============================================================================
 
+/**
+ * 通过重复加法将值缩放指定整数倍
+ * Scale a value by a non-negative integer via repeated addition
+ *
+ * @param value 要缩放的值 / Value to scale
+ * @param amount 缩放倍数（非负） / Scale amount (non-negative)
+ * @param zero 类型零值 / Zero value for the type
+ * @return 缩放后的值 / Scaled result
+ */
 private fun <T> scaleByInt(
     value: T,
     amount: Int,

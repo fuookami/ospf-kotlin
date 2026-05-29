@@ -22,6 +22,15 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 // Differentiation Operations (Ring-based, no Generic conversion)
 // ============================================================================
 
+/**
+ * 按带符号整数缩放值，支持负倍数
+ * Scale a value by a signed integer, supporting negative amounts
+ *
+ * @param value 要缩放的值 / Value to scale
+ * @param amount 缩放倍数（可为负） / Scale amount (may be negative)
+ * @param zero 类型零值 / Zero value for the type
+ * @return 缩放后的值 / Scaled result
+ */
 private fun <T> scaleByIntWithSign(
     value: T,
     amount: Int,

@@ -39,10 +39,12 @@ fun Comparison.satisfiedBy(lhs: Flt64, rhs: Flt64): Boolean {
 // ========== Symbol-level DSL ==========
 // 符号级不等式 DSL 运算符重载 / Symbol-level inequality DSL operator overloads
 
+/** 将符号转换为系数为 1 的线性多项式 / Convert a symbol to a linear polynomial with coefficient one */
 private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 }
 
+/** 将 Flt64 值转换为常数线性多项式 / Convert a Flt64 value to a constant linear polynomial */
 private fun Flt64.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), this)
 }

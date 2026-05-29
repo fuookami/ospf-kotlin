@@ -7,4 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
+/**
+ * 环接口
+ * Ring Interface
+ *
+ * 继承自 AbelianGroup 和 MultiplicativeSemigroup，具有加法群结构和乘法半群结构。
+ * Extends AbelianGroup and MultiplicativeSemigroup, possessing additive group structure and multiplicative semigroup structure.
+ */
 interface Ring<Self> : AbelianGroup<Self>, MultiplicativeSemigroup<Self>

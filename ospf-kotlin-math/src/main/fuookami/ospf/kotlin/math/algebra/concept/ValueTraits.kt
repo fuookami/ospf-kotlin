@@ -142,6 +142,11 @@ interface Infinite<Self> {
     /**
      * 判断是否为正无穷
      * Check if the value is positive infinity
+     *
+     * @param value 待判断的值
+     * @param value The value to check
+     * @return 是否为正无穷
+     * @return Whether the value is positive infinity
      */
     fun isPositiveInfinity(value: Self): Boolean {
         return positiveInfinity?.let { value == it } ?: false
@@ -150,22 +155,37 @@ interface Infinite<Self> {
     /**
      * 判断是否为负无穷
      * Check if the value is negative infinity
+     *
+     * @param value 待判断的值
+     * @param value The value to check
+     * @return 是否为负无穷
+     * @return Whether the value is negative infinity
      */
     fun isNegativeInfinity(value: Self): Boolean {
         return negativeInfinityValue?.let { value == it } ?: false
     }
 
     /**
-     * 判断是否为无穌
+     * 判断是否为无穷
      * Check if the value is infinite
+     *
+     * @param value 待判断的值
+     * @param value The value to check
+     * @return 是否为无穷
+     * @return Whether the value is infinite
      */
     fun isInfinite(value: Self): Boolean {
         return isPositiveInfinity(value) || isNegativeInfinity(value)
     }
 
     /**
-     * 判断是否为有限倌
+     * 判断是否为有限值
      * Check if the value is finite
+     *
+     * @param value 待判断的值
+     * @param value The value to check
+     * @return 是否为有限值
+     * @return Whether the value is finite
      */
     fun isFinite(value: Self): Boolean {
         return !isInfinite(value)

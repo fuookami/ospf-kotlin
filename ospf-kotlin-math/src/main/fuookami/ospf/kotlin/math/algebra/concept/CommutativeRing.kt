@@ -7,4 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
+/**
+ * 交换环接口
+ * Commutative Ring Interface
+ *
+ * 继承自 Ring，要求乘法运算满足交换律，即 a * b == b * a。
+ * Extends Ring, requiring multiplication to satisfy commutativity, i.e., a * b == b * a.
+ */
 interface CommutativeRing<Self> : Ring<Self>

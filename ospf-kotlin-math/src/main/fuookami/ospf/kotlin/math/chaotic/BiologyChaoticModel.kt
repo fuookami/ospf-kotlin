@@ -55,6 +55,10 @@ data class BiologyChaoticModel<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 生物混沌模型生成器
+ * Biological Chaotic Model Generator
+ */
 data class BiologyChaoticModelGenerator(
     val biologyChaoticModel: BiologyChaoticModel<Flt64> = BiologyChaoticModel(),
     private var _x: Point<Dim3, Flt64> = point3(

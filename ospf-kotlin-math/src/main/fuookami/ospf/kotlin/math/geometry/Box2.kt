@@ -25,7 +25,14 @@ data class Box2<V : FloatingNumber<V>>(
     val shape: Shape2<V>
 ) {
     companion object {
-        /** 在原点处创建包围盒 / Create a bounding box at the origin */
+        /**
+         * 在原点处创建包围盒
+         * Create a bounding box at the origin
+         *
+         * @param V 数值类型 / The numeric type
+         * @param shape 二维形状 / The 2D shape
+         * @return 原点处的包围盒 / The bounding box at the origin
+         */
         fun <V : FloatingNumber<V>> atOrigin(shape: Shape2<V>): Box2<V> {
             return when (shape) {
                 is Rectangle2 -> Box2(
@@ -77,7 +84,17 @@ data class Box2<V : FloatingNumber<V>>(
             is Circle2 -> quantityPlus(y, s.radius)
         }
 
-    /** 判断指定点是否在包围盒内 / Check whether a point is inside the bounding box */
+    /**
+     * 判断指定点是否在包围盒内
+     * Check whether a point is inside the bounding box
+     *
+     * @param x X 坐标 / X coordinate
+     * @param y Y 坐标 / Y coordinate
+     * @param withLowerBound 是否包含下界 / Whether to include the lower bound
+     * @param withUpperBound 是否包含上界 / Whether to include the upper bound
+     * @param withBorder 是否包含边界 / Whether to include the border
+     * @return 点是否在包围盒内 / Whether the point is inside the bounding box
+     */
     fun contains(
         x: V,
         y: V,
@@ -106,7 +123,13 @@ data class Box2<V : FloatingNumber<V>>(
         }
     }
 
-    /** 判断两个包围盒是否重叠 / Check whether two bounding boxes overlap */
+    /**
+     * 判断两个包围盒是否重叠
+     * Check whether two bounding boxes overlap
+     *
+     * @param rhs 另一个包围盒 / The other bounding box
+     * @return 是否重叠 / Whether they overlap
+     */
     fun overlapped(rhs: Box2<V>): Boolean {
         return when (val lhsShape = shape) {
             is Rectangle2 -> when (val rhsShape = rhs.shape) {
@@ -121,7 +144,13 @@ data class Box2<V : FloatingNumber<V>>(
         }
     }
 
-    /** 计算两个包围盒的交集，无交集返回 null / Compute intersection of two boxes, returns null if no overlap */
+    /**
+     * 计算两个包围盒的交集，无交集返回 null
+     * Compute intersection of two boxes, returns null if no overlap
+     *
+     * @param rhs 另一个包围盒 / The other bounding box
+     * @return 交集包围盒，无交集返回 null / The intersection box, or null if no overlap
+     */
     fun intersect(rhs: Box2<V>): Box2<V>? {
         val minX = quantityMax(x, rhs.x, "x")
         val maxX = quantityMin(this.maxX, rhs.maxX, "x")
@@ -143,6 +172,13 @@ data class Box2<V : FloatingNumber<V>>(
         )
     }
 
+    /**
+     * 判断两个矩形包围盒是否重叠
+     * Check whether two rectangle bounding boxes overlap
+     *
+     * @param rhs 另一个矩形包围盒 / The other rectangle bounding box
+     * @return 是否重叠 / Whether they overlap
+     */
     private fun rectangleOverlapped(rhs: Box2<V>): Boolean {
         if (quantityOrd(maxX, rhs.x, "x") !is Order.Greater) {
             return false
@@ -159,6 +195,14 @@ data class Box2<V : FloatingNumber<V>>(
         return true
     }
 
+    /**
+     * 判断矩形包围盒与圆形包围盒是否重叠
+     * Check whether a rectangle bounding box overlaps with a circle bounding box
+     *
+     * @param circleBox 圆形包围盒 / The circle bounding box
+     * @param circle 圆形形状 / The circle shape
+     * @return 是否重叠 / Whether they overlap
+     */
     private fun rectCircleOverlapped(circleBox: Box2<V>, circle: Circle2<V>): Boolean {
         val circleCenterX = quantityPlus(circleBox.x, circle.radius)
         val circleCenterY = quantityPlus(circleBox.y, circle.radius)
@@ -172,6 +216,15 @@ data class Box2<V : FloatingNumber<V>>(
         return ord is Order.Less || ord is Order.Equal
     }
 
+    /**
+     * 判断两个圆形包围盒是否重叠
+     * Check whether two circle bounding boxes overlap
+     *
+     * @param rhs 另一个圆形包围盒 / The other circle bounding box
+     * @param lhs 左侧圆形形状 / The left circle shape
+     * @param rhsCircle 右侧圆形形状 / The right circle shape
+     * @return 是否重叠 / Whether they overlap
+     */
     private fun circleOverlapped(rhs: Box2<V>, lhs: Circle2<V>, rhsCircle: Circle2<V>): Boolean {
         val dx = quantityMinus(centerX, rhs.centerX)
         val dy = quantityMinus(centerY, rhs.centerY)
@@ -183,5 +236,11 @@ data class Box2<V : FloatingNumber<V>>(
     }
 }
 
-/** @see Box2 */
+/**
+ * 二维轴对齐包围盒，等同于 Box2。
+ * 2D axis-aligned bounding box, equivalent to Box2.
+ *
+ * @param V 数值类型 / The numeric type
+ * @see Box2
+ */
 typealias AxisAlignedBox2<V> = Box2<V>

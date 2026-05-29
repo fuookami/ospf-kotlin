@@ -124,100 +124,170 @@ abstract class Rational<Self, I> protected constructor(
     abstract val num: I
     abstract val den: I
 
+    /** 创建副本 / Create a copy */
     override fun copy() = ctor(num, den)
 
+    /** 转换为字符串 / Convert to string */
     override fun toString() = "($num / $den)"
+    /** 以指定进制转换为字符串 / Convert to string with specified radix */
     abstract fun toString(radix: Int): String;
 
+    /** 偏序比较 / Partial order comparison */
     override fun partialOrd(rhs: Self) = orderOf((num * rhs.den).compareTo(den * rhs.num))
+    /** 相等性比较 / Equality comparison */
     override fun partialEq(rhs: Self) = num.eq(rhs.num) && den.eq(rhs.den)
 
+    /** 取负 / Negation */
     override operator fun unaryMinus() = ctor(-num, den)
+    /** 倒数 / Reciprocal */
     override fun reciprocal() = ctor(den, num)
+    /** 绝对值 / Absolute value */
     override fun abs() = ctor(num.abs(), den)
 
+    /** 自增 / Increment */
     override operator fun inc() = ctor(num + den, den)
+    /** 自减 / Decrement */
     override operator fun dec() = ctor(num - den, den)
 
+    /** 取余 / Remainder */
     override operator fun rem(rhs: Self): Self {
         val k = this intDiv rhs;
         return this - k * rhs;
     }
 
+    /** 整数除法 / Integer division */
     override fun intDiv(rhs: Self): Self {
         val divisor = this / rhs;
         return ctor(divisor.num / divisor.den, integerConstants.one);
     }
 
+    /** 以指定基数计算对数 / Calculate logarithm with specified base */
     override fun log(base: FloatingNumber<*>) = toFltX().log(base)
+    /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(FltX.ten)
+    /** 二进制对数（以 2 为底）/ Binary logarithm (base 2) */
     override fun lg2() = log(FltX.two)
+    /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(FltX.e)
 
+    /** 计算浮点数次幂 / Calculate floating-point power */
     override fun pow(index: FloatingNumber<*>) = toFltX().pow(index)
+    /** 计算整数次幂 / Calculate integer power */
     override fun pow(index: Int) = pow(copy(), index, constants)
+    /** 平方 / Square */
     override fun sqr() = pow(2)
+    /** 立方 / Cube */
     override fun cub() = pow(3)
 
+    /** 平方根 / Square root */
     override fun sqrt() = pow(FltX.two.reciprocal())
+    /** 立方根 / Cube root */
     override fun cbrt() = pow(FltX.three.reciprocal())
 
+    /** 指数函数 e^x / Exponential function e^x */
     override fun exp() = toFltX().exp()
 
+    /** 正弦 / Sine */
     override fun sin() = toFltX().sin()
+    /** 余弦 / Cosine */
     override fun cos() = toFltX().cos()
+    /** 正割 / Secant */
     override fun sec() = toFltX().sec()
+    /** 余割 / Cosecant */
     override fun csc() = toFltX().csc()
+    /** 正切 / Tangent */
     override fun tan() = toFltX().tan()
+    /** 余切 / Cotangent */
     override fun cot() = toFltX().cot()
 
+    /** 反正弦 / Arcsine */
     override fun asin() = toFltX().asin()
+    /** 反余弦 / Arccosine */
     override fun acos() = toFltX().acos()
+    /** 反正割 / Arcsecant */
     override fun asec() = toFltX().asec()
+    /** 反余割 / Arccosecant */
     override fun acsc() = toFltX().acsc()
+    /** 反正切 / Arctangent */
     override fun atan() = toFltX().atan()
+    /** 反余切 / Arccotangent */
     override fun acot() = toFltX().acot()
 
+    /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = toFltX().sinh()
+    /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = toFltX().cosh()
+    /** 双曲正割 / Hyperbolic secant */
     override fun sech() = toFltX().sech()
+    /** 双曲余割 / Hyperbolic cosecant */
     override fun csch() = toFltX().csch()
+    /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = toFltX().tanh()
+    /** 双曲余切 / Hyperbolic cotangent */
     override fun coth() = toFltX().coth()
 
+    /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = toFltX().asinh()
+    /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh() = toFltX().acosh()
+    /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech() = toFltX().asech()
+    /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch() = toFltX().acsch()
+    /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh() = toFltX().atanh()
+    /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth() = toFltX().acoth()
 
+    /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = (num / den).toInt8()
+    /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = (num / den).toInt16()
+    /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = (num / den).toInt32()
+    /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = (num / den).toInt64()
+    /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = (num / den).toIntX()
 
+    /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = (num / den).toUInt8()
+    /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = (num / den).toUInt16()
+    /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = (num / den).toUInt32()
+    /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = (num / den).toUInt64()
+    /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = (num / den).toUIntX()
 
+    /** 转换为 Rtn8 / Convert to Rtn8 */
     override fun toRtn8() = Rtn8(num.toInt8(), den.toInt8())
+    /** 转换为 Rtn16 / Convert to Rtn16 */
     override fun toRtn16() = Rtn16(num.toInt16(), den.toInt16())
+    /** 转换为 Rtn32 / Convert to Rtn32 */
     override fun toRtn32() = Rtn32(num.toInt32(), den.toInt32())
+    /** 转换为 Rtn64 / Convert to Rtn64 */
     override fun toRtn64() = Rtn64(num.toInt64(), den.toInt64())
+    /** 转换为 RtnX / Convert to RtnX */
     override fun toRtnX() = RtnX(num.toIntX(), den.toIntX())
 
+    /** 转换为 URtn8 / Convert to URtn8 */
     override fun toURtn8() = URtn8(num.toUInt8(), den.toUInt8())
+    /** 转换为 URtn16 / Convert to URtn16 */
     override fun toURtn16() = URtn16(num.toUInt16(), den.toUInt16())
+    /** 转换为 URtn32 / Convert to URtn32 */
     override fun toURtn32() = URtn32(num.toUInt32(), den.toUInt32())
+    /** 转换为 URtn64 / Convert to URtn64 */
     override fun toURtn64() = URtn64(num.toUInt64(), den.toUInt64())
+    /** 转换为 URtnX / Convert to URtnX */
     override fun toURtnX() = URtnX(num.toUIntX(), den.toUIntX())
 
+    /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = num.toFlt32() / den.toFlt32()
+    /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = num.toFlt64() / den.toFlt64()
+    /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = num.toFltX() / den.toFltX()
 }
 
@@ -301,11 +371,56 @@ data class Rtn8 internal constructor(
 
     override val constants: RealNumberConstants<Rtn8> get() = Companion
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: Rtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: Rtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: Rtn8) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: Rtn8) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -351,11 +466,56 @@ data class Rtn16 internal constructor(
 
     override val constants: RealNumberConstants<Rtn16> get() = Rtn16
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: Rtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: Rtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: Rtn16) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: Rtn16) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -401,11 +561,56 @@ data class Rtn32 internal constructor(
 
     override val constants: RealNumberConstants<Rtn32> get() = Rtn32
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: Rtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: Rtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: Rtn32) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: Rtn32) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -456,11 +661,56 @@ data class Rtn64 internal constructor(
 
     override val constants: RealNumberConstants<Rtn64> get() = Rtn64
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: Rtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: Rtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: Rtn64) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: Rtn64) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -518,11 +768,56 @@ data class RtnX internal constructor(
     override val minBound: RtnX? get() = null
     override val maxBound: RtnX? get() = null
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: RtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: RtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: RtnX) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: RtnX) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -568,11 +863,56 @@ data class URtn8 internal constructor(
 
     override val constants: RealNumberConstants<URtn8> get() = URtn8
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: URtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: URtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: URtn8) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: URtn8) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -618,11 +958,56 @@ data class URtn16 internal constructor(
 
     override val constants: RealNumberConstants<URtn16> get() = URtn16
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: URtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: URtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: URtn16) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: URtn16) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -668,11 +1053,56 @@ data class URtn32 internal constructor(
 
     override val constants: RealNumberConstants<URtn32> get() = URtn32
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: URtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: URtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: URtn32) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: URtn32) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -722,11 +1152,56 @@ data class URtn64 internal constructor(
 
     override val constants: RealNumberConstants<URtn64> get() = URtn64
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: URtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: URtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: URtn64) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: URtn64) = invoke(num * rhs.den, rhs.num * den)
 }
 
@@ -775,10 +1250,55 @@ data class URtnX internal constructor(
     override val minBound: URtnX? get() = null
     override val maxBound: URtnX? get() = null
 
+    /**
+     * 以指定进制转换为字符串
+     * Convert to string with specified radix
+     *
+     * @param radix 进制基数
+     *              The radix base
+     * @return 指定进制的字符串表示
+     *         The string representation in the specified radix
+     */
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
+    /**
+     * 加法
+     * Addition
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相加结果
+     *         The sum result
+     */
     override operator fun plus(rhs: URtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    /**
+     * 减法
+     * Subtraction
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相减结果
+     *         The subtraction result
+     */
     override operator fun minus(rhs: URtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    /**
+     * 乘法
+     * Multiplication
+     *
+     * @param rhs 右侧操作数
+     *            The right-hand side operand
+     * @return 相乘结果
+     *         The multiplication result
+     */
     override operator fun times(rhs: URtnX) = invoke(num * rhs.num, den * rhs.den)
+    /**
+     * 除法
+     * Division
+     *
+     * @param rhs 右侧操作数（除数）
+     *            The right-hand side operand (divisor)
+     * @return 相除结果
+     *         The division result
+     */
     override operator fun div(rhs: URtnX) = invoke(num * rhs.den, rhs.num * den)
 }

@@ -92,19 +92,43 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun eq(value: String): Comparison<String> =
         Comparison(ComparisonOperator.Eq, ScalarReference(path), ScalarConstant(value))
 
-    /** 等于比较（Int） / Equal comparison (Int) */
+    /**
+     * 等于比较（Int）
+     * Equal comparison (Int)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun eq(value: Int): Comparison<Int> =
         Comparison(ComparisonOperator.Eq, ScalarReference(path), ScalarConstant(value))
 
-    /** 等于比较（Long） / Equal comparison (Long) */
+    /**
+     * 等于比较（Long）
+     * Equal comparison (Long)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun eq(value: Long): Comparison<Long> =
         Comparison(ComparisonOperator.Eq, ScalarReference(path), ScalarConstant(value))
 
-    /** 等于比较（Double） / Equal comparison (Double) */
+    /**
+     * 等于比较（Double）
+     * Equal comparison (Double)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun eq(value: Double): Comparison<Double> =
         Comparison(ComparisonOperator.Eq, ScalarReference(path), ScalarConstant(value))
 
-    /** 等于比较（Boolean） / Equal comparison (Boolean) */
+    /**
+     * 等于比较（Boolean）
+     * Equal comparison (Boolean)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun eq(value: Boolean): Comparison<Boolean> =
         Comparison(ComparisonOperator.Eq, ScalarReference(path), ScalarConstant(value))
 
@@ -118,15 +142,33 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun ne(value: String): Comparison<String> =
         Comparison(ComparisonOperator.Ne, ScalarReference(path), ScalarConstant(value))
 
-    /** 不等于比较（Int） / Not equal comparison (Int) */
+    /**
+     * 不等于比较（Int）
+     * Not equal comparison (Int)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun ne(value: Int): Comparison<Int> =
         Comparison(ComparisonOperator.Ne, ScalarReference(path), ScalarConstant(value))
 
-    /** 不等于比较（Long） / Not equal comparison (Long) */
+    /**
+     * 不等于比较（Long）
+     * Not equal comparison (Long)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun ne(value: Long): Comparison<Long> =
         Comparison(ComparisonOperator.Ne, ScalarReference(path), ScalarConstant(value))
 
-    /** 不等于比较（Double） / Not equal comparison (Double) */
+    /**
+     * 不等于比较（Double）
+     * Not equal comparison (Double)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun ne(value: Double): Comparison<Double> =
         Comparison(ComparisonOperator.Ne, ScalarReference(path), ScalarConstant(value))
 
@@ -140,11 +182,23 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun lt(value: Int): Comparison<Int> =
         Comparison(ComparisonOperator.Lt, ScalarReference(path), ScalarConstant(value))
 
-    /** 小于比较（Long） / Less than comparison (Long) */
+    /**
+     * 小于比较（Long）
+     * Less than comparison (Long)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun lt(value: Long): Comparison<Long> =
         Comparison(ComparisonOperator.Lt, ScalarReference(path), ScalarConstant(value))
 
-    /** 小于比较（Double） / Less than comparison (Double) */
+    /**
+     * 小于比较（Double）
+     * Less than comparison (Double)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun lt(value: Double): Comparison<Double> =
         Comparison(ComparisonOperator.Lt, ScalarReference(path), ScalarConstant(value))
 
@@ -158,11 +212,23 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun le(value: Int): Comparison<Int> =
         Comparison(ComparisonOperator.Le, ScalarReference(path), ScalarConstant(value))
 
-    /** 小于等于比较（Long） / Less than or equal comparison (Long) */
+    /**
+     * 小于等于比较（Long）
+     * Less than or equal comparison (Long)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun le(value: Long): Comparison<Long> =
         Comparison(ComparisonOperator.Le, ScalarReference(path), ScalarConstant(value))
 
-    /** 小于等于比较（Double） / Less than or equal comparison (Double) */
+    /**
+     * 小于等于比较（Double）
+     * Less than or equal comparison (Double)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun le(value: Double): Comparison<Double> =
         Comparison(ComparisonOperator.Le, ScalarReference(path), ScalarConstant(value))
 
@@ -176,11 +242,23 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun gt(value: Int): Comparison<Int> =
         Comparison(ComparisonOperator.Gt, ScalarReference(path), ScalarConstant(value))
 
-    /** 大于比较（Long） / Greater than comparison (Long) */
+    /**
+     * 大于比较（Long）
+     * Greater than comparison (Long)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun gt(value: Long): Comparison<Long> =
         Comparison(ComparisonOperator.Gt, ScalarReference(path), ScalarConstant(value))
 
-    /** 大于比较（Double） / Greater than comparison (Double) */
+    /**
+     * 大于比较（Double）
+     * Greater than comparison (Double)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun gt(value: Double): Comparison<Double> =
         Comparison(ComparisonOperator.Gt, ScalarReference(path), ScalarConstant(value))
 
@@ -194,11 +272,23 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun ge(value: Int): Comparison<Int> =
         Comparison(ComparisonOperator.Ge, ScalarReference(path), ScalarConstant(value))
 
-    /** 大于等于比较（Long） / Greater than or equal comparison (Long) */
+    /**
+     * 大于等于比较（Long）
+     * Greater than or equal comparison (Long)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun ge(value: Long): Comparison<Long> =
         Comparison(ComparisonOperator.Ge, ScalarReference(path), ScalarConstant(value))
 
-    /** 大于等于比较（Double） / Greater than or equal comparison (Double) */
+    /**
+     * 大于等于比较（Double）
+     * Greater than or equal comparison (Double)
+     *
+     * @param value 比较值 / Comparison value
+     * @return 比较表达式 / Comparison expression
+     */
     infix fun ge(value: Double): Comparison<Double> =
         Comparison(ComparisonOperator.Ge, ScalarReference(path), ScalarConstant(value))
 
@@ -212,11 +302,23 @@ class PathBuilder(private val path: PropertyPath) {
     fun inValues(vararg values: String): InExpression<String> =
         InExpression(ScalarReference(path), values.map { ScalarConstant(it) })
 
-    /** 集合成员判断（in，Int） / Set membership (in, Int) */
+    /**
+     * 集合成员判断（in，Int）
+     * Set membership (in, Int)
+     *
+     * @param values 候选值 / Candidate values
+     * @return In 表达式 / In expression
+     */
     fun inValues(vararg values: Int): InExpression<Int> =
         InExpression(ScalarReference(path), values.map { ScalarConstant(it) })
 
-    /** 集合成员判断（in，Long） / Set membership (in, Long) */
+    /**
+     * 集合成员判断（in，Long）
+     * Set membership (in, Long)
+     *
+     * @param values 候选值 / Candidate values
+     * @return In 表达式 / In expression
+     */
     fun inValues(vararg values: Long): InExpression<Long> =
         InExpression(ScalarReference(path), values.map { ScalarConstant(it) })
 
@@ -230,7 +332,13 @@ class PathBuilder(private val path: PropertyPath) {
     fun notInValues(vararg values: String): InExpression<String> =
         InExpression(ScalarReference(path), values.map { ScalarConstant(it) }, negated = true)
 
-    /** 非集合成员判断（not in，Int） / Negated set membership (not in, Int) */
+    /**
+     * 非集合成员判断（not in，Int）
+     * Negated set membership (not in, Int)
+     *
+     * @param values 候选值 / Candidate values
+     * @return Not In 表达式 / Not In expression
+     */
     fun notInValues(vararg values: Int): InExpression<Int> =
         InExpression(ScalarReference(path), values.map { ScalarConstant(it) }, negated = true)
 
@@ -260,19 +368,43 @@ class PathBuilder(private val path: PropertyPath) {
     infix fun like(pattern: String): PatternMatch<String> =
         PatternMatch(ScalarReference(path), ScalarConstant(pattern), PatternMatchMode.Like)
 
-    /** 精确匹配 / Exact match */
+    /**
+     * 精确匹配
+     * Exact match
+     *
+     * @param pattern 匹配模式 / Match pattern
+     * @return 模式匹配表达式 / Pattern match expression
+     */
     infix fun likeExact(pattern: String): PatternMatch<String> =
         PatternMatch(ScalarReference(path), ScalarConstant(pattern), PatternMatchMode.Exact)
 
-    /** 前缀匹配 / Prefix match */
+    /**
+     * 前缀匹配
+     * Prefix match
+     *
+     * @param pattern 匹配模式 / Match pattern
+     * @return 模式匹配表达式 / Pattern match expression
+     */
     infix fun likePrefix(pattern: String): PatternMatch<String> =
         PatternMatch(ScalarReference(path), ScalarConstant(pattern), PatternMatchMode.Prefix)
 
-    /** 后缀匹配 / Suffix match */
+    /**
+     * 后缀匹配
+     * Suffix match
+     *
+     * @param pattern 匹配模式 / Match pattern
+     * @return 模式匹配表达式 / Pattern match expression
+     */
     infix fun likeSuffix(pattern: String): PatternMatch<String> =
         PatternMatch(ScalarReference(path), ScalarConstant(pattern), PatternMatchMode.Suffix)
 
-    /** 包含匹配 / Contains match */
+    /**
+     * 包含匹配
+     * Contains match
+     *
+     * @param pattern 匹配模式 / Match pattern
+     * @return 模式匹配表达式 / Pattern match expression
+     */
     infix fun likeContains(pattern: String): PatternMatch<String> =
         PatternMatch(ScalarReference(path), ScalarConstant(pattern), PatternMatchMode.Contains)
 
@@ -633,73 +765,169 @@ fun notExpr(expression: BooleanExpression): NotExpression = NotExpression(expres
 
 // ========== 类型化路径操作 / Typed Path Operations ==========
 
-/** 小于比较（值） / Less than comparison (value) */
+/**
+ * 小于比较（值）
+ * Less than comparison (value)
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.lt(value: T): Comparison<T> =
     Comparison(ComparisonOperator.Lt, asScalar(), ScalarConstant(value))
 
-/** 小于等于比较（值） / Less than or equal comparison (value) */
+/**
+ * 小于等于比较（值）
+ * Less than or equal comparison (value)
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.le(value: T): Comparison<T> =
     Comparison(ComparisonOperator.Le, asScalar(), ScalarConstant(value))
 
-/** 大于比较（值） / Greater than comparison (value) */
+/**
+ * 大于比较（值）
+ * Greater than comparison (value)
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.gt(value: T): Comparison<T> =
     Comparison(ComparisonOperator.Gt, asScalar(), ScalarConstant(value))
 
-/** 大于等于比较（值） / Greater than or equal comparison (value) */
+/**
+ * 大于等于比较（值）
+ * Greater than or equal comparison (value)
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.ge(value: T): Comparison<T> =
     Comparison(ComparisonOperator.Ge, asScalar(), ScalarConstant(value))
 
-/** 小于比较（列） / Less than comparison (column) */
+/**
+ * 小于比较（列）
+ * Less than comparison (column)
+ *
+ * @param other 另一个类型化路径构建器 / Another typed path builder
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.lt(other: TypedPathBuilder<E, T>): Comparison<T> =
     Comparison(ComparisonOperator.Lt, asScalar(), other.asScalar())
 
-/** 小于等于比较（列） / Less than or equal comparison (column) */
+/**
+ * 小于等于比较（列）
+ * Less than or equal comparison (column)
+ *
+ * @param other 另一个类型化路径构建器 / Another typed path builder
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.le(other: TypedPathBuilder<E, T>): Comparison<T> =
     Comparison(ComparisonOperator.Le, asScalar(), other.asScalar())
 
-/** 大于比较（列） / Greater than comparison (column) */
+/**
+ * 大于比较（列）
+ * Greater than comparison (column)
+ *
+ * @param other 另一个类型化路径构建器 / Another typed path builder
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.gt(other: TypedPathBuilder<E, T>): Comparison<T> =
     Comparison(ComparisonOperator.Gt, asScalar(), other.asScalar())
 
-/** 大于等于比较（列） / Greater than or equal comparison (column) */
+/**
+ * 大于等于比较（列）
+ * Greater than or equal comparison (column)
+ *
+ * @param other 另一个类型化路径构建器 / Another typed path builder
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun <E, T : Comparable<T>> TypedPathBuilder<E, T>.ge(other: TypedPathBuilder<E, T>): Comparison<T> =
     Comparison(ComparisonOperator.Ge, asScalar(), other.asScalar())
 
-/** 空值检查 / Null check */
+/**
+ * 空值检查
+ * Null check
+ *
+ * @return 空值检查表达式 / Null check expression
+ */
 fun <E, T> TypedPathBuilder<E, T?>.isNull(): NullCheck = NullCheck(path, NullCheckType.IsNull)
 
-/** 非空检查 / Not null check */
+/**
+ * 非空检查
+ * Not null check
+ *
+ * @return 非空检查表达式 / Not null check expression
+ */
 fun <E, T> TypedPathBuilder<E, T?>.isNotNull(): NullCheck = NullCheck(path, NullCheckType.IsNotNull)
 
-/** LIKE 模式匹配 / LIKE pattern match */
+/**
+ * LIKE 模式匹配
+ * LIKE pattern match
+ *
+ * @param pattern 匹配模式 / Match pattern
+ * @return 模式匹配表达式 / Pattern match expression
+ */
 infix fun <E> TypedPathBuilder<E, String>.like(pattern: String): PatternMatch<String> =
     PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Like)
 
-/** 精确匹配 / Exact match */
+/**
+ * 精确匹配
+ * Exact match
+ *
+ * @param pattern 匹配模式 / Match pattern
+ * @return 模式匹配表达式 / Pattern match expression
+ */
 infix fun <E> TypedPathBuilder<E, String>.likeExact(pattern: String): PatternMatch<String> =
     PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Exact)
 
-/** 前缀匹配 / Prefix match */
+/**
+ * 前缀匹配
+ * Prefix match
+ *
+ * @param pattern 匹配模式 / Match pattern
+ * @return 模式匹配表达式 / Pattern match expression
+ */
 infix fun <E> TypedPathBuilder<E, String>.likePrefix(pattern: String): PatternMatch<String> =
     PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Prefix)
 
-/** 后缀匹配 / Suffix match */
+/**
+ * 后缀匹配
+ * Suffix match
+ *
+ * @param pattern 匹配模式 / Match pattern
+ * @return 模式匹配表达式 / Pattern match expression
+ */
 infix fun <E> TypedPathBuilder<E, String>.likeSuffix(pattern: String): PatternMatch<String> =
     PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Suffix)
 
-/** 包含匹配 / Contains match */
+/**
+ * 包含匹配
+ * Contains match
+ *
+ * @param pattern 匹配模式 / Match pattern
+ * @return 模式匹配表达式 / Pattern match expression
+ */
 infix fun <E> TypedPathBuilder<E, String>.likeContains(pattern: String): PatternMatch<String> =
     PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Contains)
 
-/** 非 LIKE 模式匹配 / Negated LIKE pattern match */
+/**
+ * 非 LIKE 模式匹配
+ * Negated LIKE pattern match
+ *
+ * @param pattern 匹配模式 / Match pattern
+ * @return 否定的模式匹配表达式 / Negated pattern match expression
+ */
 fun <E> TypedPathBuilder<E, String>.notLike(pattern: String): PatternMatch<String> =
     PatternMatch(asScalar(), ScalarConstant(pattern), PatternMatchMode.Like, negated = true)
 
 // ========== 标量函数 / Scalar Functions ==========
 
+/** 将标量表达式类型转换为 Any? 通配类型 / Cast a scalar expression to the Any? wildcard type */
 @Suppress("UNCHECKED_CAST")
 private fun anyScalar(expr: ScalarExpression<*>): ScalarExpression<Any?> = expr as ScalarExpression<Any?>
 
+/** 创建指定名称和参数列表的标量函数表达式 / Create a scalar function expression with the given name and argument list */
 private fun function(name: String, arguments: List<ScalarExpression<*>>): ScalarFunction<Any?> {
     return ScalarFunction(name, arguments.map { anyScalar(it) })
 }
@@ -714,29 +942,71 @@ private fun function(name: String, arguments: List<ScalarExpression<*>>): Scalar
 fun abs(expr: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Abs, listOf(expr))
 
-/** 绝对值函数（路径形式） / Absolute value function (path form) */
+/**
+ * 绝对值函数（路径形式）
+ * Absolute value function (path form)
+ *
+ * @param path 路径构建器 / Path builder
+ * @return 函数调用表达式 / Function call expression
+ */
 fun abs(path: PathBuilder): ScalarFunction<Any?> = abs(path.asScalar<Any?>())
 
-/** 等于比较 / Equal comparison */
+/**
+ * 等于比较
+ * Equal comparison
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun ScalarExpression<*>.eq(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Eq, anyScalar(this), ScalarConstant(value))
 
-/** 不等于比较 / Not equal comparison */
+/**
+ * 不等于比较
+ * Not equal comparison
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun ScalarExpression<*>.ne(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Ne, anyScalar(this), ScalarConstant(value))
 
-/** 小于比较 / Less than comparison */
+/**
+ * 小于比较
+ * Less than comparison
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun ScalarExpression<*>.lt(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Lt, anyScalar(this), ScalarConstant(value))
 
-/** 小于等于比较 / Less than or equal comparison */
+/**
+ * 小于等于比较
+ * Less than or equal comparison
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun ScalarExpression<*>.le(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Le, anyScalar(this), ScalarConstant(value))
 
-/** 大于比较 / Greater than comparison */
+/**
+ * 大于比较
+ * Greater than comparison
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun ScalarExpression<*>.gt(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Gt, anyScalar(this), ScalarConstant(value))
 
-/** 大于等于比较 / Greater than or equal comparison */
+/**
+ * 大于等于比较
+ * Greater than or equal comparison
+ *
+ * @param value 比较值 / Comparison value
+ * @return 比较表达式 / Comparison expression
+ */
 infix fun ScalarExpression<*>.ge(value: Any?): Comparison<Any?> =
     Comparison(ComparisonOperator.Ge, anyScalar(this), ScalarConstant(value))

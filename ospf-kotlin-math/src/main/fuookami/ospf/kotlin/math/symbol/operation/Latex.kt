@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Includes compact and simplified formatting modes.
  */
 
+/** 将 Flt64 格式化为去除尾随零的十进制字符串 / Format a Flt64 as a decimal string with trailing zeros stripped */
 private fun formatNumber(value: Flt64): String {
     val doubleValue = value.toDouble()
     if (!doubleValue.isFinite()) {
@@ -112,6 +113,7 @@ fun CanonicalPolynomial<Flt64>.toLatex(
     return toLatexString(flt64LatexOps, options)
 }
 
+/** 将比较运算符转换为 LaTeX 符号 / Convert a comparison operator to its LaTeX symbol */
 private fun Comparison.latexSymbol(): String {
     return when (this) {
         Comparison.LT -> "<"
@@ -163,6 +165,7 @@ fun CanonicalInequality<Flt64>.toLatex(
 }
 
 // Solver-adapter formatting helper (simplified, without LatexOptions).
+/** 将 Flt64 转换为简化的 LaTeX 字符串，整数不带小数点 / Convert Flt64 to a simplified LaTeX string, integers without decimal point */
 private fun Flt64.toLatexString(): String {
     val value = this.toDouble()
     return if (value == value.toLong().toDouble()) {
@@ -172,6 +175,7 @@ private fun Flt64.toLatexString(): String {
     }
 }
 
+/** 将 Flt64 线性单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 linear monomial to a simplified LaTeX string */
 private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val symbolName = symbol.displayName ?: symbol.name
@@ -182,6 +186,7 @@ private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
+/** 将 Flt64 二次单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 quadratic monomial to a simplified LaTeX string */
 private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val s1Name = symbol1.displayName ?: symbol1.name
@@ -212,6 +217,7 @@ private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
+/** 将 Flt64 规范单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 canonical monomial to a simplified LaTeX string */
 private fun CanonicalMonomial<Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val powerParts = powers.entries.joinToString(" \\cdot ") { (symbol, power) ->

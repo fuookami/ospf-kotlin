@@ -61,6 +61,10 @@ data class ChuaAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 蔡氏吸引子生成器
+ * Chua's Attractor Generator
+ */
 data class ChuaAttractorGenerator(
     val chuaAttractor: ChuaAttractor<Flt64> = ChuaAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

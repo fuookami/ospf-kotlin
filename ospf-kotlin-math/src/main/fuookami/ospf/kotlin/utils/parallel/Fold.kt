@@ -36,6 +36,7 @@ import fuookami.ospf.kotlin.math.operator.Plus
  * Thread-safe: each coroutine computes partial sum independently, final merge uses single-thread serial operation.
  */
 
+/** 从 Ret 结果中提取错误并追加到列表 / Extract errors from Ret result and append to list */
 @PublishedApi
 internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
     when (ret) {
@@ -45,6 +46,7 @@ internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
     }
 }
 
+/** 根据值和错误列表构造 ExRet 结果 / Construct ExRet result from value and error list */
 @PublishedApi
 internal fun <T> exResultOf(value: T, errors: List<Error<ErrorCode>>): ExRet<T> {
     return if (errors.isEmpty()) {

@@ -55,39 +55,82 @@ data class Scale(
         /** 艾 (10^18) / Exa (10^18) */
         val exa = Scale(10, 18)
 
-        /** 从 FltX 底数和 FltX 指数创建缩放因子 / Create scale from FltX base and FltX exponent */
+        /**
+         * 从 FltX 底数和 FltX 指数创建缩放因子
+         * Create scale from FltX base and FltX exponent
+         *
+         * @param base 底数 / The base value
+         * @param index 指数 / The exponent value
+         * @return 缩放因子 / The scale factor
+         */
         operator fun invoke(base: FltX, index: FltX): Scale {
             val base: ScaleBase = Either.Left(base)
             return Scale(listOf(base to index))
         }
 
-        /** 从 FltX 底数和 Int 指数创建缩放因子 / Create scale from FltX base and Int exponent */
+        /**
+         * 从 FltX 底数和 Int 指数创建缩放因子
+         * Create scale from FltX base and Int exponent
+         *
+         * @param base 底数 / The base value
+         * @param index 指数（默认 1） / The exponent value (default 1)
+         * @return 缩放因子 / The scale factor
+         */
         operator fun invoke(base: FltX, index: Int = 1): Scale {
             return Scale(base, FltX(index.toLong()))
         }
 
-        /** 从 Double 底数和 Int 指数创建缩放因子 / Create scale from Double base and Int exponent */
+        /**
+         * 从 Double 底数和 Int 指数创建缩放因子
+         * Create scale from Double base and Int exponent
+         *
+         * @param base 底数 / The base value
+         * @param index 指数（默认 1） / The exponent value (default 1)
+         * @return 缩放因子 / The scale factor
+         */
         operator fun invoke(base: Double, index: Int = 1): Scale {
             return Scale(FltX(base), index)
         }
 
-        /** 从 Int 底数和 Int 指数创建缩放因子 / Create scale from Int base and Int exponent */
+        /**
+         * 从 Int 底数和 Int 指数创建缩放因子
+         * Create scale from Int base and Int exponent
+         *
+         * @param base 底数 / The base value
+         * @param index 指数（默认 1） / The exponent value (default 1)
+         * @return 缩放因子 / The scale factor
+         */
         operator fun invoke(base: Int, index: Int = 1): Scale {
             return Scale(FltX(base.toLong()), index)
         }
 
-        /** 从 RtnX 底数和 FltX 指数创建缩放因子 / Create scale from RtnX base and FltX exponent */
+        /**
+         * 从 RtnX 底数和 FltX 指数创建缩放因子
+         * Create scale from RtnX base and FltX exponent
+         *
+         * @param base 底数 / The base value
+         * @param index 指数 / The exponent value
+         * @return 缩放因子 / The scale factor
+         */
         operator fun invoke(base: RtnX, index: FltX): Scale {
             val base: ScaleBase = Either.Right(base)
             return Scale(listOf(base to index))
         }
 
-        /** 从 RtnX 底数和 Int 指数创建缩放因子 / Create scale from RtnX base and Int exponent */
+        /**
+         * 从 RtnX 底数和 Int 指数创建缩放因子
+         * Create scale from RtnX base and Int exponent
+         *
+         * @param base 底数 / The base value
+         * @param index 指数（默认 1） / The exponent value (default 1)
+         * @return 缩放因子 / The scale factor
+         */
         operator fun invoke(base: RtnX, index: Int = 1): Scale {
             val base: ScaleBase = Either.Right(base)
             return Scale(listOf(base to FltX(index.toLong())))
         }
 
+        /** 按底数值升序排列缩放因子列表 / Sort scale factor list by base value ascending */
         private fun List<Pair<ScaleBase, FltX>>.sort(): List<Pair<ScaleBase, FltX>> {
             return sortedBy {
                 when (val base = it.first) {
@@ -97,6 +140,7 @@ data class Scale(
             }
         }
 
+        /** 过滤指数为零的项并排序 / Filter out zero-exponent entries and sort */
         private fun List<Pair<ScaleBase, FltX>>.tidy(): List<Pair<ScaleBase, FltX>> {
             return this
                 .filter { it.second neq FltX.zero }
@@ -113,6 +157,13 @@ data class Scale(
         }.stripTrailingZeros()
     }
 
+    /**
+     * 判断两个底数是否匹配
+     * Check whether two bases match
+     *
+     * @param other 另一个底数 / The other base
+     * @return 类型和值均相等返回 true / True if type and value are both equal
+     */
     private fun ScaleBase.matches(other: ScaleBase): Boolean {
         return when (this) {
             is Either.Left -> when (other) {
@@ -127,6 +178,12 @@ data class Scale(
         }
     }
 
+    /**
+     * 生成底数的缓存键
+     * Generate cache key for the base
+     *
+     * @return 用于 HashMap 查找的字符串键 / String key for HashMap lookup
+     */
     private fun ScaleBase.cacheKey(): String {
         return when (this) {
             is Either.Left -> "L:${value.stripTrailingZeros().toPlainString()}"
@@ -134,6 +191,14 @@ data class Scale(
         }
     }
 
+    /**
+     * 更新单个底数的指数
+     * Update exponent of a single base
+     *
+     * @param base 要更新的底数 / The base to update
+     * @param delta 指数增量 / Exponent delta
+     * @return 更新后的新缩放因子 / New scale after update
+     */
     private fun updateSingleBase(base: ScaleBase, delta: FltX): Scale {
         val index = scales.indexOfFirst { it.first.matches(base) }
         val newScales = if (index == -1) {
@@ -150,6 +215,14 @@ data class Scale(
         return Scale(newScales.tidy())
     }
 
+    /**
+     * 与另一个缩放因子合并（乘法或除法）
+     * Merge with another scale factor (multiplication or division)
+     *
+     * @param other 另一个缩放因子 / The other scale factor
+     * @param subtract true 表示除法（减指数），false 表示乘法（加指数） / True for division (subtract exponent), false for multiplication (add exponent)
+     * @return 合并后的新缩放因子 / New merged scale factor
+     */
     private fun mergeWithScale(other: Scale, subtract: Boolean): Scale {
         if (other.scales.isEmpty()) {
             return this
@@ -199,7 +272,13 @@ data class Scale(
         return Scale(merged.tidy())
     }
 
-    /** 乘以 FltX / Multiply by FltX */
+    /**
+     * 乘以 FltX
+     * Multiply by FltX
+     *
+     * @param other 乘数 / The multiplier
+     * @return 新缩放因子 / New scale factor
+     */
     operator fun times(other: FltX): Scale {
         if (other eq FltX.zero) {
             return Scale(FltX.zero, FltX.one)
@@ -208,7 +287,13 @@ data class Scale(
         return updateSingleBase(base, FltX.one)
     }
 
-    /** 乘以 RtnX / Multiply by RtnX */
+    /**
+     * 乘以 RtnX
+     * Multiply by RtnX
+     *
+     * @param other 乘数 / The multiplier
+     * @return 新缩放因子 / New scale factor
+     */
     operator fun times(other: RtnX): Scale {
         if (other eq RtnX.zero) {
             return Scale(FltX.zero, FltX.one)
@@ -217,7 +302,14 @@ data class Scale(
         return updateSingleBase(base, FltX.one)
     }
 
-    /** 除以 FltX / Divide by FltX */
+    /**
+     * 除以 FltX
+     * Divide by FltX
+     *
+     * @param other 除数 / The divisor
+     * @return 新缩放因子 / New scale factor
+     * @throws ArithmeticException 除以零时抛出 / If dividing by zero
+     */
     operator fun div(other: FltX): Scale {
         if (other eq FltX.zero) {
             throw ArithmeticException("Cannot divide by zero")
@@ -226,7 +318,14 @@ data class Scale(
         return updateSingleBase(base, -FltX.one)
     }
 
-    /** 除以 RtnX / Divide by RtnX */
+    /**
+     * 除以 RtnX
+     * Divide by RtnX
+     *
+     * @param other 除数 / The divisor
+     * @return 新缩放因子 / New scale factor
+     * @throws ArithmeticException 除以零时抛出 / If dividing by zero
+     */
     operator fun div(other: RtnX): Scale {
         if (other eq RtnX.zero) {
             throw ArithmeticException("Cannot divide by zero")
@@ -235,18 +334,36 @@ data class Scale(
         return updateSingleBase(base, -FltX.one)
     }
 
-    /** 乘以另一个缩放因子 / Multiply by another scale */
+    /**
+     * 乘以另一个缩放因子
+     * Multiply by another scale
+     *
+     * @param other 另一个缩放因子 / The other scale factor
+     * @return 合并后的新缩放因子 / New merged scale factor
+     */
     operator fun times(other: Scale): Scale {
         return mergeWithScale(other, subtract = false)
     }
 
-    /** 除以另一个缩放因子 / Divide by another scale */
+    /**
+     * 除以另一个缩放因子
+     * Divide by another scale
+     *
+     * @param other 另一个缩放因子 / The other scale factor
+     * @return 合并后的新缩放因子 / New merged scale factor
+     */
     operator fun div(other: Scale): Scale {
         return mergeWithScale(other, subtract = true)
     }
 }
 
-/** 获取缩放因子的值（Java 互操作） / Get scale value (Java interop) */
+/**
+ * 获取缩放因子的值（Java 互操作）
+ * Get scale value (Java interop)
+ *
+ * @param scale 缩放因子 / The scale factor
+ * @return 缩放因子的浮点值 / The floating-point value of the scale factor
+ */
 fun getValue(scale: Scale): FltX {
     return scale.value
 }

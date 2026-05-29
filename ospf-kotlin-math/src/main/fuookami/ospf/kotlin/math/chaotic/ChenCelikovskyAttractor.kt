@@ -53,6 +53,10 @@ data class ChenCelikovskyAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Chen-Celikovsky 吸引子生成器
+ * Chen-Celikovsky Attractor Generator
+ */
 data class ChenCelikovskyAttractorGenerator(
     val chenCelikovskyAttractor: ChenCelikovskyAttractor<Flt64> = ChenCelikovskyAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

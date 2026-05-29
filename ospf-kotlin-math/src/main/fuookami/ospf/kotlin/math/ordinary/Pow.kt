@@ -32,10 +32,9 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
+/** 归一化 FltX 精度，非 FltX 类型保持不变 / Normalize FltX scale; non-FltX types remain unchanged */
 @Suppress("UNCHECKED_CAST")
 private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T {
-    // 安全不变量：当值为 FltX 时 withScale 保持 FltX；否则返回原始 T。
-    // Safety invariant: when value is FltX, withScale remains FltX; otherwise original T is returned.
     return if (value is FltX) {
         value.withScale(digits, RoundingMode.HALF_UP) as T
     } else {
@@ -43,6 +42,7 @@ private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T
     }
 }
 
+/** 正整数指数快速幂递归实现 / Positive integer exponent fast power recursive implementation */
 private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(
     value: T,
     base: T,
@@ -71,6 +71,7 @@ private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(
     }
 }
 
+/** 负整数指数快速幂递归实现 / Negative integer exponent fast power recursive implementation */
 private tailrec fun <T : TimesGroup<T>> powNegImpl(
     value: T,
     base: T,
@@ -99,7 +100,18 @@ private tailrec fun <T : TimesGroup<T>> powNegImpl(
     }
 }
 
-/** 计算正整数指数幂，使用快速幂算法（不支持负指数） / Compute positive integer exponent power using fast power algorithm */
+/**
+ * 计算正整数指数幂，使用快速幂算法（不支持负指数）
+ * Compute positive integer exponent power using fast power algorithm
+ *
+ * @param base 底数 / Base
+ * @param index 指数（正整数） / Exponent (positive integer)
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值 / Power value
+ * @throws IllegalArgumentException 如果指数为负 / If exponent is negative
+ */
 @Throws(IllegalArgumentException::class)
 fun <T> pow(
     base: T,
@@ -123,7 +135,17 @@ fun <T> pow(
     }
 }
 
-/** 计算整数指数幂（支持负指数），使用快速幂算法 / Compute integer exponent power (supports negative), using fast power */
+/**
+ * 计算整数指数幂（支持负指数），使用快速幂算法
+ * Compute integer exponent power (supports negative), using fast power
+ *
+ * @param base 底数 / Base
+ * @param index 指数 / Exponent
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值 / Power value
+ */
 fun <T> pow(
     base: T,
     index: Int,
@@ -151,7 +173,16 @@ fun <T> pow(
         constants.one
     }
 }
-/** 计算正整数指数幂（自动解析常量） / Compute positive integer exponent power (auto-resolve constants) */
+/**
+ * 计算正整数指数幂（自动解析常量）
+ * Compute positive integer exponent power (auto-resolve constants)
+ *
+ * @param base 底数 / Base
+ * @param index 指数（正整数） / Exponent (positive integer)
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值 / Power value
+ */
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -166,7 +197,16 @@ inline fun <reified T> pow(
         precision = precision
     )
 }
-/** 计算整数指数幂（支持负指数，自动解析常量） / Compute integer exponent power (auto-resolve constants) */
+/**
+ * 计算整数指数幂（支持负指数，自动解析常量）
+ * Compute integer exponent power (auto-resolve constants)
+ *
+ * @param base 底数 / Base
+ * @param index 指数 / Exponent
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值 / Power value
+ */
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -182,7 +222,17 @@ inline fun <reified T> pow(
     )
 }
 
-/** 计算浮点指数幂，通过 ln 和 exp 实现 / Compute floating-point exponent power via ln and exp */
+/**
+ * 计算浮点指数幂，通过 ln 和 exp 实现
+ * Compute floating-point exponent power via ln and exp
+ *
+ * @param base 底数 / Base
+ * @param index 浮点指数 / Floating-point exponent
+ * @param constants 浮点数常量提供器 / Floating number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值 / Power value
+ */
 fun <T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -203,7 +253,16 @@ fun <T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
-/** 计算浮点指数幂（自动解析常量） / Compute floating-point exponent power (auto-resolve constants) */
+/**
+ * 计算浮点指数幂（自动解析常量）
+ * Compute floating-point exponent power (auto-resolve constants)
+ *
+ * @param base 底数 / Base
+ * @param index 浮点指数 / Floating-point exponent
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值 / Power value
+ */
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -218,7 +277,16 @@ inline fun <reified T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
-/** 计算指数函数 exp(index)，使用泰勒级数展开 / Compute exponential function exp(index) using Taylor series */
+/**
+ * 计算指数函数 exp(index)，使用泰勒级数展开
+ * Compute exponential function exp(index) using Taylor series
+ *
+ * @param index 指数 / Exponent
+ * @param constants 浮点数常量提供器 / Floating number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 指数值 / Exponential value
+ */
 fun <T : FloatingNumber<T>> exp(
     index: T,
     constants: FloatingNumberConstants<T>,
@@ -241,7 +309,15 @@ fun <T : FloatingNumber<T>> exp(
     }
     return value
 }
-/** 计算指数函数 exp(index)（自动解析常量） / Compute exponential function (auto-resolve constants) */
+/**
+ * 计算指数函数 exp(index)（自动解析常量）
+ * Compute exponential function (auto-resolve constants)
+ *
+ * @param index 指数 / Exponent
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 指数值 / Exponential value
+ */
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
     digits: Int = index.constants.decimalDigits ?: 0,

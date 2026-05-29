@@ -74,7 +74,10 @@ class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 }
 
-/** 二维四边形面积（鞋带公式） / 2D quadrilateral area (Shoelace formula) */
+/**
+ * 二维四边形面积（鞋带公式）
+ * 2D quadrilateral area (Shoelace formula)
+ */
 val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
     get() {
         val sum1 = p1.x * p2.y + p2.x * p3.y + p3.x * p4.y + p4.x * p1.y
@@ -88,7 +91,12 @@ val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
         return absolute / Flt64.two
     }
 
-/** 判断二维四边形是否为凸四边形 / Check whether a 2D quadrilateral is convex */
+/**
+ * 判断二维四边形是否为凸四边形
+ * Check whether a 2D quadrilateral is convex
+ *
+ * @return 是否为凸四边形 / Whether the quadrilateral is convex
+ */
 fun Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.isConvex(): Boolean {
     fun crossSign(a: Point<Dim2, Flt64>, b: Point<Dim2, Flt64>, c: Point<Dim2, Flt64>): Flt64 {
         val v1 = vector2(b.x - a.x, b.y - a.y)
@@ -110,7 +118,16 @@ fun Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.isConvex(): Boolean {
 val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.illegal: Boolean
     get() = area eq Flt64.zero
 
-/** 创建二维四边形 / Create a 2D quadrilateral */
+/**
+ * 创建二维四边形
+ * Create a 2D quadrilateral
+ *
+ * @param p1 第一个顶点 / First vertex
+ * @param p2 第二个顶点 / Second vertex
+ * @param p3 第三个顶点 / Third vertex
+ * @param p4 第四个顶点 / Fourth vertex
+ * @return 二维四边形 / The 2D quadrilateral
+ */
 fun quadrilateral2(p1: Point<Dim2, Flt64>, p2: Point<Dim2, Flt64>, p3: Point<Dim2, Flt64>, p4: Point<Dim2, Flt64>): Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64> {
     return Quadrilateral(p1, p2, p3, p4)
 }
