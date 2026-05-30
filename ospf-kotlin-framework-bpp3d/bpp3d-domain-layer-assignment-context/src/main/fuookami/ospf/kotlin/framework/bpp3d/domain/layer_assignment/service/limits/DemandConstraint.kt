@@ -1,3 +1,7 @@
+/**
+ * 需求约束与影子价格提取。
+ * Demand constraint and shadow price extraction.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -9,7 +13,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandDomain
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
@@ -39,12 +43,24 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 private val shadowPriceConverter = IntoValue.fromConverter(InfraNumber)
 
+/**
+ * 需求影子价格键，用于标识需求约束的影子价格。
+ * Demand shadow price key, used to identify shadow prices of demand constraints.
+ *
+ * @property mode 需求模式 / demand mode
+ * @property key 需求键 / demand key
+ * @property quantityUnit 量纲单位（可选） / quantity unit (optional)
+ */
 data class DemandShadowPriceKey(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey,
     val quantityUnit: PhysicalUnit? = null
 ) : ShadowPriceKey(DemandShadowPriceKey::class)
 
+/**
+ * 符号线性多项式构造。
+ * Symbol linear polynomial construction.
+ */
 private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<InfraNumber> {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(layerAssignmentOne(), symbol)),
@@ -52,10 +68,18 @@ private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<InfraNumber> {
     )
 }
 
+/**
+ * 常量多项式构造。
+ * Constant polynomial construction.
+ */
 private fun constantPolynomial(value: InfraNumber): LinearPolynomial<InfraNumber> {
     return LinearPolynomial(emptyList(), value)
 }
 
+/**
+ * 需求模式标签。
+ * Demand mode tag.
+ */
 private fun modeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
         is Bpp3dDemandMode.Item -> "item"
@@ -67,6 +91,10 @@ private fun modeTag(mode: Bpp3dDemandMode): String {
     }
 }
 
+/**
+ * 需求域标签。
+ * Demand domain tag.
+ */
 private fun domainTag(domain: Bpp3dDemandDomain): String {
     return when (domain) {
         Bpp3dDemandDomain.Discrete -> "discrete"
@@ -74,6 +102,10 @@ private fun domainTag(domain: Bpp3dDemandDomain): String {
     }
 }
 
+/**
+ * 获取立方体的需求统计。
+ * Get demand statistics from cuboid.
+ */
 private fun demandStatistics(
     cuboid: Cuboid<*>,
     mode: Bpp3dDemandMode
@@ -86,12 +118,23 @@ private fun demandStatistics(
     }
 }
 
+/**
+ * 需求约束，确保装载量满足需求并提取影子价格。
+ * Demand constraint, ensures load satisfies demands and extracts shadow prices.
+ *
+ * @param Args 影子价格参数类型 / shadow price arguments type
+ * @param T 立方体类型 / cuboid type
+ * @property load 负载符号 / load symbols
+ * @property demandEntries 需求条目列表 / demand entry list
+ * @property shadowPriceExtractor 自定义影子价格提取器（可选） / custom shadow price extractor (optional)
+ * @property name 约束名称 / constraint name
+ */
 open class DemandConstraint<
         Args : AbstractBPP3DShadowPriceArguments<T>,
         T : Cuboid<T>
         >(
     private val load: Load<InfraNumber>,
-    private val demandEntries: List<DemandEntry<InfraNumber>> = load.demandEntries,
+    private val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
     private val shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
     override val name: String = "demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
@@ -146,7 +189,7 @@ open class DemandConstraint<
 
     private fun resolveShadowPrice(
         map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, T>>,
-        demand: DemandEntry<InfraNumber>,
+        demand: Bpp3dDemandEntry<InfraNumber>,
         concreteMode: Bpp3dDemandMode
     ): InfraNumber {
         val keys = LinkedHashSet<DemandShadowPriceKey>()
@@ -279,6 +322,7 @@ open class DemandConstraint<
             var price = layerAssignmentZero()
             for (demand in demandEntries) {
                 val concreteMode = demand.mode.toConcreteMode(
+                    key = demand.key,
                     isDiscrete = demand.quantityDomain == Bpp3dDemandDomain.Discrete
                 )
                 val statistics = demandStatistics(args.cuboid, concreteMode)

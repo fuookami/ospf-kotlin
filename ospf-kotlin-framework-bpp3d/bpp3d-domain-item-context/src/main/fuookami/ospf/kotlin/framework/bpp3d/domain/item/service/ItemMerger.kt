@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 货物合并服务。
+ * Item merger service.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid

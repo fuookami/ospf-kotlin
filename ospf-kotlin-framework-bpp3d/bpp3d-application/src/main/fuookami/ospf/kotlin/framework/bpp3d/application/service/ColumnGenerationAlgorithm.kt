@@ -1,17 +1,37 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 列生成算法。
+ * Column generation algorithm.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
+/**
+ * 列生成配置。
+ * Column generation configuration.
+ *
+ * @property iterationLimit 最大迭代次数 / maximum iteration count
+ * @property timeLimit 时间限制 / time limit
+ * @property maxColumnsPerIteration 每次迭代最大列数 / max columns per iteration
+ * @property finalMilpEnabled 是否启用最终 MILP 求解 / whether to enable final MILP solving
+ */
 data class ColumnGenerationConfig(
     val iterationLimit: Int = 128,
     val timeLimit: Duration = Duration.INFINITE,
@@ -19,6 +39,16 @@ data class ColumnGenerationConfig(
     val finalMilpEnabled: Boolean = true
 )
 
+/**
+ * 列生成状态。
+ * Column generation state.
+ *
+ * @param V 数值类型 / numeric type
+ * @property iteration 当前迭代 / current iteration
+ * @property columns 当前列集合 / current column set
+ * @property bins 最终箱子（可选） / final bins (optional)
+ * @property shadowPrices 影子价格映射 / shadow price map
+ */
 data class ColumnGenerationState<V>(
     val iteration: Int,
     val columns: List<BinLayer>,
@@ -26,12 +56,31 @@ data class ColumnGenerationState<V>(
     val shadowPrices: Map<DemandModeKey, V> = emptyMap()
 )
 
+/**
+ * 列生成 LP 求解结果。
+ * Column generation LP solve result.
+ *
+ * @param V 数值类型 / numeric type
+ * @property shadowPrices 影子价格 / shadow prices
+ * @property objective 目标值（可选） / objective value (optional)
+ * @property info 附加信息 / additional info
+ */
 data class ColumnGenerationLpResult<V>(
     val shadowPrices: Map<DemandModeKey, V>,
     val objective: V? = null,
     val info: Map<String, String> = emptyMap()
 )
 
+/**
+ * 列生成最终 MILP 求解结果。
+ * Column generation final MILP solve result.
+ *
+ * @param V 数值类型 / numeric type
+ * @property columns 最终列集合 / final column set
+ * @property bins 最终箱子 / final bins
+ * @property objective 目标值（可选） / objective value (optional)
+ * @property info 附加信息 / additional info
+ */
 data class ColumnGenerationFinalResult<V>(
     val columns: List<BinLayer>,
     val bins: List<LayerBin> = emptyList(),
@@ -39,6 +88,23 @@ data class ColumnGenerationFinalResult<V>(
     val info: Map<String, String> = emptyMap()
 )
 
+/**
+ * 列生成完整结果。
+ * Column generation complete result.
+ *
+ * @param V 数值类型 / numeric type
+ * @property columns 最终列集合 / final column set
+ * @property iterationCount 迭代次数 / iteration count
+ * @property terminatedByIterationLimit 是否因迭代限制终止 / terminated by iteration limit
+ * @property terminatedByTimeLimit 是否因时间限制终止 / terminated by time limit
+ * @property lpSolvedTimes LP 求解次数 / LP solve count
+ * @property finalSolved 是否求解了最终 MILP / whether final MILP was solved
+ * @property lpObjectives LP 目标值列表 / LP objective list
+ * @property finalObjective 最终目标值（可选） / final objective (optional)
+ * @property elapsed 耗时 / elapsed time
+ * @property lpInfos LP 求解信息列表 / LP info list
+ * @property finalInfo 最终求解信息 / final solve info
+ */
 data class ColumnGenerationResult<V>(
     val columns: List<BinLayer>,
     val iterationCount: Int,
@@ -53,23 +119,88 @@ data class ColumnGenerationResult<V>(
     val finalInfo: Map<String, String> = emptyMap()
 )
 
+/**
+ * 列生成 RMP 求解器。
+ * Column generation RMP solver.
+ *
+ * @param V 数值类型 / numeric type
+ */
 fun interface ColumnGenerationRmpSolver<V> {
+    /**
+     * 求解 RMP。
+     * Solve RMP.
+     *
+     * @param state 列生成状态 / column generation state
+     * @return LP 求解结果 / LP solve result
+     */
     suspend fun solve(state: ColumnGenerationState<V>): ColumnGenerationLpResult<V>
 }
 
+/**
+ * 列生成最终 MILP 求解器。
+ * Column generation final MILP solver.
+ *
+ * @param V 数值类型 / numeric type
+ */
 fun interface ColumnGenerationFinalSolver<V> {
+    /**
+     * 求解最终 MILP。
+     * Solve final MILP.
+     *
+     * @param state 列生成状态 / column generation state
+     * @return 最终求解结果 / final solve result
+     */
     suspend fun solve(state: ColumnGenerationState<V>): ColumnGenerationFinalResult<V>
 }
 
+/**
+ * 列生成解分析器。
+ * Column generation solution analyzer.
+ *
+ * @param V 数值类型 / numeric type
+ */
 fun interface ColumnGenerationSolutionAnalyzer<V> {
+    /**
+     * 分析当前状态。
+     * Analyze current state.
+     *
+     * @param state 列生成状态 / column generation state
+     */
     suspend fun analyze(state: ColumnGenerationState<V>)
 }
 
+/**
+ * 列生成心跳回调。
+ * Column generation heartbeat callback.
+ *
+ * @param V 数值类型 / numeric type
+ */
 fun interface ColumnGenerationHeartbeat<V> {
+    /**
+     * 心跳回调。
+     * Heartbeat callback.
+     *
+     * @param state 列生成状态 / column generation state
+     */
     suspend fun invoke(state: ColumnGenerationState<V>)
 }
 
+/**
+ * 列生成层请求构建器。
+ * Column generation layer request builder.
+ *
+ * @param V 数值类型 / numeric type
+ */
 fun interface ColumnGenerationLayerRequestBuilder<V> {
+    /**
+     * 构建层生成请求。
+     * Build layer generation request.
+     *
+     * @param state 列生成状态 / column generation state
+     * @param items 货物列表 / item list
+     * @param config 列生成配置 / column generation config
+     * @return 层生成请求 / layer generation request
+     */
     suspend fun build(
         state: ColumnGenerationState<V>,
         items: List<Item>,
@@ -78,8 +209,16 @@ fun interface ColumnGenerationLayerRequestBuilder<V> {
 }
 
 /**
- * Column generation orchestrator in application layer.
- * application 层列生成编排器。
+ * 列生成编排器，协调 RMP 求解、列生成和最终 MILP 求解。
+ * Column generation orchestrator, coordinates RMP solving, column generation and final MILP solving.
+ *
+ * @param V 数值类型 / numeric type
+ * @property layerGenerator 层生成器 / layer generator
+ * @property rmpSolver RMP 求解器（可选） / RMP solver (optional)
+ * @property finalMilpSolver 最终 MILP 求解器（可选） / final MILP solver (optional)
+ * @property solutionAnalyzer 解分析器（可选） / solution analyzer (optional)
+ * @property heartbeat 心跳回调（可选） / heartbeat callback (optional)
+ * @property layerRequestBuilder 层请求构建器（可选） / layer request builder (optional)
  */
 class ColumnGenerationAlgorithm<V>(
     private val layerGenerator: Bpp3dLayerGenerator<V>,
@@ -98,6 +237,14 @@ class ColumnGenerationAlgorithm<V>(
     private val analyzeSolution: suspend (ColumnGenerationState<V>) -> Unit = {},
     private val onIterationHeartbeat: suspend (ColumnGenerationState<V>) -> Unit = {}
 ) {
+    /**
+     * 执行列生成求解。
+     * Execute column generation solving.
+     *
+     * @param items 货物列表 / item list
+     * @param config 列生成配置 / column generation config
+     * @return 列生成结果 / column generation result
+     */
     suspend fun solve(
         items: List<Item>,
         config: ColumnGenerationConfig = ColumnGenerationConfig()
@@ -150,13 +297,13 @@ class ColumnGenerationAlgorithm<V>(
                 shadowPriceRefreshedState,
                 items,
                 config
-            ) ?: Bpp3dLayerGenerationRequest<V>(
-                    iteration = iterations,
-                    items = items,
-                    existingLayers = columns,
-                    shadowPrices = shadowPrices,
-                    maxCandidates = config.maxColumnsPerIteration
-                )
+            ) ?: bpp3dLayerGenerationRequest(
+                iteration = iterations,
+                items = items,
+                existingLayers = columns,
+                shadowPrices = shadowPrices,
+                maxCandidates = config.maxColumnsPerIteration
+            )
             val candidates = layerGenerator.generate(request)
             val accepted = filterByReducedCost(
                 shadowPriceRefreshedState,
@@ -232,4 +379,27 @@ class ColumnGenerationAlgorithm<V>(
             finalInfo = finalInfo
         )
     }
+}
+
+/**
+ * 使用泛型货物列表执行列生成求解。
+ * Execute column generation solving with generic item list.
+ *
+ * @param T 泛型数值类型 / generic numeric type
+ * @param items 泛型货物列表 / generic item list
+ * @param config 列生成配置 / column generation config
+ * @param materialCache 物料缓存 / material cache
+ * @param itemCache 货物缓存 / item cache
+ * @return 列生成结果 / column generation result
+ */
+suspend fun <V, T : FloatingNumber<T>> ColumnGenerationAlgorithm<V>.solveGeneric(
+    items: List<GenericItem<T>>,
+    config: ColumnGenerationConfig = ColumnGenerationConfig(),
+    materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+): ColumnGenerationResult<V> {
+    return solve(
+        items = items.map { it.toModel(materialCache, itemCache) },
+        config = config
+    )
 }

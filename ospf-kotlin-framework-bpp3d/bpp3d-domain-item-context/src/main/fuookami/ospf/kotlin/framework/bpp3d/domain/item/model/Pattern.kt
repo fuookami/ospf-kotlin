@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 模式模型。
+ * Pattern model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
@@ -394,6 +398,7 @@ abstract class Pattern {
             val placements = ArrayList<ItemPlacement2<Bottom>>()
             val itemsAmount = items.associate { Pair(it.item, it.amount) }.toMutableMap()
             // generate mixed stacks through the combination of heights stacked in threes, and place them at the specified position
+            // 通过三层高度组合生成混合堆垛，并放置到指定位置
             for (heights in threeSumHeight) {
                 val loadedWeight = placements.fold(PatternScalar.zero) { acc, placement -> acc + placement.weight.value }
                 val thisRestWeight = restWeight - loadedWeight
@@ -448,6 +453,7 @@ abstract class Pattern {
             }
 
             // generate mixed stacks through the combination of heights stacked in pairs, and place them at the specified position
+            // 通过双层高度组合生成混合堆垛，并放置到指定位置
             if (i != pattern.size) {
                 for (heights in twoSumHeight) {
                     val loadedWeight = placements.fold(PatternScalar.zero) { acc, placement -> acc + placement.weight.value }
@@ -503,6 +509,7 @@ abstract class Pattern {
             }
 
             // generate stacks using a single material, and place them at the specified position
+            // 使用单一材料生成堆垛，并放置到指定位置
             if (i != pattern.size) {
                 while (true) {
                     val loadedWeight = placements.fold(PatternScalar.zero) { acc, placement -> acc + placement.weight.value }

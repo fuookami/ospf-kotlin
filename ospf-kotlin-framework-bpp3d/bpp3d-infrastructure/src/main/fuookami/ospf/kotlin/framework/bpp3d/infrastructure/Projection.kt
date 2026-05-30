@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 投影基础设施。
+ * Projection infrastructure.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable

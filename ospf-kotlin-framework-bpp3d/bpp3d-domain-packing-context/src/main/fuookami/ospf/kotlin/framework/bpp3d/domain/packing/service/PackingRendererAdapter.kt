@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 装箱渲染适配器。
+ * Packing renderer adapter.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
@@ -9,7 +13,18 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
 
+/**
+ * 装箱渲染适配器，将装箱结果转换为渲染 DTO。
+ * Packing renderer adapter, converts packing results to rendering DTOs.
+ */
 class PackingRendererAdapter {
+    /**
+     * 将装箱结果转换为渲染方案 DTO。
+     * Convert packing result to rendering schema DTO.
+     *
+     * @param result 装箱结果 / packing result
+     * @return 渲染方案 DTO / rendering schema DTO
+     */
     fun toSchema(result: PackingResult): SchemaDTO {
         val loadingPlans = result.aggregation.bins.map { bin ->
             val itemDtos = bin.items.map { packed ->

@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 简单块生成器。
+ * Simple block generator.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -111,11 +115,11 @@ class SimpleBlockGenerator(
                                 }
 
                                 is Failed -> {
-                                    // nothing to do
+                                    // nothing to do / 无需处理
                                 }
 
                                 is Fatal -> {
-                                    // nothing to do
+                                    // nothing to do / 无需处理
                                 }
                             }
                         }

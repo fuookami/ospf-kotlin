@@ -35,7 +35,7 @@ class DemandStatisticsTest {
         )
     }
 
-    private fun packageShape(type: PackageType = PackageType.CartonContainer): PackageShape {
+    private fun packageShape(type: PackageType = PackageType.CartonContainer): PackageShape<InfraNumber> {
         return PackageShape(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(1.0) * Meter,

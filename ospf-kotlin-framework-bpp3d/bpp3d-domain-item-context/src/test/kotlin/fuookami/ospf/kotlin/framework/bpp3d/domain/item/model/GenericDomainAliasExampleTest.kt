@@ -1,17 +1,11 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -22,7 +16,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuantityDomainAliasExampleTest {
+class GenericDomainAliasExampleTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
@@ -36,16 +30,16 @@ class QuantityDomainAliasExampleTest {
     }
 
     @Test
-    fun flt64AliasShouldBuildGenericDomainObjects() {
-        val material: InfraNumberMaterial = Material(
+    fun infraNumberAliasShouldBuildGenericDomainObjects() {
+        val material: InfraNumberMaterial = GenericMaterial(
             no = MaterialNo("MAT-64"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-64",
             weight = infraScalar(0.5) * Kilogram
         )
-        val pack: InfraNumberPackage = Package.innerPackage(
-            shape = PackageShape(
+        val pack: InfraNumberPackage = GenericPackage.innerPackage(
+            shape = GenericPackageShape(
                 width = infraScalar(1.0) * Meter,
                 height = infraScalar(2.0) * Meter,
                 depth = infraScalar(3.0) * Meter,
@@ -54,7 +48,7 @@ class QuantityDomainAliasExampleTest {
             ),
             materials = mapOf(material to UInt64(2))
         )
-        val item: InfraNumberItem = Item(
+        val item: InfraNumberItem = GenericItem(
             id = "InfraNumber-item",
             name = "InfraNumber-item",
             pack = pack,
@@ -62,14 +56,14 @@ class QuantityDomainAliasExampleTest {
             batchNo = BatchNo("BATCH-64"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer: InfraNumberBinLayer = BinLayer(
+        val layer: InfraNumberBinLayer = GenericBinLayer(
             iteration = Int64.zero,
-            from = QuantityDomainAliasExampleTest::class,
+            from = GenericDomainAliasExampleTest::class,
             width = infraScalar(5.0) * Meter,
             height = infraScalar(5.0) * Meter,
             depth = infraScalar(5.0) * Meter,
             units = listOf(
-                ItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
+                GenericItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
             )
         )
 
@@ -80,15 +74,15 @@ class QuantityDomainAliasExampleTest {
 
     @Test
     fun fltXAliasShouldBuildGenericDomainObjects() {
-        val material: FltXMaterial = Material(
+        val material: FltXMaterial = GenericMaterial(
             no = MaterialNo("MAT-X"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-X",
             weight = FltX(0.5) * Kilogram
         )
-        val pack: FltXPackage = Package.innerPackage(
-            shape = PackageShape(
+        val pack: FltXPackage = GenericPackage.innerPackage(
+            shape = GenericPackageShape(
                 width = FltX.one * Meter,
                 height = FltX(2.0) * Meter,
                 depth = FltX(3.0) * Meter,
@@ -97,7 +91,7 @@ class QuantityDomainAliasExampleTest {
             ),
             materials = mapOf(material to UInt64(2))
         )
-        val item: FltXItem = Item(
+        val item: FltXItem = GenericItem(
             id = "fltx-item",
             name = "fltx-item",
             pack = pack,
@@ -105,14 +99,14 @@ class QuantityDomainAliasExampleTest {
             batchNo = BatchNo("BATCH-X"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer: FltXBinLayer = BinLayer(
+        val layer: FltXBinLayer = GenericBinLayer(
             iteration = Int64.zero,
-            from = QuantityDomainAliasExampleTest::class,
+            from = GenericDomainAliasExampleTest::class,
             width = FltX(5.0) * Meter,
             height = FltX(5.0) * Meter,
             depth = FltX(5.0) * Meter,
             units = listOf(
-                ItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter)
+                GenericItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter)
             )
         )
 
@@ -122,5 +116,3 @@ class QuantityDomainAliasExampleTest {
         assertTrue(layer.toModel().shape.width eq (infraScalar(5.0) * Meter))
     }
 }
-
-

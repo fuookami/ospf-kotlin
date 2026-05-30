@@ -1,3 +1,7 @@
+/**
+ * 箱子数量最小化目标。
+ * Bin amount minimization objective.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -9,12 +13,28 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Precis
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 箱子数量最小化目标，最小化使用的箱子数量。
+ * Bin amount minimization objective, minimizes the number of bins used.
+ *
+ * @property bins 箱子列表 / bin list
+ * @property assignment 精确赋值 / precise assignment
+ * @property coefficient 箱子系数函数 / bin coefficient function
+ * @property name 约束名称 / constraint name
+ */
 class BinAmountMinimization(
     private val bins: List<Bin<BinLayer>>,
     private val assignment: PreciseAssignment,
     private val coefficient: (Bin<BinLayer>) -> InfraNumber,
     val name: String = "bin_amount_minimization"
 ) {
+    /**
+     * 将目标添加到模型。
+     * Add objective to model.
+     *
+     * @param model 元模型 / meta model
+     * @return 操作结果 / operation result
+     */
     fun invoke(model: MetaModel<InfraNumber>): Try {
         val linearModel = model as AbstractLinearMetaModel<InfraNumber>
         when (val result = linearModel.minimize(

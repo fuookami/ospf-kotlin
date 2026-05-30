@@ -63,7 +63,7 @@ open class ItemType(
 }
 
 open class ItemPattern(
-    val shape: PackageShape,
+    val shape: PackageShape<InfraNumber>,
     val enabledOrientations: List<Orientation>,
     val batchNo: BatchNo?,
     val priorities: Map<String, UInt64>,
@@ -92,6 +92,14 @@ open class ItemPattern(
         result = 31 * result + (warehouse?.hashCode() ?: 0)
         result = 31 * result + packageAttribute.hashCode()
         return result
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun itemPackQuantityToInfra(value: Quantity<*>): Quantity<InfraNumber> {
+    return when (value.value) {
+        is InfraNumber -> value as Quantity<InfraNumber>
+        else -> Quantity(InfraNumber(value.value.toString().toDouble()), value.unit)
     }
 }
 
@@ -172,7 +180,7 @@ open class ActualItem(
     val id: String,
     val name: String,
     val packageCode: PackageCode? = null,
-    val pack: Package? = null,
+    val pack: Package<*>? = null,
     val priorityAttribute: List<PriorityAttribute> = emptyList(),
     // inherited from Cuboid<Item>
     override val width: Quantity<InfraNumber>,
@@ -216,7 +224,7 @@ open class ActualItem(
     constructor(
         id: String,
         name: String,
-        pack: Package,
+        pack: Package<*>,
         priorityAttribute: List<PriorityAttribute> = emptyList(),
         enabledOrientations: List<Orientation>,
         batchNo: BatchNo,
@@ -228,10 +236,10 @@ open class ActualItem(
         packageCode = pack.code,
         pack = pack,
         priorityAttribute = priorityAttribute,
-        width = pack.width,
-        height = pack.height,
-        depth = pack.depth,
-        weight = pack.weight,
+        width = itemPackQuantityToInfra(pack.width),
+        height = itemPackQuantityToInfra(pack.height),
+        depth = itemPackQuantityToInfra(pack.depth),
+        weight = itemPackQuantityToInfra(pack.weight),
         enabledOrientations = enabledOrientations,
         batchNo = batchNo,
         warehouse = warehouse,

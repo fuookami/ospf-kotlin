@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 基础设施数值类型别名。
+ * Infrastructure numeric type aliases.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX as InfraBaseFloating

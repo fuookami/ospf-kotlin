@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.application.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
@@ -18,7 +18,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
@@ -69,7 +68,7 @@ class GurobiColumnGenerationTest {
 
     private fun item(
         id: String,
-        material: Material,
+        material: Material<Flt64>,
         widthInMeter: Flt64 = Flt64.one
     ): ActualItem {
         val pack = Package.innerPackage(
@@ -152,10 +151,10 @@ class GurobiColumnGenerationTest {
 
     private data class CsvDrivenScenario(
         val itemDemands: List<Pair<ActualItem, UInt64>>,
-        val demandEntries: List<DemandEntry<InfraNumber>>,
+        val demandEntries: List<Bpp3dDemandEntry<Flt64>>,
         val initialColumns: List<BinLayer>,
         val finalBins: List<Bin<BinLayer>>,
-        val materialAmountDemands: Map<Material, UInt64>,
+        val materialAmountDemands: Map<Material<Flt64>, UInt64>,
         val groupCount: Int,
         val materialCount: Int,
         val totalLayerCount: Int,
@@ -275,7 +274,7 @@ class GurobiColumnGenerationTest {
             )
         }
 
-        val materialsByNo = LinkedHashMap<String, Material>()
+        val materialsByNo = LinkedHashMap<String, Material<Flt64>>()
         val materialWeightKgByNo = LinkedHashMap<String, Flt64>()
         for (row in rows) {
             if (materialsByNo.containsKey(row.materialNo)) {
@@ -453,7 +452,7 @@ class GurobiColumnGenerationTest {
             throw IllegalStateException("csv has no valid demand rows")
         }
 
-        val materialsByNo = LinkedHashMap<String, Material>()
+        val materialsByNo = LinkedHashMap<String, Material<Flt64>>()
         val itemDemands = ArrayList<Pair<ActualItem, UInt64>>()
         val totalAmountByMaterialNo = LinkedHashMap<String, UInt64>()
         val totalWeightByMaterialNo = LinkedHashMap<String, Flt64>()
@@ -1716,3 +1715,4 @@ class GurobiColumnGenerationTest {
         assertEquals(materialCount.toString(), snapshot.schema.kpi["material_count"])
     }
 }
+

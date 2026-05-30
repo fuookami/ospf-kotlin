@@ -108,6 +108,63 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun genericRequestAdapterShouldConvertGenericItemsAndLayers() {
+        val material = GenericMaterial(
+            no = MaterialNo("M-REQ"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-REQ",
+            weight = q(FltX(0.15), Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(FltX(1.2), Meter),
+            height = q(FltX(0.6), Meter),
+            depth = q(FltX(0.7), Meter),
+            weight = q(FltX(0.4), Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val pack = GenericPackage.innerPackage(
+            shape = shape,
+            materials = mapOf(material to UInt64.one)
+        )
+        val item = GenericItem(
+            id = "item-req",
+            name = "item-req",
+            pack = pack,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-REQ"),
+            packageAttribute = defaultPackageAttribute()
+        )
+        val layer = GenericBinLayer(
+            iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
+            from = LayerGenerationFltXProofTest::class,
+            width = q(FltX(2.0), Meter),
+            height = q(FltX(2.0), Meter),
+            depth = q(FltX(2.0), Meter),
+            units = listOf(
+                GenericItemPlacement(
+                    item = item,
+                    x = q(FltX(0.0), Meter),
+                    y = q(FltX(0.0), Meter),
+                    z = q(FltX(0.0), Meter)
+                )
+            )
+        )
+
+        val request = bpp3dLayerGenerationRequestFromGeneric<FltX, InfraNumber>(
+            iteration = 2,
+            items = listOf(item),
+            existingLayers = listOf(layer),
+            maxCandidates = 4
+        )
+
+        assertEquals(1, request.items.size)
+        assertEquals("item-req", (request.items.first() as ActualItem).id)
+        assertEquals(1, request.existingLayers.size)
+        assertEquals(1, request.existingLayers.first().units.size)
+    }
+
+    @Test
     fun delegatedGeneratorsShouldProvideNonEmptyResultWhenHistoricalLayersExist() = runBlocking {
         val context = LayerGenerationContext<InfraNumber>(
             generators = listOf(
@@ -369,6 +426,51 @@ class LayerGenerationFltXProofTest {
                 items = listOf(item, item),
                 maxCandidates = 4
             )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { it.layer.units.isNotEmpty() })
+    }
+
+    @Test
+    fun blockLayerGeneratorShouldSupportGenericGenerateEntryPoint() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-BLOCK-GEN"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-BLOCK-GEN",
+            weight = q(FltX(0.2), Kilogram)
+        )
+        val shape = GenericPackageShape(
+            width = q(FltX(1.0), Meter),
+            height = q(FltX(1.0), Meter),
+            depth = q(FltX(1.0), Meter),
+            weight = q(FltX(0.2), Kilogram),
+            packageType = PackageType.CartonContainer
+        )
+        val item = GenericItem(
+            id = "item-block-gen",
+            name = "item-block-gen",
+            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-BLOCK-GEN"),
+            packageAttribute = defaultPackageAttribute()
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-BLOCK-GEN"
+        )
+
+        val generated = BlockLayerGenerator<InfraNumber>().generateFromGeneric(
+            iteration = 0,
+            bin = bin,
+            items = listOf(item, item),
+            maxCandidates = 4
         )
 
         assertTrue(generated.isNotEmpty())

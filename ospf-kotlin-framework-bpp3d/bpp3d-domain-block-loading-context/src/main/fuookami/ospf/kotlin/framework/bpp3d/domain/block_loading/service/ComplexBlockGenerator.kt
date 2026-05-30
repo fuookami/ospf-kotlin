@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 复杂块生成器。
+ * Complex block generator.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block

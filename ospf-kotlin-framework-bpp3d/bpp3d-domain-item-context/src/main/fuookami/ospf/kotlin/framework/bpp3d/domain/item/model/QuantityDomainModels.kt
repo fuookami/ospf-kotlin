@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 量纲域模型。
+ * Quantity domain models.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlin.reflect.KClass
@@ -34,7 +38,7 @@ data class GenericMaterial<V : FloatingNumber<V>>(
     val warehouse: String? = null,
     val weight: Quantity<V>
 ) {
-    fun toModel(): Material {
+    fun toModel(): Material<InfraNumber> {
         return Material(
             no = no,
             type = type,
@@ -57,7 +61,7 @@ data class GenericPackageShape<V : FloatingNumber<V>>(
 ) {
     val volume: Quantity<V> = width * height * depth
 
-    fun toModel(): PackageShape {
+    fun toModel(): PackageShape<InfraNumber> {
         return PackageShape(
             width = width.toInfraQuantity(),
             height = height.toInfraQuantity(),
@@ -130,8 +134,8 @@ data class GenericPackage<V : FloatingNumber<V>>(
     val volume by shape::volume
 
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material> = LinkedHashMap()
-    ): Package {
+        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap()
+    ): Package<InfraNumber> {
         return if (packages.isNullOrEmpty()) {
             Package.innerPackage(
                 code = code,
@@ -195,7 +199,7 @@ data class GenericItem<V : FloatingNumber<V>>(
     )
 
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material> = LinkedHashMap(),
+        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
         itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
     ): ActualItem {
         return itemCache.getOrPut(this) {
@@ -226,7 +230,7 @@ data class GenericItemPlacement<V : FloatingNumber<V>>(
     val orientation: Orientation = Orientation.Upright
 ) {
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material> = LinkedHashMap(),
+        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
         itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
     ): QuantityPlacement3<Item> {
         val modelItem = item.toModel(materialCache, itemCache)
@@ -250,7 +254,7 @@ data class GenericBinLayer<V : FloatingNumber<V>>(
     val units: List<GenericItemPlacement<V>>
 ) {
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material> = LinkedHashMap(),
+        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
         itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
     ): BinLayer {
         return BinLayer(

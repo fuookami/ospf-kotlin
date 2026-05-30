@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 量纲兼容性基础设施。
+ * Quantity compatibility infrastructure.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.geometry.Dim2

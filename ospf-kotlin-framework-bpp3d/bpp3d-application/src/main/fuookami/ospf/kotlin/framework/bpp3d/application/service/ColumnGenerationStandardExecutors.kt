@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 列生成标准执行器。
+ * Column generation standard executors.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -13,12 +17,16 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseLoad
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAggregation
@@ -32,9 +40,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limi
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.VolumeMinimization
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationDemandEntry
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceAwareLayerScore
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
@@ -42,6 +50,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -52,6 +61,10 @@ import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import kotlin.math.roundToInt
 
+/**
+ * 将对偶解映射转换为 MetaDualSolution（未经类型检查）。
+ * Convert dual solution map to MetaDualSolution (unchecked).
+ */
 private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): MetaDualSolution {
     val constraints = LinkedHashMap<MathConstraint, Any>()
     val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<*, *>, Any>>>()
@@ -75,6 +88,10 @@ private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): MetaDualSoluti
     ) as MetaDualSolution
 }
 
+/**
+ * 从求解结果中提取对偶解映射。
+ * Extract dual solution map from solve result.
+ */
 private fun extractDualSolutionMap(result: Any): Map<*, *> {
     return runCatching {
         result.javaClass.methods
@@ -83,6 +100,21 @@ private fun extractDualSolutionMap(result: Any): Map<*, *> {
     }.getOrNull() ?: emptyMap<Any?, Any?>()
 }
 
+/**
+ * 列生成标准执行器配置。
+ * Column generation standard executor configuration.
+ *
+ * @property rmpSolveNamePrefix RMP 求解名称前缀 / RMP solve name prefix
+ * @property finalSolveNamePrefix 最终求解名称前缀 / final solve name prefix
+ * @property rmpToLogModel RMP 是否输出模型日志 / whether to log RMP model
+ * @property finalToLogModel 最终求解是否输出模型日志 / whether to log final model
+ * @property rmpVolumeCoefficient RMP 体积系数 / RMP volume coefficient
+ * @property finalBinAmountCoefficient 最终箱子数量系数 / final bin amount coefficient
+ * @property enableFinalBinDepthConstraint 是否启用最终箱子深度约束 / whether to enable final bin depth constraint
+ * @property enableFinalBinCapacityConstraint 是否启用最终箱子容量约束 / whether to enable final bin capacity constraint
+ * @property enableShadowPriceAwareRequestScore 是否启用影子价格感知请求评分 / whether to enable shadow price aware request score
+ * @property integralityTolerance 整性容差 / integrality tolerance
+ */
 data class ColumnGenerationStandardExecutorConfig(
     val rmpSolveNamePrefix: String = "bpp3d-rmp",
     val finalSolveNamePrefix: String = "bpp3d-final",
@@ -96,18 +128,39 @@ data class ColumnGenerationStandardExecutorConfig(
     val integralityTolerance: InfraNumber = InfraNumber(1e-6)
 )
 
+/**
+ * 列生成标准执行器，提供 RMP 求解器、最终 MILP 求解器和请求构建器。
+ * Column generation standard executors, provides RMP solver, final MILP solver and request builder.
+ *
+ * @property solver 列生成求解器 / column generation solver
+ * @property itemDemands 货物需求 / item demands
+ * @property demandEntries 需求条目 / demand entries
+ * @property finalBins 最终箱子 / final bins
+ * @property config 执行器配置 / executor config
+ */
 class ColumnGenerationStandardExecutors(
     private val solver: ColumnGenerationSolver,
     private val itemDemands: List<Pair<Item, UInt64>>,
-    private val demandEntries: List<DemandEntry<InfraNumber>> = demandEntriesFromItems(itemDemands),
+    private val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = demandEntriesFromItems(itemDemands),
     private val finalBins: List<LayerBin> = emptyList(),
     private val config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
     companion object {
+        /**
+         * 从需求条目创建执行器。
+         * Create executor from demand entries.
+         *
+         * @param solver 列生成求解器 / column generation solver
+         * @param itemDemands 货物需求 / item demands
+         * @param demandEntries 需求条目 / demand entries
+         * @param finalBins 最终箱子 / final bins
+         * @param config 执行器配置 / executor config
+         * @return 执行器实例 / executor instance
+         */
         fun fromDemandEntries(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<Item, UInt64>>,
-            demandEntries: List<DemandEntry<InfraNumber>>,
+            demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
         ): ColumnGenerationStandardExecutors {
@@ -120,8 +173,49 @@ class ColumnGenerationStandardExecutors(
             )
         }
 
+        /**
+         * 从泛型需求条目创建执行器。
+         * Create executor from generic demand entries.
+         *
+         * @param T 泛型数值类型 / generic numeric type
+         * @param solver 列生成求解器 / column generation solver
+         * @param itemDemands 泛型货物需求 / generic item demands
+         * @param demandEntries 需求条目 / demand entries
+         * @param finalBins 最终箱子 / final bins
+         * @param config 执行器配置 / executor config
+         * @param materialCache 物料缓存 / material cache
+         * @param itemCache 货物缓存 / item cache
+         * @return 执行器实例 / executor instance
+         */
+        fun <T : FloatingNumber<T>> fromGenericDemandEntries(
+            solver: ColumnGenerationSolver,
+            itemDemands: List<Pair<GenericItem<T>, UInt64>>,
+            demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
+            finalBins: List<LayerBin> = emptyList(),
+            config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
+            materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+            itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+        ): ColumnGenerationStandardExecutors {
+            val modelItemDemands = itemDemands.map { (item, amount) ->
+                Pair(item.toModel(materialCache, itemCache), amount)
+            }
+            return fromDemandEntries(
+                solver = solver,
+                itemDemands = modelItemDemands,
+                demandEntries = demandEntries,
+                finalBins = finalBins,
+                config = config
+            )
+        }
+
     }
 
+    /**
+     * 创建 RMP 求解器。
+     * Create RMP solver.
+     *
+     * @return RMP 求解器 / RMP solver
+     */
     fun rmpSolver(): ColumnGenerationRmpSolver<InfraNumber> {
         return ColumnGenerationRmpSolver { state ->
             val artifacts = buildRmpArtifacts(state)
@@ -168,6 +262,12 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
+    /**
+     * 创建最终 MILP 求解器。
+     * Create final MILP solver.
+     *
+     * @return 最终 MILP 求解器 / final MILP solver
+     */
     fun finalSolver(): ColumnGenerationFinalSolver<InfraNumber> {
         return ColumnGenerationFinalSolver { state ->
             val bins = if (finalBins.isNotEmpty()) {
@@ -274,12 +374,18 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
+    /**
+     * 创建层请求构建器。
+     * Create layer request builder.
+     *
+     * @return 层请求构建器 / layer request builder
+     */
     fun requestBuilder(): ColumnGenerationLayerRequestBuilder<InfraNumber> {
         val requestDemandEntries = demandEntries.map {
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
         }
         return ColumnGenerationLayerRequestBuilder { state, items, cgConfig ->
-            Bpp3dLayerGenerationRequest(
+            bpp3dLayerGenerationRequest(
                 iteration = state.iteration,
                 items = items,
                 existingLayers = state.columns,

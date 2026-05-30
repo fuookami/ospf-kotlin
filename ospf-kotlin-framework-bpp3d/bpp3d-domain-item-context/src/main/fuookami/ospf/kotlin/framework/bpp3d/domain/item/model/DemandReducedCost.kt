@@ -1,3 +1,7 @@
+/**
+ * 需求缩减成本模型。
+ * Demand reduced cost model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2

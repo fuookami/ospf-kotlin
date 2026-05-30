@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.application.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limi
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.toLayerGenerationItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
@@ -75,7 +76,7 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private fun material(no: String, unitWeightKg: InfraNumber): Material {
+    private fun material(no: String, unitWeightKg: InfraNumber): Material<InfraNumber> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -87,9 +88,9 @@ class MaterialPackingApplicationIntegrationTest {
 
     private fun candidate(
         id: String,
-        material: Material,
+        material: Material<InfraNumber>,
         amountPerPackage: UInt64
-    ): MaterialPackingProgramCandidate {
+    ): MaterialPackingProgramCandidate<InfraNumber> {
         return MaterialPackingProgramCandidate(
             id = id,
             itemName = id,
@@ -106,7 +107,7 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private fun seedItem(id: String, material: Material): ActualItem {
+    private fun seedItem(id: String, material: Material<InfraNumber>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = infraScalar(1.0) * Meter,
@@ -390,6 +391,7 @@ class MaterialPackingApplicationIntegrationTest {
         }
     }
 }
+
 
 
 

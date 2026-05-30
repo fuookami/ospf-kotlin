@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 装箱器。
+ * Packer.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
@@ -12,6 +16,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
+/**
+ * 装箱器，将最终箱子转换为装箱结果。
+ * Packer, converts final bins into packing results.
+ *
+ * @property loadingOrderCalculator 装载顺序计算器 / loading order calculator
+ */
 class Packer(
     private val loadingOrderCalculator: LoadingOrderCalculator = LoadingOrderCalculator(
         maxBlockDepth = null,
@@ -21,6 +31,10 @@ class Packer(
     /**
      * 终态装箱分析：将 final bins 转为 PackingResult/SchemaDTO 所需结构。
      * Final packing analyzer: converts final bins into PackingResult-ready structures.
+     *
+     * @param bins 最终箱子列表 / final bin list
+     * @param context 装箱上下文 / packing context
+     * @return 装箱结果 / packing result
      */
     suspend operator fun invoke(
         bins: List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin>,
@@ -49,6 +63,13 @@ class Packer(
         )
     }
 
+    /**
+     * 汇总物料使用情况。
+     * Summarize material usage.
+     *
+     * @param bins 已装箱列表 / packed bin list
+     * @return 物料汇总列表 / material summary list
+     */
     private fun summarizeMaterials(bins: List<PackedBin>): List<MaterialSummary> {
         val summary = LinkedHashMap<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey, UInt64>()
         for (bin in bins) {

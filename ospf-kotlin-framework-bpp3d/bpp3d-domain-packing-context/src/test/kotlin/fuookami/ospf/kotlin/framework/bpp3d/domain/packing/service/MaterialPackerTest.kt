@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -26,7 +26,7 @@ import kotlin.test.assertTrue
 class MaterialPackerTest {
     private object CargoAttr : AbstractCargoAttribute
 
-    private fun material(no: String, unitWeightKg: InfraNumber): Material {
+    private fun material(no: String, unitWeightKg: InfraNumber): Material<InfraNumber> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -39,8 +39,8 @@ class MaterialPackerTest {
     private fun candidate(
         id: String,
         widthMeter: InfraNumber,
-        materials: Map<Material, UInt64>
-    ): MaterialPackingProgramCandidate {
+        materials: Map<Material<InfraNumber>, UInt64>
+    ): MaterialPackingProgramCandidate<InfraNumber> {
         return MaterialPackingProgramCandidate(
             id = id,
             program = PackingProgram.innerPackage(
@@ -195,3 +195,4 @@ class MaterialPackerTest {
         assertTrue((selected["high-volume"] ?: UInt64.zero) == UInt64.zero)
     }
 }
+

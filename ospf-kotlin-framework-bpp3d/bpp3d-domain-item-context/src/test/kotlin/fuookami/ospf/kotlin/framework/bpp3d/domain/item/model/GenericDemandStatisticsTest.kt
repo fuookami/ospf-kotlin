@@ -1,18 +1,11 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.item.api
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -24,7 +17,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuantityDemandStatisticsGenericTest {
+class GenericDemandStatisticsTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun assertKilogramQuantity(value: Quantity<*>, expected: InfraNumber) {
@@ -49,18 +42,18 @@ class QuantityDemandStatisticsGenericTest {
 
     @Test
     fun flt64StatisticsShouldCoverAmountMaterialAmountAndMaterialWeightModes() {
-        val material = Material(
+        val material = GenericMaterial(
             no = MaterialNo("M-64"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-64",
             weight = infraScalar(0.5) * Kilogram
         )
-        val item = Item(
+        val item = GenericItem(
             id = "item-64",
             name = "item-64",
-            pack = Package.innerPackage(
-                shape = PackageShape(
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
                     width = infraScalar(1.0) * Meter,
                     height = infraScalar(1.0) * Meter,
                     depth = infraScalar(1.0) * Meter,
@@ -73,15 +66,15 @@ class QuantityDemandStatisticsGenericTest {
             batchNo = BatchNo("B-64"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = BinLayer(
+        val layer = GenericBinLayer(
             iteration = Int64.zero,
-            from = QuantityDemandStatisticsGenericTest::class,
+            from = GenericDemandStatisticsTest::class,
             width = infraScalar(10.0) * Meter,
             height = infraScalar(10.0) * Meter,
             depth = infraScalar(10.0) * Meter,
             units = listOf(
-                ItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter),
-                ItemPlacement(item, infraScalar(1.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
+                GenericItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter),
+                GenericItemPlacement(item, infraScalar(1.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
             )
         )
 
@@ -104,18 +97,18 @@ class QuantityDemandStatisticsGenericTest {
 
     @Test
     fun fltXStatisticsShouldCoverAmountMaterialAmountAndMaterialWeightModes() {
-        val material = Material(
+        val material = GenericMaterial(
             no = MaterialNo("M-X"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-X",
             weight = FltX(0.5) * Kilogram
         )
-        val item = Item(
+        val item = GenericItem(
             id = "item-x",
             name = "item-x",
-            pack = Package.innerPackage(
-                shape = PackageShape(
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
                     width = FltX.one * Meter,
                     height = FltX.one * Meter,
                     depth = FltX.one * Meter,
@@ -128,15 +121,15 @@ class QuantityDemandStatisticsGenericTest {
             batchNo = BatchNo("B-X"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = BinLayer(
+        val layer = GenericBinLayer(
             iteration = Int64.zero,
-            from = QuantityDemandStatisticsGenericTest::class,
+            from = GenericDemandStatisticsTest::class,
             width = FltX(10.0) * Meter,
             height = FltX(10.0) * Meter,
             depth = FltX(10.0) * Meter,
             units = listOf(
-                ItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter),
-                ItemPlacement(item, FltX.one * Meter, FltX.zero * Meter, FltX.zero * Meter)
+                GenericItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter),
+                GenericItemPlacement(item, FltX.one * Meter, FltX.zero * Meter, FltX.zero * Meter)
             )
         )
 
@@ -156,47 +149,4 @@ class QuantityDemandStatisticsGenericTest {
         assertTrue(layerMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
         assertKilogramQuantity(layerMaterialWeight.value, InfraNumber(2.0))
     }
-
-    @Test
-    fun flt64AliasPathShouldRemainLegacyCompatible() {
-        val material: InfraNumberMaterial = Material(
-            no = MaterialNo("M-A"),
-            type = MaterialType.RawMaterial,
-            cargo = cargo,
-            name = "M-A",
-            weight = infraScalar(0.4) * Kilogram
-        )
-        val item: InfraNumberItem = Item(
-            id = "item-a",
-            name = "item-a",
-            pack = Package.innerPackage(
-                shape = PackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(0.1) * Kilogram,
-                    packageType = PackageType.CartonContainer
-                ),
-                materials = mapOf(material to UInt64.one)
-            ),
-            enabledOrientations = listOf(Orientation.Upright),
-            batchNo = BatchNo("B-A"),
-            packageAttribute = defaultPackageAttribute()
-        )
-        val layer: InfraNumberBinLayer = BinLayer(
-            iteration = Int64.zero,
-            from = QuantityDemandStatisticsGenericTest::class,
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            units = listOf(ItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter))
-        )
-
-        val modelLayer = layer.toModel()
-        assertEquals(1, modelLayer.units.size)
-        assertTrue(modelLayer.shape.width eq (infraScalar(2.0) * Meter))
-        assertTrue(modelLayer.units.first().view.unit.weight eq (infraScalar(0.1) * Kilogram))
-    }
 }
-
-

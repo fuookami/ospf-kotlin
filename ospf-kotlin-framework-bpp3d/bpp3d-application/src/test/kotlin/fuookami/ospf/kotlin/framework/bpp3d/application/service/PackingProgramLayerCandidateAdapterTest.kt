@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.application.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.toLayerGenerationItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
@@ -26,7 +27,7 @@ class PackingProgramLayerCandidateAdapterTest {
     private fun material(
         no: String,
         unitWeightKg: InfraNumber
-    ): Material {
+    ): Material<InfraNumber> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -36,7 +37,7 @@ class PackingProgramLayerCandidateAdapterTest {
         )
     }
 
-    private fun shape(): PackageShape {
+    private fun shape(): PackageShape<InfraNumber> {
         return PackageShape(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(1.0) * Meter,
@@ -121,5 +122,6 @@ class PackingProgramLayerCandidateAdapterTest {
         assertEquals(InfraNumber(9.0), item.materialWeights[material.key]?.value)
     }
 }
+
 
 

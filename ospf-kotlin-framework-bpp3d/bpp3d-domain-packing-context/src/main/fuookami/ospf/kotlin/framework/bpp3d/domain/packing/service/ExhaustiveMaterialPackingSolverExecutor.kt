@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 穷举物料装箱求解器执行器。
+ * Exhaustive material packing solver executor.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.abs
@@ -7,6 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
@@ -17,7 +22,7 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         val volume: MaterialPackingScalar
     )
 
-    override suspend fun solve(request: MaterialPackingMipRequest): MaterialPackingMipResult {
+    override suspend fun <V : FloatingNumber<V>> solve(request: MaterialPackingMipRequest<V>): MaterialPackingMipResult {
         val startedAt = System.currentTimeMillis()
         val demands = request.demands.filterValues { it != UInt64.zero }
         if (demands.isEmpty()) {
@@ -56,7 +61,7 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
             for ((materialIndex, material) in materials.withIndex()) {
                 capacity[candidateIndex][materialIndex] = candidate.program.materialAmount(material).toULong().toLong()
             }
-            volume[candidateIndex] = candidate.program.volume.value
+            volume[candidateIndex] = materialPackingScalar(candidate.program.volume.value.toString().toDouble())
         }
 
         for (materialIndex in materials.indices) {

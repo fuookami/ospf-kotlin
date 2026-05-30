@@ -1,13 +1,14 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 物料模型。
+ * Material model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -51,7 +52,12 @@ open class MaterialKey(
     }
 }
 
-open class Material(
+@Suppress("UNCHECKED_CAST")
+private fun <V : FloatingNumber<V>> defaultMaterialWeight(): Quantity<V> {
+    return Quantity(infraZero(), Kilogram) as Quantity<V>
+}
+
+open class Material<V : FloatingNumber<V>>(
     val no: MaterialNo,
     val type: MaterialType,
     val cargo: AbstractCargoAttribute,
@@ -59,7 +65,7 @@ open class Material(
     val manufacturer: String? = null,
     val supplier: String? = null,
     val warehouse: String? = null,
-    val weight: Quantity<InfraNumber> = Quantity(infraZero(), Kilogram)
+    val weight: Quantity<V> = defaultMaterialWeight()
 ) {
     open val key: MaterialKey
         get() = MaterialKey(

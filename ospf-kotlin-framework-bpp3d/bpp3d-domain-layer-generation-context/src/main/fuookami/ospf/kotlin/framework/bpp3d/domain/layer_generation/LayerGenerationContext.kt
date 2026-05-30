@@ -1,25 +1,37 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 层生成上下文。
+ * Layer generation context.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.ComplexBlockGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.SimpleBlockGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.plus
@@ -58,6 +70,85 @@ data class Bpp3dLayerGenerationResult<V>(
     val source: String
 )
 
+fun <V> bpp3dLayerGenerationRequest(
+    iteration: Int,
+    bin: BinType? = null,
+    items: List<Item>,
+    existingLayers: List<BinLayer> = emptyList(),
+    demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
+    shadowPrices: Map<DemandModeKey, V> = emptyMap(),
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    timeLimit: Duration = ZERO,
+    maxCandidates: Int = 256
+): Bpp3dLayerGenerationRequest<V> {
+    return Bpp3dLayerGenerationRequest(
+        iteration = iteration,
+        bin = bin,
+        items = items,
+        existingLayers = existingLayers,
+        demandEntries = demandEntries,
+        shadowPrices = shadowPrices,
+        scoreByShadowPrice = scoreByShadowPrice,
+        timeLimit = timeLimit,
+        maxCandidates = maxCandidates
+    )
+}
+
+fun <T : FloatingNumber<T>, V> bpp3dLayerGenerationRequestFromGeneric(
+    iteration: Int,
+    bin: BinType? = null,
+    items: List<GenericItem<T>>,
+    existingLayers: List<GenericBinLayer<T>> = emptyList(),
+    demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
+    shadowPrices: Map<DemandModeKey, V> = emptyMap(),
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    timeLimit: Duration = ZERO,
+    maxCandidates: Int = 256
+): Bpp3dLayerGenerationRequest<V> {
+    val materialCache = LinkedHashMap<GenericMaterial<T>, Material<InfraNumber>>()
+    val itemCache = LinkedHashMap<GenericItem<T>, ActualItem>()
+    return bpp3dLayerGenerationRequest(
+        iteration = iteration,
+        bin = bin,
+        items = items.map { it.toModel(materialCache, itemCache) },
+        existingLayers = existingLayers.map { it.toModel(materialCache, itemCache) },
+        demandEntries = demandEntries,
+        shadowPrices = shadowPrices,
+        scoreByShadowPrice = scoreByShadowPrice,
+        timeLimit = timeLimit,
+        maxCandidates = maxCandidates
+    )
+}
+
+fun <V> bpp3dLayerGenerationRequestFromProgramDemands(
+    iteration: Int,
+    bin: BinType? = null,
+    items: List<Item> = emptyList(),
+    programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
+    programMaterialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap(),
+    existingLayers: List<BinLayer> = emptyList(),
+    demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
+    shadowPrices: Map<DemandModeKey, V> = emptyMap(),
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    timeLimit: Duration = ZERO,
+    maxCandidates: Int = 256
+): Bpp3dLayerGenerationRequest<V> {
+    return bpp3dLayerGenerationRequest(
+        iteration = iteration,
+        bin = bin,
+        items = items + layerGenerationItemsFromPrograms(
+            programDemands = programDemands,
+            materialCatalog = programMaterialCatalog
+        ),
+        existingLayers = existingLayers,
+        demandEntries = demandEntries,
+        shadowPrices = shadowPrices,
+        scoreByShadowPrice = scoreByShadowPrice,
+        timeLimit = timeLimit,
+        maxCandidates = maxCandidates
+    )
+}
+
 /**
  * Demand mode and demand key pair.
  * 需求模式与需求键的组合键。
@@ -86,6 +177,78 @@ interface Bpp3dLayerGenerator<V> {
     suspend fun generate(
         request: Bpp3dLayerGenerationRequest<V>
     ): List<Bpp3dLayerGenerationResult<V>>
+}
+
+/**
+ * 使用泛型输入执行层生成。
+ * Execute layer generation with generic inputs.
+ *
+ * @param T 泛型数值类型 / generic numeric type
+ * @param iteration 当前迭代 / current iteration
+ * @param bin 目标箱型 / target bin type
+ * @param items 泛型货物列表 / generic item list
+ * @param existingLayers 已有层列表 / existing layer list
+ * @param demandEntries 需求条目 / demand entries
+ * @param shadowPrices 影子价格 / shadow prices
+ * @param scoreByShadowPrice 影子价格评分函数 / shadow-price score function
+ * @param timeLimit 时间限制 / time limit
+ * @param maxCandidates 最大候选数 / max candidate amount
+ * @return 层生成结果列表 / layer generation result list
+ */
+suspend fun <V, T : FloatingNumber<T>> Bpp3dLayerGenerator<V>.generateFromGeneric(
+    iteration: Int,
+    bin: BinType? = null,
+    items: List<GenericItem<T>>,
+    existingLayers: List<GenericBinLayer<T>> = emptyList(),
+    demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
+    shadowPrices: Map<DemandModeKey, V> = emptyMap(),
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    timeLimit: Duration = ZERO,
+    maxCandidates: Int = 256
+): List<Bpp3dLayerGenerationResult<V>> {
+    return generate(
+        request = bpp3dLayerGenerationRequestFromGeneric(
+            iteration = iteration,
+            bin = bin,
+            items = items,
+            existingLayers = existingLayers,
+            demandEntries = demandEntries,
+            shadowPrices = shadowPrices,
+            scoreByShadowPrice = scoreByShadowPrice,
+            timeLimit = timeLimit,
+            maxCandidates = maxCandidates
+        )
+    )
+}
+
+suspend fun <V> Bpp3dLayerGenerator<V>.generateFromProgramDemands(
+    iteration: Int,
+    bin: BinType? = null,
+    items: List<Item> = emptyList(),
+    programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
+    programMaterialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap(),
+    existingLayers: List<BinLayer> = emptyList(),
+    demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
+    shadowPrices: Map<DemandModeKey, V> = emptyMap(),
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    timeLimit: Duration = ZERO,
+    maxCandidates: Int = 256
+): List<Bpp3dLayerGenerationResult<V>> {
+    return generate(
+        request = bpp3dLayerGenerationRequestFromProgramDemands(
+            iteration = iteration,
+            bin = bin,
+            items = items,
+            programDemands = programDemands,
+            programMaterialCatalog = programMaterialCatalog,
+            existingLayers = existingLayers,
+            demandEntries = demandEntries,
+            shadowPrices = shadowPrices,
+            scoreByShadowPrice = scoreByShadowPrice,
+            timeLimit = timeLimit,
+            maxCandidates = maxCandidates
+        )
+    )
 }
 
 private fun resolveDemandDomainDiscrete(unit: PhysicalUnit?): Boolean {
@@ -117,6 +280,7 @@ fun <V> shadowPriceAwareLayerScore(
         for (entry in activeEntries) {
             val shadowPrice = request.shadowPrices[entry] ?: continue
             val concreteMode = entry.mode.toConcreteMode(
+                key = entry.key,
                 isDiscrete = resolveDemandDomainDiscrete(entry.quantityUnit)
             )
             val demand = layer.statistics(concreteMode)[entry.key] ?: continue

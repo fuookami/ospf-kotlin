@@ -1,9 +1,19 @@
+/**
+ * 列生成装箱分析器。
+ * Column generation packing analyzer.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.Packer
@@ -12,7 +22,18 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
+/**
+ * 列生成装箱快照。
+ * Column generation packing snapshot.
+ *
+ * @property bins 箱子列表 / bin list
+ * @property packingResult 装箱结果 / packing result
+ * @property schema 渲染方案 / rendering schema
+ * @property demandModeShadowPriceTotals 需求模式影子价格总和 / demand mode shadow price totals
+ * @property demandModeShadowPriceEntryCounts 需求模式影子价格条目数 / demand mode shadow price entry counts
+ */
 data class ColumnGenerationPackingSnapshot(
     val bins: List<LayerBin>,
     val packingResult: PackingResult,
@@ -21,6 +42,10 @@ data class ColumnGenerationPackingSnapshot(
     val demandModeShadowPriceEntryCounts: Map<String, Int> = emptyMap()
 )
 
+/**
+ * 需求模式标签。
+ * Demand mode tag.
+ */
 private fun demandModeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
         is Bpp3dDemandMode.Item -> "item"
@@ -32,6 +57,14 @@ private fun demandModeTag(mode: Bpp3dDemandMode): String {
     }
 }
 
+/**
+ * 列生成装箱分析器，在每次迭代后执行装箱分析。
+ * Column generation packing analyzer, performs packing analysis after each iteration.
+ *
+ * @property packer 装箱器 / packer
+ * @property rendererAdapter 渲染适配器 / renderer adapter
+ * @property contextBuilder 上下文构建器 / context builder
+ */
 class ColumnGenerationPackingAnalyzer(
     private val packer: Packer = Packer(),
     private val rendererAdapter: PackingRendererAdapter = PackingRendererAdapter(),
@@ -39,9 +72,19 @@ class ColumnGenerationPackingAnalyzer(
         PackingContext(info = mapOf("cg_iteration" to state.iteration.toString()))
     }
 ) : ColumnGenerationSolutionAnalyzer<InfraNumber> {
+    /**
+     * 最近一次分析的装箱快照。
+     * Latest packing snapshot from the most recent analysis.
+     */
     var latest: ColumnGenerationPackingSnapshot? = null
         private set
 
+    /**
+     * 分析当前列生成状态并生成装箱快照。
+     * Analyze current column generation state and generate packing snapshot.
+     *
+     * @param state 列生成状态 / column generation state
+     */
     override suspend fun analyze(state: ColumnGenerationState<InfraNumber>) {
         val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
             state.bins
@@ -85,5 +128,35 @@ class ColumnGenerationPackingAnalyzer(
             demandModeShadowPriceEntryCounts = demandModeShadowPriceEntryCounts
         )
     }
+}
+
+/**
+ * 使用泛型层列表执行装箱分析。
+ * Execute packing analysis with generic layer list.
+ *
+ * @param T 泛型数值类型 / generic numeric type
+ * @param iteration 迭代序号 / iteration number
+ * @param columns 泛型层列表 / generic layer list
+ * @param bins 最终箱子（可选） / final bins (optional)
+ * @param shadowPrices 影子价格（可选） / shadow prices (optional)
+ * @param materialCache 物料缓存 / material cache
+ * @param itemCache 货物缓存 / item cache
+ */
+suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromGeneric(
+    iteration: Int,
+    columns: List<GenericBinLayer<T>>,
+    bins: List<LayerBin> = emptyList(),
+    shadowPrices: Map<DemandModeKey, InfraNumber> = emptyMap(),
+    materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+) {
+    analyze(
+        state = ColumnGenerationState(
+            iteration = iteration,
+            columns = columns.map { it.toModel(materialCache, itemCache) },
+            bins = bins,
+            shadowPrices = shadowPrices
+        )
+    )
 }
 

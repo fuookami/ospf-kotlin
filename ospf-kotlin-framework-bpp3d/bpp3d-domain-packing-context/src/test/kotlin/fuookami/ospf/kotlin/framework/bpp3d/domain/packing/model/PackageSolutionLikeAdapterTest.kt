@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -25,7 +25,7 @@ class PackageSolutionLikeAdapterTest {
     private fun material(
         no: String,
         unitWeightKg: InfraNumber
-    ): Material {
+    ): Material<InfraNumber> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -35,7 +35,7 @@ class PackageSolutionLikeAdapterTest {
         )
     }
 
-    private fun shape(scale: InfraNumber): PackageShape {
+    private fun shape(scale: InfraNumber): PackageShape<InfraNumber> {
         return PackageShape(
             width = scale * Meter,
             height = scale * Meter,
@@ -162,3 +162,4 @@ class PackageSolutionLikeAdapterTest {
         assertEquals(2.5, fltXWeight, 1e-10)
     }
 }
+

@@ -1,3 +1,7 @@
+/**
+ * 货物模型类型别名。
+ * Item model type aliases.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCuboid

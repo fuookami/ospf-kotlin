@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 自底向上左对齐算法。
+ * Bottom-up left-justified algorithm.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*

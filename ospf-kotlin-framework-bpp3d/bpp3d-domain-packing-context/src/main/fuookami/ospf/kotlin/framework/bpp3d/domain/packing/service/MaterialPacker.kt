@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 物料装箱器。
+ * Material packer.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.ceil
@@ -26,6 +30,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackagedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -34,7 +40,7 @@ class MaterialPacker(
 ) {
     private data class PackageSlot(
         val candidateIndex: Int,
-        val pack: Package,
+        val pack: Package<*>,
         val assigned: MutableMap<MaterialKey, UInt64>,
         val pending: Boolean
     )
@@ -44,6 +50,14 @@ class MaterialPacker(
         val pending: Boolean,
         val materials: List<Pair<MaterialKey, UInt64>>
     )
+
+    @Suppress("UNCHECKED_CAST")
+    private fun packQuantityToInfra(value: Quantity<*>): Quantity<InfraNumber> {
+        return when (value.value) {
+            is InfraNumber -> value as Quantity<InfraNumber>
+            else -> Quantity(InfraNumber(value.value.toString().toDouble()), value.unit)
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun weightDemandToPackingQuantity(value: Quantity<*>): MaterialPackingQuantity {
@@ -57,13 +71,13 @@ class MaterialPacker(
         }
     }
 
-    suspend fun plan(
-        demands: List<MaterialPackingDemand>,
-        candidates: List<MaterialPackingProgramCandidate>,
+    suspend fun <V : FloatingNumber<V>> plan(
+        demands: List<MaterialPackingDemand<V>>,
+        candidates: List<MaterialPackingProgramCandidate<V>>,
         objective: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig()
     ): MaterialPackingPlan {
         val normalizedDemands = LinkedHashMap<MaterialKey, UInt64>()
-        val materialByKey = LinkedHashMap<MaterialKey, Material>()
+        val materialByKey = LinkedHashMap<MaterialKey, Material<MaterialPackingScalar>>()
         val impossibleDemands = LinkedHashMap<MaterialKey, UInt64>()
 
         for (demand in demands) {
@@ -275,10 +289,10 @@ class MaterialPacker(
                 id = itemId,
                 name = "${candidate.itemName}-$sequence",
                 pack = pack,
-                width = pack.width,
-                height = pack.height,
-                depth = pack.depth,
-                weight = pack.weight,
+                width = packQuantityToInfra(pack.width),
+                height = packQuantityToInfra(pack.height),
+                depth = packQuantityToInfra(pack.depth),
+                weight = packQuantityToInfra(pack.weight),
                 enabledOrientations = candidate.enabledOrientations,
                 batchNo = candidate.batchNo,
                 warehouse = candidate.warehouse,
@@ -326,7 +340,7 @@ class MaterialPacker(
         }
     }
 
-    private fun defaultPackageAttribute(candidate: MaterialPackingProgramCandidate): PackageAttribute {
+    private fun <V : FloatingNumber<V>> defaultPackageAttribute(candidate: MaterialPackingProgramCandidate<V>): PackageAttribute {
         return PackageAttribute(
             packageType = candidate.program.packageType,
             weightAttribute = WeightAttribute(),

@@ -1,3 +1,7 @@
+/**
+ * 方向轴排列桥接。
+ * Orientation axis permutation bridge.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.geometry.QuantityAxisPermutation3

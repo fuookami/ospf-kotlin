@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -46,7 +46,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun item(id: String, material: Material): ActualItem {
+    private fun item(id: String, material: Material<InfraNumber>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = infraScalar(1.0) * Meter,
@@ -131,3 +131,4 @@ class PackerAndRendererAdapterTest {
         assertTrue(schema.loadingPlans.first().loadingRate > InfraNumber.zero)
     }
 }
+

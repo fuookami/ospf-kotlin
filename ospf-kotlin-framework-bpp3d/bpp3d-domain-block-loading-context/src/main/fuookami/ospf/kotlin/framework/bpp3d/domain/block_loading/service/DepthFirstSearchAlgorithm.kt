@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 深度优先搜索算法。
+ * Depth-first search algorithm.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space

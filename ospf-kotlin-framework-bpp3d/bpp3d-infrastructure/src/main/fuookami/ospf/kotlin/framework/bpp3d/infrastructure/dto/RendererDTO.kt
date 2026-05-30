@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 渲染器数据传输对象。
+ * Renderer data transfer objects.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX

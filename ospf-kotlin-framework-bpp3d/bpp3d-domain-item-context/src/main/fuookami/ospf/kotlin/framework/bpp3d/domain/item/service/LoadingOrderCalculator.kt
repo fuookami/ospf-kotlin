@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 装载顺序计算器。
+ * Loading order calculator.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity

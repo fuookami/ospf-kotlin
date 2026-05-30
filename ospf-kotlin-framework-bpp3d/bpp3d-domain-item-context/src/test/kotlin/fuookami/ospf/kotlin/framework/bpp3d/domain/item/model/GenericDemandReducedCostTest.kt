@@ -114,5 +114,48 @@ class GenericDemandReducedCostTest {
 
         assertEquals(3.0, reducedCost.toDouble(), 1e-10)
     }
+
+    @Test
+    fun reducedCostShouldSupportGenericShadowPriceKeyMap() {
+        val material = GenericMaterial(
+            no = MaterialNo("M-RC-MODEL-MAP"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-RC-MODEL-MAP",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val item = GenericItem(
+            id = "item-rc-model-map",
+            name = "item-rc-model-map",
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
+                    width = infraScalar(1.0) * Meter,
+                    height = infraScalar(1.0) * Meter,
+                    depth = infraScalar(1.0) * Meter,
+                    weight = infraScalar(0.2) * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(material to UInt64(2))
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-RC-MODEL-MAP"),
+            packageAttribute = defaultPackageAttribute()
+        )
+        val materialKey = item.statistics(Bpp3dDemandMode.ItemMaterialAmount).keys.single()
+        val demandKey = GenericDemandShadowPriceKey(
+            mode = Bpp3dDemandMode.ItemMaterialAmount,
+            key = materialKey
+        )
+        val shadowPrices = mapOf(demandKey to InfraNumber(3.0))
+
+        val reducedCost = item.reducedCost(
+            demandEntries = listOf(demandKey),
+            shadowPrices = shadowPrices,
+            amountToScalar = { amount -> InfraNumber(amount.toULong().toDouble()) },
+            zero = InfraNumber.zero
+        )
+
+        assertEquals(6.0, reducedCost.toDouble(), 1e-10)
+    }
 }
 

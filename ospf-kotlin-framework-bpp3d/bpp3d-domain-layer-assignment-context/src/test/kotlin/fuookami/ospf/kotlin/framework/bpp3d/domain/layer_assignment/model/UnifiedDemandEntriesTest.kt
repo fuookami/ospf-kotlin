@@ -65,7 +65,7 @@ class UnifiedDemandEntriesTest {
         )
     }
 
-    private fun material(no: String): Material {
+    private fun material(no: String): Material<InfraNumber> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -212,5 +212,6 @@ class UnifiedDemandEntriesTest {
         assertEquals(Bpp3dDemandDomain.Discrete, weightByMode.quantityDomain)
     }
 }
+
 
 

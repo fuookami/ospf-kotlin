@@ -1,3 +1,7 @@
+/**
+ * 带缩放的 BPP3D 求解器值适配器。
+ * Scaled BPP3D solver value adapter.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
@@ -13,6 +17,15 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.SquareMeter
 
+/**
+ * 求解器单位系统配置。
+ * Solver unit system configuration.
+ *
+ * @property lengthUnit 长度单位 / length unit
+ * @property areaUnit 面积单位 / area unit
+ * @property volumeUnit 体积单位 / volume unit
+ * @property weightUnit 重量单位 / weight unit
+ */
 data class Bpp3dSolverUnitSystem(
     val lengthUnit: PhysicalUnit = Meter,
     val areaUnit: PhysicalUnit = SquareMeter,
@@ -20,6 +33,17 @@ data class Bpp3dSolverUnitSystem(
     val weightUnit: PhysicalUnit = Kilogram
 )
 
+/**
+ * 求解器浮点缩放因子配置。
+ * Solver floating-point scale factor configuration.
+ *
+ * @property amount 数量缩放因子 / amount scale factor
+ * @property length 长度缩放因子 / length scale factor
+ * @property area 面积缩放因子 / area scale factor
+ * @property volume 体积缩放因子 / volume scale factor
+ * @property depth 深度缩放因子 / depth scale factor
+ * @property weight 重量缩放因子 / weight scale factor
+ */
 data class Bpp3dSolverFltXScale(
     val amount: FltX = FltX.one,
     val length: FltX = FltX.one,
@@ -29,6 +53,13 @@ data class Bpp3dSolverFltXScale(
     val weight: FltX = FltX.one
 )
 
+/**
+ * 带缩放的 BPP3D 求解器值适配器，支持单位转换和数值缩放。
+ * Scaled BPP3D solver value adapter, supports unit conversion and numeric scaling.
+ *
+ * @property unitSystem 单位系统 / unit system
+ * @property scale 缩放因子配置 / scale factor configuration
+ */
 class ScaledBpp3dSolverValueAdapter(
     private val unitSystem: Bpp3dSolverUnitSystem = Bpp3dSolverUnitSystem(),
     private val scale: Bpp3dSolverFltXScale = Bpp3dSolverFltXScale()

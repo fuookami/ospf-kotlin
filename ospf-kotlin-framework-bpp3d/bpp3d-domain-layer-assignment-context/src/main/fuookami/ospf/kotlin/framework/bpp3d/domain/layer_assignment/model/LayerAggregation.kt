@@ -1,3 +1,7 @@
+/**
+ * 层聚合模型。
+ * Layer aggregation model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
@@ -8,13 +12,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
+/**
+ * 层聚合，管理列生成过程中的层集合。
+ * Layer aggregation, manages layer sets during column generation.
+ *
+ * @property layersIteration 每次迭代新增的层 / layers added per iteration
+ * @property layers 当前所有层 / all current layers
+ * @property removedLayers 已移除的层 / removed layers
+ */
 class LayerAggregation(
     val layersIteration: MutableList<List<BinLayer>> = ArrayList(),
     val layers: MutableList<BinLayer> = ArrayList(),
     val removedLayers: MutableSet<BinLayer> = HashSet()
 ) {
+    /**
+     * 最近一次迭代的层。
+     * Layers from the last iteration.
+     */
     val lastIterationLayers: List<BinLayer> get() = layersIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
+    /**
+     * 添加新列（去重后）。
+     * Add new columns (after deduplication).
+     *
+     * @param newLayers 新层列表 / new layer list
+     * @return 去重后实际新增的层 / deduplicated newly added layers
+     */
     suspend fun addColumns(newLayers: List<BinLayer>): List<BinLayer> {
         val thisUnduplicatedLayers = coroutineScope {
             val promises = ArrayList<Deferred<List<BinLayer>>>()
@@ -54,6 +77,12 @@ class LayerAggregation(
         return unduplicatedLayers
     }
 
+    /**
+     * 移除单个层。
+     * Remove a single layer.
+     *
+     * @param layer 要移除的层 / layer to remove
+     */
     fun removeColumn(layer: BinLayer) {
         if (!removedLayers.contains(layer)) {
             removedLayers.add(layer)
@@ -61,6 +90,12 @@ class LayerAggregation(
         }
     }
 
+    /**
+     * 移除多个层。
+     * Remove multiple layers.
+     *
+     * @param layers 要移除的层列表 / layers to remove
+     */
     fun removeColumns(layers: List<BinLayer>) {
         for (layer in layers) {
             removeColumn(layer)

@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 需求统计模型。
+ * Demand statistics model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -39,6 +43,35 @@ fun Bpp3dDemandMode.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
 sealed interface Bpp3dDemandKey {
     data class Item(val item: fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item) : Bpp3dDemandKey
     data class Material(val material: MaterialKey) : Bpp3dDemandKey
+}
+
+fun Bpp3dDemandKey.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
+    return when (this) {
+        is Bpp3dDemandKey.Item -> if (isDiscrete) Bpp3dDemandMode.ItemAmount else Bpp3dDemandMode.ItemWeight
+        is Bpp3dDemandKey.Material -> if (isDiscrete) Bpp3dDemandMode.ItemMaterialAmount else Bpp3dDemandMode.ItemMaterialWeight
+    }
+}
+
+fun Bpp3dDemandMode.toConcreteMode(
+    key: Bpp3dDemandKey,
+    isDiscrete: Boolean
+): Bpp3dDemandMode {
+    val concreteByMode = toConcreteMode(isDiscrete)
+    return when (key) {
+        is Bpp3dDemandKey.Item -> when (concreteByMode) {
+            is Bpp3dDemandMode.ItemAmount,
+            is Bpp3dDemandMode.ItemWeight -> concreteByMode
+
+            else -> key.toConcreteMode(isDiscrete)
+        }
+
+        is Bpp3dDemandKey.Material -> when (concreteByMode) {
+            is Bpp3dDemandMode.ItemMaterialAmount,
+            is Bpp3dDemandMode.ItemMaterialWeight -> concreteByMode
+
+            else -> key.toConcreteMode(isDiscrete)
+        }
+    }
 }
 
 sealed interface Bpp3dDemandValue {

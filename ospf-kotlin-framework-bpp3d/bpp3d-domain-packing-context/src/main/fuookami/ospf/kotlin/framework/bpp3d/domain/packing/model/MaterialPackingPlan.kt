@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 物料装箱计划模型。
+ * Material packing plan model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -13,6 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -30,19 +35,22 @@ data class MaterialPackingObjectiveConfig(
  * 物料需求，可按数量与重量混合输入。
  * Material demand with amount/weight mixed input.
  */
-data class MaterialPackingDemand(
-    val material: Material,
+data class MaterialPackingDemand<V : FloatingNumber<V>>(
+    val material: Material<MaterialPackingScalar>,
     val amount: UInt64 = UInt64.zero,
-    val weight: Quantity<*>? = null
+    val weight: Quantity<V>? = null
 )
+
+/** InfraNumber 物料装箱需求别名。InfraNumber material-packing demand alias. */
+typealias InfraMaterialPackingDemand = MaterialPackingDemand<MaterialPackingScalar>
 
 /**
  * 包装方案候选，描述包装程序与生成 item 的附加属性。
  * Candidate packaging program and item generation options.
  */
-data class MaterialPackingProgramCandidate(
+data class MaterialPackingProgramCandidate<V : FloatingNumber<V>>(
     val id: String,
-    val program: PackingProgram,
+    val program: PackingProgram<V>,
     val itemName: String = id,
     val enabledOrientations: List<Orientation> = listOf(Orientation.Upright),
     val batchNo: BatchNo? = null,
@@ -50,12 +58,15 @@ data class MaterialPackingProgramCandidate(
     val packageAttribute: PackageAttribute? = null
 )
 
+/** InfraNumber 装箱程序候选别名。InfraNumber packing-program candidate alias. */
+typealias InfraMaterialPackingProgramCandidate = MaterialPackingProgramCandidate<MaterialPackingScalar>
+
 /**
  * 包装方案选择结果（x[p]）。
  * Selected package count for a program (x[p]).
  */
 data class PackageSelection(
-    val candidate: MaterialPackingProgramCandidate,
+    val candidate: MaterialPackingProgramCandidate<*>,
     val amount: UInt64
 )
 
@@ -64,7 +75,7 @@ data class PackageSelection(
  * Assigned material amount for a program (y[p,m]).
  */
 data class MaterialPackingAssignment(
-    val candidate: MaterialPackingProgramCandidate,
+    val candidate: MaterialPackingProgramCandidate<*>,
     val material: MaterialKey,
     val amount: UInt64
 )
@@ -102,7 +113,7 @@ data class MaterialPackingSolveInfo(
  * Material packing plan output.
  */
 data class MaterialPackingPlan(
-    val packages: List<Package>,
+    val packages: List<Package<*>>,
     val packagedItems: List<PackagedItem>,
     val selections: List<PackageSelection>,
     val assignments: List<MaterialPackingAssignment>,

@@ -1,3 +1,7 @@
+/**
+ * 层分配容量模型。
+ * Layer assignment capacity model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
@@ -19,15 +23,33 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 private val flt64Converter: IntoValue<InfraNumber> = IntoValue.fromConverter(InfraNumber)
 
+/**
+ * 容量接口，提供装载重量、体积、深度及装载率的符号表达。
+ * Capacity interface, provides symbolic expressions for load weight, volume, depth and loading rate.
+ */
 interface Capacity {
+    /** 装载重量符号 / load weight symbols */
     val loadWeight: LinearIntermediateSymbols1<InfraNumber>
+    /** 装载体积符号 / load volume symbols */
     val loadVolume: LinearIntermediateSymbols1<InfraNumber>
+    /** 装载深度符号 / load depth symbols */
     val loadDepth: LinearIntermediateSymbols1<InfraNumber>
 
+    /** 装载率符号 / loading rate symbols */
     val loadingRate: LinearIntermediateSymbols1<InfraNumber>
+    /** 尾箱装载率符号 / tail loading rate symbols */
     val tailLoadingRate: LinearIntermediateSymbols1<InfraNumber>
 }
 
+/**
+ * 精确装载容量，基于精确分配计算各箱子的容量指标。
+ * Precise load capacity, computes capacity metrics per bin based on precise assignment.
+ *
+ * @property bins 箱子列表 / bin list
+ * @property layers 层列表 / layer list
+ * @property assignment 精确赋值 / precise assignment
+ * @property solverValueAdapter 求解器值适配器 / solver value adapter
+ */
 class PreciseLoadCapacity(
     private val bins: List<Bin<BinLayer>>,
     private val layers: List<BinLayer>,
@@ -41,6 +63,13 @@ class PreciseLoadCapacity(
     override lateinit var loadingRate: LinearIntermediateSymbols1<InfraNumber>
     override lateinit var tailLoadingRate: LinearIntermediateSymbols1<InfraNumber>
 
+    /**
+     * 注册容量符号到模型。
+     * Register capacity symbols to model.
+     *
+     * @param model 元模型 / meta model
+     * @return 注册结果 / registration result
+     */
     fun register(model: MetaModel<InfraNumber>): Try {
         if (!::loadWeight.isInitialized) {
             loadWeight = LinearIntermediateSymbols1<InfraNumber>(

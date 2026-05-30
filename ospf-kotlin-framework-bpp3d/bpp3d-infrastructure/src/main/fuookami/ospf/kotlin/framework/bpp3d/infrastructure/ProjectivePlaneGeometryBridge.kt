@@ -1,3 +1,7 @@
+/**
+ * 投影面几何桥接。
+ * Projective plane geometry bridge.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3

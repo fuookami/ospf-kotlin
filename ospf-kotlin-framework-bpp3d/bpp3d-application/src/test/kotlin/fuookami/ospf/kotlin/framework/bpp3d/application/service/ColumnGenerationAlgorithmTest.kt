@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.application.service
+﻿package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
@@ -79,7 +80,7 @@ class ColumnGenerationAlgorithmTest {
         )
     }
 
-    private fun item(id: String, material: Material): ActualItem {
+    private fun item(id: String, material: Material<InfraNumber>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = InfraNumber.one * Meter,
@@ -183,6 +184,50 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(0, result.columns.size)
         assertEquals(1, result.lpSolvedTimes)
         assertTrue(result.finalSolved)
+    }
+
+    @Test
+    fun algorithmShouldSupportGenericItemEntryPoint() = runBlocking {
+        val quantityMaterial = QuantityMaterial(
+            no = MaterialNo("M-ALG-G"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-ALG-G",
+            weight = FltX.one * Kilogram
+        )
+        val quantityItem = QuantityItem(
+            id = "item-alg-g",
+            name = "item-alg-g",
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
+                    width = FltX.one * Meter,
+                    height = FltX.one * Meter,
+                    depth = FltX.one * Meter,
+                    weight = FltX.one * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(quantityMaterial to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ALG-G"),
+            packageAttribute = packageAttribute()
+        )
+        val algorithm = ColumnGenerationAlgorithm(
+            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    return emptyList()
+                }
+            }
+        )
+
+        val result = algorithm.solveGeneric(
+            items = listOf(quantityItem),
+            config = ColumnGenerationConfig(finalMilpEnabled = false)
+        )
+
+        assertEquals(1, result.lpSolvedTimes)
+        assertEquals(0, result.columns.size)
+        assertTrue(!result.finalSolved)
     }
 
     @Test
@@ -528,7 +573,7 @@ class ColumnGenerationAlgorithmTest {
             packageAttribute = packageAttribute()
         )
         val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
-        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
+        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material<InfraNumber>>()
         val modelItem = quantityItem.toModel(materialCache, itemCache)
         val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
             fixedDemandEntry(
@@ -564,6 +609,77 @@ class ColumnGenerationAlgorithmTest {
         val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
             solver = solver,
             itemDemands = listOf(Pair(modelItem, UInt64.one)),
+            demandEntries = demandEntries
+        )
+
+        assertNotNull(executors)
+    }
+
+    @Test
+    fun standardExecutorsFactoryShouldSupportGenericItemDemands() {
+        val quantityMaterial = QuantityMaterial(
+            no = MaterialNo("M-QG"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-QG",
+            weight = FltX.one * Kilogram
+        )
+        val quantityItem = QuantityItem(
+            id = "item-qg",
+            name = "item-qg",
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
+                    width = FltX.one * Meter,
+                    height = FltX.one * Meter,
+                    depth = FltX.one * Meter,
+                    weight = FltX.one * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(quantityMaterial to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-QG"),
+            packageAttribute = packageAttribute()
+        )
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.Material,
+                key = Bpp3dDemandKey.Material(
+                    MaterialKey(
+                        no = quantityMaterial.no,
+                        type = quantityMaterial.type
+                    )
+                ),
+                demand = InfraNumber.one
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name = "stub-generic-factory-entry-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                error("not used in this test")
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                error("not used in this test")
+            }
+        }
+
+        val executors = ColumnGenerationStandardExecutors.fromGenericDemandEntries(
+            solver = solver,
+            itemDemands = listOf(Pair(quantityItem, UInt64.one)),
             demandEntries = demandEntries
         )
 
@@ -613,15 +729,11 @@ class ColumnGenerationAlgorithmTest {
             )
         )
 
-        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
-        val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
-        val modelItem = quantityItem.toModel(materialCache, itemCache)
-        val modelMaterial = quantityMaterial.toModel()
-        val request = ColumnGenerationApplicationRequest(
-            itemDemands = listOf(Pair(modelItem, UInt64(3))),
-            materialAmountDemands = listOf(Pair(modelMaterial, UInt64(6))),
-            materialWeightDemands = listOf(Pair(modelMaterial, infraScalar(2.5) * Kilogram)),
-            initialColumns = listOf(quantityInitialLayer.toModel(materialCache, itemCache))
+        val request = columnGenerationApplicationRequestFromGeneric(
+            itemDemands = listOf(Pair(quantityItem, UInt64(3))),
+            materialAmountDemands = listOf(Pair(quantityMaterial, UInt64(6))),
+            materialWeightDemands = listOf(Pair(quantityMaterial, FltX(2.5) * Kilogram)),
+            initialColumns = listOf(quantityInitialLayer)
         )
 
         assertEquals(1, request.itemDemands.size)
@@ -631,6 +743,7 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(UInt64(6), request.materialAmountDemands.first().second)
         assertEquals(1, request.materialWeightDemands.size)
         assertEquals(2.5, request.materialWeightDemands.first().second.value.toDouble(), 1e-9)
+        assertTrue(request.materialAmountDemands.first().first === request.materialWeightDemands.first().first)
         assertEquals(1, request.initialColumns.size)
         assertEquals(1, request.initialColumns.first().units.size)
     }
@@ -708,22 +821,20 @@ class ColumnGenerationAlgorithmTest {
             }
         }
         val service = ColumnGenerationApplicationService(solver)
-        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material>()
-        val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
-        val modelItem = quantityItem.toModel(materialCache, itemCache)
-        val response = service.solve(
-            request = ColumnGenerationApplicationRequest(
-                itemDemands = listOf(Pair(modelItem, UInt64.one)),
-                initialColumns = listOf(quantityInitialLayer.toModel(materialCache, itemCache)),
-                generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
-                            return emptyList()
-                        }
+        val request = ColumnGenerationGenericApplicationRequest(
+            itemDemands = listOf(Pair(quantityItem, UInt64.one)),
+            initialColumns = listOf(quantityInitialLayer),
+            generators = listOf(
+                object : Bpp3dLayerGenerator<InfraNumber> {
+                    override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                        return emptyList()
                     }
-                ),
-                cgConfig = ColumnGenerationConfig(finalMilpEnabled = false)
-            )
+                }
+            ),
+            cgConfig = ColumnGenerationConfig(finalMilpEnabled = false)
+        )
+        val response = service.solve(
+            request = request
         )
 
         assertEquals(1, response.result.lpSolvedTimes)
@@ -1258,6 +1369,7 @@ class ColumnGenerationAlgorithmTest {
         }
     }
 }
+
 
 
 

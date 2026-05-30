@@ -1,3 +1,7 @@
+/**
+ * 量纲几何 Spike 实现。
+ * Quantity geometry spike implementation.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity

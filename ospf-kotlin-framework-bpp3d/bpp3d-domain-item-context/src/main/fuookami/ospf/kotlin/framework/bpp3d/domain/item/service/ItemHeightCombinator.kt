@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 货物高度组合器。
+ * Item height combinator.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid

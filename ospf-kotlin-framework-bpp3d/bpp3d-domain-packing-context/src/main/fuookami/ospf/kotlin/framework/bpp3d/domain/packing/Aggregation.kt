@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 装箱聚合。
+ * Packing aggregation.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType

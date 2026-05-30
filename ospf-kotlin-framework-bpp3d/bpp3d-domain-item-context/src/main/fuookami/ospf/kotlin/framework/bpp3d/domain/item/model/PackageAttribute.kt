@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 包装属性模型。
+ * Package attribute model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -491,6 +495,7 @@ data class PackageAttribute(
         }
 
         // If the material is not at the bottom (y coordinate is not 0) and it is required to be at the bottom, there cannot be any non-bottom-required material below it.
+        // 如果货物不在底部（y坐标不为0）且要求放在底部，则其下方不能有任何非底部要求的货物。
         if (item.bottomOnly && bottomItems.any { !it.bottomOnly }) {
             return false
         }

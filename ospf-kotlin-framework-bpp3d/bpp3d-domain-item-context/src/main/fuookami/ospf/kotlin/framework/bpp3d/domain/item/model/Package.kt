@@ -1,41 +1,41 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 包装模型。
+ * Package model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.neq
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.quantity.toFltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.toFltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.utils.functional.Eq
 import kotlin.math.ceil
 
-data class PackageBottomShape(
-    val width: Quantity<InfraNumber>,
-    val depth: Quantity<InfraNumber>,
-    val weight: Quantity<InfraNumber>,
+data class PackageBottomShape<V : FloatingNumber<V>>(
+    val width: Quantity<V>,
+    val depth: Quantity<V>,
+    val weight: Quantity<V>,
     val packageType: PackageType,
-) : Eq<PackageBottomShape> {
+) : Eq<PackageBottomShape<V>> {
     val packageCategory by packageType::category
-    val area: Quantity<InfraNumber> = width * depth
+    val area: Quantity<V> = width * depth
 
     fun new(
-        width: Quantity<InfraNumber>? = null,
-        depth: Quantity<InfraNumber>? = null,
-        weight: Quantity<InfraNumber>? = null,
+        width: Quantity<V>? = null,
+        depth: Quantity<V>? = null,
+        weight: Quantity<V>? = null,
         packageType: PackageType? = null
-    ): PackageBottomShape {
+    ): PackageBottomShape<V> {
         return PackageBottomShape(
             width = width ?: this.width,
             depth = depth ?: this.depth,
@@ -44,23 +44,25 @@ data class PackageBottomShape(
         )
     }
 
-    override fun partialEq(rhs: PackageBottomShape): Boolean {
+    override fun partialEq(rhs: PackageBottomShape<V>): Boolean {
         return packageType == rhs.packageType
     }
 
-    override fun eq(rhs: PackageBottomShape): Boolean {
+    override fun eq(rhs: PackageBottomShape<V>): Boolean {
         if (width neq rhs.width) return false
         if (depth neq rhs.depth) return false
-        if ((weight - rhs.weight).abs() gr ((infraOne() + infraOne()) * weight.unit)) return false
+        if (weight neq rhs.weight) return false
 
         return packageType == rhs.packageType
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is PackageBottomShape) return false
+        if (other !is PackageBottomShape<*>) return false
+        if (weight.value::class != other.weight.value::class) return false
 
-        return this eq other
+        return this eq (other as PackageBottomShape<V>)
     }
 
     override fun hashCode(): Int {
@@ -72,13 +74,13 @@ data class PackageBottomShape(
     }
 }
 
-data class PackageShape(
-    val width: Quantity<InfraNumber>,
-    val height: Quantity<InfraNumber>,
-    val depth: Quantity<InfraNumber>,
-    val weight: Quantity<InfraNumber>,
+data class PackageShape<V : FloatingNumber<V>>(
+    val width: Quantity<V>,
+    val height: Quantity<V>,
+    val depth: Quantity<V>,
+    val weight: Quantity<V>,
     val packageType: PackageType,
-) : Eq<PackageShape> {
+) : Eq<PackageShape<V>> {
     val bottomShape = PackageBottomShape(
         width = width,
         depth = depth,
@@ -86,15 +88,15 @@ data class PackageShape(
         packageType = packageType
     )
     val packageCategory by packageType::category
-    val volume: Quantity<InfraNumber> = width * height * depth
+    val volume: Quantity<V> = width * height * depth
 
     fun new(
-        width: Quantity<InfraNumber>? = null,
-        height: Quantity<InfraNumber>? = null,
-        depth: Quantity<InfraNumber>? = null,
-        weight: Quantity<InfraNumber>? = null,
+        width: Quantity<V>? = null,
+        height: Quantity<V>? = null,
+        depth: Quantity<V>? = null,
+        weight: Quantity<V>? = null,
         packageType: PackageType? = null
-    ): PackageShape {
+    ): PackageShape<V> {
         return PackageShape(
             width = width ?: this.width,
             height = height ?: this.height,
@@ -104,24 +106,26 @@ data class PackageShape(
         )
     }
 
-    override fun partialEq(rhs: PackageShape): Boolean {
+    override fun partialEq(rhs: PackageShape<V>): Boolean {
         return packageType == rhs.packageType
     }
 
-    override fun eq(rhs: PackageShape): Boolean {
+    override fun eq(rhs: PackageShape<V>): Boolean {
         if (width neq rhs.width) return false
         if (height neq rhs.height) return false
         if (depth neq rhs.depth) return false
-        if ((weight - rhs.weight).abs() gr ((infraOne() + infraOne()) * weight.unit)) return false
+        if (weight neq rhs.weight) return false
 
         return packageType == rhs.packageType
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is PackageShape) return false
+        if (other !is PackageShape<*>) return false
+        if (weight.value::class != other.weight.value::class) return false
 
-        return this eq other
+        return this eq (other as PackageShape<V>)
     }
 
     override fun hashCode(): Int {
@@ -254,17 +258,17 @@ private fun toDiscreteAmount(value: Any): UInt64 {
     }
 }
 
-data class PackingProgram(
-    val shape: PackageShape,
+data class PackingProgram<V : FloatingNumber<V>>(
+    val shape: PackageShape<V>,
     val pattern: PackagePattern? = null,
-    val packages: List<PackingProgram>? = null,
+    val packages: List<PackingProgram<V>>? = null,
     val materials: Map<MaterialKey, PackingProgramMaterialValue>
 ) {
     companion object {
-        fun outerPackage(
-            shape: PackageShape,
-            packages: List<PackingProgram>
-        ): PackingProgram {
+        fun <V : FloatingNumber<V>> outerPackage(
+            shape: PackageShape<V>,
+            packages: List<PackingProgram<V>>
+        ): PackingProgram<V> {
             val materials = LinkedHashMap<MaterialKey, PackingProgramMaterialValue>()
             for (pack in packages) {
                 for ((materialNo, value) in pack.materials) {
@@ -282,9 +286,9 @@ data class PackingProgram(
         }
 
         fun innerPackage(
-            shape: PackageShape,
+            shape: PackageShape<InfraNumber>,
             materials: Map<MaterialKey, UInt64>
-        ): PackingProgram {
+        ): PackingProgram<InfraNumber> {
             return PackingProgram(
                 shape = shape,
                 materials = materials.mapValues { (_, amount) ->
@@ -296,9 +300,9 @@ data class PackingProgram(
         }
 
         fun innerPackageWithMaterialValues(
-            shape: PackageShape,
+            shape: PackageShape<InfraNumber>,
             materials: Map<MaterialKey, PackingProgramMaterialValue>
-        ): PackingProgram {
+        ): PackingProgram<InfraNumber> {
             return PackingProgram(
                 shape = shape,
                 materials = materials
@@ -306,9 +310,9 @@ data class PackingProgram(
         }
 
         fun <V : FloatingNumber<V>> innerPackageWithMaterialQuantities(
-            shape: PackageShape,
+            shape: PackageShape<V>,
             materials: Map<MaterialKey, Quantity<V>>
-        ): PackingProgram {
+        ): PackingProgram<V> {
             return PackingProgram(
                 shape = shape,
                 materials = materials.mapValues { (_, quantity) ->
@@ -352,7 +356,7 @@ data class PackingProgram(
 
     fun materialQuantities(
         amountUnit: PhysicalUnit = PackingProgramCountUnit,
-        materialCatalog: Map<MaterialKey, Material> = emptyMap()
+        materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()
     ): Map<MaterialKey, Quantity<InfraNumber>> {
         return materials.mapNotNull { (material, value) ->
             val quantity = value.weight?.let { packingProgramWeightToLegacyScalar(it) } ?: value.amount?.let { amount ->
@@ -371,7 +375,7 @@ data class PackingProgram(
         }.toMap()
     }
 
-    fun materialWeights(materialCatalog: Map<MaterialKey, Material> = emptyMap()): Map<MaterialKey, Quantity<InfraNumber>> {
+    fun materialWeights(materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()): Map<MaterialKey, Quantity<InfraNumber>> {
         return materials.mapNotNull { (material, value) ->
             val resolvedWeight = value.weight?.let { packingProgramWeightToLegacyScalar(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight ?: return@let null
@@ -389,7 +393,7 @@ data class PackingProgram(
         return materials[material]?.amount ?: UInt64.zero
     }
 
-    fun actualPackage(materials: Map<Material, UInt64>, pending: Boolean = false): Package {
+    fun actualPackage(materials: Map<Material<InfraNumber>, UInt64>, pending: Boolean = false): Package<V> {
         val requiredAmounts = this.materialAmounts()
         return when (classification) {
             PackageClassification.Outer -> {
@@ -415,7 +419,7 @@ data class PackingProgram(
                         pending = pending
                     )
                 } else {
-                    val packages = ArrayList<Package>()
+                    val packages = ArrayList<Package<V>>()
                     val restMaterials = materials.toMutableMap()
                     for (pack in this.packages!!) {
                         val thisPackageMaterials = pack.materialAmounts().mapNotNull {
@@ -482,25 +486,25 @@ data class PackingProgram(
     }
 }
 
-open class Package(
+open class Package<V : FloatingNumber<V>>(
     val code: PackageCode? = null,
     val pattern: PackagePattern? = null,
-    val program: PackingProgram? = null,
-    val shape: PackageShape,
-    val packages: List<Package>? = null,
-    val materials: Map<Material, UInt64>,
+    val program: PackingProgram<V>? = null,
+    val shape: PackageShape<V>,
+    val packages: List<Package<V>>? = null,
+    val materials: Map<Material<InfraNumber>, UInt64>,
     val amount: UInt64 = UInt64.one,
     val pending: Boolean = false,
 ) {
     companion object {
-        fun outerPackage(
+        fun <V : FloatingNumber<V>> outerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            shape: PackageShape,
-            packages: List<Package>,
+            shape: PackageShape<V>,
+            packages: List<Package<V>>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): Package {
+        ): Package<V> {
             val materials = packages.flatMap { it.materials.keys }.associateWith { UInt64.zero }.toMutableMap()
             for (pack in packages) {
                 for ((material, materialAmount) in pack.materials) {
@@ -519,14 +523,14 @@ open class Package(
             )
         }
 
-        fun outerPackage(
+        fun <V : FloatingNumber<V>> outerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            program: PackingProgram,
-            packages: List<Package>,
+            program: PackingProgram<V>,
+            packages: List<Package<V>>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): Package {
+        ): Package<V> {
             assert(pattern == null || program.pattern == null || pattern belong program.pattern)
             val materials = packages.flatMap { it.materials.keys }.associateWith { UInt64.zero }.toMutableMap()
             for (pack in packages) {
@@ -549,11 +553,11 @@ open class Package(
         fun innerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            shape: PackageShape,
-            materials: Map<Material, UInt64>,
+            shape: PackageShape<InfraNumber>,
+            materials: Map<Material<InfraNumber>, UInt64>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): Package {
+        ): Package<InfraNumber> {
             return Package(
                 code = code,
                 pattern = pattern,
@@ -564,14 +568,14 @@ open class Package(
             )
         }
 
-        fun innerPackage(
+        fun <V : FloatingNumber<V>> innerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            program: PackingProgram,
-            materials: Map<Material, UInt64>,
+            program: PackingProgram<V>,
+            materials: Map<Material<InfraNumber>, UInt64>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): Package {
+        ): Package<V> {
             return Package(
                 code = code,
                 pattern = pattern ?: program.pattern,
@@ -596,7 +600,7 @@ open class Package(
         program?.let { enabledHoldingAmount(it) }
     }
 
-    open fun enabledHoldingAmount(packingProgram: PackingProgram): Map<MaterialKey, UInt64>? {
+    open fun enabledHoldingAmount(packingProgram: PackingProgram<*>): Map<MaterialKey, UInt64>? {
         val requiredAmounts = packingProgram.materialAmounts()
         if (!(pattern == null || packingProgram.pattern == null || pattern belong packingProgram.pattern)) {
             return null
@@ -622,7 +626,7 @@ open class Package(
         } == true
     }
 
-    open fun full(packingProgram: PackingProgram): Boolean {
+    open fun full(packingProgram: PackingProgram<*>): Boolean {
         return enabledHoldingAmount(packingProgram)?.let {
             it.isEmpty() || it.values.all { amount -> amount == UInt64.zero }
         } == true

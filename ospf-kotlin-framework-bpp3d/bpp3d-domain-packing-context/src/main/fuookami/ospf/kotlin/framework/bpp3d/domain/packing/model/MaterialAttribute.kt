@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 物料属性模型。
+ * Material attribute model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -27,7 +31,7 @@ open class MaterialAttributeKey(
 ) {
     val base: Boolean = packageType == null
 
-    open fun match(pack: Package): Boolean {
+    open fun match(pack: Package<*>): Boolean {
         return packageType == null || pack.packageType == packageType
     }
 

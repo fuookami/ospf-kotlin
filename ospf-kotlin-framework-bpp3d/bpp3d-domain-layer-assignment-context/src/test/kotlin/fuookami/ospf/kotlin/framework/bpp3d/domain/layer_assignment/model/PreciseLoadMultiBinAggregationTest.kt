@@ -48,7 +48,7 @@ class PreciseLoadMultiBinAggregationTest {
         )
     }
 
-    private fun item(id: String, material: Material): ActualItem {
+    private fun item(id: String, material: Material<InfraNumber>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = infraScalar(1.0) * Meter,
@@ -156,5 +156,6 @@ class PreciseLoadMultiBinAggregationTest {
         assertTrue(symbols.contains(assignment.x[1, 0].name))
     }
 }
+
 
 

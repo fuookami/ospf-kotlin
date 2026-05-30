@@ -21,7 +21,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dSolverValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
@@ -66,7 +65,7 @@ class ItemDemandConstraintModeKeyTest {
 
     private fun createItem(
         id: String,
-        material: Material,
+        material: Material<InfraNumber>,
         materialAmount: UInt64 = UInt64(2)
     ): ActualItem {
         return ActualItem(
@@ -88,7 +87,7 @@ class ItemDemandConstraintModeKeyTest {
         )
     }
 
-    private fun testLoad(demandEntries: List<DemandEntry<InfraNumber>>): Load<InfraNumber> {
+    private fun testLoad(demandEntries: List<Bpp3dDemandEntry<InfraNumber>>): Load<InfraNumber> {
         val symbols = LinearExpressionSymbols1<InfraNumber>(
             "load",
             Shape1(demandEntries.size)
@@ -96,7 +95,7 @@ class ItemDemandConstraintModeKeyTest {
             LinearExpressionSymbol(InfraNumber.zero, name = "load_$i")
         }
         return object : Load<InfraNumber> {
-            override val demandEntries: List<DemandEntry<InfraNumber>> = demandEntries
+            override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = demandEntries
             override val demandValueAdapter = DefaultBpp3dSolverValueAdapter
             override val load: LinearIntermediateSymbols1<InfraNumber> = symbols
             override val overLoad: LinearIntermediateSymbols1<InfraNumber> = symbols
@@ -213,7 +212,7 @@ class ItemDemandConstraintModeKeyTest {
         assertNotEquals(amountKey, materialWeightKey)
 
         val load = object : Load<InfraNumber> {
-            override val demandEntries: List<DemandEntry<InfraNumber>> = listOf(
+            override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,
                     key = Bpp3dDemandKey.Item(item),
@@ -289,5 +288,6 @@ class ItemDemandConstraintModeKeyTest {
         assertEquals(24.0, reducedCost.toDouble(), 1e-10)
     }
 }
+
 
 

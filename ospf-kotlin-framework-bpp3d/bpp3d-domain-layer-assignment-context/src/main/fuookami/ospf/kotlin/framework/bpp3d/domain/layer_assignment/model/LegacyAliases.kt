@@ -1,3 +1,7 @@
+/**
+ * 层分配标量别名。
+ * Layer assignment scalar aliases.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber

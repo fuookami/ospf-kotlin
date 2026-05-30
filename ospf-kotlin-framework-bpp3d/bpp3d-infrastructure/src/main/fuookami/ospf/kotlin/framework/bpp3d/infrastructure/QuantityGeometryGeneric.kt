@@ -1,3 +1,7 @@
+/**
+ * 泛型量纲几何基础设施。
+ * Generic quantity geometry infrastructure.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber

@@ -1,3 +1,7 @@
+/**
+ * 层分配负载模型。
+ * Layer assignment load model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
@@ -36,8 +40,14 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import kotlin.math.ceil
 
+/**
+ * BPP3D 需求域。
+ * BPP3D demand domain.
+ */
 enum class Bpp3dDemandDomain {
+    /** 离散域 / discrete domain */
     Discrete,
+    /** 连续域 / continuous domain */
     Continuous
 }
 
@@ -85,39 +95,57 @@ private fun defaultDemandUnit(): PhysicalUnit {
     return DemandCountUnit
 }
 
-private fun defaultDemandDomain(unit: PhysicalUnit): Bpp3dDemandDomain {
-    return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous)
-}
-
-interface DemandEntry<V : FloatingNumber<V>> {
-    val mode: Bpp3dDemandMode
-    val key: Bpp3dDemandKey
-    val demand: V
-    val demandRange: ValueRange<V>
-    val quantityUnit: PhysicalUnit
-    val quantityDomain: Bpp3dDemandDomain
-}
-
+/**
+ * 货物需求接口。
+ * Item demand interface.
+ *
+ * @param V 数值类型 / numeric type
+ */
 interface ItemDemand<V : FloatingNumber<V>> {
+    /** 货物 / item */
     val item: Item
+    /** 需求量 / quantity */
     val quantity: Quantity<V>
+    /** 需求模式 / demand mode */
     val mode: Bpp3dDemandMode
 }
 
+/**
+ * 物料需求接口。
+ * Material demand interface.
+ *
+ * @param V 数值类型 / numeric type
+ */
 interface MaterialDemand<V : FloatingNumber<V>> {
+    /** 物料键 / material key */
     val material: MaterialKey
+    /** 需求量 / quantity */
     val quantity: Quantity<V>
+    /** 需求模式 / demand mode */
     val mode: Bpp3dDemandMode
 }
 
+/**
+ * BPP3D 需求条目。
+ * BPP3D demand entry.
+ *
+ * @param V 数值类型 / numeric type
+ * @property mode 需求模式 / demand mode
+ * @property key 需求键 / demand key
+ * @property demand 需求值 / demand value
+ * @property demandRange 需求值域 / demand value range
+ * @property quantityUnit 量纲单位 / quantity unit
+ */
 data class Bpp3dDemandEntry<V : FloatingNumber<V>>(
-    override val mode: Bpp3dDemandMode,
-    override val key: Bpp3dDemandKey,
-    override val demand: V,
-    override val demandRange: ValueRange<V>,
-    override val quantityUnit: PhysicalUnit = defaultDemandUnit(),
-    override val quantityDomain: Bpp3dDemandDomain = defaultDemandDomain(quantityUnit)
-) : DemandEntry<V>
+    val mode: Bpp3dDemandMode,
+    val key: Bpp3dDemandKey,
+    val demand: V,
+    val demandRange: ValueRange<V>,
+    val quantityUnit: PhysicalUnit = defaultDemandUnit()
+) {
+    val quantityDomain: Bpp3dDemandDomain
+        get() = resolveUnitDomain(quantityUnit, Bpp3dDemandDomain.Continuous)
+}
 
 typealias InfraBpp3dDemandEntry = Bpp3dDemandEntry<InfraNumber>
 
@@ -159,31 +187,6 @@ data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
 ) : MaterialDemand<V>
 
 typealias InfraBpp3dMaterialDemand = Bpp3dMaterialDemand<InfraNumber>
-
-fun Bpp3dDemandEntry<InfraNumber>.toModelDemandEntry(): Bpp3dDemandEntry<InfraNumber> {
-    return Bpp3dDemandEntry(
-        mode = mode,
-        key = key,
-        demand = demand,
-        demandRange = demandRange,
-        quantityUnit = quantityUnit,
-        quantityDomain = quantityDomain
-    )
-}
-
-fun DemandEntry<InfraNumber>.toModelDemandEntry(): Bpp3dDemandEntry<InfraNumber> {
-    return when (this) {
-        is Bpp3dDemandEntry<*> -> this.toModelDemandEntry()
-        else -> Bpp3dDemandEntry(
-            mode = mode,
-            key = key,
-            demand = demand,
-            demandRange = demandRange,
-            quantityUnit = quantityUnit,
-            quantityDomain = quantityDomain
-        )
-    }
-}
 
 private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
     return when (mode) {
@@ -229,7 +232,7 @@ private fun exactDemandRange(value: InfraNumber): ValueRange<InfraNumber> {
 fun demandEntriesFromItemDemands(
     items: List<Pair<Item, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromLabeledItemDemands(
         items = items.map { (item, quantity) ->
             Bpp3dItemDemand(
@@ -244,7 +247,7 @@ fun demandEntriesFromItemDemands(
 fun demandEntriesFromLabeledItemDemands(
     items: List<ItemDemand<InfraNumber>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return items.map { demand ->
         val mode = resolveItemDemandMode(demand.mode)
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
@@ -261,7 +264,7 @@ fun demandEntriesFromLabeledItemDemands(
 fun demandEntriesFromItems(
     items: List<Pair<Item, UInt64>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return items.map { (item, demand) ->
         val demandValue = demandValueAdapter.amountToSolver(demand)
         Bpp3dDemandEntry(
@@ -277,7 +280,7 @@ fun demandEntriesFromItems(
 fun demandEntriesFromItemRanges(
     items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return items.map { (item, demand, demandRange) ->
         Bpp3dDemandEntry(
             mode = Bpp3dDemandMode.Item,
@@ -292,7 +295,7 @@ fun demandEntriesFromItemRanges(
 private fun demandEntriesFromMaterialDemandsByKey(
     materials: List<MaterialDemand<InfraNumber>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return materials.map { demand ->
         val mode = resolveMaterialDemandMode(demand.mode)
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
@@ -307,9 +310,9 @@ private fun demandEntriesFromMaterialDemandsByKey(
 }
 
 fun demandEntriesFromMaterialDemands(
-    materials: List<Pair<Material, Quantity<InfraNumber>>>,
+    materials: List<Pair<Material<InfraNumber>, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
@@ -324,7 +327,7 @@ fun demandEntriesFromMaterialDemands(
 fun demandEntriesFromLabeledMaterialDemands(
     materials: List<MaterialDemand<InfraNumber>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials,
         demandValueAdapter = demandValueAdapter
@@ -334,7 +337,7 @@ fun demandEntriesFromLabeledMaterialDemands(
 private fun demandEntriesFromMaterialAmountsByKey(
     materials: List<Pair<MaterialKey, UInt64>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
@@ -347,9 +350,9 @@ private fun demandEntriesFromMaterialAmountsByKey(
 }
 
 fun demandEntriesFromMaterialAmounts(
-    materials: List<Pair<Material, UInt64>>,
+    materials: List<Pair<Material<InfraNumber>, UInt64>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialAmountsByKey(
         materials = materials.map { (material, demand) -> Pair(material.key, demand) },
         demandValueAdapter = demandValueAdapter
@@ -359,7 +362,7 @@ fun demandEntriesFromMaterialAmounts(
 private fun demandEntriesFromMaterialWeightsByKey(
     materials: List<Pair<MaterialKey, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
             Bpp3dMaterialDemand(
@@ -372,28 +375,49 @@ private fun demandEntriesFromMaterialWeightsByKey(
 }
 
 fun demandEntriesFromMaterialWeights(
-    materials: List<Pair<Material, Quantity<InfraNumber>>>,
+    materials: List<Pair<Material<InfraNumber>, Quantity<InfraNumber>>>,
     demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
-): List<DemandEntry<InfraNumber>> {
+): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialWeightsByKey(
         materials = materials.map { (material, demand) -> Pair(material.key, demand) },
         demandValueAdapter = demandValueAdapter
     )
 }
 
+/**
+ * 负载接口，管理需求约束的符号表达。
+ * Load interface, manages symbolic expressions for demand constraints.
+ *
+ * @param V 数值类型 / numeric type
+ */
 interface Load<V : FloatingNumber<V>> {
-    val demandEntries: List<DemandEntry<V>>
+    /** 需求条目列表 / demand entry list */
+    val demandEntries: List<Bpp3dDemandEntry<V>>
+    /** 需求值适配器 / demand value adapter */
     val demandValueAdapter: Bpp3dDemandValueAdapter
+    /** 负载符号 / load symbols */
     val load: LinearIntermediateSymbols1<InfraNumber>
+    /** 超载符号 / over-load symbols */
     val overLoad: LinearIntermediateSymbols1<InfraNumber>
+    /** 欠载符号 / less-load symbols */
     val lessLoad: LinearIntermediateSymbols1<InfraNumber>
 
+    /** 是否启用超载 / whether over-load is enabled */
     val overEnabled: Boolean
+    /** 是否启用欠载 / whether less-load is enabled */
     val lessEnabled: Boolean
 }
 
+/**
+ * 基础负载类型别名。
+ * Base load type alias.
+ */
 typealias InfraLoad = Load<InfraNumber>
 
+/**
+ * 抽象负载基类，提供超载和欠载符号的注册。
+ * Abstract load base class, provides registration of over-load and less-load symbols.
+ */
 abstract class AbstractLoad : InfraLoad {
     override lateinit var overLoad: LinearIntermediateSymbols1<InfraNumber>
     override lateinit var lessLoad: LinearIntermediateSymbols1<InfraNumber>
@@ -441,19 +465,40 @@ abstract class AbstractLoad : InfraLoad {
         return ok
     }
 
+    /**
+     * 计算层对需求的负载系数。
+     * Calculate load coefficient of layer for demand.
+     *
+     * @param layer 层 / layer
+     * @param demand 需求条目 / demand entry
+     * @return 负载系数 / load coefficient
+     */
     protected fun loadCoefficient(
         layer: BinLayer,
-        demand: DemandEntry<InfraNumber>
+        demand: Bpp3dDemandEntry<InfraNumber>
     ): InfraNumber {
-        val concreteMode = demand.mode.toConcreteMode(demand.quantityDomain == Bpp3dDemandDomain.Discrete)
+        val concreteMode = demand.mode.toConcreteMode(
+            key = demand.key,
+            isDiscrete = demand.quantityDomain == Bpp3dDemandDomain.Discrete
+        )
         val value = layer.statistics(concreteMode)[demand.key]
             ?: defaultDemandValue(demand.quantityDomain)
         return demandValueAdapter.toSolver(value)
     }
 }
 
+/**
+ * 不精确负载，用于列生成 RMP 阶段。
+ * Imprecise load, used for column generation RMP phase.
+ *
+ * @property demandEntries 需求条目列表 / demand entry list
+ * @property assignment 不精确赋值 / imprecise assignment
+ * @property overEnabled 是否启用超载 / whether over-load is enabled
+ * @property lessEnabled 是否启用欠载 / whether less-load is enabled
+ * @property demandValueAdapter 需求值适配器 / demand value adapter
+ */
 class ImpreciseLoad(
-    override val demandEntries: List<DemandEntry<InfraNumber>>,
+    override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
     private val assignment: ImpreciseAssignment,
     override val overEnabled: Boolean = true,
     override val lessEnabled: Boolean = true,
@@ -538,8 +583,19 @@ class ImpreciseLoad(
     }
 }
 
+/**
+ * 精确负载，用于最终 MILP 求解阶段。
+ * Precise load, used for final MILP solving phase.
+ *
+ * @property demandEntries 需求条目列表 / demand entry list
+ * @property layers 层列表 / layer list
+ * @property assignment 精确赋值 / precise assignment
+ * @property overEnabled 是否启用超载 / whether over-load is enabled
+ * @property lessEnabled 是否启用欠载 / whether less-load is enabled
+ * @property demandValueAdapter 需求值适配器 / demand value adapter
+ */
 class PreciseLoad(
-    override val demandEntries: List<DemandEntry<InfraNumber>>,
+    override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
     private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment,
     override val overEnabled: Boolean = false,

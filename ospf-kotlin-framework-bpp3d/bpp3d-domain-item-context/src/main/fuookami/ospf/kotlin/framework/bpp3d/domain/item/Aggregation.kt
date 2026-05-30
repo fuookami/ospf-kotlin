@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 货物聚合。
+ * Item aggregation.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity

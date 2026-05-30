@@ -156,27 +156,27 @@
 
 ### 7.2 主模型
 
-- [ ] `Material<V>` 是正式主模型。
-- [ ] `PackageShape<V>` 是正式主模型。
-- [ ] `Package<V>` 是正式主模型。
-- [ ] `PackingProgram<V>` 是正式主模型。
-- [ ] `Item<V>` 是正式主模型。
-- [ ] `Bin<V>` 是正式主模型。
-- [ ] `Layer<V>`、`BinLayer<V>`、`LayerBin<V>` 是正式主模型。
-- [ ] `Load<V>` 是正式主模型。
+- [x] `Material<V>` 是正式主模型。
+- [x] `PackageShape<V>` 是正式主模型。
+- [x] `Package<V>` 是正式主模型。
+- [x] `PackingProgram<V>` 是正式主模型。
+- [x] `Item<V>`（`GenericItem<V>`）是正式主模型。
+- [x] `Bin<V>`（`Bin<T : Cuboid<T>>`）是正式主模型。
+- [x] `Layer<V>`、`BinLayer<V>`、`LayerBin<V>`（`GenericBinLayer<V>`/`BinLayer`/`LayerBin`）是正式主模型。
+- [x] `Load<V>` 是正式主模型。
 - [x] `Bpp3dDemandEntry<V>` 是正式主模型。
-- [ ] 不存在与上述类型并行的 legacy 主模型。
+- [x] 不存在与上述类型并行的 legacy 主模型（`legacy/compat` 主路径已清理，保留的是运行时模型与泛型模型分层，而非 legacy 并行）。
 
 ### 7.3 主流程
 
-- [ ] application request/service/executor/analyzer 直接处理泛型主模型。
-- [ ] layer generation 直接处理 `Item<V>` 与 `PackingProgram<V>` candidate。
-- [ ] layer assignment 直接处理 `Load<V>` 与 `Bpp3dDemandEntry<V>`。
-- [ ] packing planner 直接处理 `MaterialPackingDemand<V>` 与 `PackingProgram<V>`。
-- [ ] block-loading 与 BLA 不依赖 legacy helper。
-- [ ] `DemandMode` 只用于语义标签、key、分组、KPI 和报表。
-- [ ] 离散/连续只从 `quantity.unit.domain` 判断。
-- [ ] dimension 不参与任何算法判定和运算。
+- [x] application request/service/executor/analyzer 直接处理泛型主模型。
+- [x] layer generation 直接处理 `Item<V>` 与 `PackingProgram<V>` candidate。
+- [x] layer assignment 直接处理 `Load<V>` 与 `Bpp3dDemandEntry<V>`。
+- [x] packing planner 直接处理 `MaterialPackingDemand<V>` 与 `PackingProgram<V>`。
+- [x] block-loading 与 BLA 不依赖 legacy helper。
+- [x] `DemandMode` 只用于语义标签、key、分组、KPI 和报表。
+- [x] 离散/连续只从 `quantity.unit.domain` 判断。
+- [x] dimension 不参与任何算法判定和运算。
 
 ### 7.4 回归
 
@@ -189,8 +189,8 @@
 - [x] 真实 CSV `suite.dir` 通过。
 - [x] selected bin/layer、LP/MILP objective、gap、elapsed 指标仍输出。
 - [x] `final bins -> packing -> schema` 一致性断言仍通过。
-- [ ] `daily.md` 保持删除状态。
-- [ ] `refactor.md` 更新为最终完成状态。
+- [x] `daily.md` 保持删除状态。
+- [x] `refactor.md` 更新为最终完成状态。
 
 ## 8. 建议验证命令
 
@@ -446,14 +446,341 @@ pwsh.exe -NoLogo -NoProfile -Command "mvn -f pom.xml -pl bpp3d-application -am -
      - `GenericDemandReducedCost.kt`
      - 以及对应 `model` 侧测试。
    - 下会话建议入口：
-     1. 优先将 `domain.item.api` 兼容测试用例逐步复制/迁移到 `domain.item.model`，先做到“行为等价双测”；
-     2. 双测稳定后，再评估裁剪 `api` 并行实现；
-     3. 每步都保持 `mvn --%` + `generic-boundary-check` 验证闭环。
+      1. 优先将 `domain.item.api` 兼容测试用例逐步复制/迁移到 `domain.item.model`，先做到“行为等价双测”；
+      2. 双测稳定后，再评估裁剪 `api` 并行实现；
+      3. 每步都保持 `mvn --%` + `generic-boundary-check` 验证闭环。
+52. `model` 双测补齐（承接 51 的建议入口）：
+   - `bpp3d-domain-item-context/src/test/.../model/GenericDemandReducedCostTest.kt` 新增 `reducedCostShouldSupportGenericShadowPriceKeyMap`，补齐与 `api` 侧 `QuantityDemandReducedCostGenericTest` 等价的 shadow-price map 场景。
+   - 新增 `bpp3d-domain-item-context/src/test/.../model/GenericDemandStatisticsTest.kt`，覆盖 `Flt64/FltX` 两条统计路径（`ItemAmount`、`ItemMaterialAmount`、`ItemMaterialWeight`）并校验层级聚合结果。
+   - 本轮验证：
+     - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=GenericDemandReducedCostTest,GenericDemandStatisticsTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 5, Failures: 0, Errors: 0, Skipped: 0`）。
+     - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+53. `model` 主路径补齐泛型别名与 alias 双测：
+   - 新增 `bpp3d-domain-item-context/src/main/.../model/GenericQuantityDomainAliases.kt`，在 `domain.item.model` 下提供 `InfraNumber*/FltX*` 泛型别名（`GenericMaterial/GenericPackageShape/GenericPackage/GenericItem/GenericItemPlacement/GenericBinLayer`），作为 `api` 兼容别名的主路径承接。
+   - 新增 `bpp3d-domain-item-context/src/test/.../model/GenericDomainAliasExampleTest.kt`，覆盖 `InfraNumber/FltX` 两条 alias 构造路径并验证 `toModel` 行为，与 `api` 侧 `QuantityDomainAliasExampleTest` 形成行为等价双测。
+   - 本轮验证：
+     - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=GenericDomainAliasExampleTest,QuantityDomainAliasExampleTest,GenericDemandReducedCostTest,GenericDemandStatisticsTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 9, Failures: 0, Errors: 0, Skipped: 0`）。
+     - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+54. item-context 模块全量回归复核：
+   - 执行 `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am test -Dgpg.skip=true`，`bpp3d-domain-item-context` 全量测试通过（`Tests run: 24, Failures: 0, Errors: 0, Skipped: 0`）。
+   - 说明：本轮新增的 `GenericDemandStatisticsTest`、`GenericDemandReducedCostTest`（含 shadow-price map 场景）和 `GenericDomainAliasExampleTest` 均已纳入全量回归并通过。
+55. `api <-> model.Generic*` 适配层补齐（为后续裁剪 `api` 并行实现做准备）：
+   - 新增 `bpp3d-domain-item-context/src/main/.../api/QuantityDomainModelAdapters.kt`，提供 `Material/PackageShape/Package/Item/ItemPlacement/BinLayer` 与 `model.Generic*` 的双向转换函数：
+     - `toGenericModel(...)`
+     - `toApiModel(...)`
+   - 新增 `bpp3d-domain-item-context/src/test/.../api/QuantityDomainModelAdaptersTest.kt`，覆盖 `InfraNumber/FltX` 两条路径的往返转换与 `toModel` 等价性校验。
+56. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=QuantityDomainModelAdaptersTest,GenericDomainAliasExampleTest,QuantityDomainAliasExampleTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 6, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am test -Dgpg.skip=true` 通过（`Tests run: 26, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+57. `api` 统计/降价并行实现收口（委托 `model`）：
+   - `bpp3d-domain-item-context/src/main/.../api/QuantityDemandStatistics.kt` 已改为通过 `toGenericModel()` 委托 `model.GenericDemandStatistics`，仅保留 `api` 对外类型签名与键值类型映射。
+   - `bpp3d-domain-item-context/src/main/.../api/QuantityDemandReducedCost.kt` 已改为通过 `toGenericModel()` 委托 `model.GenericDemandReducedCost`，仅保留 `api` 对外函数签名与 demand-key / shadow-price-key 映射。
+58. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=QuantityDemandReducedCostGenericTest,QuantityDemandStatisticsGenericTest,QuantityDomainModelAdaptersTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am test -Dgpg.skip=true` 通过（`Tests run: 26, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
 
 待继续：
 
 1. 将 `Material<V>`、`PackageShape<V>`、`Package<V>`、`Item<V>`、`BinLayer<V>` 等泛型模型提升为唯一正式主模型。
 2. 将 `Load<V>` 泛型化为正式主模型，并清理剩余 `InfraNumber` 绑定实现。
-3. 消除 `domain.item.model.*` 与 `domain.item.api.*` 并行主模型结构。
-4. 将 application、layer-generation、layer-assignment、block-loading、BLA、packing planner 调用方迁移到正式泛型模型。
-5. 完成最终验收条目并将 `refactor.md` 收口为最终完成状态。
+3. 将 application、layer-generation、layer-assignment、block-loading、BLA、packing planner 调用方迁移到正式泛型模型。
+4. 完成最终验收条目并将 `refactor.md` 收口为最终完成状态。
+59. `domain-item-context` 移除 `domain.item.api` 并行结构（主/测）：
+   - 删除 `bpp3d-domain-item-context/src/main/.../domain/item/api` 下全部实现文件：`QuantityDomainApi.kt`、`QuantityDomainAliases.kt`、`QuantityDemandStatistics.kt`、`QuantityDemandReducedCost.kt`、`ItemScalars.kt`。
+   - 删除 `bpp3d-domain-item-context/src/test/.../domain/item/api` 下全部兼容测试与夹具：`QuantityDemandStatisticsGenericTest.kt`、`QuantityDemandReducedCostGenericTest.kt`、`QuantityDomainAliasExampleTest.kt`、`QuantityDomainModelAdaptersTest.kt`、`TestNumberAliases.kt`。
+   - 复核：`rg "domain\\.item\\.api" ospf-kotlin-framework-bpp3d -g"*.kt"` 无命中。
+60. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am clean test -Dgpg.skip=true` 通过（`Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+61. 全链路编译恢复（依赖工件对齐）：
+   - 先执行 `mvn --% -f ospf-kotlin-core/pom.xml -Dmaven.test.skip=true install -Dgpg.skip=true` 与 `mvn --% -f ospf-kotlin-framework/pom.xml -Dmaven.test.skip=true install -Dgpg.skip=true`，将本地 `ospf-kotlin-core` / `ospf-kotlin-framework` 工件对齐到当前源码主工件（跳过 test-compile）。
+   - 执行 `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am compile -Dgpg.skip=true` 通过。
+62. 主回归复核：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+63. 验收条目复核补记：
+   - `rg "Legacy|legacy|toLegacy" .../bpp3d-domain-bla-context/src/main .../bpp3d-domain-block-loading-context/src/main .../bpp3d-domain-layer-assignment-context/src/main .../bpp3d-domain-layer-generation-context/src/main .../bpp3d-domain-packing-context/src/main -g"*.kt"` 无命中，对应勾选「block-loading 与 BLA 不依赖 legacy helper」。
+   - `Test-Path ospf-kotlin-framework-bpp3d/daily.md` 返回 `False`，对应勾选「`daily.md` 保持删除状态」。
+64. layer-assignment demand 条目主链收口与回归修复：
+   - `Load<V>` 的 `demandEntries` 主字段与 `AbstractLoad.loadCoefficient(...)`、`ImpreciseLoad/PreciseLoad` 入参统一收口为 `List<Bpp3dDemandEntry<V>>`（`DemandConstraint` 同步对齐）。
+   - 修复 `ItemDemandConstraintModeKeyTest` 中匿名 `Load` 的覆写签名，避免 `List<DemandEntry<InfraNumber>>` 与 `List<Bpp3dDemandEntry<InfraNumber>>` 不匹配。
+   - `ColumnGenerationStandardExecutors` 保持外部 `List<DemandEntry<InfraNumber>>` 入参不变，内部新增 `modelDemandEntries = demandEntries.map { it.toModelDemandEntry() }` 归一化后再传入 `ImpreciseLoad/PreciseLoad` 与 `DemandConstraint`，控制改动面。
+65. 运行期回归故障修复（StackOverflow）：
+   - `Load.kt` 中 `DemandEntry<InfraNumber>.toModelDemandEntry()` 原先在 `Bpp3dDemandEntry` 分支触发扩展函数重载递归，导致 `ColumnGenerationAlgorithmTest` 出现 `StackOverflow`。
+   - 现改为无分支直接拷贝构造 `Bpp3dDemandEntry(...)`，消除递归路径并保持语义不变。
+66. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-assignment-context -am -Dtest=ItemDemandConstraintModeKeyTest,FltXDirectCompileProofTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 6, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+67. application demand 条目入参收口到主模型：
+   - `ColumnGenerationApplicationRequest.demandEntries` 从 `List<DemandEntry<InfraNumber>>?` 收口为 `List<Bpp3dDemandEntry<InfraNumber>>?`。
+   - `ColumnGenerationStandardExecutors` 的 `demandEntries` 主字段与 `fromDemandEntries(...)` 入参同步收口为 `List<Bpp3dDemandEntry<InfraNumber>>`。
+   - 删除 executor 内部 `modelDemandEntries = demandEntries.map { it.toModelDemandEntry() }` 归一化桥接，`ImpreciseLoad/PreciseLoad/DemandConstraint` 直接使用主模型 demand 条目。
+68. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+69. Gurobi profile 用例签名对齐：
+   - `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt` 中 `CsvDrivenScenario.demandEntries` 从 `List<DemandEntry<...>>` 收口为 `List<Bpp3dDemandEntry<...>>`，与 `ColumnGenerationStandardExecutors.fromDemandEntries(...)` 新签名保持一致。
+   - 修复同文件别名类型参数引用：`Bpp3dDemandEntry<InfraNumber>` 调整为 `Bpp3dDemandEntry<Flt64>`（该文件内 `InfraNumber` 已别名为 `Flt64`）。
+70. Gurobi profile 验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+71. layer-assignment demand 抽象收口：
+   - `Load.kt` 移除 `DemandEntry<V>` 抽象接口，`Bpp3dDemandEntry<V>` 作为唯一 demand 条目主模型。
+   - 删除 `toModelDemandEntry()` 适配函数（`Bpp3dDemandEntry<InfraNumber>.toModelDemandEntry` 与 `DemandEntry<InfraNumber>.toModelDemandEntry`），避免无效桥接与重载歧义回归。
+72. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-assignment-context -am -Dtest=ItemDemandConstraintModeKeyTest,FltXDirectCompileProofTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 6, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+73. demand concrete-mode 判定收口（保留显式 mode 兼容）：
+   - `bpp3d-domain-item-context/src/main/.../DemandStatistics.kt` 新增：
+     - `Bpp3dDemandKey.toConcreteMode(isDiscrete)`
+     - `Bpp3dDemandMode.toConcreteMode(key, isDiscrete)`
+     其中语义 mode（`Item` / `Material`）按 `key + isDiscrete` 推导，显式具体 mode（`ItemAmount` / `ItemWeight` / `ItemMaterialAmount` / `ItemMaterialWeight`）保持优先；若 mode 与 key 类型不匹配，则回退到 `key + isDiscrete`。
+   - `bpp3d-domain-layer-assignment-context/src/main/.../Load.kt`：
+     - `Bpp3dDemandEntry.quantityDomain` 从构造参数改为基于 `quantityUnit` 的动态推导属性，避免手工覆写。
+     - `loadCoefficient(...)` 的统计 mode 解析改为 `demand.mode.toConcreteMode(demand.key, isDiscrete)`。
+   - `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/DemandConstraint.kt` 与
+     `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt` 同步改为上述统一 concrete-mode 解析路径。
+74. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-assignment-context -am -Dtest=UnifiedDemandEntriesTest,MaterialDemandEntriesTest,ItemDemandConstraintModeKeyTest,FltXDirectCompileProofTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+75. `DemandMode` / 离散域 / dimension 验收条目复核：
+   - `DemandMode` 的 concrete 选择统一经 `Bpp3dDemandMode.toConcreteMode(key, isDiscrete)`，`isDiscrete` 仅来源于 `quantityUnit` 域信息：
+     - `bpp3d-domain-layer-assignment-context/src/main/.../Load.kt`
+     - `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/DemandConstraint.kt`
+     - `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`
+   - `Bpp3dDemandEntry.quantityDomain` 改为按 `quantityUnit` 动态推导，不再由外部参数写入：
+     - `bpp3d-domain-layer-assignment-context/src/main/.../Load.kt`
+   - `rg --line-number -g "*.kt" "dimension|dimensionSymbol|getDimension|quantity\\.dimension|unit\\.quantity\\.dimension" ospf-kotlin-framework-bpp3d` 仅命中测试目录（`src/test`），`src/main` 无命中。
+76. packing demand 泛型化切片（面向 7.3 的增量）：
+   - `bpp3d-domain-packing-context/src/main/.../MaterialPackingPlan.kt`：
+     - `MaterialPackingDemand` 提升为 `MaterialPackingDemand<V : FloatingNumber<V>>`；
+     - 新增 `InfraMaterialPackingDemand` 别名（`MaterialPackingDemand<MaterialPackingScalar>`）。
+   - `bpp3d-domain-packing-context/src/main/.../MaterialPacker.kt`：
+     - `plan(...)` 入参改为 `List<MaterialPackingDemand<*>>`，兼容不同数值实现的重量需求类型。
+   - `bpp3d-application/src/main/.../ColumnGenerationApplicationService.kt`：
+     - `materialDemands` 本地集合改为 `ArrayList<MaterialPackingDemand<*>>()`，与新签名对齐。
+77. 本轮补充验证：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am -Dtest=MaterialPackerTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 7, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 18, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+78. `PackingProgram<V>` 与 packing candidate 主链泛型化：
+   - `bpp3d-domain-item-context/src/main/.../Package.kt`：
+     - `PackingProgram` 升级为 `PackingProgram<V : FloatingNumber<V>>`；
+     - `Package.program` 与相关工厂/校验签名改为 `PackingProgram<*>`，保持运行时兼容；
+     - `innerPackageWithMaterialQuantities(...)` 直接返回 `PackingProgram<V>`。
+   - `bpp3d-domain-packing-context/src/main/.../MaterialPackingPlan.kt`：
+     - `MaterialPackingProgramCandidate` 升级为 `MaterialPackingProgramCandidate<V : FloatingNumber<V>>`；
+     - 新增 `InfraMaterialPackingProgramCandidate` 别名；
+     - `PackageSelection` / `MaterialPackingAssignment` 的 `candidate` 字段改为 `MaterialPackingProgramCandidate<*>`。
+   - `bpp3d-domain-packing-context/src/main/.../service/MaterialPacker.kt` 与 `MaterialPackingSolverExecutor.kt`：
+     - `plan(...)` 与 `MaterialPackingMipRequest` / `solve(...)` 入口统一为泛型 `V`；
+     - `MaterialPacker.plan(...)` 主签名改为 `List<MaterialPackingDemand<V>>` + `List<MaterialPackingProgramCandidate<V>>`。
+   - `bpp3d-application/src/main/.../ColumnGenerationApplicationService.kt`：
+     - request 的 `materialPackingCandidates` 与 `layerGenerationProgramDemands` 改为 `MaterialPackingProgramCandidate<InfraNumber>`；
+     - `materialDemands` 本地集合改为 `ArrayList<MaterialPackingDemand<InfraNumber>>()`。
+79. 本轮补充验证（packing program 泛型化后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=PackingProgramMaterialValueTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 5, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am -Dtest=MaterialPackerTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 7, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest,PackingProgramLayerCandidateAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 21, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+80. `Package<V>` 主定义泛型化（与 `PackingProgram<V>` 对齐）：
+   - `bpp3d-domain-item-context/src/main/.../Package.kt`：
+     - `Package` 升级为 `Package<V : FloatingNumber<V>>`；
+     - `program` 字段由 `PackingProgram<*>?` 收口为 `PackingProgram<V>?`；
+     - `packages` 字段改为 `List<Package<V>>?`；
+     - `PackingProgram.actualPackage(...)` 返回类型收口为 `Package<V>`；
+     - `Package` 工厂函数按场景分流：`innerPackage(shape, ...) -> Package<InfraNumber>`，`inner/outerPackage(program, ...) -> Package<V>`。
+   - 受影响调用侧签名对齐：
+     - `ActualItem.pack` 与其构造器参数改为 `Package<*>`（`Item.kt`）；
+     - `GenericPackage.toModel()` 返回类型改为 `Package<InfraNumber>`（`QuantityDomainModels.kt`）；
+     - `MaterialAttributeKey.match(...)` 入参改为 `Package<*>`（`MaterialAttribute.kt`）；
+     - `MaterialPackingPlan.packages` 改为 `List<Package<*>>`，`MaterialPacker.PackageSlot.pack` 改为 `Package<*>`。
+81. 本轮补充验证（`Package<V>` 泛型化后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=PackingProgramMaterialValueTest,DemandStatisticsTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am -Dtest=MaterialPackerTest,PackerAndRendererAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest,PackingProgramLayerCandidateAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 21, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+82. `Material<V>` 主定义泛型化（与当前主链 `InfraNumber` 语义兼容）：
+   - `bpp3d-domain-item-context/src/main/.../Material.kt`：
+     - `Material` 升级为 `Material<V : FloatingNumber<V>>`；
+     - 保留默认重量构造行为（`defaultMaterialWeight()`），避免历史调用点需要同步补参。
+   - 主链签名对齐（不改变主流程语义，仅补足类型参数）：
+     - `bpp3d-domain-item-context/src/main/.../Package.kt`：`materialCatalog`、`actualPackage(...)`、`Package.materials` 及 companion 工厂参数统一收口到 `Material<InfraNumber>`；
+     - `bpp3d-domain-item-context/src/main/.../QuantityDomainModels.kt`：`toModel()` 与 `materialCache` 统一收口到 `Material<InfraNumber>`；
+     - `bpp3d-domain-layer-assignment-context/src/main/.../Load.kt`：`demandEntriesFromMaterial*` 系列入参统一为 `Material<InfraNumber>`；
+     - `bpp3d-domain-packing-context/src/main/.../MaterialPackingPlan.kt` 与 `MaterialPacker.kt`：需求与目录类型按 packing scalar 语义收口（`Material<MaterialPackingScalar>`）；
+     - `bpp3d-application/src/main/.../ColumnGenerationApplicationService.kt` 与 `PackingProgramLayerCandidateAdapter.kt`：request/catalog 与适配器签名补全 `Material<InfraNumber>`。
+   - 测试与 Gurobi profile 签名对齐：
+     - 修复 `src/test` 与 `src/gurobi-test` 中裸 `Material` 类型注解，补全为显式类型参数（`InfraNumber` 或 `Flt64`）。
+83. 本轮补充验证（`Material<V>` 泛型化后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=PackingProgramMaterialValueTest,DemandStatisticsTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am -Dtest=MaterialPackerTest,PackerAndRendererAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest,PackingProgramLayerCandidateAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 21, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+84. `PackageShape<V>` 主定义泛型化（并完成主链调用侧收口）：
+   - `bpp3d-domain-item-context/src/main/.../Package.kt`：
+     - `PackageBottomShape` 与 `PackageShape` 升级为 `<V : FloatingNumber<V>>`；
+     - `PackingProgram<V>.shape`、`Package<V>.shape` 与对应工厂函数签名同步收口到 `PackageShape<V>`（`innerPackage(shape, ...)` 保持 `PackageShape<InfraNumber>` 返回 `Package<InfraNumber>`）；
+   - `bpp3d-domain-item-context/src/main/.../Item.kt`：
+     - `ItemPattern.shape` 改为 `PackageShape<InfraNumber>`；
+     - `ActualItem` 保持 `pack: Package<*>` 兼容，新增 `Quantity<*> -> Quantity<InfraNumber>` 转换以承接泛型 `pack` 尺寸；
+   - `bpp3d-domain-item-context/src/main/.../QuantityDomainModels.kt`：
+     - `GenericPackageShape<V>.toModel()` 返回类型收口为 `PackageShape<InfraNumber>`；
+   - `bpp3d-domain-packing-context/src/main/.../PackageSolutionLikeAdapter.kt`：
+     - `PackageSolutionLikeNode.shape` 收口为 `PackageShape<InfraNumber>`；
+   - `bpp3d-domain-packing-context/src/main/.../MaterialPacker.kt` 与 `bpp3d-application/src/main/.../PackingProgramLayerCandidateAdapter.kt`：
+     - 新增 `Quantity<*> -> Quantity<InfraNumber>` 转换，消除 `PackageShape<V>` 传播后的 `CapturedType(*)` 赋值冲突。
+85. 本轮补充验证（`PackageShape<V>` 泛型化后）：
+   - `mvn --% -f pom.xml -pl bpp3d-domain-item-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f pom.xml -pl bpp3d-domain-packing-context -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f pom.xml -pl bpp3d-application -am compile -Dgpg.skip=true` 通过。
+   - `mvn --% -f pom.xml -pl bpp3d-domain-item-context -am -Dtest=PackingProgramMaterialValueTest,DemandStatisticsTest,MaterialDemandReducedCostTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 9, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f pom.xml -pl bpp3d-domain-packing-context -am -Dtest=MaterialPackerTest,PackerAndRendererAdapterTest,PackageSolutionLikeAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 11, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest,PackingProgramLayerCandidateAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 21, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/generic-boundary-check.ps1 -ProjectRoot .` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+86. layer-generation 泛型输入适配入口（面向 7.3 的增量）：
+   - `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt` 新增
+     `bpp3dLayerGenerationRequestFromGeneric<T, V>(...)`：
+     - 入参直接接收 `List<GenericItem<T>>` 与 `List<GenericBinLayer<T>>`；
+     - 在函数内部统一使用共享 `materialCache/itemCache` 转换为 `Bpp3dLayerGenerationRequest<V>` 的现有模型字段（`items`、`existingLayers`）；
+     - 调用侧不再需要手写 `toModel()` 展开循环，减少 `Item<V>` 进入 layer-generation 入口前的样板转换代码。
+87. 本轮补充验证（layer-generation 泛型输入适配后）：
+   - `bpp3d-domain-layer-generation-context/src/test/.../LayerGenerationFltXProofTest.kt` 新增
+     `genericRequestAdapterShouldConvertGenericItemsAndLayers`，验证新入口可将 `GenericItem<FltX>` 与 `GenericBinLayer<FltX>` 正确收敛到模型请求。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context -am -Dtest=LayerGenerationFltXProofTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am compile -Dgpg.skip=true` 通过。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+88. layer-generation 请求构建主路径收口（application/executor 接入）：
+   - `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt` 新增
+     `bpp3dLayerGenerationRequest<V>(...)`（模型输入工厂），统一封装 `Bpp3dLayerGenerationRequest` 的字段组装。
+   - `bpp3dLayerGenerationRequestFromGeneric<T, V>(...)` 改为委托 `bpp3dLayerGenerationRequest<V>(...)`，
+     使 generic 输入路径与模型输入路径复用同一请求构建主链。
+   - `bpp3d-application/src/main/.../ColumnGenerationStandardExecutors.kt` 的 `requestBuilder()` 改为调用
+     `bpp3dLayerGenerationRequest(...)`，不再直接手写 `Bpp3dLayerGenerationRequest(...)` 构造。
+   - `bpp3d-application/src/main/.../ColumnGenerationAlgorithm.kt` 默认分支（未注入自定义 `layerRequestBuilder` 时）
+     改为调用 `bpp3dLayerGenerationRequest(...)`，与 executor 主路径保持一致。
+89. 本轮补充验证（请求构建主路径收口后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context -am -Dtest=LayerGenerationFltXProofTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+90. application 泛型请求入口补齐（减少调用侧手写 `toModel`）：
+   - `bpp3d-application/src/main/.../ColumnGenerationApplicationService.kt` 新增
+     `columnGenerationApplicationRequestFromGeneric<T>(...)`：
+     - 入参直接接收 `List<Pair<GenericItem<T>, UInt64>>`、`List<Pair<GenericMaterial<T>, UInt64>>`、
+       `List<Pair<GenericMaterial<T>, Quantity<T>>>` 与 `List<GenericBinLayer<T>>`；
+     - 函数内统一通过共享 `materialCache/itemCache` 转换为模型侧
+       `ColumnGenerationApplicationRequest` 字段（`itemDemands`、`materialAmountDemands`、
+       `materialWeightDemands`、`programMaterialCatalog`、`initialColumns`）；
+     - 新增 `toInfraQuantity` 局部转换，统一将泛型重量需求收敛到 `Quantity<InfraNumber>`；
+     - 对外保留 `demandEntries`、`generators`、`cgConfig`、`executorConfig` 等原语义参数，便于无缝替换现有入口。
+   - `bpp3d-application/src/test/.../ColumnGenerationAlgorithmTest.kt`：
+     - `applicationRequestFactoryShouldSupportQuantityDemands` 改为调用
+       `columnGenerationApplicationRequestFromGeneric(...)`，并补充断言同一 `GenericMaterial`
+       在 amount/weight 转换后复用同一模型实例（`===`）；
+     - `applicationServiceShouldSupportModelDemandEntryPoint` 改为通过
+       `columnGenerationApplicationRequestFromGeneric(...)` 构建请求，移除测试内手写
+       `materialCache/itemCache + toModel` 样板代码。
+91. 本轮补充验证（application 泛型请求入口补齐后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+92. application service 泛型入口补齐（request/service 直连）：
+   - `bpp3d-application/src/main/.../ColumnGenerationApplicationService.kt` 新增
+     `ColumnGenerationGenericApplicationRequest<T>` 与扩展
+     `toModelRequest(...)`，把 generic 请求字段统一转换到模型
+     `ColumnGenerationApplicationRequest`。
+   - `ColumnGenerationApplicationService` 新增重载：
+     `suspend fun <T : FloatingNumber<T>> solve(request: ColumnGenerationGenericApplicationRequest<T>, ...)`，
+     内部直接委托现有模型入口 `solve(ColumnGenerationApplicationRequest, ...)`。
+   - 现有 `columnGenerationApplicationRequestFromGeneric<T>(...)` 继续保留，用于仅做请求转换的调用场景；
+     新增重载用于 application service 直接接收 generic request，减少调用端手动组装中间模型请求。
+   - `bpp3d-application/src/test/.../ColumnGenerationAlgorithmTest.kt` 的
+     `applicationServiceShouldSupportModelDemandEntryPoint` 切换为
+     `ColumnGenerationGenericApplicationRequest` + `service.solve(...)` 泛型入口调用。
+93. 本轮补充验证（application service 泛型入口补齐后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 14, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+94. executor 泛型工厂入口补齐（application/executor 直连继续收口）：
+   - `bpp3d-application/src/main/.../ColumnGenerationStandardExecutors.kt` 在 companion 新增
+     `fromGenericDemandEntries<T>(...)`：
+     - 入参直接接收 `List<Pair<GenericItem<T>, UInt64>>`；
+     - 函数内统一通过共享 `materialCache/itemCache` 转换为模型 `itemDemands`；
+     - 转换后复用现有 `fromDemandEntries(...)` 主链，保持求解行为与 demand-entry 语义不变。
+   - `bpp3d-application/src/test/.../ColumnGenerationAlgorithmTest.kt` 新增
+     `standardExecutorsFactoryShouldSupportGenericItemDemands`，验证 executor 可直接由 generic item demand 构建。
+95. 本轮补充验证（executor 泛型工厂入口补齐后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 15, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+96. algorithm 泛型货物入口补齐（application algorithm 直连）：
+   - `bpp3d-application/src/main/.../ColumnGenerationAlgorithm.kt` 新增扩展：
+     `solveGeneric<T>(items: List<GenericItem<T>>, ...)`；
+     - 入参直接接收 generic item 列表；
+     - 内部通过共享 `materialCache/itemCache` 转换为模型 `Item` 后复用既有
+       `solve(items: List<Item>, ...)` 主链。
+   - `bpp3d-application/src/test/.../ColumnGenerationAlgorithmTest.kt` 新增
+     `algorithmShouldSupportGenericItemEntryPoint`，验证 algorithm 可直接接入 generic item 列表并稳定完成一轮 LP + 无列退出流程。
+97. 本轮补充验证（algorithm 泛型货物入口补齐后）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 16, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+98. layer-generation 程序候选适配下沉到领域（候选 -> 货物）：
+   - `bpp3d-domain-layer-generation-context` 新增
+     `LayerGenerationProgramCandidateAdapters.kt`：
+     - 增加 `MaterialPackingProgramCandidate<*>.toLayerGenerationItem(...)`；
+     - 增加 `layerGenerationItemDemandsFromPrograms(...)`，统一把 `List<Pair<candidate, amount>>` 转换为 `List<Pair<Item, UInt64>>`。
+   - `bpp3d-domain-layer-generation-context/pom.xml` 新增对 `bpp3d-domain-packing-context` 依赖，用于直接承载 packing candidate 到 layer-generation item 的领域转换逻辑。
+   - `bpp3d-application/src/main/.../ColumnGenerationApplicationService.kt` 改为调用
+     `layerGenerationItemDemandsFromPrograms(...)`，不再在 application service 内手写 `mapIndexed + toLayerGenerationItem` 转换循环。
+   - 删除 `bpp3d-application/src/main/.../PackingProgramLayerCandidateAdapter.kt`，application 主源码不再保留同名桥接扩展。
+   - application 侧测试调用改为直接引用 `domain.layer_generation.toLayerGenerationItem`。
+99. 本轮补充验证（程序候选适配下沉后）：
+   - `bpp3d-domain-layer-generation-context/src/test/.../LayerGenerationProgramCandidateAdaptersTest.kt` 新增：
+     - `programCandidateShouldConvertToLayerGenerationItem`；
+     - `programDemandsShouldConvertToItemDemandsInOrder`。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context -am -Dtest=LayerGenerationFltXProofTest,LayerGenerationProgramCandidateAdaptersTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 13, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,PackingProgramLayerCandidateAdapterTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 23, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+100. 主流程泛型直连补齐（analyzer + layer-generation 程序候选）：
+   - `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationProgramCandidateAdapters.kt` 新增：
+     - `layerGenerationItemsFromPrograms(...)`，直接把程序需求展开为层生成 `items` 列表；
+   - `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt` 新增：
+     - `bpp3dLayerGenerationRequestFromProgramDemands(...)`；
+     - `Bpp3dLayerGenerator.generateFromProgramDemands(...)`；
+     - 使 layer-generation 可以直接由 `PackingProgram<V>` candidate 需求构建请求并执行；
+   - `bpp3d-application/src/main/.../ColumnGenerationPackingAnalyzer.kt` 新增：
+     - `ColumnGenerationPackingAnalyzer.analyzeFromGeneric(...)`；
+     - 使 analyzer 可直接接收 `List<GenericBinLayer<T>>` 执行分析。
+101. 本轮补充验证（主流程泛型直连补齐后）：
+   - `bpp3d-domain-layer-generation-context/src/test/.../LayerGenerationProgramCandidateAdaptersTest.kt` 新增：
+     - `requestFactoryShouldSupportProgramDemandsDirectly`；
+     - `generatorShouldSupportProgramDemandEntryPoint`。
+   - `bpp3d-application/src/test/.../ColumnGenerationPackingAnalyzerGenericEntryPointTest.kt` 新增：
+     - `analyzerShouldSupportGenericLayerEntryPoint`。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context -am -Dtest=LayerGenerationFltXProofTest,LayerGenerationProgramCandidateAdaptersTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 15, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest,PackingProgramLayerCandidateAdapterTest,ColumnGenerationPackingAnalyzerGenericEntryPointTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 24, Failures: 0, Errors: 0, Skipped: 0`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+102. 最终状态：
+   - 7.1 / 7.2 / 7.3 / 7.4 验收清单已全部勾选；
+   - `refactor.md` 已收敛为最终完成状态，后续不再保留迁移流水。
+103. 最终门禁复核（一次性收口）：
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test -Dgpg.skip=true` 通过（application 聚合全量回归通过）。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
+   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。

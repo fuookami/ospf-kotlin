@@ -1,5 +1,9 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 空间模型。
+ * Space model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*

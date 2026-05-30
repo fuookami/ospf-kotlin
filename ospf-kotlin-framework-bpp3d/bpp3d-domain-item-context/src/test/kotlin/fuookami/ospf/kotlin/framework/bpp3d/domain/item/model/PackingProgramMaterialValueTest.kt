@@ -31,7 +31,7 @@ class PackingProgramMaterialValueTest {
     private fun material(
         no: String,
         unitWeightKg: InfraNumber
-    ): Material {
+    ): Material<InfraNumber> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -41,7 +41,7 @@ class PackingProgramMaterialValueTest {
         )
     }
 
-    private fun shape(): PackageShape {
+    private fun shape(): PackageShape<InfraNumber> {
         return PackageShape(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(1.0) * Meter,
@@ -153,4 +153,5 @@ class PackingProgramMaterialValueTest {
         assertScalarEquals(2.5, program.materialQuantities()[material.key]?.value)
     }
 }
+
 
