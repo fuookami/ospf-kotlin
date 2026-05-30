@@ -65,7 +65,7 @@ private fun toModelCountMap(
     return counter
 }
 
-private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
+private fun <P : ProjectivePlane> count2WithGenericFallback(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
     if (hasNestedContainer) {
         val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
@@ -78,7 +78,7 @@ private fun <P : ProjectivePlane> count2ByGenericOrLegacy(units: List<QuantityPl
     return toModelCountMap(genericCounts)
 }
 
-private fun count3ByGenericOrLegacy(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
+private fun count3WithGenericFallback(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
     if (hasNestedContainer) {
         val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
@@ -164,7 +164,7 @@ interface Container2<
 
     companion object {
         fun <P : ProjectivePlane> count(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
-            return count2ByGenericOrLegacy(units)
+            return count2WithGenericFallback(units)
         }
     }
 
@@ -295,7 +295,7 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraNumber>, Copyable<
 
     companion object {
         fun count(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
-            return count3ByGenericOrLegacy(units)
+            return count3WithGenericFallback(units)
         }
     }
 

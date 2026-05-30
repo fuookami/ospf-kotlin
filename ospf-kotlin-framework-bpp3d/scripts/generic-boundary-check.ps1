@@ -18,14 +18,16 @@ if (-not (Get-Command rg -ErrorAction SilentlyContinue)) {
     throw "rg not found. Please install ripgrep."
 }
 
-$checks = @(
+$sourceGlob = "**/src/main/**/*.kt"
+
+$contentChecks = @(
     @{
-        Name = "LegacyUpperToken"
-        Pattern = "\bLegacy[A-Za-z0-9_]*\b"
+        Name = "LegacyUpperAny"
+        Pattern = "Legacy"
     },
     @{
-        Name = "LegacyLowerToken"
-        Pattern = "\blegacy[A-Za-z0-9_]*\b"
+        Name = "LegacyLowerAny"
+        Pattern = "legacy"
     },
     @{
         Name = "LegacyQuantity"
@@ -69,7 +71,7 @@ $checks = @(
     },
     @{
         Name = "Flt64Token"
-        Pattern = "\bFlt64\b"
+        Pattern = "Flt64"
     },
     @{
         Name = "LegacyScalarToken"
@@ -138,6 +140,33 @@ $checks = @(
     @{
         Name = "legacyScalarToken"
         Pattern = "\blegacyScalar\b"
+    },
+    @{
+        Name = "ScalarTypeAlias"
+        Pattern = "^\s*(private\s+)?typealias\s+[A-Za-z0-9_]*Scalar\b"
+    }
+)
+
+$fileNameChecks = @(
+    @{
+        Name = "LegacyInFileName"
+        Pattern = "Legacy"
+    },
+    @{
+        Name = "legacyInFileName"
+        Pattern = "legacy"
+    },
+    @{
+        Name = "Flt64InFileName"
+        Pattern = "Flt64"
+    },
+    @{
+        Name = "BridgeInFileName"
+        Pattern = "Bridge"
+    },
+    @{
+        Name = "ScalarInFileName"
+        Pattern = "Scalar"
     }
 )
 
@@ -162,8 +191,8 @@ foreach ($dir in $compatDirectories) {
     }
 }
 
-foreach ($check in $checks) {
-    $lines = rg -n --no-heading --color never $check.Pattern $scanRoot -g "**/src/main/**/*.kt" -S
+foreach ($check in $contentChecks) {
+    $lines = rg -n --no-heading --color never $check.Pattern $scanRoot -g $sourceGlob -S
     foreach ($line in $lines) {
         $match = [regex]::Match($line, "^([A-Za-z]:.*?):([0-9]+):(.*)$")
         if (-not $match.Success) {
@@ -179,6 +208,22 @@ foreach ($check in $checks) {
             File = $filePath
             Line = $lineNumber
             Text = $text
+        }
+    }
+}
+
+$files = rg --files $scanRoot -g $sourceGlob
+foreach ($rawPath in $files) {
+    $filePath = $rawPath.Replace("\", "/")
+    $fileName = [System.IO.Path]::GetFileName($filePath)
+    foreach ($check in $fileNameChecks) {
+        if ($fileName -match $check.Pattern) {
+            $violations += [PSCustomObject]@{
+                Check = $check.Name
+                File = $filePath
+                Line = 1
+                Text = "forbidden file name: $fileName"
+            }
         }
     }
 }

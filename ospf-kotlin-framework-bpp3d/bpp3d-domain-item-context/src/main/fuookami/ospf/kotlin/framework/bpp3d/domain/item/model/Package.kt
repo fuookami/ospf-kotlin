@@ -148,7 +148,7 @@ data class PackingProgramMaterialValue(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun packingProgramWeightToLegacyScalar(value: Quantity<*>): Quantity<InfraNumber> {
+private fun packingProgramWeightToInfraQuantity(value: Quantity<*>): Quantity<InfraNumber> {
     return when (value.value) {
         is InfraNumber -> value as Quantity<InfraNumber>
         is FltX -> {
@@ -171,11 +171,11 @@ private fun plusPackingProgramWeight(
         return lhs
     }
     return when (lhs.value) {
-        is InfraNumber -> (lhs as Quantity<InfraNumber>) + packingProgramWeightToLegacyScalar(rhs)
+        is InfraNumber -> (lhs as Quantity<InfraNumber>) + packingProgramWeightToInfraQuantity(rhs)
         is FltX -> {
             val rhsValue = when (rhs.value) {
                 is FltX -> rhs as Quantity<FltX>
-                is InfraNumber -> packingProgramWeightToLegacyScalar(rhs).toFltX()
+                is InfraNumber -> packingProgramWeightToInfraQuantity(rhs).toFltX()
                 else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${rhs.value}")
             }
             (lhs as Quantity<FltX>) + rhsValue
@@ -359,7 +359,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
         materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()
     ): Map<MaterialKey, Quantity<InfraNumber>> {
         return materials.mapNotNull { (material, value) ->
-            val quantity = value.weight?.let { packingProgramWeightToLegacyScalar(it) } ?: value.amount?.let { amount ->
+            val quantity = value.weight?.let { packingProgramWeightToInfraQuantity(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight
                 if (unitWeight != null) {
                     unitWeight * InfraNumber(amount.toULong().toDouble())
@@ -377,7 +377,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
 
     fun materialWeights(materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()): Map<MaterialKey, Quantity<InfraNumber>> {
         return materials.mapNotNull { (material, value) ->
-            val resolvedWeight = value.weight?.let { packingProgramWeightToLegacyScalar(it) } ?: value.amount?.let { amount ->
+            val resolvedWeight = value.weight?.let { packingProgramWeightToInfraQuantity(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight ?: return@let null
                 unitWeight * InfraNumber(amount.toULong().toDouble())
             }

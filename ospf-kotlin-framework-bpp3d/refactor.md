@@ -9,16 +9,15 @@
 
 最终目标仍是：BPP3D 不保留兼容层，不保留 legacy 主模型，不通过 legacy bridge 执行主流程；所有主模型和主流程应直接使用 `Quantity<V>` 泛型实现。
 
-当前实测结论（已更新到本轮执行后）：
+当前实测结论（2026-05-30 复核）：
 
-1. BPP3D `bpp3d-application -am compile` 已通过。
-2. `GurobiColumnGenerationTest` 已通过，结果为 `Tests run: 10, Failures: 0, Errors: 0, Skipped: 1`。
-3. `scripts/generic-boundary-check.ps1` 已通过，输出 `STRICT_GENERIC_BOUNDARY_PASS`。
-4. strict scanner 已覆盖 `Legacy/legacy` 命名、`toLegacyModel`、`toLegacyItems`、`toLegacyLayers`、`toLegacyPlacement3`、`toFlt64Quantity`、`Flt64`、`*Scalar` 和 `compat` 目录检查。
-5. `ApplicationRequestLegacyBridge.kt` 与 `LoadLegacyBridge.kt` 已删除并替换为中性命名桥接实现。
-6. `GurobiColumnGenerationTest` 复跑通过，结果为 `Tests run: 10, Failures: 0, Errors: 0, Skipped: 1`。
+1. 默认回归 `mvn -f pom.xml -pl bpp3d-application -am test -Dgpg.skip=true` 通过。
+2. 旧版 strict scanner 存在漏检：只扫源码内容、不扫文件名，且 `Legacy/Flt64` 规则只命中独立 token。
+3. 本轮已修复 scanner：新增文件名扫描、`Legacy/Flt64` 中缀命名扫描、`*Scalar` typealias 扫描。
+4. 主源码仍存在未收敛项（scanner 当前命中 14 条）：`InfraLegacyAliases.kt`、`LegacyAliases.kt`、`PlacementPlaneBridge.kt`、`OrientationAxisPermutationBridge.kt`、`ProjectivePlaneGeometryBridge.kt`、`PackingScalarAliases.kt` 以及多个 `*Scalar` typealias。
+5. `GurobiColumnGenerationTest` 在 `-Dbpp3d.gurobi.cg.test.enabled=false` 下为 `Skipped: 10`，不等同于真实 Gurobi 执行通过。
 
-因此当前状态可认定为“strict scanner + compile + 默认回归 + FltX 关键回归 + Gurobi 回归 + CSV suite 入口回归通过”。但主模型仍存在非泛型 `model.*` 与泛型 `api.*` 并行结构，尚未达到“正式主模型统一为 `<V>` 泛型模型”的最终架构目标。
+因此当前状态不能按“纯泛型主链完成”验收；`refactor.md` 中最终勾选状态需以下方复核结论为准。
 
 ## 2. 已完成摘要
 
@@ -146,13 +145,13 @@
 
 ### 7.1 Strict Scanner
 
-- [x] scanner 覆盖 `Legacy` 和 `legacy` 大小写命名。
-- [x] scanner 覆盖 `toLegacyModel`、`toLegacyItems`、`toLegacyLayers`、`toLegacyPlacement3`。
-- [x] scanner 覆盖 `toFlt64Quantity`。
-- [x] scanner 覆盖 `Flt64` 主源码命中。
-- [x] scanner 覆盖 `LegacyQuantity`、`LegacyScalar`、`InfraScalar` 与所有模块 scalar alias。
-- [x] scanner 覆盖 `api/compat`、`model/compat`、`service/compat` 目录。
-- [x] scanner 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+- [ ] scanner 覆盖 `Legacy` 和 `legacy` 大小写命名。
+- [ ] scanner 覆盖 `toLegacyModel`、`toLegacyItems`、`toLegacyLayers`、`toLegacyPlacement3`。
+- [ ] scanner 覆盖 `toFlt64Quantity`。
+- [ ] scanner 覆盖 `Flt64` 主源码命中。
+- [ ] scanner 覆盖 `LegacyQuantity`、`LegacyScalar`、`InfraScalar` 与所有模块 scalar alias。
+- [ ] scanner 覆盖 `api/compat`、`model/compat`、`service/compat` 目录。
+- [ ] scanner 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
 
 ### 7.2 主模型
 
@@ -169,7 +168,7 @@
 
 ### 7.3 主流程
 
-- [x] application request/service/executor/analyzer 直接处理泛型主模型。
+- [ ] application request/service/executor/analyzer 直接处理泛型主模型。
 - [x] layer generation 直接处理 `Item<V>` 与 `PackingProgram<V>` candidate。
 - [x] layer assignment 直接处理 `Load<V>` 与 `Bpp3dDemandEntry<V>`。
 - [x] packing planner 直接处理 `MaterialPackingDemand<V>` 与 `PackingProgram<V>`。
@@ -184,13 +183,13 @@
 - [x] 默认 application 回归通过。
 - [x] Flt64 实例化业务测试通过。
 - [x] FltX 关键业务测试通过。
-- [x] `GurobiColumnGenerationTest` 通过。
-- [x] 真实 CSV `suite.paths` 通过。
-- [x] 真实 CSV `suite.dir` 通过。
+- [ ] `GurobiColumnGenerationTest` 通过（真实 Gurobi 执行，不是 disabled skip）。
+- [ ] 真实 CSV `suite.paths` 通过。
+- [ ] 真实 CSV `suite.dir` 通过。
 - [x] selected bin/layer、LP/MILP objective、gap、elapsed 指标仍输出。
 - [x] `final bins -> packing -> schema` 一致性断言仍通过。
 - [x] `daily.md` 保持删除状态。
-- [x] `refactor.md` 更新为最终完成状态。
+- [ ] `refactor.md` 更新为最终完成状态。
 
 ## 8. 建议验证命令
 
@@ -777,10 +776,9 @@ pwsh.exe -NoLogo -NoProfile -Command "mvn -f pom.xml -pl bpp3d-application -am -
    - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context -am -Dtest=LayerGenerationFltXProofTest,LayerGenerationProgramCandidateAdaptersTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 15, Failures: 0, Errors: 0, Skipped: 0`）。
    - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest,PackingProgramLayerCandidateAdapterTest,ColumnGenerationPackingAnalyzerGenericEntryPointTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true` 通过（`Tests run: 24, Failures: 0, Errors: 0, Skipped: 0`）。
    - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
-102. 最终状态：
-   - 7.1 / 7.2 / 7.3 / 7.4 验收清单已全部勾选；
-   - `refactor.md` 已收敛为最终完成状态，后续不再保留迁移流水。
-103. 最终门禁复核（一次性收口）：
-   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test -Dgpg.skip=true` 通过（application 聚合全量回归通过）。
-   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=false test -Dgpg.skip=true` 通过（`Tests run: 10, Failures: 0, Errors: 0, Skipped: 10`）。
-   - `powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d` 输出 `STRICT_GENERIC_BOUNDARY_PASS`。
+102. 历史“最终状态”结论（作废）：
+   - 旧记录中的“7.1 / 7.2 / 7.3 / 7.4 全部勾选”与“`refactor.md` 已最终完成”已被 2026-05-30 复核结论覆盖。
+103. 2026-05-30 复核结论（当前有效）：
+   - `scripts/generic-boundary-check.ps1` 已修复漏检（新增文件名扫描与中缀命名扫描），复跑结果为 `STRICT_GENERIC_BOUNDARY_FAIL: 14`；
+   - `GurobiColumnGenerationTest` 在 `-Dbpp3d.gurobi.cg.test.enabled=false` 下为 `Skipped: 10`，不能作为真实 Gurobi 回归通过结论；
+   - 当前不能按“纯泛型主链完成”验收，需继续按第 3/4/5 节清单推进收口。

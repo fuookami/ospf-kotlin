@@ -45,7 +45,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerat
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceAwareLayerScore
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
@@ -540,7 +539,7 @@ class ColumnGenerationStandardExecutors(
         variable: AbstractVariableItem<*, *>
     ): InfraNumber {
         val token = model.tokens.find(variable) ?: return InfraNumber.zero
-        return token.resultFlt64?.let { infraScalar(it.toDouble()) } ?: InfraNumber.zero
+        return token.doubleResult?.let { InfraNumber(it) } ?: InfraNumber.zero
     }
 
     private fun normalizeScalarSolution(values: List<*>): List<InfraNumber> {
