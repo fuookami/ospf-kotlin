@@ -126,26 +126,26 @@ fun <V> nonzeroIndicatorConstraints(
     val constraints = mutableListOf<LinearInequality<V>>()
     val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-    // band_ub: poly - M*ind <= tol
+    // band_ub: poly - M*ind <= tol / 上界带：多项式 - M*指示变量 <= 容差
     val ubMonos = polyMonos + LinearMonomial(-bigM, indVar)
     constraints += LinearInequality(
         LinearPolynomial(ubMonos, poly.constant),
         LinearPolynomial(emptyList(), tolerance), Comparison.LE, "${namePrefix}_band_ub")
 
-    // band_lb: poly + M*ind >= -tol
+    // band_lb: poly + M*ind >= -tol / 下界带：多项式 + M*指示变量 >= -容差
     val lbMonos = polyMonos + LinearMonomial(bigM, indVar)
     constraints += LinearInequality(
         LinearPolynomial(lbMonos, poly.constant),
         LinearPolynomial(emptyList(), -tolerance), Comparison.GE, "${namePrefix}_band_lb")
 
-    // out_lb: poly - M*ind - M*side >= strict_boundary - 2M
+    // out_lb: poly - M*ind - M*side >= strict_boundary - 2M / 外部下界：多项式 - M*指示变量 - M*辅助变量 >= 严格边界 - 2M
     val outLbMonos = polyMonos + LinearMonomial(-bigM, indVar) + LinearMonomial(-bigM, sideVar)
     constraints += LinearInequality(
         LinearPolynomial(outLbMonos, poly.constant),
         LinearPolynomial(emptyList(), strictBoundary - bigM - bigM),
         Comparison.GE, "${namePrefix}_out_lb")
 
-    // out_ub: poly + M*ind - M*side <= -strict_boundary + M
+    // out_ub: poly + M*ind - M*side <= -strict_boundary + M / 外部上界：多项式 + M*指示变量 - M*辅助变量 <= -严格边界 + M
     val outUbMonos = polyMonos + LinearMonomial(bigM, indVar) + LinearMonomial(-bigM, sideVar)
     constraints += LinearInequality(
         LinearPolynomial(outUbMonos, poly.constant),
@@ -180,21 +180,21 @@ fun <V> simpleIndicatorConstraints(
 
     when (ineq.comparison) {
         Comparison.LE -> {
-            // lb: poly - rhs + M*ind >= 0
+            // lb: poly - rhs + M*ind >= 0 / 下界：多项式 - 右侧 + M*指示变量 >= 0
             constraints += LinearInequality(
                 LinearPolynomial(diffMonos + LinearMonomial(bigM, indicator), shiftedConst),
                 LinearPolynomial(emptyList(), zero), Comparison.GE, "${namePrefix}_lb")
-            // ub: poly - rhs <= M (always true for reasonable M)
+            // ub: poly - rhs <= M (always true for reasonable M) / 上界：多项式 - 右侧 <= M（对合理 M 值恒成立）
             constraints += LinearInequality(
                 LinearPolynomial(diffMonos, shiftedConst),
                 LinearPolynomial(emptyList(), bigM), Comparison.LE, "${namePrefix}_ub")
         }
         Comparison.GE -> {
-            // lb: poly - rhs >= -M (always possible)
+            // lb: poly - rhs >= -M (always possible) / 下界：多项式 - 右侧 >= -M（始终可行）
             constraints += LinearInequality(
                 LinearPolynomial(diffMonos, shiftedConst),
                 LinearPolynomial(emptyList(), -bigM), Comparison.GE, "${namePrefix}_lb")
-            // ub: poly - rhs <= 0 (enforced when indicator=1)
+            // ub: poly - rhs <= 0 (enforced when indicator=1) / 上界：多项式 - 右侧 <= 0（指示变量=1 时强制生效）
             constraints += LinearInequality(
                 LinearPolynomial(diffMonos, shiftedConst),
                 LinearPolynomial(emptyList(), zero), Comparison.LE, "${namePrefix}_ub")

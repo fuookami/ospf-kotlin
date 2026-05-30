@@ -18,6 +18,18 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  * @param V 值类型 / Value type
  */
 interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 为种群中的每个个体计算变异率。
+     * Calculate mutation rate for each individual in the population.
+     *
+     * @param T 个体类型 / Individual type
+     * @param iteration 当前迭代 / Current iteration
+     * @param population 种群个体列表 / Population individual list
+     * @param weights 权重列表 / Weight list
+     * @param model 回调模型接口 / Callback model interface
+     * @param mutationRateRange 变异率范围 / Mutation rate range
+     * @return 每个个体的变异率 / Mutation rate for each individual
+     */
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,

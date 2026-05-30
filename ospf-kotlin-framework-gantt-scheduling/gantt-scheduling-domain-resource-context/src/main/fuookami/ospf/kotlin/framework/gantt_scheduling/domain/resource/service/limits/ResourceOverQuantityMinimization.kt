@@ -1,5 +1,6 @@
 ﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 资源超限数量最小化 / Resource over quantity minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -18,6 +19,20 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
+/**
+ * 资源超限数量最小化 / Resource over quantity minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param S 资源时间槽类型 / Resource time slot type
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param quantity 资源使用对象 / Resource usage object
+ * @param threshold 阈值函数 / Threshold function
+ * @param coefficient 成本系数函数 / Cost coefficient function
+ * @param name 管道名称 / Pipeline name
+ */
 class ResourceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

@@ -27,24 +27,50 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 宇宙个体类型，带有适应度的解 / Universe type, solution with fitness */
 typealias Universe<ObjValue, V> = SolutionWithFitness<ObjValue, V>
 
+/** 多元宇宙优化器策略接口 / Multi-Verse Optimizer policy interface */
 interface AbstractMVOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
-     * calculate WEP (Wormhole Existence Probability)
+     * 计算虫洞存在概率（WEP）/ Calculate Wormhole Existence Probability (WEP)
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @return 虫洞存在概率 / wormhole existence probability
      */
     fun wep(iteration: Iteration): Flt64
 
     /**
-     * calculate TDR (Travelling Distance Rate)
+     * 计算旅行距离率（TDR）/ Calculate Travelling Distance Rate (TDR)
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @return 旅行距离率 / travelling distance rate
      */
     fun tdr(iteration: Iteration): Flt64
 
+    /**
+     * 计算白洞概率 / Calculate white hole rates
+     *
+     * @param model 回调模型 / callback model
+     * @param objs 目标值列表 / objective value list
+     * @return 白洞概率列表 / white hole rate list
+     */
     fun whiteHoleRates(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         objs: List<ObjValue>
     ): List<Flt64>
 
+    /**
+     * 变换宇宙 / Transform universes
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param bestSolution 最优解 / best solution
+     * @param solutions 宇宙列表 / universe list
+     * @param model 回调模型 / callback model
+     * @param wep 虫洞存在概率 / wormhole existence probability
+     * @param tdr 旅行距离率 / travelling distance rate
+     * @return 变换后的解列表 / transformed solution list
+     */
     fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution<V>,
@@ -99,6 +125,7 @@ open class MVOPolicy<ObjValue, V>(
         }
     }
 
+    /** 计算虫洞存在概率 / Calculate wormhole existence probability */
     override fun wep(iteration: Iteration): Flt64 {
         return minWEP + (maxWEP - minWEP) * max(
             Flt64(iteration.time / timeLimit),
@@ -106,6 +133,7 @@ open class MVOPolicy<ObjValue, V>(
         )
     }
 
+    /** 计算旅行距离率 / Calculate travelling distance rate */
     override fun tdr(iteration: Iteration): Flt64 {
         return Flt64.one - max(
             Flt64(iteration.time / timeLimit),
@@ -113,6 +141,7 @@ open class MVOPolicy<ObjValue, V>(
         ).pow(Flt64(6.0).reciprocal()).toFlt64()
     }
 
+    /** 计算白洞概率 / Calculate white hole rates */
     override fun whiteHoleRates(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         objs: List<ObjValue>
@@ -120,6 +149,7 @@ open class MVOPolicy<ObjValue, V>(
         return whiteHoleRateCalculator(model, objs)
     }
 
+    /** 变换宇宙 / Transform universes */
     override fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution<V>,
@@ -164,6 +194,16 @@ open class MVOPolicy<ObjValue, V>(
         return newSolutions
     }
 
+    /**
+     * 应用虫洞变换 / Apply wormhole transformation
+     *
+     * @param bestSolutionFlt64 最优解的 Flt64 值列表 / best solution Flt64 value list
+     * @param dimension 维度索引 / dimension index
+     * @param lowerBound 下界 / lower bound
+     * @param upperBound 上界 / upper bound
+     * @param tdr 旅行距离率 / travelling distance rate
+     * @return 变换后的值 / transformed value
+     */
     private fun applyWormhole(
         bestSolutionFlt64: List<Flt64>,
         dimension: Int,
@@ -186,6 +226,13 @@ class MultiVerseOptimizer<Obj, ObjValue, V>(
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractMVOPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    /**
+     * 执行多元宇宙优化算法 / Execute Multi-Verse Optimizer
+     *
+     * @param model 回调模型 / callback model
+     * @param runningCallBack 运行回调函数 / running callback function
+     * @return 最优个体列表 / best individual list
+     */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, Universe<ObjValue, V>, List<Universe<ObjValue, V>>) -> Try)? = null

@@ -1,5 +1,6 @@
-/** 选一函数符号 / One-of function symbol */
 @file:Suppress("unused")
+
+/** 选一函数符号 / One-of function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -36,12 +37,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 使用非零指示变量与类 XOR 链接约束。
  * Uses nonzero indicators with XOR-like linking constraints.
  *
- * @param polynomials 输入线性多项式列表 / the list of input linear polynomials
+ * @property polynomials 输入线性多项式列表 / the list of input linear polynomials
  * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class OneOfFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -94,18 +96,18 @@ class OneOfFunction<V>(
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicators for each polynomial
+        // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
             allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
         }
 
-        // Exactly one indicator must be 1: sum(indicators) = 1
+        // Exactly one indicator must be 1: sum(indicators) = 1 / 恰好一个指示变量为 1：sum(指示变量) = 1
         val indMonos = indicatorVars.map { LinearMonomial(one, it) }
         allConstraints += LinearInequality(
             LinearPolynomial(indMonos, zero),
             LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_oneof_exactly_one")
 
-        // result = 1 (since exactly one indicator must be 1)
+        // result = 1 (since exactly one indicator must be 1) / 结果 = 1（因为恰好一个指示变量为 1）
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(LinearMonomial(one, resultVar)), zero),
             LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_oneof_result")
@@ -114,6 +116,7 @@ class OneOfFunction<V>(
         return ok
     }
     companion object {
+        /** 创建 [OneOfFunction] 实例。 / Create a [OneOfFunction] instance. */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,

@@ -34,6 +34,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** MindOPT 线性求解器 / MindOPT linear solver */
 class MindOPTLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTLinearSolverCallBack? = null,

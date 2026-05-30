@@ -197,8 +197,13 @@ data class Token<V : RealNumber<V>>(
         }
     }
 
+    /** @return 基于 key 的哈希值 / Hash code based on key */
     override fun hashCode(): Int = key.hashCode()
 
+    /**
+     * @param other 待比较对象 / Object to compare
+     * @return 是否相同 / Whether equal
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -206,5 +211,6 @@ data class Token<V : RealNumber<V>>(
         return key == other.key
     }
 
+    /** @return 字符串表示 / String representation */
     override fun toString() = "$name: ${result ?: "?"}"
 }

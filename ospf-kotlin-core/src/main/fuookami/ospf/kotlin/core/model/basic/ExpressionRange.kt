@@ -21,11 +21,13 @@ open class ExpressionRange<V>(
     protected open val constants: RealNumberConstants<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /** 创建默认值域（全范围）的 ExpressionRange / Create an ExpressionRange with default (full) value range */
         @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {
             val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
             return ExpressionRange(constants)
         }
+        /** 使用指定值域创建 ExpressionRange / Create an ExpressionRange with the specified value range */
         @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             range: ValueRange<T>
@@ -34,6 +36,7 @@ open class ExpressionRange<V>(
             return ExpressionRange(range, constants)
         }
 
+        /** 使用指定常量提供器创建默认值域的 ExpressionRange / Create an ExpressionRange with default range using the specified constants provider */
         operator fun <T> invoke(
             constants: RealNumberConstants<T>
         ): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {

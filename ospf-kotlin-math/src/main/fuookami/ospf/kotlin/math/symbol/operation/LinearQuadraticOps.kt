@@ -328,15 +328,15 @@ fun <T> QuadraticPolynomial<T>.partialEvaluateQuadratic(
 
         when {
             v1 != null && v2 != null -> {
-                // Both symbols have values, term becomes constant
+                // Both symbols have values, term becomes constant / 两个符号都有值，项变为常数
                 newConstant += monomial.coefficient * v1 * v2
             }
             v1 != null && monomial.symbol2 == null -> {
-                // Only symbol1 has value and there's no symbol2 (linear term in quadratic form)
+                // Only symbol1 has value and there's no symbol2 (linear term in quadratic form) / 仅 symbol1 有值且无 symbol2（二次形式中的线性项）
                 newConstant += monomial.coefficient * v1
             }
             v1 != null -> {
-                // Only symbol1 has value, symbol2 remains
+                // Only symbol1 has value, symbol2 remains / 仅 symbol1 有值，symbol2 保留
                 remainedMonomials.add(QuadraticMonomial(
                     coefficient = monomial.coefficient * v1,
                     symbol1 = monomial.symbol2!!,
@@ -344,7 +344,7 @@ fun <T> QuadraticPolynomial<T>.partialEvaluateQuadratic(
                 ))
             }
             v2 != null -> {
-                // Only symbol2 has value, symbol1 remains
+                // Only symbol2 has value, symbol1 remains / 仅 symbol2 有值，symbol1 保留
                 remainedMonomials.add(QuadraticMonomial(
                     coefficient = monomial.coefficient * v2,
                     symbol1 = monomial.symbol1,
@@ -352,7 +352,7 @@ fun <T> QuadraticPolynomial<T>.partialEvaluateQuadratic(
                 ))
             }
             else -> {
-                // Neither symbol has a value, keep monomial as-is
+                // Neither symbol has a value, keep monomial as-is / 两个符号都无值，保持单项式不变
                 remainedMonomials.add(monomial)
             }
         }

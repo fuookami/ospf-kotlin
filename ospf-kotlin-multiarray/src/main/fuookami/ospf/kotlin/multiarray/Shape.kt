@@ -560,8 +560,8 @@ data class Shape2 private constructor(
                 }
 
                 StorageOrder.ColumnMajor -> {
-                    // For ColumnMajor: index = v[0] + v[1] * d1
-                    // So: v[0] = index % d1, v[1] = index / d1
+                    // For ColumnMajor: index = v[0] + v[1] * d1 / 列主序公式：index = v[0] + v[1] * d1
+                    // So: v[0] = index % d1, v[1] = index / d1 / 因此：v[0] = index % d1, v[1] = index / d1
                     intArrayOf(index % d1, index / d1)
                 }
             }
@@ -981,7 +981,7 @@ data class DynShape private constructor(
          * @return 动态形状实例 / Dynamic shape instance
          */
         operator fun invoke(shape: IntArray): DynShape {
-            // Defensive copy to prevent external mutation
+            // Defensive copy to prevent external mutation / 防御性拷贝以防止外部修改
             return DynShape(shape.copyOf(), StorageOrder.Default)
         }
 
@@ -1014,7 +1014,7 @@ data class DynShape private constructor(
          * @return 动态形状实例 / Dynamic shape instance
          */
         fun withOrder(shape: IntArray, order: StorageOrder): DynShape {
-            // Defensive copy
+            // Defensive copy / 防御性拷贝
             return DynShape(shape.copyOf(), order)
         }
 

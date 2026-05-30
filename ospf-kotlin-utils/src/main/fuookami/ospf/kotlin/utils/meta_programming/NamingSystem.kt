@@ -161,7 +161,7 @@ enum class NamingSystem {
                 if (alternativeAbbreviation != null) {
                     if (alternativeAbbreviation != partLower) {
                         if (!alternativeAbbreviation.startsWith(partLower) && currentAbbreviation != null) {
-                            // stop traversing and reset
+                            // stop traversing and reset / 停止遍历并重置
                             words.add(currentAbbreviation)
                             p += currentAbbreviation.length
                             currentAbbreviation = null
@@ -172,13 +172,13 @@ enum class NamingSystem {
                             abbreviations.filter { it != partLower && it.startsWith(partLower) }
                                 .minByOrNull { it.length }
                         if (newAlternativeAbbreviation == null) {
-                            // stop traversing and reset
+                            // stop traversing and reset / 停止遍历并重置
                             words.add(alternativeAbbreviation)
                             p += alternativeAbbreviation.length
                             currentAbbreviation = null
                             alternativeAbbreviation = null
                         } else {
-                            // refresh and continue traversing
+                            // refresh and continue traversing / 刷新并继续遍历
                             currentAbbreviation = alternativeAbbreviation
                             alternativeAbbreviation = newAlternativeAbbreviation
                         }

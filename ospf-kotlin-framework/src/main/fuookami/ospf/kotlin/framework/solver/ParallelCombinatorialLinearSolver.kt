@@ -1,3 +1,10 @@
+/**
+ * 并行组合线性求解器
+ * Parallel Combinatorial Linear Solver
+ *
+ * 将多个线性求解器并行运行，取第一个或最优结果。
+ * Runs multiple linear solvers in parallel, taking the first or best result.
+ */
 package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
@@ -13,6 +20,13 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/**
+ * 并行组合线性求解器
+ * Parallel combinatorial linear solver
+ *
+ * @property solvers 线性求解器列表（懒加载） / Linear solver list (lazy loaded)
+ * @property mode 并行组合模式，默认 Best / Parallel combinatorial mode, default Best
+ */
 class ParallelCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best

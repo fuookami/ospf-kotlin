@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import kotlinx.coroutines.*
 
+/** MindOPT 线性 Benders 分解求解器 / MindOPT linear Benders decomposition solver */
 class MindOPTLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack()

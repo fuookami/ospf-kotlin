@@ -24,12 +24,22 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 非目标：不在该层执行建模求解逻辑，仅提供线程安全的数据与缓存容器。
  * Non-goal: no modeling/solving logic is executed in this layer; it only provides thread-safe data and cache containers.
+ *
+ * @param V 数值类型 / The number type
+ * @property category 符号操作类别 / Symbol operation category
+ * @property tokenList token 列表 / Token list
+ * @property symbols 已注册的中间符号集合 / Registered intermediate symbol collection
  */
 data class ConcurrentTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractTokenList<V>,
     override val symbols: List<IntermediateSymbol<*>>
 ) : AbstractTokenTable<V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 从并发可变 token 表构造不可变副本 / Construct immutable copy from concurrent mutable token table
+     *
+     * @param tokenTable 并发可变 token 表 / Concurrent mutable token table
+     */
     constructor(tokenTable: ConcurrentMutableTokenTable<V>) : this(
         category = tokenTable.category,
         tokenList = TokenList(tokenTable.tokenList as MutableTokenList<V>),
@@ -224,6 +234,11 @@ data class ConcurrentTokenTable<V>(
 /**
  * 并发可变 token table 基类。
  * Base class for concurrent mutable token tables.
+ *
+ * @param V 数值类型 / The number type
+ * @property category 符号操作类别 / Symbol operation category
+ * @property tokenList 可变 token 列表 / Mutable token list
+ * @property _symbols 已注册的中间符号列表 / Registered intermediate symbol list
  */
 sealed class ConcurrentMutableTokenTable<V>(
     override val category: Category,
@@ -239,18 +254,35 @@ sealed class ConcurrentMutableTokenTable<V>(
     private val _symbolDependencies: MutableMap<IntermediateSymbol<*>, MutableSet<IntermediateSymbol<*>>> = mutableMapOf()
     override val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = synchronized(lock) { _symbolDependencies.toMap() }
 
+    /**
+     * 添加符号依赖关系 / Add symbol dependency
+     *
+     * @param symbol 依赖方符号 / Dependent symbol
+     * @param dependsOn 被依赖的符号 / Symbol depended on
+     */
     fun addSymbolDependency(symbol: IntermediateSymbol<*>, dependsOn: IntermediateSymbol<*>) {
         synchronized(lock) {
             _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
         }
     }
 
+    /**
+     * 批量添加符号依赖关系 / Batch add symbol dependencies
+     *
+     * @param symbol 依赖方符号 / Dependent symbol
+     * @param dependencies 被依赖的符号集合 / Set of symbols depended on
+     */
     fun addSymbolWithDependencies(symbol: IntermediateSymbol<*>, dependencies: Set<IntermediateSymbol<*>>) {
         synchronized(lock) {
             _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
         }
     }
 
+    /**
+     * 验证符号依赖关系中无环 / Validate no cycles in symbol dependencies
+     *
+     * @return 是否无环 / Whether acyclic
+     */
     fun validateNoCycles(): Boolean {
         synchronized(lock) {
             val visited = mutableSetOf<IntermediateSymbol<*>>()
@@ -537,20 +569,29 @@ sealed class ConcurrentMutableTokenTable<V>(
  * 并发自动 token table，变量缺失时自动创建 token。
  * Concurrent auto token table that creates tokens on-the-fly for missing variables.
  *
- * @property category 符号操作类别 / Symbol operation category
+ * @param V 数值类型 / The number type
+ * @param category 符号操作类别 / Symbol operation category
  * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+ * @property _tokenList 自动 token 列表 / Auto token list
  */
 class ConcurrentAutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
     private val _tokenList: AutoTokenList<V>
 ) : ConcurrentMutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 通过类别和检查标志构造 / Construct by category and check flag
+     *
+     * @param category 符号操作类别 / Symbol operation category
+     * @param checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+     */
     constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
         category = category,
         checkTokenExists = checkTokenExists,
         _tokenList = AutoTokenList(checkTokenExists)
     )
 
+    /** @return 副本 / Copy */
     override fun copy(): ConcurrentMutableTokenTable<V> {
         return ConcurrentAutoTokenTable(
             category = category,
@@ -564,20 +605,29 @@ class ConcurrentAutoTokenTable<V>(
  * 并发手动 token table，变量需显式添加后才能使用。
  * Concurrent manual token table where variables must be explicitly added before use.
  *
- * @property category 符号操作类别 / Symbol operation category
+ * @param V 数值类型 / The number type
+ * @param category 符号操作类别 / Symbol operation category
  * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+ * @property _tokenList 手动 token 列表 / Manual token list
  */
 class ConcurrentManualAddTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
     private val _tokenList: ManualTokenList<V>
 ) : ConcurrentMutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 通过类别和检查标志构造 / Construct by category and check flag
+     *
+     * @param category 符号操作类别 / Symbol operation category
+     * @param checkTokenExists 是否检查 token 已存在 / Whether to check token existence
+     */
     constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
         category = category,
         checkTokenExists = checkTokenExists,
         _tokenList = ManualTokenList(checkTokenExists)
     )
 
+    /** @return 副本 / Copy */
     override fun copy(): ConcurrentMutableTokenTable<V> {
         return ConcurrentManualAddTokenTable(
             category = category,

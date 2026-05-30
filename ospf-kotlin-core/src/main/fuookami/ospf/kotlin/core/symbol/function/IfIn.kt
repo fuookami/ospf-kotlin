@@ -1,5 +1,6 @@
-/** 区间条件函数符号 / If-in-range condition function symbol */
 @file:Suppress("unused")
+
+/** 区间条件函数符号 / If-in-range condition function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -30,14 +31,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Uses two binary indicators for the lower and upper bound checks,
  * combined via an AND-like constraint.
  *
- * @param x 输入线性多项式 / the input linear polynomial
- * @param lower 下界 (a) / the lower bound (a)
- * @param upper 上界 (b) / the upper bound (b)
+ * @property x 输入线性多项式 / the input linear polynomial
+ * @property lower 下界 (a) / the lower bound (a)
+ * @property upper 上界 (b) / the upper bound (b)
+ * @param converter 值类型转换器 / value type converter
  * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class IfInFunction<V>(
     val x: LinearPolynomial<V>,
@@ -87,15 +89,15 @@ class IfInFunction<V>(
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // x - lower >= 0 indicator (x >= lower)
+        // x - lower >= 0 indicator (x >= lower) / x - lower >= 0 指示约束（x >= 下界）
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
         allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
 
-        // upper - x >= 0 indicator (x <= upper)
+        // upper - x >= 0 indicator (x <= upper) / upper - x >= 0 指示约束（x <= 上界）
         val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
         allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
 
-        // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
+        // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1 / 结果 = ge AND le：result <= ge, result <= le, result >= ge + le - 1
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, geVar)), zero),
             LinearPolynomial(emptyList(), zero),
@@ -121,6 +123,17 @@ class IfInFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建区间条件函数实例 / Create an if-in function instance
+         * @param x 输入线性多项式 / input linear polynomial
+         * @param lower 下界 / lower bound
+         * @param upper 上界 / upper bound
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [IfInFunction] 实例 / [IfInFunction] instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lower: V,

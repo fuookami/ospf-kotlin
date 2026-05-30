@@ -29,6 +29,10 @@ typealias IntermediateModelDumpingStatusCallBack = (IntermediateModelDumpingStat
 /**
  * 将中间模型转储状态转换为模型构建状态。
  * Convert intermediate model dumping status to model building status.
+ *
+ * @param modelName 模型名称 / The model name
+ * @param quadratic 是否为二次模型 / Whether the model is quadratic
+ * @return 模型构建状态 / The model building status
  */
 fun IntermediateModelDumpingStatus.toModelBuildingStatus(
     modelName: String,

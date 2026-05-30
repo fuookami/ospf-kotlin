@@ -26,6 +26,7 @@ internal fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(mod
     return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }
 
+/** 复制令牌并将其值转换器替换为 Flt64 恒等转换器 / Copy a token and replace its value converter with the Flt64 identity converter */
 private fun <V> copyTokenWithFlt64Converter(token: Token<V>): Token<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val copied = Token<Flt64>(
@@ -38,6 +39,7 @@ private fun <V> copyTokenWithFlt64Converter(token: Token<V>): Token<Flt64>
     return copied
 }
 
+/** 从泛型令牌表创建 Flt64 令牌表 / Create an Flt64 token table from a generic token table */
 private fun <V> createFlt64TokenTable(tokens: AbstractTokenTable<V>): AbstractTokenTable<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val copiedTokens = tokens.tokens.map { copyTokenWithFlt64Converter(it) }
@@ -50,18 +52,21 @@ private fun <V> createFlt64TokenTable(tokens: AbstractTokenTable<V>): AbstractTo
     )
 }
 
+/** 复制可变令牌表为 Flt64 类型（不安全转换） / Copy a mutable token table as Flt64 type (unchecked cast) */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> copyMutableTokenTableAsFlt64(tokens: MutableTokenTable<V>): MutableTokenTable<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     return tokens.copy() as MutableTokenTable<Flt64>
 }
 
+/** 复制并发可变令牌表为 Flt64 类型（不安全转换） / Copy a concurrent mutable token table as Flt64 type (unchecked cast) */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> copyConcurrentMutableTokenTableAsFlt64(tokens: ConcurrentMutableTokenTable<V>): ConcurrentMutableTokenTable<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     return tokens.copy() as ConcurrentMutableTokenTable<Flt64>
 }
 
+/** 将线性子目标转换为 Flt64 类型 / Convert a linear sub-objective to Flt64 type */
 private fun <V> convertLinearSubObjectToFlt64(
     subObject: LinearSubObject<V>,
     tokens: AbstractTokenTable<Flt64>
@@ -84,6 +89,7 @@ private fun <V> convertLinearSubObjectToFlt64(
     )
 }
 
+/** 将二次子目标转换为 Flt64 类型 / Convert a quadratic sub-objective to Flt64 type */
 private fun <V> convertQuadraticSubObjectToFlt64(
     subObject: QuadraticSubObject<V>,
     tokens: AbstractTokenTable<Flt64>
@@ -114,6 +120,7 @@ private fun <V> convertQuadraticSubObjectToFlt64(
     )
 }
 
+/** 将线性约束转换为 Flt64 类型 / Convert a linear constraint to Flt64 type */
 private fun <V> convertLinearConstraintToFlt64(
     constraint: LinearConstraintImpl<V>,
     tokens: AbstractTokenTable<Flt64>
@@ -142,6 +149,7 @@ private fun <V> convertLinearConstraintToFlt64(
     )
 }
 
+/** 将二次约束转换为 Flt64 类型 / Convert a quadratic constraint to Flt64 type */
 private fun <V> convertQuadraticConstraintToFlt64(
     constraint: QuadraticConstraintImpl<V>,
     tokens: AbstractTokenTable<Flt64>
@@ -178,6 +186,7 @@ private fun <V> convertQuadraticConstraintToFlt64(
     )
 }
 
+/** 将线性机制模型整体转换为 Flt64 类型 / Convert an entire linear mechanism model to Flt64 type */
 private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V>): LinearMechanismModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val flt64Tokens = createFlt64TokenTable(model.tokens)
@@ -198,6 +207,7 @@ private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V
     )
 }
 
+/** 将二次机制模型整体转换为 Flt64 类型 / Convert an entire quadratic mechanism model to Flt64 type */
 private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismModel<V>): QuadraticMechanismModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val flt64Tokens = createFlt64TokenTable(model.tokens)
@@ -218,12 +228,14 @@ private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismM
     )
 }
 
+/** 将令牌表不安全转换为目标数值类型 / Unchecked-cast a token table to the target numeric type */
 @Suppress("UNCHECKED_CAST")
 internal fun <V, T> mechanismTokenTableAs(table: AbstractTokenTable<T>): AbstractTokenTable<V>
         where V : RealNumber<V>, V : NumberField<V>, T : RealNumber<T>, T : NumberField<T> {
     return table as AbstractTokenTable<V>
 }
 
+/** 将固定变量映射转换为求解器边界所需的 Symbol->Flt64 映射 / Convert fixed-variable map to Symbol->Flt64 map for solver boundary */
 internal fun <V> toSolverFixedValues(
     fixedVariables: Map<AbstractVariableItem<*, *>, V>?,
     toFlt64: (V) -> Flt64
@@ -233,6 +245,7 @@ internal fun <V> toSolverFixedValues(
         ?.mapKeys { (variable, _) -> variable as Symbol }
 }
 
+/** 将固定变量映射的值转换为 Flt64 类型 / Convert fixed-variable map values to Flt64 type */
 internal fun <V> toFlt64FixedVariables(
     fixedVariables: Map<AbstractVariableItem<*, *>, V>,
     toFlt64: (V) -> Flt64

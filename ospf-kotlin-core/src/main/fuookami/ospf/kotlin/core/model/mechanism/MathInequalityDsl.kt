@@ -1,3 +1,7 @@
+/**
+ * 数学不等式 DSL 扩展函数
+ * Mathematical inequality DSL extension functions
+ */
 @file:Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
 package fuookami.ospf.kotlin.core.model.mechanism
 
@@ -18,6 +22,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
  * Mathematical inequality DSL
  */
 
+/** 将令牌表不安全转换为目标数值类型 / Unchecked-cast a token table to the target numeric type */
 @Suppress("UNCHECKED_CAST")
 private fun <V, T> tokenTableAs(tokens: AbstractTokenTable<T>): AbstractTokenTable<V>
         where V : RealNumber<V>, V : NumberField<V>, T : RealNumber<T>, T : NumberField<T> {
@@ -135,6 +140,7 @@ infix fun Symbol.gr(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.alg
 // ========== Symbol vs LinearPolynomial/QuadraticPolynomial ==========
 
 // Symbol vs LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+/** 将 Symbol 转换为单项线性多项式 / Convert a Symbol to a single-term linear polynomial */
 private fun Symbol.asLinearPoly(): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
     LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 
@@ -175,6 +181,7 @@ infix fun Symbol.neq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.
 
 // ========== Symbol vs Boolean ==========
 
+/** 将 Boolean 转换为 Flt64（true=1, false=0）/ Convert Boolean to Flt64 (true=1, false=0) */
 private fun Boolean.asFlt64(): Flt64 = if (this) Flt64.one else Flt64.zero
 
 infix fun Symbol.eq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.EQ)
@@ -192,6 +199,7 @@ infix fun Symbol.gr(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.al
 
 // ========== AbstractVariableItem DSL ==========
 
+/** 将变量项转换为单项线性多项式 / Convert a variable item to a single-term linear polynomial */
 private fun AbstractVariableItem<*, *>.asSymbolPoly(): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
     LinearPolynomial(listOf(LinearMonomial(Flt64.one, this as Symbol)), Flt64.zero)
 
@@ -281,6 +289,7 @@ infix fun UInt64.geq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.al
 
 // ========== LinearInequality to Constraint<Flt64, Quadratic> direct conversion ==========
 
+/** 将 Flt64 线性不等式直接转换为二次约束实现 / Convert an Flt64 linear inequality directly to a quadratic constraint implementation */
 internal fun <T> LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticConstraint(
     tokens: AbstractTokenTable<T>,
     lazy: Boolean = false,
@@ -301,6 +310,7 @@ internal fun <T> LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 // ========== Relation-based constraint creation ==========
 
+/** 从线性关系创建线性约束实现 / Create a linear constraint implementation from a linear relation */
 internal fun <V> LinearRelation<V>.toConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
@@ -312,6 +322,7 @@ internal fun <V> LinearRelation<V>.toConstraint(
     return LinearConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
+/** 从二次关系创建二次约束实现 / Create a quadratic constraint implementation from a quadratic relation */
 internal fun <V> QuadraticRelation<V>.toConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
@@ -323,6 +334,7 @@ internal fun <V> QuadraticRelation<V>.toConstraint(
     return QuadraticConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
+/** 将线性关系提升后创建二次约束实现 / Create a quadratic constraint implementation by promoting a linear relation */
 internal fun <V> LinearRelation<V>.toQuadraticConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,

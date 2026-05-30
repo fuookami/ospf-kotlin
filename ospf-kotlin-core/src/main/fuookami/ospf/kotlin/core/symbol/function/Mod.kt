@@ -1,5 +1,6 @@
-/** 取模函数符号 / Modulo function symbol */
 @file:Suppress("unused")
+
+/** 取模函数符号 / Modulo function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -28,6 +29,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * y = x - d*q，其中 q = floor(x/d)。
  * y = x - d*q where q = floor(x/d).
+ *
+ * @property x 输入线性多项式 / input linear polynomial
+ * @property d 除数 / divisor
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class ModFunction<V>(
     val x: LinearPolynomial<V>,
@@ -68,7 +76,7 @@ class ModFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
         val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-        // r = x - d*q
+        // r = x - d*q / 余数 = x - 除数 * 商
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, rVar),
@@ -78,12 +86,14 @@ class ModFunction<V>(
             LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_mod_decompose")
 
         // r >= 0 (from URealVar)
+        // r >= 0（由 URealVar 保证）
         // r < d => r <= d - epsilon
+        // r < d，即 r <= d - epsilon
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(LinearMonomial(one, rVar)), zero),
             LinearPolynomial(emptyList(), d - eps), Comparison.LE, "${name}_mod_r_ub")
 
-        // result = r
+        // result = r / 结果等于余数 r
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, resultVar),
@@ -95,6 +105,7 @@ class ModFunction<V>(
         return ok
     }
     companion object {
+        /** 创建 [ModFunction] 实例。 / Create a [ModFunction] instance. */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             d: V,

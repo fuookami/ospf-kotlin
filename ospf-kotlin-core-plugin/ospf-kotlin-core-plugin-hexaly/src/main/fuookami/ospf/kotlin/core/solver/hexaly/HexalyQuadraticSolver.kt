@@ -37,6 +37,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** Hexaly 二次求解器 / Hexaly quadratic solver */
 class HexalyQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: HexalySolverCallBack? = null

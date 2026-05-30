@@ -15,10 +15,15 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 /**
  * 组合变量项的父级接口，提供维度、标识符和形状信息。
  * Parent interface for combination variable items, providing dimension, identifier, and shape information.
+ *
+ * @param S 形状类型 / The shape type
  */
 interface CombinationVariableItemParent<S : Shape> {
+    /** 变量维度 / Variable dimension */
     val dimension: Int
+    /** 变量标识符 / Variable identifier */
     val identifier: UInt64
+    /** 形状 / Shape */
     val shape: Shape
 }
 
@@ -27,7 +32,10 @@ interface CombinationVariableItemParent<S : Shape> {
  * Individual variable item within a combination, obtaining dimension and identifier from the parent combination.
  *
  * @property parent 父级组合变量 / Parent combination variable
+ * @param type 变量类型 / Variable type
+ * @param name 变量名称 / Variable name
  * @property index 在组合中的索引 / Index within the combination
+ * @param constants 数值类型常量 / Numeric type constants
  */
 class CombinationVariableItem<T, Type : VariableType<T>>(
     private val parent: CombinationVariableItemParent<*>,
@@ -47,6 +55,7 @@ class CombinationVariableItem<T, Type : VariableType<T>>(
  *
  * @property type 变量类型 / Variable type
  * @property name 组合名称 / Combination name
+ * @property constants 数值类型常量 / Numeric type constants
  */
 sealed class VariableCombination<T, Type : VariableType<T>, S : Shape>(
     val type: Type,
@@ -71,6 +80,8 @@ sealed class VariableCombination<T, Type : VariableType<T>, S : Shape>(
  *
  * @property type 变量类型 / Variable type
  * @property name 组合名称 / Combination name
+ * @property constants 数值类型常量 / Numeric type constants
+ * @param unit 物理单位 / Physical unit
  */
 sealed class QuantityVariableCombination<T, Type : VariableType<T>, S : Shape>(
     val type: Type,

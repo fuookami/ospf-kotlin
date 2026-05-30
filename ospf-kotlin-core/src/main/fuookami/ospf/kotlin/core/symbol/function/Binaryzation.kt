@@ -1,5 +1,6 @@
-/** 二值化函数符号 / Binaryzation function symbol */
 @file:Suppress("unused")
+
+/** 二值化函数符号 / Binaryzation function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -28,6 +29,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 当 x > 0 时 y = 1，当 x <= 0 时 y = 0。
  * y = 1 if x > 0, y = 0 if x <= 0.
+ *
+ * @property polynomial 输入线性多项式 / Input linear polynomial
+ * @property resultVar 结果变量 / Result variable
+ * @param converter 值类型转换器 / value type converter
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
  */
 class BinaryzationFunction<V>(
     val polynomial: LinearPolynomial<V>,
@@ -62,13 +70,13 @@ class BinaryzationFunction<V>(
         val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // x <= M*y
+        // x <= M*y / x 小于等于 M 倍二值变量
         val xMonos = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-bigM, resultVar), polynomial.constant),
             LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_bin_ub")
 
-        // x >= epsilon*y
+        // x >= epsilon*y / x 大于等于 epsilon 倍二值变量
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polynomial.constant),
             LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_bin_lb")
@@ -77,6 +85,15 @@ class BinaryzationFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建二值化函数实例 / Create a binaryzation function instance
+         * @param polynomial 输入线性多项式 / input linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [BinaryzationFunction] 实例 / [BinaryzationFunction] instance
+         */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,

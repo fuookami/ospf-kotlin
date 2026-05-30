@@ -1,5 +1,6 @@
-/** 半连续函数符号 / Semi-continuous function symbol */
 @file:Suppress("unused")
+
+/** 半连续函数符号 / Semi-continuous function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -33,8 +34,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param lb 激活时的下界 / lower bound when active
  * @param ub 激活时的上界 / upper bound when active
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SemiFunction<V>(
     lb: V? = null,
@@ -61,6 +63,7 @@ class SemiFunction<V>(
         return ok
     }
     companion object {
+        /** 创建 [SemiFunction] 实例。 / Create a [SemiFunction] instance. */
         operator fun <V> invoke(
             lb: V? = null,
             ub: V? = null,

@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 消耗模型 / Consumption model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -27,6 +28,7 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/** 消耗接口 / Consumption interface */
 interface Consumption {
     val quantity: LinearIntermediateSymbols1<Flt64>
     val overQuantity: LinearIntermediateSymbols1<Flt64>
@@ -38,6 +40,16 @@ interface Consumption {
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
+/**
+ * 抽象消耗 / Abstract consumption
+ *
+ * @param T 生产任务类型 / Production task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param materials 材料与储备列表 / List of materials and reserves
+ */
 abstract class AbstractConsumption<
         out T : ProductionTask<E, A, P, C>,
         out E : Executor,
@@ -211,6 +223,18 @@ abstract class AbstractConsumption<
     }
 }
 
+/**
+ * 任务调度消耗 / Task scheduling consumption
+ *
+ * @param T 生产任务类型 / Production task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param materials 材料与储备列表 / List of materials and reserves
+ * @param overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
+ */
 class TaskSchedulingConsumption<
         out T : ProductionTask<E, A, P, C>,
         out E : Executor,
@@ -231,6 +255,16 @@ class TaskSchedulingConsumption<
     }
 }
 
+/**
+ * 任务束调度消耗 / Bunch scheduling consumption
+ *
+ * @param T 生产任务类型 / Production task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param materials 材料与储备列表 / List of materials and reserves
+ */
 class BunchSchedulingConsumption<
         out T : ProductionTask<E, A, P, C>,
         out E : Executor,

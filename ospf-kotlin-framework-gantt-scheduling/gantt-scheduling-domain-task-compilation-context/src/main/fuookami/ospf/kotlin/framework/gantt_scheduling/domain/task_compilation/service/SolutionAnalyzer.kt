@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务调度解分析器 / Task scheduling solution analyzer */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service
 
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol

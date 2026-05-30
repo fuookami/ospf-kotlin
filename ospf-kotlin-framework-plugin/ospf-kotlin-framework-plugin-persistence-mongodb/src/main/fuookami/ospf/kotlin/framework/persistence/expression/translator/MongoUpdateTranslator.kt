@@ -27,6 +27,9 @@ class MongoUpdateTranslator(
     /**
      * 翻译更新为 Bson
      * Translate update to Bson
+     *
+     * @param assignments 更新赋值列表 / Update assignment list
+     * @return Bson 更新表达式，为空时返回 null / Bson update expression, or null if empty
      */
     fun translate(assignments: UpdateAssignments): Bson? {
         if (assignments.isEmpty()) return null
@@ -37,6 +40,13 @@ class MongoUpdateTranslator(
         return Updates.combine(updates)
     }
 
+    /**
+     * 翻译单个更新赋值项为 Bson
+     * Translate single update assignment item to Bson
+     *
+     * @param item 更新赋值项 / Update assignment item
+     * @return Bson 更新表达式 / Bson update expression
+     */
     private fun translateItem(item: UpdateAssignment): Bson? {
         return when (item) {
             is SetValue -> translateSetValue(item)

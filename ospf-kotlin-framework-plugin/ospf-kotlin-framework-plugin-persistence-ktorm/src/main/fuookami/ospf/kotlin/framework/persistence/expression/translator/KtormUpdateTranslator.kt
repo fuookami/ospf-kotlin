@@ -32,6 +32,11 @@ class KtormUpdateTranslator(
     /**
      * 执行更新语句
      * Execute update statement
+     *
+     * @param database Ktorm 数据库实例 / Ktorm database instance
+     * @param whereCondition WHERE 条件 / WHERE condition
+     * @param assignments 更新赋值列表 / Update assignment list
+     * @return 受影响的行数 / Number of affected rows
      */
     fun executeUpdate(
         database: Database,

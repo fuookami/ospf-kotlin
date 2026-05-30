@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 资源容量约束 / Resource capacity constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
@@ -16,10 +17,32 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
+/**
+ * 资源容量影子价格键 / Resource capacity shadow price key
+ *
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param slot 资源时间槽 / Resource time slot
+ */
 data class ResourceCapacityShadowPriceKey<R : Resource<C>, C : AbstractResourceCapacity>(
     val slot: ResourceTimeSlot<R, C>
 ) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class)
 
+/**
+ * 资源容量约束 / Resource capacity constraint
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param S 资源时间槽类型 / Resource time slot type
+ * @param R 存储资源类型 / Storage resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param usage 资源使用对象 / Resource usage object
+ * @param quantity 数量提取器 / Quantity extractor
+ * @param withSlack 是否使用松弛 / Whether to use slack
+ * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
+ * @param name 管道名称 / Pipeline name
+ */
 class ResourceCapacityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

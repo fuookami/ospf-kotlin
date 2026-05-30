@@ -1,5 +1,6 @@
-/** 双变量线性分段函数符号 / Bivariate linear piecewise function symbol */
 @file:Suppress("unused")
+
+/** 双变量线性分段函数符号 / Bivariate linear piecewise function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -51,6 +52,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - output = weighted sum of z-coords
  * - sum(all lambda) = 1
  * - SOS2: only one triangle active (lambda_i_sum <= 3 * z_i, sum(z_i) = 1)
+ *
+ * @property x 第一个输入线性多项式 / first input linear polynomial
+ * @property y 第二个输入线性多项式 / second input linear polynomial
+ * @property triangles 三角形列表，顶点为三维点 / triangle list with 3D point vertices
+ * @property lambdaVars lambda 变量列表 / lambda variable list
+ * @property zVars 三角形选择二值变量 / triangle selection binary variables
+ * @param converter 值类型转换器 / value type converter
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
  */
 class BivariateLinearPiecewiseFunction<V>(
     val x: LinearPolynomial<V>,
@@ -68,14 +78,16 @@ class BivariateLinearPiecewiseFunction<V>(
     }
 
     // Lambda variables: lambda_i_j for triangle i, vertex j (0, 1, 2)
+    // Lambda 变量：三角形 i 的顶点 j (0, 1, 2) 对应的 lambda_i_j
     // Each triangle has 3 lambda variables
+    // 每个三角形有 3 个 lambda 变量
     val lambdaVars: List<PctVariable1> by lazy {
         triangles.mapIndexed { i, _ ->
             PctVariable1("${name}_lambda_$i", Shape1(3))
         }
     }
 
-    // Binary variable per triangle for selection
+    // Binary variable per triangle for selection / 每个三角形的二值选择变量
     val zVars: BinVariable1 by lazy {
         BinVariable1("${name}_tri", Shape1(n))
     }
@@ -95,7 +107,7 @@ class BivariateLinearPiecewiseFunction<V>(
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
-            // p1, p2, p3 correspond to j=0, 1, 2
+            // p1, p2, p3 correspond to j=0, 1, 2 / p1, p2, p3 分别对应 j=0, 1, 2
             monos += LinearMonomial(converter.intoValue(tri.p1.z), lambdas[0])
             monos += LinearMonomial(converter.intoValue(tri.p2.z), lambdas[1])
             monos += LinearMonomial(converter.intoValue(tri.p3.z), lambdas[2])
@@ -125,6 +137,15 @@ class BivariateLinearPiecewiseFunction<V>(
         return null
     }
 
+    /**
+     * 计算点在三角形中的重心坐标。
+     * Calculate barycentric coordinates of a point within a triangle.
+     *
+     * @param tri 目标三角形 / the target triangle
+     * @param px 点的 x 坐标 / x-coordinate of the point
+     * @param py 点的 y 坐标 / y-coordinate of the point
+     * @return 重心坐标 (u, v)，若三角形退化则返回 (null, null) / barycentric coordinates (u, v), or (null, null) if degenerate
+     */
     private fun calculateBarycentric(
         tri: Triangle<Point<Dim3, Flt64>, Dim3, Flt64>,
         px: Flt64,
@@ -161,7 +182,7 @@ class BivariateLinearPiecewiseFunction<V>(
         val three = converter.intoValue(Flt64(3.0))
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // x constraint: x = sum over all triangles and vertices of (x_coord * lambda)
+        // x constraint: x = sum over all triangles and vertices of (x_coord * lambda) / x 约束：x = 所有三角形顶点的 x 坐标加权和
         val xMonos = mutableListOf<LinearMonomial<V>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
@@ -177,7 +198,7 @@ class BivariateLinearPiecewiseFunction<V>(
             Comparison.EQ, "${name}_x_eq"
         )
 
-        // y constraint: y = sum over all triangles and vertices of (y_coord * lambda)
+        // y constraint: y = sum over all triangles and vertices of (y_coord * lambda) / y 约束：y = 所有三角形顶点的 y 坐标加权和
         val yMonos = mutableListOf<LinearMonomial<V>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
@@ -193,7 +214,7 @@ class BivariateLinearPiecewiseFunction<V>(
             Comparison.EQ, "${name}_y_eq"
         )
 
-        // sum(all lambda) = 1
+        // sum(all lambda) = 1 / 所有 lambda 变量之和等于 1
         val sumLambdaMonos = lambdaVars.flatMap { it.items.map { l -> LinearMonomial(one, l) } }
         allConstraints += LinearInequality(
             LinearPolynomial(sumLambdaMonos, zero),
@@ -201,7 +222,7 @@ class BivariateLinearPiecewiseFunction<V>(
             Comparison.EQ, "${name}_sum_lambda"
         )
 
-        // SOS2: for each triangle, sum(lambda_i_j) <= 3 * z_i
+        // SOS2: for each triangle, sum(lambda_i_j) <= 3 * z_i / SOS2 约束：每个三角形的 lambda 之和 <= 3 * z_i
         for (i in triangles.indices) {
             val lambdas = lambdaVars[i]
             val zi = zVars[i]
@@ -214,7 +235,7 @@ class BivariateLinearPiecewiseFunction<V>(
             )
         }
 
-        // sum(z_i) = 1 (exactly one triangle active)
+        // sum(z_i) = 1 (exactly one triangle active) / sum(z_i) = 1（恰好一个三角形激活）
         val sumZMonos = zVars.items.map { LinearMonomial(one, it) }
         allConstraints += LinearInequality(
             LinearPolynomial(sumZMonos, zero),
@@ -223,12 +244,25 @@ class BivariateLinearPiecewiseFunction<V>(
         )
 
         // lambda_i_j >= 0 (PctVariable already enforces this, but let's be explicit)
+        // lambda_i_j >= 0（PctVariable 已隐式强制，此处显式声明）
         // lambda_i_j <= 1 (PctVariable already enforces this)
+        // lambda_i_j <= 1（PctVariable 已隐式强制）
         // These are handled by the variable type (Percentage = [0, 1])
+        // 以上由变量类型 Percentage = [0, 1] 保证
 
         return addConstraints(model, allConstraints) ?: ok
     }
     companion object {
+        /**
+         * 创建双变量分段线性函数实例 / Create a bivariate linear piecewise function instance
+         * @param x 第一个输入线性多项式 / first input linear polynomial
+         * @param y 第二个输入线性多项式 / second input linear polynomial
+         * @param triangles 三角形列表 / triangle list
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [BivariateLinearPiecewiseFunction] 实例 / [BivariateLinearPiecewiseFunction] instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,

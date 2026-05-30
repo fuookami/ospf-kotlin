@@ -37,6 +37,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** SCIP 二次求解器 / SCIP quadratic solver */
 class ScipQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack? = null

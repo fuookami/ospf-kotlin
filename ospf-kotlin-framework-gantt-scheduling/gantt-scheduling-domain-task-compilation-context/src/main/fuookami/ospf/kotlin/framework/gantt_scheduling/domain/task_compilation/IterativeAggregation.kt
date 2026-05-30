@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 迭代任务编译聚合 / Iterative task compilation aggregation */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -19,6 +20,17 @@ import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.time.Duration
 
+/**
+ * 抽象迭代任务编译聚合 / Abstract iterative task compilation aggregation
+ *
+ * @param IT 迭代任务类型 / Iterative task type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockedCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ */
 abstract class AbstractIterativeTaskCompilationAggregation<
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
@@ -29,6 +41,15 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     executors: List<E>,
     lockedCancelTasks: Set<T> = emptySet()
 ) {
+    /**
+     * 策略 / Policy
+     *
+     * @param IT 迭代任务类型 / Iterative task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param cost 成本函数 / Cost function
+     * @param conflict 冲突函数 / Conflict function
+     */
     data class Policy<
             IT : IterativeAbstractTask<E, A>,
             out E : Executor,
@@ -52,6 +73,12 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     val removedTasks: Set<IT> by compilation::removedTasks
     val lastIterationTasks: List<IT> by compilation::lastIterationTasks
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
@@ -68,6 +95,14 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+    /**
+     * 添加列 / Add columns
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param newTasks 新任务列表 / List of new tasks
+     * @param model 线性元模型 / Linear meta model
+     * @return 去重后的任务列表 / Deduplicated task list
+     */
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
@@ -96,6 +131,17 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return Ok(unduplicatedTasks)
     }
 
+    /**
+     * 移除列 / Remove columns
+     *
+     * @param maximumReducedCost 最大约简成本 / Maximum reduced cost
+     * @param maximumColumnAmount 最大列数 / Maximum column amount
+     * @param reducedCost 约简成本函数 / Reduced cost function
+     * @param fixedTasks 固定任务集合 / Set of fixed tasks
+     * @param keptTasks 保留任务集合 / Set of kept tasks
+     * @param model 线性元模型 / Linear meta model
+     * @return 更新后的最大约简成本 / Updated maximum reduced cost
+     */
     open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
@@ -131,6 +177,13 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         }
     }
 
+    /**
+     * 提取固定任务 / Extract fixed tasks
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 固定任务集合 / Set of fixed tasks
+     */
     open fun extractFixedTasks(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -138,6 +191,13 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return extractTasks(iteration, model) { it eq Flt64.one }
     }
 
+    /**
+     * 提取保留任务 / Extract kept tasks
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 保留任务集合 / Set of kept tasks
+     */
     open fun extractKeptTasks(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -145,6 +205,13 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return extractTasks(iteration, model) { it gr Flt64.zero }
     }
 
+    /**
+     * 提取隐藏执行器 / Extract hidden executors
+     *
+     * @param executors 执行器列表 / List of executors
+     * @param model 线性元模型 / Linear meta model
+     * @return 隐藏执行器集合 / Set of hidden executors
+     */
     open fun extractHiddenExecutors(
         executors: List<E>,
         model: AbstractLinearMetaModel<Flt64>
@@ -161,6 +228,12 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return Ok(ret)
     }
 
+    /**
+     * 全局固定 / Globally fix
+     *
+     * @param fixedTasks 固定任务集合 / Set of fixed tasks
+     * @return 操作结果 / Operation result
+     */
     open fun globallyFix(
         fixedTasks: Set<IT>
     ): Try {
@@ -173,6 +246,15 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+    /**
+     * 局部固定 / Locally fix
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param bar 阈值 / Threshold
+     * @param fixedTasks 固定任务集合 / Set of fixed tasks
+     * @param model 线性元模型 / Linear meta model
+     * @return 新固定的任务集合 / Set of newly fixed tasks
+     */
     open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
@@ -221,8 +303,8 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             }
         }
 
-        // if not fix any one bunch or cancel any task
-        // fix the best if the value greater than 1e-3
+        // if not fix any one bunch or cancel any task / 如果未固定任何任务束或取消任何任务
+        // fix the best if the value greater than 1e-3 / 如果最佳值大于 1e-3 则固定最佳项
         if (flag && ret.isEmpty() && (bestValue geq Flt64(1e-3))) {
             val xi = compilation.x[bestIteration.toInt()][bestIndex]
             ret.add(tasksIteration[bestIteration.toInt()][bestIndex])
@@ -233,6 +315,13 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return Ok(ret)
     }
 
+    /**
+     * 记录结果 / Log result
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
+     */
     open fun logResult(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -250,6 +339,13 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+    /**
+     * 记录任务成本 / Log task cost
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
+     */
     open fun logTaskCost(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>

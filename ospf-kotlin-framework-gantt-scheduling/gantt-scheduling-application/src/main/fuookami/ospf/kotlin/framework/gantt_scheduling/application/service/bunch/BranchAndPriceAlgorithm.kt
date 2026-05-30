@@ -2,6 +2,7 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务束分支定价算法 / Bunch branch and price algorithm */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
@@ -34,6 +35,22 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * 分支定价算法 / Branch and price algorithm
+ *
+ * @param Map 影子价格映射类型 / Shadow price map type
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param B 任务束类型 / Bunch type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param executors 执行器列表 / List of executors
+ * @param tasks 任务列表 / List of tasks
+ * @param initialBunches 初始任务束列表 / List of initial bunches
+ * @param solver 列生成求解器 / Column generation solver
+ * @param policy 策略 / Policy
+ * @param configuration 配置 / Configuration
+ */
 class BranchAndPriceAlgorithm<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -49,6 +66,21 @@ class BranchAndPriceAlgorithm<
     private val policy: Policy<Map, Args, B, T, E, A>,
     private val configuration: Configuration
 ) {
+    /**
+     * 策略 / Policy
+     *
+     * @param Map 影子价格映射类型 / Shadow price map type
+     * @param Args 影子价格参数类型 / Shadow price arguments type
+     * @param B 任务束类型 / Bunch type
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param contextBuilder 上下文构建器 / Context builder
+     * @param extractContextBuilder 提取上下文构建器列表 / Extract context builder list
+     * @param shadowPriceMap 影子价格映射构建器 / Shadow price map builder
+     * @param reducedCost 约简成本函数 / Reduced cost function
+     * @param bunchGenerator 任务束生成器 / Bunch generator
+     */
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
             Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -64,6 +96,14 @@ class BranchAndPriceAlgorithm<
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
     )
 
+    /**
+     * 配置 / Configuration
+     *
+     * @property badReducedAmount 约简成本差的数量阈值 / Bad reduced cost amount threshold
+     * @property maximumColumnAmount 最大列数 / Maximum column amount
+     * @property minimumColumnAmountPerExecutor 每个执行器最小列数 / Minimum column amount per executor
+     * @property timeLimit 时间限制 / Time limit
+     */
     data class Configuration(
         val badReducedAmount: UInt64 = UInt64(20UL),
         val maximumColumnAmount: UInt64 = UInt64(50000UL),
@@ -101,6 +141,13 @@ class BranchAndPriceAlgorithm<
         return notFixedExtractorAmount(fixedBunches) * configuration.minimumColumnAmountPerExecutor
     }
 
+    /**
+     * 执行分支定价算法 / Execute branch and price algorithm
+     *
+     * @param id 标识符 / Identifier
+     * @param heartBeatCallBack 心跳回调 / Heartbeat callback
+     * @return 任务束解 / Bunch solution
+     */
     suspend operator fun invoke(
         id: String,
         heartBeatCallBack: ((kotlinx.datetime.Instant, Duration, Flt64) -> Try)? = null
@@ -126,7 +173,7 @@ class BranchAndPriceAlgorithm<
                     }
                 }
 
-                // solve ip with initial column
+                // solve ip with initial column / 使用初始列求解 IP
                 val ipRet = when (val result = solver.solveMILP("${id}_$iteration", model)) {
                     is Ok -> {
                         model.setSolution(result.value.solution)
@@ -221,8 +268,8 @@ class BranchAndPriceAlgorithm<
 
                     logger.debug { "Global column generation of iteration $mainIteration begin!" }
 
-                    // globally column generation
-                    // it runs only 1 time
+                    // globally column generation / 全局列生成
+                    // it runs only 1 time / 仅运行 1 次
                     for (count in 0..<1) {
                         ++iteration
                         val newBunches = when (val result = solveSP(id, iteration, executors, shadowPriceMap)) {
@@ -336,7 +383,7 @@ class BranchAndPriceAlgorithm<
 
                     logger.debug { "Local column generation of iteration $mainIteration begin!" }
 
-                    // locally column generation
+                    // locally column generation / 局部列生成
                     while (true) {
                         shadowPriceMap = when (val result = solveRMP(id, iteration, model, false)) {
                             is Ok -> {

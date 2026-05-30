@@ -33,21 +33,40 @@ private val flt64Converter = object : IntoValue<Flt64> {
  *
  * @property markovLength               the length of the markov chain
  */
+/** 模拟退火算法策略接口 / Simulated Annealing Algorithm policy interface */
 interface AbstractSAAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    /** 马尔可夫链长度 / Markov chain length */
     val markovLength: UInt64
 
+    /**
+     * 变换解 / Transform solution
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param solution 当前解 / current solution
+     * @param model 回调模型 / callback model
+     * @return 变换后的解 / transformed solution
+     */
     fun transformSolution(
         iteration: Iteration,
         solution: Solution<V>,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): Solution<V>
 
+    /**
+     * 接受准则 / Acceptance criterion
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param currentObjective 当前目标值 / current objective value
+     * @param newObjective 新目标值 / new objective value
+     * @return 是否接受 / whether to accept
+     */
     fun accept(
         iteration: Iteration,
         currentObjective: ObjValue,
         newObjective: ObjValue
     ): Boolean
 
+    /** 改进参数（如步长）/ Improve parameters (e.g., step size) */
     fun improve()
 }
 
@@ -116,6 +135,7 @@ open class SAAPolicy<ObjValue, V>(
 
     private val temperatureCache: MutableList<Flt64> = arrayListOf()
 
+    /** 变换解 / Transform solution */
     override fun transformSolution(
         iteration: Iteration,
         solution: Solution<V>,
@@ -140,20 +160,29 @@ open class SAAPolicy<ObjValue, V>(
         return flt64Solution.map { converter.intoValue(it) }
     }
 
+    /** 接受准则 / Acceptance criterion */
     override fun accept(iteration: Iteration, currentObjective: ObjValue, newObjective: ObjValue): Boolean {
         val delta = distance(currentObjective, newObjective)
         val acceptPercentage = (-delta / currentTemperature(iteration)).exp()
         return acceptPercentage gr randomGenerator()!!
     }
 
+    /** 改进步长 / Improve step size */
     override fun improve() {
         _step *= Flt64(0.99)
     }
 
+    /** 判断是否结束（温度低于终温或达到迭代限制）/ Check if finished (temperature below final or iteration limit reached) */
     override fun finished(iteration: Iteration): Boolean {
         return super.finished(iteration) || currentTemperature(iteration) leq finalTemperature
     }
 
+    /**
+     * 获取当前温度 / Get current temperature
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @return 当前温度 / current temperature
+     */
     private fun currentTemperature(iteration: Iteration): Flt64 {
         if (iteration.iteration >= UInt64(temperatureCache.size)) {
             for (i in temperatureCache.size..iteration.iteration.toInt()) {
@@ -174,6 +203,13 @@ class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
         }
     }
 
+    /**
+     * 执行模拟退火算法 / Execute Simulated Annealing Algorithm
+     *
+     * @param model 回调模型 / callback model
+     * @param runningCallBack 运行回调函数 / running callback function
+     * @return 最优个体列表 / best individual list
+     */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, SolutionWithFitness<ObjValue, V>) -> Try)? = null
@@ -256,5 +292,7 @@ class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
     }
 }
 
+/** 单目标模拟退火算法类型 / Single-objective Simulated Annealing Algorithm type */
 typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64, Flt64>
+/** 多目标模拟退火算法类型 / Multi-objective Simulated Annealing Algorithm type */
 typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

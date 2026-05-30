@@ -1,5 +1,6 @@
-/** 不等式函数符号 / Inequality function symbol */
 @file:Suppress("unused")
+
+/** 不等式函数符号 / Inequality function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -32,14 +33,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - 1 若不等式满足 / if the inequality is satisfied
  * - 0 若不等式违反 / if the inequality is violated
  *
- * @param lhs 左侧线性多项式 / the left-hand side linear polynomial
- * @param rhs 右侧常数值 / the right-hand side constant value
- * @param sign 比较类型 / the comparison type
+ * @property lhs 左侧线性多项式 / the left-hand side linear polynomial
+ * @property rhs 右侧常数值 / the right-hand side constant value
+ * @property sign 比较类型 / the comparison type
+ * @param converter 值类型转换器 / value type converter
  * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class InequalityFunction<V>(
     val lhs: LinearPolynomial<V>,
@@ -97,6 +99,7 @@ class InequalityFunction<V>(
         when (sign) {
             Comparison.LE, Comparison.LT -> {
                 // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
+                // 左侧 <= 右侧 + M*(1-标志)，即 左侧 + M*标志 <= 右侧 + M
                 allConstraints += LinearInequality(
                     LinearPolynomial(lhsMonos + LinearMonomial(bigMValue, flagVar), lhs.constant),
                     LinearPolynomial(emptyList(), rhsValue + bigMValue),
@@ -104,6 +107,7 @@ class InequalityFunction<V>(
                 )
 
                 // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
+                // 左侧 + M*(1-标志) >= 右侧 + eps，即 左侧 + M - M*标志 >= 右侧 + eps
                 allConstraints += LinearInequality(
                     LinearPolynomial(lhsMonos + LinearMonomial(-bigMValue, flagVar), lhs.constant + bigMValue),
                     LinearPolynomial(emptyList(), rhsValue + toleranceValue),
@@ -113,6 +117,7 @@ class InequalityFunction<V>(
 
             Comparison.GE, Comparison.GT -> {
                 // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
+                // 左侧 >= 右侧 - M*(1-标志)，即 左侧 + M - M*标志 >= 右侧
                 allConstraints += LinearInequality(
                     LinearPolynomial(lhsMonos + LinearMonomial(-bigMValue, flagVar), lhs.constant + bigMValue),
                     LinearPolynomial(emptyList(), rhsValue),
@@ -120,6 +125,7 @@ class InequalityFunction<V>(
                 )
 
                 // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
+                // 左侧 <= 右侧 - eps + M*标志，即 左侧 - M*标志 <= 右侧 - eps
                 allConstraints += LinearInequality(
                     LinearPolynomial(lhsMonos + LinearMonomial(bigMValue, flagVar), lhs.constant),
                     LinearPolynomial(emptyList(), rhsValue - toleranceValue + bigMValue),
@@ -132,6 +138,7 @@ class InequalityFunction<V>(
                 val diffConst = lhs.constant - rhsValue
 
                 // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
+                // 差值 <= M*(1-标志) + eps，即 差值 + M*标志 <= M + eps
                 allConstraints += LinearInequality(
                     LinearPolynomial(diffMonos + LinearMonomial(bigMValue, flagVar), diffConst),
                     LinearPolynomial(emptyList(), bigMValue + toleranceValue),
@@ -139,6 +146,7 @@ class InequalityFunction<V>(
                 )
 
                 // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
+                // 差值 >= -M*(1-标志) - eps，即 差值 - M*标志 >= -M - eps
                 allConstraints += LinearInequality(
                     LinearPolynomial(diffMonos + LinearMonomial(-bigMValue, flagVar), diffConst),
                     LinearPolynomial(emptyList(), -bigMValue - toleranceValue),
@@ -160,6 +168,17 @@ class InequalityFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建不等式满足指示函数实例 / Create an inequality function instance
+         * @param lhs 左侧线性多项式 / left-hand side linear polynomial
+         * @param rhs 右侧常数值 / right-hand side constant value
+         * @param sign 比较类型 / comparison type
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [InequalityFunction] 实例 / [InequalityFunction] instance
+         */
         operator fun <V> invoke(
             lhs: LinearPolynomial<V>,
             rhs: V,

@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** CPLEX 列生成求解器 / CPLEX column generation solver */
 class CplexColumnGenerationSolver(
     val config: SolverConfig = SolverConfig(),
     val callBack: CplexSolverCallBack = CplexSolverCallBack()

@@ -1,13 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 不可行输出统一字段 / Infeasible output unified fields */
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.number.*
-
-/**
- * 不可行输出统一字段
- * Infeasible output unified fields
- */
 
 /**
  * 不可行求解输出的统一字段，用于从求解状态中提取信息。

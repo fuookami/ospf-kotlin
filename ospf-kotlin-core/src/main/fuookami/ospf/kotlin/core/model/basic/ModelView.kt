@@ -32,9 +32,9 @@ data class VariableSlack(
  * Variable in the solver, encapsulating bounds, type, and initial value properties.
  *
  * @property index         变量在求解器中的索引 / Variable index in the solver
- * @property lowerBound    下界 / Lower bound
- * @property upperBound    上界 / Upper bound
- * @property type          变量类型 / Variable type
+ * @param    lowerBound    下界 / Lower bound
+ * @param    upperBound    上界 / Upper bound
+ * @param    type          变量类型 / Variable type
  * @property origin        原始抽象变量项 / The originating abstract variable item
  * @property dualOrigin    对偶约束来源 / The dual constraint origin
  * @property slack         松弛信息 / Slack information
@@ -109,6 +109,7 @@ class Variable(
 interface ModelCell<Self : ModelCell<Self>> {
     val coefficient: Flt64
 
+    /** 返回系数取反后的新单元格 / Return a new cell with the coefficient negated */
     operator fun unaryMinus(): Self
 }
 
@@ -154,6 +155,10 @@ enum class ConstraintSource {
  * Abstract base class for model constraints, managing LHS, signs, RHS, names, and sources.
  *
  * @property constraintCount 约束数量 / Number of constraints
+ * @param    signs           约束关系列表 / List of constraint relations
+ * @param    rhs             右端值列表 / List of right-hand side values
+ * @param    names           约束名称列表 / List of constraint names
+ * @param    sources         约束来源列表 / List of constraint sources
  */
 abstract class ModelConstraint<ConCell>(
     val constraintCount: Int,
@@ -214,21 +219,25 @@ interface BasicModelView<ConCell> : AutoCloseable
     val constraints: ModelConstraint<ConCell>
     val name: String
 
+    /** 是否包含连续变量 / Whether the model contains continuous variables */
     val containsContinuous: Boolean
         get() {
             return variables.any { it.type.isContinuousType }
         }
 
+    /** 是否包含二进制变量 / Whether the model contains binary variables */
     val containsBinary: Boolean
         get() {
             return variables.any { it.type.isBinaryType }
         }
 
+    /** 是否包含整数变量 / Whether the model contains integer variables */
     val containsInteger: Boolean
         get() {
             return variables.any { it.type.isIntegerType }
         }
 
+    /** 是否包含非二进制整数变量 / Whether the model contains non-binary integer variables */
     val containsNotBinaryInteger: Boolean
         get() {
             return variables.any { it.type.isNotBinaryIntegerType }

@@ -14,11 +14,28 @@ import fuookami.ospf.kotlin.math.ordinary.*
  * Selection strategy interface, defining behavior for selecting individuals from the population.
  */
 interface Selection {
+    /**
+     * 按权重选择一个个体索引。
+     * Select one individual index by weight.
+     *
+     * @param iteration 当前迭代 / Current iteration
+     * @param weights 权重列表 / Weight list
+     * @return 选中的个体索引 / Selected individual index
+     */
     operator fun invoke(
         iteration: Iteration,
         weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64
 
+    /**
+     * 按权重选择多个个体索引。
+     * Select multiple individual indices by weight.
+     *
+     * @param iteration 当前迭代 / Current iteration
+     * @param weights 权重列表 / Weight list
+     * @param amount 选择数量 / Selection amount
+     * @return 选中的个体索引列表 / Selected individual index list
+     */
     suspend operator fun invoke(
         iteration: Iteration,
         weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -115,6 +132,14 @@ data class TournamentSelection(
     private val groupMinAmount: (Iteration) -> UInt64
 ) : Selection {
     companion object {
+        /**
+         * 以固定参数创建锦标赛选择策略。
+         * Create a tournament selection strategy with fixed parameters.
+         *
+         * @param eliteAmount 每组精英数量 / Elite amount per group
+         * @param groupMinAmount 每组最小数量 / Minimum group size
+         * @return 锦标赛选择策略实例 / Tournament selection strategy instance
+         */
         operator fun invoke(
             eliteAmount: UInt64,
             groupMinAmount: UInt64
@@ -223,6 +248,13 @@ data class TruncationSelection(
     private val truncationThreshold: (Iteration) -> Flt64
 ) : Selection {
     companion object {
+        /**
+         * 以固定阈值创建截断选择策略。
+         * Create a truncation selection strategy with a fixed threshold.
+         *
+         * @param truncationThreshold 截断阈值 / Truncation threshold
+         * @return 截断选择策略实例 / Truncation selection strategy instance
+         */
         operator fun invoke(
             truncationThreshold: Flt64
         ): TruncationSelection {
@@ -283,6 +315,15 @@ data class BoltzmannSelection(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : Selection {
     companion object {
+        /**
+         * 以温度衰减参数创建玻尔兹曼选择策略。
+         * Create a Boltzmann selection strategy with temperature decay parameters.
+         *
+         * @param initialTemperature 初始温度 / Initial temperature
+         * @param decayRate 衰减率 / Decay rate
+         * @param randomGenerator 随机数生成器 / Random number generator
+         * @return 玻尔兹曼选择策略实例 / Boltzmann selection strategy instance
+         */
         operator fun invoke(
             initialTemperature: Flt64,
             decayRate: Flt64,
@@ -342,9 +383,12 @@ data class BoltzmannSelection(
  * Base class for local selection strategies, selecting based on neighborhood.
  */
 abstract class LocalSelection : Selection {
+    /** 邻域大小函数 / Neighborhood size function */
     protected abstract val neighborhoodSize: (Iteration) -> UInt64
+    /** 随机数生成器 / Random number generator */
     protected abstract val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 
+    /** 获取邻域内的个体索引集合 / Get the set of individual indices within the neighborhood */
     protected abstract fun getNeighbours(weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, amount: UInt64): Set<UInt64>
 
     override fun invoke(
@@ -391,6 +435,14 @@ data class RingLocalSelection(
     override val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : LocalSelection() {
     companion object {
+        /**
+         * 以固定邻域大小创建环形局部选择策略。
+         * Create a ring local selection strategy with a fixed neighborhood size.
+         *
+         * @param neighborhoodSize 邻域大小 / Neighborhood size
+         * @param randomGenerator 随机数生成器 / Random number generator
+         * @return 局部选择策略实例 / Local selection strategy instance
+         */
         operator fun invoke(
             neighborhoodSize: UInt64,
             randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -402,6 +454,14 @@ data class RingLocalSelection(
         }
     }
 
+    /**
+     * 获取环形邻域内的个体索引集合。
+     * Get the set of individual indices within the ring neighborhood.
+     *
+     * @param weights 权重列表 / Weight list
+     * @param amount 邻域大小 / Neighborhood size
+     * @return 邻域个体索引集合 / Set of neighbor individual indices
+     */
     override fun getNeighbours(weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, amount: UInt64): Set<UInt64> {
         val neighbours = HashSet<UInt64>()
         val medium = (randomGenerator()!! * Flt64(weights.size)).round().toUInt64()

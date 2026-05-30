@@ -36,6 +36,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** SCIP 线性求解器 / SCIP linear solver */
 class ScipLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack? = null

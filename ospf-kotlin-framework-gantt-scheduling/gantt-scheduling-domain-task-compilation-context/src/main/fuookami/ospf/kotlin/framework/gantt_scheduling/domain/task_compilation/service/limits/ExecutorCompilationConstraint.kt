@@ -1,3 +1,4 @@
+/** 执行器编译约束 / Executor compilation constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.eq
@@ -10,10 +11,27 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 执行器编译影子价格键 / Executor compilation shadow price key
+ *
+ * @param E 执行器类型 / Executor type
+ * @param executor 执行器 / Executor
+ */
 data class ExecutorCompilationShadowPriceKey<E : Executor>(
     val executor: E
 ) : ShadowPriceKey(ExecutorCompilationShadowPriceKey::class)
 
+/**
+ * 执行器编译约束 / Executor compilation constraint
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param executors 执行器列表 / List of executors
+ * @param compilation 编译结果 / Compilation result
+ * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
+ * @param name 管道名称 / Pipeline name
+ */
 class ExecutorCompilationConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

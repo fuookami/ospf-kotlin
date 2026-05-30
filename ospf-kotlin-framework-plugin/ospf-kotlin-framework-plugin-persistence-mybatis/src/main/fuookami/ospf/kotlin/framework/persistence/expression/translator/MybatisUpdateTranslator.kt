@@ -27,6 +27,10 @@ class MybatisUpdateTranslator<T : Any>(
     /**
      * 应用更新到 Wrapper
      * Apply update to wrapper
+     *
+     * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
+     * @param assignments 更新赋值列表 / Update assignment list
+     * @return 应用更新后的 UpdateWrapper / UpdateWrapper with updates applied
      */
     fun apply(wrapper: UpdateWrapper<T>, assignments: UpdateAssignments): UpdateWrapper<T> {
         if (assignments.isEmpty()) return wrapper

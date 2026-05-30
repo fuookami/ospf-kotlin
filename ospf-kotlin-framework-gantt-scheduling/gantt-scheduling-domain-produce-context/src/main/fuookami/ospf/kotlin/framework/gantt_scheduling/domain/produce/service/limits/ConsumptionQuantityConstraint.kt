@@ -1,3 +1,4 @@
+/** 消费数量约束 / Consumption quantity constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
@@ -16,10 +17,28 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
+/**
+ * 消费数量影子价格键 / Consumption quantity shadow price key
+ *
+ * @param C 材料类型 / Material type
+ * @param material 材料 / Material
+ */
 data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(
     val material: C,
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
 
+/**
+ * 消费数量约束 / Consumption quantity constraint
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param C 材料类型 / Material type
+ * @param materials 材料与储备对列表 / List of material-reserve pairs
+ * @param consumption 消费对象 / Consumption object
+ * @param shadowPriceArguments 影子价格参数提取器 / Shadow price arguments extractor
+ * @param name 管道名称 / Pipeline name
+ */
 class ConsumptionQuantityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

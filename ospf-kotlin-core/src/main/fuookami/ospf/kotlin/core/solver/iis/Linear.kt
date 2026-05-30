@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 线性模型 IIS 计算 / Linear model IIS computation */
 package fuookami.ospf.kotlin.core.solver.iis
 
 import java.io.OutputStreamWriter
@@ -10,11 +11,6 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
-
-/**
- * 线性模型 IIS 计算
- * Linear model IIS computation
- */
 
 /**
  * 线性 IIS 模型，包含不可行子系统和可选的守卫约束。
@@ -35,11 +31,27 @@ data class LinearIISModel(
     override val name: String by impl::name
     val relaxedFeasible: Boolean get() = guardConstraints == null
 
+    /**
+     * 将模型导出为 LP 格式。
+     * Export the model in LP format.
+     *
+     * @param writer 输出写入器 / Output writer
+     * @return 操作结果 / Operation result
+     */
     override fun exportLP(writer: OutputStreamWriter): Try {
         return impl.exportLP(writer)
     }
 }
 
+/**
+ * 计算线性模型的不可行子系统（IIS）。
+ * Compute the Irreducible Infeasible Subsystem (IIS) for a linear model.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param solver 线性求解器 / Linear solver
+ * @param config IIS 配置 / IIS configuration
+ * @return IIS 模型 / IIS model
+ */
 @OptIn(ExperimentalTime::class)
 suspend fun computeIIS(
     model: LinearTriadModelView,
@@ -135,6 +147,7 @@ suspend fun computeIIS(
     return Ok(dump(model, misConstraints, guardConstraints))
 }
 
+/** 获取与松弛变量关联的约束索引列表 / Get constraint indices related to slack variables */
 private fun getRelatedConstraints(
     model: LinearTriadModelView,
     slackVariables: Set<Variable>
@@ -148,6 +161,7 @@ private fun getRelatedConstraints(
         }
 }
 
+/** 获取与过滤变量和约束关联的变量列表 / Get variables related to filter variables and constraints */
 private fun getRelatedVariables(
     model: LinearTriadModelView,
     filter: Set<Variable>,
@@ -185,6 +199,7 @@ private fun getRelatedVariables(
         }
 }
 
+/** 从弹性过滤结果构建线性 IIS 模型 / Build linear IIS model from elastic filter result */
 private fun dump(
     model: LinearTriadModelView,
     elasticFilter: Map<Variable, Flt64>
@@ -215,6 +230,7 @@ private fun dump(
     )
 }
 
+/** 从 MIS 和守卫约束构建线性 IIS 模型 / Build linear IIS model from MIS and guard constraints */
 private fun dump(
     model: LinearTriadModelView,
     misConstraints: Set<Variable>,
@@ -251,6 +267,7 @@ private fun dump(
     )
 }
 
+/** 执行弹性过滤以识别不可行组件 / Perform elastic filtering to identify infeasible components */
 private suspend fun performElasticFiltering(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,
@@ -334,6 +351,7 @@ private suspend fun performElasticFiltering(
     return Ok(false to emptyMap())
 }
 
+/** 执行删除过滤以精简不可行组件 / Perform deletion filtering to refine infeasible components */
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: LinearTriadModelView,
@@ -408,6 +426,7 @@ private suspend fun performDeletionFiltering(
     return Ok(activeRelaxedComponents to emptySet())
 }
 
+/** 松弛满足条件的特定组件 / Relax specific components satisfying the condition */
 private suspend fun relaxSpecificComponents(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,

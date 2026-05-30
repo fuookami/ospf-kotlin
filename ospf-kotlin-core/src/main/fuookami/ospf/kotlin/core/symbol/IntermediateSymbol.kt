@@ -1,7 +1,11 @@
+@file:Suppress("unused")
+
 /**
  * 中间符号 / Intermediate symbols
+ *
+ * 定义数学优化模型中的中间符号核心接口与实现。
+ * Defines core interfaces and implementations for intermediate symbols in mathematical optimization models.
  */
-@file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -70,8 +74,26 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     val fixedValue: V? get() = range.fixedValue
 
     // --- V-typed primary path (abstract) ---
+
+    /**
+     * 准备符号值，根据固定值和令牌表进行求值。
+     * Prepare symbol value by evaluating with fixed values and token table.
+     *
+     * @param values 固定值映射（可空） / Fixed values map (nullable)
+     * @param tokenTable 令牌表 / Token table
+     * @param converter 值转换器 / Value converter
+     * @return 求值结果，若无法求值则返回 null / Evaluation result, or null if not evaluable
+     */
     fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?
 
+    /**
+     * 准备符号值并缓存结果。
+     * Prepare symbol value and cache the result.
+     *
+     * @param values 固定值映射（可空） / Fixed values map (nullable)
+     * @param tokenTable 令牌表 / Token table
+     * @param converter 值转换器 / Value converter
+     */
     fun prepareAndCache(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>) {
         if (values.isNullOrEmpty()) {
             prepare(null, tokenTable, converter)?.let {
@@ -84,9 +106,50 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
         }
     }
 
+    /**
+     * 使用令牌表求值符号表达式。
+     * Evaluate symbol expression using token table.
+     *
+     * @param tokenTable 令牌表 / Token table
+     * @param converter 值转换器 / Value converter
+     * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
+     * @return 求值结果 / Evaluation result
+     */
     fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+
+    /**
+     * 使用求解器结果列表和令牌表求值符号表达式。
+     * Evaluate symbol expression using solver results list and token table.
+     *
+     * @param results 求解器结果列表 / Solver results list
+     * @param tokenTable 令牌表 / Token table
+     * @param converter 值转换器 / Value converter
+     * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
+     * @return 求值结果 / Evaluation result
+     */
     fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+
+    /**
+     * 使用固定值映射和令牌表求值符号表达式。
+     * Evaluate symbol expression using fixed values map and token table.
+     *
+     * @param values 固定值映射 / Fixed values map
+     * @param tokenTable 令牌表（可空） / Token table (nullable)
+     * @param converter 值转换器 / Value converter
+     * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
+     * @return 求值结果 / Evaluation result
+     */
     fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+
+    /**
+     * 从令牌表直接求值符号表达式。
+     * Evaluate symbol expression directly from token table.
+     *
+     * @param tokenTable 令牌表 / Token table
+     * @param converter 值转换器 / Value converter
+     * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
+     * @return 求值结果 / Evaluation result
+     */
     fun evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V? =
         evaluate(tokenTable, converter, zeroIfNone)
 
@@ -101,10 +164,30 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     val identifier: UInt64
     val index: Int
 
+    /**
+     * 刷新符号缓存。
+     * Flush symbol cache.
+     *
+     * @param force 是否强制刷新 / Whether to force flush
+     */
     fun flush(force: Boolean = false)
 
+    /**
+     * 注册辅助令牌到令牌集合。
+     * Register auxiliary tokens to the token collection.
+     *
+     * @param tokens 可添加的令牌集合 / Addable token collection
+     * @return 操作结果 / Operation result
+     */
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
+    /**
+     * 获取符号的原始字符串表示。
+     * Get raw string representation of the symbol.
+     *
+     * @param unfold 展开深度 / Unfold depth
+     * @return 原始字符串 / Raw string
+     */
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
@@ -120,6 +203,16 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
  */
 interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
+        /**
+         * 创建空的线性中间符号。
+         * Create an empty linear intermediate symbol.
+         *
+         * @param constants 实数常量定义 / Real number constants definition
+         * @param parent 父级符号（可空） / Parent symbol (nullable)
+         * @param name 符号名称 / Symbol name
+         * @param displayName 显示名称（可空） / Display name (nullable)
+         * @return 空的线性中间符号 / Empty linear intermediate symbol
+         */
         fun <V> empty(
             constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -140,6 +233,12 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
 
     val polynomial: LinearPolynomial<V>
 
+    /**
+     * 获取可变线性多项式表示。
+     * Get mutable linear polynomial representation.
+     *
+     * @return 可变线性多项式 / Mutable linear polynomial
+     */
     fun asMutable(): MutableLinearPolynomial<V>
 
     override fun toLinearPolynomial(): LinearPolynomial<V> = polynomial
@@ -157,6 +256,16 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
  */
 interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
+        /**
+         * 创建空的二次中间符号。
+         * Create an empty quadratic intermediate symbol.
+         *
+         * @param constants 实数常量定义 / Real number constants definition
+         * @param parent 父级符号（可空） / Parent symbol (nullable)
+         * @param name 符号名称 / Symbol name
+         * @param displayName 显示名称（可空） / Display name (nullable)
+         * @return 空的二次中间符号 / Empty quadratic intermediate symbol
+         */
         fun <V> empty(
             constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -178,6 +287,12 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPol
 
     val polynomial: QuadraticPolynomial<V>
 
+    /**
+     * 获取可变二次多项式表示。
+     * Get mutable quadratic polynomial representation.
+     *
+     * @return 可变二次多项式 / Mutable quadratic polynomial
+     */
     fun asMutable(): MutableQuadraticPolynomial<V>
 
     override fun toQuadraticPolynomial(): QuadraticPolynomial<V> = polynomial

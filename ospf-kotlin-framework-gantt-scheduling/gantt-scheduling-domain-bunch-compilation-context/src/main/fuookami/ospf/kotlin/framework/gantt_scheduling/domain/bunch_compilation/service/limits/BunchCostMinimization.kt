@@ -1,5 +1,6 @@
 @file:Suppress("DEPRECATION")
 
+/** 任务束成本最小化 / Bunch cost minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -8,6 +9,16 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 任务束成本最小化 / Bunch cost minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param compilation 任务束编译结果 / Bunch compilation result
+ * @param name 管道名称 / Pipeline name
+ */
 class BunchCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

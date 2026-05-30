@@ -28,6 +28,10 @@ class MybatisOrderByTranslator<T : Any>(
     /**
      * 应用排序到 Wrapper
      * Apply sort to wrapper
+     *
+     * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
+     * @param sortBy 排序条件 / Sort conditions
+     * @return 应用排序后的 QueryWrapper / QueryWrapper with sort applied
      */
     fun apply(wrapper: QueryWrapper<T>, sortBy: SortBy): QueryWrapper<T> {
         if (sortBy.isEmpty()) return wrapper

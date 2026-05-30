@@ -37,6 +37,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** Gurobi 11 线性求解器 / Gurobi 11 linear solver */
 class GurobiLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack? = null

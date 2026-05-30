@@ -17,6 +17,16 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  * @param V 值类型 / Value type
  */
 interface Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 在种群间执行个体迁移。
+     * Perform individual migration between populations.
+     *
+     * @param T 个体类型 / Individual type
+     * @param iteration 当前迭代 / Current iteration
+     * @param populations 种群列表 / Populations list
+     * @param model 回调模型接口 / Callback model interface
+     * @return 每个种群及其迁入个体的列表 / List of populations with their incoming individuals
+     */
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, ObjValue, V>>,

@@ -13,6 +13,10 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 /**
  * MyBatis 标量 SQL 片段
  * MyBatis scalar SQL fragment
+ *
+ * @property sql SQL 片段字符串 / SQL fragment string
+ * @property params 参数列表 / Parameter list
+ * @property isColumnOnly 是否仅为列引用 / Whether it's a column reference only
  */
 data class MybatisScalarSql(
     val sql: String,
@@ -22,6 +26,9 @@ data class MybatisScalarSql(
     /**
      * 将参数占位符整体右移
      * Shift parameter placeholders by offset
+     *
+     * @param offset 偏移量 / Offset value
+     * @return 偏移后的新 SQL 片段 / New SQL fragment with shifted placeholders
      */
     fun shifted(offset: Int): MybatisScalarSql {
         if (offset == 0 || params.isEmpty()) return this
@@ -36,14 +43,20 @@ data class MybatisScalarSql(
 /**
  * MyBatis 标量表达式翻译器
  * MyBatis scalar expression translator
+ *
+ * @property resolveColumnName 列名解析函数 / Column name resolver function
+ * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
  */
 class MybatisScalarTranslator(
     private val resolveColumnName: MybatisColumnNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
     /**
-     * 翻译标量表达式
-     * Translate scalar expression
+     * 翻译标量表达式为参数化 SQL 片段
+     * Translate scalar expression to parameterized SQL fragment
+     *
+     * @param expr 标量表达式 / Scalar expression
+     * @return 参数化 SQL 片段，不支持时返回 null / Parameterized SQL fragment, or null if unsupported
      */
     fun translate(expr: ScalarExpression<*>): MybatisScalarSql? {
         return when (expr) {

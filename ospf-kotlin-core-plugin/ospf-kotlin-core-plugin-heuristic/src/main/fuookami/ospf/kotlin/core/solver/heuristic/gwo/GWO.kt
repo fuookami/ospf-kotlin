@@ -34,9 +34,25 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 灰狼优化器策略接口 / Grey Wolf Optimizer policy interface */
 interface AbstractGWOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 计算收敛系数 a / Calculate convergence coefficient a
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @return 收敛系数列表（alpha, beta, delta）/ convergence coefficient list (alpha, beta, delta)
+     */
     fun a(iteration: Iteration): List<Flt64>
 
+    /**
+     * 扰动领导狼 / Perturb leader wolves
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param leaders 领导狼列表 / leader wolf list
+     * @param a 收敛系数 / convergence coefficients
+     * @param model 回调模型 / callback model
+     * @return 扰动后的领导狼列表 / perturbed leader wolf list
+     */
     fun perturb(
         iteration: Iteration,
         leaders: List<Wolf<ObjValue, V>>,
@@ -44,6 +60,16 @@ interface AbstractGWOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : Rea
         model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Wolf<ObjValue, V>>
 
+    /**
+     * 移动狼 / Move wolf
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param wolf 当前狼 / current wolf
+     * @param leaders 领导狼列表 / leader wolf list
+     * @param a 收敛系数 / convergence coefficients
+     * @param model 回调模型 / callback model
+     * @return 移动后的狼 / moved wolf
+     */
     fun move(
         iteration: Iteration,
         wolf: Wolf<ObjValue, V>,
@@ -63,7 +89,7 @@ class GWOPolicy<ObjValue, V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
-    // converter must be provided explicitly; use GWOPolicy.Flt64 companion for V=Flt64 convenience
+    // converter must be provided explicitly; use GWOPolicy.Flt64 companion for V=Flt64 convenience / 转换器必须显式提供；V=Flt64 时可使用 GWOPolicy.Flt64 伴生对象
     private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
@@ -96,6 +122,7 @@ class GWOPolicy<ObjValue, V>(
             )
         }
     }
+    /** 计算收敛系数 a / Calculate convergence coefficient a */
     override fun a(iteration: Iteration): List<Flt64> {
         val iterationCoefficient = min(
             ((iteration.iteration.toFlt64() * Flt64.pi)
@@ -108,6 +135,7 @@ class GWOPolicy<ObjValue, V>(
         return listOf(alphaA, betaA, (alphaA + betaA) / Flt64.two)
     }
 
+    /** 扰动领导狼 / Perturb leader wolves */
     override fun perturb(
         iteration: Iteration,
         leaders: List<Wolf<ObjValue, V>>,
@@ -138,6 +166,7 @@ class GWOPolicy<ObjValue, V>(
         )
     }
 
+    /** 移动狼 / Move wolf */
     override fun move(
         iteration: Iteration,
         wolf: Wolf<ObjValue, V>,
@@ -180,6 +209,13 @@ class GreyWolfOptimizer<Obj, ObjValue, V>(
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractGWOPolicy<ObjValue, V>,
 ) where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 执行灰狼优化算法 / Execute Grey Wolf Optimizer
+     *
+     * @param model 回调模型 / callback model
+     * @param runningCallBack 运行回调函数 / running callback function
+     * @return 最优狼列表 / best wolf list
+     */
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, Wolf<ObjValue, V>, List<Wolf<ObjValue, V>>, List<AbstractPopulation<ObjValue, V>>) -> Try)? = null
@@ -312,5 +348,7 @@ class GreyWolfOptimizer<Obj, ObjValue, V>(
     }
 }
 
+/** 单目标灰狼优化器类型 / Single-objective Grey Wolf Optimizer type */
 typealias GWO = GreyWolfOptimizer<Flt64, Flt64, Flt64>
+/** 多目标灰狼优化器类型 / Multi-objective Grey Wolf Optimizer type */
 typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

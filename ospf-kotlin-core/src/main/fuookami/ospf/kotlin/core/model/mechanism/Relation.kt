@@ -15,13 +15,19 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
  * Sealed interface for linear constraint relations, encapsulating linear flatten data and comparison sign.
  */
 sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
+    /** 扁平化的线性数据 / Flattened linear data */
     val flattenData: LinearFlattenData<V>
+    /** 比较符号 / Comparison sign */
     val sign: Comparison
+    /** 约束名称 / Constraint name */
     val name: String
+    /** 显示名称 / Display name */
     val displayName: String?
 
+    /** 转换为 ConstraintRelation 枚举 / Convert to ConstraintRelation enum */
     val constraintRelation: ConstraintRelation get() = ConstraintRelation(sign)
 
+    /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE) */
     fun normalize(): LinearRelation<V>
 }
 
@@ -30,13 +36,19 @@ sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
  * Sealed interface for quadratic constraint relations, encapsulating quadratic flatten data and comparison sign.
  */
 sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V> {
+    /** 扁平化的二次数据 / Flattened quadratic data */
     val flattenData: QuadraticFlattenData<V>
+    /** 比较符号 / Comparison sign */
     val sign: Comparison
+    /** 约束名称 / Constraint name */
     val name: String
+    /** 显示名称 / Display name */
     val displayName: String?
 
+    /** 转换为 ConstraintRelation 枚举 / Convert to ConstraintRelation enum */
     val constraintRelation: ConstraintRelation get() = ConstraintRelation(sign)
 
+    /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE) */
     fun normalize(): QuadraticRelation<V>
 }
 

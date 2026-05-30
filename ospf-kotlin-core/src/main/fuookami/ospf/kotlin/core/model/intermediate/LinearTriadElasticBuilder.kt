@@ -108,7 +108,7 @@ internal fun LinearTriadModel.buildElasticModel(
                     null to null
                 )
             } else if (variable.positiveFree) {
-                // x ??lb
+                // x only has lower bound / x 仅有下界
                 slackVariables.add(
                     Variable(
                         index = colIndex,
@@ -126,7 +126,7 @@ internal fun LinearTriadModel.buildElasticModel(
                 )
                 colIndex += 1
             } else if (variable.negativeFree) {
-                // x ??ub
+                // x only has upper bound / x 仅有上界
                 slackVariables.add(
                     null to Variable(
                         index = colIndex,
@@ -144,7 +144,7 @@ internal fun LinearTriadModel.buildElasticModel(
                 )
                 colIndex += 1
             } else {
-                // lb ??x ??ub
+                // lb <= x <= ub, both bounds / x 有上下界
                 slackVariables.add(
                     Variable(
                         index = colIndex,

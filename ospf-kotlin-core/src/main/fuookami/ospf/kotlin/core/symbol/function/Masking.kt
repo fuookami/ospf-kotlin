@@ -1,5 +1,6 @@
-/** 掩码函数符号 / Masking function symbol */
 @file:Suppress("unused")
+
+/** 掩码函数符号 / Masking function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -33,6 +34,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Masking function: y = x * mask where mask is binary.
  * 当 mask=1 时，y=x。当 mask=0 时，y=0。
  * When mask=1, y=x. When mask=0, y=0.
+ *
+ * @property input 输入线性多项式 / input linear polynomial
+ * @property mask 二值掩码变量 / binary mask variable
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MaskingFunction<V>(
     val input: LinearPolynomial<V>,
@@ -76,6 +84,7 @@ class MaskingFunction<V>(
         val constraints = mutableListOf<LinearInequality<V>>()
 
         // c1: y - x + M*mask <= M + x_const  =>  y - x <= M*(1 - mask) + x_const
+        // c1：y - x + M*mask <= M + x_const，即 y - x <= M*(1 - mask) + x_const
         val c1LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(one, resultVar)
         val c1Lhs = LinearPolynomial(c1LhsMonos, -inputPoly.constant)
@@ -83,18 +92,19 @@ class MaskingFunction<V>(
         constraints += LinearInequality(c1Lhs, c1RhsPoly, Comparison.LE, "${name}_masking_eq_ub")
 
         // c2: y - x >= -M*mask + x_const  =>  y - x >= -M*mask + x_const
+        // c2：y - x >= -M*mask + x_const，即 y - x >= -M*mask + x_const
         val c2LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(one, resultVar)
         val c2Lhs = LinearPolynomial(c2LhsMonos, -inputPoly.constant)
         val c2RhsPoly = LinearPolynomial(listOf(LinearMonomial(-mD, mask)), zero)
         constraints += LinearInequality(c2Lhs, c2RhsPoly, Comparison.GE, "${name}_masking_eq_lb")
 
-        // c3: y - M*mask <= 0
+        // c3: y - M*mask <= 0 / c3：y - M*mask <= 0
         val c3Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(-mD, mask)), zero)
         val c3Rhs = LinearPolynomial(emptyList(), zero)
         constraints += LinearInequality(c3Lhs, c3Rhs, Comparison.LE, "${name}_masking_zero_ub")
 
-        // c4: y + M*mask >= 0
+        // c4: y + M*mask >= 0 / c4：y + M*mask >= 0
         val c4Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(mD, mask)), zero)
         val c4Rhs = LinearPolynomial(emptyList(), zero)
         constraints += LinearInequality(c4Lhs, c4Rhs, Comparison.GE, "${name}_masking_zero_lb")
@@ -102,6 +112,7 @@ class MaskingFunction<V>(
         return addConstraints(model, constraints) ?: ok
     }
     companion object {
+        /** 创建 [MaskingFunction] 实例。 / Create a [MaskingFunction] instance. */
         operator fun <V> invoke(
             input: LinearPolynomial<V>,
             mask: AbstractVariableItem<*, *>,
@@ -112,6 +123,18 @@ class MaskingFunction<V>(
         ): MaskingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MaskingFunction(input, mask, bigM, converter, name, displayName)
 
+        /**
+         * 通过掩码变量名创建 [MaskingFunction] 包装器。
+         * Create a [MaskingFunction] wrapper by mask variable name.
+         *
+         * @param input 输入线性多项式 / input linear polynomial
+         * @param maskVarName 掩码变量名称 / mask variable name
+         * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 线性函数符号适配器 / linear function symbol adapter
+         */
         fun <V> withMaskVarName(
             input: LinearPolynomial<V>,
             maskVarName: String,
@@ -130,6 +153,14 @@ class MaskingFunction<V>(
         /**
          * 类型化符号工厂：将线性中间符号转换为线性多项式。
          * Typed symbol factory: converts a linear intermediate symbol to a linear polynomial.
+         *
+         * @param x 线性中间符号 / linear intermediate symbol
+         * @param mask 二值掩码变量 / binary mask variable
+         * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 线性函数符号适配器 / linear function symbol adapter
          */
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
@@ -155,6 +186,14 @@ class MaskingFunction<V>(
         /**
          * 类型化多项式工厂：接受 input 与 mask 的线性多项式视图。
          * Typed polynomial factory: accepts linear-polynomial views for input and mask.
+         *
+         * @param x 输入的线性多项式视图 / linear polynomial view for input
+         * @param mask 掩码的线性多项式视图 / linear polynomial view for mask
+         * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 带多项式掩码的掩码函数 / masking function with polynomial mask
          */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
@@ -184,6 +223,13 @@ class MaskingFunction<V>(
  * 创建内部变量 `m` 并约束 m = maskPoly，然后以 m 作为二值掩码应用标准 Big-M 掩码约束。
  * Creates an internal variable `m` with constraint m = maskPoly, then applies
  * standard Big-M masking constraints with m as the binary mask.
+ *
+ * @property input 输入线性多项式 / input linear polynomial
+ * @property maskPoly 掩码多项式 / mask polynomial
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MaskingWithPolyMaskFunction<V>(
     val input: LinearPolynomial<V>,
@@ -212,6 +258,8 @@ class MaskingWithPolyMaskFunction<V>(
     override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {}
+
+    /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
@@ -225,13 +273,16 @@ class MaskingWithPolyMaskFunction<V>(
     override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), converter.zero)
     override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), converter.zero)
 
+    /** 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null). */
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    /** 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null). */
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    /** 使用 Flt64 值映射求值。 / Evaluate with Flt64 value map. */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         return delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter))?.let { converter.fromValue(it) }
     }
 
-    // V-typed evaluate overrides
+    // V-typed evaluate overrides / V 类型求值重写
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         return if (values.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
@@ -265,15 +316,18 @@ class MaskingWithPolyMaskFunction<V>(
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate().evaluate(values)
     }
+    /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedResults = results.map { converter.intoValue(it) }
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
+    /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val v = delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.intoValue(converter.fromValue(v))
     }
 
+    /** 委托给自身作为 MathFunctionSymbol。 / Delegate to self as MathFunctionSymbol. */
     private fun delegate(): MathFunctionSymbol<V> = this
 
     override fun evaluate(values: Map<Symbol, V>): V? {
@@ -299,14 +353,14 @@ class MaskingWithPolyMaskFunction<V>(
 
         val constraints = mutableListOf<LinearInequality<V>>()
 
-        // maskPoly = maskVar constraint
+        // maskPoly = maskVar constraint / maskPoly = maskVar 约束
         val maskMonos = maskPolyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(one, maskVar)
         constraints += LinearInequality(
             LinearPolynomial(monomials = maskMonos, constant = -maskPolyF.constant),
             LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.EQ, "${name}_mask_eq")
 
-        // c1: result - input <= M*(1 - mask_var_normalized)
+        // c1: result - input <= M*(1 - mask_var_normalized) / c1：结果 - 输入 <= M*(1 - 归一化掩码变量)
         val c1Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(one, resultVar) +
             LinearMonomial(mF, maskVar)
@@ -314,7 +368,7 @@ class MaskingWithPolyMaskFunction<V>(
             LinearPolynomial(monomials = c1Monos, constant = -inputPoly.constant),
             LinearPolynomial(monomials = emptyList(), constant = mF), Comparison.LE, "${name}_ub")
 
-        // c2: result - input >= -M*mask_var
+        // c2: result - input >= -M*mask_var / c2：结果 - 输入 >= -M*掩码变量
         val c2Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(one, resultVar) +
             LinearMonomial(mF, maskVar)
@@ -322,13 +376,13 @@ class MaskingWithPolyMaskFunction<V>(
             LinearPolynomial(monomials = c2Monos, constant = -inputPoly.constant),
             LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.GE, "${name}_lb")
 
-        // c3: result <= M*mask_var
+        // c3: result <= M*mask_var / c3：结果 <= M*掩码变量
         val c3Monos = listOf(LinearMonomial(one, resultVar), LinearMonomial(-mF, maskVar))
         constraints += LinearInequality(
             LinearPolynomial(monomials = c3Monos, constant = zero),
             LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.LE, "${name}_zero_ub")
 
-        // c4: result >= -M*mask_var
+        // c4: result >= -M*mask_var / c4：结果 >= -M*掩码变量
         val c4Monos = listOf(LinearMonomial(one, resultVar), LinearMonomial(mF, maskVar))
         constraints += LinearInequality(
             LinearPolynomial(monomials = c4Monos, constant = zero),
@@ -342,6 +396,13 @@ class MaskingWithPolyMaskFunction<V>(
  * Masking range function: y in [lower*mask, upper*mask].
  * 当 mask=0 时，y=0。当 mask=1 时，y 在 [lower, upper] 范围内。
  * When mask=0, y=0. When mask=1, y in [lower, upper].
+ *
+ * @property mask 掩码线性多项式 / mask linear polynomial
+ * @property lower 范围的下界 / lower bound of the range
+ * @property upper 范围的上界 / upper bound of the range
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MaskingRangeFunction<V>(
     val mask: LinearPolynomial<V>,
@@ -403,14 +464,14 @@ class MaskingRangeFunction<V>(
 
         val constraints = mutableListOf<LinearInequality<V>>()
 
-        // Upper: y - upper*mask <= 0
+        // Upper: y - upper*mask <= 0 / 上界：y - upper*mask <= 0
         val upperMonos = listOf(resultMon) +
             maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperValue, it.symbol) }
         val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperValue)
         val upperRhs = LinearPolynomial(emptyList(), zero)
         constraints += LinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
 
-        // Lower: y - lower*mask >= 0
+        // Lower: y - lower*mask >= 0 / 下界：y - lower*mask >= 0
         val lowerMonos = listOf(resultMon) +
             maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerValue, it.symbol) }
         val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerValue)
@@ -420,6 +481,7 @@ class MaskingRangeFunction<V>(
         return addConstraints(model, constraints) ?: ok
     }
     companion object {
+        /** 创建 [MaskingRangeFunction] 实例。 / Create a [MaskingRangeFunction] instance. */
         operator fun <V> invoke(
             mask: LinearPolynomial<V>,
             lower: V,

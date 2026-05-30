@@ -79,24 +79,24 @@ fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): MultiArray<T, DynS
         throw AxisOutOfBoundsException(axis, ndim - 1)
     }
 
-    // Get current shape
+    // Get current shape / 获取当前形状
     val currentShape = IntArray(ndim) { shape[it] }
 
-    // Calculate new shape (remove summed axis)
+    // Calculate new shape (remove summed axis) / 计算新形状（移除求和轴）
     val newShapeDims = currentShape.filterIndexed { i, _ -> i != axis }.toIntArray()
     val newShape = DynShape(newShapeDims)
 
-    // Create mutable result array for accumulation
+    // Create mutable result array for accumulation / 创建可变结果数组用于累加
     val result = MutableMultiArray.newWith(newShape, zero)
 
-    // Iterate all elements and accumulate to result
+    // Iterate all elements and accumulate to result / 遍历所有元素并累加到结果
     for (linearIdx in 0 until size) {
         val vector = shape.vector(linearIdx)
 
-        // Calculate result coordinates (remove summed axis)
+        // Calculate result coordinates (remove summed axis) / 计算结果坐标（移除求和轴）
         val resultVector = vector.filterIndexed { i, _ -> i != axis }.toIntArray()
 
-        // Accumulate
+        // Accumulate / 累加
         val resultLinearIdx = result.shape.index(resultVector)
         result[resultLinearIdx] = result[resultLinearIdx] + this[linearIdx]
     }
@@ -122,7 +122,7 @@ fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): MultiArray<T, DynS
  */
 fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): MultiArray<T, DynShape> where T : Ring<T> {
     if (axes.isEmpty()) {
-        // No axes to sum, return copy with DynShape
+        // No axes to sum, return copy with DynShape / 无求和轴，返回 DynShape 副本
         val currentShape = IntArray(shape.dimension) { shape[it] }
         return MultiArray.newBy(DynShape(currentShape)) { i, _ -> this[i] }
     }
@@ -134,25 +134,25 @@ fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): MultiArray<T,
         }
     }
 
-    // Get current shape
+    // Get current shape / 获取当前形状
     val currentShape = IntArray(ndim) { shape[it] }
 
-    // Calculate new shape (remove all summed axes)
+    // Calculate new shape (remove all summed axes) / 计算新形状（移除所有求和轴）
     val axesSet = axes.toSet()
     val newShapeDims = currentShape.filterIndexed { i, _ -> i !in axesSet }.toIntArray()
     val newShape = DynShape(newShapeDims)
 
-    // Create mutable result array for accumulation
+    // Create mutable result array for accumulation / 创建可变结果数组用于累加
     val result = MutableMultiArray.newWith(newShape, zero)
 
-    // Iterate all elements and accumulate to result
+    // Iterate all elements and accumulate to result / 遍历所有元素并累加到结果
     for (linearIdx in 0 until size) {
         val vector = shape.vector(linearIdx)
 
-        // Calculate result coordinates (remove summed axes)
+        // Calculate result coordinates (remove summed axes) / 计算结果坐标（移除求和轴）
         val resultVector = vector.filterIndexed { i, _ -> i !in axesSet }.toIntArray()
 
-        // Accumulate
+        // Accumulate / 累加
         val resultLinearIdx = result.shape.index(resultVector)
         result[resultLinearIdx] = result[resultLinearIdx] + this[linearIdx]
     }
@@ -183,23 +183,23 @@ fun <T> AbstractMultiArray<T, *>.cumsumAxis(axis: Int, zero: T): MultiArray<T, D
         throw AxisOutOfBoundsException(axis, ndim - 1)
     }
 
-    // Get current shape
+    // Get current shape / 获取当前形状
     val currentShape = IntArray(ndim) { shape[it] }
 
-    // Create mutable result array (same shape)
+    // Create mutable result array (same shape) / 创建可变结果数组（相同形状）
     val newShape = DynShape(currentShape)
     val result = MutableMultiArray.newWith(newShape, zero)
 
-    // For each "slice" along other dimensions, compute cumulative sum
+    // For each "slice" along other dimensions, compute cumulative sum / 对每个切片沿指定轴计算累积和
     for (linearIdx in 0 until size) {
         val vector = shape.vector(linearIdx)
 
-        // If this is the first element along the axis, start fresh
-        // Otherwise, add previous cumulative sum
+        // If this is the first element along the axis, start fresh / 若为轴方向首个元素，直接赋值
+        // Otherwise, add previous cumulative sum / 否则加上前一个累积和
         if (vector[axis] == 0) {
             result[linearIdx] = this[linearIdx]
         } else {
-            // Get the previous element's coordinates
+            // Get the previous element's coordinates / 获取前一个元素的坐标
             val prevVector = vector.copyOf()
             prevVector[axis] = vector[axis] - 1
             val prevLinearIdx = shape.index(prevVector)

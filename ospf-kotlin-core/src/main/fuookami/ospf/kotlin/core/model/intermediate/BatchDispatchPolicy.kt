@@ -4,13 +4,26 @@
  */
 package fuookami.ospf.kotlin.core.model.intermediate
 
-/** 批处理切片，表示左闭右开区间 / Batch slice representing a half-open interval */
+/**
+ * 批处理切片，表示左闭右开区间 / Batch slice representing a half-open interval
+ *
+ * @property fromIndex 起始索引（含）/ Start index (inclusive)
+ * @property toIndexExclusive 结束索引（不含）/ End index (exclusive)
+ */
 internal data class BatchSlice(
     val fromIndex: Int,
     val toIndexExclusive: Int
 )
 
-/** 批处理调度计划 / Batch dispatch plan */
+/**
+ * 批处理调度计划 / Batch dispatch plan
+ *
+ * @property availableProcessors 可用处理器数 / Number of available processors
+ * @property workerCount 工作线程数 / Number of worker threads
+ * @property segmentSize 段大小 / Segment size
+ * @property shouldUseParallelPath 是否使用并行路径 / Whether to use parallel path
+ * @property shouldSplitIntoSegments 是否拆分为段 / Whether to split into segments
+ */
 internal data class BatchDispatchPlan(
     val availableProcessors: Int,
     val workerCount: Int,

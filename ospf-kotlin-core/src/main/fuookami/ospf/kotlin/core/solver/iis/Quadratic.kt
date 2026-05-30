@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 二次模型 IIS 计算 / Quadratic model IIS computation */
 package fuookami.ospf.kotlin.core.solver.iis
 
 import kotlin.time.*
@@ -9,11 +10,6 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
-
-/**
- * 二次模型 IIS 计算
- * Quadratic model IIS computation
- */
 
 /**
  * 计算二次模型的不可行子系统（IIS）。
@@ -134,6 +130,7 @@ suspend fun computeIIS(
     }
 }
 
+/** 获取与松弛变量关联的约束索引列表 / Get constraint indices related to slack variables */
 private fun getRelatedConstraints(
     model: QuadraticTetradModelView,
     slackVariables: Set<Variable>
@@ -150,12 +147,21 @@ private fun getRelatedConstraints(
     }
 }
 
+/**
+ * IIS 计算中关联变量的数据持有类。
+ * Data holder for related variables in IIS computation.
+ *
+ * @property variable 关联的变量 / The related variable
+ * @property lowerBound 变量下界（可空）/ Variable lower bound (nullable)
+ * @property upperBound 变量上界（可空）/ Variable upper bound (nullable)
+ */
 private data class RelatedVariable(
     val variable: Variable,
     val lowerBound: Flt64?,
     val upperBound: Flt64?
 )
 
+/** 标记变量的边界信息 / Mark variable bound information */
 private fun markVariable(
     marks: MutableMap<Int, Pair<Boolean, Boolean>>,
     index: Int,
@@ -168,6 +174,7 @@ private fun markVariable(
     marks[index] = newLowerBound to newUpperBound
 }
 
+/** 获取与过滤变量和约束关联的变量列表 / Get variables related to filter variables and constraints */
 private fun getRelatedVariables(
     model: QuadraticTetradModelView,
     filter: Set<Variable>,
@@ -213,6 +220,7 @@ private fun getRelatedVariables(
         }
 }
 
+/** 按行索引过滤约束并重映射变量索引 / Filter constraints by row index and remap variable indices */
 private fun filterConstraintByRowIndex(
     constraints: QuadraticConstraintBatch,
     rows: List<Int>,
@@ -255,6 +263,7 @@ private fun filterConstraintByRowIndex(
     )
 }
 
+/** 从弹性过滤结果构建 IIS 模型 / Build IIS model from elastic filter result */
 private fun dump(
     model: QuadraticTetradModelView,
     elasticFilter: Map<Variable, Flt64>
@@ -262,6 +271,7 @@ private fun dump(
     return dump(model, elasticFilter.keys)
 }
 
+/** 从松弛变量集合构建 IIS 模型 / Build IIS model from slack variable set */
 private fun dump(
     model: QuadraticTetradModelView,
     slackVariables: Set<Variable>
@@ -333,6 +343,7 @@ private fun dump(
     )
 }
 
+/** 执行弹性过滤以识别不可行组件 / Perform elastic filtering to identify infeasible components */
 private suspend fun performElasticFiltering(
     elasticModel: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
@@ -416,6 +427,7 @@ private suspend fun performElasticFiltering(
     return Ok(false to emptyMap())
 }
 
+/** 松弛满足条件的特定组件 / Relax specific components satisfying the condition */
 private suspend fun relaxSpecificComponents(
     elasticModel: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
@@ -460,6 +472,7 @@ private suspend fun relaxSpecificComponents(
     return Ok(true to relaxedComponents)
 }
 
+/** 执行删除过滤以精简不可行组件 / Perform deletion filtering to refine infeasible components */
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: QuadraticTetradModelView,
@@ -534,6 +547,7 @@ private suspend fun performDeletionFiltering(
     return Ok(activeRelaxedComponents)
 }
 
+/** 创建二次模型的快照副本 / Create a snapshot copy of the quadratic model */
 private fun snapshotQuadraticModel(model: QuadraticTetradModelView): QuadraticTetradModel {
     return if (model is QuadraticTetradModel) {
         model.copy()

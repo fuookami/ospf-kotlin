@@ -1,3 +1,4 @@
+/** 求解器失败支持 / Solver failure support */
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -23,6 +24,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 该函数仅做结果归一，不持有环境对象生命周期。
  * This function only normalizes callback outcomes and does not own environment lifecycle.
+ *
+ * @param T 目标对象类型 / Target object type
+ * @param target 目标对象 / Target object
+ * @param callBack 创建环境回调（可选）/ Creating-environment callback (optional)
+ * @return 统一结果 / Unified result
  */
 fun <T> executeCreatingEnvironmentCallback(
     target: T,
@@ -36,25 +42,36 @@ fun <T> executeCreatingEnvironmentCallback(
 }
 
 /**
- * 构造“求解环境丢失”失败结果。
+ * 构造”求解环境丢失”失败结果。
  * Build a failure result for lost solver environment.
+ *
+ * @param message 错误信息（可选）/ Error message (optional)
+ * @return 失败结果 / Failure result
  */
 fun environmentLost(message: String? = null): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
 
 /**
- * 构造“求解阶段异常”失败结果。
+ * 构造”求解阶段异常”失败结果。
  * Build a failure result for solving-stage exception.
+ *
+ * @param message 错误信息（可选）/ Error message (optional)
+ * @return 失败结果 / Failure result
  */
 fun solvingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
 
 /**
- * 构造“建模阶段异常”失败结果。
+ * 构造”建模阶段异常”失败结果。
  * Build a failure result for modeling-stage exception.
+ *
+ * @param message 错误信息（可选）/ Error message (optional)
+ * @return 失败结果 / Failure result
  */
 fun modelingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngineModelingException, message))
 
 /**
- * 构造“外部终止”失败结果。
+ * 构造”外部终止”失败结果。
  * Build a failure result for externally terminated solving.
+ *
+ * @return 失败结果 / Failure result
  */
 fun terminated(): Try = Failed(Err(ErrorCode.OREngineTerminated))

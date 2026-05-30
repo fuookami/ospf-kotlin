@@ -1,3 +1,4 @@
+/** 任务束编译模型 / Bunch compilation model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -22,6 +23,19 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 
+/**
+ * 任务束编译 / Bunch compilation
+ *
+ * @param B 任务束类型 / Bunch type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ * @param bunchAggregation 任务束聚合 / Bunch aggregation
+ */
 open class BunchCompilation<
         B : AbstractTaskBunch<T, E, A>,
         out T : AbstractTask<E, A>,
@@ -68,6 +82,12 @@ open class BunchCompilation<
     override lateinit var taskCompilation: LinearIntermediateSymbols1<Flt64>
     override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
@@ -204,6 +224,14 @@ open class BunchCompilation<
         return ok
     }
 
+    /**
+     * 添加列 / Add columns
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param newBunches 新任务束列表 / List of new bunches
+     * @param model 线性元模型 / Linear meta model
+     * @return 去重后的任务束列表 / Deduplicated bunch list
+     */
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,

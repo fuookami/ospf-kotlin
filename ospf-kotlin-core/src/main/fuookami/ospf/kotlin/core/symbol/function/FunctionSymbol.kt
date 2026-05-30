@@ -1,5 +1,6 @@
-/** 函数符号基类 / Function symbol base class */
 @file:Suppress("unused")
+
+/** 函数符号基类 / Function symbol base class */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -48,7 +49,18 @@ import fuookami.ospf.kotlin.core.variable.*
  * `AbstractLinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>` which are subtypes of the V-typed interfaces.
  */
 interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 注册辅助变量到 token 集合 / Register auxiliary variables to the token collection
+     * @param tokens 可添加 token 的集合 / the addable token collection
+     * @return 操作结果 / operation result
+     */
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
+
+    /**
+     * 将线性约束注册到机制模型 / Register linear constraints to the mechanism model
+     * @param model 线性机制模型 / the linear mechanism model
+     * @return 操作结果 / operation result
+     */
     fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try
 }
 
@@ -60,6 +72,8 @@ interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> 
  * produce the correct objective term.
  * [LinearFunctionSymbolAdapter] 使用此接口提供非零 [polynomial]，
  * 使 model.maximize(fn) 和 LinearPolynomial(fn) 产生正确的目标项。
+ *
+ * @property resultPolynomial 结果线性多项式 / The result linear polynomial
  */
 interface HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     val resultPolynomial: LinearPolynomial<V>
@@ -72,6 +86,8 @@ interface HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
  * Each function symbol creates helper variables and generates linear constraints.
  *
  * @param V 数值类型（必须实现 RealNumber 和 NumberField）/ the numeric type (must implement RealNumber and NumberField).
+ * @property name 函数符号名称 / Function symbol name
+ * @property displayName 可选显示名称 / Optional display name
  */
 interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     var name: String
@@ -88,6 +104,8 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
     /**
      * 在给定已解析的符号值下计算此函数符号。
      * Evaluate this function symbol given resolved symbol values.
+     * @param values 符号到值的映射 / symbol-to-value mapping
+     * @return 计算结果，若输入未解析则为 null / evaluation result, or null if input unresolved
      */
     fun evaluate(values: Map<Symbol, V>): V?
 }
@@ -102,7 +120,18 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
  * This is an internal solver-boundary interface.
  */
 internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 注册辅助变量到 token 集合 / Register auxiliary variables to the token collection
+     * @param tokens 可添加 token 的集合 / the addable token collection
+     * @return 操作结果 / operation result
+     */
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try
+
+    /**
+     * 将约束注册到二次机制模型 / Register constraints to the quadratic mechanism model
+     * @param model 二次机制模型 / the quadratic mechanism model
+     * @return 操作结果 / operation result
+     */
     fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try
 }
 
@@ -167,6 +196,11 @@ class LinearFunctionSymbolAdapter<V>(
         }
     }
 
+    /**
+     * 负松弛变量多项式 / Negative slack variable polynomial
+     * 仅当委托是 SlackFunction(withNegative=true) 或 SlackRangeFunction 时有意义。
+     * Only meaningful when the delegate is a SlackFunction with withNegative=true or a SlackRangeFunction.
+     */
     val neg: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V>
         val slackRange = delegate as? SlackRangeFunction<V>
@@ -179,6 +213,11 @@ class LinearFunctionSymbolAdapter<V>(
         }
     }
 
+    /**
+     * 带松弛调整的输入多项式 / Input polynomial with slack adjustments
+     * 仅当委托是 SlackFunction 或 SlackRangeFunction 时有意义。
+     * Only meaningful when the delegate is a SlackFunction or SlackRangeFunction.
+     */
     val polyX: LinearPolynomial<V>? by lazy {
         when (val d = delegate) {
             is SlackFunction<V> -> {
@@ -218,6 +257,13 @@ class LinearFunctionSymbolAdapter<V>(
     override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {}
+    /**
+     * 求解器准备阶段的计算入口 / Solver preparation phase evaluation entry point
+     * @param values Flt64 符号值映射，可为 null / Flt64 symbol-value mapping, may be null
+     * @param tokenTable token 表 / the token table
+     * @param converter 值类型转换器 / value type converter
+     * @return 计算结果 / evaluation result
+     */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
@@ -228,6 +274,12 @@ class LinearFunctionSymbolAdapter<V>(
     }
     override fun toRawString(unfold: UInt64): String = name
 
+    /**
+     * 获取委托的结果多项式，若不存在则返回零多项式。
+     * Get the delegate's result polynomial, or a zero polynomial if unavailable.
+     *
+     * @return 结果线性多项式 / result linear polynomial
+     */
     @Suppress("UNCHECKED_CAST")
     private fun resultPolynomialOrZero(): LinearPolynomial<V> {
         // 安全不变量：本模块内 HasResultPolynomial 的实现与 delegate 使用相同的 V 类型参数。
@@ -236,6 +288,7 @@ class LinearFunctionSymbolAdapter<V>(
             ?: LinearPolynomial(emptyList(), converter.zero)
     }
 
+    /** 展平后的单项式数据（来自结果多项式）/ Flattened monomial data from the result polynomial */
     internal val flattenedMonomials: LinearFlattenData<V> get() {
         val poly = resultPolynomialOrZero()
         return LinearFlattenData(poly.monomials, poly.constant)
@@ -249,14 +302,35 @@ class LinearFunctionSymbolAdapter<V>(
         return MutableLinearPolynomial(poly.monomials, poly.constant)
     }
 
+    /**
+     * 基于 token 列表的 Flt64 求值（默认返回 null）/ Flt64 evaluation based on token list (default returns null)
+     * @param tokenList token 列表 / the token list
+     * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
+     * @return 计算结果 / evaluation result
+     */
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    /**
+     * 基于结果列表和 token 列表的 Flt64 求值（默认返回 null）/ Flt64 evaluation based on results and token list (default returns null)
+     * @param results 结果值列表 / the result value list
+     * @param tokenList token 列表 / the token list
+     * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
+     * @return 计算结果 / evaluation result
+     */
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    /**
+     * 基于符号值映射的 Flt64 求值 / Flt64 evaluation based on symbol-value mapping
+     * @param values Flt64 符号值映射 / Flt64 symbol-value mapping
+     * @param tokenList token 列表，可为 null / the token list, may be null
+     * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
+     * @return 计算结果 / evaluation result
+     */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         val v = delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.fromValue(v)
     }
 
     // V-typed evaluate overrides (P4-5) - delegate to Flt64-boundary evaluate + converter
+    // V 类型求值重写 (P4-5) - 委托给 Flt64 边界求值 + 转换器
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         return if (values.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
@@ -290,10 +364,26 @@ class LinearFunctionSymbolAdapter<V>(
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate.evaluate(values)
     }
+    /**
+     * 求解器结果转换为 V 类型后求值 / Evaluate after converting solver results to V type
+     * @param results Flt64 结果列表 / Flt64 result list
+     * @param tokenTable token 表 / the token table
+     * @param converter 值类型转换器 / value type converter
+     * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
+     * @return 计算结果 / evaluation result
+     */
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedResults = results.map { converter.intoValue(it) }
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
+    /**
+     * 求解器符号值转换为 V 类型后求值 / Evaluate after converting solver symbol values to V type
+     * @param values Flt64 符号值映射 / Flt64 symbol-value mapping
+     * @param tokenTable token 表，可为 null / the token table, may be null
+     * @param converter 值类型转换器 / value type converter
+     * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
+     * @return 计算结果 / evaluation result
+     */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter))
     }

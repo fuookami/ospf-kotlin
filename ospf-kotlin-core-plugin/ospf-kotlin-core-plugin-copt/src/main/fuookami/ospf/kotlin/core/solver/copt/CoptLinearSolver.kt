@@ -34,12 +34,20 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** COPT 线性求解器 / COPT linear solver */
 class CoptLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CoptLinearSolverCallBack? = null
 ) : LinearSolver {
     override val name = "copt"
 
+    /**
+     * 求解线性模型 / Solve linear model
+     *
+     * @param model 线性模型视图 / linear model view
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果 / solving result
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -55,6 +63,14 @@ class CoptLinearSolver(
         }
     }
 
+    /**
+     * 求解线性模型，获取多个解 / Solve linear model, obtaining multiple solutions
+     *
+     * @param model 线性模型视图 / linear model view
+     * @param solutionAmount 期望解的数量 / desired number of solutions
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果及多个解 / solving result with multiple solutions
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -93,6 +109,7 @@ class CoptLinearSolver(
     }
 }
 
+/** COPT 线性求解器内部实现 / COPT linear solver internal implementation */
 private class CoptLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: CoptLinearSolverCallBack? = null,
@@ -107,6 +124,12 @@ private class CoptLinearSolverImpl(
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
+    /**
+     * 执行求解流程 / Execute solving process
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 求解结果 / solving result
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
         val coptConfig = config.extraConfig as? CoptSolverConfig
         val server = coptConfig?.server
@@ -154,6 +177,12 @@ private class CoptLinearSolverImpl(
         return Ok(output)
     }
 
+    /**
+     * 将模型转储到 COPT / Dump model to COPT
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("copt", model.nonNullConstraintPriorityAmount())
@@ -266,6 +295,12 @@ private class CoptLinearSolverImpl(
         }
     }
 
+    /**
+     * 配置 COPT 求解器参数 / Configure COPT solver parameters
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
@@ -372,6 +407,7 @@ private class CoptLinearSolverImpl(
         }
     }
 
+    /** 分析求解结果 / Analyze solving result */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

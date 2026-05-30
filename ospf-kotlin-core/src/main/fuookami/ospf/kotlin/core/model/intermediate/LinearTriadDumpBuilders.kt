@@ -23,6 +23,13 @@ private fun Any?.toSolverFlt64(): Flt64 {
     }
 }
 
+/**
+ * 从约束单元格行列表构建稀疏矩阵。
+ * Build a sparse matrix from a list of constraint cell rows.
+ *
+ * @param rows 约束单元格行列表 / The list of constraint cell rows
+ * @return 稀疏矩阵 / The sparse matrix
+ */
 internal fun buildLinearSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<Flt64> {
     val matrix = SparseMatrix<Flt64>()
     for (row in rows) {
@@ -35,6 +42,14 @@ internal fun buildLinearSparseLhs(rows: List<List<LinearConstraintCell>>): Spars
     return matrix
 }
 
+/**
+ * 从标记索引和边界约束生成求解器变量列表。
+ * Generate solver variables from token indexes and bound constraints.
+ *
+ * @param tokenIndexes 标记到列索引的映射 / The mapping from tokens to column indices
+ * @param bounds       标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
+ * @return 求解器变量列表 / The list of solver variables
+ */
 internal fun dumpLinearTriadVariables(
     tokenIndexes: Map<Token<Flt64>, Int>,
     bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
@@ -76,6 +91,16 @@ internal fun dumpLinearTriadVariables(
     return variables.map { it!! }
 }
 
+/**
+ * 从线性机制模型转储约束到线性约束批次。
+ * Dump constraints from a linear mechanism model into a linear constraint batch.
+ *
+ * @param model          线性机制模型 / The linear mechanism model
+ * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
+ * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
+ * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
+ * @return 线性约束批次 / The linear constraint batch
+ */
 internal fun dumpLinearTriadConstraints(
     model: LinearMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -138,6 +163,16 @@ internal fun dumpLinearTriadConstraints(
     )
 }
 
+/**
+ * 异步从线性机制模型转储约束到线性约束批次，支持并行分段处理。
+ * Asynchronously dump constraints from a linear mechanism model into a linear constraint batch with parallel segment processing.
+ *
+ * @param model          线性机制模型 / The linear mechanism model
+ * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
+ * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
+ * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
+ * @return 线性约束批次 / The linear constraint batch
+ */
 internal suspend fun dumpLinearTriadConstraintsAsync(
     model: LinearMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -267,6 +302,15 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
     }
 }
 
+/**
+ * 从线性机制模型转储目标函数到线性目标对象。
+ * Dump objective function from a linear mechanism model into a linear objective.
+ *
+ * @param model          线性机制模型 / The linear mechanism model
+ * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
+ * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
+ * @return 线性目标 / The linear objective
+ */
 internal fun dumpLinearTriadObjectives(
     model: LinearMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,

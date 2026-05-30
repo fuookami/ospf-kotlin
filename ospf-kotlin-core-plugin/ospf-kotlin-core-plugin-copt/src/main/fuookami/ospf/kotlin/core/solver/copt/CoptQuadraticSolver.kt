@@ -34,12 +34,20 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** COPT 二次求解器 / COPT quadratic solver */
 class CoptQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CoptQuadraticSolverCallBack? = null
 ) : QuadraticSolver {
     override val name = "copt"
 
+    /**
+     * 求解二次模型 / Solve quadratic model
+     *
+     * @param model 二次模型视图 / quadratic model view
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果 / solving result
+     */
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -54,6 +62,14 @@ class CoptQuadraticSolver(
         return result
     }
 
+    /**
+     * 求解二次模型，获取多个解 / Solve quadratic model, obtaining multiple solutions
+     *
+     * @param model 二次模型视图 / quadratic model view
+     * @param solutionAmount 期望解的数量 / desired number of solutions
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果及多个解 / solving result with multiple solutions
+     */
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
@@ -92,6 +108,7 @@ class CoptQuadraticSolver(
     }
 }
 
+/** COPT 二次求解器内部实现 / COPT quadratic solver internal implementation */
 private class CoptQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: CoptQuadraticSolverCallBack? = null,
@@ -106,6 +123,12 @@ private class CoptQuadraticSolverImpl(
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
+    /**
+     * 执行求解流程 / Execute solving process
+     *
+     * @param model 二次模型视图 / quadratic model view
+     * @return 求解结果 / solving result
+     */
     suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
         val coptConfig = config.extraConfig as? CoptSolverConfig
         val server = coptConfig?.server
@@ -153,6 +176,12 @@ private class CoptQuadraticSolverImpl(
         return Ok(output)
     }
 
+    /**
+     * 将二次模型转储到 COPT / Dump quadratic model to COPT
+     *
+     * @param model 二次模型视图 / quadratic model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
             warnIgnoredConstraintPriority("copt", model.nonNullConstraintPriorityAmount())
@@ -277,6 +306,12 @@ private class CoptQuadraticSolverImpl(
         }
     }
 
+    /**
+     * 配置 COPT 二次求解器参数 / Configure COPT quadratic solver parameters
+     *
+     * @param model 二次模型视图 / quadratic model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
@@ -383,6 +418,7 @@ private class CoptQuadraticSolverImpl(
         }
     }
 
+    /** 分析求解结果 / Analyze solving result */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

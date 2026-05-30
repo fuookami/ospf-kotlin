@@ -1,5 +1,6 @@
-/** 满足数量函数符号 / Satisfied amount function symbol */
 @file:Suppress("unused")
+
+/** 满足数量函数符号 / Satisfied amount function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -32,6 +33,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Output: y = sum(u[i]) (count of satisfied inequalities).
  * 若设置了 `amount`，则添加约束 y >= amount（至少 `amount` 个必须满足）。
  * If `amount` is set, adds constraint y >= amount (at least `amount` must be satisfied).
+ *
+ * @property inequalities 要统计的线性不等式列表 / list of linear inequalities to count
+ * @property amount 可选的最小满足数量 / optional minimum satisfied count
+ * @property epsilon 零容差 / zero tolerance
+ * @property bigM Big-M 界限 / Big-M bound
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SatisfiedAmountFunction<V>(
     val inequalities: List<LinearInequality<V>>,
@@ -45,7 +54,7 @@ class SatisfiedAmountFunction<V>(
 
     private val n: Int get() = inequalities.size
 
-    // Binary flag per inequality: u[i] = 1 if inequality i is satisfied
+    // Binary flag per inequality: u[i] = 1 if inequality i is satisfied / 每个不等式的二值标志：不等式 i 满足时 u[i] = 1
     private val _uVars: List<BinVar> by lazy {
         inequalities.mapIndexed { i, _ -> BinVar("${name}_u_$i") }
     }
@@ -171,7 +180,7 @@ class SatisfiedAmountFunction<V>(
             }
         }
 
-        // If amount is set: sum(u[i]) >= amount
+        // If amount is set: sum(u[i]) >= amount / 若设置了 amount：sum(u[i]) >= amount
         if (amount != null) {
             val sumMonos = _uVars.map { LinearMonomial(one, it) }
             val amountValue = repeatAdd(one, amount.toInt())
@@ -185,6 +194,7 @@ class SatisfiedAmountFunction<V>(
         return addConstraints(model, allConstraints) ?: ok
     }
     companion object {
+        /** 创建 [SatisfiedAmountFunction] 实例。 / Create a [SatisfiedAmountFunction] instance. */
         operator fun <V> invoke(
             inequalities: List<LinearInequality<V>>,
             amount: UInt64? = null,

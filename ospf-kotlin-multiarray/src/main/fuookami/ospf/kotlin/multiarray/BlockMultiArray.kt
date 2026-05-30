@@ -237,10 +237,10 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      * @return 不可变多维数组 / Immutable multi-array
      */
     fun toMultiArray(defaultValue: T): MultiArray<T, S> {
-        // Initialize with default value instead of uninitialized
+        // Initialize with default value instead of uninitialized / 使用默认值初始化而非未初始化
         val array = MutableMultiArray.newWith(shape, defaultValue)
 
-        // Override with stored values
+        // Override with stored values / 用已存储的值覆盖
         for ((key, value) in blocks) {
             array[key.asIntArray()] = value
         }

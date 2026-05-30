@@ -28,6 +28,7 @@ typealias MongoFieldNameResolver = PersistenceFieldResolver<String>
  * Translates math.symbol.expression.BooleanExpression to MongoDB query conditions.
  *
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
+ * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
  */
 class MongoBooleanTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
@@ -38,6 +39,9 @@ class MongoBooleanTranslator(
     /**
      * 翻译布尔表达式为 Bson
      * Translate boolean expression to Bson
+     *
+     * @param expr 布尔表达式 / Boolean expression
+     * @return Bson 查询条件，不支持时返回 null / Bson query condition, or null if unsupported
      */
     fun translate(expr: BooleanExpression): Bson? {
         return when (expr) {

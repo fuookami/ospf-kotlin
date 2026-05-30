@@ -15,11 +15,11 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
 /**
- * 机制模型 cut 构造支持。
- * Cut-construction support for mechanism models.
+ * 有序变量对，用于 cut 构造中的二次项键。
+ * Ordered variable pair used as quadratic term key in cut construction.
  *
- * 说明：基于 dual / farkas dual 与 fixed variable 投影构造线性或二次 cut。
- * Note: builds linear/quadratic cuts from dual/farkas-dual solutions with fixed-variable projection.
+ * @property first 第一个变量项 / First variable item
+ * @property second 第二个变量项 / Second variable item
  */
 private data class OrderedVariablePair(
     val first: AbstractVariableItem<*, *>,

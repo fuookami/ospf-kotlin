@@ -2,6 +2,7 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务束迭代器 / Bunch iterator */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -17,6 +18,16 @@ import fuookami.ospf.kotlin.math.operator.abs
 import org.apache.logging.log4j.kotlin.logger
 import kotlin.time.Clock
 
+/**
+ * 任务束迭代器 / Bunch iterator
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param initialSlowLpImprovementStep 初始慢LP改进步长 / Initial slow LP improvement step
+ * @param relativeImprovementStep 相对改进步长 / Relative improvement step
+ * @param improvementSlowCount 改进缓慢计数 / Improvement slow count
+ */
 class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     val initialSlowLpImprovementStep: Flt64 = Flt64(100.0),
     val relativeImprovementStep: Flt64 = Flt64(0.01),
@@ -48,6 +59,12 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
             return min(Flt64.Companion.one, upperBound?.let { max(actualOptimalRate, (it - bestObj) / it) } ?: actualOptimalRate)
         }
 
+    /**
+     * 刷新下界 / Refresh lower bound
+     *
+     * @param newBunches 新任务束列表 / List of new bunches
+     * @param reducedCost 约简成本函数 / Reduced cost function
+     */
     fun refreshLowerBound(
         newBunches: List<AbstractTaskBunch<T, E, A>>,
         reducedCost: (AbstractTaskBunch<T, E, A>) -> Flt64
@@ -71,6 +88,12 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         }
     }
 
+    /**
+     * 刷新LP目标值 / Refresh LP objective
+     *
+     * @param obj LP目标值 / LP objective value
+     * @return 是否有改进 / Whether improved
+     */
     fun refreshLpObj(obj: Flt64): Boolean {
         if (slowLpImprovementStep.isInfinity()) {
             slowLpImprovementStep = max(initialSlowLpImprovementStep, obj * relativeImprovementStep)
@@ -98,6 +121,12 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         return flag
     }
 
+    /**
+     * 刷新IP目标值 / Refresh IP objective
+     *
+     * @param obj IP目标值 / IP objective value
+     * @return 是否有改进 / Whether improved
+     */
     fun refreshIpObj(obj: Flt64): Boolean {
         if ((abs(prevIpObj - obj) ls Flt64(0.01)) || (((bestObj - obj) / bestObj) ls Flt64(0.01))) {
             ++slowIpImprovementCount
@@ -123,6 +152,7 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         return flag
     }
 
+    /** 减半步长 / Halve step */
     fun halveStep() {
         slowLpImprovementStep /= Flt64.Companion.two
     }

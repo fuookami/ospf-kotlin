@@ -1,5 +1,6 @@
-/** 松弛变量函数符号 / Slack variable function symbol */
 @file:Suppress("unused")
+
+/** 松弛变量函数符号 / Slack variable function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -35,8 +36,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property type 松弛变量类型 / Slack variable type
  * @property withNegative 是否包含负松弛 / Whether to include negative slack
  * @property withPositive 是否包含正松弛 / Whether to include positive slack
+ * @property threshold 是否使用阈值约束 / Whether to use threshold constraints
+ * @property constraint 是否添加约束 / Whether to add constraints
  * @property negVar 负松弛变量 / Negative slack variable
  * @property posVar 正松弛变量 / Positive slack variable
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SlackFunction<V>(
     val x: LinearPolynomial<V>,
@@ -88,6 +93,13 @@ class SlackFunction<V>(
         }
     }
 
+    /**
+     * 根据变量类型创建辅助变量。
+     * Create an auxiliary variable based on the variable type.
+     *
+     * @param baseName 变量基础名称 / base variable name
+     * @return 创建的变量项 / the created variable item
+     */
     private fun createVariable(baseName: String): AbstractVariableItem<*, *> {
         return if (type.isIntegerType) UIntVar(baseName) else URealVar(baseName)
     }
@@ -148,7 +160,22 @@ class SlackFunction<V>(
     }
 
     companion object {
-        /** 通用 V 类型调用：使用 x 和 y 多项式的主入口点。 / Generic V-typed invoke: primary entry point with x and y polynomials. */
+        /**
+         * 通用 V 类型调用：使用 x 和 y 多项式的主入口点。
+         * Generic V-typed invoke: primary entry point with x and y polynomials.
+         *
+         * @param x 左侧多项式 / left-hand side polynomial
+         * @param y 右侧多项式 / right-hand side polynomial
+         * @param type 松弛变量类型 / slack variable type
+         * @param withNegative 是否包含负松弛 / whether to include negative slack
+         * @param withPositive 是否包含正松弛 / whether to include positive slack
+         * @param threshold 是否使用阈值约束 / whether to use threshold constraints
+         * @param constraint 是否添加约束 / whether to add constraints
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 松弛函数实例 / slack function instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
@@ -175,7 +202,22 @@ class SlackFunction<V>(
             )
         }
 
-        /** 使用 LinearIntermediateSymbol<V> 的通用 V 类型调用。 / Generic V-typed invoke with LinearIntermediateSymbol<V>. */
+        /**
+         * 使用 LinearIntermediateSymbol<V> 的通用 V 类型调用。
+         * Generic V-typed invoke with LinearIntermediateSymbol<V>.
+         *
+         * @param x 左侧线性中间符号 / left-hand side linear intermediate symbol
+         * @param y 右侧多项式 / right-hand side polynomial
+         * @param type 松弛变量类型 / slack variable type
+         * @param withNegative 是否包含负松弛 / whether to include negative slack
+         * @param withPositive 是否包含正松弛 / whether to include positive slack
+         * @param threshold 是否使用阈值约束 / whether to use threshold constraints
+         * @param constraint 是否添加约束 / whether to add constraints
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 松弛函数实例 / slack function instance
+         */
         operator fun <V> invoke(
             x: LinearIntermediateSymbol<V>,
             y: LinearPolynomial<V>,
@@ -202,7 +244,22 @@ class SlackFunction<V>(
             )
         }
 
-        /** 使用 ToLinearPolynomial<V> 的通用 V 类型调用。 / Generic V-typed invoke with ToLinearPolynomial<V>. */
+        /**
+         * 使用 ToLinearPolynomial<V> 的通用 V 类型调用。
+         * Generic V-typed invoke with ToLinearPolynomial<V>.
+         *
+         * @param x 左侧可转换为线性多项式的对象 / left-hand side convertible to linear polynomial
+         * @param y 右侧可转换为线性多项式的对象 / right-hand side convertible to linear polynomial
+         * @param type 松弛变量类型 / slack variable type
+         * @param withNegative 是否包含负松弛 / whether to include negative slack
+         * @param withPositive 是否包含正松弛 / whether to include positive slack
+         * @param threshold 是否使用阈值约束 / whether to use threshold constraints
+         * @param constraint 是否添加约束 / whether to add constraints
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 松弛函数实例 / slack function instance
+         */
         operator fun <V> invoke(
             x: ToLinearPolynomial<V>,
             y: ToLinearPolynomial<V>,

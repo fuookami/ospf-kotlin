@@ -1,3 +1,4 @@
+/** 任务成本最小化 / Task cost minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -9,6 +10,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 任务成本最小化 / Task cost minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param compilation 迭代任务编译结果 / Iterative task compilation result
+ * @param name 管道名称 / Pipeline name
+ */
 class TaskCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

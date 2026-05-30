@@ -1,11 +1,21 @@
 @file:Suppress("DEPRECATION")
 
+/**
+ * 成本模型，支持可变和不可变成本 / Cost model supporting mutable and immutable costs
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 成本项，包含标签、值和消息 / Cost item containing tag, value, and message
+ *
+ * @property tag 标签 / The tag
+ * @property value 值 / The value
+ * @property message 消息 / The message
+ */
 data class CostItem(
     val tag: String,
     val value: Flt64? = null,
@@ -16,6 +26,9 @@ data class CostItem(
     override fun copy() = CostItem(tag, value, message)
 }
 
+/**
+ * 成本接口，支持迭代和复制 / Cost interface supporting iteration and copying
+ */
 sealed interface Cost : Iterable<CostItem>, Copyable<Cost> {
     companion object {
         operator fun invoke(
@@ -63,6 +76,12 @@ sealed interface Cost : Iterable<CostItem>, Copyable<Cost> {
     override fun iterator() = items.iterator()
 }
 
+/**
+ * 可变成本，支持动态添加成本项 / Mutable cost supporting dynamic addition of cost items
+ *
+ * @property items 成本项列表 / The list of cost items
+ * @property sum 成本总和 / The sum of costs
+ */
 class MutableCost(
     override val items: MutableList<CostItem> = ArrayList(),
     override var sum: Flt64? = if (items.all { it.value != null }) {
@@ -96,6 +115,12 @@ class MutableCost(
     }
 }
 
+/**
+ * 不可变成本 / Immutable cost
+ *
+ * @property items 成本项列表 / The list of cost items
+ * @property sum 成本总和 / The sum of costs
+ */
 data class ImmutableCost(
     override val items: List<CostItem>,
     override val sum: Flt64? = if (items.all { it.value != null }) {

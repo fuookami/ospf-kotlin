@@ -10,6 +10,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 /**
  * 稀疏向量中的单个条目，将列索引与值配对。
  * A single entry in a [SparseVector], pairing a column index with a value.
+ *
+ * @property index 列索引 / Column index
+ * @property value 条目值 / Entry value
  */
 data class SparseVectorEntry<V : RealNumber<V>>(
     val index: Int,
@@ -50,6 +53,7 @@ class SparseVector<V : RealNumber<V>>(
     override fun toString(): String = "SparseVector($entries)"
 
     companion object {
+        /** 创建空的 SparseVector / Create an empty SparseVector */
         fun <V : RealNumber<V>> invoke(): SparseVector<V> = SparseVector()
     }
 }
@@ -156,6 +160,7 @@ class SparseMatrix<V : RealNumber<V>>(
     override fun toString(): String = "SparseMatrix($rows)"
 
     companion object {
+        /** 创建空的 SparseMatrix / Create an empty SparseMatrix */
         fun <V : RealNumber<V>> invoke(): SparseMatrix<V> = SparseMatrix()
     }
 }

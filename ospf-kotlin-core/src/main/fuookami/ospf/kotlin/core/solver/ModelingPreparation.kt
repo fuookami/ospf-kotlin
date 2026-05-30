@@ -10,6 +10,11 @@ import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 /**
  * solver 边界公共 helper（仅用于 solver dump 前数据准备）。
  * Shared helper at solver boundary (only for pre-dump data preparation).
+ *
+ * @property lowerBounds 变量下界数组 / Variable lower bounds array
+ * @property upperBounds 变量上界数组 / Variable upper bounds array
+ * @property names 变量名称数组 / Variable names array
+ * @property initialResults 初始解列表（列索引, 值）/ Initial solution list (column index, value)
  */
 data class VariableDumpingData(
     val lowerBounds: DoubleArray,
@@ -18,6 +23,14 @@ data class VariableDumpingData(
     val initialResults: List<Pair<Int, Double>>
 )
 
+/**
+ * 准备变量转储数据，将变量列表转换为求解器所需的数组格式。
+ * Prepare variable dumping data, converting variable list to array format required by solver.
+ *
+ * @param variables 变量列表 / Variable list
+ * @param scopeName 作用域名称（用于错误信息）/ Scope name (for error messages)
+ * @return 变量转储数据 / Variable dumping data
+ */
 fun prepareVariableDumpingData(
     variables: List<Variable>,
     scopeName: String
@@ -43,6 +56,14 @@ fun prepareVariableDumpingData(
     )
 }
 
+/**
+ * 计算约束分段大小，用于并发转储时的任务划分。
+ * Compute constraint segment size for task partitioning during concurrent dumping.
+ *
+ * @param constraintSize 约束总数 / Total constraint count
+ * @param availableProcessors 可用处理器数 / Available processor count
+ * @return 分段大小 / Segment size
+ */
 fun computeConstraintSegmentSize(
     constraintSize: Int,
     availableProcessors: Int = Runtime.getRuntime().availableProcessors()

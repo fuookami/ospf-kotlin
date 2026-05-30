@@ -14,6 +14,13 @@ import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.Quadruple
 import kotlinx.coroutines.*
 
+/**
+ * 从二次约束单元格行列表构建稀疏二次矩阵。
+ * Build a sparse quadratic matrix from a list of quadratic constraint cell rows.
+ *
+ * @param rows 二次约束单元格行列表 / The list of quadratic constraint cell rows
+ * @return 稀疏二次矩阵 / The sparse quadratic matrix
+ */
 internal fun buildQuadraticSparseLhs(rows: List<List<QuadraticConstraintCell>>): SparseQuadraticMatrix {
     val matrix = SparseQuadraticMatrix()
     for (row in rows) {
@@ -26,6 +33,14 @@ internal fun buildQuadraticSparseLhs(rows: List<List<QuadraticConstraintCell>>):
     return matrix
 }
 
+/**
+ * 从标记索引和边界约束生成求解器变量列表（二次模型）。
+ * Generate solver variables from token indexes and bound constraints (quadratic model).
+ *
+ * @param tokenIndexes 标记到列索引的映射 / The mapping from tokens to column indices
+ * @param bounds       标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
+ * @return 求解器变量列表 / The list of solver variables
+ */
 internal fun dumpQuadraticTetradVariables(
     tokenIndexes: Map<Token<Flt64>, Int>,
     bounds: Map<Token<Flt64>, List<Quadruple<QuadraticConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
@@ -66,6 +81,16 @@ internal fun dumpQuadraticTetradVariables(
     return variables.map { it!! }
 }
 
+/**
+ * 从二次机制模型转储约束到二次约束批次。
+ * Dump constraints from a quadratic mechanism model into a quadratic constraint batch.
+ *
+ * @param model          二次机制模型 / The quadratic mechanism model
+ * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
+ * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
+ * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
+ * @return 二次约束批次 / The quadratic constraint batch
+ */
 internal fun dumpQuadraticTetradConstraints(
     model: QuadraticMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -145,6 +170,16 @@ internal fun dumpQuadraticTetradConstraints(
     )
 }
 
+/**
+ * 异步从二次机制模型转储约束到二次约束批次，支持并行分段处理。
+ * Asynchronously dump constraints from a quadratic mechanism model into a quadratic constraint batch with parallel segment processing.
+ *
+ * @param model          二次机制模型 / The quadratic mechanism model
+ * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
+ * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
+ * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
+ * @return 二次约束批次 / The quadratic constraint batch
+ */
 internal suspend fun dumpQuadraticTetradConstraintsAsync(
     model: QuadraticMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -312,6 +347,15 @@ internal suspend fun dumpQuadraticTetradConstraintsAsync(
     }
 }
 
+/**
+ * 从二次机制模型转储目标函数到二次目标对象。
+ * Dump objective function from a quadratic mechanism model into a quadratic objective.
+ *
+ * @param model          二次机制模型 / The quadratic mechanism model
+ * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
+ * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
+ * @return 二次目标 / The quadratic objective
+ */
 internal fun dumpQuadraticTetradObjectives(
     model: QuadraticMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,

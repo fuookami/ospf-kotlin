@@ -39,6 +39,7 @@ typealias KtormColumnResolver = PersistenceFieldResolver<ColumnDeclaring<*>>
  *
  * @property resolveColumn 列解析函数 / Column resolver function
  * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
+ * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
  */
 class KtormBooleanTranslator(
     private val resolveColumn: KtormColumnResolver,
@@ -48,8 +49,11 @@ class KtormBooleanTranslator(
     private val scalarTranslator = KtormScalarTranslator(resolveColumn, unsupportedPredicatePolicy)
 
     /**
-     * 翻译布尔表达式
-     * Translate boolean expression
+     * 翻译布尔表达式为 Ktorm 条件
+     * Translate boolean expression to Ktorm condition
+     *
+     * @param expr 布尔表达式 / Boolean expression
+     * @return Ktorm 条件表达式，不支持时返回 null / Ktorm condition expression, or null if unsupported
      */
     fun translate(expr: BooleanExpression): ColumnDeclaring<Boolean>? {
         return when (expr) {

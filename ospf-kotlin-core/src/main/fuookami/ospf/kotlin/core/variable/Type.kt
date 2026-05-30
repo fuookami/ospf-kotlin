@@ -99,7 +99,12 @@ sealed interface UContinuesVariableType<T : FloatingNumber<T>> : VariableTypeInt
     override val isUnsignedType get() = true
 }
 
-/** 变量类型的密封基类。 / Sealed base class for variable types. */
+/**
+ * 变量类型的密封基类。
+ * Sealed base class for variable types.
+ *
+ * @property constants 数值类型常量 / Numeric type constants
+ */
 sealed class VariableType<T>(
     override val constants: RealNumberConstants<T>
 ) : VariableTypeInterface<T> where T : RealNumber<T>, T : NumberField<T>
@@ -113,6 +118,7 @@ data object Binary : VariableType<UInt8>(UInt8), UIntegerVariableType<UInt8> {
     override val isBinaryType get() = true
     override val isUnsignedType get() = true
 
+    /** @return "Binary" */
     override fun toString(): String = "Binary"
 }
 
@@ -122,6 +128,7 @@ data object Ternary : VariableType<UInt8>(UInt8), UIntegerVariableType<UInt8> {
     override val shortName = "ter"
     override val maximum by constants::two
 
+    /** @return "Ternary" */
     override fun toString(): String = "Ternary"
 }
 
@@ -132,6 +139,7 @@ data object BalancedTernary : VariableType<Int8>(Int8), IntegerVariableType<Int8
     override val minimum get() = -constants.one
     override val maximum by constants::one
 
+    /** @return "BalancedTernary" */
     override fun toString(): String = "BalancedTernary"
 }
 
@@ -141,6 +149,7 @@ data object Percentage : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt6
     override val shortName = "pct"
     override val maximum by constants::one
 
+    /** @return "Percentage" */
     override fun toString(): String = "Percentage"
 }
 
@@ -148,6 +157,7 @@ data object Percentage : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt6
 data object Integer : VariableType<Int64>(Int64), IntegerVariableType<Int64> {
     override val name = "Integer"
     override val shortName = "int"
+    /** @return "Integer" */
     override fun toString(): String = "Integer"
 }
 
@@ -155,6 +165,7 @@ data object Integer : VariableType<Int64>(Int64), IntegerVariableType<Int64> {
 data object UInteger : VariableType<UInt64>(UInt64), UIntegerVariableType<UInt64> {
     override val name = "UInteger"
     override val shortName = "uint"
+    /** @return "UInteger" */
     override fun toString(): String = "UInteger"
 }
 
@@ -162,6 +173,7 @@ data object UInteger : VariableType<UInt64>(UInt64), UIntegerVariableType<UInt64
 data object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
     override val name = "Continuous"
     override val shortName = "real"
+    /** @return "Continues" */
     override fun toString(): String = "Continues"
 }
 
@@ -169,5 +181,6 @@ data object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64
 data object UContinuous : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
     override val name = "UContinuous"
     override val shortName = "ureal"
+    /** @return "UContinues" */
     override fun toString(): String = "UContinues"
 }

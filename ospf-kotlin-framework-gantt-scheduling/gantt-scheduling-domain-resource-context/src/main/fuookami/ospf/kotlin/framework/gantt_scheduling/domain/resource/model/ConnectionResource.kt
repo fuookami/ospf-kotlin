@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 连接资源模型 / Connection resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
@@ -26,6 +27,15 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/**
+ * 连接资源 / Connection resource
+ *
+ * @param C 资源容量类型 / Resource capacity type
+ * @param id 资源ID / Resource ID
+ * @param name 资源名称 / Resource name
+ * @param capacities 容量列表 / List of capacities
+ * @param initialQuantity 初始数量 / Initial quantity
+ */
 abstract class ConnectionResource<out C : AbstractResourceCapacity>(
     override val id: String,
     override val name: String,
@@ -62,6 +72,16 @@ abstract class ConnectionResource<out C : AbstractResourceCapacity>(
     }
 }
 
+/**
+ * 连接资源时间槽 / Connection resource time slot
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param origin 原始时间槽 / Origin time slot
+ * @param resource 资源 / Resource
+ * @param resourceCapacity 资源容量 / Resource capacity
+ * @param indexInRule 规则内索引 / Index in rule
+ */
 data class ConnectionResourceTimeSlot<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity
@@ -105,8 +125,19 @@ data class ConnectionResourceTimeSlot<
     }
 }
 
+/** 连接资源使用类型别名 / Connection resource usage typealias */
 typealias ConnectionResourceUsage<R, C> = ResourceUsage<ConnectionResourceTimeSlot<R, C>, R, C>
 
+/**
+ * 抽象连接资源使用 / Abstract connection resource usage
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ */
 abstract class AbstractConnectionResourceUsage<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity
@@ -168,6 +199,19 @@ abstract class AbstractConnectionResourceUsage<
     }
 }
 
+/**
+ * 任务调度连接资源使用 / Task scheduling connection resource usage
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ * @param overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
+ */
 class TaskSchedulingConnectionResourceUsage<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity
@@ -228,6 +272,17 @@ class TaskSchedulingConnectionResourceUsage<
     }
 }
 
+/**
+ * 任务束调度连接资源使用 / Bunch scheduling connection resource usage
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ */
 class BunchSchedulingConnectionResourceUsage<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity

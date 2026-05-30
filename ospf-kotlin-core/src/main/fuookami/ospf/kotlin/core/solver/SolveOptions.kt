@@ -35,6 +35,12 @@ data class SolveOptions(
         var solvingStatusCallBack: SolvingStatusCallBack? = null
         var valueConversionPolicy: SolveValueConversionPolicy? = null
 
+        /**
+         * 构建求解选项。
+         * Build solve options.
+         *
+         * @return 求解选项实例 / Solve options instance
+         */
         fun build(): SolveOptions {
             return SolveOptions(
                 solutionAmount = solutionAmount,
@@ -46,10 +52,23 @@ data class SolveOptions(
     }
 
     companion object {
+        /**
+         * 创建求解选项构建器。
+         * Create a solve options builder.
+         *
+         * @return 构建器实例 / Builder instance
+         */
         fun builder(): Builder {
             return Builder()
         }
 
+        /**
+         * 通过 DSL 块构建求解选项。
+         * Build solve options via a DSL block.
+         *
+         * @param block 构建器配置块 / Builder configuration block
+         * @return 求解选项实例 / Solve options instance
+         */
         fun build(block: Builder.() -> Unit): SolveOptions {
             return Builder().apply(block).build()
         }

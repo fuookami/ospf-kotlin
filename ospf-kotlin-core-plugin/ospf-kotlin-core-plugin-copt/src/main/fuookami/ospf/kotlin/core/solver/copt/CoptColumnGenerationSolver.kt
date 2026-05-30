@@ -19,12 +19,23 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** COPT 列生成求解器 / COPT column generation solver */
 class CoptColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: CoptLinearSolverCallBack = CoptLinearSolverCallBack()
 ) : ColumnGenerationSolver {
     override val name = "copt"
 
+    /**
+     * 求解混合整数线性规划 / Solve mixed-integer linear programming
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param toLogModel 是否导出模型文件 / whether to export model file
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果 / solving result
+     */
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -97,6 +108,17 @@ class CoptColumnGenerationSolver(
         }
     }
 
+    /**
+     * 求解混合整数线性规划，获取多个解 / Solve mixed-integer linear programming, obtaining multiple solutions
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param amount 期望解的数量 / desired number of solutions
+     * @param toLogModel 是否导出模型文件 / whether to export model file
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果及多个解 / solving result with multiple solutions
+     */
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -187,6 +209,16 @@ class CoptColumnGenerationSolver(
         }
     }
 
+    /**
+     * 求解线性规划松弛 / Solve linear programming relaxation
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param toLogModel 是否导出模型文件 / whether to export model file
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 线性规划求解结果（含对偶解）/ LP solving result (with dual solution)
+     */
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,

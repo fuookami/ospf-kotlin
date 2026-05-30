@@ -28,6 +28,11 @@ private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
  * 两个线性多项式的乘积：y = left * right。
  * Product of two linear polynomials: y = left * right.
  *
+ * @property left 左侧线性多项式 / left linear polynomial
+ * @property right 右侧线性多项式 / right linear polynomial
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  * @param V 多项式系数的值类型 / value type for the polynomial coefficients.
  */
 class ProductFunction<V>(
@@ -73,6 +78,15 @@ class ProductFunction<V>(
         }
     }
 
+    /**
+     * 从 token 表求值单个符号。
+     * Evaluate a single symbol from the token table.
+     *
+     * @param symbol 要求值的符号 / the symbol to evaluate
+     * @param tokenTable token 表 / the token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 符号值或 null / symbol value or null
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -85,6 +99,16 @@ class ProductFunction<V>(
         }
     }
 
+    /**
+     * 从结果列表求值单个符号。
+     * Evaluate a single symbol from a results list.
+     *
+     * @param symbol 要求值的符号 / the symbol to evaluate
+     * @param results 结果值列表 / list of result values
+     * @param tokenTable token 表 / the token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 符号值或 null / symbol value or null
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -102,6 +126,16 @@ class ProductFunction<V>(
         }
     }
 
+    /**
+     * 从值映射求值单个符号。
+     * Evaluate a single symbol from a value map.
+     *
+     * @param symbol 要求值的符号 / the symbol to evaluate
+     * @param values 符号到值的映射 / symbol-to-value map
+     * @param tokenTable 可选的 token 表 / optional token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 符号值或 null / symbol value or null
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -115,6 +149,15 @@ class ProductFunction<V>(
         } ?: if (zeroIfNone) converter.zero else null
     }
 
+    /**
+     * 求值线性多项式。
+     * Evaluate a linear polynomial.
+     *
+     * @param poly 要求值的线性多项式 / the linear polynomial to evaluate
+     * @param tokenTable token 表 / the token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 多项式值或 null / polynomial value or null
+     */
     private fun evaluateLinear(
         poly: LinearPolynomial<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -128,6 +171,16 @@ class ProductFunction<V>(
         return value
     }
 
+    /**
+     * 从结果列表求值线性多项式。
+     * Evaluate a linear polynomial from a results list.
+     *
+     * @param poly 要求值的线性多项式 / the linear polynomial to evaluate
+     * @param results 结果值列表 / list of result values
+     * @param tokenTable token 表 / the token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 多项式值或 null / polynomial value or null
+     */
     private fun evaluateLinearFromResults(
         poly: LinearPolynomial<V>,
         results: List<V>,
@@ -142,6 +195,16 @@ class ProductFunction<V>(
         return value
     }
 
+    /**
+     * 从值映射求值线性多项式。
+     * Evaluate a linear polynomial from a value map.
+     *
+     * @param poly 要求值的线性多项式 / the linear polynomial to evaluate
+     * @param values 符号到值的映射 / symbol-to-value map
+     * @param tokenTable 可选的 token 表 / optional token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 多项式值或 null / polynomial value or null
+     */
     private fun evaluateLinearFromValues(
         poly: LinearPolynomial<V>,
         values: Map<Symbol, V>,
@@ -156,6 +219,7 @@ class ProductFunction<V>(
         return value
     }
 
+    /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         val leftValue = if (typedValues.isNullOrEmpty()) {
@@ -246,10 +310,12 @@ class ProductFunction<V>(
         val rightValue = evaluateLinearFromValues(right, values, tokenTable, zeroIfNone) ?: return null
         return leftValue * rightValue
     }
+    /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedResults = results.map { converter.intoValue(it) }
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
+    /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(typedValues, tokenTable, converter, zeroIfNone)
@@ -283,6 +349,7 @@ class ProductFunction<V>(
     }
 
     companion object {
+        /** 创建 [ProductFunction] 实例。 / Create a [ProductFunction] instance. */
         operator fun <V> invoke(
             left: LinearPolynomial<V>,
             right: LinearPolynomial<V>,

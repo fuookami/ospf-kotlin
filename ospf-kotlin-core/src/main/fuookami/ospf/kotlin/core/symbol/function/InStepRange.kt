@@ -1,5 +1,6 @@
-/** 阶梯范围函数符号 / Step range function symbol */
 @file:Suppress("unused")
+
+/** 阶梯范围函数符号 / Step range function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -35,12 +36,13 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * 委托给 FloorFunction 进行商计算。
  * Delegates to FloorFunction for the quotient computation.
  *
- * @param lb 下界线性多项式 / the lower bound linear polynomial
- * @param ub 上界线性多项式 / the upper bound linear polynomial
- * @param step 步长（必须为正，默认 1）/ the step size (must be positive, default 1)
+ * @property lb 下界线性多项式 / the lower bound linear polynomial
+ * @property ub 上界线性多项式 / the upper bound linear polynomial
+ * @property step 步长（必须为正，默认 1）/ the step size (must be positive, default 1)
  * @param m Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class InStepRangeFunction<V>(
     val lb: LinearPolynomial<V>,
@@ -99,6 +101,17 @@ class InStepRangeFunction<V>(
         return floorFunc.registerConstraints(model)
     }
     companion object {
+        /**
+         * 创建步进区间函数实例 / Create an in-step-range function instance
+         * @param lb 下界线性多项式 / lower bound linear polynomial
+         * @param ub 上界线性多项式 / upper bound linear polynomial
+         * @param step 步长 / step size
+         * @param m Big-M 界限 / Big-M bound
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [InStepRangeFunction] 实例 / [InStepRangeFunction] instance
+         */
         operator fun <V> invoke(
             lb: LinearPolynomial<V>,
             ub: LinearPolynomial<V>,

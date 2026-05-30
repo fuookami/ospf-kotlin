@@ -1,5 +1,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 日志记录持久化层
+ * Log Record Persistence Layer
+ *
+ * 提供日志记录的数据库表定义、DAO 和持久化保存实现。
+ * Provides database table definitions, DAO, and persistence saving implementation for log records.
+ */
 package fuookami.ospf.kotlin.framework.persistence
 
 import fuookami.ospf.kotlin.framework.log.LogRecordPO
@@ -25,6 +32,10 @@ import org.ktorm.support.sqlite.SQLiteDialect
 import java.io.ByteArrayInputStream
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * 字节数组日志记录持久化对象接口
+ * Byte array log record persistence object interface
+ */
 interface LogRecordByteRPO : Entity<LogRecordByteRPO> {
     companion object : Entity.Factory<LogRecordByteRPO>()
 
@@ -38,6 +49,10 @@ interface LogRecordByteRPO : Entity<LogRecordByteRPO> {
     var value: ByteArray
 }
 
+/**
+ * 字符串日志记录持久化对象接口
+ * String log record persistence object interface
+ */
 interface LogRecordStringRPO : Entity<LogRecordStringRPO> {
     companion object : Entity.Factory<LogRecordStringRPO>()
 
@@ -51,6 +66,12 @@ interface LogRecordStringRPO : Entity<LogRecordStringRPO> {
     var value: String
 }
 
+/**
+ * 字节数组日志记录 DAO
+ * Byte array log record DAO
+ *
+ * @param tableName 表名 / Table name
+ */
 open class LogRecordByteRDAO(tableName: String) : Table<LogRecordByteRPO>(tableName) {
     val id = ui64("id").primaryKey()
     val app = varchar("app").bindTo { it.app }
@@ -63,6 +84,12 @@ open class LogRecordByteRDAO(tableName: String) : Table<LogRecordByteRPO>(tableN
     val value = blob("log_content").bindTo { it.value }
 }
 
+/**
+ * 字符串日志记录 DAO
+ * String log record DAO
+ *
+ * @param tableName 表名 / Table name
+ */
 open class LogRecordStringRDAO(tableName: String) : Table<LogRecordStringRPO>(tableName) {
     val id = ui64("id").primaryKey()
     val app = varchar("app").bindTo { it.app }
@@ -104,6 +131,10 @@ inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(
     }
 }
 
+/**
+ * 日志记录数据访问对象
+ * Log record data access object
+ */
 data object LogRecordDAO {
     fun <T : Any> insert(
         db: Database,
@@ -186,6 +217,14 @@ data object LogRecordDAO {
     }
 }
 
+/**
+ * 日志记录持久化保存
+ * Log record persistence saving
+ *
+ * @property db 数据库连接 / Database connection
+ * @property tableName 表名 / Table name
+ * @property scope 协程作用域，可为 null（同步模式） / Coroutine scope, nullable (sync mode)
+ */
 class LogRecordPersistenceSaving(
     private val db: Database,
     private val tableName: String,

@@ -1,3 +1,4 @@
+/** 求解器内存清理支持 / Solver memory cleanup support */
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.utils.memoryUseOver

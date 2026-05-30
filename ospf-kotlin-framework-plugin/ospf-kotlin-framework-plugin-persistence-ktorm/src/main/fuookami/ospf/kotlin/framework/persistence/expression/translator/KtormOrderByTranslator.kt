@@ -28,6 +28,10 @@ class KtormOrderByTranslator(
     /**
      * 应用排序到查询
      * Apply sort to query
+     *
+     * @param query Ktorm 查询对象 / Ktorm query object
+     * @param sortBy 排序条件 / Sort conditions
+     * @return 应用排序后的查询对象 / Query object with sort applied
      */
     fun apply(query: Query, sortBy: SortBy): Query {
         if (sortBy.isEmpty()) return query
@@ -40,6 +44,13 @@ class KtormOrderByTranslator(
         return query.orderBy(*orders.toTypedArray())
     }
 
+    /**
+     * 构建排序表达式列表
+     * Build order by expression list
+     *
+     * @param item 排序项 / Sort item
+     * @return 排序表达式列表 / List of order by expressions
+     */
     private fun buildOrders(item: SortItem): List<OrderByExpression> {
         val column = resolveColumn(item.path) ?: throw IllegalArgumentException(
             "Cannot resolve path: ${item.path}"

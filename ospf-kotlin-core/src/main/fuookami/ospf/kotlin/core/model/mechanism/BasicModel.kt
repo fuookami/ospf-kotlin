@@ -22,6 +22,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * This corresponds to `BasicModel<V>` in the Rust implementation.
  * `MetaModel` extends this with objective functions and higher-level semantics.
+ *
+ * @property name 模型名称 / Model name
+ * @property tokens 可变符号表 / Mutable token table
  */
 open class BasicModel<V>(
     open val name: String,
@@ -51,7 +54,14 @@ open class BasicModel<V>(
         return tokens.add(symbol)
     }
 
-    /** 添加符号及其依赖项到模型。 / Add a symbol and its dependencies to the model. */
+    /**
+     * 添加符号及其依赖项到模型。
+     * Add a symbol and its dependencies to the model.
+     *
+     * @param symbol       要添加的符号 / The symbol to add
+     * @param dependencies 该符号所依赖的符号集合 / The set of symbols this symbol depends on
+     * @return 操作结果 / The operation result
+     */
     fun addSymbolWithDependencies(
         symbol: IntermediateSymbol<*>,
         dependencies: Set<IntermediateSymbol<*>>
@@ -64,7 +74,7 @@ open class BasicModel<V>(
                 symbols.add(dep)
             }
         }
-        // Propagate dependency edges to the concrete token table if supported.
+        // Propagate dependency edges to the concrete token table if supported. / 如果支持，将依赖边传播到具体的符号表。
         val t = tokens
         when (t) {
             is MutableTokenTable -> {

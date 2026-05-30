@@ -92,7 +92,13 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         val displayName: String? = null,
         val polynomial: LinearPolynomial<V>
     ) where V : RealNumber<V>, V : NumberField<V> {
-        /** Primary V-typed evaluation. */
+        /**
+         * 使用父模型符号表求值。
+         * Evaluate using the parent model token table.
+         *
+         * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
+         * @return 求值结果（含常数项），若任一变量结果未知且 zeroIfNone 为 false 则返回 null / The evaluation result (including constant), or null if any variable result is unknown and zeroIfNone is false
+         */
         fun evaluate(zeroIfNone: Boolean = false): V? {
             return evaluate(
                 tokenTable = parent.tokens,
@@ -100,6 +106,14 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
             )
         }
 
+        /**
+         * 使用指定符号表求值。
+         * Evaluate using the specified token table.
+         *
+         * @param tokenTable 符号表 / The token table
+         * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
+         * @return 求值结果（含常数项）/ The evaluation result (including constant)
+         */
         fun evaluate(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
             val vZero = polynomial.constant - polynomial.constant
             var result: V? = null
@@ -113,6 +127,14 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
             return result ?: polynomial.constant
         }
 
+        /**
+         * 使用解向量按索引求值。
+         * Evaluate using a solution vector by index lookup.
+         *
+         * @param results    解向量 / The solution vector
+         * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
+         * @return 求值结果（含常数项）/ The evaluation result (including constant)
+         */
         fun evaluate(results: List<V>, zeroIfNone: Boolean = false): V? {
             return evaluate(
                 results = results,
@@ -121,6 +143,15 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
             )
         }
 
+        /**
+         * 使用解向量和指定符号表按索引求值。
+         * Evaluate using a solution vector and specified token table by index lookup.
+         *
+         * @param results    解向量 / The solution vector
+         * @param tokenTable 符号表 / The token table
+         * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
+         * @return 求值结果（含常数项）/ The evaluation result (including constant)
+         */
         fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
             val vZero = polynomial.constant - polynomial.constant
             var result: V? = null
@@ -134,8 +165,14 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
             return result ?: polynomial.constant
         }
 
+        /**
+         * 刷新子目标缓存状态。
+         * Flush the sub-objective cache state.
+         *
+         * @param force 是否强制清除缓存 / Whether to force clear the cache
+         */
         fun flush(force: Boolean = false) {
-            // Math polynomials don't have caching
+            // Math polynomials don't have caching / 数学多项式无缓存
         }
     }
 
@@ -334,6 +371,12 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         tokens.clearSolution()
     }
 
+    /**
+     * 刷新元模型状态；当 force 为 true 时同时清除已缓存的求解结果。
+     * Flush the meta model state; when [force] is `true`, also clear cached solution data.
+     *
+     * @param force 是否强制清除缓存 / Whether to force clear the cache
+     */
     fun flush(force: Boolean = false) {
         if (force) {
             tokens.clearSolution()
@@ -344,20 +387,42 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
         for (constraint in constraints) {
             // Math inequality types don't have flush - they reference tokens via polynomial
+            // 数学不等式类型无需刷新 - 它们通过多项式引用符号
         }
         for (objective in subObjects) {
-            // Math polynomials don't have caching - no-op
+            // Math polynomials don't have caching - no-op / 数学多项式无缓存 - 无操作
         }
     }
 
+    /**
+     * 导出模型到当前目录默认文件。
+     * Export the model to the default file in the current directory.
+     *
+     * @return 操作结果 / The operation result
+     */
     suspend fun export(): Try {
         return export("$name.opm")
     }
 
+    /**
+     * 导出模型到指定文件名。
+     * Export the model to the specified file name.
+     *
+     * @param name 文件名 / The file name
+     * @return 操作结果 / The operation result
+     */
     suspend fun export(name: String): Try {
         return export(Path(".").resolve(name))
     }
 
+    /**
+     * 导出模型到指定路径，可选择是否展开。
+     * Export the model to the specified path with optional unfolding.
+     *
+     * @param path   文件路径 / The file path
+     * @param unfold 是否展开模型 / Whether to unfold the model
+     * @return 操作结果 / The operation result
+     */
     suspend fun export(path: String, unfold: Boolean): Try {
         return export(
             Path(".").resolve(name), if (unfold) {
@@ -368,10 +433,26 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         )
     }
 
+    /**
+     * 导出模型到指定路径，指定展开层级。
+     * Export the model to the specified path with the given unfold level.
+     *
+     * @param path   文件路径 / The file path
+     * @param unfold 展开层级 / The unfold level
+     * @return 操作结果 / The operation result
+     */
     suspend fun export(path: String, unfold: UInt64): Try {
         return export(Path(".").resolve(name), unfold)
     }
 
+    /**
+     * 导出模型到指定路径对象。
+     * Export the model to the specified path object.
+     *
+     * @param path   文件路径对象 / The file path object
+     * @param unfold 展开层级 / The unfold level
+     * @return 操作结果 / The operation result
+     */
     suspend fun export(path: Path, unfold: UInt64 = UInt64.zero): Try {
         return exportMetaModel(metaModel = this, path = path, unfold = unfold)
     }
@@ -710,6 +791,7 @@ abstract class AbstractMetaModel<V>(
     override fun flush(force: Boolean) {
         super<BasicModel>.flush(force)
         // Constraints and sub-objects have no caching in the math-inequality world.
+        // 在数学不等式体系中，约束和子目标无缓存。
     }
 
     override fun close() {
@@ -755,6 +837,8 @@ abstract class AbstractMetaModel<V>(
  * @param V 数值类型 / The number type
  * @property name 模型名称 / Model name
  * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
+ * @param configuration 元模型配置 / Meta model configuration
+ * @param converter 值转换器 / Value converter
  */
 class LinearMetaModel<V>(
     override var name: String = "",
@@ -774,6 +858,16 @@ class LinearMetaModel<V>(
     internal val _flattenSubObjects: MutableList<LinearSubObject<V>> = ArrayList()
     internal val flattenSubObjects: List<LinearSubObject<V>> by ::_flattenSubObjects
 
+    /**
+     * 使用线性多项式添加目标子项。
+     * Add an objective sub-item using a linear polynomial.
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param polynomial  线性多项式 / The linear polynomial
+     * @param name        目标名称 / The objective name
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun addObject(
         category: ObjectCategory,
         polynomial: LinearPolynomial<V>,
@@ -870,6 +964,15 @@ class LinearMetaModel<V>(
     }
 
     companion object {
+        /**
+         * 创建默认 Flt64 类型的线性元模型。
+         * Create a linear meta model with default Flt64 type.
+         *
+         * @param name            模型名称 / The model name
+         * @param objectCategory  优化方向 / The optimization direction
+         * @param configuration   元模型配置 / The meta model configuration
+         * @return 线性元模型实例 / The linear meta model instance
+         */
         operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -881,6 +984,16 @@ class LinearMetaModel<V>(
             converter = solverValueConverter
         )
 
+        /**
+         * 创建自定义类型的线性元模型。
+         * Create a linear meta model with custom type.
+         *
+         * @param name            模型名称 / The model name
+         * @param converter       Flt64 值转换器 / The Flt64 value converter
+         * @param objectCategory  优化方向 / The optimization direction
+         * @param configuration   元模型配置 / The meta model configuration
+         * @return 线性元模型实例 / The linear meta model instance
+         */
         operator fun <V> invoke(
             name: String,
             converter: Flt64ValueConverter<V>,
@@ -905,6 +1018,8 @@ class LinearMetaModel<V>(
  * @param V 数值类型 / The number type
  * @property name 模型名称 / Model name
  * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
+ * @param configuration 元模型配置 / Meta model configuration
+ * @param converter 值转换器 / Value converter
  */
 class QuadraticMetaModel<V>(
     override var name: String = "",
@@ -939,6 +1054,7 @@ class QuadraticMetaModel<V>(
         withRangeSet: Boolean?
     ): Try {
         // Promote linear inequality to quadratic: each linear monomial c*x becomes quadratic c*x*null
+        // 将线性不等式提升为二次：每个线性单项式 c*x 变为二次 c*x*null
         val qLhs = QuadraticPolynomial(
             monomials = relation.lhs.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) },
             constant = relation.lhs.constant
@@ -1055,6 +1171,16 @@ class QuadraticMetaModel<V>(
         return ok
     }
 
+    /**
+     * 使用二次多项式添加目标子项。
+     * Add an objective sub-item using a quadratic polynomial.
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param polynomial  二次多项式 / The quadratic polynomial
+     * @param name        目标名称 / The objective name
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun addObject(
         category: ObjectCategory,
         polynomial: QuadraticPolynomial<V>,
@@ -1074,6 +1200,7 @@ class QuadraticMetaModel<V>(
             )
         )
         // Keep the linear projection for shared object-function handling.
+        // 保留线性投影视图，供共享目标函数处理使用。
         // 保留线性投影视图，供共享目标函数流程使用。
         val linearPoly = LinearPolynomial(
             monomials = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol1) },
@@ -1115,6 +1242,15 @@ class QuadraticMetaModel<V>(
     }
 
     companion object {
+        /**
+         * 创建默认 Flt64 类型的二次元模型。
+         * Create a quadratic meta model with default Flt64 type.
+         *
+         * @param name            模型名称 / The model name
+         * @param objectCategory  优化方向 / The optimization direction
+         * @param configuration   元模型配置 / The meta model configuration
+         * @return 二次元模型实例 / The quadratic meta model instance
+         */
         operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -1126,6 +1262,16 @@ class QuadraticMetaModel<V>(
             converter = solverValueConverter
         )
 
+        /**
+         * 创建自定义类型的二次元模型。
+         * Create a quadratic meta model with custom type.
+         *
+         * @param name            模型名称 / The model name
+         * @param converter       Flt64 值转换器 / The Flt64 value converter
+         * @param objectCategory  优化方向 / The optimization direction
+         * @param configuration   元模型配置 / The meta model configuration
+         * @return 二次元模型实例 / The quadratic meta model instance
+         */
         operator fun <V> invoke(
             name: String,
             converter: Flt64ValueConverter<V>,

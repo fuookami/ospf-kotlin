@@ -46,7 +46,8 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
  * 函数式回调模型策略，通过比较器和初始解生成器实现。
  * Functional call-back model policy implemented via comparator and initial solution generator.
  *
- * @property objectiveComparator 目标比较器 / Objective comparator
+ * @property objectiveComparator       目标比较器 / Objective comparator
+ * @property _initialSolutionsGenerator 初始解生成器（可为 null） / Initial solution generator (nullable)
  */
 class FunctionalCallBackModelPolicy<V>(
     val objectiveComparator: PartialComparator<V>,
@@ -99,6 +100,13 @@ class FunctionalCallBackModelPolicy<V>(
  * Call-back model implementation supporting constraint and objective addition via callback functions.
  *
  * @param V 数值类型 / The numeric type
+ * @param category 模型类别（非 val/var） / The model category (non-val/var)
+ * @property objectCategory 优化方向 / Optimization direction
+ * @property tokens 令牌表 / The token table
+ * @property _constraints 约束列表 / The constraint list
+ * @property _objectiveFunctions 目标函数列表 / The objective function list
+ * @property policy 回调模型策略 / The call-back model policy
+ * @property _converter 值转换器 / The value converter
  */
 class CallBackModel<V> internal constructor(
     category: Category = Nonlinear,
@@ -110,6 +118,7 @@ class CallBackModel<V> internal constructor(
     private val _converter: IntoValue<V>
 ) : CallBackModelInterface<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /** 根据优化方向创建目标比较器 / Create an objective comparator based on the optimization direction */
         private fun <V> dumpObjectiveComparator(
             category: ObjectCategory,
             converter: IntoValue<V>
@@ -118,6 +127,15 @@ class CallBackModel<V> internal constructor(
             ObjectCategory.Minimum -> { lhs, rhs -> converter.fromValue(lhs) leq converter.fromValue(rhs) }
         }
 
+        /**
+         * 创建回调模型（使用自动目标比较器）。
+         * Create a call-back model with auto objective comparator.
+         *
+         * @param objectCategory          优化方向 / The optimization direction
+         * @param initialSolutionGenerator 初始解生成器（可为 null） / The initial solution generator (nullable)
+         * @param converter               值转换器 / The value converter
+         * @return 回调模型实例 / The call-back model instance
+         */
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
@@ -131,6 +149,15 @@ class CallBackModel<V> internal constructor(
             _converter = converter
         )
 
+        /**
+         * 创建回调模型（使用自定义目标比较器）。
+         * Create a call-back model with custom objective comparator.
+         *
+         * @param objectiveComparator     目标比较器 / The objective comparator
+         * @param initialSolutionGenerator 初始解生成器（可为 null） / The initial solution generator (nullable)
+         * @param converter               值转换器 / The value converter
+         * @return 回调模型实例 / The call-back model instance
+         */
         operator fun <V> invoke(
             objectiveComparator: PartialComparator<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
@@ -143,6 +170,15 @@ class CallBackModel<V> internal constructor(
             _converter = converter
         )
 
+        /**
+         * 从抽象元模型创建回调模型。
+         * Create a call-back model from an abstract meta model.
+         *
+         * @param model                   抽象元模型 / The abstract meta model
+         * @param initialSolutionGenerator 初始解生成器 / The initial solution generator
+         * @param converter               值转换器 / The value converter
+         * @return 回调模型实例 / The call-back model instance
+         */
         operator fun <V> invoke(
             model: AbstractMetaModel<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
@@ -181,6 +217,16 @@ class CallBackModel<V> internal constructor(
             )
         }
 
+        /**
+         * 从单目标机制模型创建回调模型。
+         * Create a call-back model from a single-objective mechanism model.
+         *
+         * @param model                   单目标机制模型 / The single-objective mechanism model
+         * @param initialSolutionGenerator 初始解生成器 / The initial solution generator
+         * @param concurrent              是否使用并发符号表 / Whether to use a concurrent token table
+         * @param converter               值转换器 / The value converter
+         * @return 回调模型实例 / The call-back model instance
+         */
         operator fun <V> invoke(
             model: SingleObjectMechanismModel<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
@@ -265,7 +311,14 @@ class CallBackModel<V> internal constructor(
         tokens.remove(item)
     }
 
-    /** 添加 Flt64 线性不等式约束。 / Add a Flt64 linear inequality constraint. */
+    /**
+     * 添加 Flt64 线性不等式约束。
+     * Add a Flt64 linear inequality constraint.
+     *
+     * @param inequality  线性不等式输入 / The linear inequality input
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Flt64LinearConstraintInput,
@@ -280,7 +333,14 @@ class CallBackModel<V> internal constructor(
         )
     }
 
-    /** 添加泛型线性不等式约束。 / Add a generic linear inequality constraint. */
+    /**
+     * 添加泛型线性不等式约束。
+     * Add a generic linear inequality constraint.
+     *
+     * @param inequality  线性不等式输入 / The linear inequality input
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: LinearConstraintInput<V>,
@@ -324,7 +384,16 @@ class CallBackModel<V> internal constructor(
         )
     }
 
-    /** 通过回调函数添加目标子项，根据类别自动取反。 / Add an objective sub-item via a callback function, automatically negating based on category. */
+    /**
+     * 通过回调函数添加目标子项，根据类别自动取反。
+     * Add an objective sub-item via a callback function, automatically negating based on category.
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param func        目标回调函数 / The objective callback function
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -347,7 +416,15 @@ class CallBackModel<V> internal constructor(
         return ok
     }
 
-    /** 添加最大化目标子项。 / Add a maximization objective sub-item. */
+    /**
+     * 添加最大化目标子项。
+     * Add a maximization objective sub-item.
+     *
+     * @param func        目标回调函数 / The objective callback function
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         func: Extractor<V?, Solution<V>>,
         name: String?,
@@ -361,7 +438,15 @@ class CallBackModel<V> internal constructor(
         )
     }
 
-    /** 添加最小化目标子项。 / Add a minimization objective sub-item. */
+    /**
+     * 添加最小化目标子项。
+     * Add a minimization objective sub-item.
+     *
+     * @param func        目标回调函数 / The objective callback function
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun minimize(
         func: Extractor<V?, Solution<V>>,
         name: String?,
@@ -397,6 +482,14 @@ class CallBackModel<V> internal constructor(
  * Multi-objective call-back model implementation.
  *
  * @param V 数值类型 / The numeric type
+ * @param category 模型类别（非 val/var） / The model category (non-val/var)
+ * @property objectCategory 优化方向 / Optimization direction
+ * @property objectiveLocation 多目标位置列表 / List of multi-objective locations
+ * @property tokens 令牌表 / The token table
+ * @property _constraints 约束列表 / The constraint list
+ * @property _objectiveFunctions 目标函数列表 / The objective function list
+ * @property _initialSolutionsGenerator 初始解生成器（可为 null） / Initial solution generator (nullable)
+ * @property _converter 值转换器 / The value converter
  */
 class MultiObjectCallBackModel<V> internal constructor(
     category: Category = Nonlinear,
@@ -409,6 +502,16 @@ class MultiObjectCallBackModel<V> internal constructor(
     private val _converter: IntoValue<V>
 ) : MultiObjectiveModelInterface<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /**
+         * 创建多目标回调模型。
+         * Create a multi-objective call-back model.
+         *
+         * @param objectCategory          优化方向 / The optimization direction
+         * @param objectiveLocation       多目标位置列表 / The list of multi-objective locations
+         * @param initialSolutionGenerator 初始解生成器（可为 null） / The initial solution generator (nullable)
+         * @param converter               值转换器 / The value converter
+         * @return 多目标回调模型实例 / The multi-objective call-back model instance
+         */
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             objectiveLocation: List<MultiObjectLocation<V>>,
@@ -514,7 +617,14 @@ class MultiObjectCallBackModel<V> internal constructor(
         tokens.remove(item)
     }
 
-    /** 添加 Flt64 线性不等式约束。 / Add a Flt64 linear inequality constraint. */
+    /**
+     * 添加 Flt64 线性不等式约束。
+     * Add a Flt64 linear inequality constraint.
+     *
+     * @param inequality  线性不等式输入 / The linear inequality input
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Flt64LinearConstraintInput,
@@ -529,7 +639,14 @@ class MultiObjectCallBackModel<V> internal constructor(
         )
     }
 
-    /** 添加泛型线性不等式约束。 / Add a generic linear inequality constraint. */
+    /**
+     * 添加泛型线性不等式约束。
+     * Add a generic linear inequality constraint.
+     *
+     * @param inequality  线性不等式输入 / The linear inequality input
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: LinearConstraintInput<V>,
@@ -575,7 +692,17 @@ class MultiObjectCallBackModel<V> internal constructor(
         )
     }
 
-    /** 通过回调函数和指定位置添加多目标子项。 / Add a multi-objective sub-item via a callback function at the specified location. */
+    /**
+     * 通过回调函数和指定位置添加多目标子项。
+     * Add a multi-objective sub-item via a callback function at the specified location.
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param func        目标回调函数 / The objective callback function
+     * @param location    多目标位置 / The multi-objective location
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,

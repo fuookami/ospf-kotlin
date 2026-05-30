@@ -1,5 +1,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 请求/响应记录持久化层
+ * Request/Response Record Persistence Layer
+ *
+ * 提供请求和响应记录的数据库表定义、DAO 和持久化对象。
+ * Provides database table definitions, DAO, and persistence objects for request and response records.
+ */
 package fuookami.ospf.kotlin.framework.persistence
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -27,6 +34,14 @@ import java.io.ByteArrayOutputStream
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
+/**
+ * 获取运行时请求序列化器
+ * Get runtime request serializer
+ *
+ * @param request 请求对象 / Request object
+ * @param T 请求 DTO 类型 / Request DTO type
+ * @return 序列化器 / Serializer
+ */
 @OptIn(InternalSerializationApi::class)
 @Suppress("UNCHECKED_CAST")
 private fun <T : RequestDTO<T>> runtimeRequestSerializer(request: T): KSerializer<T> {
@@ -35,6 +50,14 @@ private fun <T : RequestDTO<T>> runtimeRequestSerializer(request: T): KSerialize
     return request::class.serializer() as KSerializer<T>
 }
 
+/**
+ * 获取运行时响应序列化器
+ * Get runtime response serializer
+ *
+ * @param response 响应对象 / Response object
+ * @param T 响应 DTO 类型 / Response DTO type
+ * @return 序列化器 / Serializer
+ */
 @OptIn(InternalSerializationApi::class)
 @Suppress("UNCHECKED_CAST")
 private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerializer<T> {
@@ -43,6 +66,10 @@ private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerial
     return response::class.serializer() as KSerializer<T>
 }
 
+/**
+ * 请求记录持久化对象接口
+ * Request record persistence object interface
+ */
 interface RequestRecordRPO : Entity<RequestRecordRPO> {
     companion object : Entity.Factory<RequestRecordRPO>()
 
@@ -54,6 +81,12 @@ interface RequestRecordRPO : Entity<RequestRecordRPO> {
     var request: ByteArray
 }
 
+/**
+ * 请求记录 DAO
+ * Request record DAO
+ *
+ * @param tableName 表名 / Table name
+ */
 open class RequestRecordRDAO(tableName: String) : Table<RequestRecordRPO>(tableName) {
     val id = long("id").primaryKey()
     val requestId = varchar("request_id").bindTo { it.requestId }
@@ -64,6 +97,10 @@ open class RequestRecordRDAO(tableName: String) : Table<RequestRecordRPO>(tableN
     val request = blob("request").bindTo { it.request }
 }
 
+/**
+ * 响应记录持久化对象接口
+ * Response record persistence object interface
+ */
 interface ResponseRecordRPO : Entity<ResponseRecordRPO> {
     companion object : Entity.Factory<ResponseRecordRPO>()
 
@@ -77,6 +114,12 @@ interface ResponseRecordRPO : Entity<ResponseRecordRPO> {
     var response: ByteArray
 }
 
+/**
+ * 响应记录 DAO
+ * Response record DAO
+ *
+ * @param tableName 表名 / Table name
+ */
 open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tableName) {
     val id = long("id").primaryKey()
     val requestId = varchar("request_id").bindTo { it.requestId }
@@ -89,6 +132,18 @@ open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tabl
     val response = blob("response").bindTo { it.response }
 }
 
+/**
+ * 请求记录持久化对象
+ * Request record persistence object
+ *
+ * @property id 请求标识 / Request identifier
+ * @property app 应用名 / Application name
+ * @property requester 请求者 / Requester
+ * @property version 版本 / Version
+ * @property time 时间 / Time
+ * @property request 请求数据 / Request data
+ * @param T 请求 DTO 类型 / Request DTO type
+ */
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class RequestRecordPO<T>(
@@ -162,6 +217,10 @@ data class RequestRecordPO<T>(
     }
 }
 
+/**
+ * 请求记录数据访问对象
+ * Request record data access object
+ */
 data object RequestRecordDAO {
     fun <T : RequestDTO<T>> insert(
         db: Database,
@@ -249,6 +308,19 @@ data object RequestRecordDAO {
     }
 }
 
+/**
+ * 响应记录持久化对象
+ * Response record persistence object
+ *
+ * @property id 响应标识 / Response identifier
+ * @property app 应用名 / Application name
+ * @property requester 请求者 / Requester
+ * @property version 版本 / Version
+ * @property code 状态码 / Status code
+ * @property time 时间 / Time
+ * @property response 响应数据 / Response data
+ * @param T 响应 DTO 类型 / Response DTO type
+ */
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class ResponseRecordPO<T>(
@@ -323,6 +395,10 @@ data class ResponseRecordPO<T>(
     }
 }
 
+/**
+ * 响应记录数据访问对象
+ * Response record data access object
+ */
 data object ResponseRecordDAO {
     fun <T : ResponseDTO<T>> insert(
         db: Database,

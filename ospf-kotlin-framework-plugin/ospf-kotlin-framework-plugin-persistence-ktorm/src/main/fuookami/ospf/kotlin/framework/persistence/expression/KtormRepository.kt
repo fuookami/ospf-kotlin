@@ -48,10 +48,27 @@ abstract class KtormRepository<E : Any>(
     private val orderByTranslator = KtormOrderByTranslator(resolveColumn, nullsOrderSupport)
     private val updateTranslator = KtormUpdateTranslator(resolveColumn, table)
 
+    /**
+     * 根据条件查询实体列表
+     * Find entity list by condition
+     *
+     * @param where 查询条件 / Query condition
+     * @return 实体列表 / Entity list
+     */
     override fun find(where: BooleanExpression): List<E> {
         return find(where, null, null, null)
     }
 
+    /**
+     * 根据条件查询实体列表（支持排序和分页）
+     * Find entity list by condition with sorting and pagination
+     *
+     * @param where 查询条件 / Query condition
+     * @param sortBy 排序条件（可选）/ Sort conditions (optional)
+     * @param limit 返回数量限制（可选）/ Limit (optional)
+     * @param offset 偏移量（可选）/ Offset (optional)
+     * @return 实体列表 / Entity list
+     */
     override fun find(
         where: BooleanExpression,
         sortBy: SortBy?,
@@ -81,6 +98,13 @@ abstract class KtormRepository<E : Any>(
         return query.mapNotNull { mapToEntity(it) }
     }
 
+    /**
+     * 统计满足条件的实体数量
+     * Count entities matching condition
+     *
+     * @param where 查询条件 / Query condition
+     * @return 实体数量 / Entity count
+     */
     override fun count(where: BooleanExpression): Long {
         val condition = booleanTranslator.translate(where)
         if (condition == null) return 0L
@@ -89,6 +113,14 @@ abstract class KtormRepository<E : Any>(
         return totalRecords.toLong()
     }
 
+    /**
+     * 更新满足条件的实体
+     * Update entities matching condition
+     *
+     * @param where 更新条件 / Update condition
+     * @param assignments 更新赋值列表 / Update assignment list
+     * @return 受影响的行数 / Number of affected rows
+     */
     override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
         if (assignments.isEmpty()) return 0
 
@@ -98,6 +130,13 @@ abstract class KtormRepository<E : Any>(
         return updateTranslator.executeUpdate(database, condition, assignments)
     }
 
+    /**
+     * 删除满足条件的实体
+     * Delete entities matching condition
+     *
+     * @param where 删除条件 / Delete condition
+     * @return 受影响的行数 / Number of affected rows
+     */
     override fun delete(where: BooleanExpression): Int {
         val condition = booleanTranslator.translate(where)
         if (condition == null) return 0
@@ -118,6 +157,9 @@ abstract class KtormRepository<E : Any>(
         /**
          * 从 Table 自动创建列解析器
          * Create column resolver from Table
+         *
+         * @param table Ktorm 表定义 / Ktorm table definition
+         * @return 列解析器函数 / Column resolver function
          */
         fun tableColumnResolver(table: Table<*>): KtormColumnResolver = { path: String ->
             val columnName = path.substringAfterLast(".")

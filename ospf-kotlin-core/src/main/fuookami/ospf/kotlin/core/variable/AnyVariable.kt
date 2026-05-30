@@ -96,12 +96,20 @@ class AnyVariable<V : RealNumber<V>>(
         return isValidValue(f64)
     }
 
+    /** @return 基于 data 的哈希值 / Hash code based on data */
     override fun hashCode(): Int = data.hashCode()
+
+    /**
+     * @param other 待比较对象 / Object to compare
+     * @return 是否相同 / Whether equal
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is AnyVariable<*>) return false
         return data == other.data
     }
+
+    /** @return 字符串表示 / String representation */
     override fun toString(): String = data.toString()
 
     companion object {

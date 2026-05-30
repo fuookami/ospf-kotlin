@@ -16,6 +16,16 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  * @param V 值类型 / Value type
  */
 interface Cross<V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 从父代个体执行交叉操作生成子代解。
+     * Perform crossover from parent individuals to generate offspring solutions.
+     *
+     * @param T 个体类型 / Individual type
+     * @param iteration 当前迭代 / Current iteration
+     * @param parents 父代个体列表 / Parent individual list
+     * @param model 回调模型接口 / Callback model interface
+     * @return 子代解列表 / Offspring solution list
+     */
     operator fun <T : Individual<*, V>> invoke(
         iteration: Iteration,
         parents: List<T>,

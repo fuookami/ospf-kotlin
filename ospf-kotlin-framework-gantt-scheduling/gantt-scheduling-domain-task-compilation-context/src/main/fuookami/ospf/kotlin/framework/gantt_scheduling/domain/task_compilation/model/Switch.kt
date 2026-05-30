@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 切换模型 / Switch model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
@@ -28,13 +29,32 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 切换接口 / Switch interface */
 interface Switch {
     val switch: LinearIntermediateSymbols3<Flt64>
     val switchTime: LinearIntermediateSymbols2<Flt64>
 
+    /**
+     * 注册切换到模型 / Register switch to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     fun register(model: MetaModel<Flt64>): Try
 }
 
+/**
+ * 任务调度切换 / Task scheduling switch
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param compilation 任务编译结果 / Task compilation result
+ * @param taskTime 任务时间对象 / Task time object
+ */
 class TaskSchedulingSwitch<
         out T : AbstractTask<E, A>,
         out E : Executor,

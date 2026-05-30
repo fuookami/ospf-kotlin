@@ -64,6 +64,7 @@ data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
     val mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 ) where V : RealNumber<V>, V : NumberField<V> {
+    /** 种群密度（个体数量）/ Population density (individual count) */
     val density by individuals::size
 }
 

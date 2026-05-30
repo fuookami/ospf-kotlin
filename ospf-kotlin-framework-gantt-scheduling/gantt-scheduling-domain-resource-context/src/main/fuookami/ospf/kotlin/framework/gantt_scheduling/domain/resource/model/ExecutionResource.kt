@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 执行资源模型 / Execution resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
@@ -26,6 +27,15 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/**
+ * 执行资源 / Execution resource
+ *
+ * @param C 资源容量类型 / Resource capacity type
+ * @param id 资源ID / Resource ID
+ * @param name 资源名称 / Resource name
+ * @param capacities 容量列表 / List of capacities
+ * @param initialQuantity 初始数量 / Initial quantity
+ */
 abstract class ExecutionResource<out C : AbstractResourceCapacity>(
     override val id: String,
     override val name: String,
@@ -49,6 +59,16 @@ abstract class ExecutionResource<out C : AbstractResourceCapacity>(
     }
 }
 
+/**
+ * 执行资源时间槽 / Execution resource time slot
+ *
+ * @param R 执行资源类型 / Execution resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param origin 原始时间槽 / Origin time slot
+ * @param resource 资源 / Resource
+ * @param resourceCapacity 资源容量 / Resource capacity
+ * @param indexInRule 规则内索引 / Index in rule
+ */
 data class ExecutionResourceTimeSlot<
         out R : ExecutionResource<C>,
         out C : AbstractResourceCapacity
@@ -89,8 +109,19 @@ data class ExecutionResourceTimeSlot<
     }
 }
 
+/** 执行资源使用类型别名 / Execution resource usage typealias */
 typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot<R, C>, R, C>
 
+/**
+ * 抽象执行资源使用 / Abstract execution resource usage
+ *
+ * @param R 执行资源类型 / Execution resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ */
 abstract class AbstractExecutionResourceUsage<
         out R : ExecutionResource<C>,
         out C : AbstractResourceCapacity
@@ -152,6 +183,19 @@ abstract class AbstractExecutionResourceUsage<
     }
 }
 
+/**
+ * 任务调度执行资源使用 / Task scheduling execution resource usage
+ *
+ * @param R 执行资源类型 / Execution resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ * @param overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
+ */
 class TaskSchedulingExecutionResourceUsage<
         out R : ExecutionResource<C>,
         out C : AbstractResourceCapacity
@@ -212,6 +256,17 @@ class TaskSchedulingExecutionResourceUsage<
     }
 }
 
+/**
+ * 任务束调度执行资源使用 / Bunch scheduling execution resource usage
+ *
+ * @param R 执行资源类型 / Execution resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ */
 class BunchSchedulingExecutionResourceUsage<
         out R : ExecutionResource<C>,
         out C : AbstractResourceCapacity

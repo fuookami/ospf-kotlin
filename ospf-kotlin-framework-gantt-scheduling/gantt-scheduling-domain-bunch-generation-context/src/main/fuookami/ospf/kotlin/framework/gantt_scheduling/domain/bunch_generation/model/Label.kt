@@ -1,5 +1,6 @@
 @file:Suppress("DEPRECATION")
 
+/** 任务束生成标签模型 / Bunch generation label model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -7,8 +8,27 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
+/**
+ * 总成本计算器类型别名 / Total cost calculator typealias
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ */
 typealias TotalCostCalculator<T, E> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost?
 
+/**
+ * 生成任务束 / Generate bunch
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param label 标签 / Label
+ * @param iteration 迭代次数 / Iteration count
+ * @param executor 执行器 / Executor
+ * @param executorUsability 执行器初始可用性 / Executor initial usability
+ * @param totalCostCalculator 总成本计算器 / Total cost calculator
+ * @return 任务束或null / Bunch or null
+ */
 private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A>,
     iteration: Int64,
@@ -20,8 +40,11 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
         return null
     }
     // in beginning, it should be the succ node of root node at the top of the stack
+    // 起始时应为栈顶根节点的后继节点
     // it means that nodes in the stack is in descending order
+    // 这意味着栈中节点按降序排列
     // so the tasks will be in increasing order
+    // 因此任务将按升序排列
     val labels = ArrayList<Label<T, E, A>>()
     var currLabel = label.prevLabel
     while (currLabel!!.node !is RootNode) {
@@ -48,6 +71,21 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
     }
 }
 
+/**
+ * 生成自定义任务束 / Generate custom bunch
+ *
+ * @param B 任务束类型 / Bunch type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param label 标签 / Label
+ * @param iteration 迭代次数 / Iteration count
+ * @param executor 执行器 / Executor
+ * @param executorUsability 执行器初始可用性 / Executor initial usability
+ * @param totalCostCalculator 总成本计算器 / Total cost calculator
+ * @param bunchCtor 任务束构造器 / Bunch constructor
+ * @return 任务束或null / Bunch or null
+ */
 private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A>,
     iteration: Int64,
@@ -60,8 +98,11 @@ private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executo
         return null
     }
     // in beginning, it should be the succ node of root node at the top of the stack
+    // 起始时应为栈顶根节点的后继节点
     // it means that nodes in the stack is in descending order
+    // 这意味着栈中节点按降序排列
     // so the tasks will be in increasing order
+    // 因此任务将按升序排列
     val labels = ArrayList<Label<T, E, A>>()
     var currLabel = label.prevLabel
     while (currLabel!!.node !is RootNode) {
@@ -80,6 +121,18 @@ private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executo
     return totalCost?.let { bunchCtor(executor, executorUsability, tasks, iteration, it) }
 }
 
+/**
+ * 标签类 / Label class
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param cost 成本 / Cost
+ * @param shadowPrice 影子价格 / Shadow price
+ * @param prevLabel 前一个标签 / Previous label
+ * @param node 节点 / Node
+ * @param task 任务 / Task
+ */
 open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     val cost: Cost,
     val shadowPrice: Flt64,
@@ -140,6 +193,12 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         this.trace = trace
     }
 
+    /**
+     * 检查节点是否已访问 / Check if node is visited
+     *
+     * @param node 节点 / Node
+     * @return 是否已访问 / Whether visited
+     */
     fun visited(node: Node): Boolean {
         return when (node) {
             is RootNode, is EndNode -> {
@@ -152,6 +211,15 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         }
     }
 
+    /**
+     * 生成任务束 / Generate bunch
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param executor 执行器 / Executor
+     * @param executorUsability 执行器初始可用性 / Executor initial usability
+     * @param totalCostCalculator 总成本计算器 / Total cost calculator
+     * @return 任务束或null / Bunch or null
+     */
     fun generateBunch(
         iteration: Int64,
         executor: E,
@@ -167,6 +235,17 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         )
     }
 
+    /**
+     * 生成自定义任务束 / Generate custom bunch
+     *
+     * @param B 任务束类型 / Bunch type
+     * @param iteration 迭代次数 / Iteration count
+     * @param executor 执行器 / Executor
+     * @param executorUsability 执行器初始可用性 / Executor initial usability
+     * @param totalCostCalculator 总成本计算器 / Total cost calculator
+     * @param bunchCtor 任务束构造器 / Bunch constructor
+     * @return 任务束或null / Bunch or null
+     */
     fun <B : AbstractTaskBunch<T, E, A>> generateBunch(
         iteration: Int64,
         executor: E,

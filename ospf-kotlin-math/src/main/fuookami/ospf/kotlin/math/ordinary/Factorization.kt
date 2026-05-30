@@ -48,7 +48,7 @@ private inline fun <reified I> uint64ToI(value: UInt64, constants: RealNumberCon
         Int8::class -> Int8(value.value.toByte()) as I
         IntX::class -> IntX(value.value.toLong()) as I
         else -> {
-            // Fallback: increment from constants.one
+            // Fallback: increment from constants.one / 回退方案：从 constants.one 递增
             var result = constants.one
             val target = value.value
             var current = 1UL
@@ -108,11 +108,11 @@ private fun <I> factorizeWithPrimes(
  * @return 质因数分解结果列表，每个元素为 (质数, 指数) 对 / List of (prime, exponent) pairs
  */
 fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
-    // Compute sqrt(num) + 1 as the upper bound for prime candidates
+    // Compute sqrt(num) + 1 as the upper bound for prime candidates / 计算 sqrt(num) + 1 作为质数候选的上界
     val sqrtULong = (num.toFlt64().sqrt() as Flt64).floor().toUInt64().value + 1UL
 
-    // Create sqrt limit as type I
-    // Since sqrt(num) is much smaller than num, this iteration is acceptable
+    // Create sqrt limit as type I / 将 sqrt 上界转换为类型 I
+    // Since sqrt(num) is much smaller than num, this iteration is acceptable / 因为 sqrt(num) 远小于 num，此迭代是可接受的
     var sqrtLimit = constants.one
     var count = sqrtULong - 1UL
     while (count > 0UL) {
@@ -120,7 +120,7 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
         count--
     }
 
-    // Get primes up to sqrt limit (O(sqrt(num)) iterations instead of O(num))
+    // Get primes up to sqrt limit (O(sqrt(num)) iterations instead of O(num)) / 获取 sqrt 上界内的质数（O(sqrt(num)) 次迭代而非 O(num)）
     val primes = getPrimesImpl(sqrtLimit, constants)
 
     return factorizeWithPrimes(num, primes, constants)

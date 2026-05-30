@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务编译聚合 / Task compilation aggregation */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -15,6 +16,19 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 抽象任务调度聚合 / Abstract task scheduling aggregation
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ */
 abstract class AbstractTaskSchedulingAggregation<
         T : AbstractTask<E, A>,
         E : Executor,
@@ -42,6 +56,12 @@ abstract class AbstractTaskSchedulingAggregation<
         compilation = compilation
     )
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
@@ -71,6 +91,19 @@ abstract class AbstractTaskSchedulingAggregation<
     }
 }
 
+/**
+ * 任务编译聚合 / Task compilation aggregation
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ */
 open class TaskCompilationAggregation<
         T : AbstractTask<E, A>,
         E : Executor,
@@ -91,6 +124,27 @@ open class TaskCompilationAggregation<
     withExecutorLeisure = withExecutorLeisure
 )
 
+/**
+ * 带时间的任务编译聚合 / Task compilation aggregation with time
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param estimateEndTimeCalculator 预估结束时间计算器 / Estimate end time calculator
+ * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ * @param delayEnabled 是否启用延迟 / Whether delay is enabled
+ * @param overMaxDelayEnabled 是否启用超最大延迟 / Whether over-max delay is enabled
+ * @param advanceEnabled 是否启用提前 / Whether advance is enabled
+ * @param overMaxAdvanceEnabled 是否启用超最大提前 / Whether over-max advance is enabled
+ * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
+ * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
+ * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
+ */
 open class TaskCompilationAggregationWithTime<
         T : AbstractTask<E, A>,
         E : Executor,

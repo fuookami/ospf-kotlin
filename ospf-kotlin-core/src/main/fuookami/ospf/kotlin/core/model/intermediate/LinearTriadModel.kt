@@ -28,6 +28,7 @@ import java.io.OutputStreamWriter
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
+/** 将任意数值类型转换为 Flt64（求解器边界用） / Convert any numeric value to Flt64 (for solver boundary use) */
 private fun Any?.toSolverFlt64(): Flt64 {
     return when (this) {
         is Flt64 -> this
@@ -36,11 +37,12 @@ private fun Any?.toSolverFlt64(): Flt64 {
     }
 }
 
+/** 判断此线性约束是否为单变量边界约束（系数为1的单项约束） / Check whether this linear constraint is a single-variable bound constraint (single term with coefficient 1) */
 private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     val lhs = (this as LinearConstraintImpl<*>).lhs
     return lhs.size == 1
             && lhs.first().coefficient.toSolverFlt64() eq Flt64.one
-    // && from?.second != true
+    // && from?.second != true (commented-out additional check / 注释掉的附加检查)
 }
 
 /**
@@ -53,7 +55,7 @@ private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
  *
  * @property rowIndex 行索引 / Row index
  * @property colIndex 列索引 / Column index
- * @property coefficient 系数 / Coefficient
+ * @param coefficient 系数 / Coefficient
  */
 class LinearConstraintCell(
     override val rowIndex: Int,
@@ -93,9 +95,13 @@ class LinearConstraintCell(
  * including constraint signs, right-hand side constants, and constraint sources.
  *
  * @property sparseLhs 稀疏矩阵（左侧）/ Sparse matrix (left-hand side)
- * @property origins 约束来源列表 / Constraint origin list
- * @property froms 约束来源符号列表 / Constraint from-symbol list
- * @property priorities 约束优先级列表 / Constraint priority list
+ * @param signs 约束关系符号列表 / Constraint relation sign list
+ * @param rhs 右侧常量列表 / Right-hand side constant list
+ * @param names 约束名称列表 / Constraint name list
+ * @param sources 约束来源类型列表 / Constraint source type list
+ * @param origins 约束来源列表 / Constraint origin list
+ * @param froms 约束来源符号列表 / Constraint from-symbol list
+ * @param priorities 约束优先级列表 / Constraint priority list
  */
 class LinearConstraintBatch(
     val sparseLhs: SparseMatrix<Flt64>,
@@ -200,7 +206,7 @@ class LinearConstraintBatch(
  * containing column index and coefficient.
  *
  * @property colIndex 列索引 / Column index
- * @property coefficient 系数 / Coefficient
+ * @param coefficient 系数 / Coefficient
  */
 class LinearObjectiveCell(
     val colIndex: Int,
@@ -527,6 +533,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         minSlackAmount: Pair<UInt64, Flt64>? = null
     ): LinearTriadModelView
 
+    /** 整理对偶解，将非零对偶值映射回原始约束 / Tidy dual solution, mapping non-zero dual values back to original constraints */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
@@ -721,12 +728,12 @@ data class LinearTriadModel(
                 ObjectCategory.Maximum -> {
                     when (this.constraints.signs[it]) {
                         ConstraintRelation.LessEqual -> {
-                            // ??=> y ??0
+                            // <= constraint => y >= 0 / 小于等于约束 => 对偶变量 y >= 0
                             lowerBound = Flt64.zero
                         }
 
                         ConstraintRelation.GreaterEqual -> {
-                            // ??=> y ??0
+                            // >= constraint => y <= 0 / 大于等于约束 => 对偶变量 y <= 0
                             upperBound = Flt64.zero
                         }
 
@@ -737,12 +744,12 @@ data class LinearTriadModel(
                 ObjectCategory.Minimum -> {
                     when (this.constraints.signs[it]) {
                         ConstraintRelation.LessEqual -> {
-                            // ??=> y ??0
+                            // <= constraint => y <= 0 / 小于等于约束 => 对偶变量 y <= 0
                             upperBound = Flt64.zero
                         }
 
                         ConstraintRelation.GreaterEqual -> {
-                            // ??=> y ??0
+                            // >= constraint => y >= 0 / 大于等于约束 => 对偶变量 y >= 0
                             lowerBound = Flt64.zero
                         }
 
@@ -770,7 +777,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x >= lb => lambda_lb <= 0
+                        // x >= lb => lambda_lb <= 0 / x >= 下界 => 下界对偶变量 <= 0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -785,7 +792,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x <= ub => lambda_ub >= 0
+                        // x <= ub => lambda_ub >= 0 / x <= 上界 => 上界对偶变量 >= 0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -800,7 +807,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb <= x <= ub => lambda_lb <= 0, lambda_ub >= 0
+                        // lb <= x <= ub => lambda_lb <= 0, lambda_ub >= 0 / 下界 <= x <= 上界 => 下界对偶变量 <= 0, 上界对偶变量 >= 0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -833,7 +840,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x >= lb => lambda_lb >= 0
+                        // x >= lb => lambda_lb >= 0 / x >= 下界 => 下界对偶变量 >= 0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -848,7 +855,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x <= ub => lambda_ub <= 0
+                        // x <= ub => lambda_ub <= 0 / x <= 上界 => 上界对偶变量 <= 0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -863,7 +870,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb <= x <= ub => lambda_lb >= 0, lambda_ub <= 0
+                        // lb <= x <= ub => lambda_lb >= 0, lambda_ub <= 0 / 下界 <= x <= 上界 => 下界对偶变量 >= 0, 上界对偶变量 <= 0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -924,25 +931,25 @@ data class LinearTriadModel(
             } else if (it.negativeNormalized) {
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
-                        // ??0 => ??
+                        // negative normalized => <= constraint / 非正变量 => 小于等于约束
                         ConstraintRelation.LessEqual
                     }
 
                     ObjectCategory.Minimum -> {
-                        // ??0 => ??
+                        // negative normalized => >= constraint / 非正变量 => 大于等于约束
                         ConstraintRelation.GreaterEqual
                     }
                 }
             } else if (it.positiveNormalized) {
-                // ??0
+                // positive normalized variable / 非负变量
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
-                        // ??0 => ??
+                        // positive normalized => >= constraint / 非负变量 => 大于等于约束
                         ConstraintRelation.GreaterEqual
                     }
 
                     ObjectCategory.Minimum -> {
-                        // ??0 => ??
+                        // positive normalized => <= constraint / 非负变量 => 小于等于约束
                         ConstraintRelation.LessEqual
                     }
                 }
@@ -1090,7 +1097,7 @@ data class LinearTriadModel(
             if (it.free) {
                 null to null
             } else if (it.positiveFree) {
-                // x >= lb => mu_lb <= 0
+                // x >= lb => mu_lb <= 0 / x >= 下界 => 下界对偶变量 mu_lb <= 0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -1105,7 +1112,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 variable to null
             } else if (it.negativeFree) {
-                // x <= ub => mu_ub >= 0
+                // x <= ub => mu_ub >= 0 / x <= 上界 => 上界对偶变量 mu_ub >= 0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.zero,
@@ -1120,7 +1127,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 null to variable
             } else {
-                // lb <= x <= ub => mu_lb <= 0, mu_ub >= 0
+                // lb <= x <= ub => mu_lb <= 0, mu_ub >= 0 / 下界 <= x <= 上界 => 下界对偶变量 <= 0, 上界对偶变量 >= 0
                 val variable1 = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,

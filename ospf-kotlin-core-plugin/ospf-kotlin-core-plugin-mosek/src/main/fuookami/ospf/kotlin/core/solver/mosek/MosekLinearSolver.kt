@@ -33,6 +33,7 @@ import mosek.variabletype
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** MOSEK 线性求解器 / MOSEK linear solver */
 class MosekLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MosekSolverCallBack? = null
@@ -83,6 +84,7 @@ class MosekLinearSolver(
     }
 }
 
+/** MOSEK 线性求解器内部实现 / MOSEK linear solver internal implementation */
 class MosekLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: MosekSolverCallBack? = null,

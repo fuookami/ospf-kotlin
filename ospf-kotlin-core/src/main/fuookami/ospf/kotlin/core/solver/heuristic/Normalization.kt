@@ -19,6 +19,14 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  * @param V 值类型 / Value type
  */
 interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 将目标值列表归一化为权重。
+     * Normalize objective value list into weights.
+     *
+     * @param model 回调模型接口 / Callback model interface
+     * @param objs 目标值列表 / Objective value list
+     * @return 归一化后的权重列表 / Normalized weight list
+     */
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         objs: List<ObjValue>

@@ -1,3 +1,4 @@
+/** MOSEK 求解器基类 / MOSEK solver base */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.mosek
@@ -11,16 +12,25 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import mosek.*
 
+/** MOSEK 求解器抽象基类，提供环境初始化和状态分析的通用实现 / MOSEK solver abstract base class, provides common implementation for environment initialization and status analysis */
 abstract class MosekSolver : AutoCloseable {
     protected lateinit var env: Env
     protected lateinit var mosekModel: Task
     protected lateinit var status: SolverStatus
 
+    /** 关闭 MOSEK 任务和环境，释放资源 / Close MOSEK task and environment, release resources */
     override fun close() {
         mosekModel.close()
         env.close()
     }
 
+    /**
+     * 初始化 MOSEK 求解器（尚未实现）/ Initialize MOSEK solver (not implemented yet)
+     *
+     * @param name 模型名称 / model name
+     * @param callBack 创建环境回调函数 / creating environment callback function
+     * @return 操作结果 / operation result
+     */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -33,6 +43,7 @@ abstract class MosekSolver : AutoCloseable {
         )
     }
 
+    /** 执行 MOSEK 求解（尚未实现）/ Execute MOSEK solving (not implemented yet) */
     protected suspend fun solve(): Try {
         return Failed(
             Err(
@@ -42,6 +53,7 @@ abstract class MosekSolver : AutoCloseable {
         )
     }
 
+    /** 分析 MOSEK 求解状态 / Analyze MOSEK solving status */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (val result = mosekModel.getsolsta(soltype.bas)) {

@@ -25,13 +25,28 @@ import fuookami.ospf.kotlin.core.solver.output.*
 interface AbstractLinearSolver {
     val name: String
 
-    /** 求解线性模型（阻塞）/ Solve linear model (blocking) */
+    /**
+     * 求解线性模型（阻塞）。
+     * Solve linear model (blocking).
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @return 求解结果 / Solve result
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
 
-    /** 求解线性模型并启用 IIS 诊断（阻塞）/ Solve linear model with IIS diagnostics (blocking) */
+    /**
+     * 求解线性模型并启用 IIS 诊断（阻塞）。
+     * Solve linear model with IIS diagnostics (blocking).
+     *
+     * @param model 线性三元模型 / Linear triad model
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param iisConfig IIS 配置 / IIS configuration
+     * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
+     */
     suspend operator fun invoke(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -46,8 +61,16 @@ interface AbstractLinearSolver {
         )
     }
 
-    /** 异步求解线性模型 / Solve linear model asynchronously */
-        fun solveAsync(
+    /**
+     * 异步求解线性模型。
+     * Solve linear model asynchronously.
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @return 异步求解结果 / Async solve result
+     */
+    fun solveAsync(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
@@ -62,8 +85,17 @@ interface AbstractLinearSolver {
         }
     }
 
-    /** 异步求解线性模型并启用 IIS 诊断 / Solve linear model asynchronously with IIS diagnostics */
-        fun solveAsync(
+    /**
+     * 异步求解线性模型并启用 IIS 诊断。
+     * Solve linear model asynchronously with IIS diagnostics.
+     *
+     * @param model 线性三元模型 / Linear triad model
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param iisConfig IIS 配置 / IIS configuration
+     * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @return 异步求解结果 / Async solve result
+     */
+    fun solveAsync(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
@@ -80,14 +112,31 @@ interface AbstractLinearSolver {
         }
     }
 
-    /** 求解线性模型获取多个解（阻塞）/ Solve linear model for multiple solutions (blocking) */
+    /**
+     * 求解线性模型获取多个解（阻塞）。
+     * Solve linear model for multiple solutions (blocking).
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @return 求解结果与解列表 / Solve result with solution list
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>
 
-    /** 求解线性模型获取多个解并启用 IIS 诊断（阻塞）/ Solve linear model for multiple solutions with IIS diagnostics (blocking) */
+    /**
+     * 求解线性模型获取多个解并启用 IIS 诊断（阻塞）。
+     * Solve linear model for multiple solutions with IIS diagnostics (blocking).
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param iisConfig IIS 配置 / IIS configuration
+     * @return 求解结果与解列表（可能包含 IIS）/ Solve result with solution list (may contain IIS)
+     */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -104,8 +153,17 @@ interface AbstractLinearSolver {
         )
     }
 
-    /** 异步求解线性模型获取多个解 / Solve linear model asynchronously for multiple solutions */
-        fun solveAsync(
+    /**
+     * 异步求解线性模型获取多个解。
+     * Solve linear model asynchronously for multiple solutions.
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @return 异步求解结果与解列表 / Async solve result with solution list
+     */
+    fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -122,8 +180,18 @@ interface AbstractLinearSolver {
         }
     }
 
-    /** 异步求解线性模型获取多个解并启用 IIS 诊断 / Solve linear model asynchronously for multiple solutions with IIS diagnostics */
-        fun solveAsync(
+    /**
+     * 异步求解线性模型获取多个解并启用 IIS 诊断。
+     * Solve linear model asynchronously for multiple solutions with IIS diagnostics.
+     *
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @param iisConfig IIS 配置 / IIS configuration
+     * @param callBack 结果回调（可选）/ Result callback (optional)
+     * @return 异步求解结果与解列表 / Async solve result with solution list
+     */
+    fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -145,7 +213,16 @@ interface AbstractLinearSolver {
     // ========== 泛型主接口 / Generic primary interface ==========
     // solve 是泛型主入口；triad solve 调用仍是求解器边界。 / solve is the primary generic entry point; triad solve calls remain the solver boundary.
 
-    /** 泛型求解线性模型 / Solve linear model with generic value conversion */
+    /**
+     * 泛型求解线性模型。
+     * Solve linear model with generic value conversion.
+     *
+     * @param V 值类型 / Value type
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param converter 值转换器 / Value converter
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         converter: IntoValue<V>,
@@ -158,7 +235,17 @@ interface AbstractLinearSolver {
         }
     }
 
-    /** 泛型求解线性模型获取多个解 / Solve linear model with generic value conversion for multiple solutions */
+    /**
+     * 泛型求解线性模型获取多个解。
+     * Solve linear model with generic value conversion for multiple solutions.
+     *
+     * @param V 值类型 / Value type
+     * @param model 线性三元模型视图 / Linear triad model view
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param converter 值转换器 / Value converter
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @return 求解结果与解列表 / Solve result with solution list
+     */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -176,7 +263,16 @@ interface AbstractLinearSolver {
     }
 
     // MechanismModel<V> 的泛型 solve 全链路：dump -> solve -> convert。 / Generic solve for MechanismModel<V>: full pipeline (dump -> solve -> convert)
-    /** 从机制模型求解线性问题（全链路：转储 -> 求解 -> 转换）/ Solve linear problem from mechanism model (full pipeline: dump -> solve -> convert) */
+    /**
+     * 从机制模型求解线性问题（全链路：转储 -> 求解 -> 转换）。
+     * Solve linear problem from mechanism model (full pipeline: dump -> solve -> convert).
+     *
+     * @param V 值类型 / Value type
+     * @param model 机制模型 / Mechanism model
+     * @param converter 值转换器 / Value converter
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
@@ -199,7 +295,17 @@ interface AbstractLinearSolver {
         }
     }
 
-    /** 从机制模型求解线性问题获取多个解（全链路：转储 -> 求解 -> 转换）/ Solve linear problem from mechanism model for multiple solutions (full pipeline: dump -> solve -> convert) */
+    /**
+     * 从机制模型求解线性问题获取多个解（全链路：转储 -> 求解 -> 转换）。
+     * Solve linear problem from mechanism model for multiple solutions (full pipeline: dump -> solve -> convert).
+     *
+     * @param V 值类型 / Value type
+     * @param model 机制模型 / Mechanism model
+     * @param solutionAmount 期望解数量 / Desired solution amount
+     * @param converter 值转换器 / Value converter
+     * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
+     * @return 求解结果与解列表 / Solve result with solution list
+     */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
@@ -223,12 +329,26 @@ interface AbstractLinearSolver {
         }
     }
 
-    /** 转储线性机制模型为三元组模型 / Dump linear mechanism model to triad model */
+    /**
+     * 转储线性机制模型为三元组模型。
+     * Dump linear mechanism model to triad model.
+     *
+     * @param model 线性机制模型 / Linear mechanism model
+     * @return 线性三元组模型 / Linear triad model
+     */
     suspend fun dump(model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearTriadModel {
         return LinearTriadModel(model)
     }
 
-    /** 转储线性元模型为机制模型 / Dump linear meta model to mechanism model */
+    /**
+     * 转储线性元模型为机制模型。
+     * Dump linear meta model to mechanism model.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @param registrationStatusCallBack 注册状态回调（可选）/ Registration status callback (optional)
+     * @param dumpingStatusCallBack 转储状态回调（可选）/ Dumping status callback (optional)
+     * @return 线性机制模型 / Linear mechanism model
+     */
     suspend fun dump(
         model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,

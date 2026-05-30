@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** MindOPT 列生成求解器 / MindOPT column generation solver */
 class MindOPTColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack()

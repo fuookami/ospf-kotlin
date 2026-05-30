@@ -1,3 +1,4 @@
+/** 任务编译模型 / Task compilation model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.operation.*
@@ -33,6 +34,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 编译接口 / Compilation interface */
 interface Compilation {
     val taskCancelEnabled: Boolean
     val withExecutorLeisure: Boolean
@@ -44,9 +46,27 @@ interface Compilation {
     val taskCompilation: LinearIntermediateSymbols1<Flt64>
     val executorCompilation: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     fun register(model: MetaModel<Flt64>): Try
 }
 
+/**
+ * 任务编译 / Task compilation
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ */
 class TaskCompilation<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -66,6 +86,12 @@ class TaskCompilation<
     override lateinit var taskCompilation: LinearIntermediateSymbols1<Flt64>
     override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = BinVariable2(
@@ -269,6 +295,17 @@ class TaskCompilation<
     }
 }
 
+/**
+ * 迭代任务编译 / Iterative task compilation
+ *
+ * @param IT 迭代任务类型 / Iterative task type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param originTasks 原始任务列表 / List of origin tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockedCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ */
 open class IterativeTaskCompilation<
         IT : IterativeAbstractTask<E, A>,
         out T : AbstractTask<E, A>,
@@ -315,6 +352,12 @@ open class IterativeTaskCompilation<
     private lateinit var xor: BinVariable1
     override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1(
@@ -468,6 +511,16 @@ open class IterativeTaskCompilation<
         return ok
     }
 
+    /**
+     * 添加列 / Add columns
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param newTasks 新任务列表 / List of new tasks
+     * @param model 线性元模型 / Linear meta model
+     * @param cost 成本函数 / Cost function
+     * @param conflict 冲突函数 / Conflict function
+     * @return 去重后的任务列表 / Deduplicated task list
+     */
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,

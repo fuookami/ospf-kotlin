@@ -1,5 +1,6 @@
-/** 蕴含函数符号 / If-then implication function symbol */
 @file:Suppress("unused")
+
+/** 蕴含函数符号 / If-then implication function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -33,13 +34,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - 当条件指示变量 b = 0 时：y = 0
  * - When condition indicator b = 0: y = 0
  *
- * @param condition 条件线性多项式 / the condition linear polynomial
- * @param thenPoly "则"线性多项式（当 condition > 0 时激活）/ the "then" linear polynomial (activated when condition > 0)
+ * @property condition 条件线性多项式 / the condition linear polynomial
+ * @property thenPoly "则"线性多项式（当 condition > 0 时激活）/ the "then" linear polynomial (activated when condition > 0)
+ * @param converter 值类型转换器 / value type converter
  * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class IfThenFunction<V>(
     val condition: LinearPolynomial<V>,
@@ -91,10 +93,11 @@ class IfThenFunction<V>(
         val bigMValue = bigM
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicator for condition
+        // Nonzero indicator for condition / 为条件构建非零指示约束
         allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
 
         // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
+        // y - thenPoly <= M*(1 - 指示变量)，即 y - thenPoly + M*指示变量 <= M
         val yMono = LinearMonomial(converter.one, resultVar)
         val negThenMonos = thenPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
         allConstraints += LinearInequality(
@@ -104,6 +107,7 @@ class IfThenFunction<V>(
         )
 
         // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
+        // y - thenPoly >= -M*(1 - 指示变量)，即 y - thenPoly - M*指示变量 >= -M
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-bigMValue, indicatorVar), -thenPoly.constant),
             LinearPolynomial(emptyList(), -bigMValue),
@@ -114,6 +118,16 @@ class IfThenFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建若-则函数实例 / Create an if-then function instance
+         * @param condition 条件线性多项式 / condition linear polynomial
+         * @param thenPoly "则"线性多项式 / "then" linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [IfThenFunction] 实例 / [IfThenFunction] instance
+         */
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             thenPoly: LinearPolynomial<V>,
@@ -127,6 +141,15 @@ class IfThenFunction<V>(
         /**
          * 约束输入工厂：从约束输入提取条件多项式，默认 then 多项式为一。
          * Constraint-input factory: extracts the condition polynomial and defaults thenPoly to one.
+         * @param inequality 约束输入 / constraint input
+         * @param converter 值类型转换器 / value type converter
+         * @param thenPoly "则"线性多项式，默认为一 / "then" linear polynomial, defaults to one
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param tolerance 零容差 / zero tolerance
+         * @param strictBoundary 严格边界值 / strict boundary value
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
          */
         fun <V> from(
             inequality: LinearConstraintInput<V>,

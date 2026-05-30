@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 启发式策略接口与基类 / Heuristic policy interface and base class */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import kotlin.time.Duration
@@ -9,15 +10,20 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
- * 启发式策略接口与基类
- * Heuristic policy interface and base class
- */
-
-/**
  * 启发式策略的抽象接口，定义值约束、状态更新和终止判断。
  * Abstract interface for heuristic policies, defining value coercion, state updates, and termination checks.
  */
 interface AbstractHeuristicPolicy {
+    /**
+     * 将 Flt64 值约束到变量边界内。
+     * Coerce a Flt64 value within the variable bounds.
+     *
+     * @param iteration 当前迭代 / Current iteration
+     * @param index 变量索引 / Variable index
+     * @param value 待约束的值 / Value to coerce
+     * @param model 回调模型接口 / Callback model interface
+     * @return 约束后的值 / Coerced value
+     */
     fun coerceIn(
         iteration: Iteration,
         index: Int,
@@ -28,6 +34,18 @@ interface AbstractHeuristicPolicy {
         return value.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
     }
 
+    /**
+     * 将泛型值约束到变量边界内。
+     * Coerce a generic value within the variable bounds.
+     *
+     * @param V 值类型 / Value type
+     * @param iteration 当前迭代 / Current iteration
+     * @param index 变量索引 / Variable index
+     * @param value 待约束的值 / Value to coerce
+     * @param model 回调模型接口 / Callback model interface
+     * @param converter 值转换器 / Value converter
+     * @return 约束后的值 / Coerced value
+     */
     fun <V> coerceIn(
         iteration: Iteration,
         index: Int,
@@ -40,6 +58,17 @@ interface AbstractHeuristicPolicy {
         return converter.intoValue(fixed)
     }
 
+    /**
+     * 更新启发式策略状态。
+     * Update heuristic policy state.
+     *
+     * @param iteration 当前迭代 / Current iteration
+     * @param better 本轮是否有改进 / Whether this round improved
+     * @param bestIndividual 当前最优个体 / Current best individual
+     * @param goodIndividuals 优良个体列表 / Good individuals list
+     * @param populations 种群列表 / Populations list
+     * @param model 回调模型接口 / Callback model interface
+     */
     fun update(
         iteration: Iteration,
         better: Boolean,
@@ -50,6 +79,13 @@ interface AbstractHeuristicPolicy {
     ) {
     }
 
+    /**
+     * 判断启发式搜索是否终止。
+     * Check whether the heuristic search should terminate.
+     *
+     * @param iteration 当前迭代 / Current iteration
+     * @return 是否终止 / Whether to terminate
+     */
     fun finished(iteration: Iteration): Boolean
 }
 

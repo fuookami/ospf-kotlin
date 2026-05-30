@@ -43,6 +43,14 @@ data class MechanismModelDumpingStatus(
         }
 
     companion object {
+        /**
+         * 创建约束转储阶段的状态。
+         * Create a status for the constraint dumping phase.
+         *
+         * @param ready 已就绪约束数量 / Number of ready constraints
+         * @param model 元模型 / The meta model
+         * @return 机制模型转储状态 / The mechanism model dumping status
+         */
         fun <V> dumpingConstrains(ready: UInt64, model: MetaModel<V>): MechanismModelDumpingStatus where V : RealNumber<V>, V : NumberField<V> {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = ready,
@@ -52,6 +60,14 @@ data class MechanismModelDumpingStatus(
             )
         }
 
+        /**
+         * 创建符号转储阶段的状态。
+         * Create a status for the symbol dumping phase.
+         *
+         * @param ready 已就绪符号数量 / Number of ready symbols
+         * @param model 元模型 / The meta model
+         * @return 机制模型转储状态 / The mechanism model dumping status
+         */
         fun <V> dumpingSymbols(ready: UInt64, model: MetaModel<V>): MechanismModelDumpingStatus where V : RealNumber<V>, V : NumberField<V> {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = model.constraints.usize,
@@ -69,6 +85,10 @@ typealias MechanismModelDumpingStatusCallBack = (MechanismModelDumpingStatus) ->
 /**
  * 将机制模型转储状态转换为模型构建状态。
  * Convert mechanism model dumping status to model building status.
+ *
+ * @param modelName 模型名称 / The model name
+ * @param quadratic 是否为二次模型 / Whether the model is quadratic
+ * @return 模型构建状态 / The model building status
  */
 fun MechanismModelDumpingStatus.toModelBuildingStatus(
     modelName: String,

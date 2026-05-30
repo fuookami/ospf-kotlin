@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import gurobi.GRB
 import kotlinx.coroutines.*
 
+/** Gurobi 线性 Benders 分解求解器 / Gurobi linear Benders decomposition solver */
 class GurobiLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
@@ -223,6 +224,7 @@ class GurobiLinearBendersDecompositionSolver(
     }
 }
 
+/** Gurobi 二次 Benders 分解求解器 / Gurobi quadratic Benders decomposition solver */
 class GurobiQuadraticBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack(),

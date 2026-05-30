@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 求解状态数据结构 / Solving status data structure */
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration
@@ -6,11 +7,6 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-
-/**
- * 求解状态数据结构
- * Solving status data structure
- */
 
 /**
  * 求解过程状态，包含求解器信息、目标值、间隙等实时数据。

@@ -25,7 +25,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 粒子群优化器策略接口 / Particle Swarm Optimizer policy interface */
 interface AbstractPSOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    /**
+     * 加速粒子 / Accelerate particle
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param particle 当前粒子 / current particle
+     * @param bestParticle 全局最优粒子 / global best particle
+     * @param model 回调模型 / callback model
+     * @return 加速后的粒子 / accelerated particle
+     */
     fun accelerate(
         iteration: Iteration,
         particle: Particle<ObjValue, V>,
@@ -78,6 +88,7 @@ open class PSOPolicy<ObjValue, V>(
             )
         }
     }
+    /** 加速粒子 / Accelerate particle */
     override fun accelerate(
         iteration: Iteration,
         particle: Particle<ObjValue, V>,
@@ -113,7 +124,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractPSOPolicy<ObjValue, V>,
-    // converter must be provided explicitly; use PSOPolicy.Flt64 companion for V=Flt64 convenience
+    // converter must be provided explicitly; use PSOPolicy.Flt64 companion for V=Flt64 convenience / 转换器必须显式提供；V=Flt64 时可使用 PSOPolicy.Flt64 伴生对象
     private val converter: IntoValue<V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
@@ -130,6 +141,14 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
             )
         }
     }
+    /**
+     * 执行粒子群优化算法 / Execute Particle Swarm Optimization
+     *
+     * @param model 回调模型 / callback model
+     * @param initialVelocityGenerator 初始速度生成器 / initial velocity generator
+     * @param runningCallBack 运行回调函数 / running callback function
+     * @return 最优个体列表 / best individual list
+     */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
@@ -210,5 +229,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     }
 }
 
+/** 单目标粒子群优化器类型 / Single-objective Particle Swarm Optimization type */
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64, Flt64>
+/** 多目标粒子群优化器类型 / Multi-objective Particle Swarm Optimization type */
 typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

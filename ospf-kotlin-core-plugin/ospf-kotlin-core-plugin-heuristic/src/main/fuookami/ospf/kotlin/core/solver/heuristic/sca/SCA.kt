@@ -34,19 +34,52 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 正弦余弦算法策略接口 / Sine Cosine Algorithm policy interface */
 interface AbstractSCAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    /**
+     * 计算控制参数 r1 / Calculate control parameter r1
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @return 控制参数 r1 / control parameter r1
+     */
     fun r1(iteration: Iteration): Flt64
 
+    /**
+     * 计算随机参数 r2 / Calculate random parameter r2
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param model 回调模型 / callback model
+     * @return 随机参数 r2 列表 / random parameter r2 list
+     */
     fun r2(
         iteration: Iteration,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Flt64>
 
+    /**
+     * 计算随机参数 r3 / Calculate random parameter r3
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param model 回调模型 / callback model
+     * @return 随机参数 r3 列表 / random parameter r3 list
+     */
     fun r3(
         iteration: Iteration,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Flt64>
 
+    /**
+     * 移动个体 / Move individual
+     *
+     * @param iteration 当前迭代 / current iteration
+     * @param solution 当前解 / current solution
+     * @param bestSolution 最优解 / best solution
+     * @param r1 控制参数 r1 / control parameter r1
+     * @param r2 随机参数 r2 列表 / random parameter r2 list
+     * @param r3 随机参数 r3 列表 / random parameter r3 list
+     * @param model 回调模型 / callback model
+     * @return 移动后的解 / moved solution
+     */
     fun move(
         iteration: Iteration,
         solution: SolutionWithFitness<ObjValue, V>,
@@ -126,6 +159,7 @@ class SCAPolicy<ObjValue, V>(
             }
         }
 
+    /** 计算控制参数 r1 / Calculate control parameter r1 */
     override fun r1(iteration: Iteration): Flt64 {
         val iterationCoefficient = max(
             ((iteration.iteration.toFlt64() * Flt64.pi)
@@ -137,6 +171,7 @@ class SCAPolicy<ObjValue, V>(
         return minR1 + (maxR1 - minR1) * iterationCoefficient
     }
 
+    /** 计算随机参数 r2 / Calculate random parameter r2 */
     override fun r2(
         iteration: Iteration,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
@@ -155,6 +190,7 @@ class SCAPolicy<ObjValue, V>(
             }
         }
 
+    /** 计算随机参数 r3 / Calculate random parameter r3 */
     override fun r3(
         iteration: Iteration,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
@@ -165,6 +201,7 @@ class SCAPolicy<ObjValue, V>(
         }
     }
 
+    /** 移动个体 / Move individual */
     override fun move(
         iteration: Iteration,
         solution: SolutionWithFitness<ObjValue, V>,
@@ -191,6 +228,7 @@ class SCAPolicy<ObjValue, V>(
         )
     }
 
+    /** 更新策略状态（Q-learning 表和状态）/ Update policy state (Q-learning table and state) */
     override fun update(
         iteration: Iteration,
         better: Boolean,
@@ -211,6 +249,13 @@ class SCAPolicy<ObjValue, V>(
         )
     }
 
+    /**
+     * 更新 Q-learning 状态 / Update Q-learning state
+     *
+     * @param population 种群 / population
+     * @param best 最优个体 / best individual
+     * @param model 回调模型 / callback model
+     */
     private fun updateState(
         population: List<Individual<*, *>>,
         best: Individual<*, *>,
@@ -225,6 +270,11 @@ class SCAPolicy<ObjValue, V>(
         currentState = QLearningState(density, distance).discretize
     }
 
+    /**
+     * 更新 Q 表 / Update Q table
+     *
+     * @param reward 奖励值 / reward value
+     */
     private fun updateQTable(reward: Flt64) {
         val actions = qTable.getOrPut(currentState) { mutableListOf(Flt64(9)) }
         val maxNextQ = qTable[currentState]?.maxOrNull() ?: Flt64.zero
@@ -253,6 +303,12 @@ class SCAPolicy<ObjValue, V>(
         return value as V
     }
 
+    /**
+     * 计算种群密度 / Calculate population density
+     *
+     * @param population 种群 / population
+     * @return 密度值 / density value
+     */
     private fun calculateDensity(
         population: List<Individual<*, *>>
     ): Flt64 {
@@ -265,6 +321,14 @@ class SCAPolicy<ObjValue, V>(
             }
         } / Flt64(population.size * flt64Solutions.first().size)
     }
+    /**
+     * 计算种群到最优个体的距离 / Calculate distance from population to best individual
+     *
+     * @param population 种群 / population
+     * @param best 最优个体 / best individual
+     * @param model 回调模型 / callback model
+     * @return 距离值 / distance value
+     */
     private fun calculateDistance(
         population: List<Individual<*, *>>,
         best: Individual<*, *>,
@@ -293,6 +357,13 @@ class SineCosineAlgorithm<Obj, ObjValue, V>(
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractSCAPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    /**
+     * 执行正弦余弦算法 / Execute Sine Cosine Algorithm
+     *
+     * @param model 回调模型 / callback model
+     * @param runningCallBack 运行回调函数 / running callback function
+     * @return 最优个体列表 / best individual list
+     */
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, SolutionWithFitness<ObjValue, V>) -> Try)? = null
@@ -373,5 +444,7 @@ class SineCosineAlgorithm<Obj, ObjValue, V>(
     }
 }
 
+/** 单目标正弦余弦算法类型 / Single-objective Sine Cosine Algorithm type */
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64, Flt64>
+/** 多目标正弦余弦算法类型 / Multi-objective Sine Cosine Algorithm type */
 typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

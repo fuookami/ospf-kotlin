@@ -39,6 +39,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** CPLEX 二次求解器 / CPLEX quadratic solver */
 class CplexQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack? = null
@@ -110,6 +111,7 @@ class CplexQuadraticSolver(
     }
 }
 
+/** CPLEX 二次求解器内部实现 / CPLEX quadratic solver internal implementation */
 private class CplexQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: CplexSolverCallBack? = null,

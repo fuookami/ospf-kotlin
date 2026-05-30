@@ -1,13 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** COPT 求解器配置 / COPT solver configuration */
 package fuookami.ospf.kotlin.core.solver.config
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-
-/**
- * COPT 求解器配置
- * COPT solver configuration
- */
 
 /**
  * COPT 求解器的连接配置。

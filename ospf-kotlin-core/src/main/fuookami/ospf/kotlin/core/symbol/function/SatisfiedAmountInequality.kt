@@ -1,5 +1,6 @@
-/** 满足数量不等式函数符号 / Satisfied amount inequality function symbol */
 @file:Suppress("unused")
+
+/** 满足数量不等式函数符号 / Satisfied amount inequality function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -52,12 +53,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * between [lowerBound, 0, upperBound], with a binary flag indicating whether 0 is in range.
  * 并用二值标志指示 0 是否在范围内。
  *
- * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
- * @param amount 可选的满足数量范围；若为 null，返回原始计数 / optional range of satisfied count; if null, returns raw count
- * @param epsilon 边界检查的容差 / tolerance for boundary checks
- * @param converter V 类型常量和 Flt64 <-> V 转换的值类型转换器 / value type converter for V-typed constants and Flt64 <-> V conversion
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property inputs 要检查的约束输入列表 / list of constraint inputs to check
+ * @property amount 可选的满足数量范围；若为 null，返回原始计数 / optional range of satisfied count; if null, returns raw count
+ * @property epsilon 边界检查的容差 / tolerance for boundary checks
+ * @property converter V 类型常量和 Flt64 <-> V 转换的值类型转换器 / value type converter for V-typed constants and Flt64 <-> V conversion
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 open class SatisfiedAmountInequalityFunction<V>(
     val inputs: List<LinearConstraintInput<V>>,
@@ -126,6 +127,14 @@ open class SatisfiedAmountInequalityFunction<V>(
      * 检查给定当前值下单个输入约束是否满足。
      * Check whether a single input constraint is satisfied given the current values.
      */
+    /**
+     * 检查给定当前值下单个输入约束是否满足。
+     * Check whether a single input constraint is satisfied given the current values.
+     *
+     * @param input 约束输入 / the constraint input
+     * @param values 符号到值的映射 / symbol-to-value map
+     * @return 若满足返回 true，若值缺失返回 null / true if satisfied, null if value missing
+     */
     private fun checkInputSatisfied(
         input: LinearConstraintInput<V>,
         values: Map<Symbol, V>
@@ -163,9 +172,13 @@ open class SatisfiedAmountInequalityFunction<V>(
                 val inRange = zero geq lb && zero leq ub
                 if (inRange) {
                     // Simple encoding: when 0 is within [lb, ub],
+                    // 简单编码：当 0 在 [lb, ub] 范围内时，
                     // flag = 1 means constraint satisfied (lhs ~ 0 within bounds)
+                    // flag = 1 表示约束满足（左侧在边界内接近 0）
                     // flag = 0 means violated
+                    // flag = 0 表示违反
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
+                    // 使用 Big-M：flag=1 时 左侧 <= M*flag 且 左侧 >= -M*flag
                     val minBigM = converter.intoValue(Flt64(1e6))
                     val absMax = if (lb.abs() geq ub.abs()) lb.abs() else ub.abs()
                     val m = if (absMax geq minBigM) absMax else minBigM
@@ -176,7 +189,9 @@ open class SatisfiedAmountInequalityFunction<V>(
                     val polyConstant = input.flattenData.constant
 
                     // When flag=1: lhs <= epsilon and lhs >= -epsilon (satisfied)
+                    // flag=1 时：左侧 <= epsilon 且 左侧 >= -epsilon（满足）
                     // When flag=0: lhs <= M and lhs >= -M (no constraint)
+                    // flag=0 时：左侧 <= M 且 左侧 >= -M（无约束）
                     val upperLhs = LinearPolynomial(
                         polyMonos + listOf(LinearMonomial(m, flag)),
                         polyConstant
@@ -196,13 +211,14 @@ open class SatisfiedAmountInequalityFunction<V>(
                     )
                 } else {
                     // When 0 is NOT within [lb, ub], the constraint is trivially satisfied or violated
+                    // 当 0 不在 [lb, ub] 范围内时，约束平凡满足或平凡违反
                     val triviallySatisfied = when (input.sign) {
                         Comparison.LE, Comparison.LT -> ub ls zero
                         Comparison.GE, Comparison.GT -> lb gr zero
                         Comparison.EQ -> false
                         Comparison.NE -> true
                     }
-                    // Fix flag to the trivial value
+                    // Fix flag to the trivial value / 将标志固定为平凡值
                     val fixedValue = if (triviallySatisfied) one else zero
                     val poly = LinearPolynomial(listOf(LinearMonomial(one, flag)), zero)
                     val rhs = LinearPolynomial(emptyList(), fixedValue)
@@ -214,6 +230,7 @@ open class SatisfiedAmountInequalityFunction<V>(
         }
 
         // Amount range constraint: lb <= sum(u) <= ub, with binary y indicator
+        // 数量范围约束：下界 <= sum(u) <= 上界，带二值 y 指示变量
         val currentAmount = amount
         if (currentAmount != null) {
             val y = amountFlagVar!!
@@ -225,7 +242,7 @@ open class SatisfiedAmountInequalityFunction<V>(
             val lbValue = repeatAdd(one, currentAmount.lowerBound.value.unwrap().toInt())
             val ubValue = repeatAdd(one, currentAmount.upperBound.value.unwrap().toInt())
 
-            // sum(u) >= amount.lowerBound - n*(1-y)
+            // sum(u) >= amount.lowerBound - n*(1-y) / sum(u) >= amount 下界 - n*(1-y)
             val lbPoly = LinearPolynomial(
                 sumPoly.monomials + listOf(LinearMonomial(nAsValue, y)),
                 sumPoly.constant
@@ -238,7 +255,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                 lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
             )
 
-            // sum(u) <= amount.upperBound + n*(1-y)
+            // sum(u) <= amount.upperBound + n*(1-y) / sum(u) <= amount 上界 + n*(1-y)
             val ubPoly = LinearPolynomial(
                 sumPoly.monomials + listOf(LinearMonomial(-nAsValue, y)),
                 sumPoly.constant
@@ -255,6 +272,7 @@ open class SatisfiedAmountInequalityFunction<V>(
         return addConstraints(model, constraints) ?: ok
     }
     companion object {
+        /** 从 Flt64 容差创建 [SatisfiedAmountInequalityFunction] 实例。 / Create a [SatisfiedAmountInequalityFunction] instance from Flt64 epsilon. */
         fun <V> from(
             inputs: List<LinearConstraintInput<V>>,
             amount: ValueRange<UInt64>? = null,
@@ -280,6 +298,12 @@ open class SatisfiedAmountInequalityFunction<V>(
  *
  * 别名：`amount = [1, n]`
  * Alias: `amount = [1, n]`
+ *
+ * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
+ * @param epsilon 边界检查的容差 / tolerance for boundary checks
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class AnyFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
@@ -296,6 +320,7 @@ class AnyFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /** 从 Flt64 容差创建 [AnyFunction] 实例。 / Create an [AnyFunction] instance from Flt64 epsilon. */
         fun <V> from(
             inputs: List<LinearConstraintInput<V>>,
             epsilon: Flt64 = Flt64(1e-6),
@@ -318,6 +343,12 @@ class AnyFunction<V>(
  *
  * 别名：`amount = [n, n]`
  * Alias: `amount = [n, n]`
+ *
+ * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
+ * @param epsilon 边界检查的容差 / tolerance for boundary checks
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class AllFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
@@ -334,6 +365,7 @@ class AllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /** 从 Flt64 容差创建 [AllFunction] 实例。 / Create an [AllFunction] instance from Flt64 epsilon. */
         fun <V> from(
             inputs: List<LinearConstraintInput<V>>,
             epsilon: Flt64 = Flt64(1e-6),
@@ -356,6 +388,13 @@ class AllFunction<V>(
  *
  * 别名：`amount = [k, n]`
  * Alias: `amount = [k, n]`
+ *
+ * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
+ * @property k 最小满足数量 / minimum satisfied count
+ * @param epsilon 边界检查的容差 / tolerance for boundary checks
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class AtLeastInequalityFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
@@ -378,6 +417,7 @@ class AtLeastInequalityFunction<V>(
     }
 
     companion object {
+        /** 从 Flt64 容差创建 [AtLeastInequalityFunction] 实例。 / Create an [AtLeastInequalityFunction] instance from Flt64 epsilon. */
         fun <V> from(
             inputs: List<LinearConstraintInput<V>>,
             k: UInt64,
@@ -402,6 +442,12 @@ class AtLeastInequalityFunction<V>(
  *
  * 别名：`amount = [1, n-1]`
  * Alias: `amount = [1, n-1]`
+ *
+ * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
+ * @param epsilon 边界检查的容差 / tolerance for boundary checks
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class NotAllFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
@@ -418,6 +464,7 @@ class NotAllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /** 从 Flt64 容差创建 [NotAllFunction] 实例。 / Create a [NotAllFunction] instance from Flt64 epsilon. */
         fun <V> from(
             inputs: List<LinearConstraintInput<V>>,
             epsilon: Flt64 = Flt64(1e-6),
@@ -437,6 +484,13 @@ class NotAllFunction<V>(
 /**
  * 可计数函数：满足的不等式数量必须在指定范围内。
  * NumerableFunction: the count of satisfied inequalities must be within a specified range.
+ *
+ * @param inputs 要检查的约束输入列表 / list of constraint inputs to check
+ * @property amount 满足数量的目标范围 / target range of satisfied count
+ * @param epsilon 边界检查的容差 / tolerance for boundary checks
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class NumerableFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
@@ -454,6 +508,7 @@ class NumerableFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /** 从 Flt64 容差创建 [NumerableFunction] 实例。 / Create a [NumerableFunction] instance from Flt64 epsilon. */
         fun <V> from(
             inputs: List<LinearConstraintInput<V>>,
             amount: ValueRange<UInt64>,

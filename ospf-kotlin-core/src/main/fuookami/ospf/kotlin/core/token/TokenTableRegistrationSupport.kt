@@ -27,12 +27,25 @@ import kotlinx.coroutines.*
  * Non-goal: function-constraint modeling and solve-flow orchestration are out of scope and handled by MetaModel/MechanismModel and solver side.
  */
 
-// 求解器边界转换：委托给集中的 SolverBoundaryCasts。 / Solver-boundary conversion: delegates to centralized SolverBoundaryCasts.
+/**
+ * 为中间符号注册辅助 token，委托给 SolverBoundaryCasts。
+ * Register auxiliary tokens for an intermediate symbol, delegating to SolverBoundaryCasts.
+ *
+ * @param tokens 可添加 token 的集合 / Token-addable collection
+ * @return 操作结果 / Operation result
+ */
 private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenCollection<*>): Try {
     return SolverBoundaryCasts.registerAuxiliaryTokensStar(this, tokens)
 }
 
-// 求解器边界转换：委托给集中的 SolverBoundaryCasts。 / Solver-boundary conversion: delegates to centralized SolverBoundaryCasts.
+/**
+ * 准备中间符号的求解器边界值，委托给 SolverBoundaryCasts。
+ * Prepare solver-boundary value for an intermediate symbol, delegating to SolverBoundaryCasts.
+ *
+ * @param fixedValues 固定值映射，可为 null / Fixed values map, may be null
+ * @param tokenTable Flt64 token 表 / Flt64 token table
+ * @return 求解器边界值，无结果返回 null / Solver-boundary value, or null if none
+ */
 private fun IntermediateSymbol<*>.prepareStar(
     fixedValues: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -40,6 +53,12 @@ private fun IntermediateSymbol<*>.prepareStar(
     return SolverBoundaryCasts.prepareStar(this, fixedValues, tokenTable)
 }
 
+/**
+ * 将中间符号的展开和范围数据写入缓存上下文。
+ * Write flatten and range data for an intermediate symbol into cache contexts.
+ *
+ * @param symbol 中间符号 / Intermediate symbol
+ */
 private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
@@ -54,12 +73,26 @@ private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.c
     cacheRange(symbol, SolverBoundaryCasts.rangeAsFlt64(symbol))
 }
 
+/**
+ * 批量将中间符号的展开和范围数据写入缓存上下文。
+ * Batch write flatten and range data for intermediate symbols into cache contexts.
+ *
+ * @param symbols 中间符号集合 / Intermediate symbol collection
+ */
 private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }
 }
 
+/**
+ * 将中间符号集合注册到可变符号表 / Register intermediate symbols into mutable token table
+ *
+ * @param tokenTable 目标可变符号表 / Target mutable token table
+ * @param fixedValues 固定值映射 / Fixed values map
+ * @param callBack 注册状态回调 / Registration status callback
+ * @return 操作结果 / Operation result
+ */
 @Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: MutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -138,9 +171,17 @@ fun Collection<IntermediateSymbol<*>>.register(
     return ok
 }
 
+/**
+ * 将中间符号集合并发注册到并发可变符号表 / Concurrently register intermediate symbols into concurrent mutable token table
+ *
+ * @param tokenTable 目标并发可变符号表 / Target concurrent mutable token table
+ * @param fixedValues 固定值映射 / Fixed values map
+ * @param callBack 注册状态回调 / Registration status callback
+ * @return 操作结果 / Operation result
+ */
 @Suppress("USELESS_CAST")
 suspend fun Collection<IntermediateSymbol<*>>.register(
-    tokenTable: ConcurrentMutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    tokenTable: ConcurrentMutableTokenTable<Flt64>,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
 ): Try {

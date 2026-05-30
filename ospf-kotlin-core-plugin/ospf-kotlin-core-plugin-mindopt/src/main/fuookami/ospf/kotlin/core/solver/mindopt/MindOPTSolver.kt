@@ -1,3 +1,4 @@
+/** MindOPT 求解器基类 / MindOPT solver base */
 package fuookami.ospf.kotlin.core.solver.mindopt
 
 import com.alibaba.damo.mindopt.MDO
@@ -13,16 +14,25 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 
+/** MindOPT 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / MindOPT solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 abstract class MindOPTSolver : AutoCloseable {
     protected lateinit var env: MDOEnv
     protected lateinit var mindoptModel: MDOModel
     protected lateinit var status: SolverStatus
 
+    /** 关闭 MindOPT 模型和环境，释放资源 / Close MindOPT model and environment, release resources */
     override fun close() {
         mindoptModel.dispose()
         env.dispose()
     }
 
+    /**
+     * 初始化 MindOPT 求解器 / Initialize MindOPT solver
+     *
+     * @param name 模型名称 / model name
+     * @param callBack 创建环境回调函数 / creating environment callback function
+     * @return 操作结果 / operation result
+     */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -43,6 +53,7 @@ abstract class MindOPTSolver : AutoCloseable {
         }
     }
 
+    /** 执行 MindOPT 求解 / Execute MindOPT solving */
     protected suspend fun solve(): Try {
         return try {
             mindoptModel.optimize()
@@ -54,6 +65,7 @@ abstract class MindOPTSolver : AutoCloseable {
         }
     }
 
+    /** 分析 MindOPT 求解状态 / Analyze MindOPT solving status */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (mindoptModel.get(MDO.IntAttr.Status)) {

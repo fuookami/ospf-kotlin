@@ -79,18 +79,18 @@ fun <T> Iterable<CanonicalMonomial<T>>.combineCanonicalMonomials(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): List<CanonicalMonomial<T>> where T : Ring<T> {
-    // Step 1: Collect all unique symbols and build index mapping
+    // Step 1: Collect all unique symbols and build index mapping / 步骤一：收集所有唯一符号并构建索引映射
     val comparator = symbolComparator ?: defaultSymbolComparator
     val allSymbols = mutableSetOf<Symbol>()
     for (monomial in this) {
         allSymbols.addAll(monomial.powers.keys)
     }
 
-    // Sort symbols by comparator for normalization
+    // Sort symbols by comparator for normalization / 按比较器排序符号以规范化
     val symbolList = allSymbols.sortedWith(comparator)
     val symbolIndex = symbolList.indices.associateBy { symbolList[it] }
 
-    // Step 2: Combine using PowerVectorKey
+    // Step 2: Combine using PowerVectorKey / 步骤二：使用 PowerVectorKey 合并
     val coefficientOfKey = LinkedHashMap<PowerVectorKey, T>()
 
     for (monomial in this) {
@@ -102,7 +102,7 @@ fun <T> Iterable<CanonicalMonomial<T>>.combineCanonicalMonomials(
         coefficientOfKey[key] = (coefficientOfKey[key] ?: zero) + monomial.coefficient
     }
 
-    // Step 3: Convert back to CanonicalMonomial list
+    // Step 3: Convert back to CanonicalMonomial list / 步骤三：转换回 CanonicalMonomial 列表
     return coefficientOfKey
         .asSequence()
         .filter { !isZero(it.value) }

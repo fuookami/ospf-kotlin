@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务时间模型 / Task time model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -41,6 +42,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * 松弛符号构建 / Slack symbol construction
+ *
+ * @param x 线性多项式 / Linear polynomial
+ * @param y 目标值 / Target value
+ * @param type 变量类型 / Variable type
+ * @param withNegative 是否包含负松弛 / Whether to include negative slack
+ * @param withPositive 是否包含正松弛 / Whether to include positive slack
+ * @param name 名称 / Name
+ * @return 线性函数符号适配器 / Linear function symbol adapter
+ */
 private fun slackSymbol(
     x: ToLinearPolynomial<Flt64>,
     y: Flt64,
@@ -63,6 +75,7 @@ private fun slackSymbol(
     )
 }
 
+/** 任务时间接口 / Task time interface */
 interface TaskTime {
     val delayEnabled: Boolean
     val overMaxDelayEnabled: Boolean
@@ -85,9 +98,24 @@ interface TaskTime {
     val onTime: LinearIntermediateSymbols1<Flt64>
     val notOnTime: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     fun register(model: MetaModel<Flt64>): Try
 }
 
+/**
+ * 任务时间实现基类 / Task time implementation base class
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ */
 abstract class TaskTimeImpl<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -894,6 +922,23 @@ abstract class TaskTimeImpl<
     }
 }
 
+/**
+ * 任务调度时间 / Task scheduling time
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param compilation 任务编译结果 / Task compilation result
+ * @param estimateEndTimeCalculator 预估结束时间计算器 / Estimate end time calculator
+ * @param delayEnabled 是否启用延迟 / Whether delay is enabled
+ * @param overMaxDelayEnabled 是否启用超最大延迟 / Whether over-max delay is enabled
+ * @param advanceEnabled 是否启用提前 / Whether advance is enabled
+ * @param overMaxAdvanceEnabled 是否启用超最大提前 / Whether over-max advance is enabled
+ * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
+ * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
+ */
 class TaskSchedulingTaskTime<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -1126,6 +1171,18 @@ class TaskSchedulingTaskTime<
     }
 }
 
+/**
+ * 迭代任务调度时间 / Iterative task scheduling time
+ *
+ * @param IT 迭代任务类型 / Iterative task type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param compilation 迭代任务编译结果 / Iterative task compilation result
+ * @param redundancyRange 冗余范围 / Redundancy range
+ */
 open class IterativeTaskSchedulingTaskTime<
         IT : IterativeAbstractTask<E, A>,
         out T : AbstractTask<E, A>,

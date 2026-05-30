@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.sumOf
 import jscip.SCIP_ParamSetting
 import kotlinx.coroutines.*
 
+/** SCIP 线性 Benders 分解求解器 / SCIP linear Benders decomposition solver */
 class ScipLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()
@@ -200,7 +201,7 @@ class ScipLinearBendersDecompositionSolver(
                             constraint.rhs * value
                         }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
-                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
                             when (val result = solveDual(model, ScipLinearSolver(config))) {
                                 is Ok -> {
                                     dualSolution = result.value
@@ -470,7 +471,7 @@ class ScipQuadraticBendersDecompositionSolver(
                             constraint.rhs * value
                         }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
-                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
                             when (val result = solveDual(model, ScipQuadraticSolver(config))) {
                                 is Ok -> {
                                     dualSolution = result.value

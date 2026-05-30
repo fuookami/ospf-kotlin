@@ -26,14 +26,20 @@ import org.ktorm.schema.VarcharSqlType
 /**
  * Ktorm 标量表达式翻译器
  * Ktorm scalar expression translator
+ *
+ * @property resolveColumn 列解析函数 / Column resolver function
+ * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
  */
 class KtormScalarTranslator(
     private val resolveColumn: KtormColumnResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
     /**
-     * 翻译标量表达式
-     * Translate scalar expression
+     * 翻译标量表达式为 Ktorm 标量 SQL 表达式
+     * Translate scalar expression to Ktorm scalar SQL expression
+     *
+     * @param expr 标量表达式 / Scalar expression
+     * @return Ktorm 标量表达式，不支持时返回 null / Ktorm scalar expression, or null if unsupported
      */
     fun translate(expr: ScalarExpression<*>): KtormScalarExpression<*>? {
         return when (expr) {

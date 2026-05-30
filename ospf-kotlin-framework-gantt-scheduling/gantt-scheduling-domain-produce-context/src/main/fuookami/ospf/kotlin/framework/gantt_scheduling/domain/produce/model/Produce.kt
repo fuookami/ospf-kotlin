@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 生产模型 / Produce model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -27,6 +28,7 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/** 生产接口 / Produce interface */
 interface Produce {
     val quantity: LinearIntermediateSymbols1<Flt64>
     val overQuantity: LinearIntermediateSymbols1<Flt64>
@@ -38,6 +40,16 @@ interface Produce {
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
+/**
+ * 抽象生产 / Abstract produce
+ *
+ * @param T 生产任务类型 / Production task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param products 产品与需求列表 / List of products and demands
+ */
 abstract class AbstractProduce<
         out T : ProductionTask<E, A, P, C>,
         out E : Executor,
@@ -211,6 +223,18 @@ abstract class AbstractProduce<
     }
 }
 
+/**
+ * 任务调度生产 / Task scheduling produce
+ *
+ * @param T 生产任务类型 / Production task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param products 产品与需求列表 / List of products and demands
+ * @param overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
+ */
 class TaskSchedulingProduce<
         out T : ProductionTask<E, A, P, C>,
         out E : Executor,
@@ -231,6 +255,16 @@ class TaskSchedulingProduce<
     }
 }
 
+/**
+ * 任务束调度生产 / Bunch scheduling produce
+ *
+ * @param T 生产任务类型 / Production task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param products 产品与需求列表 / List of products and demands
+ */
 class BunchSchedulingProduce<
         out T : ProductionTask<E, A, P, C>,
         out E : Executor,

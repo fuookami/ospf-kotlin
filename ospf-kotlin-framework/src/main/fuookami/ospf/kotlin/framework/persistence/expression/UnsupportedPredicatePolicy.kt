@@ -37,16 +37,36 @@ enum class UnsupportedPredicatePolicy {
  * 谓词翻译结果
  * Predicate translation result
  */
+/**
+ * 谓词翻译结果
+ * Predicate translation result
+ *
+ * @param T 翻译目标类型 / Translation target type
+ */
 sealed class PredicateTranslation<out T> {
     /**
      * 翻译成功
      * Translation succeeded
+     */
+    /**
+     * 翻译成功
+     * Translation succeeded
+     *
+     * @property value 翻译后的值 / Translated value
+     * @param T 翻译结果类型 / Translation result type
      */
     data class Translated<T>(val value: T) : PredicateTranslation<T>()
 
     /**
      * 不支持的谓词
      * Unsupported predicate
+     */
+    /**
+     * 不支持的谓词
+     * Unsupported predicate
+     *
+     * @property reason 不支持的原因 / Reason for unsupported
+     * @property expression 不可翻译的原始表达式，可能为 null / Original untranslatable expression, may be null
      */
     data class Unsupported(
         val reason: String,

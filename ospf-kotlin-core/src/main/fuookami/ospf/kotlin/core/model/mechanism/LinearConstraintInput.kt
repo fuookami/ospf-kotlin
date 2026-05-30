@@ -146,6 +146,7 @@ fun <V> Flt64LinearConstraintInput.toLinearConstraintInput(
     )
 }
 
+/** 将 Flt64 值范围转换为泛型值范围 / Convert an Flt64 value range to a generic value range */
 private fun <V> ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toValueRange(
     converter: IntoValue<V>
 ): ValueRange<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -203,7 +204,7 @@ data class Flt64LinearConstraintInput(
      */
     val rhsConstant: Flt64 = Flt64.zero
 ) {
-    // Cached bounds for Big-M formulation
+    // Cached bounds for Big-M formulation / Big-M 公式使用的缓存边界
     val lowerBound: Flt64? get() = lhsRange.lowerBound?.value?.unwrap()
     val upperBound: Flt64? get() = lhsRange.upperBound?.value?.unwrap()
 
@@ -383,6 +384,7 @@ internal fun <V> evaluateFlattenData(
     return result
 }
 
+/** 使用符号值映射和可选符号表评估线性扁平化数据 / Evaluate linear flatten data with symbol value map and optional token table */
 private fun <V> evaluateFlattenDataWithValues(
     data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     values: Map<Symbol, Flt64>,
@@ -505,6 +507,7 @@ internal fun <V> evaluateQuadraticFlattenDataWithResults(
     return result
 }
 
+/** 使用符号列表评估 Flt64 线性扁平化数据 / Evaluate Flt64 linear flatten data using a token list */
 private fun evaluateFlattenDataFromTokenList(
     data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -520,6 +523,7 @@ private fun evaluateFlattenDataFromTokenList(
     return result
 }
 
+/** 使用求解结果和符号列表评估 Flt64 线性扁平化数据 / Evaluate Flt64 linear flatten data with results and token list */
 private fun evaluateFlattenDataWithResultsFromTokenList(
     data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,

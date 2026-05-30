@@ -1,5 +1,6 @@
-/** 条件函数符号 / If condition function symbol */
 @file:Suppress("unused")
+
+/** 条件函数符号 / If condition function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -29,12 +30,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 使用 Big-M 线性化与非零指示变量。
  * Uses Big-M linearization with a nonzero indicator.
  *
- * @param condition 条件线性多项式 / the condition linear polynomial
+ * @property condition 条件线性多项式 / the condition linear polynomial
+ * @param converter 值类型转换器 / value type converter
  * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class IfFunction<V>(
     val condition: LinearPolynomial<V>,
@@ -76,15 +78,21 @@ class IfFunction<V>(
         }
     }
 
+    /**
+     * 构建条件指示约束列表。
+     * Build the list of condition indicator constraints.
+     *
+     * @return 线性不等式约束列表 / list of linear inequality constraints
+     */
     private fun buildConstraints(): List<LinearInequality<V>> {
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicator for condition
+        // Nonzero indicator for condition / 为条件构建非零指示约束
         allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_if_nz")
 
-        // result = indicator (if condition > 0, result = 1)
+        // result = indicator (if condition > 0, result = 1) / 结果等于指示变量（条件 > 0 时结果为 1）
         allConstraints += LinearInequality(
             LinearPolynomial(
                 listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVar)),
@@ -103,6 +111,15 @@ class IfFunction<V>(
     }
 
     companion object {
+        /**
+         * 创建条件函数实例 / Create an if function instance
+         * @param condition 条件线性多项式 / condition linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [IfFunction] 实例 / [IfFunction] instance
+         */
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             converter: IntoValue<V>,
@@ -115,6 +132,14 @@ class IfFunction<V>(
         /**
          * 约束输入工厂：从约束输入提取条件多项式。
          * Constraint-input factory: extracts the condition polynomial from the constraint input.
+         * @param inequality 约束输入 / constraint input
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param tolerance 零容差 / zero tolerance
+         * @param strictBoundary 严格边界值 / strict boundary value
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
          */
         fun <V> from(
             inequality: LinearConstraintInput<V>,

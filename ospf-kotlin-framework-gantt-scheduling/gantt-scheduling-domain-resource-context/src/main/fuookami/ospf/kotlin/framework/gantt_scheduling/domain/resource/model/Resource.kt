@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 资源模型 / Resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
@@ -40,6 +41,16 @@ private fun setResourceSlackUpperBoundAsFlt64(
     return (range as ExpressionRange<Flt64>).setUb(upperBound)
 }
 
+/**
+ * 抽象资源容量接口 / Abstract resource capacity interface
+ *
+ * @property time 时间范围 / Time range
+ * @property quantity 数量范围 / Quantity range
+ * @property lessQuantity 不足数量 / Less quantity
+ * @property overQuantity 超量数量 / Over quantity
+ * @property interval 时间间隔 / Time interval
+ * @property name 名称 / Name
+ */
 interface AbstractResourceCapacity {
     val time: TimeRange
     val quantity: ValueRange<Flt64>
@@ -51,6 +62,16 @@ interface AbstractResourceCapacity {
     val overEnabled: Boolean get() = overQuantity != null
 }
 
+/**
+ * 资源容量 / Resource capacity
+ *
+ * @property time 时间范围 / Time range
+ * @property quantity 数量范围 / Quantity range
+ * @property lessQuantity 不足数量 / Less quantity
+ * @property overQuantity 超量数量 / Over quantity
+ * @property interval 时间间隔 / Time interval
+ * @property name 名称 / Name
+ */
 open class ResourceCapacity(
     override val time: TimeRange,
     override val quantity: ValueRange<Flt64>,
@@ -62,18 +83,43 @@ open class ResourceCapacity(
     override fun toString() = name ?: "${quantity}_${interval}"
 }
 
+/**
+ * 资源抽象类 / Resource abstract class
+ *
+ * @param C 资源容量类型 / Resource capacity type
+ * @property id 资源ID / Resource ID
+ * @property name 资源名称 / Resource name
+ * @property capacities 容量列表 / List of capacities
+ * @property initialQuantity 初始数量 / Initial quantity
+ */
 abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
     abstract val initialQuantity: Flt64
 
+    /**
+     * 计算使用量 / Calculate used quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param bunch 任务束 / Task bunch
+     * @param time 时间范围 / Time range
+     * @return 使用量 / Used quantity
+     */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A>,
         time: TimeRange
     ): Flt64
 }
 
+/**
+ * 资源时间槽接口 / Resource time slot interface
+ *
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ */
 interface ResourceTimeSlot<
         out R : Resource<C>,
         out C : AbstractResourceCapacity
@@ -105,6 +151,13 @@ interface ResourceTimeSlot<
     }
 }
 
+/**
+ * 资源使用接口 / Resource usage interface
+ *
+ * @param S 资源时间槽类型 / Resource time slot type
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ */
 interface ResourceUsage<
         out S : ResourceTimeSlot<R, C>,
         out R : Resource<C>,
@@ -123,6 +176,13 @@ interface ResourceUsage<
     fun register(model: MetaModel<Flt64>): Try
 }
 
+/**
+ * 抽象资源使用 / Abstract resource usage
+ *
+ * @param S 资源时间槽类型 / Resource time slot type
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ */
 abstract class AbstractResourceUsage<
         out S : ResourceTimeSlot<R, C>,
         out R : Resource<C>,

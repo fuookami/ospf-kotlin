@@ -174,7 +174,7 @@ object NumericDispatcher {
      * @return 运算结果，不支持的类型返回 null / Operation result, null if type not supported
      */
     fun evaluateBinary(operator: BinaryOperator, left: Any, right: Any): Any? {
-        // Both operands must be of the same type
+        // 两个操作数必须是相同类型 / Both operands must be of the same type
         if (left::class != right::class) return null
         val ops = typedOpsFor<Any>(left::class) ?: return null
 

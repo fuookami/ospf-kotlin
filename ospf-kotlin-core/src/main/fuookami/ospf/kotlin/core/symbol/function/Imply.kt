@@ -1,5 +1,6 @@
-/** 蕴含函数符号 / Implication function symbol */
 @file:Suppress("unused")
+
+/** 蕴含函数符号 / Implication function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -31,13 +32,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 通过链接约束：indicator_antecedent <= indicator_consequent。
  * with a linking constraint: indicator_antecedent <= indicator_consequent.
  *
- * @param antecedent 前件（条件）线性多项式 / the antecedent (condition) linear polynomial
- * @param consequent 后件线性多项式 / the consequent linear polynomial
+ * @property antecedent 前件（条件）线性多项式 / the antecedent (condition) linear polynomial
+ * @property consequent 后件线性多项式 / the consequent linear polynomial
+ * @param converter 值类型转换器 / value type converter
  * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class ImplyFunction<V>(
     val antecedent: LinearPolynomial<V>,
@@ -66,7 +68,9 @@ class ImplyFunction<V>(
         val antValue = antecedent.evaluateWith(values) ?: return null
         val conValue = consequent.evaluateWith(values) ?: return null
         // Implication: if antecedent > 0, then consequent must be > 0
+        // 蕴含：若前件 > 0，则后件必须 > 0
         // Returns 1 if the implication holds, 0 otherwise
+        // 蕴含成立返回 1，否则返回 0
         val antecedentPositive = antValue gr converter.zero
         val consequentPositive = conValue gr converter.zero
         return if (!antecedentPositive || consequentPositive) {
@@ -90,12 +94,14 @@ class ImplyFunction<V>(
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicators
+        // Nonzero indicators / 非零指示约束
         allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
         allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
 
         // Implication: antecedent_indicator <= consequent_indicator
+        // 蕴含约束：前件指示变量 <= 后件指示变量
         // If antecedent is nonzero, consequent must also be nonzero
+        // 若前件非零，则后件也必须非零
         allConstraints += LinearInequality(
             LinearPolynomial(
                 listOf(
@@ -112,6 +118,16 @@ class ImplyFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建蕴含函数实例 / Create an implication function instance
+         * @param antecedent 前件线性多项式 / antecedent linear polynomial
+         * @param consequent 后件线性多项式 / consequent linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [ImplyFunction] 实例 / [ImplyFunction] instance
+         */
         operator fun <V> invoke(
             antecedent: LinearPolynomial<V>,
             consequent: LinearPolynomial<V>,

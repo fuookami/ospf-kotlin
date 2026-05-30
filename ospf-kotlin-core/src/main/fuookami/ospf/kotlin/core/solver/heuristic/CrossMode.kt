@@ -26,6 +26,18 @@ interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
         RandomBidirectional
     }
 
+    /**
+     * 为种群中的每个个体选择父代组合。
+     * Select parent combinations for each individual in the population.
+     *
+     * @param T 个体类型 / Individual type
+     * @param iteration 当前迭代 / Current iteration
+     * @param population 种群个体列表 / Population individual list
+     * @param weights 权重列表 / Weight list
+     * @param model 回调模型接口 / Callback model interface
+     * @param parentAmountRange 父代数量范围 / Parent amount range
+     * @return 每个个体对应的父代列表 / Parent list for each individual
+     */
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -130,6 +142,16 @@ class MultiParentCrossMode<ObjValue, V>(
     val parentAmountCalculator: (Iteration, List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ValueRange<UInt64>) -> UInt64
 ) : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        /**
+         * 以随机父代数量计算器创建多父代交叉模式。
+         * Create a multi-parent crossover mode with random parent amount calculator.
+         *
+         * @param ObjValue 目标值类型 / Objective value type
+         * @param V 值类型 / Value type
+         * @param method 交叉方法 / Crossover method
+         * @param randomGenerator 随机数生成器 / Random number generator
+         * @return 多父代交叉模式实例 / Multi-parent crossover mode instance
+         */
         operator fun <ObjValue, V> invoke(
             method: CrossMode.Method,
             randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -228,6 +250,15 @@ class MultiParentCrossMode<ObjValue, V>(
  * Adaptive multi-parent crossover mode, dynamically adjusting parent count based on weights.
  */
 data object AdaptiveMultiParentCrossMode {
+    /**
+     * 创建自适应多父代交叉模式。
+     * Create an adaptive multi-parent crossover mode.
+     *
+     * @param ObjValue 目标值类型 / Objective value type
+     * @param V 值类型 / Value type
+     * @param method 交叉方法 / Crossover method
+     * @return 多父代交叉模式实例 / Multi-parent crossover mode instance
+     */
     operator fun <ObjValue, V> invoke(
         method: CrossMode.Method
     ): MultiParentCrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {

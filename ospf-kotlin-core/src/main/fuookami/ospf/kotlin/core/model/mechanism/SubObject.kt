@@ -48,6 +48,11 @@ sealed class SubObject<V : RealNumber<V>>(
 /**
  * 线性子目标，包含线性单元格列表和常数项。
  * Linear sub-objective containing a list of linear cells and a constant.
+ *
+ * @param category 目标分类 / The objective category
+ * @property cells 线性单元格列表 / List of linear cells
+ * @param _constant 常数项 / Constant term
+ * @param name 子目标名称 / Sub-objective name
  */
 class LinearSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
@@ -109,6 +114,11 @@ class LinearSubObject<V : RealNumber<V>>(
 /**
  * 二次子目标，包含二次单元格列表和常数项。
  * Quadratic sub-objective containing a list of quadratic cells and a constant.
+ *
+ * @param category 目标分类 / The objective category
+ * @property cells 二次单元格列表 / List of quadratic cells
+ * @param _constant 常数项 / Constant term
+ * @param name 子目标名称 / Sub-objective name
  */
 class QuadraticSubObject<V : RealNumber<V>>(
     category: ObjectCategory,

@@ -1,3 +1,4 @@
+/** 粒子群优化器粒子定义 / Particle Swarm Optimizer particle definition */
 package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
 import fuookami.ospf.kotlin.core.solver.heuristic.AbstractHeuristicPolicy
@@ -16,12 +17,13 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** 粒子类，表示粒子群优化中的一个粒子 / Particle class, represents a particle in Particle Swarm Optimization */
 data class Particle<ObjValue, V>(
     override val fitness: ObjValue,
     override val solution: List<V>,
     val velocity: List<Flt64>,
     val currentBest: Particle<ObjValue, V>? = null,
-    // converter must be provided explicitly; use Particle.Flt64 companion for V=Flt64 convenience
+    // converter must be provided explicitly; use Particle.Flt64 companion for V=Flt64 convenience / 转换器必须显式提供；V=Flt64 时可使用 Particle.Flt64 伴生对象
     private val converter: IntoValue<V>
 ) : Individual<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
@@ -46,6 +48,15 @@ data class Particle<ObjValue, V>(
 
     val size by solution::size
 
+    /**
+     * 创建新粒子 / Create new particle
+     *
+     * @param newVelocity 新速度 / new velocity
+     * @param iteration 当前迭代 / current iteration
+     * @param policy 启发式策略 / heuristic policy
+     * @param model 回调模型 / callback model
+     * @return 新粒子 / new particle
+     */
     fun new(
         newVelocity: List<Flt64>,
         iteration: Iteration,

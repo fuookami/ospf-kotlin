@@ -1,5 +1,6 @@
-/** 平衡三值化函数符号 / Balanced ternaryzation function symbol */
 @file:Suppress("unused")
+
+/** 平衡三值化函数符号 / Balanced ternaryzation function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -38,11 +39,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Uses piecewise linear approximation via [UnivariateLinearPiecewiseFunction]
  * with breakpoints at the sign transition boundaries.
  *
- * @param x 输入线性多项式 / the input linear polynomial
- * @param epsilon 零阈值（默认 1e-6）/ zero threshold (default 1e-6)
- * @param extract 保留参数，当前未使用（始终使用分段线性）/ reserved parameter; currently unused (piecewise is always used)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property x 输入线性多项式 / the input linear polynomial
+ * @property epsilon 零阈值（默认 1e-6）/ zero threshold (default 1e-6)
+ * @property extract 保留参数，当前未使用（始终使用分段线性）/ reserved parameter; currently unused (piecewise is always used)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class BalanceTernaryzationFunction<V>(
     val x: LinearPolynomial<V>,
@@ -109,6 +111,16 @@ class BalanceTernaryzationFunction<V>(
         return impl.registerConstraints(model)
     }
     companion object {
+        /**
+         * 创建平衡三值化函数实例 / Create a balance ternaryzation function instance
+         * @param x 输入线性多项式 / input linear polynomial
+         * @param epsilon 零阈值 / zero threshold
+         * @param extract 保留参数，当前未使用 / reserved parameter, currently unused
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [BalanceTernaryzationFunction] 实例 / [BalanceTernaryzationFunction] instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             epsilon: Flt64 = Flt64(1e-6),

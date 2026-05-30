@@ -25,6 +25,7 @@ import kotlinx.coroutines.*
  * 说明：将模型导出为文本化诊断格式（当前为 `.opm`），用于问题定位与回归对比。
  * Note: exports models to text-oriented diagnostic format (currently `.opm`) for troubleshooting and regression comparison.
  */
+/** 将 Flt64 线性多项式转换为原始字符串表示 / Convert a Flt64 linear polynomial to raw string representation */
 private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
     return if (monomials.isEmpty()) {
         "$constant"
@@ -35,6 +36,7 @@ private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): S
     }
 }
 
+/** 将泛型线性多项式转换为 Flt64 类型 / Convert a generic linear polynomial to Flt64 type */
 private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
@@ -85,6 +87,7 @@ internal suspend fun <V> exportMetaModel(
  * 按 OPM 文本格式写出模型主体内容。
  * Write model body in OPM text format.
  */
+/** 按 OPM 文本格式写出模型主体内容 / Write model body in OPM text format */
 private suspend fun <V> exportMetaModelOpm(
     metaModel: MetaModel<V>,
     writer: FileWriter,

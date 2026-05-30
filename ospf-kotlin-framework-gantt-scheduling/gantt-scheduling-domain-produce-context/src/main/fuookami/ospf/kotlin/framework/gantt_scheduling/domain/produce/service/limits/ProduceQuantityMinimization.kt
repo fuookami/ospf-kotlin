@@ -1,4 +1,5 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+﻿/** 生产数量最小化 / Produce quantity minimization */
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -14,6 +15,19 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
+/**
+ * 生产数量最小化 / Produce quantity minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 产品类型 / Product type
+ * @param products 产品列表 / List of products
+ * @param produce 生产对象 / Produce object
+ * @param threshold 阈值函数 / Threshold function
+ * @param coefficient 成本系数函数 / Cost coefficient function
+ * @param name 管道名称 / Pipeline name
+ */
 class ProduceQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

@@ -1,5 +1,13 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * Benders 分解求解器
+ * Benders Decomposition Solver
+ *
+ * 定义线性和二次 Benders 分解求解器接口，支持主问题和子问题求解及值转换扩展。
+ * Defines linear and quadratic Benders decomposition solver interfaces with master/sub problem solving
+ * and value conversion extensions.
+ */
 package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
@@ -29,6 +37,14 @@ import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlinx.coroutines.future.future
 
+/**
+ * 将线性不等式转换为目标数值类型
+ * Convert linear inequality to target number type
+ *
+ * @param converter 值转换器 / Value converter
+ * @param V 目标数值类型 / Target number type
+ * @return 转换后的线性不等式 / Converted linear inequality
+ */
 private fun <V> LinearInequality<Flt64>.convertTo(converter: IntoValue<V>): LinearInequality<V>
         where V : RealNumber<V>, V : NumberField<V> {
     val lhs = LinearPolynomial(
@@ -42,6 +58,14 @@ private fun <V> LinearInequality<Flt64>.convertTo(converter: IntoValue<V>): Line
     return LinearInequality(lhs, rhs, comparison)
 }
 
+/**
+ * 将二次不等式转换为目标数值类型
+ * Convert quadratic inequality to target number type
+ *
+ * @param converter 值转换器 / Value converter
+ * @param V 目标数值类型 / Target number type
+ * @return 转换后的二次不等式 / Converted quadratic inequality
+ */
 private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>): QuadraticInequalityOf<V>
         where V : RealNumber<V>, V : NumberField<V> {
     val lhs = QuadraticPolynomial(
@@ -55,6 +79,14 @@ private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>):
     return QuadraticInequalityOf(lhs, rhs, comparison)
 }
 
+/**
+ * 将求解器输出转换为目标数值类型
+ * Convert solver output to target number type
+ *
+ * @param converter 值转换器 / Value converter
+ * @param V 目标数值类型 / Target number type
+ * @return 转换后的求解器输出 / Converted solver output
+ */
 @Suppress("DEPRECATION")
 private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
         where V : RealNumber<V>, V : NumberField<V> {
@@ -88,9 +120,25 @@ private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
     }
 }
 
+/**
+ * 线性 Benders 分解求解器接口
+ * Linear Benders decomposition solver interface
+ */
 interface LinearBendersDecompositionSolver {
+    /** 求解器名称 / Solver name */
     val name: String
 
+    /**
+     * 求解线性主问题
+     * Solve linear master problem
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -152,6 +200,14 @@ interface LinearBendersDecompositionSolver {
         val cuts: List<LinearInequality<Flt64>>?
     }
 
+    /**
+     * 线性可行子问题结果
+     * Linear feasible sub problem result
+     *
+     * @property result 可行求解器输出 / Feasible solver output
+     * @property dualSolution 对偶解 / Dual solution
+     * @property cuts 割平面列表 / Cut list
+     */
     data class LinearFeasibleResult(
         val result: FeasibleSolverOutput<Flt64>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
@@ -164,6 +220,13 @@ interface LinearBendersDecompositionSolver {
         val gap: Flt64 by result::gap
     }
 
+    /**
+     * 线性不可行子问题结果
+     * Linear infeasible sub problem result
+     *
+     * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
+     * @property cuts 割平面列表 / Cut list
+     */
     data class LinearInfeasibleResult(
         val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<Flt64>>?
@@ -570,6 +633,10 @@ interface LinearBendersDecompositionSolver {
     }
 }
 
+/**
+ * 二次 Benders 分解求解器接口
+ * Quadratic Benders decomposition solver interface
+ */
 interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver {
     suspend fun solveMaster(
         name: String,
@@ -634,6 +701,15 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         val quadraticCuts: List<QuadraticInequalityOf<Flt64>>?
     }
 
+    /**
+     * 二次可行子问题结果
+     * Quadratic feasible sub problem result
+     *
+     * @property result 可行求解器输出 / Feasible solver output
+     * @property dualSolution 对偶解 / Dual solution
+     * @property linearCuts 线性割平面列表 / Linear cut list
+     * @property quadraticCuts 二次割平面列表 / Quadratic cut list
+     */
     data class QuadraticFeasibleResult(
         val result: FeasibleSolverOutput<Flt64>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
@@ -647,6 +723,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         val gap: Flt64 by result::gap
     }
 
+    /**
+     * 二次不可行子问题结果
+     * Quadratic infeasible sub problem result
+     *
+     * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
+     * @property linearCuts 线性割平面列表 / Linear cut list
+     * @property quadraticCuts 二次割平面列表 / Quadratic cut list
+     */
     data class QuadraticInfeasibleResult(
         val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<Flt64>>?,

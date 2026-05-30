@@ -14,4 +14,10 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
+/**
+ * 持久化字段解析器函数类型
+ * Persistence field resolver function type
+ *
+ * @param C 字段容器类型 / Field container type
+ */
 typealias PersistenceFieldResolver<C> = (String) -> C?

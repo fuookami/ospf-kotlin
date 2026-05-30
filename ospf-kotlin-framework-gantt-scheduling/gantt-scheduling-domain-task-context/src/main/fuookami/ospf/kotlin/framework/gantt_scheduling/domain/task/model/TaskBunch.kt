@@ -2,6 +2,9 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 任务束模型，表示一组有序任务 / Task bunch model representing an ordered group of tasks
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
@@ -14,6 +17,19 @@ import fuookami.ospf.kotlin.utils.sumOf
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
 
+/**
+ * 抽象任务束，表示分配给同一执行者的一组有序任务 / Abstract task bunch representing an ordered group of tasks assigned to the same executor
+ *
+ * @param T 任务类型 / The task type
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ * @property executor 执行者 / The executor
+ * @property time 时间范围 / The time range
+ * @property tasks 任务列表 / The list of tasks
+ * @property cost 成本 / The cost
+ * @property initialUsability 初始可用性 / The initial usability
+ * @property iteration 迭代次数 / The iteration number
+ */
 open class AbstractTaskBunch<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -62,14 +78,19 @@ open class AbstractTaskBunch<
         iteration = iteration
     )
 
+    /** 任务数量 / Number of tasks */
     open val size get() = tasks.size
+    /** 是否为空 / Whether the bunch is empty */
     open val empty get() = tasks.isEmpty()
+    /** 上一个任务 / The last task */
     open val lastTask get() = initialUsability.lastTask
 
+    /** 成本密度（成本/任务数）/ Cost density (cost/number of tasks) */
     open val costDensity by lazy {
         (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
     }
 
+    /** 忙碌时间 / Busy time */
     open val busyTime: Duration by lazy {
         tasks.withIndex().sumOf { (i, task) ->
             val prevTask = if (i > 0) {
@@ -90,24 +111,29 @@ open class AbstractTaskBunch<
         }
     }
 
+    /** 总延迟时间 / Total delay time */
     open val totalDelay: Duration by lazy {
         tasks.sumOf { it.delay }
     }
 
+    /** 总提前时间 / Total advance time */
     open val totalAdvance: Duration by lazy {
         tasks.sumOf { it.advance }
     }
 
+    /** 执行者变更次数 / Number of executor changes */
     open val executorChange: UInt64 by lazy {
         UInt64(tasks.count { it.executorChanged }.toULong())
     }
 
+    /** 任务键到索引的映射 / Mapping from task key to index */
     open val keys: Map<TaskKey, Int> by lazy {
         tasks.withIndex().associate {
             it.value.key to it.index
         }
     }
 
+    /** 完工时间 / Makespan */
     open val makespan: Instant by lazy {
         tasks
             .mapNotNull { it.time?.end }
@@ -115,6 +141,7 @@ open class AbstractTaskBunch<
             ?: initialUsability.enabledTime
     }
 
+    /** 任务连接对列表 / List of task connection pairs */
     open val connections: List<Pair<T?, T?>> by lazy {
         (1..tasks.size).map {
             when (it) {
@@ -186,6 +213,7 @@ open class AbstractTaskBunch<
     }
 }
 
+/** 任务束类型别名 / Task bunch type alias */
 typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A>
 
 

@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 切换时间最小化 / Switch time minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -13,6 +14,20 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlin.time.Duration
 
+/**
+ * 切换时间最小化 / Switch time minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param switch 切换对象 / Switch object
+ * @param threshold 阈值提取器 / Threshold extractor
+ * @param coefficient 切换时间系数提取器 / Extractor for switch time coefficient
+ * @param name 管道名称 / Pipeline name
+ */
 class SwitchTimeMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

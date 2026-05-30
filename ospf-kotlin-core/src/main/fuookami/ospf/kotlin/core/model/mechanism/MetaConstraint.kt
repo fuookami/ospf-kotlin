@@ -38,6 +38,18 @@ interface MetaConstraintGroup {
         } ?: emptyList()
     }
 
+    /**
+     * 以变量项为约束添加到线性元模型。
+     * Add a variable item as a constraint to the linear meta model.
+     *
+     * @param constraint    变量项 / The variable item
+     * @param lazy          是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name          约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName   约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args          附加参数（可为 null） / Additional arguments (nullable)
+     * @param withRangeSet  是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean? = null,
@@ -59,6 +71,18 @@ interface MetaConstraintGroup {
         )
     }
 
+    /**
+     * 以线性中间符号为约束添加到线性元模型。
+     * Add a linear intermediate symbol as a constraint to the linear meta model.
+     *
+     * @param constraint    线性中间符号 / The linear intermediate symbol
+     * @param lazy          是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name          约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName   约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args          附加参数（可为 null） / Additional arguments (nullable)
+     * @param withRangeSet  是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
         constraint: LinearIntermediateSymbol<V>,
         lazy: Boolean? = null,
@@ -80,6 +104,17 @@ interface MetaConstraintGroup {
         )
     }
 
+    /**
+     * 以变量项集合创建分区约束。
+     * Create a partition constraint from a collection of variable items.
+     *
+     * @param variables   变量项集合 / The collection of variable items
+     * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args        附加参数（可为 null） / Additional arguments (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun <V> AbstractLinearMetaModel<V>.partition(
@@ -102,6 +137,17 @@ interface MetaConstraintGroup {
         )
     }
 
+    /**
+     * 以线性中间符号集合创建分区约束。
+     * Create a partition constraint from a collection of linear intermediate symbols.
+     *
+     * @param symbols     线性中间符号集合 / The collection of linear intermediate symbols
+     * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args        附加参数（可为 null） / Additional arguments (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun <V> AbstractLinearMetaModel<V>.partition(
@@ -124,6 +170,18 @@ interface MetaConstraintGroup {
         )
     }
 
+    /**
+     * 以二次中间符号为约束添加到二次元模型。
+     * Add a quadratic intermediate symbol as a constraint to the quadratic meta model.
+     *
+     * @param constraint    二次中间符号 / The quadratic intermediate symbol
+     * @param lazy          是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name          约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName   约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args          附加参数（可为 null） / Additional arguments (nullable)
+     * @param withRangeSet  是否包含范围集（可为 null） / Whether to include range set (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
         constraint: QuadraticIntermediateSymbol<V>,
         lazy: Boolean? = null,
@@ -144,6 +202,17 @@ interface MetaConstraintGroup {
         )
     }
 
+    /**
+     * 以二次中间符号集合创建分区约束。
+     * Create a partition constraint from a collection of quadratic intermediate symbols.
+     *
+     * @param symbols     二次中间符号集合 / The collection of quadratic intermediate symbols
+     * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args        附加参数（可为 null） / Additional arguments (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun <V> AbstractQuadraticMetaModel<V>.partition(
@@ -169,8 +238,16 @@ interface MetaConstraintGroup {
     // ========== Math Inequality-based API ==========
 
     /**
-     * 使用数学 LinearInequality<V> 添加约束
-     * Add constraint using math LinearInequality<V>
+     * 使用数学 LinearInequality<V> 添加约束。
+     * Add constraint using math LinearInequality<V>.
+     *
+     * @param relation    线性不等式 / The linear inequality
+     * @param lazy        是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args        附加参数（可为 null） / Additional arguments (nullable)
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
      */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
         relation: LinearInequality<V>,
@@ -192,8 +269,16 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * 使用数学 QuadraticInequalityOf<V> 添加约束
-     * Add constraint using math QuadraticInequalityOf<V>
+     * 使用数学 QuadraticInequalityOf<V> 添加约束。
+     * Add constraint using math QuadraticInequalityOf<V>.
+     *
+     * @param relation     二次不等式 / The quadratic inequality
+     * @param lazy         是否延迟求值（可为 null，使用组默认值）/ Whether lazy evaluation (nullable, uses group default)
+     * @param name         约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName  约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param args         附加参数（可为 null） / Additional arguments (nullable)
+     * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
+     * @return 操作结果 / The operation result
      */
     fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
         relation: QuadraticInequalityOf<V>,
@@ -244,6 +329,15 @@ interface MathConstraint {
 /**
  * 线性不等式约束，使用数学 LinearInequality<V>。
  * Linear inequality constraint using math LinearInequality<V>.
+ *
+ * @property inequality 线性不等式 / The linear inequality
+ * @property converter 值转换器 / Value converter
+ * @property constraintName 约束名称 / Constraint name
+ * @property constraintDisplayName 约束显示名称 / Constraint display name
+ * @property group 约束组 / Constraint group
+ * @property lazy 是否延迟求值 / Whether lazy evaluation
+ * @property args 附加参数 / Additional arguments
+ * @property priority 约束优先级 / Constraint priority
  */
 data class LinearInequalityConstraint<V>(
     val inequality: LinearInequality<V>,
@@ -280,6 +374,15 @@ data class LinearInequalityConstraint<V>(
 /**
  * 二次不等式约束，使用数学 QuadraticInequalityOf<V>。
  * Quadratic inequality constraint using math QuadraticInequalityOf<V>.
+ *
+ * @property inequality 二次不等式 / The quadratic inequality
+ * @property converter 值转换器 / Value converter
+ * @property constraintName 约束名称 / Constraint name
+ * @property constraintDisplayName 约束显示名称 / Constraint display name
+ * @property group 约束组 / Constraint group
+ * @property lazy 是否延迟求值 / Whether lazy evaluation
+ * @property args 附加参数 / Additional arguments
+ * @property priority 约束优先级 / Constraint priority
  */
 data class QuadraticInequalityConstraint<V>(
     val inequality: QuadraticInequalityOf<V>,
@@ -318,6 +421,11 @@ data class QuadraticInequalityConstraint<V>(
 /**
  * 二次展平子目标，直接使用 QuadraticFlattenData<V> 作为目标函数。
  * Quadratic flatten sub-objective using QuadraticFlattenData<V> directly for objective functions.
+ *
+ * @property category 目标分类 / The objective category
+ * @property flattenData 展平的二次数据 / Flattened quadratic data
+ * @property name 子目标名称 / Sub-objective name
+ * @property displayName 子目标显示名称 / Sub-objective display name
  */
 data class QuadraticFlattenSubObject<V>(
     val category: ObjectCategory,

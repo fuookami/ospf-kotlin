@@ -1,5 +1,6 @@
-/** 最小最大值函数符号 / Min-max function symbol */
 @file:Suppress("unused")
+
+/** 最小最大值函数符号 / Min-max function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -31,6 +32,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Named "MinMax" because it computes the minimum of the maximum values
  * in optimization contexts. Delegates to MaxFunction internally.
  * 内部委托给 MaxFunction。
+ *
+ * @property polynomials 输入线性多项式列表 / list of input linear polynomials
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MinMaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -65,6 +72,7 @@ class MinMaxFunction<V>(
         return inner.registerConstraints(model)
     }
     companion object {
+        /** 创建 [MinMaxFunction] 实例。 / Create a [MinMaxFunction] instance. */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
@@ -107,6 +115,12 @@ class MinMaxFunction<V>(
  * Named "MaxMin" because it computes the maximum of the minimum values
  * in optimization contexts. Delegates to MinFunction internally.
  * 内部委托给 MinFunction。
+ *
+ * @property polynomials 输入线性多项式列表 / list of input linear polynomials
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MaxMinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -141,6 +155,7 @@ class MaxMinFunction<V>(
         return inner.registerConstraints(model)
     }
     companion object {
+        /** 创建 [MaxMinFunction] 实例。 / Create a [MaxMinFunction] instance. */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,

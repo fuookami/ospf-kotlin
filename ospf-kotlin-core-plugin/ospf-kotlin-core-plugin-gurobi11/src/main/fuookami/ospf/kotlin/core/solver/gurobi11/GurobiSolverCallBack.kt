@@ -1,3 +1,4 @@
+/** Gurobi 11 求解器回调支持 / Gurobi 11 solver callback support */
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import com.gurobi.gurobi.*
@@ -7,51 +8,93 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
 import java.util.*
 
+/** 创建环境函数类型 / Creating environment function type */
 typealias CreatingEnvironmentFunction = (GRBEnv) -> Try
+/** Gurobi 原生回调函数类型 / Gurobi native callback function type */
 typealias NativeCallback = GRBCallback.() -> Unit
+/** 线性求解器回调函数类型 / Linear solver callback function type */
 typealias LinearFunction = suspend (SolverStatus?, GRBModel, List<GRBVar>, List<GRBConstr>) -> Try
+/** 二次求解器回调函数类型 / Quadratic solver callback function type */
 typealias QuadraticFunction = suspend (SolverStatus?, GRBModel, List<GRBVar>, List<GRBQConstr>) -> Try
 
+/** 求解器回调时机枚举 / Solver callback point enum */
 enum class Point {
+    /** 建模完成后 / After modeling */
     AfterModeling,
+    /** 配置阶段 / Configuration phase */
     Configuration,
+    /** 分析解阶段 / Analyzing solution phase */
     AnalyzingSolution,
+    /** 求解失败后 / After failure */
     AfterFailure
 }
 
+/** Gurobi 11 线性求解器回调管理器 / Gurobi 11 linear solver callback manager */
 class GurobiLinearSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, MutableList<LinearFunction>> = EnumMap(Point::class.java)
 ) : Copyable<GurobiLinearSolverCallBack> {
+    /** 设置原生回调函数 / Set native callback function */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
         nativeCallback = function
     }
 
+    /** 设置创建环境函数 / Set creating environment function */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
         creatingEnvironmentFunction = function
     }
 
+    /**
+     * 在指定时机添加回调函数 / Add callback function at specified point
+     *
+     * @param point 回调时机 / callback point
+     * @param function 回调函数 / callback function
+     * @return 当前回调管理器实例 / current callback manager instance
+     */
     operator fun set(point: Point, function: LinearFunction): GurobiLinearSolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
         return this
     }
 
+    /** 设置创建环境回调 / Set creating environment callback */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
+    /** 设置建模完成后的回调 / Set after modeling callback */
     fun afterModeling(function: LinearFunction) = set(Point.AfterModeling, function)
+    /** 设置配置阶段的回调 / Set configuration callback */
     fun configuration(function: LinearFunction) = set(Point.Configuration, function)
+    /** 设置分析解阶段的回调 / Set analyzing solution callback */
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
+    /** 设置求解失败后的回调 / Set after failure callback */
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
+    /** 检查是否包含指定时机的回调 / Check if callback at specified point is contained */
     fun contains(point: Point) = map.containsKey(point)
+    /** 获取指定时机的回调函数列表 / Get callback function list at specified point */
     fun get(point: Point): List<LinearFunction>? = map[point]
 
+    /**
+     * 如果包含创建环境函数则执行 / Execute creating environment function if contained
+     *
+     * @param env Gurobi 环境 / Gurobi environment
+     * @return 操作结果 / operation result
+     */
     fun execIfContain(env: GRBEnv): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
+    /**
+     * 如果包含指定时机的回调则执行 / Execute callbacks at specified point if contained
+     *
+     * @param point 回调时机 / callback point
+     * @param status 求解状态 / solving status
+     * @param gurobi Gurobi 模型 / Gurobi model
+     * @param variables 变量列表 / variable list
+     * @param constraints 约束列表 / constraint list
+     * @return 操作结果 / operation result
+     */
     suspend fun execIfContain(
         point: Point,
         status: SolverStatus?,
@@ -68,6 +111,11 @@ class GurobiLinearSolverCallBack(
         }
     }
 
+    /**
+     * 复制回调管理器 / Copy callback manager
+     *
+     * @return 回调管理器副本 / callback manager copy
+     */
     override fun copy(): GurobiLinearSolverCallBack {
         return GurobiLinearSolverCallBack(
             nativeCallback = nativeCallback,
@@ -77,39 +125,72 @@ class GurobiLinearSolverCallBack(
     }
 }
 
+/** Gurobi 11 二次求解器回调管理器 / Gurobi 11 quadratic solver callback manager */
 class GurobiQuadraticSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, MutableList<QuadraticFunction>> = EnumMap(Point::class.java)
 ) : Copyable<GurobiQuadraticSolverCallBack> {
+    /** 设置原生回调函数 / Set native callback function */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
         nativeCallback = function
     }
 
+    /** 设置创建环境函数 / Set creating environment function */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
         creatingEnvironmentFunction = function
     }
 
+    /**
+     * 在指定时机添加回调函数 / Add callback function at specified point
+     *
+     * @param point 回调时机 / callback point
+     * @param function 回调函数 / callback function
+     * @return 当前回调管理器实例 / current callback manager instance
+     */
     operator fun set(point: Point, function: QuadraticFunction): GurobiQuadraticSolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
         return this
     }
 
+    /** 设置创建环境回调 / Set creating environment callback */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
+    /** 设置建模完成后的回调 / Set after modeling callback */
     fun afterModeling(function: QuadraticFunction) = set(Point.AfterModeling, function)
+    /** 设置配置阶段的回调 / Set configuration callback */
     fun configuration(function: QuadraticFunction) = set(Point.Configuration, function)
+    /** 设置分析解阶段的回调 / Set analyzing solution callback */
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
+    /** 设置求解失败后的回调 / Set after failure callback */
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
+    /** 检查是否包含指定时机的回调 / Check if callback at specified point is contained */
     fun contains(point: Point) = map.containsKey(point)
+    /** 获取指定时机的回调函数列表 / Get callback function list at specified point */
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
+    /**
+     * 如果包含创建环境函数则执行 / Execute creating environment function if contained
+     *
+     * @param env Gurobi 环境 / Gurobi environment
+     * @return 操作结果 / operation result
+     */
     fun execIfContain(env: GRBEnv): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
+    /**
+     * 如果包含指定时机的回调则执行 / Execute callbacks at specified point if contained
+     *
+     * @param point 回调时机 / callback point
+     * @param status 求解状态 / solving status
+     * @param gurobi Gurobi 模型 / Gurobi model
+     * @param variables 变量列表 / variable list
+     * @param constraints 二次约束列表 / quadratic constraint list
+     * @return 操作结果 / operation result
+     */
     suspend fun execIfContain(
         point: Point,
         status: SolverStatus?,
@@ -126,6 +207,11 @@ class GurobiQuadraticSolverCallBack(
         }
     }
 
+    /**
+     * 复制回调管理器 / Copy callback manager
+     *
+     * @return 回调管理器副本 / callback manager copy
+     */
     override fun copy(): GurobiQuadraticSolverCallBack {
         return GurobiQuadraticSolverCallBack(
             nativeCallback = nativeCallback,

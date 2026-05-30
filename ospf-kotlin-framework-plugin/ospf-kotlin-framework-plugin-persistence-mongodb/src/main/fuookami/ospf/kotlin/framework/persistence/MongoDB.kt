@@ -1,3 +1,10 @@
+/**
+ * MongoDB 数据库客户端管理
+ * MongoDB database client management
+ *
+ * 提供 MongoDB 客户端的初始化、管理和扩展函数。
+ * Provides MongoDB client initialization, management, and extension functions.
+ */
 package fuookami.ospf.kotlin.framework.persistence
 
 import com.mongodb.MongoClientSettings
@@ -24,6 +31,16 @@ data class MongoClientKey(
     val database: String
 )
 
+/**
+ * MongoDB 配置构建器
+ * MongoDB configuration builder
+ *
+ * @property urls MongoDB 代理地址列表 / MongoDB broker URL list
+ * @property name 客户端名称 / Client name
+ * @property database 数据库名称 / Database name
+ * @property userName 用户名 / Username
+ * @property password 密码 / Password
+ */
 data class MongoDBConfigBuilder(
     var urls: List<String>? = null,
     var name: String? = null,
@@ -31,6 +48,12 @@ data class MongoDBConfigBuilder(
     var userName: String? = null,
     var password: String? = null
 ) {
+    /**
+     * 构建 MongoDB 配置
+     * Build MongoDB configuration
+     *
+     * @return 配置实例，参数不完整时返回 null / Configuration instance, or null if parameters are incomplete
+     */
     operator fun invoke(): MongoDBConfig? {
         return try {
             MongoDBConfig(
@@ -46,6 +69,16 @@ data class MongoDBConfigBuilder(
     }
 }
 
+/**
+ * MongoDB 配置数据
+ * MongoDB configuration data
+ *
+ * @property urls MongoDB 代理地址列表 / MongoDB broker URL list
+ * @property name 客户端名称 / Client name
+ * @property database 数据库名称 / Database name
+ * @property userName 用户名 / Username
+ * @property password 密码 / Password
+ */
 @Serializable
 data class MongoDBConfig(
     val urls: List<String>,
@@ -57,10 +90,24 @@ data class MongoDBConfig(
     val key get() = MongoClientKey(name = name, database = database)
 }
 
+/**
+ * MongoDB 客户端管理器
+ * MongoDB client manager
+ *
+ * 管理多个 MongoDB 客户端实例，按名称和数据库索引。
+ * Manages multiple MongoDB client instances, indexed by name and database.
+ */
 object MongoDB {
     @get:Synchronized
     private val clients: MutableMap<MongoClientKey, MongoClient> = HashMap()
 
+    /**
+     * 初始化并获取 MongoDB 客户端
+     * Initialize and get MongoDB client
+     *
+     * @param builder 配置构建器 lambda / Configuration builder lambda
+     * @return MongoDB 客户端实例，初始化失败时返回 null / MongoDB client instance, or null if initialization fails
+     */
     @Synchronized
     fun init(builder: MongoDBConfigBuilder.() -> Unit): MongoClient? {
         val config = MongoDBConfigBuilder()
@@ -68,6 +115,13 @@ object MongoDB {
         return config()?.let { this(it) }
     }
 
+    /**
+     * 获取或创建 MongoDB 客户端
+     * Get or create MongoDB client
+     *
+     * @param config MongoDB 配置 / MongoDB configuration
+     * @return MongoDB 客户端实例，创建失败时返回 null / MongoDB client instance, or null if creation fails
+     */
     @Synchronized
     operator fun invoke(config: MongoDBConfig): MongoClient? {
         if (clients.containsKey(config.key)) {
@@ -98,6 +152,13 @@ object MongoDB {
         }
     }
 
+    /**
+     * 按键获取已注册的 MongoDB 客户端
+     * Get registered MongoDB client by key
+     *
+     * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
+     * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
+     */
     @Synchronized
     operator fun invoke(key: MongoClientKey? = null): MongoClient? {
         return if (key != null) {
@@ -108,6 +169,14 @@ object MongoDB {
             ?: clients.values.firstOrNull()
     }
 
+    /**
+     * 按名称获取已注册的 MongoDB 客户端
+     * Get registered MongoDB client by name
+     *
+     * @param name 客户端名称 / Client name
+     * @param dataBase 数据库名称（可选）/ Database name (optional)
+     * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
+     */
     @Synchronized
     operator fun invoke(name: String, dataBase: String? = null): MongoClient? {
         return if (dataBase != null) {
@@ -118,12 +187,27 @@ object MongoDB {
             ?: clients.filterKeys { it.name == name }.entries.firstOrNull()?.value
     }
 
+    /**
+     * 按数据库名称获取已注册的 MongoDB 客户端
+     * Get registered MongoDB client by database name
+     *
+     * @param dataBase 数据库名称 / Database name
+     * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
+     */
     @Synchronized
     fun get(dataBase: String): MongoClient? {
         return clients.filterKeys { it.database == dataBase }.entries.firstOrNull()?.value
     }
 }
 
+/**
+ * 向集合中插入数据（使用默认序列化器）
+ * Insert data into collection (using default serializer)
+ *
+ * @param T 数据类型 / Data type
+ * @param collection 集合名称 / Collection name
+ * @param data 要插入的数据 / Data to insert
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
     insert(
@@ -133,6 +217,15 @@ inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
     )
 }
 
+/**
+ * 向集合中插入数据（使用指定序列化器）
+ * Insert data into collection (using specified serializer)
+ *
+ * @param T 数据类型 / Data type
+ * @param collection 集合名称 / Collection name
+ * @param serializer 序列化器 / Serializer
+ * @param data 要插入的数据 / Data to insert
+ */
 fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, data: T) {
     val json = Json {
         ignoreUnknownKeys = true
@@ -144,12 +237,30 @@ fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, dat
     )
 }
 
+/**
+ * 向集合中插入数据（使用自定义序列化函数）
+ * Insert data into collection (using custom serialization function)
+ *
+ * @param T 数据类型 / Data type
+ * @param collection 集合名称 / Collection name
+ * @param serializer 序列化函数 / Serialization function
+ * @param data 要插入的数据 / Data to insert
+ */
 @Synchronized
 fun <T> MongoDatabase.insert(collection: String, serializer: (T) -> String, data: T) {
     this.getCollection(collection)
         .insertOne(Document.parse(serializer(data)))
 }
 
+/**
+ * 从集合中查询数据（使用默认反序列化器）
+ * Query data from collection (using default deserializer)
+ *
+ * @param T 数据类型 / Data type
+ * @param collectionName 集合名称 / Collection name
+ * @param query 查询条件 / Query conditions
+ * @return 查询结果列表 / Query result list
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Map<String, String>): List<T> {
     return get(
@@ -159,6 +270,16 @@ inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Ma
     )
 }
 
+/**
+ * 从集合中查询数据（使用指定反序列化器）
+ * Query data from collection (using specified deserializer)
+ *
+ * @param T 数据类型 / Data type
+ * @param collectionName 集合名称 / Collection name
+ * @param deserializer 反序列化器 / Deserializer
+ * @param query 查询条件 / Query conditions
+ * @return 查询结果列表 / Query result list
+ */
 fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, query: Map<String, String>): List<T> {
     val json = Json {
         ignoreUnknownKeys = true
@@ -170,6 +291,16 @@ fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, 
     )
 }
 
+/**
+ * 从集合中查询数据（使用自定义反序列化函数）
+ * Query data from collection (using custom deserialization function)
+ *
+ * @param T 数据类型 / Data type
+ * @param collectionName 集合名称 / Collection name
+ * @param deserializer 反序列化函数 / Deserialization function
+ * @param query 查询条件 / Query conditions
+ * @return 查询结果列表 / Query result list
+ */
 @Synchronized
 fun <T> MongoDatabase.get(collectionName: String, deserializer: (String) -> T, query: Map<String, String>): List<T> {
     val collection = this.getCollection(collectionName)

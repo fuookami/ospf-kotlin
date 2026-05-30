@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import kotlinx.coroutines.*
 
+/** Gurobi 11 线性 Benders 分解求解器 / Gurobi 11 linear Benders decomposition solver */
 class GurobiLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()

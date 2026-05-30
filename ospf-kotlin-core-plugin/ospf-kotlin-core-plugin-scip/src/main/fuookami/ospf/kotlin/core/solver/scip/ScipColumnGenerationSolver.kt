@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** SCIP 列生成求解器 / SCIP column generation solver */
 class ScipColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()
@@ -273,7 +274,7 @@ class ScipColumnGenerationSolver(
                             constraint.rhs * value
                         }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
-                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution
+                            // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
                             when (val result = solveDual(model, ScipLinearSolver(config))) {
                                 is Ok -> {
                                     dualSolution = result.value

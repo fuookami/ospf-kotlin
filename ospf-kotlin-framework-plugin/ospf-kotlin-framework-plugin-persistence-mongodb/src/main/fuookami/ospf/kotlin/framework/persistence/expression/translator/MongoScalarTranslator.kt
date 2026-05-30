@@ -14,14 +14,20 @@ import org.bson.Document
 /**
  * MongoDB 标量表达式翻译器
  * MongoDB scalar expression translator
+ *
+ * @property resolveFieldName 字段名解析函数 / Field name resolver function
+ * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
  */
 class MongoScalarTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
     /**
-     * 翻译标量表达式
-     * Translate scalar expression
+     * 翻译标量表达式为 MongoDB 可用的值
+     * Translate scalar expression to MongoDB-compatible value
+     *
+     * @param expr 标量表达式 / Scalar expression
+     * @return MongoDB 可用的值，不支持时返回 null / MongoDB-compatible value, or null if unsupported
      */
     fun translate(expr: ScalarExpression<*>): Any? {
         return when (expr) {

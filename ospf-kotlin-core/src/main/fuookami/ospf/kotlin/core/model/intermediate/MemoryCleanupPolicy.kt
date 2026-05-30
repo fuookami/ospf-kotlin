@@ -15,22 +15,27 @@ internal object MemoryCleanupPolicy {
     private const val ThresholdProperty = "ospf.core.model.memory.cleanup.threshold"
     private const val AggressiveProperty = "ospf.core.model.memory.cleanup.aggressive"
 
+    /** 检查内存清理是否启用 / Check whether memory cleanup is enabled */
     private fun enabled(): Boolean {
         return System.getProperty(EnabledProperty)?.toBoolean() ?: false
     }
 
+    /** 获取内存使用阈值（0.0-1.0） / Get memory usage threshold (0.0-1.0) */
     private fun threshold(): Double {
         return System.getProperty(ThresholdProperty)?.toDoubleOrNull()?.coerceIn(0.0, 1.0) ?: 0.8
     }
 
+    /** 检查是否启用激进清理模式 / Check whether aggressive cleanup mode is enabled */
     private fun aggressive(): Boolean {
         return System.getProperty(AggressiveProperty)?.toBoolean() ?: false
     }
 
+    /** 判断当前内存使用是否超过阈值 / Check whether current memory usage exceeds the threshold */
     private fun shouldCleanup(): Boolean {
         return memoryUseOver(threshold())
     }
 
+    /** 根据条件执行 GC / Trigger GC if the condition is met */
     private fun cleanupIfNeeded(shouldCleanup: Boolean) {
         if (shouldCleanup) {
             System.gc()

@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务束时间模型 / Bunch time model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -29,6 +30,17 @@ import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
 
+/**
+ * 松弛符号构建 / Slack symbol construction
+ *
+ * @param x 线性多项式 / Linear polynomial
+ * @param y 目标值 / Target value
+ * @param type 变量类型 / Variable type
+ * @param withNegative 是否包含负松弛 / Whether to include negative slack
+ * @param withPositive 是否包含正松弛 / Whether to include positive slack
+ * @param name 名称 / Name
+ * @return 线性函数符号适配器 / Linear function symbol adapter
+ */
 private fun slackSymbol(
     x: ToLinearPolynomial<Flt64>,
     y: Flt64,
@@ -51,6 +63,18 @@ private fun slackSymbol(
     )
 }
 
+/**
+ * 任务束调度时间 / Bunch scheduling task time
+ *
+ * @param B 任务束类型 / Bunch type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param compilation 任务束编译结果 / Bunch compilation result
+ * @param redundancyRange 冗余范围 / Redundancy range
+ */
 open class BunchSchedulingTaskTime<
         B : AbstractTaskBunch<T, E, A>,
         out T : AbstractTask<E, A>,
@@ -78,6 +102,12 @@ open class BunchSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearIntermediateSymbols1<Flt64>
     override lateinit var estimateEndTime: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
             if (!::estRedundancy.isInitialized) {
@@ -249,6 +279,14 @@ open class BunchSchedulingTaskTime<
         return super.register(model)
     }
 
+    /**
+     * 添加列 / Add columns
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param bunches 任务束列表 / List of bunches
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
+     */
     open fun addColumns(
         iteration: UInt64,
         bunches: List<B>,

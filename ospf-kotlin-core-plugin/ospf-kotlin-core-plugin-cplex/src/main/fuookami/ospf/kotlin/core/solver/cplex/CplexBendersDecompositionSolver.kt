@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import ilog.cplex.IloCplex
 import kotlinx.coroutines.*
 
+/** CPLEX 线性 Benders 分解求解器 / CPLEX linear Benders decomposition solver */
 class CplexLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack = CplexSolverCallBack()
@@ -206,6 +207,7 @@ class CplexLinearBendersDecompositionSolver(
     }
 }
 
+/** CPLEX 二次 Benders 分解求解器 / CPLEX quadratic Benders decomposition solver */
 class CplexQuadraticBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack = CplexSolverCallBack()

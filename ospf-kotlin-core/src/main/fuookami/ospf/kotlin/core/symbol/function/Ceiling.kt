@@ -1,5 +1,6 @@
-/** 向上取整函数符号 / Ceiling function symbol */
 @file:Suppress("unused")
+
+/** 向上取整函数符号 / Ceiling function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -29,6 +30,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 使用整数变量 k = ceil(x) 和小数二值变量 b。
  * Uses integer variable k = ceil(x) with fractional binary variable b.
  * k - 1 < x <= k, b = x - floor(x), k = floor(x) + b.
+ *
+ * @property x 输入线性多项式 / Input linear polynomial
+ * @property kVar 整数变量 / Integer variable
+ * @property bVar 小数二值变量 / Fractional binary variable
+ * @property resultVar 结果变量 / Result variable
+ * @param converter 值类型转换器 / value type converter
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
  */
 class CeilingFunction<V>(
     val x: LinearPolynomial<V>,
@@ -67,19 +77,21 @@ class CeilingFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
         val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-        // x <= k
+        // x <= k / x 小于等于 k
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
             LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_ceil_ub")
 
-        // x > k - 1 => x >= k - 1 + epsilon
+        // x > k - 1 => x >= k - 1 + epsilon / x 大于 k-1，即 x >= k - 1 + epsilon
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
             LinearPolynomial(emptyList(), one - eps), Comparison.GE, "${name}_ceil_lb")
 
         // b = x - floor(x) => k = x + 1 - b => b - k + x = -1 + ... simplified:
+        // b = x - floor(x) => k = x + 1 - b => 化简后：
         // k = x + b, so k - x = b
-        // k - x - b = 0
+        // k = x + b，即 k - x = b
+        // k - x - b = 0 / k - x - b = 0
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, kVar),
@@ -88,7 +100,7 @@ class CeilingFunction<V>(
                 -x.constant),
             LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_ceil_decompose")
 
-        // result = k
+        // result = k / 结果等于 k
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, resultVar),
@@ -100,6 +112,15 @@ class CeilingFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建向上取整函数实例 / Create a ceiling function instance
+         * @param x 输入线性多项式 / input linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [CeilingFunction] 实例 / [CeilingFunction] instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             converter: IntoValue<V>,

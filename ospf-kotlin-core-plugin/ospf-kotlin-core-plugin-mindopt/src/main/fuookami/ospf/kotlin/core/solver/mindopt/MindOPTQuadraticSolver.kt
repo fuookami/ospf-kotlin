@@ -34,6 +34,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** MindOPT 二次求解器 / MindOPT quadratic solver */
 class MindOPTQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTQuadraticSolverCallBack? = null,

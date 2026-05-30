@@ -1,4 +1,5 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+﻿/** 消费下限数量最小化 / Consumption less quantity minimization */
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -15,6 +16,19 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
+/**
+ * 消费下限数量最小化 / Consumption less quantity minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param C 材料类型 / Material type
+ * @param products 产品与储备对列表 / List of product-reserve pairs
+ * @param consumption 消费对象 / Consumption object
+ * @param threshold 阈值函数 / Threshold function
+ * @param coefficient 成本系数函数 / Cost coefficient function
+ * @param name 管道名称 / Pipeline name
+ */
 class ConsumptionLessQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

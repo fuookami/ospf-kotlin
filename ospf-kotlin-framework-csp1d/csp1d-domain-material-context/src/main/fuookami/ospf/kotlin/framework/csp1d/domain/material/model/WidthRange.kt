@@ -3,8 +3,11 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
+/** 宽度范围，支持步进的浮点值域 / Width range with step-based floating-point value range */
 data class WidthRange(
+    /** 宽度值域 / Width value range */
     val width: ValueRange<Flt64>,
+    /** 步进值 / Step value */
     val step: Flt64
 ) {
     val upperBound get() = width.upperBound

@@ -1,5 +1,6 @@
-/** 余弦函数符号 / Cosine function symbol */
 @file:Suppress("unused")
+
+/** 余弦函数符号 / Cosine function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -30,11 +31,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 余弦函数 cos(v) 在关键点处采样用于 MIP 编码。
  * The cosine function cos(v) is sampled at strategic points for MIP encoding.
  *
- * @param x 输入线性多项式 / the input linear polynomial
- * @param samplingPoints 预计算的 (x, cos(x)) 断点 / pre-computed (x, cos(x)) break points
+ * @property x 输入线性多项式 / the input linear polynomial
+ * @property samplingPoints 预计算的 (x, cos(x)) 断点 / pre-computed (x, cos(x)) break points
  * @param converter 值类型转换器 / value type converter
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class CosFunction<V>(
     val x: LinearPolynomial<V>,
@@ -87,6 +88,15 @@ class CosFunction<V>(
         return impl.registerConstraints(model)
     }
     companion object {
+        /**
+         * 创建余弦函数实例 / Create a cosine function instance
+         * @param x 输入线性多项式 / input linear polynomial
+         * @param samplingPoints 预计算的 (x, cos(x)) 断点 / pre-computed (x, cos(x)) break points
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [CosFunction] 实例 / [CosFunction] instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             samplingPoints: List<Point<Dim2, Flt64>> = defaultPoints(),
@@ -96,6 +106,12 @@ class CosFunction<V>(
         ): CosFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             CosFunction(x = x, samplingPoints = samplingPoints, converter = converter, name = name, displayName = displayName)
 
+        /**
+         * 生成默认余弦采样点（-pi 到 pi 区间内 5 个关键点）。
+         * Generate default cosine sampling points (5 key points in the range [-pi, pi]).
+         *
+         * @return 默认采样点列表 / default sampling point list
+         */
         private fun defaultPoints(): List<Point<Dim2, Flt64>> {
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)

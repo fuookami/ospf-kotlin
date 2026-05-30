@@ -1,5 +1,6 @@
-/** 相等函数符号 / Same-as equality function symbol */
 @file:Suppress("unused")
+
+/** 相等函数符号 / Same-as equality function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -38,12 +39,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - 度量模式下：y 度量是否全部相同
  * - In measurement mode: y measures whether all are the same
  *
- * @param inequalities 要比较的线性不等式列表 / list of linear inequalities to compare
- * @param constraint 若为 true，强制所有不等式具有相同满足状态；若为 false，仅度量 / if true, force all inequalities to have same satisfaction; if false, measure only
- * @param epsilon 松弛不等式的最小间隙（默认 1e-6）/ minimum gap for relaxed inequality (default 1e-6)
- * @param m 指示约束的 Big-M 常量（默认 1e6）/ Big-M constant for indicator constraints (default 1e6)
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property inequalities 要比较的线性不等式列表 / list of linear inequalities to compare
+ * @property constraint 若为 true，强制所有不等式具有相同满足状态；若为 false，仅度量 / if true, force all inequalities to have same satisfaction; if false, measure only
+ * @property epsilon 松弛不等式的最小间隙（默认 1e-6）/ minimum gap for relaxed inequality (default 1e-6)
+ * @property m 指示约束的 Big-M 常量（默认 1e6）/ Big-M constant for indicator constraints (default 1e6)
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SameAsFunction<V>(
     val inequalities: List<LinearInequality<V>>,
@@ -61,14 +63,14 @@ class SameAsFunction<V>(
 
     private val n = inequalities.size
 
-    // Binary flag per inequality: u[i] = 1 if inequality i is satisfied
+    // Binary flag per inequality: u[i] = 1 if inequality i is satisfied / 每个不等式的二值标志：不等式 i 满足时 u[i] = 1
     val satisfactionFlags: List<AbstractVariableItem<*, *>> =
         (0 until n).map { BinVar("${name}_u${it}") }
 
-    // Output binary: y = 1 if all same, 0 otherwise
+    // Output binary: y = 1 if all same, 0 otherwise / 输出二值变量：全部相同时 y = 1，否则为 0
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_same")
 
-    // Diff variables for measurement mode (XOR between adjacent satisfaction flags)
+    // Diff variables for measurement mode (XOR between adjacent satisfaction flags) / 度量模式的差异变量（相邻满足标志之间的 XOR）
     private val diffVars: List<AbstractVariableItem<*, *>> =
         if (!constraint && n > 1) (1 until n).map { BinVar("${name}_diff${it}") } else emptyList()
 
@@ -110,15 +112,18 @@ class SameAsFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Register each inequality with its satisfaction flag using simple indicator constraints
+        // 使用简单指示约束为每个不等式注册其满足标志
         for (i in inequalities.indices) {
             allConstraints += simpleIndicatorConstraints(
                 inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, "${name}_ineq_${i}")
         }
 
-        // Link constraints: enforce all satisfaction flags are equal
+        // Link constraints: enforce all satisfaction flags are equal / 链接约束：强制所有满足标志相等
         if (constraint) {
             // For constraint mode: force u[0] == u[1] == ... == u[n-1]
+            // 约束模式：强制 u[0] == u[1] == ... == u[n-1]
             // This is done by: u[0] - u[i] == 0 for i=1..n-1
+            // 通过 u[0] - u[i] == 0（i=1..n-1）实现
             for (i in 1 until n) {
                 val eqLhs = LinearPolynomial(
                     listOf(
@@ -131,7 +136,7 @@ class SameAsFunction<V>(
                 allConstraints += LinearInequality(
                     eqLhs, eqRhs, Comparison.EQ, "${name}_equal_${i}")
             }
-            // result = u[0] (since all are equal)
+            // result = u[0] (since all are equal) / 结果 = u[0]（因为所有标志相等）
             val resultLink = LinearPolynomial(
                 listOf(
                     LinearMonomial(one, resultVar),
@@ -143,9 +148,9 @@ class SameAsFunction<V>(
                 resultLink, LinearPolynomial(emptyList(), zero),
                 Comparison.EQ, "${name}_result_link")
         } else {
-            // Measurement mode: y = 1 iff all u[i] are equal
+            // Measurement mode: y = 1 iff all u[i] are equal / 度量模式：当且仅当所有 u[i] 相等时 y = 1
             if (n == 1) {
-                // Single inequality: always "same" with itself
+                // Single inequality: always "same" with itself / 单个不等式：始终与自身"相同"
                 allConstraints += LinearInequality(
                     LinearPolynomial(listOf(LinearMonomial(one, resultVar)), zero),
                     LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_result_single")
@@ -155,7 +160,7 @@ class SameAsFunction<V>(
                     val ui = satisfactionFlags[i]
                     val diffVar = diffVars[i - 1]
 
-                    // diff >= u[i] - u[0]  =>  diff - u[i] + u[0] >= 0
+                    // diff >= u[i] - u[0]  =>  diff - u[i] + u[0] >= 0 / diff >= u[i] - u[0]，即 diff - u[i] + u[0] >= 0
                     allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
@@ -168,7 +173,7 @@ class SameAsFunction<V>(
                         LinearPolynomial(emptyList(), zero),
                         Comparison.GE, "${name}_diff_ge_${i}")
 
-                    // diff >= u[0] - u[i]  =>  diff - u[0] + u[i] >= 0
+                    // diff >= u[0] - u[i]  =>  diff - u[0] + u[i] >= 0 / diff >= u[0] - u[i]，即 diff - u[0] + u[i] >= 0
                     allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
@@ -181,7 +186,7 @@ class SameAsFunction<V>(
                         LinearPolynomial(emptyList(), zero),
                         Comparison.GE, "${name}_diff_le_${i}")
 
-                    // diff <= u[i] + u[0]  =>  diff - u[i] - u[0] <= 0
+                    // diff <= u[i] + u[0]  =>  diff - u[i] - u[0] <= 0 / diff <= u[i] + u[0]，即 diff - u[i] - u[0] <= 0
                     allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
@@ -194,7 +199,7 @@ class SameAsFunction<V>(
                         LinearPolynomial(emptyList(), zero),
                         Comparison.LE, "${name}_diff_sum_ub_${i}")
 
-                    // diff <= 2 - u[i] - u[0]  =>  diff + u[i] + u[0] <= 2
+                    // diff <= 2 - u[i] - u[0]  =>  diff + u[i] + u[0] <= 2 / diff <= 2 - u[i] - u[0]，即 diff + u[i] + u[0] <= 2
                     allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
@@ -208,7 +213,7 @@ class SameAsFunction<V>(
                         Comparison.LE, "${name}_diff_sum_lb_${i}")
                 }
 
-                // y = 1 - sum(diff_i)  =>  y + sum(diff_i) = 1
+                // y = 1 - sum(diff_i)  =>  y + sum(diff_i) = 1 / y = 1 - sum(diff_i)，即 y + sum(diff_i) = 1
                 val yPlusSumMonos = listOf(LinearMonomial(one, resultVar)) +
                     diffVars.map { LinearMonomial(one, it) }
                 allConstraints += LinearInequality(
@@ -221,6 +226,7 @@ class SameAsFunction<V>(
         return addConstraints(model, allConstraints) ?: ok
     }
     companion object {
+        /** 创建 [SameAsFunction] 实例。 / Create a [SameAsFunction] instance. */
         operator fun <V> invoke(
             inequalities: List<LinearInequality<V>>,
             constraint: Boolean = true,

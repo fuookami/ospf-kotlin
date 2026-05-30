@@ -1,5 +1,6 @@
 @file:Suppress("DEPRECATION")
 
+/** 任务束解分析器 / Bunch solution analyzer */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -15,6 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
+/** 任务束解分析器 / Bunch solution analyzer */
 data object BunchSolutionAnalyzer {
     operator fun <
             B : AbstractTaskBunch<T, E, A>,

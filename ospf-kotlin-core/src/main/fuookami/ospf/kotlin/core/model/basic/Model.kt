@@ -1,3 +1,7 @@
+/**
+ * 模型核心接口与类型定义
+ * Core model interfaces and type definitions
+ */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -30,7 +34,12 @@ typealias Solution<V> = List<V>
 interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : NumberField<V> {
     val objectCategory: ObjectCategory
 
-    /** 移除变量 / Remove variable */
+    /**
+     * 移除变量。
+     * Remove variable.
+     *
+     * @param item 要移除的变量项 / The variable item to remove
+     */
     fun remove(item: AbstractVariableItem<*, *>)
 
     /** 添加变量列表（嵌套展平）/ Add variable lists (flattened) */
@@ -167,7 +176,16 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         return remove(item.value)
     }
 
-    /** 添加目标（基于变量）/ Add objective (by variable) */
+    /**
+     * 添加目标（基于变量）。
+     * Add objective (by variable).
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param variable    目标变量 / The objective variable
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -175,7 +193,16 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         displayName: String? = null
     ): Try
 
-    /** 添加目标（基于常量）/ Add objective (by constant) */
+    /**
+     * 添加目标（基于常量）。
+     * Add objective (by constant).
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param constant    常量值 / The constant value
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun <T : RealNumber<T>> addObject(
         category: ObjectCategory,
         constant: T,
@@ -239,9 +266,19 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         )
     }
 
-    /** 设置解决方案（列表形式）/ Set solution as a list of values */
+    /**
+     * 设置解决方案（列表形式）。
+     * Set solution as a list of values.
+     *
+     * @param solution 解值列表 / The list of solution values
+     */
     fun setSolution(solution: List<V>)
-    /** 设置解决方案（变量-值映射形式）/ Set solution as a variable-to-value map */
+    /**
+     * 设置解决方案（变量-值映射形式）。
+     * Set solution as a variable-to-value map.
+     *
+     * @param solution 变量到值的映射 / The variable-to-value map
+     */
     fun setSolution(solution: Map<AbstractVariableItem<*, *>, V>)
     /** 清除解决方案 / Clear the current solution */
     fun clearSolution()
@@ -342,8 +379,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     }
 
     /**
-     * 添加线性约束（使用数学 LinearInequality）
-     * Add constraint using math LinearInequality
+     * 添加线性约束（使用数学 LinearInequality）。
+     * Add constraint using math LinearInequality.
+     *
+     * @param relation     线性不等式 / The linear inequality
+     * @param lazy         是否延迟求值 / Whether lazy evaluation
+     * @param name         约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName  约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
      */
     fun addConstraint(
         relation: LinearInequality<V>,
@@ -463,8 +507,14 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     }
 
     /**
-     * 添加线性目标（使用 LinearFlattenData<V>）
+     * 添加线性目标（使用 LinearFlattenData<V>）。
      * Add objective using LinearFlattenData<V>.
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param flattenData 展平的线性数据 / The flattened linear data
+     * @param name        目标名称 / The objective name
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
      */
     fun addObject(
         category: ObjectCategory,
@@ -572,8 +622,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
  */
 interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
-     * 添加二次约束（使用数学 QuadraticInequality）
-     * Add constraint using math QuadraticInequality
+     * 添加二次约束（使用数学 QuadraticInequality）。
+     * Add constraint using math QuadraticInequality.
+     *
+     * @param relation     二次不等式 / The quadratic inequality
+     * @param lazy         是否延迟求值 / Whether lazy evaluation
+     * @param name         约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName  约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
+     * @return 操作结果 / The operation result
      */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
@@ -614,8 +671,14 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     }
 
     /**
-     * 添加二次目标（使用 QuadraticFlattenData<V>）
+     * 添加二次目标（使用 QuadraticFlattenData<V>）。
      * Add objective using QuadraticFlattenData<V>.
+     *
+     * @param category    目标类别（最小化/最大化） / The objective category (minimize/maximize)
+     * @param flattenData 展平的二次数据 / The flattened quadratic data
+     * @param name        目标名称 / The objective name
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
      */
     fun addObject(
         category: ObjectCategory,

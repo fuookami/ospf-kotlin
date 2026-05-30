@@ -1,3 +1,4 @@
+/** 任务取消最小化 / Task cancel minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.operation.*
@@ -8,6 +9,18 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 任务取消最小化 / Task cancel minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param compilation 编译结果 / Compilation result
+ * @param coefficient 成本系数提取器 / Extractor for cost coefficient
+ * @param name 管道名称 / Pipeline name
+ */
 class TaskCancelMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

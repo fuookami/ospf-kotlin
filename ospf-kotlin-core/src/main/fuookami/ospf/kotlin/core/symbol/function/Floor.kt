@@ -1,5 +1,6 @@
-/** 向下取整函数符号 / Floor function symbol */
 @file:Suppress("unused")
+
+/** 向下取整函数符号 / Floor function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -30,6 +31,16 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Uses integer variable k = floor(x) with fractional binary variable b.
  * k <= x < k+1, b = x - k（0 或小数）, result = k。
  * k <= x < k+1, b = x - k (0 or fractional), result = k.
+ *
+ * @property x 输入线性多项式 / Input linear polynomial
+ * @property kVar 整数变量 / Integer variable
+ * @property bVar 小数二值变量 / Fractional binary variable
+ * @property resultVar 结果变量 / Result variable
+ * @property result 结果多项式 / Result polynomial
+ * @param converter 值类型转换器 / value type converter
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
  */
 class FloorFunction<V>(
     val x: LinearPolynomial<V>,
@@ -71,17 +82,17 @@ class FloorFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
         val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-        // k <= x
+        // k <= x / k 小于等于 x
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
             LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_floor_lb")
 
-        // k + 1 >= x => x <= k + 1
+        // k + 1 >= x => x <= k + 1 / k + 1 >= x，即 x <= k + 1
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
             LinearPolynomial(emptyList(), one), Comparison.LE, "${name}_floor_ub")
 
-        // b = x - k => b + k - x = 0
+        // b = x - k => b + k - x = 0 / b = x - k，即 b + k - x = 0
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, bVar),
@@ -90,7 +101,7 @@ class FloorFunction<V>(
                 -x.constant),
             LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_floor_decompose")
 
-        // result = k
+        // result = k / 结果等于 k
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, resultVar),
@@ -102,6 +113,15 @@ class FloorFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建向下取整函数实例 / Create a floor function instance
+         * @param x 输入线性多项式 / input linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [FloorFunction] 实例 / [FloorFunction] instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             converter: IntoValue<V>,

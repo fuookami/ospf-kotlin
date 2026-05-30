@@ -64,6 +64,11 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
 /**
  * 线性单元格实现，使用 Flt64 系数和 IntoValue 转换器。
  * Linear cell implementation using Flt64 coefficient and IntoValue converter.
+ *
+ * @property tokenTable 符号表，用于按标记查找索引 / Token table for index lookup by token
+ * @property _coefficientFlt64 Flt64 类型的原始系数 / Raw Flt64-typed coefficient
+ * @property token 线性标记 / The linear token
+ * @property converter 值转换器，将 Flt64 转换为目标类型 V / Value converter from Flt64 to target type V
  */
 class LinearCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
@@ -99,6 +104,12 @@ class LinearCellImpl<V>(
 /**
  * 二次单元格实现，使用 Flt64 系数和 IntoValue 转换器。
  * Quadratic cell implementation using Flt64 coefficient and IntoValue converter.
+ *
+ * @property tokenTable 符号表，用于按标记查找索引 / Token table for index lookup by token
+ * @property _coefficientFlt64 Flt64 类型的原始系数 / Raw Flt64-typed coefficient
+ * @property token1 第一个二次标记 / First quadratic token
+ * @property token2 第二个二次标记（null 表示线性项）/ Second quadratic token (null for linear term)
+ * @property converter 值转换器，将 Flt64 转换为目标类型 V / Value converter from Flt64 to target type V
  */
 class QuadraticCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,

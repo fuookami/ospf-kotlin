@@ -1,5 +1,6 @@
-/** 二次阶梯范围函数符号 / Quadratic step range function symbol */
 @file:Suppress("unused")
+
+/** 二次阶梯范围函数符号 / Quadratic step range function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -39,10 +40,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - y <= M*z
  * - y >= -M*z
  *
- * @param x 二次多项式输入 / quadratic polynomial input
- * @param lower 范围的下界 / lower bound of the range
- * @param upper 范围的上界 / upper bound of the range
+ * @property x 二次多项式输入 / quadratic polynomial input
+ * @property lower 范围的下界 / lower bound of the range
+ * @property upper 范围的上界 / upper bound of the range
  * @param bigM Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class QuadraticInStepRangeFunction<V>(
     val x: QuadraticPolynomial<V>,
@@ -87,6 +91,15 @@ class QuadraticInStepRangeFunction<V>(
         for (dep in dependencies) dep.flush(force)
     }
 
+    /**
+     * 从 token 表求值单个符号。
+     * Evaluate a single symbol from the token table.
+     *
+     * @param symbol 要求值的符号 / the symbol to evaluate
+     * @param tokenTable token 表 / the token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 符号值或 null / symbol value or null
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -99,6 +112,16 @@ class QuadraticInStepRangeFunction<V>(
         }
     }
 
+    /**
+     * 从结果列表求值单个符号。
+     * Evaluate a single symbol from a results list.
+     *
+     * @param symbol 要求值的符号 / the symbol to evaluate
+     * @param results 结果值列表 / list of result values
+     * @param tokenTable token 表 / the token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 符号值或 null / symbol value or null
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -116,6 +139,16 @@ class QuadraticInStepRangeFunction<V>(
         }
     }
 
+    /**
+     * 从值映射求值单个符号。
+     * Evaluate a single symbol from a value map.
+     *
+     * @param symbol 要求值的符号 / the symbol to evaluate
+     * @param values 符号到值的映射 / symbol-to-value map
+     * @param tokenTable 可选的 token 表 / optional token table
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 符号值或 null / symbol value or null
+     */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -129,6 +162,14 @@ class QuadraticInStepRangeFunction<V>(
         } ?: if (zeroIfNone) converter.zero else null
     }
 
+    /**
+     * 求值二次多项式。
+     * Evaluate a quadratic polynomial.
+     *
+     * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
+     * @param resolve 符号解析函数 / symbol resolution function
+     * @return 多项式值或 null / polynomial value or null
+     */
     private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
@@ -146,6 +187,13 @@ class QuadraticInStepRangeFunction<V>(
         return value
     }
 
+    /**
+     * 求值步进区间逻辑：x 在范围内返回 x，否则返回 0。
+     * Evaluate step-range logic: return x if in range, else 0.
+     *
+     * @param resolve 符号解析函数 / symbol resolution function
+     * @return 步进区间结果值或 null / step-range result value or null
+     */
     private fun evaluateStepRange(
         resolve: (Symbol) -> V?
     ): V? {
@@ -159,6 +207,7 @@ class QuadraticInStepRangeFunction<V>(
         }
     }
 
+    /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
@@ -173,8 +222,11 @@ class QuadraticInStepRangeFunction<V>(
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
+    /** 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null). */
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    /** 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null). */
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    /** 使用 Flt64 值映射求值（始终返回 null）。 / Evaluate with Flt64 value map (always returns null). */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
@@ -199,10 +251,12 @@ class QuadraticInStepRangeFunction<V>(
             evaluateSymbol(symbol, values, tokenTable, zeroIfNone)
         }
     }
+    /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedResults = results.map { converter.intoValue(it) }
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
+    /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(typedValues, tokenTable, converter, zeroIfNone)
@@ -238,32 +292,32 @@ class QuadraticInStepRangeFunction<V>(
 
         val constraints = mutableListOf<QuadraticInequalityOf<V>>()
 
-        // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower
+        // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower / C1：x + M*(1-z) >= 下界
         val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), x.constant + m)
         val c1Rhs = QuadraticPolynomial<V>(emptyList(), lower)
         constraints += QuadraticInequalityOf(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
 
-        // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper
+        // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper / C2：x <= 上界 + M*(1-z)
         val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), x.constant - m)
         val c2Rhs = QuadraticPolynomial<V>(emptyList(), upper)
         constraints += QuadraticInequalityOf(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
 
-        // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0
+        // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0 / C3：y - x + M*(1-z) >= 0
         val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -x.constant + m)
         val c3Rhs = QuadraticPolynomial<V>(emptyList(), zero)
         constraints += QuadraticInequalityOf(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
 
-        // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0
+        // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0 / C4：y - x - M*(1-z) <= 0
         val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -x.constant - m)
         val c4Rhs = QuadraticPolynomial<V>(emptyList(), zero)
         constraints += QuadraticInequalityOf(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
 
-        // C5: y <= M*z
+        // C5: y <= M*z / C5：y <= M*z
         val c5Lhs = QuadraticPolynomial(listOf(yMon), zero)
         val c5Rhs = QuadraticPolynomial(listOf(zMon), zero)
         constraints += QuadraticInequalityOf(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
 
-        // C6: y >= -M*z
+        // C6: y >= -M*z / C6：y >= -M*z
         val c6Lhs = QuadraticPolynomial(listOf(yMon), zero)
         val c6Rhs = QuadraticPolynomial(listOf(negZMon), zero)
         constraints += QuadraticInequalityOf(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
@@ -272,6 +326,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     companion object {
+        /** 创建 [QuadraticInStepRangeFunction] 实例。 / Create a [QuadraticInStepRangeFunction] instance. */
         operator fun <V> invoke(
             x: QuadraticPolynomial<V>,
             lower: V,

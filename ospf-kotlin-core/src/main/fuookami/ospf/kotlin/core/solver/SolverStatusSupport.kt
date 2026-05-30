@@ -1,3 +1,4 @@
+/** 求解器状态支持 / Solver status support */
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -18,6 +19,10 @@ import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 /**
  * 统一 callback 失败结果处理，命中失败分支时执行 abort 并返回 `true`。
  * Unified callback failure handling; executes abort and returns `true` on failure branches.
+ *
+ * @param callbackResult 回调结果（可选）/ Callback result (optional)
+ * @param abort 中止操作 / Abort operation
+ * @return 是否命中失败分支 / Whether a failure branch was hit
  */
 inline fun shouldAbortOnCallbackFailure(
     callbackResult: Try?,
@@ -38,6 +43,9 @@ inline fun shouldAbortOnCallbackFailure(
 /**
  * 将 `SolverStatus` 映射到错误码，并在缺失时返回兜底值。
  * Map `SolverStatus` to error code and return fallback when status error code is absent.
+ *
+ * @param fallback 兜底错误码 / Fallback error code
+ * @return 错误码 / Error code
  */
 fun SolverStatus.resolveErrCode(
     fallback: ErrorCode = ErrorCode.OREngineSolvingException
@@ -48,6 +56,10 @@ fun SolverStatus.resolveErrCode(
 /**
  * 基于 `SolverStatus` 构造统一失败结果。
  * Build a unified failed result from `SolverStatus`.
+ *
+ * @param status 求解器状态 / Solver status
+ * @param fallback 兜底错误码 / Fallback error code
+ * @return 失败结果 / Failure result
  */
 fun failByStatus(
     status: SolverStatus,

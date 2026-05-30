@@ -42,14 +42,14 @@ data object UUIDv7 {
      * @return 16 字节的 UUIDv7 字节数组 / A 16-byte array representing the UUIDv7
      */
     fun generate(): ByteArray {
-        // random bytes
+        // random bytes / 随机字节
         val value = ByteArray(16)
         random.nextBytes(value)
 
-        // current timestamp in ms
+        // current timestamp in ms / 当前时间戳（毫秒）
         val timestamp = Instant.now().toEpochMilli()
 
-        // timestamp
+        // timestamp / 写入时间戳
         value[0] = ((timestamp shr 40) and 0xFF).toByte()
         value[1] = ((timestamp shr 32) and 0xFF).toByte()
         value[2] = ((timestamp shr 24) and 0xFF).toByte()
@@ -57,7 +57,7 @@ data object UUIDv7 {
         value[4] = ((timestamp shr 8) and 0xFF).toByte()
         value[5] = (timestamp and 0xFF).toByte()
 
-        // version and variant
+        // version and variant / 设置版本号和变体位
         value[6] = (value[6].toInt() and 0x0F or 0x70).toByte()
         value[8] = (value[8].toInt() and 0x3F or 0x80).toByte()
 

@@ -1,5 +1,6 @@
-/** 最大值函数符号 / Maximum function symbol */
 @file:Suppress("unused")
+
+/** 最大值函数符号 / Maximum function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -36,6 +37,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property polynomials 输入线性多项式列表 / List of input linear polynomials
  * @property resultVar 结果变量 / Result variable
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -85,7 +90,7 @@ class MaxFunction<V>(
         val resultMon = LinearMonomial(one, resultVar)
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // result >= poly[i] for each i
+        // result >= poly[i] for each i / 结果大于等于每个 poly[i]
         for (i in polynomials.indices) {
             val poly = polynomials[i]
             val lbMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
@@ -94,7 +99,7 @@ class MaxFunction<V>(
                 LinearPolynomial(emptyList(), zero), Comparison.GE)
         }
 
-        // result - poly[i] + M*sel[i] <= M
+        // result - poly[i] + M*sel[i] <= M / 结果 - poly[i] + M*选择变量 <= M
         for (i in polynomials.indices) {
             val poly = polynomials[i]
             val ubMonos = listOf(resultMon) +
@@ -105,7 +110,7 @@ class MaxFunction<V>(
                 LinearPolynomial(emptyList(), bigM), Comparison.LE)
         }
 
-        // sum(sel[i]) = 1
+        // sum(sel[i]) = 1 / 选择变量之和等于 1
         val selMonos = selectorVars.map { LinearMonomial(one, it) }
         allConstraints += LinearInequality(
             LinearPolynomial(selMonos, zero),
@@ -115,6 +120,7 @@ class MaxFunction<V>(
         return ok
     }
     companion object {
+        /** 创建 [MaxFunction] 实例。 / Create a [MaxFunction] instance. */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
@@ -124,6 +130,7 @@ class MaxFunction<V>(
         ): MaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MaxFunction(polynomials, bigM, converter, name, displayName)
 
+        /** 从线性中间符号列表创建 [MaxFunction] 适配器。 / Create a [MaxFunction] adapter from linear intermediate symbols. */
         @JvmStatic
         @JvmName("fromSymbols")
         fun <V> fromSymbols(
@@ -156,6 +163,10 @@ class MaxFunction<V>(
  *
  * @property polynomials 输入线性多项式列表 / List of input linear polynomials
  * @property resultVar 结果变量 / Result variable
+ * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class MinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -205,7 +216,7 @@ class MinFunction<V>(
         val resultMon = LinearMonomial(one, resultVar)
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // result <= poly[i] for each i
+        // result <= poly[i] for each i / 结果小于等于每个 poly[i]
         for (i in polynomials.indices) {
             val poly = polynomials[i]
             val ubMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
@@ -214,7 +225,7 @@ class MinFunction<V>(
                 LinearPolynomial(emptyList(), zero), Comparison.LE)
         }
 
-        // result - poly[i] + M*sel[i] >= 0
+        // result - poly[i] + M*sel[i] >= 0 / 结果 - poly[i] + M*选择变量 >= 0
         for (i in polynomials.indices) {
             val poly = polynomials[i]
             val lbMonos = listOf(resultMon) +
@@ -225,7 +236,7 @@ class MinFunction<V>(
                 LinearPolynomial(emptyList(), zero), Comparison.GE)
         }
 
-        // sum(sel[i]) = 1
+        // sum(sel[i]) = 1 / 选择变量之和等于 1
         val selMonos = selectorVars.map { LinearMonomial(one, it) }
         allConstraints += LinearInequality(
             LinearPolynomial(selMonos, zero),
@@ -235,6 +246,7 @@ class MinFunction<V>(
         return ok
     }
     companion object {
+        /** 创建 [MinFunction] 实例。 / Create a [MinFunction] instance. */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
@@ -244,6 +256,7 @@ class MinFunction<V>(
         ): MinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MinFunction(polynomials, bigM, converter, name, displayName)
 
+        /** 从线性中间符号列表创建 [MinFunction] 适配器。 / Create a [MinFunction] adapter from linear intermediate symbols. */
         @JvmStatic
         @JvmName("fromSymbols")
         fun <V> fromSymbols(

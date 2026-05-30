@@ -1,5 +1,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 列生成求解器
+ * Column Generation Solver
+ *
+ * 定义列生成求解器接口及其 MILP/LP 求解、异步变体和值转换扩展。
+ * Defines column generation solver interface with MILP/LP solving, async variants, and value conversion extensions.
+ */
 package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
@@ -24,13 +31,32 @@ import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlinx.coroutines.future.future
 
+/** Flt64 线性元模型 / Flt64 linear meta model */
 typealias Flt64LinearMetaModel = LinearMetaModel<Flt64>
+/** Flt64 可行求解器输出 / Flt64 feasible solver output */
 typealias Flt64FeasibleSolverOutput = FeasibleSolverOutput<Flt64>
+/** Flt64 解池 / Flt64 solution pool */
 typealias Flt64SolutionPool = List<Solution<Flt64>>
 
+/**
+ * 列生成求解器接口
+ * Column generation solver interface
+ */
 interface ColumnGenerationSolver {
+    /** 求解器名称 / Solver name */
     val name: String
 
+    /**
+     * 求解 MILP 问题
+     * Solve MILP problem
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun solveMILP(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -158,6 +184,13 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * LP 求解结果
+     * LP solve result
+     *
+     * @property result 可行求解器输出 / Feasible solver output
+     * @property dualSolution 对偶解 / Dual solution
+     */
     data class LPResult(
         val result: Flt64FeasibleSolverOutput,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
@@ -169,6 +202,17 @@ interface ColumnGenerationSolver {
         val gap: Flt64 by result::gap
     }
 
+    /**
+     * 求解 LP 问题
+     * Solve LP problem
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun solveLP(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -490,6 +534,14 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 带值转换的 LP 求解结果
+     * LP solve result with value conversion
+     *
+     * @property result 可行求解器输出 / Feasible solver output
+     * @property dualSolution 对偶解 / Dual solution
+     * @param V 目标数值类型 / Target number type
+     */
     data class LPResultV<V>(
         val result: FeasibleSolverOutput<V>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>

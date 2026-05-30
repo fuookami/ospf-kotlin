@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务时间冲突约束 / Task time conflict constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq
@@ -14,6 +15,17 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 
+/**
+ * 任务时间冲突约束 / Task time conflict constraint
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param compilation 任务编译结果 / Task compilation result
+ * @param name 管道名称 / Pipeline name
+ */
 class TaskTimeConflictConstraint<
         T : AbstractTask<E, A>,
         E : Executor,

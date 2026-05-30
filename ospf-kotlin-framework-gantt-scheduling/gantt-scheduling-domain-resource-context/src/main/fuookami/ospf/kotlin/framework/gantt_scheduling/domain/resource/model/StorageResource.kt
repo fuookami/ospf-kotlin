@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 存储资源模型 / Storage resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -31,6 +32,15 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
+/**
+ * 存储资源 / Storage resource
+ *
+ * @param C 资源容量类型 / Resource capacity type
+ * @param id 资源ID / Resource ID
+ * @param name 资源名称 / Resource name
+ * @param capacities 容量列表 / List of capacities
+ * @param initialQuantity 初始数量 / Initial quantity
+ */
 abstract class StorageResource<out C : AbstractResourceCapacity>(
     override val id: String,
     override val name: String,
@@ -130,6 +140,17 @@ abstract class StorageResource<out C : AbstractResourceCapacity>(
     }
 }
 
+/**
+ * 存储资源时间槽 / Storage resource time slot
+ *
+ * @param R 存储资源类型 / Storage resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param origin 原始时间槽 / Origin time slot
+ * @param resource 资源 / Resource
+ * @param resourceCapacity 资源容量 / Resource capacity
+ * @param indexInRule 规则内索引 / Index in rule
+ */
 data class StorageResourceTimeSlot<
         out R : StorageResource<C>,
         out C : AbstractResourceCapacity
@@ -176,8 +197,19 @@ data class StorageResourceTimeSlot<
     }
 }
 
+/** 存储资源使用类型别名 / Storage resource usage typealias */
 typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, C>, R, C>
 
+/**
+ * 抽象存储资源使用 / Abstract storage resource usage
+ *
+ * @param R 存储资源类型 / Storage resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ */
 abstract class AbstractStorageResourceUsage<
         out E : Executor,
         out R : StorageResource<C>,
@@ -324,6 +356,21 @@ abstract class AbstractStorageResourceUsage<
     }
 }
 
+/**
+ * 任务调度存储资源使用 / Task scheduling storage resource usage
+ *
+ * @param E 执行器类型 / Executor type
+ * @param R 存储资源类型 / Storage resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param executors 执行器列表 / List of executors
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ * @param overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
+ */
 class TaskSchedulingStorageResourceUsage<
         out E : Executor,
         out R : StorageResource<C>,
@@ -392,6 +439,19 @@ class TaskSchedulingStorageResourceUsage<
     }
 }
 
+/**
+ * 迭代任务调度存储资源使用 / Iterative task scheduling storage resource usage
+ *
+ * @param E 执行器类型 / Executor type
+ * @param R 存储资源类型 / Storage resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param executors 执行器列表 / List of executors
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ */
 class IterativeTaskSchedulingStorageResourceUsage<
         out E : Executor,
         out R : StorageResource<C>,
@@ -570,6 +630,19 @@ class IterativeTaskSchedulingStorageResourceUsage<
     }
 }
 
+/**
+ * 任务束调度存储资源使用 / Bunch scheduling storage resource usage
+ *
+ * @param E 执行器类型 / Executor type
+ * @param R 存储资源类型 / Storage resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param timeWindow 时间窗口 / Time window
+ * @param executors 执行器列表 / List of executors
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ */
 class BunchSchedulingStorageResourceUsage<
         out E : Executor,
         out R : StorageResource<C>,

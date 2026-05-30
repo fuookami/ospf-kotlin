@@ -18,10 +18,18 @@ import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
-/** 符号线性不等式包装 / Symbolic linear inequality wrapper */
+/**
+ * 符号线性不等式包装 / Symbolic linear inequality wrapper
+ *
+ * @property inequality 线性不等式 / The linear inequality
+ */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 
-/** 符号二次不等式包装 / Symbolic quadratic inequality wrapper */
+/**
+ * 符号二次不等式包装 / Symbolic quadratic inequality wrapper
+ *
+ * @property inequality 二次不等式 / The quadratic inequality
+ */
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
 
 // ========== Constraint<V, P> ==========
@@ -68,6 +76,7 @@ data class MetaDualSolution(
     val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
 )
 
+/** 将线性对偶解映射转换为元对偶解 / Convert a linear dual solution mapping to meta dual solution */
 @JvmName("linearDualSolutionToMetaDualSolution")
 fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
@@ -82,6 +91,7 @@ fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualS
     )
 }
 
+/** 将二次对偶解映射转换为元对偶解 / Convert a quadratic dual solution mapping to meta dual solution */
 @JvmName("quadraticDualSolutionToMetaDualSolution")
 fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
@@ -107,6 +117,7 @@ fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDu
  * @param P 多项式类别 / Polynomial category
  * @property lhs 左侧单元列表 / Left-hand side cell list
  * @property sign 约束关系符号 / Constraint relation sign
+ * @property _rhs 右侧常量（私有存储）/ Right-hand side constant (private storage)
  * @property lazy 是否延迟求值 / Whether lazy evaluation
  * @property name 约束名称 / Constraint name
  * @property origin 来源约束 / Origin constraint
@@ -146,6 +157,12 @@ sealed class ConstraintImpl<V, P : Category>(
  *
  * @param V 数值类型 / The number type
  * @property lhs 线性单元列表 / Linear cell list
+ * @param sign 约束关系符号 / Constraint relation sign
+ * @param rhs 右侧常量 / Right-hand side constant
+ * @param lazy 是否延迟求值 / Whether lazy evaluation
+ * @param name 约束名称 / Constraint name
+ * @param origin 来源约束 / Origin constraint
+ * @param from 来源符号和标志 / Source symbol and flag
  */
 class LinearConstraintImpl<V>(
     override val lhs: List<LinearCell<V>>,
@@ -197,6 +214,12 @@ class LinearConstraintImpl<V>(
  *
  * @param V 数值类型 / The number type
  * @property lhs 二次单元列表 / Quadratic cell list
+ * @param sign 约束关系符号 / Constraint relation sign
+ * @param rhs 右侧常量 / Right-hand side constant
+ * @param lazy 是否延迟求值 / Whether lazy evaluation
+ * @param name 约束名称 / Constraint name
+ * @param origin 来源约束 / Origin constraint
+ * @param from 来源符号和标志 / Source symbol and flag
  */
 class QuadraticConstraintImpl<V>(
     override val lhs: List<QuadraticCell<V>>,

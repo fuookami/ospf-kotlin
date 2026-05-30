@@ -1,3 +1,7 @@
+/**
+ * 回调模型接口定义
+ * Call-back model interface definitions
+ */
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.model.callback
 
@@ -23,11 +27,15 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
  */
 interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<SolutionValue>, AutoCloseable
         where SolutionValue : RealNumber<SolutionValue>, SolutionValue : NumberField<SolutionValue> {
+    /** 默认目标值（用于无解时的初始值） / Default objective value (used as initial value when no solution exists) */
     val defaultObjective: ObjValue
 
+    /** 可变令牌表 / The mutable token table */
     val tokens: AbstractMutableTokenTable<SolutionValue>
+    /** 约束列表（提取器与名称的配对） / Constraint list (pairs of extractor and name) */
     val constraints: List<Pair<Extractor<Boolean?, Solution<SolutionValue>>, String>>
 
+    /** 目标函数列表（提取器与名称的配对） / Objective function list (pairs of extractor and name) */
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<SolutionValue>>, String>>
 
     /** 生成初始解列表，默认为空。 / Generate a list of initial solutions, empty by default. */

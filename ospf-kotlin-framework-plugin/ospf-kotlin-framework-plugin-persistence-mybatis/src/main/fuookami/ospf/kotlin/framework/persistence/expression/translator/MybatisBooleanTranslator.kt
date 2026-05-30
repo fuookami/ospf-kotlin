@@ -29,6 +29,7 @@ typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
  *
  * @param T 实体类型 / Entity type
  * @property resolveColumnName 列名解析函数 / Column name resolver function
+ * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
  */
 class MybatisBooleanTranslator<T : Any>(
     private val resolveColumnName: MybatisColumnNameResolver,
@@ -37,16 +38,24 @@ class MybatisBooleanTranslator<T : Any>(
     private val scalarTranslator = MybatisScalarTranslator(resolveColumnName, unsupportedPredicatePolicy)
 
     /**
-     * 翻译到 QueryWrapper
-     * Translate to QueryWrapper
+     * 翻译布尔表达式到 QueryWrapper
+     * Translate boolean expression to QueryWrapper
+     *
+     * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
+     * @param expr 布尔表达式 / Boolean expression
+     * @return 应用条件后的 QueryWrapper / QueryWrapper with condition applied
      */
     fun translate(wrapper: QueryWrapper<T>, expr: BooleanExpression): QueryWrapper<T> {
         return translateInternal(wrapper, expr)
     }
 
     /**
-     * 翻译到 UpdateWrapper
-     * Translate to UpdateWrapper
+     * 翻译布尔表达式到 UpdateWrapper
+     * Translate boolean expression to UpdateWrapper
+     *
+     * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
+     * @param expr 布尔表达式 / Boolean expression
+     * @return 应用条件后的 UpdateWrapper / UpdateWrapper with condition applied
      */
     fun translate(wrapper: UpdateWrapper<T>, expr: BooleanExpression): UpdateWrapper<T> {
         return translateInternal(wrapper, expr)

@@ -2,6 +2,9 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 任务步骤图模型，定义多步任务的步骤关系 / Task step graph model defining step relationships for multi-step tasks
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.error.Err
@@ -11,11 +14,27 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import kotlin.time.Duration
 
+/**
+ * 步骤关系枚举 / Step relation enumeration
+ */
 enum class StepRelation {
+    /** 与关系（所有前置步骤必须完成）/ And relation (all preceding steps must complete) */
     And,
+    /** 或关系（任一前置步骤完成即可）/ Or relation (any preceding step completion is sufficient) */
     Or
 }
 
+/**
+ * 抽象任务步骤 / Abstract task step
+ *
+ * @param T 多步任务类型 / The multi-step task type
+ * @param S 步骤计划类型 / The step plan type
+ * @param E 执行者类型 / The executor type
+ * @property id 步骤ID / The step ID
+ * @property name 步骤名称 / The step name
+ * @property enabledExecutors 启用的执行者集合 / The set of enabled executors
+ * @property status 任务状态集合 / The set of task statuses
+ */
 abstract class TaskStep<
         out T : AbstractMultiStepTask<T, S, E>,
         out S : AbstractTaskStepPlan<S, T, E>,
@@ -35,6 +54,16 @@ abstract class TaskStep<
     }
 }
 
+/**
+ * 前向任务步骤向量，表示步骤的前向关系 / Forward task step vector representing forward relationships between steps
+ *
+ * @param T 多步任务类型 / The multi-step task type
+ * @param S 步骤计划类型 / The step plan type
+ * @param E 执行者类型 / The executor type
+ * @property from 源步骤 / The source step
+ * @property to 目标步骤列表 / The list of target steps
+ * @property relation 步骤关系 / The step relation
+ */
 data class ForwardTaskStepVector<
         out T : AbstractMultiStepTask<T, S, E>,
         out S : AbstractTaskStepPlan<S, T, E>,
@@ -45,6 +74,16 @@ data class ForwardTaskStepVector<
     val relation: StepRelation
 )
 
+/**
+ * 后向任务步骤向量，表示步骤的后向关系 / Backward task step vector representing backward relationships between steps
+ *
+ * @param T 多步任务类型 / The multi-step task type
+ * @param S 步骤计划类型 / The step plan type
+ * @param E 执行者类型 / The executor type
+ * @property from 源步骤列表 / The list of source steps
+ * @property to 目标步骤 / The target step
+ * @property relation 步骤关系 / The step relation
+ */
 data class BackwardTaskStepVector<
         out T : AbstractMultiStepTask<T, S, E>,
         out S : AbstractTaskStepPlan<S, T, E>,
@@ -55,6 +94,19 @@ data class BackwardTaskStepVector<
     val relation: StepRelation
 )
 
+/**
+ * 任务步骤图，表示多步任务的步骤依赖关系（必须为DAG）/ Task step graph representing step dependencies for multi-step tasks (must be a DAG)
+ *
+ * @param T 多步任务类型 / The multi-step task type
+ * @param S 步骤计划类型 / The step plan type
+ * @param E 执行者类型 / The executor type
+ * @property id 图ID / The graph ID
+ * @property name 图名称 / The graph name
+ * @property steps 步骤列表 / The list of steps
+ * @property startSteps 起始步骤及关系 / The start steps and their relation
+ * @property forwardTaskStepVector 前向步骤向量映射 / The forward step vector mapping
+ * @property backwardStepRelation 后向步骤关系映射 / The backward step relation mapping
+ */
 open class TaskStepGraph<
         out T : AbstractMultiStepTask<T, S, E>,
         out S : AbstractTaskStepPlan<S, T, E>,
@@ -85,6 +137,17 @@ open class TaskStepGraph<
     }
 }
 
+/**
+ * 任务步骤图构建器 / Task step graph builder
+ *
+ * @param T 多步任务类型 / The multi-step task type
+ * @param S 步骤计划类型 / The step plan type
+ * @param E 执行者类型 / The executor type
+ * @property id 图ID / The graph ID
+ * @property name 图名称 / The graph name
+ * @property steps 步骤列表 / The list of steps
+ * @property startSteps 起始步骤及关系 / The start steps and their relation
+ */
 data class TaskStepGraphBuilder<
         out T : AbstractMultiStepTask<T, S, E>,
         out S : AbstractTaskStepPlan<S, T, E>,

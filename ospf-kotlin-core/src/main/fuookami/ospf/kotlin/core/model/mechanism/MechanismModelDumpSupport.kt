@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 
+/** 创建约束转储进度回调函数 / Create a constraint dumping progress callback function */
 private fun <V> dumpingConstraintsProgressCallback(
     metaModel: MetaModel<V>,
     callBack: MechanismModelDumpingStatusCallBack?
@@ -26,6 +27,7 @@ private fun <V> dumpingConstraintsProgressCallback(
     }
 }
 
+/** 通知约束转储完成 / Notify that constraint dumping has completed */
 private fun <V> notifyDumpingConstraintsCompleted(
     metaModel: MetaModel<V>,
     callBack: MechanismModelDumpingStatusCallBack?

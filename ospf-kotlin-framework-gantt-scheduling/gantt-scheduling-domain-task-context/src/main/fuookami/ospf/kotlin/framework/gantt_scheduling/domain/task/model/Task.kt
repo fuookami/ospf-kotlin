@@ -2,6 +2,9 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 任务模型，包含任务类型、任务键和任务接口 / Task model containing task type, task key, and task interface
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
@@ -20,6 +23,11 @@ import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import kotlin.time.Duration
 
+/**
+ * 任务类型，基于KClass / Task type based on KClass
+ *
+ * @property cls 关联的KClass / The associated KClass
+ */
 open class TaskType(
     val cls: KClass<*>
 ) {
@@ -45,6 +53,12 @@ open class TaskType(
     infix fun neq(cls: KClass<*>) = this.cls != cls
 }
 
+/**
+ * 任务键，由ID和类型组成 / Task key composed of ID and type
+ *
+ * @property id 任务ID / The task ID
+ * @property type 任务类型 / The task type
+ */
 open class TaskKey(
     val id: String,
     val type: TaskType
@@ -66,6 +80,14 @@ open class TaskKey(
     }
 }
 
+/**
+ * 计算提前时间 / Calculate advance time
+ *
+ * @param time 实际时间 / The actual time
+ * @param timeWindow 时间窗口 / The time window
+ * @param targetTime 目标时间 / The target time
+ * @return 提前时间 / The advance duration
+ */
 private fun advance(time: TimeRange?, timeWindow: TimeRange?, targetTime: TimeRange?): Duration {
     return if (targetTime != null && time != null) {
         val advance = targetTime.start - time.start
@@ -86,6 +108,14 @@ private fun advance(time: TimeRange?, timeWindow: TimeRange?, targetTime: TimeRa
     }
 }
 
+/**
+ * 计算延迟时间 / Calculate delay time
+ *
+ * @param time 实际时间 / The actual time
+ * @param timeWindow 时间窗口 / The time window
+ * @param targetTime 目标时间 / The target time
+ * @return 延迟时间 / The delay duration
+ */
 private fun delay(time: TimeRange?, timeWindow: TimeRange?, targetTime: TimeRange?): Duration {
     return if (targetTime != null && time != null) {
         val delay = time.start - targetTime.start
@@ -106,6 +136,12 @@ private fun delay(time: TimeRange?, timeWindow: TimeRange?, targetTime: TimeRang
     }
 }
 
+/**
+ * 抽象任务接口，定义任务的基本属性和行为 / Abstract task interface defining basic task properties and behaviors
+ *
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ */
 interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
     Eq<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>> {
     val type: TaskType get() = TaskType(AbstractTask::class)
@@ -261,6 +297,15 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
         }
 }
 
+/**
+ * 抽象未计划任务，表示尚未分配执行者和时间的任务 / Abstract unplanned task representing a task not yet assigned executor and time
+ *
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ * @property id 任务ID / The task ID
+ * @property name 任务名称 / The task name
+ * @property assignmentPolicy 分配策略 / The assignment policy
+ */
 open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     override val id: String,
     override val name: String,
@@ -309,6 +354,15 @@ open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
     }
 }
 
+/**
+ * 抽象已计划任务，基于任务计划和可选的分配策略 / Abstract planned task based on task plan and optional assignment policy
+ *
+ * @param P 任务计划类型 / The task plan type
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ * @property plan 任务计划 / The task plan
+ * @property assignmentPolicy 分配策略 / The assignment policy
+ */
 open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, out A : AssignmentPolicy<E>>(
     open val plan: P,
     override val assignmentPolicy: A?,
@@ -376,8 +430,8 @@ open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, ou
         )
     }
 
-    // it is disabled to schedule if there is actual time or time
-    // it is necessary to be participated in the problem, but it is disallowed to set recovery policy
+    // it is disabled to schedule if there is actual time or time / 如果已有实际时间或时间，则禁用调度
+    // it is necessary to be participated in the problem, but it is disallowed to set recovery policy / 需要参与问题求解，但不允许设置恢复策略
     override fun scheduleEnabled(timeWindow: TimeRange): Boolean {
         return (plan.time?.start?.let { timeWindow.contains(it) }
             ?: this.timeWindow?.let { timeWindow.withIntersection(it) }
@@ -465,8 +519,15 @@ open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, ou
     }
 }
 
+/** 任务类型别名 / Task type alias */
 typealias Task<P, E> = AbstractPlannedTask<P, E, AssignmentPolicy<E>>
 
+/**
+ * 迭代抽象任务接口 / Iterative abstract task interface
+ *
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ */
 interface IterativeAbstractTask<
         out E : Executor,
         out A : AssignmentPolicy<E>

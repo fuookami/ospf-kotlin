@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 从比较运算创建约束符号时的无效输入异常。
  * Exception thrown when creating a constraint sign from an invalid comparison.
  *
- * @property sign 无效的比较运算 / The invalid comparison
+ * @param sign 无效的比较运算 / The invalid comparison
  */
 class InvalidConstraintSignFromComparison(
     sign: Comparison
@@ -43,6 +43,7 @@ enum class ConstraintRelation {
     };
 
     companion object {
+        /** 从比较运算创建约束关系，NE 比较将抛出异常 / Create a constraint relation from a comparison; NE comparison will throw an exception */
         @Throws(InvalidConstraintSignFromComparison::class)
         operator fun invoke(comparison: Comparison) = when (comparison) {
             Comparison.LT -> LessEqual

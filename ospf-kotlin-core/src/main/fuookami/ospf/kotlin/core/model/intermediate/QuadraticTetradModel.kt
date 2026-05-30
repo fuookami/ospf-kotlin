@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
+/** 判断此二次约束是否为单变量边界约束（单项、系数为1、无二次项） / Check whether this quadratic constraint is a single-variable bound constraint (single term, coefficient 1, no quadratic term) */
 private fun QuadraticConstraintImpl<Flt64>.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
@@ -45,7 +46,7 @@ private fun QuadraticConstraintImpl<Flt64>.isBound(): Boolean {
  * @property rowIndex 行索引 / Row index
  * @property colIndex1 第一列索引 / First column index
  * @property colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
- * @property coefficient 系数 / Coefficient
+ * @param coefficient 系数 / Coefficient
  */
 class QuadraticConstraintCell(
     override val rowIndex: Int,
@@ -84,6 +85,13 @@ class QuadraticConstraintCell(
  * including constraint signs, right-hand side constants, and constraint sources.
  *
  * @property sparseLhs 稀疏二次矩阵（左侧）/ Sparse quadratic matrix (left-hand side)
+ * @param signs 约束关系符号列表 / Constraint relation sign list
+ * @param rhs 右侧常量列表 / Right-hand side constant list
+ * @param names 约束名称列表 / Constraint name list
+ * @param sources 约束来源类型列表 / Constraint source type list
+ * @param origins 约束来源列表 / Constraint origin list
+ * @param froms 约束来源符号列表 / Constraint from-symbol list
+ * @param priorities 约束优先级列表 / Constraint priority list
  */
 class QuadraticConstraintBatch(
     val sparseLhs: SparseQuadraticMatrix,
@@ -164,7 +172,7 @@ class QuadraticConstraintBatch(
  *
  * @property colIndex1 第一列索引 / First column index
  * @property colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
- * @property coefficient 系数 / Coefficient
+ * @param coefficient 系数 / Coefficient
  */
 class QuadraticObjectiveCell(
     val colIndex1: Int,
@@ -453,6 +461,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     /** 构造弹性模型 / Construct the elastic model */
     fun elastic(): QuadraticTetradModelView
 
+    /** 整理对偶解，将非零对偶值映射回原始约束 / Tidy dual solution, mapping non-zero dual values back to original constraints */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> {
         return if (dual) {
             variables.associateNotNull {

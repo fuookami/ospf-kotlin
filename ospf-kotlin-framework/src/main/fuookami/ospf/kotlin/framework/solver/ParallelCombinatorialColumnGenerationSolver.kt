@@ -1,3 +1,10 @@
+/**
+ * 并行组合列生成求解器
+ * Parallel Combinatorial Column Generation Solver
+ *
+ * 将多个列生成求解器并行运行，取第一个或最优结果。
+ * Runs multiple column generation solvers in parallel, taking the first or best result.
+ */
 package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
@@ -11,6 +18,13 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
+/**
+ * 并行组合列生成求解器
+ * Parallel combinatorial column generation solver
+ *
+ * @property solvers 列生成求解器列表（懒加载） / Column generation solver list (lazy loaded)
+ * @property mode 并行组合模式，默认 Best / Parallel combinatorial mode, default Best
+ */
 class ParallelCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best

@@ -40,12 +40,20 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** CPLEX 线性求解器 / CPLEX linear solver */
 class CplexLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CplexSolverCallBack? = null
 ) : LinearSolver {
     override val name = "cplex"
 
+    /**
+     * 求解线性模型 / Solve linear model
+     *
+     * @param model 线性模型视图 / linear model view
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果 / solving result
+     */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -61,6 +69,14 @@ class CplexLinearSolver(
         }
     }
 
+    /**
+     * 求解线性模型，获取多个解 / Solve linear model, obtaining multiple solutions
+     *
+     * @param model 线性模型视图 / linear model view
+     * @param solutionAmount 期望解的数量 / desired number of solutions
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果及多个解 / solving result with multiple solutions
+     */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -111,6 +127,7 @@ class CplexLinearSolver(
     }
 }
 
+/** CPLEX 线性求解器内部实现 / CPLEX linear solver internal implementation */
 private class CplexLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: CplexSolverCallBack? = null,
@@ -127,6 +144,12 @@ private class CplexLinearSolverImpl(
 
     private val logger = logger()
 
+    /**
+     * 执行求解流程 / Execute solving process
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 求解结果 / solving result
+     */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name) },
@@ -152,6 +175,12 @@ private class CplexLinearSolverImpl(
         return Ok(output)
     }
 
+    /**
+     * 将模型转储到 CPLEX / Dump model to CPLEX
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         logger.trace { "Dumping to cplex model for $model" }
         warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
@@ -307,6 +336,12 @@ private class CplexLinearSolverImpl(
         return ok
     }
 
+    /**
+     * 配置 CPLEX 求解器参数 / Configure CPLEX solver parameters
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
         cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toSolverDouble("linear.config.gap"))
@@ -402,6 +437,7 @@ private class CplexLinearSolverImpl(
         return ok
     }
 
+    /** 执行 CPLEX 求解 / Execute CPLEX solving */
     private suspend fun solve(): Try {
         when (val result = callBack?.execIfContain(
             point = Point.Solving,
@@ -432,6 +468,12 @@ private class CplexLinearSolverImpl(
         return ok
     }
 
+    /**
+     * 分析求解结果 / Analyze solving result
+     *
+     * @param model 线性模型视图 / linear model view
+     * @return 操作结果 / operation result
+     */
     private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val obj = Flt64(cplex.objValue) + model.objective.constant

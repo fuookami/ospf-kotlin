@@ -28,17 +28,36 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * to eliminate unsafe `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` casts.
  */
 interface IntoValue<V : RealNumber<V>> {
+    /**
+     * 将 Flt64 转换为泛型值类型 V。
+     * Convert Flt64 to generic value type V.
+     *
+     * @param value Flt64 值 / Flt64 value
+     * @return 转换后的 V 值 / Converted V value
+     */
     fun intoValue(value: Flt64): V
 
+    /** 零值 / Zero value */
     val zero: V
+    /** 单值 / One value */
     val one: V
 
+    /** 负无穷 / Negative infinity */
     val negativeInfinity: V get() = intoValue(Flt64.negativeInfinity)
+    /** 正无穷 / Positive infinity */
     val infinity: V get() = intoValue(Flt64.infinity)
 
+    /**
+     * 将泛型值类型 V 转换回 Flt64。
+     * Convert generic value type V back to Flt64.
+     *
+     * @param value V 值 / V value
+     * @return 转换后的 Flt64 值 / Converted Flt64 value
+     */
     fun fromValue(value: V): Flt64
 
     companion object {
+        /** Flt64 恒等转换器 / Flt64 identity converter */
         @JvmField
         val Identity: IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
             override fun intoValue(value: fuookami.ospf.kotlin.math.algebra.number.Flt64): fuookami.ospf.kotlin.math.algebra.number.Flt64 = value
@@ -48,19 +67,12 @@ interface IntoValue<V : RealNumber<V>> {
         }
 
         /**
-         * 从 Flt64ValueConverter<V> 适配为 IntoValue<V>
-         * Adapt Flt64ValueConverter<V> to IntoValue<V>
+         * 从 Flt64ValueConverter 适配为 IntoValue。
+         * Adapt Flt64ValueConverter to IntoValue.
          *
-         * 允许直接使用数值类型的 companion 对象（如 Flt64、FltX、Rtn64、RtnX）
-         * 作为 IntoValue<V> 的提供者，消除重复的 flt64Converter 样板代码。
-         *
-         * Allows using numeric type companion objects (e.g., Flt64, FltX, Rtn64, RtnX)
-         * directly as IntoValue<V> providers, eliminating repetitive flt64Converter boilerplate.
-         *
-         * @param converter Flt64ValueConverter 提供者
-         * @param converter The Flt64ValueConverter provider
-         * @return IntoValue 适配器
-         * @return The IntoValue adapter
+         * @param V 值类型 / Value type
+         * @param converter Flt64ValueConverter 提供者 / Flt64ValueConverter provider
+         * @return IntoValue 适配器 / IntoValue adapter
          */
         fun <V : RealNumber<V>> fromConverter(converter: Flt64ValueConverter<V>): IntoValue<V> = Flt64ValueConverterAdapter(converter)
     }
@@ -72,6 +84,8 @@ interface IntoValue<V : RealNumber<V>> {
  *
  * 将 math 层的 Flt64ValueConverter<V> 接口适配为 core 层的 IntoValue<V> 接口。
  * Adapts the math layer's Flt64ValueConverter<V> interface to the core layer's IntoValue<V> interface.
+ *
+ * @property converter 被适配的 Flt64ValueConverter / The adapted Flt64ValueConverter
  */
 private class Flt64ValueConverterAdapter<V : RealNumber<V>>(
     private val converter: Flt64ValueConverter<V>
@@ -83,10 +97,10 @@ private class Flt64ValueConverterAdapter<V : RealNumber<V>>(
 }
 
 /**
- * 将 Flt64ValueConverter<V> 转换为 IntoValue<V>
- * Convert Flt64ValueConverter<V> to IntoValue<V>
+ * 将 Flt64ValueConverter 转换为 IntoValue。
+ * Convert Flt64ValueConverter to IntoValue.
  *
- * 扩展函数，允许直接写 `Flt64.intoValue()` 或 `FltX.intoValue()` 等。
- * Extension function allowing direct usage like `Flt64.intoValue()` or `FltX.intoValue()`.
+ * @param V 值类型 / Value type
+ * @return IntoValue 适配器 / IntoValue adapter
  */
 fun <V : RealNumber<V>> Flt64ValueConverter<V>.toIntoValue(): IntoValue<V> = IntoValue.fromConverter(this)

@@ -1,5 +1,6 @@
-/** 单变量线性分段函数符号 / Univariate linear piecewise function symbol */
 @file:Suppress("unused")
+
+/** 单变量线性分段函数符号 / Univariate linear piecewise function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -29,6 +30,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 使用二值选择变量选择激活的线段。
  * Uses binary selector variables to choose the active segment.
+ *
+ * @property x 输入线性多项式 / the input linear polynomial
+ * @property breakpoints 断点值列表 / list of breakpoint values
+ * @property slopes 各段斜率 / slope of each segment
+ * @property intercepts 各段截距 / intercept of each segment
+ * @param m Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+ * @property converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class UnivariateLinearPiecewiseFunction<V>(
     val x: LinearPolynomial<V>,
@@ -88,7 +98,7 @@ class UnivariateLinearPiecewiseFunction<V>(
         val bigMValue = m
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Exactly one segment must be active: sum(s[i]) = 1
+        // Exactly one segment must be active: sum(s[i]) = 1 / 恰好一个线段激活：sum(s[i]) = 1
         val sumMonos = selectorVars.map { LinearMonomial(one, it) }
         allConstraints += LinearInequality(
             LinearPolynomial(sumMonos, zero),
@@ -102,19 +112,23 @@ class UnivariateLinearPiecewiseFunction<V>(
             val intercept = intercepts[i]
 
             // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
+            // 下界：x >= bpLow - M*(1 - s[i])，即 x + M - M*s >= bpLow
             allConstraints += LinearInequality(
                 LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
                     LinearMonomial(-bigMValue, sVar), x.constant + bigMValue),
                 LinearPolynomial(emptyList(), bpLow), Comparison.GE, "${name}_seg_${i}_lb")
 
             // Upper bound: x <= bpHigh + M*(1 - s[i]) => x + M*s[i] <= bpHigh + M
+            // 上界：x <= bpHigh + M*(1 - s[i])，即 x + M*s[i] <= bpHigh + M
             allConstraints += LinearInequality(
                 LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
                     LinearMonomial(bigMValue, sVar), x.constant),
                 LinearPolynomial(emptyList(), bpHigh + bigMValue), Comparison.LE, "${name}_seg_${i}_ub")
 
             // y = slope*x + intercept when s[i]=1
+            // s[i]=1 时 y = slope*x + intercept
             // y - slope*x - intercept <= M*(1 - s[i]) => y - slope*x - intercept + M*s[i] <= M
+            // y - slope*x - intercept <= M*(1 - s[i])，即 y - slope*x - intercept + M*s[i] <= M
             val negSlopeXMonos = x.monomials.map { LinearMonomial(-it.coefficient * slope, it.symbol) }
             allConstraints += LinearInequality(
                 LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
@@ -122,6 +136,7 @@ class UnivariateLinearPiecewiseFunction<V>(
                 LinearPolynomial(emptyList(), bigMValue), Comparison.LE, "${name}_seg_${i}_eq_ub")
 
             // y - slope*x - intercept >= -M*(1 - s[i]) => y - slope*x - intercept - M*s[i] >= -M
+            // y - slope*x - intercept >= -M*(1 - s[i])，即 y - slope*x - intercept - M*s[i] >= -M
             allConstraints += LinearInequality(
                 LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
                     negSlopeXMonos + LinearMonomial(-bigMValue, sVar), -intercept),
@@ -132,6 +147,20 @@ class UnivariateLinearPiecewiseFunction<V>(
         return ok
     }
     companion object {
+        /**
+         * 创建分段线性函数实例。
+         * Create a piecewise linear function instance.
+         *
+         * @param x 输入线性多项式 / the input linear polynomial
+         * @param breakpoints 断点值列表 / list of breakpoint values
+         * @param slopes 各段斜率 / slope of each segment
+         * @param intercepts 各段截距 / intercept of each segment
+         * @param m Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 分段线性函数实例 / piecewise linear function instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<V>,
@@ -147,6 +176,18 @@ class UnivariateLinearPiecewiseFunction<V>(
                 converter = converter, name = name, displayName = displayName
             )
 
+        /**
+         * 从采样点创建分段线性函数。
+         * Create a piecewise linear function from sampling points.
+         *
+         * @param x 输入线性多项式 / the input linear polynomial
+         * @param points 采样点列表 / list of sampling points
+         * @param m Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 分段线性函数实例 / piecewise linear function instance
+         */
         @JvmStatic
         @JvmName("fromPoints")
         fun <V> fromPoints(

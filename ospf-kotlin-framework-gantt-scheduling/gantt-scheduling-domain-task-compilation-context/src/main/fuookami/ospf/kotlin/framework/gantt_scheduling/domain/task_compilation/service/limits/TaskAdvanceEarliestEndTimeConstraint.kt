@@ -1,5 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 任务提前最早结束时间约束 / Task advance earliest end time constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.geq
@@ -14,6 +15,13 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * 任务提前最早结束时间影子价格键 / Task advance earliest end time shadow price key
+ *
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param task 任务 / Task
+ */
 data class TaskAdvanceEarliestEndTimeShadowPriceKey<
         E : Executor,
         A : AssignmentPolicy<E>
@@ -21,6 +29,18 @@ data class TaskAdvanceEarliestEndTimeShadowPriceKey<
     val task: AbstractTask<E, A>
 ) : ShadowPriceKey(TaskAdvanceEarliestEndTimeShadowPriceKey::class)
 
+/**
+ * 任务提前最早结束时间约束 / Task advance earliest end time constraint
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param taskTime 任务时间对象 / Task time object
+ * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
+ * @param name 管道名称 / Pipeline name
+ */
 class TaskAdvanceEarliestEndTimeConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

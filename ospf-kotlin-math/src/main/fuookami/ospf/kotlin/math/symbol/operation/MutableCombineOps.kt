@@ -51,10 +51,10 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ) {
-    // Add rhs monomials
+    // Add rhs monomials / 添加右侧多项式的单项式
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
-    // Combine
+    // Combine / 合并同类项
     this.combineTerms(zero, isZero)
 }
 
@@ -71,10 +71,10 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ) {
-    // Subtract rhs monomials
+    // Subtract rhs monomials / 减去右侧多项式的单项式
     _monomials.addAll(rhs.monomials.map { -it })
     _constant -= rhs.constant
-    // Combine
+    // Combine / 合并同类项
     this.combineTerms(zero, isZero)
 }
 
@@ -115,10 +115,10 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.addAssignAndCombine(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ) {
-    // Add rhs monomials
+    // Add rhs monomials / 添加右侧多项式的单项式
     _monomials.addAll(rhs.monomials)
     _constant += rhs.constant
-    // Combine
+    // Combine / 合并同类项
     this.combineTerms(zero, isZero, symbolComparator)
 }
 
@@ -137,10 +137,10 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssignAndCombine(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ) {
-    // Subtract rhs monomials
+    // Subtract rhs monomials / 减去右侧多项式的单项式
     _monomials.addAll(rhs.monomials.map { -it })
     _constant = _constant - rhs.constant
-    // Combine
+    // Combine / 合并同类项
     this.combineTerms(zero, isZero, symbolComparator)
 }
 
@@ -164,7 +164,7 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.combineTerms(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ) {
-    // Use the same efficient algorithm as CanonicalOps.kt
+    // Use the same efficient algorithm as CanonicalOps.kt / 使用与 CanonicalOps.kt 相同的高效算法
     val combined = _monomials.combineCanonicalMonomials(zero, isZero, symbolComparator)
     _monomials.clear()
     _monomials.addAll(combined)
@@ -185,10 +185,10 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.addAssignAndCombine(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ) {
-    // Add rhs monomials
+    // Add rhs monomials / 添加右侧多项式的单项式
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
-    // Combine
+    // Combine / 合并同类项
     this.combineTerms(zero, isZero, symbolComparator)
 }
 
@@ -207,9 +207,9 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssignAndCombine(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ) {
-    // Subtract rhs monomials
+    // Subtract rhs monomials / 减去右侧多项式的单项式
     _monomials.addAll(rhs.monomials.map { -it })
     _constant = _constant - rhs.constant
-    // Combine
+    // Combine / 合并同类项
     this.combineTerms(zero, isZero, symbolComparator)
 }

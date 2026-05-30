@@ -112,16 +112,16 @@ class PowerVectorKey private constructor(
             val size = powers.size
             val sparsity = size.toDouble() / totalSymbols
 
-            // Auto-select: dense for small n or high sparsity
+            // Auto-select: dense for small n or high sparsity / 自动选择：符号数少或稀疏度高时使用稠密模式
             if (totalSymbols <= 5 || sparsity >= SPARSITY_THRESHOLD) {
-                // Dense mode
+                // Dense mode / 稠密模式
                 val vec = IntArray(totalSymbols)
                 for ((s, p) in powers) {
                     vec[symbolIndex[s]!!] = p.toInt()
                 }
                 return dense(vec)
             } else {
-                // Sparse mode
+                // Sparse mode / 稀疏模式
                 val entries = powers.entries.sortedBy { symbolIndex[it.key] }
                 val indices = IntArray(size) { symbolIndex[entries[it].key]!! }
                 val powersArr = IntArray(size) { entries[it].value.toInt() }

@@ -1,5 +1,6 @@
-/** 松弛范围函数符号 / Slack range function symbol */
 @file:Suppress("unused")
+
+/** 松弛范围函数符号 / Slack range function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -37,6 +38,8 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param type 变量类型（UInteger 或 UContinuous）/ variable type kind (UInteger or UContinuous)
  * @param constraint 是否添加 polyX leq ub / geq lb 约束 / whether to add polyX leq ub / geq lb constraints
  * @param converter 值类型转换器 / value type converter
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SlackRangeFunction<V>(
     val x: LinearPolynomial<V>,
@@ -109,7 +112,20 @@ class SlackRangeFunction<V>(
     }
 
     companion object {
-        /** 使用 lb/ub 多项式的 V 泛型工厂。 / V-generic factory with lb/ub polynomials. */
+        /**
+         * 使用 lb/ub 多项式的 V 泛型工厂。
+         * V-generic factory with lb/ub polynomials.
+         *
+         * @param x 要约束的表达式 / the expression to bound
+         * @param lb 下界多项式 / lower bound polynomial
+         * @param ub 上界多项式 / upper bound polynomial
+         * @param type 变量类型 / variable type kind
+         * @param constraint 是否添加约束 / whether to add constraints
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 松弛范围函数实例 / slack range function instance
+         */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lb: LinearPolynomial<V>,
@@ -122,7 +138,20 @@ class SlackRangeFunction<V>(
         ): SlackRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SlackRangeFunction(x, lb, ub, type, constraint, converter, name, displayName)
 
-        /** 使用 LinearIntermediateSymbol 和 lb/ub 多项式的 V 泛型工厂。 / V-generic factory with LinearIntermediateSymbol and lb/ub polynomials. */
+        /**
+         * 使用 LinearIntermediateSymbol 和 lb/ub 多项式的 V 泛型工厂。
+         * V-generic factory with LinearIntermediateSymbol and lb/ub polynomials.
+         *
+         * @param x 线性中间符号 / linear intermediate symbol
+         * @param lb 下界多项式 / lower bound polynomial
+         * @param ub 上界多项式 / upper bound polynomial
+         * @param type 变量类型 / variable type kind
+         * @param constraint 是否添加约束 / whether to add constraints
+         * @param converter 值类型转换器 / value type converter
+         * @param name 此函数的唯一名称 / unique name for this function
+         * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+         * @return 线性函数符号适配器 / linear function symbol adapter
+         */
         @JvmStatic
         fun <V> fromLinearIntermediateSymbol(
             x: LinearIntermediateSymbol<V>,

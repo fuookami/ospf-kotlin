@@ -2,6 +2,9 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/**
+ * 工作日历及相关工具类 / Working calendar and related utility classes
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
@@ -16,10 +19,24 @@ import kotlinx.datetime.Instant
 import kotlin.math.ceil
 import kotlin.time.Duration
 
+/**
+ * 工作日历，管理不可用时间和实际时间计算 / Working calendar managing unavailable times and actual time calculations
+ *
+ * @property timeWindow 时间窗口 / The time window
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ */
 open class WorkingCalendar(
     val timeWindow: TimeWindow,
     unavailableTimes: List<TimeRange> = emptyList()
 ) {
+    /**
+     * 实际时间结果，包含工作时间、休息时间和连接时间 / Actual time result containing working times, break times, and connection times
+     *
+     * @property time 实际时间范围 / The actual time range
+     * @property workingTimes 工作时间段列表 / The list of working time ranges
+     * @property breakTimes 休息时间段列表 / The list of break time ranges
+     * @property connectionTimes 连接时间段列表 / The list of connection time ranges
+     */
     data class ActualTime(
         val time: TimeRange,
         val workingTimes: List<TimeRange>,
@@ -54,6 +71,13 @@ open class WorkingCalendar(
         }
     }
 
+    /**
+     * 有效时间结果，包含时间段、休息时间和连接时间 / Valid times result containing time ranges, break times, and connection times
+     *
+     * @property times 有效时间段列表 / The list of valid time ranges
+     * @property breakTimes 休息时间段列表 / The list of break time ranges
+     * @property connectionTimes 连接时间段列表 / The list of connection time ranges
+     */
     data class ValidTimes(
         val times: List<TimeRange>,
         val breakTimes: List<TimeRange>,
@@ -61,6 +85,13 @@ open class WorkingCalendar(
     )
 
     companion object {
+        /**
+         * 查找在指定时间之前或之时结束的最后一个时间范围的索引 / Find the index of the last time range ended before or at the specified time
+         *
+         * @param times 时间范围列表 / The list of time ranges
+         * @param time 目标时间 / The target time
+         * @return 索引，若未找到则为-1 / The index, or -1 if not found
+         */
         internal fun indexOfLastEndedBeforeOrAt(
             times: List<TimeRange>,
             time: Instant
@@ -73,6 +104,13 @@ open class WorkingCalendar(
             return -1
         }
 
+        /**
+         * 查找在指定时间之后或之时开始的第一个时间范围的索引 / Find the index of the first time range started after or at the specified time
+         *
+         * @param times 时间范围列表 / The list of time ranges
+         * @param time 目标时间 / The target time
+         * @return 索引，若未找到则为-1 / The index, or -1 if not found
+         */
         internal fun indexOfFirstStartedAfterOrAt(
             times: List<TimeRange>,
             time: Instant
@@ -85,6 +123,14 @@ open class WorkingCalendar(
             return -1
         }
 
+        /**
+         * 计算所有时间范围的最大结束时间 / Calculate the maximum end time across all time ranges
+         *
+         * @param times 时间范围列表 / The list of time ranges
+         * @param breakTimes 休息时间列表 / The list of break times
+         * @param connectionTimes 连接时间列表 / The list of connection times
+         * @return 最大结束时间 / The maximum end time
+         */
         internal fun maxEndTime(
             times: List<TimeRange>,
             breakTimes: List<TimeRange>,
@@ -109,6 +155,14 @@ open class WorkingCalendar(
             return maximum
         }
 
+        /**
+         * 计算所有时间范围的最小开始时间 / Calculate the minimum start time across all time ranges
+         *
+         * @param times 时间范围列表 / The list of time ranges
+         * @param breakTimes 休息时间列表 / The list of break times
+         * @param connectionTimes 连接时间列表 / The list of connection times
+         * @return 最小开始时间 / The minimum start time
+         */
         internal fun minStartTime(
             times: List<TimeRange>,
             breakTimes: List<TimeRange>,
@@ -133,6 +187,17 @@ open class WorkingCalendar(
             return minimum
         }
 
+        /**
+         * 计算考虑不可用时间后的实际时间点 / Calculate the actual time point considering unavailable times
+         *
+         * @param time 目标时间点 / The target time point
+         * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+         * @param beforeConnectionTime 前置连接时间 / The before connection time
+         * @param afterConnectionTime 后置连接时间 / The after connection time
+         * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+         * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+         * @return 实际时间点 / The actual time point
+         */
         protected fun actualTime(
             time: Instant,
             unavailableTimes: List<TimeRange> = emptyList(),
@@ -919,8 +984,20 @@ open class WorkingCalendar(
         }
     }
 
+    /** 排序后的不可用时间列表 / Sorted list of unavailable times */
     open val unavailableTimes = unavailableTimes.sortedBy { it.start }
 
+    /**
+     * 计算考虑不可用时间后的实际时间点 / Calculate the actual time point considering unavailable times
+     *
+     * @param time 目标时间点 / The target time point
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @return 实际时间点 / The actual time point
+     */
     fun actualTime(
         time: Instant,
         unavailableTimes: List<TimeRange> = emptyList(),
@@ -939,6 +1016,19 @@ open class WorkingCalendar(
         )
     }
 
+    /**
+     * 计算考虑不可用时间后的实际时间范围 / Calculate the actual time range considering unavailable times
+     *
+     * @param time 目标时间范围 / The target time range
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 实际时间结果 / The actual time result
+     */
     fun actualTime(
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
@@ -961,6 +1051,19 @@ open class WorkingCalendar(
         )
     }
 
+    /**
+     * 计算有效时间范围 / Calculate valid time ranges
+     *
+     * @param time 目标时间范围 / The target time range
+     * @param unavailableTimes 额外的不可用时间列表 / Additional list of unavailable times
+     * @param beforeConnectionTime 前置连接时间 / The before connection time
+     * @param afterConnectionTime 后置连接时间 / The after connection time
+     * @param beforeConditionalConnectionTime 条件前置连接时间 / The conditional before connection time
+     * @param afterConditionalConnectionTime 条件后置连接时间 / The conditional after connection time
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param breakTime 休息时间配对 / The break time pair
+     * @return 有效时间结果 / The valid times result
+     */
     fun validTimes(
         time: TimeRange,
         unavailableTimes: List<TimeRange> = emptyList(),
@@ -984,8 +1087,28 @@ open class WorkingCalendar(
     }
 }
 
+/**
+ * 生产力条件类型别名 / Productivity condition type alias
+ *
+ * @param T 条件参数类型 / The condition parameter type
+ */
 typealias ProductivityCondition<T> = (T) -> Boolean
 
+/**
+ * 生产力，描述时间窗口内的生产能力 / Productivity describing production capacity within a time window
+ *
+ * @param Q 产量类型 / The quantity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @property timeWindow 时间窗口 / The time window
+ * @property extractor 键提取器 / The key extractor
+ * @property weekDays 生效的星期几集合 / The set of applicable weekdays
+ * @property monthDays 生效的月份天数集合 / The set of applicable month days
+ * @property capacities 材料到生产单位所需时间的映射 / Mapping from material to time required per unit
+ * @property unitYields 材料到单位时间产量的映射 / Mapping from material to unit time production
+ * @property conditionCapacities 条件产能列表 / The list of conditional capacities
+ * @property conditionUnitYields 条件单位产量列表 / The list of conditional unit yields
+ */
 open class Productivity<Q, T, U>(
     val timeWindow: TimeRange,
     val extractor: Extractor<U, T>,
@@ -1109,6 +1232,12 @@ open class Productivity<Q, T, U>(
     private val cache1 = HashMap<T, Duration?>()
     private val cache2 = HashMap<T, Q?>()
 
+    /**
+     * 获取指定材料的产能 / Get the capacity for the specified material
+     *
+     * @param material 材料 / The material
+     * @return 产能，若无则为null / The capacity, or null if none
+     */
     open fun capacityOf(material: T): Duration? {
         return capacities[extractor(material)]
             ?: cache1.getOrPut(material) {
@@ -1116,6 +1245,12 @@ open class Productivity<Q, T, U>(
             }
     }
 
+    /**
+     * 获取指定材料的单位产量 / Get the unit yield for the specified material
+     *
+     * @param material 材料 / The material
+     * @return 单位产量，若无则为null / The unit yield, or null if none
+     */
     open fun unitYieldOf(material: T): Q? {
         return unitYields[extractor(material)]
             ?: cache2.getOrPut(material) {
@@ -1123,6 +1258,19 @@ open class Productivity<Q, T, U>(
             }
     }
 
+    /**
+     * 创建新的生产力实例 / Create a new productivity instance
+     *
+     * @param timeWindow 时间窗口 / The time window
+     * @param extractor 键提取器 / The key extractor
+     * @param weekDays 星期几集合 / The set of weekdays
+     * @param monthDays 月份天数集合 / The set of month days
+     * @param capacities 材料到产能的映射 / The capacities mapping
+     * @param unitYields 材料到单位产量的映射 / The unit yields mapping
+     * @param conditionCapacities 条件产能列表 / The conditional capacities list
+     * @param conditionUnitYields 条件单位产量列表 / The conditional unit yields list
+     * @return 新的生产力实例 / The new productivity instance
+     */
     open fun new(
         timeWindow: TimeRange? = null,
         extractor: Extractor<U, T>? = null,
@@ -1146,6 +1294,21 @@ open class Productivity<Q, T, U>(
     }
 }
 
+/**
+ * 生产力日历，结合工作日历和生产力信息 / Productivity calendar combining working calendar and productivity information
+ *
+ * @param Q 产量类型 / The quantity type
+ * @param P 生产力类型 / The productivity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @param timeWindow 时间窗口 / The time window
+ * @param productivity 生产力列表 / The list of productivities
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ * @param constants 数值常量 / The numeric constants
+ * @param mul 乘法运算 / The multiplication operation
+ * @param div 除法运算 / The division operation
+ * @param floor 向下取整运算 / The floor operation
+ */
 sealed class ProductivityCalendar<Q, P, T, U>(
     timeWindow: TimeWindow,
     productivity: List<P>,
@@ -1168,6 +1331,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
         return source.new(timeWindow = timeWindow) as P
     }
 
+    /** 生产力列表（已处理不可用时间）/ Productivity list (with unavailable times processed) */
     val productivity: List<P> by lazy {
         if (unavailableTimes != null) {
             productivity.flatMap {
@@ -1181,6 +1345,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
         }
     }
 
+    /** 平均产能映射 / Average capacity mapping */
     val averageCapacity: Map<U, Duration> by lazy {
         val materials = productivity.flatMap { it.capacities.keys }.distinct()
         materials.associateWith { material ->
@@ -1196,6 +1361,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
         }
     }
 
+    /** 平均单位产量映射 / Average unit yield mapping */
     val averageUnitYield: Map<U, Q> by lazy {
         val materials = productivity.flatMap { it.unitYields.keys }.distinct()
         materials.associateWith { material ->
@@ -1916,6 +2082,16 @@ sealed class ProductivityCalendar<Q, P, T, U>(
     }
 }
 
+/**
+ * 离散生产力日历，使用 UInt64 作为产量类型 / Discrete productivity calendar using UInt64 as quantity type
+ *
+ * @param P 生产力类型 / The productivity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @param timeWindow 时间窗口 / The time window
+ * @param productivity 生产力列表 / The list of productivities
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ */
 open class DiscreteProductivityCalendar<P, T, U>(
     timeWindow: TimeWindow,
     productivity: List<P>,
@@ -1934,6 +2110,16 @@ open class DiscreteProductivityCalendar<P, T, U>(
     floor = { it.floor().toUInt64() }
 ) where P : Productivity<UInt64, T, U>
 
+/**
+ * 连续生产力日历，使用 Flt64 作为产量类型 / Continuous productivity calendar using Flt64 as quantity type
+ *
+ * @param P 生产力类型 / The productivity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @param timeWindow 时间窗口 / The time window
+ * @param productivity 生产力列表 / The list of productivities
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ */
 open class ContinuousProductivityCalendar<P, T, U>(
     timeWindow: TimeWindow,
     productivity: List<P>,

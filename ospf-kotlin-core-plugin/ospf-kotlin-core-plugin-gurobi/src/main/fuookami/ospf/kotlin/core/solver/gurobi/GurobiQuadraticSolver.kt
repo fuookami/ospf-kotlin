@@ -36,6 +36,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** Gurobi 二次求解器 / Gurobi quadratic solver */
 class GurobiQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiQuadraticSolverCallBack? = null
@@ -98,6 +99,7 @@ class GurobiQuadraticSolver(
     }
 }
 
+/** Gurobi 二次求解器内部实现 / Gurobi quadratic solver internal implementation */
 private class GurobiQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: GurobiQuadraticSolverCallBack? = null,

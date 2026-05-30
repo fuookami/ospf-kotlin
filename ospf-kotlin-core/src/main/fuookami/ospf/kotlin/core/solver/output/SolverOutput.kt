@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 求解器输出数据结构 / Solver output data structures */
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration
@@ -7,11 +8,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-
-/**
- * 求解器输出数据结构
- * Solver output data structures
- */
 
 /**
  * 求解器输出的密封接口。
@@ -46,6 +42,7 @@ sealed interface LinearSolverOutput : SolverOutput {}
  */
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
+/** 将 Flt64 值强制转换为 V 类型，仅支持 Flt64 解 / Cast Flt64 value to V type, only supports Flt64 solution */
 @Suppress("UNCHECKED_CAST")
 private fun <V> castSolverFlt64FallbackToValueOrThrow(fieldName: String, value: Flt64, solution: Solution<V>): V {
     if (solution.any { it !is Flt64 }) {

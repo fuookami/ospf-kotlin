@@ -1,3 +1,4 @@
+/** SCIP 求解器基类 / SCIP solver base */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.scip
@@ -18,6 +19,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
+/** SCIP 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / SCIP solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 @OptIn(ExperimentalTime::class)
 abstract class ScipSolver : AutoCloseable {
     companion object {
@@ -35,6 +37,7 @@ abstract class ScipSolver : AutoCloseable {
         private val winLibraries = listOf("tbb", "libscip", "jscip")
         private val unixLibraries = listOf("libgcg", "libgmp", "libpthread", "libgfortran", "libquadmath", "libopenblas", "libtbb", "libsplexshared", "libscip", "libjscip")
 
+        /** 从 JAR 包中加载 SCIP 原生库 / Load SCIP native library from JAR package */
         fun loadLibraryInJar() {
             val systemType = System.getProperty("os.name")
             val libExtension = if (systemType.lowercase(Locale.getDefault()).indexOf("win") != -1) {
@@ -63,10 +66,17 @@ abstract class ScipSolver : AutoCloseable {
     protected lateinit var status: SolverStatus
     protected var solvingTime: Duration? = null
 
+    /** 关闭 SCIP 求解器，释放资源 / Close SCIP solver, release resources */
     override fun close() {
         scip.free()
     }
 
+    /**
+     * 初始化 SCIP 求解器 / Initialize SCIP solver
+     *
+     * @param name 模型名称 / model name
+     * @return 操作结果 / operation result
+     */
     protected suspend fun init(name: String): Try {
         if (!loadedLibrary) {
             try {
@@ -81,6 +91,12 @@ abstract class ScipSolver : AutoCloseable {
         return ok
     }
 
+    /**
+     * 执行 SCIP 求解 / Execute SCIP solving
+     *
+     * @param threadNum 线程数 / number of threads
+     * @return 操作结果 / operation result
+     */
     protected suspend fun solve(threadNum: UInt64): Try {
         val begin = Clock.System.now()
         if (threadNum gr UInt64.one) {
@@ -97,6 +113,7 @@ abstract class ScipSolver : AutoCloseable {
         return ok
     }
 
+    /** 分析 SCIP 求解状态 / Analyze SCIP solving status */
     protected suspend fun analyzeStatus(): Try {
         val solution = scip.bestSol
         status = when (scip.status) {

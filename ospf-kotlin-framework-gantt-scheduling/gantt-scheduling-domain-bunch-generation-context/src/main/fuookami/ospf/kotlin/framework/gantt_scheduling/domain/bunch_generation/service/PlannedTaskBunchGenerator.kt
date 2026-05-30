@@ -2,6 +2,7 @@
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 计划任务束生成器 / Planned task bunch generator */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.service
 
 //import fuookami.ospf.kotlin.utils.functional.Ok

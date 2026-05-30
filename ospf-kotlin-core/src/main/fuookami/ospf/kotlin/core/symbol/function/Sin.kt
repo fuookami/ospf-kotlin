@@ -1,5 +1,6 @@
-/** 正弦函数符号 / Sine function symbol */
 @file:Suppress("unused")
+
+/** 正弦函数符号 / Sine function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -30,11 +31,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 正弦函数 sin(v) 在关键点处采样用于 MIP 编码。
  * The sine function sin(v) is sampled at strategic points for MIP encoding.
  *
- * @param x 输入线性多项式 / the input linear polynomial
- * @param samplingPoints 预计算的 (x, sin(x)) 断点 / pre-computed (x, sin(x)) break points
+ * @property x 输入线性多项式 / the input linear polynomial
+ * @property samplingPoints 预计算的 (x, sin(x)) 断点 / pre-computed (x, sin(x)) break points
  * @param converter 值类型转换器 / value type converter
- * @param name 此函数的唯一名称 / unique name for this function
- * @param displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */
 class SinFunction<V>(
     val x: LinearPolynomial<V>,
@@ -87,6 +88,7 @@ class SinFunction<V>(
         return impl.registerConstraints(model)
     }
     companion object {
+        /** 创建 [SinFunction] 实例。 / Create a [SinFunction] instance. */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             samplingPoints: List<Point<Dim2, Flt64>> = defaultPoints(),
@@ -96,6 +98,12 @@ class SinFunction<V>(
         ): SinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SinFunction(x = x, samplingPoints = samplingPoints, converter = converter, name = name, displayName = displayName)
 
+        /**
+         * 默认正弦采样点 [-pi, pi]。
+         * Default sine sampling points [-pi, pi].
+         *
+         * @return (x, sin(x)) 断点列表 / list of (x, sin(x)) break points
+         */
         private fun defaultPoints(): List<Point<Dim2, Flt64>> {
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)

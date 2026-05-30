@@ -1,3 +1,4 @@
+/** 任务未准时最小化 / Task not-on-time minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -10,6 +11,19 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray._a
 
+/**
+ * 任务未准时最小化 / Task not-on-time minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param taskTime 任务时间对象 / Task time object
+ * @param threshold 阈值数量 / Threshold quantity
+ * @param coefficient 成本系数 / Cost coefficient
+ * @param name 管道名称 / Pipeline name
+ */
 class TaskNotOnTimeMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

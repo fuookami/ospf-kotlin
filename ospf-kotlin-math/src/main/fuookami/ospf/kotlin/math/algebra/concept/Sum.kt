@@ -50,8 +50,8 @@ fun <T> Iterable<T>.sum(): T where T : Plus<T, T>, T : Arithmetic<T> {
  */
 fun <T> Array<out T>.sum(): T where T : Plus<T, T>, T : Arithmetic<T> {
     if (isEmpty()) {
-        // Need to get zero from somewhere - this is a limitation
-        // Caller should use sumWithZero for empty arrays
+        // Need to get zero from somewhere - this is a limitation / 需要从某处获取零值，这是一个限制
+        // Caller should use sumWithZero for empty arrays / 调用方应对空数组使用 sumWithZero
         throw NoSuchElementException("Cannot compute sum of empty array without explicit zero.")
     }
     var result = this[0].constants.zero

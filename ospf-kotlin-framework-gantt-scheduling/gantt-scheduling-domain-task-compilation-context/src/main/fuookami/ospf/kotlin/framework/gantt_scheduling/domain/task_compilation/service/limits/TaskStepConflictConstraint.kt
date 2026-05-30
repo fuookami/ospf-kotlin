@@ -1,3 +1,4 @@
+/** 任务步骤冲突约束 / Task step conflict constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -10,6 +11,18 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
+/**
+ * 任务步骤冲突约束 / Task step conflict constraint
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param compilation 编译结果 / Compilation result
+ * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
+ * @param name 管道名称 / Pipeline name
+ */
 class TaskStepConflictConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

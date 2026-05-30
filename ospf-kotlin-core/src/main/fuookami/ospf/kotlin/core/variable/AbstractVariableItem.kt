@@ -27,6 +27,10 @@ data class VariableItemKey(
     val identifier: UInt64,
     val index: Int
 ) : Ord<VariableItemKey> {
+    /**
+     * @param rhs 右侧比较对象 / Right-hand comparison object
+     * @return 偏序关系 / Partial order result
+     */
     override fun partialOrd(rhs: VariableItemKey): Order {
         return if (this.identifier < rhs.identifier) {
             Order.Less()
@@ -37,10 +41,15 @@ data class VariableItemKey(
         }
     }
 
+    /** @return 基于 identifier 和 index 的哈希值 / Hash code based on identifier and index */
     override fun hashCode(): Int {
         return identifier.toInt() * 31 + index
     }
 
+    /**
+     * @param other 待比较对象 / Object to compare
+     * @return 是否相同 / Whether equal
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is VariableItemKey) return false
@@ -154,8 +163,13 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return QuadraticInequalityOf(poly, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
+    /** @return 基于 key 的哈希值 / Hash code based on key */
     override fun hashCode() = key.hashCode()
 
+    /**
+     * @param other 待比较对象 / Object to compare
+     * @return 是否相同 / Whether equal
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is AbstractVariableItem<*, *>) return false
@@ -166,6 +180,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return true
     }
 
+    /** @return 变量名称 / Variable name */
     override fun toString() = name
 }
 

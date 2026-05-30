@@ -1,5 +1,6 @@
-/** 取首元素函数符号 / First element function symbol */
 @file:Suppress("unused")
+
+/** 取首元素函数符号 / First element function symbol */
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -46,6 +47,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 输出：result = sum(i * y[i]) + n * (1 - sum(y[i])) = 第一个非零元素的索引，若无则为 n
  * Output: result = sum(i * y[i]) + n * (1 - sum(y[i])) = index of first nonzero, or n if none
+ *
+ * @property polynomials 输入线性多项式列表 / list of input linear polynomials
+ * @property epsilon 非零阈值 / nonzero threshold
+ * @param converter 值类型转换器 / value type converter
+ * @property name 函数名称 / function name
+ * @property displayName 可选显示名称 / optional display name
  */
 class FirstFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
@@ -57,7 +64,7 @@ class FirstFunction<V>(
 
     private val n: Int get() = polynomials.size
 
-    // BinaryzationFunction for each polynomial
+    // BinaryzationFunction for each polynomial / 为每个多项式创建二值化函数
     private val binaryFunctions: List<BinaryzationFunction<V>> by lazy {
         polynomials.mapIndexed { i, poly ->
             BinaryzationFunction(
@@ -68,7 +75,7 @@ class FirstFunction<V>(
         }
     }
 
-    // Output binary array y[i] = 1 means polynomial i is the first nonzero
+    // Output binary array y[i] = 1 means polynomial i is the first nonzero / 输出二值数组 y[i]=1 表示多项式 i 是第一个非零的
     private val _yVars: BinVariable1 by lazy {
         BinVariable1("${name}_first", Shape1(n))
     }
@@ -83,12 +90,12 @@ class FirstFunction<V>(
      * Returns the index of the first nonzero polynomial, or n if none.
      */
     val result: LinearPolynomial<V> by lazy {
-        // sum(i * y[i])
+        // sum(i * y[i]) / i * y[i] 的加权求和
         val one = converter.one
         val indexedMonos = _yVars.items.mapIndexed { i, yi ->
             LinearMonomial(repeatAdd(one, i), yi)
         }
-        // n * (1 - sum(y[i])) = n - n * sum(y[i])
+        // n * (1 - sum(y[i])) = n - n * sum(y[i]) / n * (1 - sum(y[i])) = n - n * sum(y[i])
         val nVal = repeatAdd(one, n)
         val nSumMonos = _yVars.items.map { LinearMonomial(-nVal, it) }
         val indexedPlus = indexedMonos + nSumMonos
@@ -117,6 +124,7 @@ class FirstFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         // Register all binary function constraints (tokens already registered in registerAuxiliaryTokens)
+        // 注册所有二值化函数约束（token 已在 registerAuxiliaryTokens 中注册）
         for (binFunc in binaryFunctions) {
             when (val r = binFunc.registerConstraints(model)) {
                 is Ok -> {}
@@ -133,7 +141,7 @@ class FirstFunction<V>(
             val binResult = binaryFunctions[i].resultVar
             val yi = _yVars[i]
 
-            // y[i] <= bin[i]
+            // y[i] <= bin[i] / y[i] 小于等于 bin[i]
             allConstraints += LinearInequality(
                 LinearPolynomial(listOf(LinearMonomial(one, yi)), zero),
                 LinearPolynomial(listOf(LinearMonomial(one, binResult)), zero),
@@ -141,7 +149,7 @@ class FirstFunction<V>(
             )
 
             if (i == 0) {
-                // y[0] >= bin[0]
+                // y[0] >= bin[0] / y[0] 大于等于 bin[0]
                 allConstraints += LinearInequality(
                     LinearPolynomial(listOf(LinearMonomial(one, yi)), zero),
                     LinearPolynomial(listOf(LinearMonomial(one, binResult)), zero),
@@ -149,6 +157,8 @@ class FirstFunction<V>(
                 )
             } else {
                 // y[i] >= bin[i] - sum(y[0]..y[i-1])
+                // y[i] >= bin[i] - sum(y[0]..y[i-1])
+                // => y[i] + sum(y[0]..y[i-1]) >= bin[i]
                 // => y[i] + sum(y[0]..y[i-1]) >= bin[i]
                 val prevYMonos = (0 until i).map { j -> LinearMonomial(one, _yVars[j]) }
                 val lhsMonos = listOf(LinearMonomial(one, yi)) + prevYMonos
@@ -158,7 +168,7 @@ class FirstFunction<V>(
                     Comparison.GE, "${name}_lb_$i"
                 )
 
-                // y[i] <= y[i-1] (monotonicity)
+                // y[i] <= y[i-1] (monotonicity) / y[i] <= y[i-1]（单调性约束）
                 allConstraints += LinearInequality(
                     LinearPolynomial(listOf(LinearMonomial(one, yi)), zero),
                     LinearPolynomial(listOf(LinearMonomial(one, _yVars[i - 1])), zero),
@@ -170,6 +180,15 @@ class FirstFunction<V>(
         return addConstraints(model, allConstraints) ?: ok
     }
     companion object {
+        /**
+         * 创建首元素函数实例 / Create a first function instance
+         * @param polynomials 输入线性多项式列表 / list of input linear polynomials
+         * @param epsilon 非零阈值 / nonzero threshold
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [FirstFunction] 实例 / [FirstFunction] instance
+         */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             epsilon: Flt64 = Flt64(1e-6),

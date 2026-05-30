@@ -135,6 +135,7 @@ private fun validateDualById(
 ) {
     // Detect duplicate constraint names - multiple constraints sharing the same name
     // would silently reuse the same dual value from the by-id map.
+    // 检测重复约束名称 - 同名约束会静默复用 by-id 映射中的同一对偶值。
     val nameCounts = HashMap<String, Int>()
     for (c in constraints) {
         nameCounts[c.name] = (nameCounts[c.name] ?: 0) + 1
@@ -145,6 +146,7 @@ private fun validateDualById(
         }
     }
     // Detect names in dualById that don't match any constraint - likely a caller error.
+    // 检测 dualById 中不匹配任何约束的名称 - 可能是调用方错误。
     val constraintNames = nameCounts.keys
     for (name in dualById.keys) {
         if (name !in constraintNames) {
@@ -163,6 +165,9 @@ private fun validateDualById(
  * @param V 数值类型 / The number type
  * @property parent 父元模型 / Parent meta model
  * @property name 模型名称 / Model name
+ * @param constraints 线性约束列表 / Linear constraint list
+ * @property objectFunction 单目标函数 / Single objective function
+ * @property tokens 符号表 / Token table
  */
 class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
@@ -669,6 +674,9 @@ class LinearMechanismModel<V>(
  * @param V 数值类型 / The number type
  * @property parent 父元模型 / Parent meta model
  * @property name 模型名称 / Model name
+ * @param constraints 二次约束列表 / Quadratic constraint list
+ * @property objectFunction 单目标函数 / Single objective function
+ * @property tokens 符号表 / Token table
  */
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
@@ -912,6 +920,7 @@ class QuadraticMechanismModel<V>(
     ): Try {
         val flattenData = relation.toLinearFlattenData().getOrElse { return Failed(Err(ErrorCode.IllegalArgument, it.message ?: "Failed to flatten linear inequality")) }
         // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
+        // 将线性扁平化数据提升为二次（每个线性单项式 c*x 变为二次 c*x*null）
         val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
         val qFlattenData = QuadraticFlattenData<V>(qMonomials, flattenData.constant)
         _constraints.add(

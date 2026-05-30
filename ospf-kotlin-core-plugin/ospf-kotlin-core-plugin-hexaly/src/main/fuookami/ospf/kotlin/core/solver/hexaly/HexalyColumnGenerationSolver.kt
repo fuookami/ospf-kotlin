@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
+/** Hexaly 列生成求解器 / Hexaly column generation solver */
 class HexalyColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: HexalySolverCallBack = HexalySolverCallBack()
