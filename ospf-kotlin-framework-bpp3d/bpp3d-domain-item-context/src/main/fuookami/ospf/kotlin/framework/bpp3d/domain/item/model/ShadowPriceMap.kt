@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 影子价格映射模型。
+ * 褰卞瓙浠锋牸鏄犲皠妯″瀷銆?
  * Shadow price map model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 
 
-typealias ShadowPriceScalar = InfraNumber
+typealias ShadowPriceNumber = InfraNumber
 
 open class BPP3DShadowPriceArguments(
     override val cuboid: Item
@@ -27,29 +27,29 @@ open class BPP3DShadowPriceArguments(
 
 typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, Item>;
 
-fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): ShadowPriceScalar {
-    fun shadowPriceOf(item: Item): ShadowPriceScalar {
-        return ShadowPriceScalar(this(BPP3DShadowPriceArguments(item)).toDouble())
+fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): ShadowPriceNumber {
+    fun shadowPriceOf(item: Item): ShadowPriceNumber {
+        return ShadowPriceNumber(this(BPP3DShadowPriceArguments(item)).toDouble())
     }
 
     return when (cuboid) {
-        is Container3<*> -> cuboid.units.fold(ShadowPriceScalar.zero) { acc, placement ->
+        is Container3<*> -> cuboid.units.fold(ShadowPriceNumber.zero) { acc, placement ->
             acc + when (val unit = placement.unit) {
                 is Container3<*> -> reducedCost(unit)
                 is Item -> unit.volume.value - shadowPriceOf(unit)
-                else -> ShadowPriceScalar.zero
+                else -> ShadowPriceNumber.zero
             }
         }
 
         is Item -> cuboid.volume.value - shadowPriceOf(cuboid)
-        else -> ShadowPriceScalar.zero
+        else -> ShadowPriceNumber.zero
     }
 }
 
 fun BPP3DShadowPriceMap.reducedCost(
     cuboid: Cuboid<*>,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>
-): ShadowPriceScalar {
+): ShadowPriceNumber {
     return reducedCost(
         cuboid = cuboid,
         demandEntries = demandEntries,
@@ -60,9 +60,9 @@ fun BPP3DShadowPriceMap.reducedCost(
                         runCatching { thisKey::class.members.firstOrNull { it.name == "key" }?.call(thisKey) == key }.getOrDefault(false)
             }?.value?.price
             if (price != null) {
-                ShadowPriceScalar(price.toDouble())
+                ShadowPriceNumber(price.toDouble())
             } else {
-                ShadowPriceScalar.zero
+                ShadowPriceNumber.zero
             }
         },
         demandValueToScalar = { demand ->

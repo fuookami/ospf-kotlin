@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 包装属性模型。
+ * 鍖呰灞炴€фā鍨嬨€?
  * Package attribute model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
@@ -29,10 +29,10 @@ import kotlinx.coroutines.coroutineScope
 
 
 
-private typealias PackageScalar = InfraNumber
-private typealias PackageCuboid = AbstractCuboid<PackageScalar>
-private typealias PackageQuantity = Quantity<PackageScalar>
-private typealias PackageVector3 = Vector<Dim3, PackageScalar>
+private typealias PackageNumber = InfraNumber
+private typealias PackageCuboid = AbstractCuboid<PackageNumber>
+private typealias PackageQuantity = Quantity<PackageNumber>
+private typealias PackageVector3 = Vector<Dim3, PackageNumber>
 
 interface AbstractWeightAttribute {
     val maxLayer: UInt64
@@ -56,14 +56,14 @@ data class WeightAttribute(
 }
 
 interface AbstractDeformationAttribute {
-    fun deformationQuantity(volume: PackageScalar): PackageVector3
+    fun deformationQuantity(volume: PackageNumber): PackageVector3
     fun deformationQuantity(unit: PackageCuboid) = deformationQuantity(unit.volume.value)
 }
 
 data class LinearDeformationAttribute(
-    val deformationCoefficient: PackageScalar
+    val deformationCoefficient: PackageNumber
 ) : AbstractDeformationAttribute {
-    override fun deformationQuantity(volume: PackageScalar): PackageVector3 = Vector(
+    override fun deformationQuantity(volume: PackageNumber): PackageVector3 = Vector(
         volume * deformationCoefficient,
         volume * deformationCoefficient,
         volume * deformationCoefficient
@@ -91,7 +91,7 @@ interface AbstractHangingPolicy {
 }
 
 data class AbsoluteHangingPolicy(
-    private val maxDifference: PackageScalar,
+    private val maxDifference: PackageNumber,
     private val withWeight: Boolean = true
 ) : AbstractHangingPolicy {
     override fun enabledStackingOn(
@@ -130,7 +130,7 @@ data class AbsoluteHangingPolicy(
 }
 
 data class RelativeHangingPolicy(
-    private val hangingPercentage: PackageScalar,
+    private val hangingPercentage: PackageNumber,
     private val withWeight: Boolean = true
 ) : AbstractHangingPolicy {
     override fun enabledStackingOn(
@@ -173,13 +173,13 @@ interface AbstractStackingOnPolicy {
         item: ItemView,
         bottomItem: ItemView,
         layer: UInt64 = UInt64.zero,
-        height: PackageQuantity = PackageScalar.zero * Meter
+        height: PackageQuantity = PackageNumber.zero * Meter
     ): Boolean
 }
 
 data class BoxStackingOnPolicy(
-    val maxDifference: PackageScalar,
-    private val maxOverWeight: PackageScalar = PackageScalar(10.0),
+    val maxDifference: PackageNumber,
+    private val maxOverWeight: PackageNumber = PackageNumber(10.0),
     private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
 ) : AbstractStackingOnPolicy {
     override fun enabledStackingOn(
@@ -230,8 +230,8 @@ data class BoxStackingOnPolicy(
 }
 
 data class CartonContainerStackingOnPolicy(
-    val maxDifference: PackageScalar,
-    private val maxOverWeight: PackageScalar = PackageScalar(10.0),
+    val maxDifference: PackageNumber,
+    private val maxOverWeight: PackageNumber = PackageNumber(10.0),
     private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
 ) : AbstractStackingOnPolicy {
     override fun enabledStackingOn(
@@ -272,7 +272,7 @@ data class CartonContainerStackingOnPolicy(
 }
 
 data class FilterStackingOnPolicy(
-    private val maxOverWeight: PackageScalar = PackageScalar(10.0),
+    private val maxOverWeight: PackageNumber = PackageNumber(10.0),
     private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
 ) : AbstractStackingOnPolicy {
     override fun enabledStackingOn(
@@ -312,7 +312,7 @@ data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
     val maxHeight: PackageQuantity = infraInfinity() * Meter,
-    val minDepth: PackageQuantity = PackageScalar.zero * Meter,
+    val minDepth: PackageQuantity = PackageNumber.zero * Meter,
     val maxDepth: PackageQuantity = infraInfinity() * Meter,
     val overPackageTypes: List<PackageType> = PackageType.entries.toList(),
     val bottomOnly: Boolean = false,
@@ -392,7 +392,7 @@ data class PackageAttribute(
                         })
                     }
                 }
-                var maxHeight = PackageScalar.zero * item.height.unit
+                var maxHeight = PackageNumber.zero * item.height.unit
                 for (promise in promises) {
                     val value = promise.await()
                     if (value gr maxHeight) {
@@ -433,7 +433,7 @@ data class PackageAttribute(
         item: Item,
         bottomItem: Item?,
         layer: UInt64 = UInt64.zero,
-        height: PackageQuantity = PackageScalar.zero * Meter,
+        height: PackageQuantity = PackageNumber.zero * Meter,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         return enabledStackingOn(
@@ -449,7 +449,7 @@ data class PackageAttribute(
         item: ItemView,
         bottomItem: ItemView? = null,
         layer: UInt64 = UInt64.zero,
-        height: PackageQuantity = PackageScalar.zero * Meter,
+        height: PackageQuantity = PackageNumber.zero * Meter,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         if (bottomItem != null) {
@@ -495,7 +495,7 @@ data class PackageAttribute(
         }
 
         // If the material is not at the bottom (y coordinate is not 0) and it is required to be at the bottom, there cannot be any non-bottom-required material below it.
-        // 如果货物不在底部（y坐标不为0）且要求放在底部，则其下方不能有任何非底部要求的货物。
+        // 濡傛灉璐х墿涓嶅湪搴曢儴锛坹鍧愭爣涓嶄负0锛変笖瑕佹眰鏀惧湪搴曢儴锛屽垯鍏朵笅鏂逛笉鑳芥湁浠讳綍闈炲簳閮ㄨ姹傜殑璐х墿銆?
         if (item.bottomOnly && bottomItems.any { !it.bottomOnly }) {
             return false
         }

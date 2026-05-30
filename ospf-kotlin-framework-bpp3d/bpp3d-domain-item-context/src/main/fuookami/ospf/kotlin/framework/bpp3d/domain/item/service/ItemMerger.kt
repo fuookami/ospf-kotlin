@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 货物合并服务。
+ * 璐х墿鍚堝苟鏈嶅姟銆?
  * Item merger service.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
@@ -26,9 +26,9 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 
-private typealias MergeScalar = InfraNumber
-private fun scalar(value: Number): MergeScalar = MergeScalar(value.toDouble())
-private fun scalar(value: ULong): MergeScalar = MergeScalar(value.toDouble())
+private typealias MergeNumber = InfraNumber
+private fun scalar(value: Number): MergeNumber = MergeNumber(value.toDouble())
+private fun scalar(value: ULong): MergeNumber = MergeNumber(value.toDouble())
 
 data object ItemMerger {
     data class Config(
@@ -134,7 +134,7 @@ data object ItemMerger {
     suspend fun merge(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar,
+        restWeight: MergeNumber,
         patterns: List<Pattern>,
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
@@ -202,9 +202,9 @@ data object ItemMerger {
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = infraInfinity()
+        restWeight: MergeNumber = infraInfinity()
     ): Pair<List<Pile>, List<Item>> {
-        val averagePileBottomArea = items.fold(MergeScalar.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
+        val averagePileBottomArea = items.fold(MergeNumber.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
         val restItems = items
@@ -276,7 +276,7 @@ data object ItemMerger {
     fun mergeBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = infraInfinity(),
+        restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
         val mergedItems = ArrayList<SimpleBlock>()
@@ -326,7 +326,7 @@ data object ItemMerger {
                     (item.maxHeight / view.height.value).floor().toUInt64(),
                     (space.height / view.height).floor().toUInt64()
                 )
-                val zAmount = if (view.minDepth eq MergeScalar.zero) {
+                val zAmount = if (view.minDepth eq MergeNumber.zero) {
                     UInt64.one
                 } else {
                     val minZAmount = (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -373,7 +373,7 @@ data object ItemMerger {
         items: List<Item>,
         space: AbstractContainer3Shape,
         patterns: List<Pattern>,
-        restWeight: MergeScalar = infraInfinity(),
+        restWeight: MergeNumber = infraInfinity(),
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
         val mergedItems = ArrayList<CommonBlock>()
@@ -440,7 +440,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = infraInfinity(),
+        restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
@@ -455,7 +455,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
-        restWeight: MergeScalar = infraInfinity(),
+        restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
         val restItems = items.toMutableMap()
@@ -477,7 +477,7 @@ data object ItemMerger {
                     val hollowSquareSpace = Container3Shape(
                         width = space.width,
                         height = space.height,
-                        depth = depth * MergeScalar.two - (depth % width)
+                        depth = depth * MergeNumber.two - (depth % width)
                     )
                     if (hollowSquareSpace.width ls (width + depth)
                         || hollowSquareSpace.depth ls (depth + width)
@@ -503,7 +503,7 @@ data object ItemMerger {
                     }
 
                     val rotationView = item.view(it.rotation)
-                    val rotationMinZAmount = if (rotationView.minDepth eq MergeScalar.zero) {
+                    val rotationMinZAmount = if (rotationView.minDepth eq MergeNumber.zero) {
                         UInt64.one
                     } else {
                         (rotationView.minDepth / rotationView.depth.value).ceil().toUInt64()

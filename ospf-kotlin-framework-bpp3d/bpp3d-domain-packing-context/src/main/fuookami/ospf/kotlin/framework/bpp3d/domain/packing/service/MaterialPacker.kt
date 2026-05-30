@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 物料装箱器。
+ * 鐗╂枡瑁呯鍣ㄣ€?
  * Material packer.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackageSelection
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackagedItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
@@ -62,10 +62,10 @@ class MaterialPacker(
     @Suppress("UNCHECKED_CAST")
     private fun weightDemandToPackingQuantity(value: Quantity<*>): MaterialPackingQuantity {
         return when (value.value) {
-            is MaterialPackingScalar -> value as MaterialPackingQuantity
+            is MaterialPackingNumber -> value as MaterialPackingQuantity
             is FltX -> {
                 val quantity = value as Quantity<FltX>
-                Quantity(MaterialPackingScalar(quantity.value.toDouble()), quantity.unit)
+                Quantity(MaterialPackingNumber(quantity.value.toDouble()), quantity.unit)
             }
             else -> throw IllegalArgumentException("Unsupported material packing weight scalar: ${value.value}")
         }
@@ -77,7 +77,7 @@ class MaterialPacker(
         objective: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig()
     ): MaterialPackingPlan {
         val normalizedDemands = LinkedHashMap<MaterialKey, UInt64>()
-        val materialByKey = LinkedHashMap<MaterialKey, Material<MaterialPackingScalar>>()
+        val materialByKey = LinkedHashMap<MaterialKey, Material<MaterialPackingNumber>>()
         val impossibleDemands = LinkedHashMap<MaterialKey, UInt64>()
 
         for (demand in demands) {

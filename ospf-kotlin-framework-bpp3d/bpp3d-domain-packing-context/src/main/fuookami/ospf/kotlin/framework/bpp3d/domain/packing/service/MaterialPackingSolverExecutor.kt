@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 物料装箱求解器执行器。
+ * 鐗╂枡瑁呯姹傝В鍣ㄦ墽琛屽櫒銆?
  * Material packing solver executor.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
@@ -9,7 +9,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -27,8 +27,8 @@ enum class MaterialPackingMipStatus {
 data class MaterialPackingMipResult(
     val status: MaterialPackingMipStatus,
     val selections: Map<Int, UInt64> = emptyMap(),
-    val objective: MaterialPackingScalar? = null,
-    val gap: MaterialPackingScalar? = null,
+    val objective: MaterialPackingNumber? = null,
+    val gap: MaterialPackingNumber? = null,
     val timeMillis: Long = 0L,
     val rawStatus: String? = null
 )

@@ -1,5 +1,5 @@
 /**
- * 需求缩减成本模型。
+ * 闇€姹傜缉鍑忔垚鏈ā鍨嬨€?
  * Demand reduced cost model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
@@ -24,19 +24,19 @@ private fun demandStatisticsForReducedCost(
 fun BPP3DShadowPriceMap.reducedCost(
     cuboid: Cuboid<*>,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>,
-    shadowPriceOf: (Bpp3dDemandMode, Bpp3dDemandKey) -> ShadowPriceScalar,
-    demandValueToScalar: (Bpp3dDemandValue) -> ShadowPriceScalar
-): ShadowPriceScalar {
+    shadowPriceOf: (Bpp3dDemandMode, Bpp3dDemandKey) -> ShadowPriceNumber,
+    demandValueToScalar: (Bpp3dDemandValue) -> ShadowPriceNumber
+): ShadowPriceNumber {
     val activeDemandEntries = demandEntries.toSet()
     if (activeDemandEntries.isEmpty()) {
-        return ShadowPriceScalar.zero
+        return ShadowPriceNumber.zero
     }
 
-    var reducedCost = ShadowPriceScalar.zero
+    var reducedCost = ShadowPriceNumber.zero
     for ((mode, key) in activeDemandEntries) {
         val value = demandStatisticsForReducedCost(cuboid, mode)[key] ?: continue
         val shadow = shadowPriceOf(mode, key)
-        if (shadow neq ShadowPriceScalar.zero) {
+        if (shadow neq ShadowPriceNumber.zero) {
             reducedCost += shadow * demandValueToScalar(value)
         }
     }

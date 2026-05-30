@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 货物高度组合器。
+ * 璐х墿楂樺害缁勫悎鍣ㄣ€?
  * Item height combinator.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
@@ -27,23 +27,23 @@ import org.apache.logging.log4j.kotlin.logger
 
 
 
-private typealias HeightScalar = InfraNumber
+private typealias HeightNumber = InfraNumber
 
 data object ItemHeightCombinator {
     private val logger = logger()
-    private val defaultTowSumOffset = HeightScalar(300.0)
-    private val defaultThreeSumOffset = HeightScalar(300.0)
+    private val defaultTowSumOffset = HeightNumber(300.0)
+    private val defaultThreeSumOffset = HeightNumber(300.0)
 
     fun twoSum(
-        height: HeightScalar,
-        heights: List<HeightScalar>,
-        offset: HeightScalar = defaultTowSumOffset
-    ): List<Pair<HeightScalar, HeightScalar>> {
+        height: HeightNumber,
+        heights: List<HeightNumber>,
+        offset: HeightNumber = defaultTowSumOffset
+    ): List<Pair<HeightNumber, HeightNumber>> {
         // todo: use Two Sum algorithm
 
         for (scale in 1..2) {
-            val heightSoft = offset * HeightScalar(scale.toDouble())
-            val map = ArrayList<Pair<HeightScalar, HeightScalar>>()
+            val heightSoft = offset * HeightNumber(scale.toDouble())
+            val map = ArrayList<Pair<HeightNumber, HeightNumber>>()
             for (i in heights.indices) {
                 for (j in (i + 1) until heights.size) {
                     val sum = heights[i] + heights[j]
@@ -60,15 +60,15 @@ data object ItemHeightCombinator {
     }
 
     fun threeSum(
-        height: HeightScalar,
-        heights: List<HeightScalar>,
-        offset: HeightScalar = defaultThreeSumOffset
-    ): List<Triple<HeightScalar, HeightScalar, HeightScalar>> {
+        height: HeightNumber,
+        heights: List<HeightNumber>,
+        offset: HeightNumber = defaultThreeSumOffset
+    ): List<Triple<HeightNumber, HeightNumber, HeightNumber>> {
         // todo: use Three Sum algorithm
 
         for (scale in 1..2) {
-            val heightSoft = offset * HeightScalar(scale.toDouble())
-            val map = ArrayList<Triple<HeightScalar, HeightScalar, HeightScalar>>()
+            val heightSoft = offset * HeightNumber(scale.toDouble())
+            val map = ArrayList<Triple<HeightNumber, HeightNumber, HeightNumber>>()
             for (i in heights.indices) {
                 for (j in i until heights.size) {
                     for (k in j until heights.size) {
@@ -91,11 +91,11 @@ data object ItemHeightCombinator {
     }
 
     suspend fun getItemCombination(
-        itemsGroup: Map<HeightScalar, List<Item>>,
+        itemsGroup: Map<HeightNumber, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Pair<HeightScalar, HeightScalar>,
-        restWeight: HeightScalar = infraInfinity(),
-        averageWeight: HeightScalar? = null
+        heights: Pair<HeightNumber, HeightNumber>,
+        restWeight: HeightNumber = infraInfinity(),
+        averageWeight: HeightNumber? = null
     ): List<Item>? {
         return getItemCombination(
             itemsGroup = itemsGroup,
@@ -108,12 +108,12 @@ data object ItemHeightCombinator {
     }
 
     suspend fun <T> getItemCombination(
-        itemsGroup: Map<HeightScalar, List<T>>,
+        itemsGroup: Map<HeightNumber, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Pair<HeightScalar, HeightScalar>,
+        heights: Pair<HeightNumber, HeightNumber>,
         mapper: Extractor<Item, T>,
-        restWeight: HeightScalar = infraInfinity(),
-        averageWeight: HeightScalar? = null
+        restWeight: HeightNumber = infraInfinity(),
+        averageWeight: HeightNumber? = null
     ): List<Item>? {
         var items: List<Item>? = null
 
@@ -163,11 +163,11 @@ data object ItemHeightCombinator {
     }
 
     suspend fun getItemCombination(
-        itemsGroup: Map<HeightScalar, List<Item>>,
+        itemsGroup: Map<HeightNumber, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Triple<HeightScalar, HeightScalar, HeightScalar>,
-        restWeight: HeightScalar = infraInfinity(),
-        averageWeight: HeightScalar? = null
+        heights: Triple<HeightNumber, HeightNumber, HeightNumber>,
+        restWeight: HeightNumber = infraInfinity(),
+        averageWeight: HeightNumber? = null
     ): List<Item>? {
         return getItemCombination(
             itemsGroup = itemsGroup,
@@ -180,12 +180,12 @@ data object ItemHeightCombinator {
     }
 
     suspend fun <T> getItemCombination(
-        itemsGroup: Map<HeightScalar, List<T>>,
+        itemsGroup: Map<HeightNumber, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Triple<HeightScalar, HeightScalar, HeightScalar>,
+        heights: Triple<HeightNumber, HeightNumber, HeightNumber>,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = infraInfinity(),
-        averageWeight: HeightScalar? = null,
+        restWeight: HeightNumber = infraInfinity(),
+        averageWeight: HeightNumber? = null,
     ): List<Item>? {
         var items: List<Item>? = null
 
@@ -240,7 +240,7 @@ data object ItemHeightCombinator {
                             height = heights.second,
                             mapper = mapper,
                             restWeight = restWeight - mapper(firstItem).weight.value,
-                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) / HeightScalar.two },
+                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) / HeightNumber.two },
                             scope = this
                         )) {
                             val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.value.toDouble() }
@@ -313,12 +313,12 @@ data object ItemHeightCombinator {
     }
 
         private fun <T> getItem(
-        itemsGroup: Map<HeightScalar, List<T>>,
+        itemsGroup: Map<HeightNumber, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        height: HeightScalar,
+        height: HeightNumber,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = infraInfinity(),
-        averageWeight: HeightScalar? = null,
+        restWeight: HeightNumber = infraInfinity(),
+        averageWeight: HeightNumber? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
         val promise = Channel<T>(Channel.UNLIMITED)
@@ -353,12 +353,12 @@ data object ItemHeightCombinator {
     }
 
         private fun <T> getItem2(
-        itemsGroup: Map<HeightScalar, List<T>>,
+        itemsGroup: Map<HeightNumber, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        height: HeightScalar,
+        height: HeightNumber,
         mapper: (T) -> Item,
-        restWeight: HeightScalar = infraInfinity(),
-        averageWeight: HeightScalar? = null,
+        restWeight: HeightNumber = infraInfinity(),
+        averageWeight: HeightNumber? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {
         val promise = Channel<Pair<T, T>>(Channel.UNLIMITED)

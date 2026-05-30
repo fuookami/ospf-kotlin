@@ -217,7 +217,7 @@ foreach ($rawPath in $files) {
     $filePath = $rawPath.Replace("\", "/")
     $fileName = [System.IO.Path]::GetFileName($filePath)
     foreach ($check in $fileNameChecks) {
-        if ($fileName -match $check.Pattern) {
+        if ($fileName -cmatch $check.Pattern) {
             $violations += [PSCustomObject]@{
                 Check = $check.Name
                 File = $filePath

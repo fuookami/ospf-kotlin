@@ -7,31 +7,31 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
- * 物料包装主路径标量别名（兼容边界）。
+ * 鐗╂枡鍖呰涓昏矾寰勬爣閲忓埆鍚嶏紙鍏煎杈圭晫锛夈€?
  * Material packing main-path scalar alias (compatibility boundary).
  */
-typealias MaterialPackingScalar = InfraNumber
+typealias MaterialPackingNumber = InfraNumber
 
 /**
- * 物料包装主路径数量别名（兼容边界）。
+ * 鐗╂枡鍖呰涓昏矾寰勬暟閲忓埆鍚嶏紙鍏煎杈圭晫锛夈€?
  * Material packing main-path quantity alias (compatibility boundary).
  */
-typealias MaterialPackingQuantity = Quantity<MaterialPackingScalar>
+typealias MaterialPackingQuantity = Quantity<MaterialPackingNumber>
 
 /**
- * 物料包装标量零值。
+ * 鐗╂枡鍖呰鏍囬噺闆跺€笺€?
  * Zero value for material packing scalar.
  */
-fun materialPackingZero(): MaterialPackingScalar = infraZero()
+fun materialPackingZero(): MaterialPackingNumber = infraZero()
 
 /**
- * 物料包装标量一值。
+ * 鐗╂枡鍖呰鏍囬噺涓€鍊笺€?
  * One value for material packing scalar.
  */
-fun materialPackingOne(): MaterialPackingScalar = infraOne()
+fun materialPackingOne(): MaterialPackingNumber = infraOne()
 
 /**
- * 从 double 构造物料包装标量。
+ * 浠?double 鏋勯€犵墿鏂欏寘瑁呮爣閲忋€?
  * Build material packing scalar from double.
  */
-fun materialPackingScalar(value: Double): MaterialPackingScalar = infraScalar(value)
+fun materialPackingScalar(value: Double): MaterialPackingNumber = infraScalar(value)

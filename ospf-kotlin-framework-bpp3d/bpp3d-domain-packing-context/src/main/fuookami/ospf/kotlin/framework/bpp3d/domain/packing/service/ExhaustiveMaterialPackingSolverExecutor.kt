@@ -1,14 +1,14 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 穷举物料装箱求解器执行器。
+ * 绌蜂妇鐗╂枡瑁呯姹傝В鍣ㄦ墽琛屽櫒銆?
  * Exhaustive material packing solver executor.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.abs
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingScalar
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -16,10 +16,10 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
     private data class CandidateScore(
-        val objective: MaterialPackingScalar,
+        val objective: MaterialPackingNumber,
         val packageCount: Long,
         val slack: Long,
-        val volume: MaterialPackingScalar
+        val volume: MaterialPackingNumber
     )
 
     override suspend fun <V : FloatingNumber<V>> solve(request: MaterialPackingMipRequest<V>): MaterialPackingMipResult {
@@ -122,7 +122,7 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         var bestSelection: IntArray? = null
         var bestScore: CandidateScore? = null
 
-        fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: MaterialPackingScalar): CandidateScore {
+        fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: MaterialPackingNumber): CandidateScore {
             var slack = 0L
             for (materialIndex in materials.indices) {
                 slack += maxOf(covered[materialIndex] - demandedAmount[materialIndex], 0L)
