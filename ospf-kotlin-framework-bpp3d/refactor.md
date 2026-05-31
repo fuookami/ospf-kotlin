@@ -32,9 +32,10 @@
 3. `RenderLoadingPlanItemDTO` 已新增兼容的 shape metadata 字段。
 4. `PackingRendererAdapter` 已对现有长方体输出 `Cuboid` shape metadata、bounding box 和 `actualVolume`。
 5. renderer loading rate 已优先使用 `actualVolume`，缺失时回退到 width、height、depth 相乘。
-6. `cylinder.md` 的 Renderer DTO 部分已勾选已完成子项，圆柱 item 输出子项仍未完成。
+6. `cylinder.md` 的 Renderer DTO 部分已同步勾选：圆柱固定形状字段与长方体兼容字段已完成，仅可变半径逐 item 输出仍未完成。
 7. 已新增 `scripts/shape-boundary-check.ps1`，支持 allowlist 管理并输出违规文件与行号，当前基线输出 `SHAPE_BOUNDARY_PASS`。
 8. infrastructure 已新增 `PackingShape3`、`ShapeBoundingBox3`、`ShapeFootprint2` 及 cuboid/cylinder 适配实现，并补充 `PackingShapeTest` 覆盖长方体与圆柱基础几何契约。
+9. `CirclePackingLayerGenerator` 已新增圆柱轴向门禁：当 item 提供 `CylinderPackingShape3` 且轴向不是 `Axis3.Y` 时直接拒绝，并补充 `LayerGenerationFltXProofTest` 的 `Axis3.X/Z` 失败用例。
 
 仍未完成事项：
 
@@ -44,7 +45,7 @@
 4. `PackageShape` 仍以 width、height、depth 为唯一几何输入。
 5. 支撑、投影、碰撞、边界判断仍主要依赖 `QuantityRectangle2`、`QuantityCuboid3` 和矩形 overlap。
 6. layer、block loading、packing 相关模型仍大量使用 `ItemPlacement3` 和 `QuantityPlacement3<Item>`。
-7. 缺少圆柱真实几何专项测试。
+7. 已补 infrastructure 与 renderer 侧圆柱真实几何专项测试；仍缺少主链端到端圆柱专项测试。
 
 ## 3. 源码硬绑定清单
 
@@ -70,7 +71,7 @@ Domain item：
 
 Domain packing / block / layer：
 
-1. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`：长方体 renderer 已兼容 shape metadata，圆柱输出待接入。
+1. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`：长方体与固定半径圆柱 renderer 已接入 shape metadata 输出。
 2. `bpp3d-domain-block-loading-context/src/main/.../service/SimpleBlockGenerator.kt`：大量构造 `QuantityPlacement3<Item>`。
 3. `bpp3d-domain-block-loading-context/src/main/.../model/Block.kt`：block units 仍使用长方体 placement。
 4. `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`：layer placement 生成仍以 `ItemPlacement3` 为结果。
@@ -292,13 +293,7 @@ mvn -f pom.xml -pl bpp3d-application -am test -Dgpg.skip=true
 
 待完成事项：
 
-1. 圆柱 item 输出 `shapeType = Cylinder`。
-2. 圆柱 item 输出 `renderShapeType = Cylinder`。
-3. 圆柱 item 输出 `algorithmShapeType = VerticalCylinder`。
-4. 圆柱 item 输出 `radius`、`diameter`、`axis = Y`。
-5. 圆柱 item 输出 `actualVolume`。
-6. 圆柱 item 保持 width、height、depth 为旧 renderer 兼容尺寸，即 bounding box。
-7. 可变半径圆柱按最终求得的半径逐 item 输出，不输出未决策的半径范围。
+1. 可变半径圆柱按最终求得的半径逐 item 输出，不输出未决策的半径范围。
 
 实施步骤：
 

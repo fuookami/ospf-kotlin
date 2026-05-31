@@ -61,6 +61,10 @@ class PackingRendererAdapter {
             val itemDtos = bin.items.map { packed ->
                 val placement = packed.placement
                 val shape = placement.unit.explicitPackingShape ?: placement.view.asPackingShape3()
+                requireVerticalCylinderAxis(
+                    shape = shape,
+                    source = "PackingRendererAdapter.toSchema"
+                )
                 val renderShapeType = shape.shapeType.toRenderShapeType()
                 RenderLoadingPlanItemDTO(
                     name = placement.unit.toString(),

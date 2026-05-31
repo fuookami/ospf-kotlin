@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asPackingShape3
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
@@ -42,6 +43,13 @@ class Packer(
     ): PackingResult {
         val packedBins = bins.mapIndexed { index, bin ->
             val itemPlacements = bin.dump().units
+            itemPlacements.forEach { placement ->
+                val shape = placement.unit.explicitPackingShape ?: placement.view.asPackingShape3()
+                requireVerticalCylinderAxis(
+                    shape = shape,
+                    source = "Packer.invoke"
+                )
+            }
             val loadingOrders = loadingOrderCalculator(itemPlacements).toMap()
             PackedBin(
                 name = "bin-${index + 1}",

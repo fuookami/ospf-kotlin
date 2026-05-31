@@ -27,6 +27,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
@@ -34,6 +35,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -648,6 +650,18 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
     return rankByShadowScore(request, ranked)
 }
 
+private fun requireVerticalCylinderAxisForCirclePacking(
+    item: Item,
+    source: String
+) {
+    val shape = item.explicitPackingShape
+    if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
+        throw IllegalArgumentException(
+            "Unsupported cylinder axis in $source: only Axis3.Y is allowed, but got ${shape.axis}."
+        )
+    }
+}
+
 /**
  * Fallback generator reading pre-built layers from request.
  * 从请求中读取已有层作为兜底生成器。
@@ -823,6 +837,12 @@ class CirclePackingLayerGenerator<V>(
 ) : Bpp3dLayerGenerator<V> {
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
+            for (item in it.items) {
+                requireVerticalCylinderAxisForCirclePacking(
+                    item = item,
+                    source = "CirclePackingLayerGenerator"
+                )
+            }
             val packed = if (it.bin != null) {
                 mapItemsToCirclePackingLayers(
                     request = it,

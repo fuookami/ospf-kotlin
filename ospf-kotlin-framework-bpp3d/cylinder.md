@@ -512,21 +512,21 @@ val actualVolume: FltX? = null
 - [x] loading rate 使用真实体积。
 - [x] Renderer DTO 新字段使用 enum。
 - [x] 可变半径场景中半径和物料重量正相关，layer generation 需要推算候选层最优半径。
-- [ ] 确认圆柱是否允许和长方体混装。
+- [x] 确认圆柱是否允许和长方体混装。
 - [ ] 确认业务输入中圆柱字段名称和单位。
 - [ ] 确认可变半径是连续区间、离散候选列表，还是业务标定表。
 - [ ] 确认半径-重量关系使用密度公式还是业务函数。
 
 ### 12.2 Infrastructure
 
-- [ ] 定义 shape type / axis / algorithm shape enum。
-- [ ] 补齐 `Cylinder` 的真实体积和 footprint 能力。
+- [x] 定义 shape type / axis / algorithm shape enum。
+- [x] 补齐 `Cylinder` 的真实体积和 footprint 能力。
 - [ ] 固定第一阶段 `enabledAxes = listOf(Axis3.Y)`。
-- [ ] 实现圆柱外接盒粗筛数据，但不作为最终可行性判断。
-- [ ] 实现 cylinder-cylinder footprint collision。
-- [ ] 实现 cylinder-cuboid footprint collision。
-- [ ] 实现 cylinder-bin boundary check。
-- [ ] 补测试覆盖 `Axis3.Y` 竖直圆柱。
+- [x] 实现圆柱外接盒粗筛数据，但不作为最终可行性判断。
+- [x] 实现 cylinder-cylinder footprint collision。
+- [x] 实现 cylinder-cuboid footprint collision。
+- [x] 实现 cylinder-bin boundary check。
+- [x] 补测试覆盖 `Axis3.Y` 竖直圆柱。
 
 ### 12.3 Domain Item
 
@@ -538,11 +538,11 @@ val actualVolume: FltX? = null
 
 ### 12.4 Block / Layer / Packing
 
-- [ ] 验证 `SimpleBlockGenerator` 能接入圆柱真实 feasibility。
+- [x] 验证 `SimpleBlockGenerator` 能接入圆柱真实 feasibility。
 - [ ] 验证 DFS / MLHS 中空间切分不会把圆柱按外接盒直接判定为最终可行。
-- [ ] 验证 layer generation 不丢失圆柱 item 身份。
+- [x] 验证 layer generation 不丢失圆柱 item 身份。
 - [ ] 验证 layer assignment 的统计约束仍按原始 item 计数。
-- [ ] 补混装测试：长方体 + 竖直圆柱。
+- [x] 补混装测试：长方体 + 竖直圆柱。
 - [ ] 新增圆密排 layer generation 委托接口。
 - [ ] 主流程只依赖委托接口，不直接依赖具体圆密排算法实现。
 - [ ] 新增圆密排结果到 `BinLayer` 的 adapter。
@@ -557,13 +557,13 @@ val actualVolume: FltX? = null
 
 - [x] 修改 `RendererDTO.kt`，增加 `RenderShapeTypeDTO`、`RenderAxis3DTO`、`RenderAlgorithmShapeTypeDTO`。
 - [x] 给 `RenderLoadingPlanItemDTO` 增加 shape metadata。
-- [ ] 修改 BPP3D 导出 mapper，圆柱 item 输出 `shapeType = Cylinder`。
-- [ ] 圆柱 item 输出 `radius`、`diameter`、`axis = Y`。
-- [ ] 圆柱 item 输出 `actualVolume`。
+- [x] 修改 BPP3D 导出 mapper，圆柱 item 输出 `shapeType = Cylinder`。
+- [x] 圆柱 item 输出 `radius`、`diameter`、`axis = Y`。
+- [x] 圆柱 item 输出 `actualVolume`。
 - [ ] 可变半径圆柱按最终求得的半径逐 item 输出，不输出未决策的半径范围。
-- [ ] 圆柱 item 保持 `width`、`height`、`depth` 为旧 renderer 兼容尺寸。
+- [x] 圆柱 item 保持 `width`、`height`、`depth` 为旧 renderer 兼容尺寸。
 - [x] 长方体 item 输出保持兼容。
-- [ ] 增加 DTO serialization 测试。
+- [x] 增加 DTO serialization 测试。
 - [ ] 暂不修改 `E:\workspace\ospf\framework\bpp3d-interface-renderer`，只在后续 renderer 任务中消费新增字段。
 
 ### 12.6 文档与示例
@@ -622,19 +622,19 @@ mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-infrastructure test "-Dgpg.skip=true"
 
 ### 14.1 第一阶段验收
 
-- [ ] BPP3D 可以接收竖直圆柱 item，并能生成装载方案。
-- [ ] 圆柱轴向固定为 `Axis3.Y`，横放/躺放输入被拒绝或转换为长方体装载单元。
-- [ ] 圆柱边界判断使用真实 footprint 和高度。
-- [ ] 圆柱碰撞判断使用圆-圆、圆-矩形真实 footprint，不接受外接盒近似。
-- [ ] 圆柱真实 shape metadata 在最终结果中没有丢失。
-- [ ] loading rate 使用真实圆柱体积。
-- [ ] `RendererDTO.kt` 导出的 item 同时包含兼容旧 renderer 的尺寸字段和新 renderer 所需的圆柱 enum/字段。
+- [x] BPP3D 可以接收竖直圆柱 item，并能生成装载方案。
+- [x] 圆柱轴向固定为 `Axis3.Y`，横放/躺放输入被拒绝或转换为长方体装载单元。
+- [x] 圆柱边界判断使用真实 footprint 和高度。
+- [x] 圆柱碰撞判断使用圆-圆、圆-矩形真实 footprint，不接受外接盒近似。
+- [x] 圆柱真实 shape metadata 在最终结果中没有丢失。
+- [x] loading rate 使用真实圆柱体积。
+- [x] `RendererDTO.kt` 导出的 item 同时包含兼容旧 renderer 的尺寸字段和新 renderer 所需的圆柱 enum/字段。
 - [ ] 旧 three.js renderer 未适配时，仍可按兼容尺寸显示圆柱 item。
-- [ ] 长方体-only 测试结果不受影响。
-- [ ] 圆柱 + 长方体混装测试通过。
-- [ ] DTO serialization 测试通过。
-- [ ] BPP3D 全模块测试通过。
-- [ ] geometry boundary 和 dry-run 脚本通过。
+- [x] 长方体-only 测试结果不受影响。
+- [x] 圆柱 + 长方体混装测试通过。
+- [x] DTO serialization 测试通过。
+- [x] BPP3D 全模块测试通过。
+- [x] geometry boundary 和 dry-run 脚本通过。
 
 ### 14.2 第二阶段验收
 

@@ -13,7 +13,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
@@ -34,7 +39,9 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import kotlin.math.abs
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class PackerAndRendererAdapterTest {
@@ -71,7 +78,11 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun cylinderItem(id: String, material: Material<InfraNumber>): ActualItem {
+    private fun cylinderItem(
+        id: String,
+        material: Material<InfraNumber>,
+        axis: Axis3 = Axis3.Y
+    ): ActualItem {
         val radius = infraScalar(0.5) * Meter
         val height = infraScalar(1.2) * Meter
         val cylinderWeight = infraScalar(1.0) * Kilogram
@@ -98,12 +109,28 @@ class PackerAndRendererAdapterTest {
                     cylinder = object : AbstractCylinder<InfraNumber> {
                         override val radius = radius
                         override val height = height
-                        override val axis = Axis3.Y
+                        override val axis = axis
                         override val weight = cylinderWeight
                     }
                 )
             }
         }
+    }
+
+    private fun toPackingResult(bin: Bin<BinLayer>): PackingResult {
+        val packed = PackedBin(
+            name = "bin-test",
+            type = bin.shape,
+            items = bin.dump().units.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        return PackingResult(
+            aggregation = PackingAggregation(listOf(packed))
+        )
     }
 
     private fun layerBin(items: List<ActualItem>): Bin<BinLayer> {
@@ -195,6 +222,77 @@ class PackerAndRendererAdapterTest {
         assertTrue(item.radius != null)
         assertTrue(item.diameter != null)
         assertTrue(item.actualVolume != null)
+    }
+
+    @Test
+    fun rendererShouldUseActualVolumeForMixedCuboidAndCylinder() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-MIX"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-MIX",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(listOf(item("box-1", material), cylinderItem("cyl-1", material)))
+
+        val result = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        )
+        val schema = PackingRendererAdapter().toSchema(result)
+        val plan = schema.loadingPlans.first()
+
+        assertEquals(2, plan.items.size)
+        assertTrue(plan.items.any { it.shapeType.name == "Cuboid" })
+        assertTrue(plan.items.any { it.shapeType.name == "Cylinder" })
+
+        val itemVolumeSum = plan.items.fold(0.0) { acc, next ->
+            acc + next.actualVolume!!.toDouble()
+        }
+        val planVolume = plan.volume.toDouble()
+        val loadingRate = plan.loadingRate.toDouble()
+        val expectedLoadingRate = itemVolumeSum / (3.0 * 3.0 * 3.0)
+
+        assertTrue(abs(planVolume - itemVolumeSum) < 1e-9)
+        assertTrue(abs(loadingRate - expectedLoadingRate) < 1e-9)
+    }
+
+    @Test
+    fun packerShouldRejectNonVerticalCylinderAxis() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-X"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-X",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(listOf(cylinderItem("cyl-x-1", material, Axis3.X)))
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            Packer().invoke(
+                bins = listOf(bin),
+                context = PackingContext()
+            )
+        }
+        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+    }
+
+    @Test
+    fun rendererAdapterShouldRejectNonVerticalCylinderAxis() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-Z"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-Z",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(listOf(cylinderItem("cyl-z-1", material, Axis3.Z)))
+        val result = toPackingResult(bin)
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(result)
+        }
+        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
     }
 }
 

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.ordinary.min
 
 class SimpleBlockGenerator(
@@ -86,6 +87,8 @@ class SimpleBlockGenerator(
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
+            requireSupportedCylinderItemForSimpleBlock(item)
+
             if (config.mergeAsPatternBlock) {
                 for (pattern in patterns) {
                     for (patternImpl in pattern.patterns) {
@@ -210,6 +213,29 @@ class SimpleBlockGenerator(
             }
         }
         return blocks
+    }
+
+    private fun requireSupportedCylinderItemForSimpleBlock(item: Item) {
+        val shape = item.explicitPackingShape
+        if (shape !is CylinderPackingShape3) {
+            return
+        }
+        if (shape.axis != Axis3.Y) {
+            throw IllegalArgumentException(
+                "Unsupported cylinder axis in SimpleBlockGenerator: only Axis3.Y is allowed, but got ${shape.axis}."
+            )
+        }
+        val unsupportedOrientations = item.enabledOrientations.filter { it.category != OrientationCategory.Upright }
+        if (unsupportedOrientations.isNotEmpty()) {
+            throw IllegalArgumentException(
+                "Unsupported cylinder orientation in SimpleBlockGenerator: only upright orientations are allowed."
+            )
+        }
+        if (item.enabledSideOnTop || item.enabledLieOnTop) {
+            throw IllegalArgumentException(
+                "Unsupported cylinder top-layer policy in SimpleBlockGenerator: side/lie stacking is not allowed."
+            )
+        }
     }
 
     private fun simpleBlocks(
