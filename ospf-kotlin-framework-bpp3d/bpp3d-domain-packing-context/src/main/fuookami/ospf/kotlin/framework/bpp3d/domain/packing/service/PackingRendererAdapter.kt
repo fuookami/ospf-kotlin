@@ -7,8 +7,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAlgorithmShapeTypeDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanItemDTO
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderShapeTypeDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
@@ -39,12 +41,19 @@ class PackingRendererAdapter {
                     y = placement.absoluteY.value.toFltX(),
                     z = placement.absoluteZ.value.toFltX(),
                     weight = placement.weight.value.toFltX(),
-                    loadingOrder = packed.loadingOrder
+                    loadingOrder = packed.loadingOrder,
+                    shapeType = RenderShapeTypeDTO.Cuboid,
+                    renderShapeType = RenderShapeTypeDTO.Cuboid,
+                    algorithmShapeType = RenderAlgorithmShapeTypeDTO.Cuboid,
+                    boundingWidth = placement.width.value.toFltX(),
+                    boundingHeight = placement.height.value.toFltX(),
+                    boundingDepth = placement.depth.value.toFltX(),
+                    actualVolume = placement.view.actualVolume.value.toFltX()
                 )
             }
 
             val usedVolume = itemDtos.fold(FltX.zero) { acc, item ->
-                acc + (item.width * item.height * item.depth)
+                acc + (item.actualVolume ?: (item.width * item.height * item.depth))
             }
             val totalVolume = bin.type.width.value.toFltX() * bin.type.height.value.toFltX() * bin.type.depth.value.toFltX()
             val loadingRate = if (totalVolume == FltX.zero) {

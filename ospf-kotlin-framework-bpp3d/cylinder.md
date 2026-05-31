@@ -555,14 +555,14 @@ val actualVolume: FltX? = null
 
 ### 12.5 Renderer DTO
 
-- [ ] 修改 `RendererDTO.kt`，增加 `RenderShapeTypeDTO`、`RenderAxis3DTO`、`RenderAlgorithmShapeTypeDTO`。
-- [ ] 给 `RenderLoadingPlanItemDTO` 增加 shape metadata。
+- [x] 修改 `RendererDTO.kt`，增加 `RenderShapeTypeDTO`、`RenderAxis3DTO`、`RenderAlgorithmShapeTypeDTO`。
+- [x] 给 `RenderLoadingPlanItemDTO` 增加 shape metadata。
 - [ ] 修改 BPP3D 导出 mapper，圆柱 item 输出 `shapeType = Cylinder`。
 - [ ] 圆柱 item 输出 `radius`、`diameter`、`axis = Y`。
 - [ ] 圆柱 item 输出 `actualVolume`。
 - [ ] 可变半径圆柱按最终求得的半径逐 item 输出，不输出未决策的半径范围。
 - [ ] 圆柱 item 保持 `width`、`height`、`depth` 为旧 renderer 兼容尺寸。
-- [ ] 长方体 item 输出保持兼容。
+- [x] 长方体 item 输出保持兼容。
 - [ ] 增加 DTO serialization 测试。
 - [ ] 暂不修改 `E:\workspace\ospf\framework\bpp3d-interface-renderer`，只在后续 renderer 任务中消费新增字段。
 
