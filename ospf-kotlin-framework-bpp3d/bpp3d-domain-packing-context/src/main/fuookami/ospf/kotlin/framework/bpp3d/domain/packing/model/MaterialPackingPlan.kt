@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 鐗╂枡瑁呯璁″垝妯″瀷銆?
+ * 物料装箱计划模型。
  * Material packing plan model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
- * 鐗╂枡鍖呰鐩爣鏉冮噸閰嶇疆銆?
+ * 物料包装目标权重配置。
  * Material packing objective weights.
  */
 data class MaterialPackingObjectiveConfig(
@@ -32,7 +32,7 @@ data class MaterialPackingObjectiveConfig(
 )
 
 /**
- * 鐗╂枡闇€姹傦紝鍙寜鏁伴噺涓庨噸閲忔贩鍚堣緭鍏ャ€?
+ * 物料需求，可按数量与重量混合输入。
  * Material demand with amount/weight mixed input.
  */
 data class MaterialPackingDemand<V : FloatingNumber<V>>(
@@ -41,11 +41,11 @@ data class MaterialPackingDemand<V : FloatingNumber<V>>(
     val weight: Quantity<V>? = null
 )
 
-/** InfraNumber 鐗╂枡瑁呯闇€姹傚埆鍚嶃€侷nfraNumber material-packing demand alias. */
+/** InfraNumber 物料装箱需求别名。InfraNumber material-packing demand alias. */
 typealias InfraMaterialPackingDemand = MaterialPackingDemand<MaterialPackingNumber>
 
 /**
- * 鍖呰鏂规鍊欓€夛紝鎻忚堪鍖呰绋嬪簭涓庣敓鎴?item 鐨勯檮鍔犲睘鎬с€?
+ * 包装方案候选，描述包装程序与生成 item 的附加属性。
  * Candidate packaging program and item generation options.
  */
 data class MaterialPackingProgramCandidate<V : FloatingNumber<V>>(
@@ -58,11 +58,11 @@ data class MaterialPackingProgramCandidate<V : FloatingNumber<V>>(
     val packageAttribute: PackageAttribute? = null
 )
 
-/** InfraNumber 瑁呯绋嬪簭鍊欓€夊埆鍚嶃€侷nfraNumber packing-program candidate alias. */
+/** InfraNumber 装箱程序候选别名。InfraNumber packing-program candidate alias. */
 typealias InfraMaterialPackingProgramCandidate = MaterialPackingProgramCandidate<MaterialPackingNumber>
 
 /**
- * 鍖呰鏂规閫夋嫨缁撴灉锛坸[p]锛夈€?
+ * 包装方案选择结果（x[p]）。
  * Selected package count for a program (x[p]).
  */
 data class PackageSelection(
@@ -71,7 +71,7 @@ data class PackageSelection(
 )
 
 /**
- * 鍖呰鏂规鍐呯墿鏂欏垎閰嶇粨鏋滐紙y[p,m]锛夈€?
+ * 包装方案内物料分配结果（y[p,m]）。
  * Assigned material amount for a program (y[p,m]).
  */
 data class MaterialPackingAssignment(
@@ -81,7 +81,7 @@ data class MaterialPackingAssignment(
 )
 
 /**
- * 鍖呰鍚庣殑 item 鍙婃暟閲忋€?
+ * 包装后的 item 及数量。
  * Packaged item and multiplicity.
  */
 data class PackagedItem(
@@ -96,7 +96,7 @@ enum class MaterialPackingStatus {
 }
 
 /**
- * 鍖呰姹傝В淇℃伅銆?
+ * 包装求解信息。
  * Material packing solve information.
  */
 data class MaterialPackingSolveInfo(
@@ -109,7 +109,7 @@ data class MaterialPackingSolveInfo(
 )
 
 /**
- * 鐗╂枡鍖呰瑙勫垝缁撴灉銆?
+ * 物料包装规划结果。
  * Material packing plan output.
  */
 data class MaterialPackingPlan(

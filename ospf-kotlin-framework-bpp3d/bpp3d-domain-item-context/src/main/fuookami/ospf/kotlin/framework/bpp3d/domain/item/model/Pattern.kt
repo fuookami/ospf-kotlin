@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 妯″紡妯″瀷銆?
+ * 模式模型。
  * Pattern model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model

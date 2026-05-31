@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 鐗╂枡瑁呯鍣ㄣ€?
+ * 物料装箱器。
  * Material packer.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service

@@ -1,5 +1,5 @@
 /**
- * 闇€姹傜缉鍑忔垚鏈ā鍨嬨€?
+ * 需求缩减成本模型。
  * Demand reduced cost model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model

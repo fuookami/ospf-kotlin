@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 绌蜂妇鐗╂枡瑁呯姹傝В鍣ㄦ墽琛屽櫒銆?
+ * 穷举物料装箱求解器执行器。
  * Exhaustive material packing solver executor.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service

@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 褰卞瓙浠锋牸鏄犲皠妯″瀷銆?
+ * 影子价格映射模型。
  * Shadow price map model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model

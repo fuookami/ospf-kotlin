@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 璐х墿鍚堝苟鏈嶅姟銆?
+ * 货物合并服务。
  * Item merger service.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service

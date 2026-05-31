@@ -1,7 +1,7 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 璐х墿楂樺害缁勫悎鍣ㄣ€?
+ * 货物高度组合器。
  * Item height combinator.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
