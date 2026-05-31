@@ -108,6 +108,12 @@ interface Item : Cuboid<Item>, Indexed {
         get() = this
     val explicitPackingShape: PackingShape3<InfraNumber>?
         get() = null
+    val packingShapeSpec: PackageShapeSpec?
+        get() = null
+    val packingShape: PackingShape3<InfraNumber>
+        get() = explicitPackingShape
+            ?: packageShape.toPackingShapeOrNull()
+            ?: view().asPackingShape3()
     val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
     val warehouse: String?
@@ -125,7 +131,8 @@ interface Item : Cuboid<Item>, Indexed {
             height = height,
             depth = depth,
             weight = weight,
-            packageType = packageType
+            packageType = packageType,
+            shapeSpec = packingShapeSpec ?: PackageShapeSpec.Cuboid
         )
     val type: ItemType get() = ItemType(packageType)
     val packageCategory get() = packageType.category
@@ -195,9 +202,15 @@ open class ActualItem(
     override val batchNo: BatchNo? = null,
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute,
+    val shapeSpecOverride: PackageShapeSpec? = null,
+    val packingShapeOverride: PackingShape3<InfraNumber>? = null,
     val materialAmountsOverride: Map<MaterialKey, UInt64>? = null,
     val materialWeightsOverride: Map<MaterialKey, Quantity<InfraNumber>>? = null
 ) : Item, ManualIndexed() {
+    override val explicitPackingShape: PackingShape3<InfraNumber>?
+        get() = packingShapeOverride
+    override val packingShapeSpec: PackageShapeSpec?
+        get() = shapeSpecOverride ?: (pack?.shape as? PackageShape<InfraNumber>)?.shapeSpec
     override val priorities = priorityAttribute.mapNotNull { it(this)?.let { value -> Pair(it.key, value) } }.toMap()
     override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
         materialAmountsOverride?.let {
@@ -603,7 +616,13 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                     (view as ItemView).enabledStackingOn(
                         bottomSupport = bottomSupport(
                             unit = item,
-                            bottomUnits = thisBottomPlacements
+                            bottomUnits = thisBottomPlacements,
+                            shapeResolver = { placement ->
+                                when (val placementUnit = placement.unit) {
+                                    is Item -> placementUnit.packingShape
+                                    else -> placement.view.asPackingShape3()
+                                }
+                            }
                         )
                     ) && unit.packageAttribute.enabledStackingOn(
                         item = item,
@@ -657,7 +676,13 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                     (view as ItemView).enabledStackingOn(
                         bottomSupport = bottomSupport(
                             unit = item,
-                            bottomUnits = thisBottomPlacements
+                            bottomUnits = thisBottomPlacements,
+                            shapeResolver = { placement ->
+                                when (val placementUnit = placement.unit) {
+                                    is Item -> placementUnit.packingShape
+                                    else -> placement.view.asPackingShape3()
+                                }
+                            }
                         )
                     ) && unit.packageAttribute.enabledStackingOn(
                         item = item,
@@ -711,7 +736,13 @@ suspend fun ItemPlacement3.enabledStackingOn(
         (view as ItemView).enabledStackingOn(
             bottomSupport = bottomSupport(
                 unit = this,
-                bottomUnits = bottomItems
+                bottomUnits = bottomItems,
+                shapeResolver = { placement ->
+                    when (val placementUnit = placement.unit) {
+                        is Item -> placementUnit.packingShape
+                        else -> placement.view.asPackingShape3()
+                    }
+                }
             )
         ) && unit.packageAttribute.enabledStackingOn(
             item = this,

@@ -5,14 +5,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -62,7 +60,7 @@ class SimpleBlockGeneratorProofTest {
         val radius = infraScalar(0.5) * Meter
         val height = infraScalar(1.0) * Meter
         val weight = infraScalar(1.0) * Kilogram
-        return object : ActualItem(
+        return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
@@ -71,19 +69,12 @@ class SimpleBlockGeneratorProofTest {
             weight = weight,
             enabledOrientations = enabledOrientations,
             batchNo = BatchNo("B-$id"),
-            packageAttribute = defaultPackageAttribute()
-        ) {
-            override val explicitPackingShape: PackingShape3<InfraNumber> by lazy {
-                CylinderPackingShape3(
-                    cylinder = object : AbstractCylinder<InfraNumber> {
-                        override val radius = radius
-                        override val height = height
-                        override val axis = axis
-                        override val weight = weight
-                    }
-                )
-            }
-        }
+            packageAttribute = defaultPackageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = radius,
+                axis = axis
+            )
+        )
     }
 
     @Test

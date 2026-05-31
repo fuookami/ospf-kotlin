@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
@@ -19,14 +20,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
@@ -96,25 +94,22 @@ class PackerAndRendererAdapterTest {
             ),
             materials = mapOf(material to UInt64.one)
         )
-        return object : ActualItem(
+        return ActualItem(
             id = id,
             name = id,
             pack = pack,
+            width = infraScalar(1.0) * Meter,
+            height = height,
+            depth = infraScalar(1.0) * Meter,
+            weight = cylinderWeight,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
-            packageAttribute = packageAttribute()
-        ) {
-            override val explicitPackingShape: PackingShape3<InfraNumber> by lazy {
-                CylinderPackingShape3(
-                    cylinder = object : AbstractCylinder<InfraNumber> {
-                        override val radius = radius
-                        override val height = height
-                        override val axis = axis
-                        override val weight = cylinderWeight
-                    }
-                )
-            }
-        }
+            packageAttribute = packageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = radius,
+                axis = axis
+            )
+        )
     }
 
     private fun toPackingResult(bin: Bin<BinLayer>): PackingResult {

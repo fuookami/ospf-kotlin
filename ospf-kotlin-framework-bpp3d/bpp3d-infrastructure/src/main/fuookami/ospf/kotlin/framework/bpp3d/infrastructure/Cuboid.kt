@@ -16,9 +16,9 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.div
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.quantity.geq
+import fuookami.ospf.kotlin.quantities.quantity.gr
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Meter
 
 interface AbstractCuboid<V : FloatingNumber<V>> {
     val width: Quantity<V>
@@ -115,24 +115,25 @@ open class CuboidView<T : Cuboid<T>>(
     }
 
     fun bottomSupport(bottomView: CuboidView<*>): BottomSupport {
-        val placement = QuantityPlacement2(
-            projection = PlaneProjection(this, Bottom),
-            position = QuantityPoint2(infraZero() * Meter, infraZero() * Meter)
+        val shapePlacement = ShapePlacement3(
+            shape = this.asPackingShape3(),
+            position = point3()
         )
-        val bottomPlacement = QuantityPlacement2(
-            projection = PlaneProjection(bottomView, Bottom),
-            position = QuantityPoint2(infraZero() * Meter, infraZero() * Meter)
+        val bottomShapePlacement = ShapePlacement3(
+            shape = bottomView.asPackingShape3(),
+            position = point3()
         )
-        val intersect = placement.intersect(bottomPlacement)
-        return if (intersect == null) {
+        val supportArea = shapePlacement.footprintOverlapArea(bottomShapePlacement)
+        val bottomArea = bottomShapePlacement.footprintOverlapArea(bottomShapePlacement)
+        return if ((bottomArea eq (infraZero() * bottomArea.unit)) == true) {
             BottomSupport(
-                area = bottomPlacement.projection.area * infraZero(),
-                weight = bottomPlacement.weight * infraZero()
+                area = supportArea,
+                weight = bottomView.weight * infraZero()
             )
         } else {
             BottomSupport(
-                area = intersect.area,
-                weight = (intersect.area / bottomPlacement.projection.area).value * bottomPlacement.weight
+                area = supportArea,
+                weight = (supportArea / bottomArea).value * bottomView.weight
             )
         }
     }
@@ -169,24 +170,30 @@ open class CuboidView<T : Cuboid<T>>(
 
 fun bottomSupport(
     unit: QuantityPlacement3<*>,
-    bottomUnits: List<QuantityPlacement3<*>>
+    bottomUnits: List<QuantityPlacement3<*>>,
+    shapeResolver: (QuantityPlacement3<*>) -> PackingShape3<InfraNumber> = { placement ->
+        placement.view.asPackingShape3()
+    }
 ): BottomSupport {
+    val unitShapePlacement = unit.asShapePlacement3(shapeResolver)
     var support = BottomSupport(
         area = unit.depth * unit.width * infraZero(),
         weight = unit.weight * infraZero()
     )
 
-    val bottomPlacement = QuantityPlacement2(unit, Bottom)
     for (fixedPlacement in bottomUnits) {
         if (fixedPlacement.maxY eq unit.y) {
-            val thisBottomPlacement = QuantityPlacement2(fixedPlacement, Bottom)
-            val intersect = bottomPlacement.intersect(thisBottomPlacement)
-            if (intersect != null) {
-                val thisSupport = BottomSupport(
-                    area = intersect.area,
-                    weight = (intersect.area / thisBottomPlacement.projection.area).value * thisBottomPlacement.weight
-                )
-                support += thisSupport
+            val bottomShapePlacement = fixedPlacement.asShapePlacement3(shapeResolver)
+            val overlapArea = unitShapePlacement.footprintOverlapArea(bottomShapePlacement)
+            if ((overlapArea gr (infraZero() * overlapArea.unit)) == true) {
+                val bottomArea = bottomShapePlacement.footprintOverlapArea(bottomShapePlacement)
+                if ((bottomArea gr (infraZero() * bottomArea.unit)) == true) {
+                    val thisSupport = BottomSupport(
+                        area = overlapArea,
+                        weight = (overlapArea / bottomArea).value * fixedPlacement.weight
+                    )
+                    support += thisSupport
+                }
             }
         }
     }

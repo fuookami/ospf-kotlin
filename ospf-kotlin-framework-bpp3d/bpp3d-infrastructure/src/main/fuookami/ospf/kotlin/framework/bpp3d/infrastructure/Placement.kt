@@ -27,6 +27,12 @@ import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
+import kotlin.math.PI
+import kotlin.math.acos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
     return lhs.partialOrd(rhs)
@@ -280,6 +286,19 @@ data class ShapePlacement3(
     val shape: PackingShape3<InfraNumber>,
     val position: QuantityPoint3
 ) : Copyable<ShapePlacement3> {
+    private data class CircleFootprint(
+        val centerX: Quantity<InfraNumber>,
+        val centerZ: Quantity<InfraNumber>,
+        val radius: Quantity<InfraNumber>
+    )
+
+    private data class RectangleFootprint(
+        val minX: Quantity<InfraNumber>,
+        val maxX: Quantity<InfraNumber>,
+        val minZ: Quantity<InfraNumber>,
+        val maxZ: Quantity<InfraNumber>
+    )
+
     val x by position::x
     val y by position::y
     val z by position::z
@@ -291,6 +310,148 @@ data class ShapePlacement3(
     val maxX: Quantity<InfraNumber> get() = x + boundingWidth
     val maxY: Quantity<InfraNumber> get() = y + boundingHeight
     val maxZ: Quantity<InfraNumber> get() = z + boundingDepth
+
+    private fun toCircleFootprint(): CircleFootprint? {
+        val footprint = shape.footprint()
+        return if (footprint is ShapeFootprint2.Circle) {
+            CircleFootprint(
+                centerX = x + footprint.radius,
+                centerZ = z + footprint.radius,
+                radius = footprint.radius
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun toRectangleFootprint(): RectangleFootprint? {
+        val footprint = shape.footprint()
+        return if (footprint is ShapeFootprint2.Rectangle) {
+            RectangleFootprint(
+                minX = x,
+                maxX = x + footprint.width,
+                minZ = z,
+                maxZ = z + footprint.depth
+            )
+        } else {
+            null
+        }
+    }
+
+    private fun zeroArea(unit: Quantity<InfraNumber>): Quantity<InfraNumber> {
+        return unit * unit * infraZero()
+    }
+
+    private fun rectangleRectangleOverlapArea(
+        lhs: RectangleFootprint,
+        rhs: RectangleFootprint
+    ): Quantity<InfraNumber> {
+        val overlapX = quantityMin(lhs.maxX, rhs.maxX, "x") - quantityMax(lhs.minX, rhs.minX, "x")
+        val overlapZ = quantityMin(lhs.maxZ, rhs.maxZ, "z") - quantityMax(lhs.minZ, rhs.minZ, "z")
+        if ((overlapX gr (infraZero() * overlapX.unit)) != true || (overlapZ gr (infraZero() * overlapZ.unit)) != true) {
+            return zeroArea(overlapX)
+        }
+        return overlapX * overlapZ
+    }
+
+    private fun circleCircleOverlapArea(
+        lhs: CircleFootprint,
+        rhs: CircleFootprint
+    ): Quantity<InfraNumber> {
+        val r1 = lhs.radius.toDouble()
+        val r2 = rhs.radius.toDouble()
+        val dx = (lhs.centerX - rhs.centerX).toDouble()
+        val dz = (lhs.centerZ - rhs.centerZ).toDouble()
+        val d = sqrt(dx * dx + dz * dz)
+        val areaUnit = (lhs.radius * lhs.radius).unit
+        if (d >= r1 + r2) {
+            return infraZero() * areaUnit
+        }
+        if (d <= kotlin.math.abs(r1 - r2)) {
+            val minRadius = min(r1, r2)
+            return infraScalar(PI * minRadius * minRadius) * areaUnit
+        }
+        val dSafe = if (d == 0.0) 1e-12 else d
+        val cosA = ((d * d + r1 * r1 - r2 * r2) / (2.0 * dSafe * r1)).coerceIn(-1.0, 1.0)
+        val cosB = ((d * d + r2 * r2 - r1 * r1) / (2.0 * dSafe * r2)).coerceIn(-1.0, 1.0)
+        val alpha = 2.0 * acos(cosA)
+        val beta = 2.0 * acos(cosB)
+        val area = 0.5 * r1 * r1 * (alpha - sin(alpha)) + 0.5 * r2 * r2 * (beta - sin(beta))
+        return infraScalar(area) * areaUnit
+    }
+
+    private fun circleRectangleOverlapArea(
+        circle: CircleFootprint,
+        rectangle: RectangleFootprint
+    ): Quantity<InfraNumber> {
+        val radius = circle.radius.toDouble()
+        val centerX = circle.centerX.toDouble()
+        val centerZ = circle.centerZ.toDouble()
+        val left = rectangle.minX.toDouble()
+        val right = rectangle.maxX.toDouble()
+        val front = rectangle.minZ.toDouble()
+        val back = rectangle.maxZ.toDouble()
+        val integrationLb = max(left, centerX - radius)
+        val integrationUb = min(right, centerX + radius)
+        val areaUnit = (circle.radius * circle.radius).unit
+        if (integrationLb >= integrationUb) {
+            return infraZero() * areaUnit
+        }
+
+        fun verticalLengthAt(xValue: Double): Double {
+            val dx = xValue - centerX
+            val remainder = radius * radius - dx * dx
+            if (remainder <= 0.0) {
+                return 0.0
+            }
+            val delta = sqrt(remainder)
+            val low = max(front, centerZ - delta)
+            val high = min(back, centerZ + delta)
+            return max(0.0, high - low)
+        }
+
+        fun simpson(lb: Double, ub: Double): Double {
+            val mid = (lb + ub) / 2.0
+            return (ub - lb) * (verticalLengthAt(lb) + 4.0 * verticalLengthAt(mid) + verticalLengthAt(ub)) / 6.0
+        }
+
+        fun adaptiveSimpson(lb: Double, ub: Double, whole: Double, epsilon: Double, depth: Int): Double {
+            val mid = (lb + ub) / 2.0
+            val leftValue = simpson(lb, mid)
+            val rightValue = simpson(mid, ub)
+            val delta = leftValue + rightValue - whole
+            return if (depth <= 0 || kotlin.math.abs(delta) <= 15.0 * epsilon) {
+                leftValue + rightValue + delta / 15.0
+            } else {
+                adaptiveSimpson(lb, mid, leftValue, epsilon / 2.0, depth - 1) +
+                        adaptiveSimpson(mid, ub, rightValue, epsilon / 2.0, depth - 1)
+            }
+        }
+
+        val whole = simpson(integrationLb, integrationUb)
+        val area = adaptiveSimpson(
+            lb = integrationLb,
+            ub = integrationUb,
+            whole = whole,
+            epsilon = 1e-7,
+            depth = 12
+        )
+        return infraScalar(area) * areaUnit
+    }
+
+    fun footprintOverlapArea(rhs: ShapePlacement3): Quantity<InfraNumber> {
+        val lhsCircle = toCircleFootprint()
+        val rhsCircle = rhs.toCircleFootprint()
+        val lhsRectangle = toRectangleFootprint()
+        val rhsRectangle = rhs.toRectangleFootprint()
+        return when {
+            lhsCircle != null && rhsCircle != null -> circleCircleOverlapArea(lhsCircle, rhsCircle)
+            lhsRectangle != null && rhsRectangle != null -> rectangleRectangleOverlapArea(lhsRectangle, rhsRectangle)
+            lhsCircle != null && rhsRectangle != null -> circleRectangleOverlapArea(lhsCircle, rhsRectangle)
+            lhsRectangle != null && rhsCircle != null -> circleRectangleOverlapArea(rhsCircle, lhsRectangle)
+            else -> zeroArea(boundingWidth)
+        }
+    }
 
     private val footprintPlacement: GeometryPlacement2<InfraNumber>
         get() {
@@ -341,7 +502,8 @@ data class ShapePlacement3(
         if (!verticalOverlapped(rhs)) {
             return false
         }
-        return footprintPlacement.overlapped(rhs.footprintPlacement)
+        val overlapArea = footprintOverlapArea(rhs)
+        return (overlapArea gr (infraZero() * overlapArea.unit)) == true || footprintPlacement.overlapped(rhs.footprintPlacement)
     }
 
     override fun copy(): ShapePlacement3 {
@@ -353,8 +515,16 @@ data class ShapePlacement3(
 }
 
 fun QuantityPlacement3<*>.asShapePlacement3(): ShapePlacement3 {
+    return asShapePlacement3 { placement ->
+        placement.view.asPackingShape3()
+    }
+}
+
+fun QuantityPlacement3<*>.asShapePlacement3(
+    shapeResolver: (QuantityPlacement3<*>) -> PackingShape3<InfraNumber>
+): ShapePlacement3 {
     return ShapePlacement3(
-        shape = view.asPackingShape3(),
+        shape = shapeResolver(this),
         position = absolutePosition
     )
 }

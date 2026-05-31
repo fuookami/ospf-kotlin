@@ -654,7 +654,7 @@ private fun requireVerticalCylinderAxisForCirclePacking(
     item: Item,
     source: String
 ) {
-    val shape = item.explicitPackingShape
+    val shape = item.packingShape
     if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
         throw IllegalArgumentException(
             "Unsupported cylinder axis in $source: only Axis3.Y is allowed, but got ${shape.axis}."

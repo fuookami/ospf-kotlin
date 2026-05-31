@@ -57,7 +57,7 @@ data class GenericPackageShape<V : FloatingNumber<V>>(
     val height: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
-    val packageType: PackageType,
+    val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
 ) {
     val volume: Quantity<V> = width * height * depth
 

@@ -19,17 +19,16 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -80,7 +79,7 @@ class LayerGenerationFltXProofTest {
             shape = shape,
             materials = emptyMap()
         )
-        return object : ActualItem(
+        return ActualItem(
             id = id,
             name = id,
             width = pack.width,
@@ -89,19 +88,12 @@ class LayerGenerationFltXProofTest {
             weight = pack.weight,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
-            packageAttribute = defaultPackageAttribute()
-        ) {
-            override val explicitPackingShape: PackingShape3<InfraNumber> by lazy {
-                CylinderPackingShape3(
-                    cylinder = object : AbstractCylinder<InfraNumber> {
-                        override val radius = radius
-                        override val height = height
-                        override val axis = axis
-                        override val weight = weight
-                    }
-                )
-            }
-        }
+            packageAttribute = defaultPackageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = radius,
+                axis = axis
+            )
+        )
     }
 
     @Test
@@ -801,7 +793,7 @@ class LayerGenerationFltXProofTest {
         assertTrue(
             generated.flatMap { it.layer.units }.all { placement ->
                 val unit = placement.view.unit as? Item
-                val shape = unit?.explicitPackingShape
+                val shape = unit?.packingShape
                 (unit === item) &&
                     shape is CylinderPackingShape3 &&
                     shape.axis == Axis3.Y

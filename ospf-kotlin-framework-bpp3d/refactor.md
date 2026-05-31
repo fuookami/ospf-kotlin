@@ -1,422 +1,311 @@
-# BPP3D 完全泛型化与圆柱铺垫重构交接
+# BPP3D 形状泛型化与竖直圆柱支持重构交接
 
 日期：2026-05-31  
-当前基线提交：`ed3ed221 fix(bpp3d): 修复主流程收口后的中文注释乱码`
-目标文档：`cylinder.md`
+状态：`cylinder.md` 已合并到本文档，后续只维护 `refactor.md`。
+最近更新：2026-05-31（阶段 1 完成，阶段 2 完成首版支撑几何收口）。
 
 ## 1. 总目标
 
-本交接文档只服务一个目标：把 BPP3D 从“以长方体为隐含前提的主链”重构为“数值泛型 + 形状泛型”的主链，并为 `cylinder.md` 中第一阶段竖直圆柱真实几何 MVP 做好铺垫。
+把 BPP3D 从“长方体作为隐含前提”的主流程，推进为“数值泛型 + 形状泛型”的装载主链，并稳定支持第一阶段竖直圆柱真实几何 MVP。
 
-完全泛型化必须同时满足两层含义：
+最终目标包括：
 
-1. 数值泛型化：核心抽象不把数值类型写死为单一实现；业务兼容层可以继续使用 `InfraNumber`。
-2. 形状泛型化：主流程能表达不同三维形状；`Cuboid` 是一个 shape 实现，而不是 placement、projection、support、container、renderer 的唯一几何真相。
+1. 主流程能表达长方体和竖直圆柱，后续可扩展更多 shape。
+2. `Cuboid` 只是 shape 的一种实现，不再是 placement、projection、support、container、renderer 的唯一几何真相。
+3. 竖直圆柱固定轴向为 `Axis3.Y`，不支持横放、躺放或任意角度旋转。
+4. 圆柱边界、碰撞、支撑、体积和 renderer 输出使用真实几何，不把外接盒近似作为最终判定。
+5. 保持现有长方体用例、CSV 入口、Gurobi 流程和旧 renderer 兼容字段不回退。
 
-圆柱铺垫的第一阶段目标：
+## 2. 已完成摘要
 
-1. 支持竖直圆柱，默认轴向为 `Axis3.Y`。
-2. 圆柱使用真实 footprint 做边界、碰撞、支撑判断，不接受外接盒近似作为最终判定。
-3. 圆柱使用真实体积参与 loading rate、KPI 和 renderer 输出。
-4. renderer DTO 能输出 shape type、algorithm shape type、axis、radius、diameter、actualVolume、bounding box。
-5. 保持现有长方体行为、CSV 数据入口、默认测试、Gurobi 测试兼容。
+当前已经完成以下方向的基础工作，后续不要重复铺垫：
 
-## 2. 当前状态
+1. strict generic boundary 门禁已建立并通过。
+2. shape boundary 门禁已建立并通过。
+3. infrastructure 已有 `PackingShape3`、`ShapeBoundingBox3`、`ShapeFootprint2`、`CuboidPackingShape3`、`CylinderPackingShape3`。
+4. 长方体和圆柱已具备基础 shape adapter、真实体积、bounding box 和 footprint 能力。
+5. `ShapePlacement3` 已存在，并能用 circle/rectangle footprint 做基础 overlap 判断。
+6. container 已新增 shape-aware 边界判断入口，loading rate 可基于真实体积。
+7. renderer DTO 已扩展 shape metadata，包含 shape type、algorithm shape type、axis、radius、diameter、bounding box、actualVolume。
+8. packing renderer adapter 已能从 item shape metadata 输出长方体和固定半径竖直圆柱字段，并用 actualVolume 计算 loading rate。
+9. `Item` 已有 `explicitPackingShape` 作为过渡入口。
+10. layer generation 已有委托式 generator 框架，并新增 `CirclePackingLayerGenerator` 的初步矩形/六角圆密排候选。
+11. block/layer/renderer/packing 侧已有圆柱轴向门禁，非 `Axis3.Y` 圆柱会被拒绝。
+12. 已补充 infrastructure、renderer、packing、block loading、layer generation 的部分圆柱专项测试。
+13. `PackageShape` 已新增稳定 `shapeSpec`（`Cuboid` / `VerticalCylinder`），`ActualItem` 已支持 `shapeSpecOverride`。
+14. `Item` 已新增统一 `packingShape` 入口，主链 `Packer` / `PackingRendererAdapter` / `SimpleBlockGenerator` / `LayerGenerationContext` 已优先使用该入口。
+15. `ShapePlacement3` 已新增 footprint overlap area 计算（圆-圆、圆-矩形、矩形-矩形），`bottomSupport` 已支持 shape resolver，并在 item 堆叠路径注入 `item.packingShape`。
+16. `git diff --check` 与四个门禁脚本（generic/shape/geometry/dry-run）在上述改造后继续通过。
 
-当前源码状态不是“完全泛型化已完成”。上一轮已完成 strict generic boundary 命名收口、中文注释乱码修复和回归验证，但 strict scanner 只能证明旧命名、旧别名和部分数值边界问题已经清零，不能证明主流程摆脱了长方体硬绑定。
+## 3. 当前未完成事项
 
-已完成事项：
+当前状态不是“完全泛型化完成”，也不能把 strict scanner 或 shape scanner 通过等同于目标完成。
 
-1. `generic-boundary-check.ps1` 当前输出 `STRICT_GENERIC_BOUNDARY_PASS`。
-2. `RendererDTO.kt` 已新增 `RenderShapeTypeDTO`、`RenderAxis3DTO`、`RenderAlgorithmShapeTypeDTO`。
-3. `RenderLoadingPlanItemDTO` 已新增兼容的 shape metadata 字段。
-4. `PackingRendererAdapter` 已对现有长方体输出 `Cuboid` shape metadata、bounding box 和 `actualVolume`。
-5. renderer loading rate 已优先使用 `actualVolume`，缺失时回退到 width、height、depth 相乘。
-6. `cylinder.md` 的 Renderer DTO 部分已同步勾选：圆柱固定形状字段与长方体兼容字段已完成，仅可变半径逐 item 输出仍未完成。
-7. 已新增 `scripts/shape-boundary-check.ps1`，支持 allowlist 管理并输出违规文件与行号，当前基线输出 `SHAPE_BOUNDARY_PASS`。
-8. infrastructure 已新增 `PackingShape3`、`ShapeBoundingBox3`、`ShapeFootprint2` 及 cuboid/cylinder 适配实现，并补充 `PackingShapeTest` 覆盖长方体与圆柱基础几何契约。
-9. `CirclePackingLayerGenerator` 已新增圆柱轴向门禁：当 item 提供 `CylinderPackingShape3` 且轴向不是 `Axis3.Y` 时直接拒绝，并补充 `LayerGenerationFltXProofTest` 的 `Axis3.X/Z` 失败用例。
+核心缺口：
 
-仍未完成事项：
+1. `QuantityPlacement3<T : Cuboid<T>>` 仍是大量主链 API 的核心类型。
+2. `QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 仍依赖 `CuboidView` 和矩形投影。
+3. `Item` 仍继承 `Cuboid<Item>`，`explicitPackingShape` 仍保留兼容，但主链已迁移到 `packingShape` 统一入口。
+4. `PackageShape` 已支持 `shapeSpec`，但 CSV / application 输入协议与更完整业务入口仍未统一到该元数据。
+5. `PackageAttribute`、`Pattern`、`ItemMerger`、`LoadingOrderCalculator` 仍大量使用长方体尺寸和矩形投影语义。
+6. block、layer、BLA、DFS、MLHS、layer assignment 主链仍大量使用 `ItemPlacement3` / `QuantityPlacement3<Item>`。
+7. 支撑面积已迁移到 shape-aware 几何策略（含圆-圆、圆-矩形），但 `PackageAttribute` 的堆叠业务规则仍有长方体尺寸语义残留。
+8. 圆柱业务输入字段、单位、CSV 协议、可变半径、半径-重量函数仍未定型。
+9. 圆密排候选已经初步存在，但还不是独立可替换算法服务，也没有完整 adapter 验收。
+10. DFS / MLHS / 空间切分尚未证明不会把圆柱外接盒当最终可行性判定。
+11. layer assignment 统计约束尚未系统验证圆柱 item 的原始需求统计语义。
+12. 文档、示例和 README 尚未说明竖直圆柱真实几何语义。
+13. 旧 three.js renderer 未适配圆柱新字段。
 
-1. `Cylinder` 尚未接入 item、placement、projection、support、container 主链。
-2. `QuantityPlacement3<T : Cuboid<T>>` 仍要求实体实现 `Cuboid<T>`。
-3. `Item` 仍继承 `Cuboid<Item>`。
-4. `PackageShape` 仍以 width、height、depth 为唯一几何输入。
-5. 支撑、投影、碰撞、边界判断仍主要依赖 `QuantityRectangle2`、`QuantityCuboid3` 和矩形 overlap。
-6. layer、block loading、packing 相关模型仍大量使用 `ItemPlacement3` 和 `QuantityPlacement3<Item>`。
-7. 已补 infrastructure 与 renderer 侧圆柱真实几何专项测试；仍缺少主链端到端圆柱专项测试。
+## 4. 新一轮目标
 
-## 3. 源码硬绑定清单
+下一轮会话的目标不是继续补零散字段，而是把“圆柱真实几何入口”从过渡实现推进到主链可验证闭环。
 
-交接后的执行会话应优先阅读以下文件，并以这些文件作为重构入口。
+优先目标：
 
-Infrastructure：
+1. 建立稳定的 domain shape metadata：`Item`、`ActualItem`、`PackageShape` 能明确表达长方体和竖直圆柱。
+2. 把 container、placement、support 的真实几何判断集中到 shape-aware policy，避免业务模块散落手写半径或矩形判断。
+3. 让圆柱在 block、layer、packing 主链中要么走真实几何路径，要么明确 unsupported，不能静默退化为外接盒判定。
+4. 固定第一阶段竖直圆柱 MVP 的端到端测试，包括混装、loading rate、renderer DTO、需求统计和 unsupported 路径。
+5. 更新门禁 allowlist，让新代码不能继续扩大 `Cuboid`、`CuboidView`、`QuantityRectangle2`、`QuantityCuboid3` 的主链硬绑定。
 
-1. `bpp3d-infrastructure/src/main/.../Cylinder.kt`：已有圆柱基础结构，但未接入主链。
-2. `bpp3d-infrastructure/src/main/.../Cuboid.kt`：`AbstractCuboid`、`Cuboid`、`CuboidView` 是当前主几何入口。
-3. `bpp3d-infrastructure/src/main/.../Placement.kt`：`QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 和 `QuantityPlacement3<T : Cuboid<T>>` 是 shape 泛型化的主要阻塞。
-4. `bpp3d-infrastructure/src/main/.../GenericProjectionPlacementCore.kt`：已做数值泛型，但边界仍是 `GenericCuboid<T, V>`。
-5. `bpp3d-infrastructure/src/main/.../Container.kt`：`Container3<S : Container3<S>> : AbstractCuboid<InfraNumber>`，容器和内部 units 仍绑定长方体 placement。
-6. `bpp3d-infrastructure/src/main/.../GenericContainerCore.kt`：已做数值泛型，但仍围绕长方体 geometry view。
-7. `bpp3d-infrastructure/src/main/.../dto/RendererDTO.kt`：shape metadata 已开始铺垫，后续圆柱输出仍要继续接入。
+非目标：
 
-Domain item：
+1. 不做横放圆柱。
+2. 不做任意 shape 的完整通用装箱。
+3. 不把 CSV 扩展作为第一阶段 blocker。
+4. 不要求旧 three.js renderer 在本轮完成适配。
+5. 不直接引入连续半径全局优化器。
 
-1. `bpp3d-domain-item-context/src/main/.../model/Item.kt`：`interface Item : Cuboid<Item>` 是 item 形状泛型化核心阻塞。
-2. `bpp3d-domain-item-context/src/main/.../model/Package.kt`：`PackageShape<V>` 仍只表达长方体尺寸。
-3. `bpp3d-domain-item-context/src/main/.../model/PackageAttribute.kt`：额外堆叠规则仍使用 `ItemPlacement3`。
-4. `bpp3d-domain-item-context/src/main/.../model/Pattern.kt`：pattern 仍依赖 `ItemPlacement2`、`ItemPlacement3`。
-5. `bpp3d-domain-item-context/src/main/.../service/ItemMerger.kt`：合并逻辑仍以长方体尺寸为核心。
+## 5. 建议执行计划
 
-Domain packing / block / layer：
+### 阶段 0：接手确认
 
-1. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`：长方体与固定半径圆柱 renderer 已接入 shape metadata 输出。
-2. `bpp3d-domain-block-loading-context/src/main/.../service/SimpleBlockGenerator.kt`：大量构造 `QuantityPlacement3<Item>`。
-3. `bpp3d-domain-block-loading-context/src/main/.../model/Block.kt`：block units 仍使用长方体 placement。
-4. `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`：layer placement 生成仍以 `ItemPlacement3` 为结果。
-5. `bpp3d-domain-layer-assignment-context/src/main/...`：layer/bin/pallet 结构中仍保留 `QuantityPlacement3<*>`。
-6. `LoadingOrderCalculator.kt`：装载顺序计算仍使用长方体 placement 空间关系。
-
-## 4. 总体验收标准
-
-另一个会话执行完成后，只有满足以下标准，才可以把 refactor 目标标记为完成：
-
-1. 主 placement/projection/container/support 链路存在 shape-aware 抽象，例如 `PackingShape3`、`ShapePlacement3`、`ShapeFootprint2` 或等价本地命名。
-2. `Cuboid` 通过 adapter 或具体 shape 实现接入新抽象，现有公开行为不破坏。
-3. `Item` 或 item shape metadata 不再只能表达 width、height、depth。
-4. 圆柱第一阶段所需的 shape type、axis、radius、diameter、actualVolume 有稳定 domain 入口。
-5. 圆柱 footprint 边界、碰撞、支撑判断从矩形硬编码中抽出，不能只靠外接盒近似。
-6. renderer DTO 能完整输出长方体和圆柱的 shape metadata。
-7. 新增 shape-hard-binding 门禁，防止新代码继续在主链 API 中硬绑定长方体。
-8. 默认长方体回归、Gurobi 回归、CSV suite、圆柱几何专项测试全部通过。
-9. `refactor.md` 和 `cylinder.md` 状态同步，不能把未完成事项勾选为完成。
-
-## 5. 阶段 0：接手前确认
-
-目标：确认当前工作树、文档和验证基线，避免在错误状态上继续开发。
-
-执行步骤：
-
-1. 读取 `.rules/chore.md`，确认 Kotlin 注释、参数换行、commit message 等规则。
-2. 执行 `git status --short --branch`，记录是否存在未提交改动。
-3. 阅读 `cylinder.md` 的阶段目标，尤其是 Renderer DTO、geometry、layer generation、验收清单。
-4. 阅读本文件第 1 到第 4 节，确认目标不是 strict scanner 收口，而是 shape-aware 泛型化。
-5. 运行当前基线验证命令，确认本地环境可用。
-
-建议命令：
-
-```powershell
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/generic-boundary-check.ps1 -ProjectRoot .
-mvn -f pom.xml -pl bpp3d-application -am test -Dgpg.skip=true
-```
+1. 读取 `.rules/chore.md`。
+2. 执行 `git status --short --branch`。
+3. 运行门禁脚本，确认当前静态基线。
+4. 尝试运行 Maven 测试；如果依赖仓库不可用，记录阻塞，不要把测试通过写入文档。
 
 完成标准：
 
 1. 工作树状态已记录。
-2. strict scanner 可运行。
-3. 默认测试可运行，或者已明确记录环境阻塞。
-4. 接手会话明确知道当前仍未完成完全泛型化。
+2. 门禁脚本结果已记录。
+3. Maven 测试能运行或阻塞原因已记录。
 
-## 6. 阶段 1：Shape Boundary 设计与落地
+### 阶段 1：Domain Shape Metadata 收口
 
-目标：建立 shape-aware 抽象，让后续 placement、projection、support 可以不再直接依赖 `Cuboid`。
+目标：让 item/package 层有稳定 shape 入口。
 
-建议新增或调整的抽象：
+修改事项：
 
-1. `PackingShape3<V>`：三维真实形状抽象。
-2. `PackingShapeType`：至少包含 `Cuboid`、`Cylinder`。
-3. `PackingAxis3` 或复用现有轴向类型：表达 X、Y、Z。
-4. `ShapeBoundingBox3<V>`：兼容旧 width、height、depth。
-5. `ShapeFootprint2<V>`：表达底面 footprint。
-6. `ShapeGeometryPolicy<V>`：封装 containment、overlap、support 等判定。
-
-最小字段和能力：
-
-1. `shapeType`
-2. `boundingWidth`
-3. `boundingHeight`
-4. `boundingDepth`
-5. `actualVolume`
-6. `weight`
-7. `footprint(plane or axis)`
-8. `contains(point)`
-9. `overlaps(other)`
-10. `supportAreaWith(other)`
-
-实施步骤：
-
-1. 在 infrastructure 层新增 shape 抽象文件，先不要改穿业务主链。
-2. 为现有 `Cuboid` 提供 adapter 或默认实现，使长方体可以作为 `PackingShape3` 使用。
-3. 为现有 `Cylinder` 提供竖直圆柱 shape 实现或 adapter，先只支持 `Axis3.Y`。
-4. 为 shape 抽象新增单元测试，覆盖长方体 bounding box、actualVolume、圆柱 actualVolume、圆柱 footprint 半径。
-5. 保持 `Cuboid` 旧 API 不删除，让旧测试继续通过。
+1. 扩展 `PackageShape` 或新增等价 shape spec，使其能表达 `Cuboid` 和 `VerticalCylinder`。
+2. 为 `ActualItem` 增加可选 shape spec 或 shape provider。
+3. 保持 width、height、depth 为兼容 bounding box 字段。
+4. 让长方体默认 shape metadata 自动生成。
+5. 让固定半径竖直圆柱能通过测试 fixture 或 application 构造进入主链。
 
 完成标准：
 
-1. 新 shape 抽象可编译。
-2. 长方体 adapter 与旧 `Cuboid` 行为一致。
-3. 圆柱 shape 能表达 radius、diameter、height、axis、actualVolume。
-4. 没有修改 solver 行为。
-5. infrastructure 测试通过。
+1. 现有长方体构造方式不破坏。
+2. 圆柱 item 不需要匿名覆盖 `explicitPackingShape` 才能表达真实 shape。
+3. renderer adapter 从稳定 domain metadata 读取 shape。
+4. 固定半径圆柱字段完整：shape type、axis、radius、diameter、actualVolume、bounding box。
 
-## 7. 阶段 2：Placement 与 Projection 泛型化
+### 阶段 2：Shape Geometry Policy 收口
 
-目标：让 placement/projection 能承载 shape，而不是只承载 `CuboidView<T>`。
+目标：把边界、碰撞、支撑的真实几何判断集中起来。
 
-建议事项：
+修改事项：
 
-1. 新增 `ShapePlacement3<S : PackingShape3<*>>` 或等价类型。
-2. 新增 `ShapePlacement2` 或 `ShapeProjection2`，用 `ShapeFootprint2` 表达二维 footprint。
-3. 保留 `QuantityPlacement3<T : Cuboid<T>>` 作为兼容层，内部可委托到 shape placement。
-4. 保留 `QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 作为兼容层，避免一次性改穿全部调用方。
-5. 将 `contains`、`overlapped`、`absolutePosition`、`maxAbsolutePosition` 等通用能力迁移到 shape placement。
-6. 将 `QuantityCuboid3`、`QuantityRectangle2` 的直接使用限制在 cuboid adapter 或 legacy wrapper 内。
-
-实施步骤：
-
-1. 在不删除旧类的前提下新增 shape placement。
-2. 给 `QuantityPlacement3` 增加到 shape placement 的转换。
-3. 先让长方体 placement 的 `contains`、`overlapped` 通过新策略跑通。
-4. 增加圆柱 placement 几何测试：圆柱与圆柱不相交、相切、重叠；圆柱与容器边界；圆柱 actualVolume。
-5. 逐步把 domain 层只需要几何判定的地方改用 shape placement 接口。
+1. 抽出 containment policy。
+2. 抽出 footprint overlap policy。
+3. 抽出 support policy 或 support area result。
+4. 让 `ShapePlacement3` 承载这些通用判断。
+5. 给旧 `QuantityPlacement3` 增加明确 adapter，不在业务层重复写几何判断。
 
 完成标准：
 
-1. 旧 `QuantityPlacement3` 行为不回归。
-2. 新 shape placement 支持长方体和竖直圆柱。
-3. 圆柱 overlap 不等于 bounding box overlap。
-4. 新测试覆盖圆柱真实 footprint。
-5. 默认测试通过。
+1. 圆柱与圆柱 overlap 使用圆形 footprint。
+2. 圆柱与长方体 overlap 使用圆-矩形 footprint。
+3. 圆柱与容器边界使用真实半径和高度。
+4. 圆柱支撑不使用外接矩形面积冒充真实底面。
+5. 旧长方体 placement 行为不回退。
 
-## 8. 阶段 3：Container 与 Support 泛型化
+### 阶段 3：Block / Layer / Packing 主链迁移
 
-目标：让容器边界、支撑、堆叠判断使用 shape geometry policy，而不是默认矩形投影。
+目标：圆柱路径在主链中可验证，不允许隐式外接盒最终判定。
 
-建议事项：
+修改事项：
 
-1. 抽出 container containment policy。
-2. 抽出 support policy。
-3. 抽出 top/bottom contact policy。
-4. 保留现有 `Container3` 长方体容器模型，但内部判断允许 shape placement。
-5. `loadingRate` 和 `actualVolume` 统一使用真实体积。
-
-实施步骤：
-
-1. 识别 `Container.kt` 中使用 width、height、depth 判断 unit 是否可放置的入口。
-2. 将长方体 unit 的判断迁移为 cuboid shape policy。
-3. 增加竖直圆柱在矩形容器内的边界测试：圆心到边界距离必须大于等于 radius。
-4. 增加圆柱支撑测试：圆柱底面 footprint 与下层 footprint 的交叠面积或策略结果可计算。
-5. 保持旧 `Container3.units: List<QuantityPlacement3<*>>` 兼容，新增 shape units 通道或 adapter。
+1. 标记当前长方体专用算法边界。
+2. 对圆柱不支持的旧算法返回明确 unsupported。
+3. 将可复用 feasibility check 迁移到 shape-aware policy。
+4. 完善 `CirclePackingLayerGenerator` 的委托边界和 result adapter。
+5. 验证 block、layer、packing 输出不丢失圆柱 shape metadata。
 
 完成标准：
 
-1. 长方体容器旧测试通过。
-2. 圆柱 containment 使用真实半径判断。
-3. 圆柱支撑不使用外接矩形面积冒充真实底面。
-4. `loadingRate` 可基于圆柱 actualVolume。
+1. 圆柱不会被误识别为真实长方体。
+2. 圆柱 block/layer 结果通过真实几何二次校验。
+3. 混装测试覆盖长方体 + 竖直圆柱。
+4. DFS / MLHS / 空间切分路径要么真实支持圆柱，要么明确拒绝。
 
-## 9. 阶段 4：Item 与 Package Shape Metadata
+### 阶段 4：需求统计与可变半径铺垫
 
-目标：让 domain item 能表达真实 shape，为后续求解、渲染和 CSV 扩展提供稳定入口。
+目标：明确圆柱对需求统计和后续可变半径的影响。
 
-建议事项：
+修改事项：
 
-1. 为 `Item` 增加 shape metadata 或 shape provider。
-2. 为 `ActualItem` 增加可选圆柱字段，或引入新的 item shape 数据类。
-3. 为 `PackageShape<V>` 增加 shape type、radius、diameter、axis、actualVolume 通道。
-4. 保持 width、height、depth 兼容字段，作为 bounding box 或旧 renderer 兼容尺寸。
-5. 明确 CSV 暂不强制扩展，第一阶段可以通过 fixture 或 application 构造圆柱 item。
-
-实施步骤：
-
-1. 先新增 shape metadata，不立刻移除 `Item : Cuboid<Item>`。
-2. 让长方体 item 默认 metadata 为 `Cuboid`。
-3. 增加圆柱 item fixture 或测试用构造器。
-4. 将 renderer adapter 从 item metadata 读取 shape 信息，而不是永远写死 `Cuboid`。
-5. 增加 serialization 或 DTO 输出测试，确认长方体旧字段不变，圆柱新字段完整。
+1. 检查 `DemandStatistics` 是否受 shape 类型影响。
+2. 检查 layer assignment 统计约束是否仍按原始 item / material 统计。
+3. 检查 `LoadingOrderCalculator` 对圆柱 placement 的语义。
+4. 检查 `ItemMerger` 是否跳过圆柱，或只允许同轴同尺寸圆柱合并。
+5. 为可变半径预留 radius candidates / radius range / radius weight function 的显式入口，但不进入连续优化。
 
 完成标准：
 
-1. 现有 item 构造方式仍可编译。
-2. 长方体 item 输出仍保持旧字段。
-3. 圆柱 item 可输出 shapeType、renderShapeType、algorithmShapeType、axis、radius、diameter、actualVolume。
-4. 不要求第一阶段完成所有 CSV 协议扩展。
+1. 圆柱 item 的 amount demand 正确。
+2. 圆柱 item 的 material weight demand 正确。
+3. 可变半径不会隐式改变物料语义。
+4. 可变半径 renderer 不输出未决策的半径范围作为最终半径。
 
-## 10. 阶段 5：Layer、Block、Packing 主链迁移
+### 阶段 5：文档、示例和门禁更新
 
-目标：把主链中只依赖几何关系的地方逐步迁移到 shape-aware API，同时保留长方体优化路径。
+目标：让实现、文档和自动化约束一致。
 
-高风险文件：
+修改事项：
 
-1. `SimpleBlockGenerator.kt`
-2. `Block.kt`
-3. `LayerGenerationContext.kt`
-4. `Layer.kt`
-5. `Pattern.kt`
-6. `ItemMerger.kt`
-7. `LoadingOrderCalculator.kt`
-8. `MaterialPacker.kt`
-
-迁移策略：
-
-1. 不要一次性删除 `ItemPlacement3`。
-2. 先新增 `ShapeItemPlacement3` 或等价 adapter。
-3. 对只支持长方体的算法明确命名，例如 `CuboidBlockGenerator`，避免伪泛型。
-4. 对圆柱暂不支持的算法返回明确 unsupported 或走专用 generator，不要静默按外接盒处理。
-5. layer generation 预留圆柱委托接口，例如 `CylinderLayerCandidateGenerator`。
-
-实施步骤：
-
-1. 给 block/layer 入口增加 shape capability 判断。
-2. 将当前长方体生成器标记为 cuboid-only 实现。
-3. 为圆柱第一阶段增加最小可用 generator 或 adapter，只覆盖 `cylinder.md` 要求的 MVP。
-4. 在 packing 主链中禁止圆柱走长方体外接盒最终判定。
-5. 对 unsupported 路径增加测试，确保不会悄悄退化。
+1. 更新 BPP3D README 或示例，说明竖直圆柱是真实几何，不是外接盒近似。
+2. 添加固定半径竖直圆柱输入示例。
+3. 添加圆柱 renderer DTO 输出示例。
+4. 更新 `shape-boundary-check.ps1` allowlist。
+5. 移除文档中已经过时的 `cylinder.md` 引用。
 
 完成标准：
 
-1. 长方体 block/layer 流程不回归。
-2. 圆柱不会被误识别为真实长方体。
-3. 圆柱路径要么执行真实几何策略，要么明确失败。
-4. 第一阶段圆柱 MVP 有完整端到端测试。
+1. 新文档只以 `refactor.md` 追踪重构状态。
+2. README / 示例没有宣称未实现能力。
+3. 门禁能防止新增主链硬绑定。
 
-## 11. 阶段 6：Renderer 输出与端到端圆柱 MVP
+## 6. 重点修改清单
 
-目标：让 packing 结果能输出可渲染的圆柱 shape metadata，并让 loading rate 使用真实体积。
+优先阅读和修改以下文件。
 
-已完成基础：
+Infrastructure：
 
-1. DTO enum 已存在。
-2. DTO shape metadata 字段已存在。
-3. 长方体输出已保持兼容。
+1. `bpp3d-infrastructure/src/main/.../PackingShape.kt`
+2. `bpp3d-infrastructure/src/main/.../Placement.kt`
+3. `bpp3d-infrastructure/src/main/.../Container.kt`
+4. `bpp3d-infrastructure/src/main/.../Projection.kt`
+5. `bpp3d-infrastructure/src/main/.../GenericProjectionPlacementCore.kt`
+6. `bpp3d-infrastructure/src/main/.../GenericContainerCore.kt`
+7. `bpp3d-infrastructure/src/main/.../dto/RendererDTO.kt`
 
-待完成事项：
+Domain item：
 
-1. 可变半径圆柱按最终求得的半径逐 item 输出，不输出未决策的半径范围。
+1. `bpp3d-domain-item-context/src/main/.../model/Item.kt`
+2. `bpp3d-domain-item-context/src/main/.../model/Package.kt`
+3. `bpp3d-domain-item-context/src/main/.../model/PackageAttribute.kt`
+4. `bpp3d-domain-item-context/src/main/.../model/Pattern.kt`
+5. `bpp3d-domain-item-context/src/main/.../service/ItemMerger.kt`
+6. `bpp3d-domain-item-context/src/main/.../service/LoadingOrderCalculator.kt`
 
-实施步骤：
+Domain block / layer / packing：
 
-1. 从 item shape metadata 获取 renderer 字段。
-2. 增加长方体 renderer adapter 测试，锁定旧字段兼容。
-3. 增加圆柱 renderer adapter 测试，锁定新字段。
-4. 确认 `RenderLoadingPlanDTO.volume` 和 `loadingRate` 使用真实体积。
-5. 同步更新 `cylinder.md` 的 Renderer DTO 勾选项。
+1. `bpp3d-domain-block-loading-context/src/main/.../service/SimpleBlockGenerator.kt`
+2. `bpp3d-domain-block-loading-context/src/main/.../model/Block.kt`
+3. `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`
+4. `bpp3d-domain-layer-assignment-context/src/main/...`
+5. `bpp3d-domain-bla-context/src/main/...`
+6. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`
+7. `bpp3d-application/src/main/...`
 
-完成标准：
+Scripts and docs：
 
-1. 长方体 JSON 仍包含旧 renderer 必需字段。
-2. 圆柱 JSON 包含所有 shape metadata。
-3. 圆柱 loading rate 不再按 bounding box 计算。
-4. renderer DTO 测试覆盖长方体与圆柱。
+1. `ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1`
+2. `ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1`
+3. `ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1`
+4. `ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1`
+5. `ospf-kotlin-framework-bpp3d/refactor.md`
 
-## 12. 阶段 7：门禁脚本与防回归
+## 7. 测试清单
 
-目标：让“完全泛型化”具备自动化门禁，而不是只靠人工 code review。
-
-建议新增脚本：
+基础门禁：
 
 ```powershell
-scripts/shape-boundary-check.ps1
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1
+git diff --check
 ```
 
-建议检查项：
-
-1. 禁止在新增 shape-aware 主链文件中出现 `T : Cuboid<T>`。
-2. 禁止在非 adapter 文件中新增 `CuboidView`。
-3. 禁止在非 adapter 文件中新增 `QuantityCuboid3`、`QuantityRectangle2` 的核心判定调用。
-4. 禁止圆柱路径出现 `BoundingCuboid` 作为最终几何判定。
-5. 允许旧兼容文件保留 legacy API，但必须通过 allowlist 管理。
-
-建议 allowlist：
-
-1. `Cuboid.kt`
-2. `Placement.kt` 中明确标记的兼容 wrapper。
-3. cuboid adapter 文件。
-4. 长方体专用 generator。
-5. 旧测试中锁定兼容行为的文件。
-
-完成标准：
-
-1. 新脚本能在当前仓库运行。
-2. 脚本输出清晰指出违规文件和行号。
-3. 默认 CI 或本地验证清单包含该脚本。
-4. 新增圆柱相关主链代码不能绕过脚本。
-
-## 13. 测试矩阵
-
-每个阶段至少运行：
+默认测试：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/generic-boundary-check.ps1 -ProjectRoot .
-mvn -f pom.xml -pl bpp3d-application -am test -Dgpg.skip=true
+mvn -f ospf-kotlin-framework-bpp3d/pom.xml test "-Dgpg.skip=true"
 ```
 
-完成 shape-hard-binding 脚本后增加：
+应用链路测试：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/shape-boundary-check.ps1 -ProjectRoot .
+mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true
 ```
 
-Gurobi 相关阶段运行：
+Gurobi 回归：
 
 ```powershell
-mvn -f pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true
+mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true
 ```
 
-CSV suite 运行：
+CSV suite：
 
 ```powershell
-mvn -f pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=E:/workspace/ospf-kotlin/ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true
+mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true
 ```
 
-圆柱专项测试至少覆盖：
+圆柱专项至少覆盖：
 
-1. 圆柱 actualVolume = `pi * radius * radius * height`。
-2. 竖直圆柱 bounding box = `diameter x height x diameter`。
-3. 圆柱与圆柱相离、相切、相交。
-4. 圆柱与容器边界。
-5. 圆柱与长方体 footprint 真实碰撞。
-6. 圆柱底部支撑面积或支撑策略结果。
+1. 圆柱真实体积。
+2. 竖直圆柱 bounding box。
+3. 圆柱与圆柱真实 footprint overlap。
+4. 圆柱与长方体真实 footprint overlap。
+5. 圆柱与容器边界。
+6. 圆柱支撑语义。
 7. 圆柱 renderer DTO 输出。
 8. 圆柱 loading rate 使用真实体积。
+9. 长方体 + 圆柱混装。
+10. 非 `Axis3.Y` 圆柱被拒绝。
+11. 圆柱需求统计。
+12. 圆柱 unsupported 路径不会静默退化。
 
-## 14. 每次提交前清单
+## 8. 总体验收标准
 
-提交前必须确认：
+只有同时满足以下条件，才可以把本重构标记为完成：
 
-1. 没有把未完成事项在 `refactor.md` 或 `cylinder.md` 中标记为完成。
-2. 没有把圆柱按 bounding box 当作真实几何判定。
-3. 新 Kotlin 注释符合中英双语要求。
-4. 函数调用参数超过 2 个时使用多行命名参数。
-5. `git diff --check` 通过。
-6. 至少运行与改动范围匹配的 Maven 测试。
-7. 如果修改了 renderer DTO，要同步测试长方体兼容输出。
-8. 如果修改了 shape/placement/support，要新增或更新圆柱几何测试。
-9. commit message 要具体说明改动目的和关键变更点。
+1. `Item` / `PackageShape` 有稳定 shape metadata，不再只能表达 width、height、depth。
+2. placement / projection / container / support 主链存在 shape-aware API，并被圆柱路径实际使用。
+3. 长方体通过 adapter 接入新抽象，现有公开行为不破坏。
+4. 竖直圆柱固定 `Axis3.Y`，横放和躺放路径明确拒绝。
+5. 圆柱边界、碰撞、支撑、loading rate 使用真实几何。
+6. 圆柱 renderer DTO 输出完整 shape metadata。
+7. 圆柱不会在 block、layer、packing、DFS、MLHS 中静默按外接盒作为最终判定。
+8. 需求统计和 layer assignment 对圆柱 item 语义正确。
+9. shape-hard-binding 门禁覆盖新增主链代码。
+10. 默认长方体回归、圆柱专项测试、Gurobi 回归和 CSV suite 均通过，或环境阻塞被明确记录。
+11. README / 示例 / `refactor.md` 与实现状态一致，没有把未完成能力写成已完成。
 
-## 15. 不应做的事
+## 9. 提交前清单
 
-1. 不要把 strict scanner 通过写成完全泛型化完成。
-2. 不要删除旧长方体 API 后再尝试一次性修全仓库。
-3. 不要让圆柱静默走长方体外接盒最终判定。
-4. 不要把 renderer DTO 新字段设为非空必填后破坏旧消费者。
-5. 不要把 CSV 协议扩展作为第一阶段 blocker。
-6. 不要在 layer/block 旧算法中硬塞圆柱特殊分支，优先建立委托接口。
-7. 不要只写文档不加测试就勾选实现完成。
-
-## 16. 建议执行顺序
-
-推荐另一个会话按以下顺序推进：
-
-1. 阶段 0：确认当前工作树与验证基线。
-2. 阶段 1：新增 shape boundary 和 cuboid/cylinder adapter。
-3. 阶段 2：新增 shape placement/projection，并让旧 placement 委托或可转换。
-4. 阶段 3：抽出 container/support policy。
-5. 阶段 4：为 item/package 增加 shape metadata。
-6. 阶段 6：先完成 renderer 圆柱输出测试，让可观测结果稳定。
-7. 阶段 5：再迁移 layer/block/packing 主链，避免前面没有稳定 shape 数据入口。
-8. 阶段 7：补上 shape-hard-binding 门禁。
-9. 最后运行完整测试矩阵，并同步 `refactor.md`、`cylinder.md` 状态。
-
-阶段 5 和阶段 6 的顺序可以根据实际阻塞互换，但不要在没有真实 shape metadata 的情况下开始大规模迁移 block/layer 算法。
+1. 不要把 scanner 通过写成完全泛型化完成。
+2. 不要把圆柱外接盒当最终几何判定。
+3. 不要删除旧长方体 API 后再一次性修全仓库。
+4. 不要把 renderer DTO 新字段设为非空必填。
+5. 不要在 layer/block 旧算法里硬塞无法验证的圆柱特殊分支。
+6. 新 Kotlin 注释必须中英双语。
+7. 超过 2 个参数的函数调用使用多行命名参数。
+8. `git diff --check` 必须通过。
+9. 修改 shape / placement / support 时必须补圆柱几何测试。
+10. 修改 renderer DTO 时必须补长方体兼容和圆柱输出测试。
+11. Maven 测试跑不起来时，必须记录具体依赖或环境阻塞。
+12. commit message 必须具体说明改动目的和关键变更点。

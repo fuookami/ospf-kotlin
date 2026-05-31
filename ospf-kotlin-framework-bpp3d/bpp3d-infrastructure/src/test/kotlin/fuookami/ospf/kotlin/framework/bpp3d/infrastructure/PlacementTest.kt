@@ -6,6 +6,10 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import org.junit.jupiter.api.Test
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.acos
+import kotlin.math.sqrt
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -258,6 +262,56 @@ class PlacementTest {
         assertTrue(shapePlacement.boundingWidth eq placement.width)
         assertTrue(shapePlacement.boundingHeight eq placement.height)
         assertTrue(shapePlacement.boundingDepth eq placement.depth)
+    }
+
+    @Test
+    fun bottomSupportShouldUseCircleFootprintOverlapAreaWhenResolverProvidesCylinderShape() {
+        val box = Box(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            weight = infraScalar(4.0) * Kilogram
+        )
+        val topPlacement = QuantityPlacement3(
+            view = box.view()!!,
+            position = QuantityPoint3(
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(1.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val bottomPlacement = QuantityPlacement3(
+            view = box.view()!!,
+            position = QuantityPoint3(
+                x = infraScalar(1.0) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val cylinderShape = Column(
+            radius = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            axis = Axis3.Y,
+            weight = infraScalar(4.0) * Kilogram,
+            enabledAxes = listOf(Axis3.Y)
+        ).asPackingShape3()
+        val support = bottomSupport(
+            unit = topPlacement,
+            bottomUnits = listOf(bottomPlacement),
+            shapeResolver = { placement ->
+                when (placement) {
+                    topPlacement -> cylinderShape
+                    bottomPlacement -> cylinderShape
+                    else -> placement.view.asPackingShape3()
+                }
+            }
+        )
+
+        val expectedArea = 2.0 * acos(0.5) - 0.5 * sqrt(3.0)
+        val expectedWeight = expectedArea / PI * 4.0
+        assertTrue(abs(support.area.toDouble() - expectedArea) < 1e-6)
+        assertTrue(abs(support.weight.toDouble() - expectedWeight) < 1e-6)
+        assertTrue(support.area.toDouble() < 4.0)
     }
 }
 

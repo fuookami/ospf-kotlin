@@ -216,7 +216,7 @@ class SimpleBlockGenerator(
     }
 
     private fun requireSupportedCylinderItemForSimpleBlock(item: Item) {
-        val shape = item.explicitPackingShape
+        val shape = item.packingShape
         if (shape !is CylinderPackingShape3) {
             return
         }

@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.utils.functional.Eq
 import kotlin.math.ceil
 
@@ -25,7 +26,7 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
-    val packageType: PackageType,
+    val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
 ) : Eq<PackageBottomShape<V>> {
     val packageCategory by packageType::category
     val area: Quantity<V> = width * depth
@@ -34,7 +35,7 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
         width: Quantity<V>? = null,
         depth: Quantity<V>? = null,
         weight: Quantity<V>? = null,
-        packageType: PackageType? = null
+        packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType? = null
     ): PackageBottomShape<V> {
         return PackageBottomShape(
             width = width ?: this.width,
@@ -79,7 +80,8 @@ data class PackageShape<V : FloatingNumber<V>>(
     val height: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
-    val packageType: PackageType,
+    val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
+    val shapeSpec: PackageShapeSpec = PackageShapeSpec.Cuboid
 ) : Eq<PackageShape<V>> {
     val bottomShape = PackageBottomShape(
         width = width,
@@ -95,14 +97,16 @@ data class PackageShape<V : FloatingNumber<V>>(
         height: Quantity<V>? = null,
         depth: Quantity<V>? = null,
         weight: Quantity<V>? = null,
-        packageType: PackageType? = null
+        packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType? = null,
+        shapeSpec: PackageShapeSpec? = null
     ): PackageShape<V> {
         return PackageShape(
             width = width ?: this.width,
             height = height ?: this.height,
             depth = depth ?: this.depth,
             weight = weight ?: this.weight,
-            packageType = packageType ?: this.packageType
+            packageType = packageType ?: this.packageType,
+            shapeSpec = shapeSpec ?: this.shapeSpec
         )
     }
 
@@ -117,6 +121,7 @@ data class PackageShape<V : FloatingNumber<V>>(
         if (weight neq rhs.weight) return false
 
         return packageType == rhs.packageType
+                && shapeSpec == rhs.shapeSpec
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -134,7 +139,35 @@ data class PackageShape<V : FloatingNumber<V>>(
         result = 31 * result + depth.hashCode()
         result = 31 * result + weight.hashCode()
         result = 31 * result + packageType.hashCode()
+        result = 31 * result + shapeSpec.hashCode()
         return result
+    }
+}
+
+sealed interface PackageShapeSpec {
+    data object Cuboid : PackageShapeSpec
+
+    data class VerticalCylinder(
+        val radius: Quantity<InfraNumber>,
+        val axis: Axis3 = Axis3.Y
+    ) : PackageShapeSpec
+}
+
+fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>? {
+    val shapeHeight = height
+    val shapeWeight = weight
+    return when (val spec = shapeSpec) {
+        PackageShapeSpec.Cuboid -> null
+        is PackageShapeSpec.VerticalCylinder -> {
+            CylinderPackingShape3(
+                cylinder = object : AbstractCylinder<InfraNumber> {
+                    override val radius = spec.radius
+                    override val height = shapeHeight
+                    override val axis = spec.axis
+                    override val weight = shapeWeight
+                }
+            )
+        }
     }
 }
 
