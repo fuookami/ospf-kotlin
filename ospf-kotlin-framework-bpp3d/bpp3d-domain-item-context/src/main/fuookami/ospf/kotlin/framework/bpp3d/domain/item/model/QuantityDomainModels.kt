@@ -23,9 +23,43 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 
 private fun <V : FloatingNumber<V>> Quantity<V>.toInfraQuantity(): Quantity<InfraNumber> {
     return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
+}
+
+private fun Quantity<*>.toInfraQuantityUnsafe(): Quantity<InfraNumber> {
+    return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
+}
+
+sealed interface GenericPackageShapeSpec {
+    data object Cuboid : GenericPackageShapeSpec
+
+    data class VerticalCylinder<V : FloatingNumber<V>>(
+        val radius: Quantity<V>,
+        val axis: Axis3 = Axis3.Y,
+        val radiusCandidates: List<Quantity<V>> = emptyList(),
+        val radiusMin: Quantity<V>? = null,
+        val radiusMax: Quantity<V>? = null,
+        val radiusWeightFunctionKey: String? = null
+    ) : GenericPackageShapeSpec
+}
+
+private fun GenericPackageShapeSpec.toModel(): PackageShapeSpec {
+    return when (this) {
+        GenericPackageShapeSpec.Cuboid -> PackageShapeSpec.Cuboid
+        is GenericPackageShapeSpec.VerticalCylinder<*> -> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = radius.toInfraQuantityUnsafe(),
+                axis = axis,
+                radiusCandidates = radiusCandidates.map { it.toInfraQuantityUnsafe() },
+                radiusMin = radiusMin?.toInfraQuantityUnsafe(),
+                radiusMax = radiusMax?.toInfraQuantityUnsafe(),
+                radiusWeightFunctionKey = radiusWeightFunctionKey
+            )
+        }
+    }
 }
 
 data class GenericMaterial<V : FloatingNumber<V>>(
@@ -58,6 +92,7 @@ data class GenericPackageShape<V : FloatingNumber<V>>(
     val depth: Quantity<V>,
     val weight: Quantity<V>,
     val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
+    val shapeSpec: GenericPackageShapeSpec = GenericPackageShapeSpec.Cuboid
 ) {
     val volume: Quantity<V> = width * height * depth
 
@@ -67,7 +102,8 @@ data class GenericPackageShape<V : FloatingNumber<V>>(
             height = height.toInfraQuantity(),
             depth = depth.toInfraQuantity(),
             weight = weight.toInfraQuantity(),
-            packageType = packageType
+            packageType = packageType,
+            shapeSpec = shapeSpec.toModel()
         )
     }
 }

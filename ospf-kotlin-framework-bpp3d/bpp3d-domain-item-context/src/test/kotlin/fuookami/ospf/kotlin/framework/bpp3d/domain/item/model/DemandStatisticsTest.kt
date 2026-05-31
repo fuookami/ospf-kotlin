@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -42,6 +43,20 @@ class DemandStatisticsTest {
             depth = infraScalar(1.0) * Meter,
             weight = infraScalar(0.1) * Kilogram,
             packageType = type
+        )
+    }
+
+    private fun cylinderPackageShape(type: PackageType = PackageType.CartonContainer): PackageShape<InfraNumber> {
+        return PackageShape(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            weight = infraScalar(0.1) * Kilogram,
+            packageType = type,
+            shapeSpec = PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.5) * Meter,
+                axis = Axis3.Y
+            )
         )
     }
 
@@ -214,6 +229,88 @@ class DemandStatisticsTest {
         assertTrue(
             ((materialWeightStatistics[Bpp3dDemandKey.Material(materialB.key)] as Bpp3dDemandValue.Weight).value)
                 eq (infraScalar(9.0) * Kilogram)
+        )
+    }
+
+    @Test
+    fun cylinderItemStatisticsShouldKeepAmountAndMaterialSemantics() {
+        val material = Material(
+            no = MaterialNo("CYL-M"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "CYL-M",
+            weight = infraScalar(2.0) * Kilogram
+        )
+        val cylinderItem = ActualItem(
+            id = "cyl-item-1",
+            name = "cyl-item-1",
+            pack = Package.innerPackage(
+                shape = cylinderPackageShape(),
+                materials = mapOf(
+                    material to UInt64(2)
+                )
+            ),
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            weight = infraScalar(0.1) * Kilogram,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("BC1"),
+            packageAttribute = defaultPackageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.5) * Meter,
+                axis = Axis3.Y
+            )
+        )
+
+        val itemStatistics = cylinderItem.statistics(Bpp3dDemandMode.ItemAmount)
+        assertEquals(
+            UInt64.one,
+            (itemStatistics[Bpp3dDemandKey.Item(cylinderItem)] as Bpp3dDemandValue.Amount).value
+        )
+
+        val materialAmountStatistics = cylinderItem.statistics(Bpp3dDemandMode.ItemMaterialAmount)
+        assertEquals(
+            UInt64(2),
+            (materialAmountStatistics[Bpp3dDemandKey.Material(material.key)] as Bpp3dDemandValue.Amount).value
+        )
+
+        val materialWeightStatistics = cylinderItem.statistics(Bpp3dDemandMode.ItemMaterialWeight)
+        assertTrue(
+            ((materialWeightStatistics[Bpp3dDemandKey.Material(material.key)] as Bpp3dDemandValue.Weight).value)
+                eq (infraScalar(4.0) * Kilogram)
+        )
+
+        val placements = listOf(
+            QuantityPlacement3(
+                view = cylinderItem.view(),
+                position = point3(x = infraScalar(0.0) * Meter)
+            ),
+            QuantityPlacement3(
+                view = cylinderItem.view(),
+                position = point3(x = infraScalar(1.2) * Meter)
+            )
+        )
+        val layer = BinLayer(
+            iteration = Int64(0),
+            from = DemandStatisticsTest::class,
+            shape = Container3Shape(
+                width = infraScalar(10.0) * Meter,
+                height = infraScalar(10.0) * Meter,
+                depth = infraScalar(10.0) * Meter
+            ),
+            units = placements
+        )
+
+        val layerMaterialAmount = layer.statistics(Bpp3dDemandMode.ItemMaterialAmount)
+        assertEquals(
+            UInt64(4),
+            (layerMaterialAmount[Bpp3dDemandKey.Material(material.key)] as Bpp3dDemandValue.Amount).value
+        )
+        val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
+        assertTrue(
+            ((layerMaterialWeight[Bpp3dDemandKey.Material(material.key)] as Bpp3dDemandValue.Weight).value)
+                eq (infraScalar(8.0) * Kilogram)
         )
     }
 }

@@ -2,7 +2,7 @@
 
 日期：2026-05-31  
 状态：`cylinder.md` 已合并到本文档，后续只维护 `refactor.md`。
-最近更新：2026-05-31（阶段 1 完成，阶段 2 完成首版支撑几何收口）。
+最近更新：2026-05-31（阶段 1 完成，阶段 2 完成首版支撑几何收口；阶段 3 补充 DFS/MLHS 空间切分主链圆柱 unsupported 显式门禁与回归；阶段 4 补充 ItemMerger 圆柱 unsupported 门禁、LoadingOrderCalculator 三平面 shape-aware 判定并增加非 `Axis3.Y` 圆柱门禁、需求统计与 layer-assignment 圆柱语义回归，并新增可变半径元数据预留入口第一阶段；阶段 5 补充 README 与示例，完成泛型应用请求 shapeSpec 输入协议第一阶段打通，并补齐 CSV 协议收口与可执行验收记录）。
 
 ## 1. 总目标
 
@@ -36,6 +36,22 @@
 14. `Item` 已新增统一 `packingShape` 入口，主链 `Packer` / `PackingRendererAdapter` / `SimpleBlockGenerator` / `LayerGenerationContext` 已优先使用该入口。
 15. `ShapePlacement3` 已新增 footprint overlap area 计算（圆-圆、圆-矩形、矩形-矩形），`bottomSupport` 已支持 shape resolver，并在 item 堆叠路径注入 `item.packingShape`。
 16. `git diff --check` 与四个门禁脚本（generic/shape/geometry/dry-run）在上述改造后继续通过。
+17. `ItemMerger` 的旧长方体合并入口已对圆柱 item 给出明确 unsupported，不再静默按长方体尺寸做 pile/block/hollow-square/pattern 合并。
+18. `LoadingOrderCalculator` 的 `Bottom` 平面重叠判断已切换为 `ShapePlacement3.footprintOverlapArea`，`Side`/`Front` 平面也已切换为基于 shape bounding 的投影重叠判定，不再依赖 `QuantityPlacement2` 的 cuboid 视图重叠；并对非 `Axis3.Y` 圆柱给出显式 unsupported。
+19. 已补圆柱 `DemandStatistics` 回归测试，覆盖 `ItemAmount` / `ItemMaterialAmount` / `ItemMaterialWeight` 与 layer 聚合统计。
+20. 已补 layer-assignment `DemandConstraint.extractor` 圆柱语义回归测试，验证圆柱 item 在多模式下仍按原始 item/material 统计键与数值参与影子价格提取。
+21. 已新增 `README.md` / `README_ch.md`（中英互链），并补固定半径竖直圆柱输入示例与 renderer DTO 圆柱字段输出示例。
+22. `PackageShapeSpec.VerticalCylinder` 已预留可变半径显式入口（`radiusCandidates` / `radiusMin` / `radiusMax` / `radiusWeightFunctionKey`），并增加基本一致性校验；当前求解与渲染仍仅使用已决策 `radius`，不会把候选或范围当最终半径输出。
+23. `DepthFirstSearchAlgorithm` / `MultiLayerHeuristicSearchAlgorithm` 已接入 `CylinderUnsupportedGuard`，对圆柱 item 在 DFS/MLHS 空间切分路径给出显式 unsupported，并新增回归测试，避免静默按外接盒进入 cuboid-only 搜索。
+24. `GenericPackageShape` 已新增 `shapeSpec`（含 `GenericPackageShapeSpec.VerticalCylinder`）并映射到 `PackageShapeSpec`，`ColumnGenerationGenericApplicationRequest -> toModelRequest` 路径可显式携带圆柱 shape metadata；已补 domain/application 双侧回归测试。
+25. `bpp3d-application` 的 Gurobi CSV 分组场景入口已支持 `shape_type` / `radius_meter` / `axis` 列并映射到 `PackageShapeSpec`（含 `VerticalCylinder`），同时兼容旧 6 列协议默认 `Cuboid`；已补 CSV 解析回归测试与数据集样例更新。
+26. `bpp3d-application` 的 `material,width,amount` CSV 场景入口已支持 `shape_type` / `radius_meter` / `axis` 列并映射到 `PackageShapeSpec`（含 `VerticalCylinder`），同时兼容旧列协议默认 `Cuboid`；已补协议一致性校验（非法 axis、缺 shape_type 但提供 radius/axis）回归测试，并新增样例数据集文件。
+27. 已补充中英 README 的应用级 CSV 输入协议说明（两类 CSV 形态、必填/可选列、shape 列规则、错误语义、样例路径），并在 CSV 解析入口新增 schema 先验校验：当存在 `radius_meter` / `axis` 列时必须存在 `shape_type` 列。
+28. `bpp3d-application/src/test/resources/gurobi` 已补齐 mixed-shape 样例：分组分层形态 `grouped-layer-cylinder-mixed-sample.csv` 与物料宽度数量形态 `material-width-amount-cylinder-sample.csv`。
+29. CSV suite 加载流程已接入 schema 预检报告：目录扫描与显式路径模式均会先执行表头识别、schema 校验与文件名声明类型校验（`grouped-layer` / `material-width-amount`），不一致时显式拒绝并输出 precheck 日志。
+30. 已新增 CSV 协议 smoke 回归测试：样例分组 mixed-shape 文件与样例 material-width-amount mixed-shape 文件可直接完成场景构建（不依赖 Gurobi 求解）；并新增 declared-kind mismatch 拒绝用例。
+31. 已完成本仓可执行验收：四个门禁脚本（generic/shape/geometry/dry-run）通过，`git diff --check` 通过（仅 LF/CRLF 警告），`mvn -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true` 通过。
+32. 已补充阻塞记录：`mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true` 在 `ospf-kotlin-utils` 测试编译失败（`ParallelConcurrencyControlTest.kt` 的 `ULong -> UInt64` 参数类型不匹配）；Gurobi 回归与 CSV suite 受 `ospf-kotlin-core-plugin-gurobi:1.1.0` 私服依赖拉取失败（`poitech_public` connection reset）阻塞。
 
 ## 3. 当前未完成事项
 
@@ -46,16 +62,15 @@
 1. `QuantityPlacement3<T : Cuboid<T>>` 仍是大量主链 API 的核心类型。
 2. `QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 仍依赖 `CuboidView` 和矩形投影。
 3. `Item` 仍继承 `Cuboid<Item>`，`explicitPackingShape` 仍保留兼容，但主链已迁移到 `packingShape` 统一入口。
-4. `PackageShape` 已支持 `shapeSpec`，但 CSV / application 输入协议与更完整业务入口仍未统一到该元数据。
-5. `PackageAttribute`、`Pattern`、`ItemMerger`、`LoadingOrderCalculator` 仍大量使用长方体尺寸和矩形投影语义。
+4. `PackageShape` 已支持 `shapeSpec`；泛型 application 请求路径与 Gurobi CSV 两类测试入口（分组场景、`material,width,amount` 场景）已完成第一阶段接入，并已补协议文档与 schema 门禁；但其余业务入口仍未统一到该元数据。
+5. `PackageAttribute`、`Pattern`、`LoadingOrderCalculator` 仍大量使用长方体尺寸和矩形投影语义；`ItemMerger` 已明确拒绝圆柱，但尚未迁移为 shape-aware 合并。
 6. block、layer、BLA、DFS、MLHS、layer assignment 主链仍大量使用 `ItemPlacement3` / `QuantityPlacement3<Item>`。
 7. 支撑面积已迁移到 shape-aware 几何策略（含圆-圆、圆-矩形），但 `PackageAttribute` 的堆叠业务规则仍有长方体尺寸语义残留。
-8. 圆柱业务输入字段、单位、CSV 协议、可变半径、半径-重量函数仍未定型。
+8. 圆柱业务输入字段中的 Gurobi CSV 两类入口（分组场景、`material,width,amount` 场景）与 README 协议说明已完成第一阶段统一；但其余业务入口、接口层契约及可变半径业务规则仍未定型。
 9. 圆密排候选已经初步存在，但还不是独立可替换算法服务，也没有完整 adapter 验收。
-10. DFS / MLHS / 空间切分尚未证明不会把圆柱外接盒当最终可行性判定。
-11. layer assignment 统计约束尚未系统验证圆柱 item 的原始需求统计语义。
-12. 文档、示例和 README 尚未说明竖直圆柱真实几何语义。
-13. 旧 three.js renderer 未适配圆柱新字段。
+10. DFS / MLHS / 空间切分已完成第一阶段门禁化（圆柱显式拒绝），但尚未实现可验证的圆柱真实几何搜索支持。
+11. layer assignment 统计约束已补充多 bin / 多 layer / 混合需求模式的系统性回归，但仍未覆盖启用 Gurobi 插件后的完整求解链路回归。
+12. 旧 three.js renderer 未适配圆柱新字段（当前仓内未发现 legacy three.js 代码，需外部仓或前端项目协同）。
 
 ## 4. 新一轮目标
 
@@ -156,11 +171,11 @@
 
 修改事项：
 
-1. 检查 `DemandStatistics` 是否受 shape 类型影响。
-2. 检查 layer assignment 统计约束是否仍按原始 item / material 统计。
-3. 检查 `LoadingOrderCalculator` 对圆柱 placement 的语义。
-4. 检查 `ItemMerger` 是否跳过圆柱，或只允许同轴同尺寸圆柱合并。
-5. 为可变半径预留 radius candidates / radius range / radius weight function 的显式入口，但不进入连续优化。
+1. 检查 `DemandStatistics` 是否受 shape 类型影响。（已完成首轮回归：圆柱 item/layer 在 amount/material amount/material weight 三种模式下语义正确。）
+2. 检查 layer assignment 统计约束是否仍按原始 item / material 统计。（已完成首轮回归：`DemandConstraint.extractor` 圆柱语义正确。）
+3. 检查 `LoadingOrderCalculator` 对圆柱 placement 的语义。（已完成：三平面重叠判定均切换为 shape-aware 路径，并对非 `Axis3.Y` 圆柱显式拒绝。）
+4. 检查 `ItemMerger` 是否跳过圆柱，或只允许同轴同尺寸圆柱合并。（已完成第一阶段：旧合并路径明确拒绝圆柱。）
+5. 为可变半径预留 radius candidates / radius range / radius weight function 的显式入口，但不进入连续优化。（第一阶段完成：domain metadata 已提供入口与约束，求解链仍按 fixed-radius 语义运行。）
 
 完成标准：
 
@@ -175,9 +190,9 @@
 
 修改事项：
 
-1. 更新 BPP3D README 或示例，说明竖直圆柱是真实几何，不是外接盒近似。
-2. 添加固定半径竖直圆柱输入示例。
-3. 添加圆柱 renderer DTO 输出示例。
+1. 更新 BPP3D README 或示例，说明竖直圆柱是真实几何，不是外接盒近似。（已完成）
+2. 添加固定半径竖直圆柱输入示例。（已完成）
+3. 添加圆柱 renderer DTO 输出示例。（已完成）
 4. 更新 `shape-boundary-check.ps1` allowlist。
 5. 移除文档中已经过时的 `cylinder.md` 引用。
 
@@ -309,3 +324,34 @@ mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg
 10. 修改 renderer DTO 时必须补长方体兼容和圆柱输出测试。
 11. Maven 测试跑不起来时，必须记录具体依赖或环境阻塞。
 12. commit message 必须具体说明改动目的和关键变更点。
+
+## 10. 未完成事项交接（下一会话入口）
+
+以下事项截至 2026-05-31 仍未完成，下一会话请按顺序继续：
+
+1. Gurobi 回归与 CSV suite 的最终验收闭环未完成。
+2. 旧 three.js renderer 的圆柱字段适配未完成（当前仓内未发现 legacy three.js 代码，需外部仓或前端项目协同）。
+3. 主链仍存在 `Cuboid` / `QuantityPlacement*` 硬绑定，尚未完成“真实 shape 主链化”。
+
+### 10.1 当前可确认的阻塞
+
+1. 根工程应用链路测试命令：
+   `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true`
+   当前阻塞在 `ospf-kotlin-utils` 测试编译：
+   `ParallelConcurrencyControlTest.kt` 存在 `ULong -> UInt64` 参数类型不匹配（约在 114/115 行）。
+2. Gurobi 回归命令与 CSV suite 命令：
+   `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test ...`
+   当前阻塞在私服依赖解析：
+   `io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0`
+   从 `poitech_public` 拉取时 `Connection reset`。
+
+### 10.2 下一会话建议执行顺序
+
+1. 先修复或隔离根工程 `ospf-kotlin-utils` 测试编译阻塞（保证应用链路命令可跑通）。
+2. 验证私服可达性或切换可用依赖源，解除 `ospf-kotlin-core-plugin-gurobi` 解析阻塞。
+3. 重跑以下四条命令并记录结论：
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`
+   - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true`
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`
+4. 如果 three.js 代码仍不在本仓，补充“外部仓路径/负责人/交付接口”并在本文档回填对接结果。

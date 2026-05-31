@@ -149,8 +149,51 @@ sealed interface PackageShapeSpec {
 
     data class VerticalCylinder(
         val radius: Quantity<InfraNumber>,
-        val axis: Axis3 = Axis3.Y
-    ) : PackageShapeSpec
+        val axis: Axis3 = Axis3.Y,
+        val radiusCandidates: List<Quantity<InfraNumber>> = emptyList(),
+        val radiusMin: Quantity<InfraNumber>? = null,
+        val radiusMax: Quantity<InfraNumber>? = null,
+        val radiusWeightFunctionKey: String? = null
+    ) : PackageShapeSpec {
+        init {
+            require(radius.value.toDouble() > 0.0) {
+                "Vertical cylinder radius must be positive."
+            }
+            require(radiusCandidates.all { it.value.toDouble() > 0.0 }) {
+                "Vertical cylinder radius candidates must all be positive."
+            }
+            if (radiusCandidates.isNotEmpty()) {
+                require(radiusCandidates.any { it.value.toDouble() == radius.value.toDouble() }) {
+                    "Resolved radius must be included in radius candidates when candidates are provided."
+                }
+            }
+            radiusMin?.let {
+                require(it.value.toDouble() > 0.0) {
+                    "Vertical cylinder radiusMin must be positive."
+                }
+            }
+            radiusMax?.let {
+                require(it.value.toDouble() > 0.0) {
+                    "Vertical cylinder radiusMax must be positive."
+                }
+            }
+            if (radiusMin != null && radiusMax != null) {
+                require(radiusMin.value.toDouble() <= radiusMax.value.toDouble()) {
+                    "Vertical cylinder radiusMin must be less than or equal to radiusMax."
+                }
+            }
+            radiusMin?.let {
+                require(radius.value.toDouble() >= it.value.toDouble()) {
+                    "Resolved radius must be greater than or equal to radiusMin."
+                }
+            }
+            radiusMax?.let {
+                require(radius.value.toDouble() <= it.value.toDouble()) {
+                    "Resolved radius must be less than or equal to radiusMax."
+                }
+            }
+        }
+    }
 }
 
 fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>? {

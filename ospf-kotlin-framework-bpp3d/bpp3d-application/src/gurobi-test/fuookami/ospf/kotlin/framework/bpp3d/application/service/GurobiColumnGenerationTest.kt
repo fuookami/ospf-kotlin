@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
@@ -37,6 +38,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -69,7 +71,8 @@ class GurobiColumnGenerationTest {
     private fun item(
         id: String,
         material: Material<Flt64>,
-        widthInMeter: Flt64 = Flt64.one
+        widthInMeter: Flt64 = Flt64.one,
+        shapeSpec: PackageShapeSpec = PackageShapeSpec.Cuboid
     ): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
@@ -77,7 +80,8 @@ class GurobiColumnGenerationTest {
                 height = Flt64.one * Meter,
                 depth = Flt64.one * Meter,
                 weight = Flt64.one * Kilogram,
-                packageType = PackageType.CartonContainer
+                packageType = PackageType.CartonContainer,
+                shapeSpec = shapeSpec
             ),
             materials = mapOf(material to UInt64.one)
         )
@@ -137,7 +141,10 @@ class GurobiColumnGenerationTest {
         val itemId: String,
         val materialNo: String,
         val materialName: String,
-        val materialWeightKg: Flt64
+        val materialWeightKg: Flt64,
+        val shapeType: String?,
+        val radiusMeter: Flt64?,
+        val axis: String?
     )
 
     private data class MaterialWidthAmountScenarioRow(
@@ -146,7 +153,10 @@ class GurobiColumnGenerationTest {
         val amount: UInt64,
         val materialNo: String?,
         val materialName: String?,
-        val materialWeightKg: Flt64?
+        val materialWeightKg: Flt64?,
+        val shapeType: String?,
+        val radiusMeter: Flt64?,
+        val axis: String?
     )
 
     private data class CsvDrivenScenario(
@@ -166,6 +176,18 @@ class GurobiColumnGenerationTest {
         val name: String,
         val scenario: CsvDrivenScenario
     )
+
+    private data class CsvSchemaPrecheckReport(
+        val sourceName: String,
+        val declaredScenarioKind: CsvScenarioKind?,
+        val detectedScenarioKind: CsvScenarioKind,
+        val headerColumns: List<String>
+    )
+
+    private enum class CsvScenarioKind {
+        GroupedLayer,
+        MaterialWidthAmount
+    }
 
     private fun buildSolverConfig(
         prefix: String,
@@ -212,7 +234,10 @@ class GurobiColumnGenerationTest {
             .getResource(resourcePath)
             ?.readText()
             ?: throw IllegalStateException("missing csv resource: $resourcePath")
-        return loadCsvDrivenScenarioFromCsvText(csv)
+        return loadCsvDrivenScenarioFromCsvText(
+            csv = csv,
+            sourceName = resourcePath
+        )
     }
 
     private fun loadCsvDrivenScenarioFromFile(filePath: String): CsvDrivenScenario {
@@ -220,7 +245,12 @@ class GurobiColumnGenerationTest {
         if (!file.exists() || !file.isFile) {
             throw IllegalStateException("invalid dataset file path: $filePath")
         }
-        return loadCsvDrivenScenarioFromCsvText(file.readText())
+        val declaredScenarioKind = declaredScenarioKindFromFileName(file.name)
+        return loadCsvDrivenScenarioFromCsvText(
+            csv = file.readText(),
+            sourceName = file.absolutePath,
+            declaredScenarioKind = declaredScenarioKind
+        )
     }
 
     private fun loadCsvDrivenScenarioByPropertyOrResource(
@@ -237,7 +267,11 @@ class GurobiColumnGenerationTest {
         }
     }
 
-    private fun loadCsvDrivenScenarioFromCsvText(csv: String): CsvDrivenScenario {
+    private fun loadCsvDrivenScenarioFromCsvText(
+        csv: String,
+        sourceName: String = "inline-csv",
+        declaredScenarioKind: CsvScenarioKind? = null
+    ): CsvDrivenScenario {
         val lines = csv
             .lineSequence()
             .map { it.trim() }
@@ -249,28 +283,192 @@ class GurobiColumnGenerationTest {
         val headerColumns = lines.first()
             .split(",")
             .map { it.trim().lowercase(Locale.getDefault()) }
-        return if (headerColumns.contains("group_index") && headerColumns.contains("layer_index")) {
-            loadGroupedLayerCsvScenario(lines)
-        } else if (headerColumns.contains("material") && headerColumns.contains("width") && headerColumns.contains("amount")) {
-            loadMaterialWidthAmountCsvScenario(lines)
+        val scenarioKind = detectCsvScenarioKind(
+            headerColumns = headerColumns,
+            headerLine = lines.first()
+        )
+        if (declaredScenarioKind != null && declaredScenarioKind != scenarioKind) {
+            throw IllegalStateException(
+                "csv scenario kind mismatch: source=$sourceName, declared=$declaredScenarioKind, detected=$scenarioKind"
+            )
+        }
+        validateCsvSchema(
+            scenarioKind = scenarioKind,
+            headerColumns = headerColumns,
+            headerLine = lines.first()
+        )
+        return when (scenarioKind) {
+            CsvScenarioKind.GroupedLayer -> loadGroupedLayerCsvScenario(lines)
+            CsvScenarioKind.MaterialWidthAmount -> loadMaterialWidthAmountCsvScenario(lines)
+        }
+    }
+
+    private fun declaredScenarioKindFromFileName(fileName: String): CsvScenarioKind? {
+        val normalized = fileName.lowercase(Locale.getDefault())
+        return when {
+            normalized.contains("grouped-layer") || normalized.contains("grouped_layer") -> CsvScenarioKind.GroupedLayer
+            normalized.contains("material-width-amount") || normalized.contains("material_width_amount") -> CsvScenarioKind.MaterialWidthAmount
+            else -> null
+        }
+    }
+
+    private fun precheckCsvSchemaFromFile(file: File): CsvSchemaPrecheckReport {
+        val lines = file.readLines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        if (lines.isEmpty()) {
+            throw IllegalStateException("csv has no rows: ${file.absolutePath}")
+        }
+        val headerLine = lines.first()
+        val headerColumns = headerLine
+            .split(",")
+            .map { it.trim().lowercase(Locale.getDefault()) }
+        val detectedScenarioKind = detectCsvScenarioKind(
+            headerColumns = headerColumns,
+            headerLine = headerLine
+        )
+        val declaredScenarioKind = declaredScenarioKindFromFileName(file.name)
+        if (declaredScenarioKind != null && declaredScenarioKind != detectedScenarioKind) {
+            throw IllegalStateException(
+                "csv scenario kind mismatch in precheck: source=${file.absolutePath}, declared=$declaredScenarioKind, detected=$detectedScenarioKind"
+            )
+        }
+        validateCsvSchema(
+            scenarioKind = detectedScenarioKind,
+            headerColumns = headerColumns,
+            headerLine = headerLine
+        )
+        return CsvSchemaPrecheckReport(
+            sourceName = file.absolutePath,
+            declaredScenarioKind = declaredScenarioKind,
+            detectedScenarioKind = detectedScenarioKind,
+            headerColumns = headerColumns
+        )
+    }
+
+    private fun printCsvSchemaPrecheckReport(report: CsvSchemaPrecheckReport) {
+        val declared = report.declaredScenarioKind?.toString() ?: "UNSPECIFIED"
+        println(
+            "[csv-precheck] source=${report.sourceName}, declared=$declared, " +
+                    "detected=${report.detectedScenarioKind}, columns=${report.headerColumns.joinToString("|")}"
+        )
+    }
+
+    private fun detectCsvScenarioKind(
+        headerColumns: List<String>,
+        headerLine: String
+    ): CsvScenarioKind {
+        return if (headerColumns.containsAll(listOf("group_index", "layer_index"))) {
+            CsvScenarioKind.GroupedLayer
+        } else if (headerColumns.containsAll(listOf("material", "width", "amount"))) {
+            CsvScenarioKind.MaterialWidthAmount
         } else {
-            throw IllegalStateException("unsupported csv header: ${lines.first()}")
+            throw IllegalStateException("unsupported csv header: $headerLine")
+        }
+    }
+
+    private fun validateCsvSchema(
+        scenarioKind: CsvScenarioKind,
+        headerColumns: List<String>,
+        headerLine: String
+    ) {
+        val requiredColumns = when (scenarioKind) {
+            CsvScenarioKind.GroupedLayer -> listOf(
+                "group_index",
+                "layer_index",
+                "item_id",
+                "material_no",
+                "material_name",
+                "material_weight_kg"
+            )
+
+            CsvScenarioKind.MaterialWidthAmount -> listOf("material", "width", "amount")
+        }
+        val missingColumns = requiredColumns.filter { column ->
+            !headerColumns.contains(column)
+        }
+        if (missingColumns.isNotEmpty()) {
+            throw IllegalStateException(
+                "missing required csv columns: ${missingColumns.joinToString()}, header=$headerLine"
+            )
+        }
+        val hasShapeType = headerColumns.contains("shape_type")
+        val hasRadiusMeter = headerColumns.contains("radius_meter")
+        val hasAxis = headerColumns.contains("axis")
+        if ((hasRadiusMeter || hasAxis) && !hasShapeType) {
+            throw IllegalStateException(
+                "invalid csv schema: shape_type is required when radius_meter or axis column exists, header=$headerLine"
+            )
         }
     }
 
     private fun loadGroupedLayerCsvScenario(lines: List<String>): CsvDrivenScenario {
+        val headerColumns = lines.first().split(",").map { it.trim() }
+        val headerIndex = headerColumns.withIndex().associate { (index, column) ->
+            column.lowercase(Locale.getDefault()) to index
+        }
+        fun requiredColumn(name: String): Int {
+            return headerIndex[name] ?: throw IllegalStateException("missing required csv column: $name")
+        }
+        fun optionalColumn(name: String): Int? {
+            return headerIndex[name]
+        }
+
+        val groupIndexColumn = requiredColumn("group_index")
+        val layerIndexColumn = requiredColumn("layer_index")
+        val itemIdColumn = requiredColumn("item_id")
+        val materialNoColumn = requiredColumn("material_no")
+        val materialNameColumn = requiredColumn("material_name")
+        val materialWeightColumn = requiredColumn("material_weight_kg")
+        val shapeTypeColumn = optionalColumn("shape_type")
+        val radiusMeterColumn = optionalColumn("radius_meter")
+        val axisColumn = optionalColumn("axis")
+
         val rows = lines.drop(1).mapIndexed { index, line ->
             val cols = line.split(",").map { it.trim() }
-            if (cols.size != 6) {
+            val requiredColumnCount = listOf(
+                groupIndexColumn,
+                layerIndexColumn,
+                itemIdColumn,
+                materialNoColumn,
+                materialNameColumn,
+                materialWeightColumn
+            ).max() + 1
+            if (cols.size < requiredColumnCount) {
                 throw IllegalStateException("invalid csv columns at row ${index + 2}: $line")
             }
+            val materialWeight = cols.getOrNull(materialWeightColumn)
+                ?.toDoubleOrNull()
+                ?.let { Flt64(it) }
+                ?: throw IllegalStateException("invalid material_weight_kg at row ${index + 2}: ${cols.getOrNull(materialWeightColumn)}")
             CsvScenarioRow(
-                groupIndex = cols[0].toInt(),
-                layerIndex = cols[1].toInt(),
-                itemId = cols[2],
-                materialNo = cols[3],
-                materialName = cols[4],
-                materialWeightKg = Flt64(cols[5].toDouble())
+                groupIndex = cols.getOrNull(groupIndexColumn)?.toIntOrNull()
+                    ?: throw IllegalStateException("invalid group_index at row ${index + 2}: ${cols.getOrNull(groupIndexColumn)}"),
+                layerIndex = cols.getOrNull(layerIndexColumn)?.toIntOrNull()
+                    ?: throw IllegalStateException("invalid layer_index at row ${index + 2}: ${cols.getOrNull(layerIndexColumn)}"),
+                itemId = cols.getOrNull(itemIdColumn)
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: throw IllegalStateException("empty item_id at row ${index + 2}"),
+                materialNo = cols.getOrNull(materialNoColumn)
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: throw IllegalStateException("empty material_no at row ${index + 2}"),
+                materialName = cols.getOrNull(materialNameColumn)
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: throw IllegalStateException("empty material_name at row ${index + 2}"),
+                materialWeightKg = materialWeight,
+                shapeType = shapeTypeColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() },
+                radiusMeter = radiusMeterColumn?.let { column ->
+                    cols.getOrNull(column)
+                        ?.takeIf { it.isNotEmpty() }
+                        ?.toDoubleOrNull()
+                        ?.let { Flt64(it) }
+                        ?: cols.getOrNull(column)
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let {
+                                throw IllegalStateException("invalid radius_meter at row ${index + 2}: $it")
+                            }
+                },
+                axis = axisColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() }
             )
         }
 
@@ -297,9 +495,11 @@ class GurobiColumnGenerationTest {
             }
             val material = materialsByNo[row.materialNo]
                 ?: throw IllegalStateException("missing material for item: ${row.itemId}")
+            val shapeSpec = row.toPackageShapeSpec()
             itemsById[row.itemId] = item(
                 id = row.itemId,
-                material = material
+                material = material,
+                shapeSpec = shapeSpec
             )
         }
 
@@ -392,6 +592,198 @@ class GurobiColumnGenerationTest {
         )
     }
 
+    private fun CsvScenarioRow.toPackageShapeSpec(): PackageShapeSpec {
+        return toPackageShapeSpec(
+            shapeType = shapeType,
+            radiusMeter = radiusMeter,
+            axis = axis,
+            rowDescription = "item_id=$itemId, group_index=$groupIndex, layer_index=$layerIndex"
+        )
+    }
+
+    private fun parseAxis3OrNull(raw: String): Axis3? {
+        return when (raw.trim().uppercase(Locale.getDefault())) {
+            "X", "AXIS3.X" -> Axis3.X
+            "Y", "AXIS3.Y" -> Axis3.Y
+            "Z", "AXIS3.Z" -> Axis3.Z
+            else -> null
+        }
+    }
+
+    private fun parseAxis3OrThrow(axis: String?, rowDescription: String): Axis3 {
+        if (axis.isNullOrBlank()) {
+            return Axis3.Y
+        }
+        return parseAxis3OrNull(axis)
+            ?: throw IllegalStateException("invalid axis for cylinder row: axis=$axis, $rowDescription")
+    }
+
+    @Test
+    fun groupedLayerCsvShouldMapVerticalCylinderShapeSpecFromCsvColumns() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis
+            0,0,item-cylinder,MAT-A,Material-A,1.0,vertical_cylinder,0.5,Y
+            0,0,item-cuboid,MAT-B,Material-B,2.0,,,
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val itemsById = scenario.itemDemands.associate { (item, _) ->
+            item.id to item
+        }
+        val cylinderItem = itemsById["item-cylinder"]
+            ?: throw IllegalStateException("missing item-cylinder in scenario")
+        val cuboidItem = itemsById["item-cuboid"]
+            ?: throw IllegalStateException("missing item-cuboid in scenario")
+        val cylinderSpec = cylinderItem.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+            ?: throw IllegalStateException("item-cylinder shape spec should be VerticalCylinder")
+
+        assertEquals(Axis3.Y, cylinderSpec.axis)
+        assertEquals(0.5, cylinderSpec.radius.value.toDouble())
+        assertEquals(PackageShapeSpec.Cuboid, cuboidItem.packageShape.shapeSpec)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRemainCompatibleWithLegacySixColumns() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg
+            0,0,item-legacy,MAT-A,Material-A,1.0
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val legacyItem = scenario.itemDemands
+            .firstOrNull()
+            ?.first
+            ?: throw IllegalStateException("missing legacy item in scenario")
+
+        assertEquals(PackageShapeSpec.Cuboid, legacyItem.packageShape.shapeSpec)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldMapVerticalCylinderShapeSpecFromCsvColumns() {
+        val csv = """
+            material,width,amount,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis
+            MAT-A,1200,2,MAT-A,Material-A,1.0,vertical_cylinder,0.4,Y
+            MAT-B,1000,1,MAT-B,Material-B,2.0,cuboid,,
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val itemDemandsById = scenario.itemDemands.associate { (item, demand) ->
+            item.id to Pair(item, demand)
+        }
+        val cylinderEntry = itemDemandsById["item-material-width-0"]
+            ?: throw IllegalStateException("missing cylinder entry")
+        val cuboidEntry = itemDemandsById["item-material-width-1"]
+            ?: throw IllegalStateException("missing cuboid entry")
+        val cylinderSpec = cylinderEntry.first.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+            ?: throw IllegalStateException("item-material-width-0 should be VerticalCylinder")
+
+        assertEquals(2L, cylinderEntry.second.toLong())
+        assertEquals(Axis3.Y, cylinderSpec.axis)
+        assertEquals(0.4, cylinderSpec.radius.value.toDouble())
+        assertEquals(PackageShapeSpec.Cuboid, cuboidEntry.first.packageShape.shapeSpec)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRemainCompatibleWithLegacyColumns() {
+        val csv = """
+            material,width,amount
+            MAT-A,1000,1
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val legacyItem = scenario.itemDemands
+            .firstOrNull()
+            ?.first
+            ?: throw IllegalStateException("missing legacy item in scenario")
+
+        assertEquals(PackageShapeSpec.Cuboid, legacyItem.packageShape.shapeSpec)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectInvalidCylinderAxis() {
+        val csv = """
+            material,width,amount,shape_type,radius_meter,axis
+            MAT-A,1000,1,vertical_cylinder,0.3,INVALID
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+        assertTrue(exception.message?.contains("invalid axis") == true)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectShapeColumnsWithoutShapeType() {
+        val csv = """
+            material,width,amount,radius_meter,axis
+            MAT-A,1000,1,0.3,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+        assertTrue(exception.message?.contains("shape_type is required") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectSchemaWhenShapeTypeColumnMissingButShapeMetadataColumnsExist() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,radius_meter,axis
+            0,0,item-1,MAT-A,Material-A,1.0,0.5,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+        assertTrue(exception.message?.contains("shape_type is required") == true)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectSchemaWhenShapeTypeColumnMissingButAxisColumnExists() {
+        val csv = """
+            material,width,amount,axis
+            MAT-A,1000,1,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+        assertTrue(exception.message?.contains("shape_type is required") == true)
+    }
+
+    @Test
+    fun declaredGroupedLayerScenarioKindShouldRejectMaterialWidthAmountHeader() {
+        val csv = """
+            material,width,amount
+            MAT-A,1000,1
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(
+                csv = csv,
+                sourceName = "declared-grouped-layer.csv",
+                declaredScenarioKind = CsvScenarioKind.GroupedLayer
+            )
+        }
+        assertTrue(exception.message?.contains("scenario kind mismatch") == true)
+    }
+
+    @Test
+    fun groupedLayerMixedShapeSampleFileShouldBeParsable() {
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-cylinder-mixed-sample.csv")
+        assertEquals(2, scenario.groupCount)
+        assertTrue(scenario.totalItemCount > 0)
+        assertEquals(scenario.totalLayerCount, scenario.packedLayerCount)
+    }
+
+    @Test
+    fun materialWidthAmountMixedShapeSampleFileShouldBeParsable() {
+        val scenario = loadCsvDrivenScenario("gurobi/material-width-amount-cylinder-sample.csv")
+        assertEquals(1, scenario.groupCount)
+        assertTrue(scenario.totalItemCount > 0)
+        assertEquals(scenario.totalLayerCount, scenario.packedLayerCount)
+    }
+
     private fun loadMaterialWidthAmountCsvScenario(lines: List<String>): CsvDrivenScenario {
         val headerColumns = lines.first().split(",").map { it.trim() }
         val headerIndex = headerColumns.withIndex().associate { (index, column) ->
@@ -410,6 +802,9 @@ class GurobiColumnGenerationTest {
         val materialNoColumn = optionalColumn("material_no")
         val materialNameColumn = optionalColumn("material_name")
         val materialWeightColumn = optionalColumn("material_weight_kg")
+        val shapeTypeColumn = optionalColumn("shape_type")
+        val radiusMeterColumn = optionalColumn("radius_meter")
+        val axisColumn = optionalColumn("axis")
         val widthScale = optionalFlt64Property("bpp3d.gurobi.dataset.material.width.scale")
             ?: Flt64(1000.0)
         val defaultMaterialWeightKg = optionalFlt64Property("bpp3d.gurobi.dataset.material.default.weight.kg")
@@ -444,7 +839,20 @@ class GurobiColumnGenerationTest {
                     amount = UInt64(amount.toULong()),
                     materialNo = materialNoColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
                     materialName = materialNameColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
-                    materialWeightKg = materialWeightColumn?.let { cols.getOrNull(it)?.toDoubleOrNull()?.let { value -> Flt64(value) } }
+                    materialWeightKg = materialWeightColumn?.let { cols.getOrNull(it)?.toDoubleOrNull()?.let { value -> Flt64(value) } },
+                    shapeType = shapeTypeColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
+                    radiusMeter = radiusMeterColumn?.let { column ->
+                        cols.getOrNull(column)
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.toDoubleOrNull()
+                            ?.let { Flt64(it) }
+                            ?: cols.getOrNull(column)
+                                ?.takeIf { it.isNotEmpty() }
+                                ?.let {
+                                    throw IllegalStateException("invalid radius_meter at row ${index + 2}: $it")
+                                }
+                    },
+                    axis = axisColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } }
                 )
             )
         }
@@ -474,10 +882,17 @@ class GurobiColumnGenerationTest {
             }
             val widthInMeter = maxOf(row.width / widthScale, Flt64(0.2))
             widthsInMeter.add(widthInMeter)
+            val shapeSpec = toPackageShapeSpec(
+                shapeType = row.shapeType,
+                radiusMeter = row.radiusMeter,
+                axis = row.axis,
+                rowDescription = "material=${row.material},row_index=${index + 2}"
+            )
             val actualItem = item(
                 id = "item-material-width-$index",
                 material = material,
-                widthInMeter = widthInMeter
+                widthInMeter = widthInMeter,
+                shapeSpec = shapeSpec
             )
             itemDemands.add(Pair(actualItem, row.amount))
             totalAmount += row.amount
@@ -558,6 +973,47 @@ class GurobiColumnGenerationTest {
         )
     }
 
+    private fun toPackageShapeSpec(
+        shapeType: String?,
+        radiusMeter: Flt64?,
+        axis: String?,
+        rowDescription: String
+    ): PackageShapeSpec {
+        if (shapeType.isNullOrBlank() && (radiusMeter != null || !axis.isNullOrBlank())) {
+            throw IllegalStateException(
+                "shape_type is required when radius_meter or axis is provided: $rowDescription"
+            )
+        }
+        val normalizedShapeType = shapeType
+            ?.trim()
+            ?.lowercase(Locale.getDefault())
+            ?: return PackageShapeSpec.Cuboid
+        if (normalizedShapeType.isEmpty() || normalizedShapeType == "cuboid") {
+            return PackageShapeSpec.Cuboid
+        }
+        if (normalizedShapeType == "vertical_cylinder"
+            || normalizedShapeType == "vertical-cylinder"
+            || normalizedShapeType == "verticalcylinder"
+            || normalizedShapeType == "cylinder"
+        ) {
+            val resolvedRadiusMeter = radiusMeter
+                ?: throw IllegalStateException(
+                    "missing radius_meter for cylinder row: $rowDescription"
+                )
+            val resolvedAxis = parseAxis3OrThrow(
+                axis = axis,
+                rowDescription = rowDescription
+            )
+            return PackageShapeSpec.VerticalCylinder(
+                radius = resolvedRadiusMeter * Meter,
+                axis = resolvedAxis
+            )
+        }
+        throw IllegalStateException(
+            "unsupported shape_type for csv row: shape_type=$shapeType, $rowDescription"
+        )
+    }
+
     private fun optionalIntProperty(name: String): Int? {
         return System.getProperty(name)
             ?.trim()
@@ -590,10 +1046,18 @@ class GurobiColumnGenerationTest {
             ?: emptyList()
         if (explicitPaths.isNotEmpty()) {
             return explicitPaths.map { filePath ->
+                val file = File(filePath)
+                if (!file.exists() || !file.isFile) {
+                    throw IllegalStateException("invalid dataset file path: $filePath")
+                }
+                val report = precheckCsvSchemaFromFile(file)
+                printCsvSchemaPrecheckReport(report)
                 CsvDrivenScenarioCase(
                     name = filePath,
-                    scenario = loadCsvDrivenScenarioFromFile(
-                        filePath = filePath
+                    scenario = loadCsvDrivenScenarioFromCsvText(
+                        csv = file.readText(),
+                        sourceName = file.absolutePath,
+                        declaredScenarioKind = report.declaredScenarioKind
                     )
                 )
             }
@@ -620,10 +1084,14 @@ class GurobiColumnGenerationTest {
             throw IllegalStateException("no csv files found in dataset directory: $directoryPath")
         }
         return files.map { file ->
+            val report = precheckCsvSchemaFromFile(file)
+            printCsvSchemaPrecheckReport(report)
             CsvDrivenScenarioCase(
                 name = file.absolutePath,
-                scenario = loadCsvDrivenScenarioFromFile(
-                    filePath = file.absolutePath
+                scenario = loadCsvDrivenScenarioFromCsvText(
+                    csv = file.readText(),
+                    sourceName = file.absolutePath,
+                    declaredScenarioKind = report.declaredScenarioKind
                 )
             )
         }

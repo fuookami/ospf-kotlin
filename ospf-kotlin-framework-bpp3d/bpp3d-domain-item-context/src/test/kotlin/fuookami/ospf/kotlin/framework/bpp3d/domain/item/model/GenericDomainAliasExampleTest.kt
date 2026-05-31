@@ -9,11 +9,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class GenericDomainAliasExampleTest {
@@ -114,5 +116,35 @@ class GenericDomainAliasExampleTest {
         assertEquals(5.0, layer.width.value.toDouble(), 1e-10)
         assertEquals(1, layer.units.size)
         assertTrue(layer.toModel().shape.width eq (infraScalar(5.0) * Meter))
+    }
+
+    @Test
+    fun genericPackageShapeShouldMapVerticalCylinderSpecToModel() {
+        val genericShape = GenericPackageShape(
+            width = FltX(1.0) * Meter,
+            height = FltX(1.2) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.5) * Kilogram,
+            packageType = PackageType.CartonContainer,
+            shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                radius = FltX(0.5) * Meter,
+                axis = Axis3.Y,
+                radiusCandidates = listOf(
+                    FltX(0.5) * Meter,
+                    FltX(0.6) * Meter
+                ),
+                radiusMin = FltX(0.5) * Meter,
+                radiusMax = FltX(0.6) * Meter,
+                radiusWeightFunctionKey = "radius-weight-v1"
+            )
+        )
+
+        val modelShape = genericShape.toModel()
+        val cylinderSpec = modelShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+        assertNotNull(cylinderSpec)
+        assertTrue(cylinderSpec.radius eq (infraScalar(0.5) * Meter))
+        assertEquals(Axis3.Y, cylinderSpec.axis)
+        assertEquals("radius-weight-v1", cylinderSpec.radiusWeightFunctionKey)
+        assertEquals(2, cylinderSpec.radiusCandidates.size)
     }
 }

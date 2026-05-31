@@ -60,6 +60,10 @@ class MultiLayerHeuristicSearchAlgorithm(
         bins: Map<BinType, UInt64>,
         blockTable: List<Block>,
     ): Pair<List<Bin<Block>>, List<Item>> {
+        requireNoCylinderItemsForCuboidSearch(
+            items = items,
+            source = "MultiLayerHeuristicSearchAlgorithm.invoke(items,bins,blockTable)"
+        )
         val restItems = items.toMutableMap()
         val availableBins = bins.toMutableMap()
         val usedBins = ArrayList<Bin<Block>>()
@@ -118,6 +122,10 @@ class MultiLayerHeuristicSearchAlgorithm(
         fixedSpaces: List<Space> = emptyList(),
         scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
+        requireNoCylinderItemsForCuboidSearch(
+            items = items,
+            source = "MultiLayerHeuristicSearchAlgorithm.invoke(items,shape,blockTable)"
+        )
         val restItems = items.toMutableMap()
         val promise = Channel<List<Space>>()
         scope.launch(Dispatchers.Default) {

@@ -30,6 +30,20 @@ private typealias MergeNumber = InfraNumber
 private fun scalar(value: Number): MergeNumber = MergeNumber(value.toDouble())
 private fun scalar(value: ULong): MergeNumber = MergeNumber(value.toDouble())
 
+private fun requireNoCylinderItemsForMerge(
+    items: Iterable<Item>,
+    source: String
+) {
+    val unsupportedCylinder = items.firstOrNull { item ->
+        item.packingShape is CylinderPackingShape3
+    }
+    if (unsupportedCylinder != null) {
+        throw IllegalArgumentException(
+            "Unsupported cylinder in $source: item merge paths are cuboid-only and do not provide verified cylinder geometry yet."
+        )
+    }
+}
+
 data object ItemMerger {
     data class Config(
         val mergeFillerWhenOnlyFiller: Boolean = true,
@@ -120,6 +134,10 @@ data object ItemMerger {
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
     ): List<Cuboid<*>> {
+        requireNoCylinderItemsForMerge(
+            items = items,
+            source = "ItemMerger.merge"
+        )
         return merge(
             items = items,
             space = binType,
@@ -140,6 +158,10 @@ data object ItemMerger {
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
     ): List<Cuboid<*>> {
+        requireNoCylinderItemsForMerge(
+            items = items,
+            source = "ItemMerger.merge"
+        )
         val withFillerMerging = config.mergeFillerWhenOnlyFiller && items.any { item -> fillerPredicate?.invoke(item) == false }
 
         var restItems = if (!withFillerMerging) {
@@ -204,6 +226,10 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: MergeNumber = infraInfinity()
     ): Pair<List<Pile>, List<Item>> {
+        requireNoCylinderItemsForMerge(
+            items = items,
+            source = "ItemMerger.mergePiles"
+        )
         val averagePileBottomArea = items.fold(MergeNumber.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
@@ -279,6 +305,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
+        requireNoCylinderItemsForMerge(
+            items = items,
+            source = "ItemMerger.mergeBlocks"
+        )
         val mergedItems = ArrayList<SimpleBlock>()
         val restItems = items.groupBy { it }.map { Pair(it.key, it.value.toMutableList()) }.toMap()
         for ((item, list) in restItems) {
@@ -376,6 +406,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
+        requireNoCylinderItemsForMerge(
+            items = items,
+            source = "ItemMerger.mergePatternBlocks"
+        )
         val mergedItems = ArrayList<CommonBlock>()
         var restItems = items.toList()
         while (true) {
@@ -443,6 +477,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
+        requireNoCylinderItemsForMerge(
+            items = items,
+            source = "ItemMerger.mergeHollowSquareBlocks"
+        )
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
         return mergeHollowSquareBlocks(
             items = restItems,
@@ -458,6 +496,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
+        requireNoCylinderItemsForMerge(
+            items = items.keys,
+            source = "ItemMerger.mergeHollowSquareBlocks"
+        )
         val restItems = items.toMutableMap()
         val mergedItems = ArrayList<HollowSquareBlock>()
         for ((item, restAmount) in restItems) {

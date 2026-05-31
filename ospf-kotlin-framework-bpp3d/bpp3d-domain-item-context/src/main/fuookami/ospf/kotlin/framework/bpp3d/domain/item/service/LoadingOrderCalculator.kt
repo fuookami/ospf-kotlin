@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -32,7 +33,84 @@ class LoadingOrderCalculator(
     private val maxBlockDepth: LoadingDepthLimit?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
+    private fun requireVerticalCylinderAxisForLoadingOrder(placements: List<QuantityPlacement3<*>>) {
+        val unsupportedCylinder = placements.firstOrNull { placement ->
+            val item = placement.unit as? Item ?: return@firstOrNull false
+            val shape = item.packingShape
+            shape is CylinderPackingShape3 && shape.axis != Axis3.Y
+        }?.unit as? Item
+
+        if (unsupportedCylinder != null) {
+            throw IllegalArgumentException(
+                "Unsupported cylinder axis in LoadingOrderCalculator: only Axis3.Y is allowed."
+            )
+        }
+    }
+
+    private fun resolvePackingShape(placement: QuantityPlacement3<*>): PackingShape3<InfraNumber> {
+        return when (val unit = placement.unit) {
+            is Item -> unit.packingShape
+            else -> placement.view.asPackingShape3()
+        }
+    }
+
+    private fun bottomFootprintOverlapped(lhs: QuantityPlacement3<*>, rhs: QuantityPlacement3<*>): Boolean {
+        val lhsShapePlacement = lhs.asShapePlacement3(::resolvePackingShape)
+        val rhsShapePlacement = rhs.asShapePlacement3(::resolvePackingShape)
+        val overlapArea = lhsShapePlacement.footprintOverlapArea(rhsShapePlacement)
+        return (overlapArea gr (infraZero() * overlapArea.unit)) == true
+    }
+
+    private fun axisOverlapped(
+        lhsStart: Quantity<InfraNumber>,
+        lhsEnd: Quantity<InfraNumber>,
+        rhsStart: Quantity<InfraNumber>,
+        rhsEnd: Quantity<InfraNumber>
+    ): Boolean {
+        val overlapStart = if ((lhsStart gr rhsStart) == true) {
+            lhsStart
+        } else {
+            rhsStart
+        }
+        val overlapEnd = if ((lhsEnd ls rhsEnd) == true) {
+            lhsEnd
+        } else {
+            rhsEnd
+        }
+        val overlap = overlapEnd - overlapStart
+        return (overlap gr (infraZero() * overlap.unit)) == true
+    }
+
+    private fun overlappedAt(
+        lhs: QuantityPlacement3<*>,
+        rhs: QuantityPlacement3<*>,
+        plane: ProjectivePlane
+    ): Boolean {
+        if (plane == Bottom) {
+            return bottomFootprintOverlapped(lhs, rhs)
+        }
+
+        val lhsShapePlacement = lhs.asShapePlacement3(::resolvePackingShape)
+        val rhsShapePlacement = rhs.asShapePlacement3(::resolvePackingShape)
+        return when (plane) {
+            Side -> {
+                axisOverlapped(lhsShapePlacement.x, lhsShapePlacement.maxX, rhsShapePlacement.x, rhsShapePlacement.maxX)
+                        && axisOverlapped(lhsShapePlacement.y, lhsShapePlacement.maxY, rhsShapePlacement.y, rhsShapePlacement.maxY)
+            }
+
+            Front -> {
+                axisOverlapped(lhsShapePlacement.z, lhsShapePlacement.maxZ, rhsShapePlacement.z, rhsShapePlacement.maxZ)
+                        && axisOverlapped(lhsShapePlacement.y, lhsShapePlacement.maxY, rhsShapePlacement.y, rhsShapePlacement.maxY)
+            }
+
+            else -> {
+                false
+            }
+        }
+    }
+
     operator fun invoke(placements: List<QuantityPlacement3<*>>): List<Pair<ItemPlacement3, UInt64>> {
+        requireVerticalCylinderAxisForLoadingOrder(placements)
         val thisPlacements = merge(placements)
             .sortedWithThreeWayComparator { lhs, rhs ->
                 when (val ret = lhs.z ord rhs.z) {
@@ -233,9 +311,8 @@ class LoadingOrderCalculator(
     }
 
     private fun <P : ProjectivePlane> forwardAt(lhs: QuantityPlacement3<*>, rhs: QuantityPlacement3<*>, plane: P): Boolean {
-        val lhsProjection = QuantityPlacement2(lhs, plane)
-        val rhsProjection = QuantityPlacement2(rhs, plane)
-        return if (!lhsProjection.overlapped(rhsProjection)) {
+        val overlapped = overlappedAt(lhs, rhs, plane)
+        return if (!overlapped) {
             false
         } else {
             plane.distance(lhs.position) leq plane.distance(rhs.position)

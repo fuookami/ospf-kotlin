@@ -1,5 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import kotlin.math.abs
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -18,6 +19,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
@@ -30,6 +32,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -48,16 +51,22 @@ class PreciseLoadMultiBinAggregationTest {
         )
     }
 
-    private fun item(id: String, material: Material<InfraNumber>): ActualItem {
+    private fun item(
+        id: String,
+        material: Material<InfraNumber>,
+        materialAmount: UInt64 = UInt64.one,
+        shapeSpec: PackageShapeSpec = PackageShapeSpec.Cuboid
+    ): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = infraScalar(1.0) * Meter,
                 height = infraScalar(1.0) * Meter,
                 depth = infraScalar(1.0) * Meter,
                 weight = infraScalar(1.0) * Kilogram,
-                packageType = PackageType.CartonContainer
+                packageType = PackageType.CartonContainer,
+                shapeSpec = shapeSpec
             ),
-            materials = mapOf(material to UInt64.one)
+            materials = mapOf(material to materialAmount)
         )
         return ActualItem(
             id = id,
@@ -78,7 +87,10 @@ class PreciseLoadMultiBinAggregationTest {
             name = "M-LOAD-MULTI-BIN",
             weight = infraScalar(1.0) * Kilogram
         )
-        val actualItem = item("item-load-multi-bin", material)
+        val actualItem = item(
+            id = "item-load-multi-bin",
+            material = material
+        )
         val sharedBinType = BinType(
             width = infraScalar(2.0) * Meter,
             height = infraScalar(2.0) * Meter,
@@ -155,7 +167,141 @@ class PreciseLoadMultiBinAggregationTest {
         assertTrue(symbols.contains(assignment.x[0, 0].name))
         assertTrue(symbols.contains(assignment.x[1, 0].name))
     }
+
+    @Test
+    fun preciseLoadShouldKeepMixedDemandCoefficientsForCylinderAcrossBinsAndLayers() {
+        val materialA = Material(
+            no = MaterialNo("M-LOAD-MIX-A"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-LOAD-MIX-A",
+            weight = infraScalar(1.0) * Kilogram
+        )
+        val materialB = Material(
+            no = MaterialNo("M-LOAD-MIX-B"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-LOAD-MIX-B",
+            weight = infraScalar(2.0) * Kilogram
+        )
+        val cuboidItem = item(
+            id = "item-load-cuboid",
+            material = materialA,
+            materialAmount = UInt64(2)
+        )
+        val cylinderItem = item(
+            id = "item-load-cylinder",
+            material = materialB,
+            materialAmount = UInt64(3),
+            shapeSpec = PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.5) * Meter,
+                axis = Axis3.Y
+            )
+        )
+        val sharedBinType = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LOAD-MIXED-DEMAND"
+        )
+        val layerWithCuboid = BinLayer(
+            iteration = Int64.zero,
+            from = PreciseLoadMultiBinAggregationTest::class,
+            bin = sharedBinType,
+            shape = Container3Shape(sharedBinType),
+            units = listOf(
+                QuantityPlacement3(
+                    view = cuboidItem.view(Orientation.Upright),
+                    position = point3()
+                )
+            )
+        )
+        val layerWithCylinder = BinLayer(
+            iteration = Int64.one,
+            from = PreciseLoadMultiBinAggregationTest::class,
+            bin = sharedBinType,
+            shape = Container3Shape(sharedBinType),
+            units = listOf(
+                QuantityPlacement3(
+                    view = cylinderItem.view(Orientation.Upright),
+                    position = point3(x = infraScalar(1.0) * Meter)
+                )
+            )
+        )
+        val bins = listOf(
+            Bin(
+                shape = sharedBinType,
+                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                batchNo = BatchNo("B-LOAD-MIX-0")
+            ),
+            Bin(
+                shape = sharedBinType,
+                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                batchNo = BatchNo("B-LOAD-MIX-1")
+            )
+        )
+        val demandEntries = listOf(
+            Bpp3dDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(cylinderItem),
+                demand = InfraNumber.one,
+                demandRange = ValueRange(
+                    InfraNumber.one,
+                    InfraNumber.one,
+                    Interval.Closed,
+                    Interval.Closed,
+                    InfraNumber
+                ).value!!
+            )
+        ) + demandEntriesFromMaterialAmounts(
+            materials = listOf(Pair(materialA, UInt64(2)))
+        ) + demandEntriesFromMaterialWeights(
+            materials = listOf(Pair(materialB, infraScalar(6.0) * Kilogram))
+        )
+
+        val layers = listOf(layerWithCuboid, layerWithCylinder)
+        val assignment = PreciseAssignment(
+            bins = bins,
+            layers = layers
+        )
+        val model = LinearMetaModel(
+            name = "precise-load-mixed-demand-cylinder-aggregation",
+            converter = InfraNumber
+        )
+        assertTrue(assignment.register(model) is Ok)
+
+        val load = PreciseLoad(
+            demandEntries = demandEntries,
+            layers = layers,
+            assignment = assignment,
+            overEnabled = false,
+            lessEnabled = true
+        )
+        assertTrue(load.register(model) is Ok)
+
+        fun coefficientAt(demandIndex: Int, binIndex: Int, layerIndex: Int): Double {
+            val coefficientsBySymbol = load.load[demandIndex]
+                .toLinearPolynomial()
+                .monomials
+                .associate { monomial ->
+                    monomial.symbol.name to monomial.coefficient.toDouble()
+                }
+            return coefficientsBySymbol[assignment.x[binIndex, layerIndex].name] ?: 0.0
+        }
+
+        for (binIndex in bins.indices) {
+            assertTrue(abs(coefficientAt(demandIndex = 0, binIndex = binIndex, layerIndex = 0) - 0.0) < 1e-10)
+            assertTrue(abs(coefficientAt(demandIndex = 0, binIndex = binIndex, layerIndex = 1) - 1.0) < 1e-10)
+
+            assertTrue(abs(coefficientAt(demandIndex = 1, binIndex = binIndex, layerIndex = 0) - 2.0) < 1e-10)
+            assertTrue(abs(coefficientAt(demandIndex = 1, binIndex = binIndex, layerIndex = 1) - 0.0) < 1e-10)
+
+            assertTrue(abs(coefficientAt(demandIndex = 2, binIndex = binIndex, layerIndex = 0) - 0.0) < 1e-10)
+            assertTrue(abs(coefficientAt(demandIndex = 2, binIndex = binIndex, layerIndex = 1) - 6.0) < 1e-10)
+        }
+    }
 }
-
-
 
