@@ -14,17 +14,21 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -65,6 +69,41 @@ class PackerAndRendererAdapterTest {
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute()
         )
+    }
+
+    private fun cylinderItem(id: String, material: Material<InfraNumber>): ActualItem {
+        val radius = infraScalar(0.5) * Meter
+        val height = infraScalar(1.2) * Meter
+        val cylinderWeight = infraScalar(1.0) * Kilogram
+        val pack = Package.innerPackage(
+            shape = PackageShape(
+                width = infraScalar(1.0) * Meter,
+                height = height,
+                depth = infraScalar(1.0) * Meter,
+                weight = cylinderWeight,
+                packageType = PackageType.CartonContainer
+            ),
+            materials = mapOf(material to UInt64.one)
+        )
+        return object : ActualItem(
+            id = id,
+            name = id,
+            pack = pack,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-$id"),
+            packageAttribute = packageAttribute()
+        ) {
+            override val explicitPackingShape: PackingShape3<InfraNumber> by lazy {
+                CylinderPackingShape3(
+                    cylinder = object : AbstractCylinder<InfraNumber> {
+                        override val radius = radius
+                        override val height = height
+                        override val axis = Axis3.Y
+                        override val weight = cylinderWeight
+                    }
+                )
+            }
+        }
     }
 
     private fun layerBin(items: List<ActualItem>): Bin<BinLayer> {
@@ -129,6 +168,33 @@ class PackerAndRendererAdapterTest {
         assertEquals(1, schema.loadingPlans.size)
         assertEquals(2, schema.loadingPlans.first().items.size)
         assertTrue(schema.loadingPlans.first().loadingRate > InfraNumber.zero)
+    }
+
+    @Test
+    fun rendererShouldEmitCylinderMetadataWhenItemProvidesExplicitPackingShape() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(listOf(cylinderItem("cyl-1", material)))
+
+        val result = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        )
+        val schema = PackingRendererAdapter().toSchema(result)
+        val item = schema.loadingPlans.first().items.first()
+
+        assertEquals("Cylinder", item.shapeType.name)
+        assertEquals("Cylinder", item.renderShapeType.name)
+        assertEquals("VerticalCylinder", item.algorithmShapeType.name)
+        assertEquals("Y", item.axis?.name)
+        assertTrue(item.radius != null)
+        assertTrue(item.diameter != null)
+        assertTrue(item.actualVolume != null)
     }
 }
 

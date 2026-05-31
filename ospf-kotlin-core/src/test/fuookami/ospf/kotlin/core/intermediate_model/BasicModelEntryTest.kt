@@ -14,11 +14,12 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.model.basic.Variable as SolverVariable
 
 class BasicModelEntryTest {
     @Test
     fun basicLinearTriadModelDirectConstructorShouldCreateValidModel() {
-        val variable = Variable(
+        val variable = SolverVariable(
             index = 0,
             lowerBound = Flt64.zero,
             upperBound = Flt64(10.0),
@@ -95,7 +96,7 @@ class BasicModelEntryTest {
 
     @Test
     fun basicLinearTriadModelCopyShouldProduceEqualModel() {
-        val variable = Variable(
+        val variable = SolverVariable(
             index = 0,
             lowerBound = Flt64.zero,
             upperBound = Flt64.one,
@@ -127,7 +128,7 @@ class BasicModelEntryTest {
 
     @Test
     fun basicQuadraticTetradModelDirectConstructorShouldCreateValidModel() {
-        val variable = Variable(
+        val variable = SolverVariable(
             index = 0,
             lowerBound = Flt64.zero,
             upperBound = Flt64(10.0),
@@ -204,7 +205,7 @@ class BasicModelEntryTest {
 
     @Test
     fun basicQuadraticTetradModelCopyShouldProduceEqualModel() {
-        val variable = Variable(
+        val variable = SolverVariable(
             index = 0,
             lowerBound = Flt64.zero,
             upperBound = Flt64.one,

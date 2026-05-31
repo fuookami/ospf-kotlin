@@ -7,19 +7,48 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingAlgorithmShapeType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShapeType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAlgorithmShapeTypeDTO
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAxis3DTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanItemDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderShapeTypeDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
+import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
  * 装箱渲染适配器，将装箱结果转换为渲染 DTO。
  * Packing renderer adapter, converts packing results to rendering DTOs.
  */
 class PackingRendererAdapter {
+    private fun PackingShapeType.toRenderShapeType(): RenderShapeTypeDTO {
+        return when (this) {
+            PackingShapeType.Cuboid -> RenderShapeTypeDTO.Cuboid
+            PackingShapeType.Cylinder -> RenderShapeTypeDTO.Cylinder
+        }
+    }
+
+    private fun PackingAlgorithmShapeType.toRenderAlgorithmShapeType(): RenderAlgorithmShapeTypeDTO {
+        return when (this) {
+            PackingAlgorithmShapeType.Cuboid -> RenderAlgorithmShapeTypeDTO.Cuboid
+            PackingAlgorithmShapeType.VerticalCylinder -> RenderAlgorithmShapeTypeDTO.VerticalCylinder
+            PackingAlgorithmShapeType.BoundingCuboid -> RenderAlgorithmShapeTypeDTO.BoundingCuboid
+        }
+    }
+
+    private fun Axis3.toRenderAxis3(): RenderAxis3DTO {
+        return when (this) {
+            Axis3.X -> RenderAxis3DTO.X
+            Axis3.Y -> RenderAxis3DTO.Y
+            Axis3.Z -> RenderAxis3DTO.Z
+        }
+    }
+
     /**
      * 将装箱结果转换为渲染方案 DTO。
      * Convert packing result to rendering schema DTO.
@@ -31,6 +60,8 @@ class PackingRendererAdapter {
         val loadingPlans = result.aggregation.bins.map { bin ->
             val itemDtos = bin.items.map { packed ->
                 val placement = packed.placement
+                val shape = placement.unit.explicitPackingShape ?: placement.view.asPackingShape3()
+                val renderShapeType = shape.shapeType.toRenderShapeType()
                 RenderLoadingPlanItemDTO(
                     name = placement.unit.toString(),
                     packageType = placement.unit.packageType.name,
@@ -42,13 +73,16 @@ class PackingRendererAdapter {
                     z = placement.absoluteZ.value.toFltX(),
                     weight = placement.weight.value.toFltX(),
                     loadingOrder = packed.loadingOrder,
-                    shapeType = RenderShapeTypeDTO.Cuboid,
-                    renderShapeType = RenderShapeTypeDTO.Cuboid,
-                    algorithmShapeType = RenderAlgorithmShapeTypeDTO.Cuboid,
-                    boundingWidth = placement.width.value.toFltX(),
-                    boundingHeight = placement.height.value.toFltX(),
-                    boundingDepth = placement.depth.value.toFltX(),
-                    actualVolume = placement.view.actualVolume.value.toFltX()
+                    shapeType = renderShapeType,
+                    renderShapeType = renderShapeType,
+                    algorithmShapeType = shape.algorithmShapeType.toRenderAlgorithmShapeType(),
+                    radius = (shape as? CylinderPackingShape3)?.radius?.value?.toFltX(),
+                    diameter = (shape as? CylinderPackingShape3)?.diameter?.value?.toFltX(),
+                    axis = shape.axis?.toRenderAxis3(),
+                    boundingWidth = shape.boundingWidth.value.toFltX(),
+                    boundingHeight = shape.boundingHeight.value.toFltX(),
+                    boundingDepth = shape.boundingDepth.value.toFltX(),
+                    actualVolume = shape.actualVolume.value.toFltX()
                 )
             }
 

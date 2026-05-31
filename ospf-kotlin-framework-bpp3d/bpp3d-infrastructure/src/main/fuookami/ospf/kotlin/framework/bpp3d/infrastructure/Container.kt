@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Predicate
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
@@ -197,6 +198,50 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
         return asGenericContainer3Shape().enabled(unit.asGenericPlacement3())
     }
 
+    fun enabled(
+        shape: PackingShape3<InfraNumber>,
+        position: QuantityPoint3
+    ): Boolean {
+        val x = position.x
+        val y = position.y
+        val z = position.z
+
+        val withinLowerBound = (x geq (infraZero() * x.unit)) == true
+                && (y geq (infraZero() * y.unit)) == true
+                && (z geq (infraZero() * z.unit)) == true
+        if (!withinLowerBound) {
+            return false
+        }
+
+        return when (shape) {
+            is CylinderPackingShape3 -> {
+                if (shape.axis == Axis3.Y) {
+                    val centerX = x + shape.radius
+                    val centerZ = z + shape.radius
+                    val left = centerX - shape.radius
+                    val right = centerX + shape.radius
+                    val front = centerZ - shape.radius
+                    val back = centerZ + shape.radius
+                    (left geq (infraZero() * left.unit)) == true
+                            && (front geq (infraZero() * front.unit)) == true
+                            && (width geq right) == true
+                            && (depth geq back) == true
+                            && (height geq (y + shape.boundingHeight)) == true
+                } else {
+                    (width geq (x + shape.boundingWidth)) == true
+                            && (height geq (y + shape.boundingHeight)) == true
+                            && (depth geq (z + shape.boundingDepth)) == true
+                }
+            }
+
+            else -> {
+                (width geq (x + shape.boundingWidth)) == true
+                        && (height geq (y + shape.boundingHeight)) == true
+                        && (depth geq (z + shape.boundingDepth)) == true
+            }
+        }
+    }
+
     fun enabled(units: List<QuantityPlacement3<*>>): Boolean {
         return asGenericContainer3Shape().enabled(units.map { it.asGenericPlacement3() })
     }
@@ -300,6 +345,7 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraNumber>, Copyable<
     }
 
     fun enabled(unit: AbstractCuboid<InfraNumber>, orientation: Orientation = Orientation.Upright) = shape.enabled(unit, orientation)
+    fun enabled(shape: PackingShape3<InfraNumber>, position: QuantityPoint3) = this.shape.enabled(shape, position)
     fun amount(unit: AbstractCuboid<InfraNumber>) = amounts[unit] ?: UInt64.zero
     fun amount(predicate: Predicate<AbstractCuboid<InfraNumber>>): UInt64 =
         amounts.entries

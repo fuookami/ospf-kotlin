@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.model.basic.Variable as SolverVariable
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -480,7 +481,7 @@ private class RecordingLinearTriadModelView(
     override val name: String = "stub-triad"
     override val dual: Boolean = false
     override val constraints: LinearConstraintBatch get() = throw UnsupportedOperationException()
-    override val variables: List<Variable> get() = throw UnsupportedOperationException()
+    override val variables: List<SolverVariable> get() = throw UnsupportedOperationException()
     override val objective: LinearObjective get() = throw UnsupportedOperationException()
     override fun linearRelax(): LinearTriadModelView = throw UnsupportedOperationException()
     override fun linearRelaxed(): LinearTriadModelView = throw UnsupportedOperationException()
@@ -507,7 +508,7 @@ private class RecordingQuadraticTetradModelView(
     override val name: String = "stub-tetrad"
     override val dual: Boolean = false
     override val constraints: QuadraticConstraintBatch get() = throw UnsupportedOperationException()
-    override val variables: List<Variable> get() = throw UnsupportedOperationException()
+    override val variables: List<SolverVariable> get() = throw UnsupportedOperationException()
     override val objective: QuadraticObjective get() = throw UnsupportedOperationException()
     override fun linearRelax(): QuadraticTetradModelView = throw UnsupportedOperationException()
     override fun linearRelaxed(): QuadraticTetradModelView = throw UnsupportedOperationException()

@@ -33,6 +33,8 @@
 4. `PackingRendererAdapter` 已对现有长方体输出 `Cuboid` shape metadata、bounding box 和 `actualVolume`。
 5. renderer loading rate 已优先使用 `actualVolume`，缺失时回退到 width、height、depth 相乘。
 6. `cylinder.md` 的 Renderer DTO 部分已勾选已完成子项，圆柱 item 输出子项仍未完成。
+7. 已新增 `scripts/shape-boundary-check.ps1`，支持 allowlist 管理并输出违规文件与行号，当前基线输出 `SHAPE_BOUNDARY_PASS`。
+8. infrastructure 已新增 `PackingShape3`、`ShapeBoundingBox3`、`ShapeFootprint2` 及 cuboid/cylinder 适配实现，并补充 `PackingShapeTest` 覆盖长方体与圆柱基础几何契约。
 
 仍未完成事项：
 
@@ -42,8 +44,7 @@
 4. `PackageShape` 仍以 width、height、depth 为唯一几何输入。
 5. 支撑、投影、碰撞、边界判断仍主要依赖 `QuantityRectangle2`、`QuantityCuboid3` 和矩形 overlap。
 6. layer、block loading、packing 相关模型仍大量使用 `ItemPlacement3` 和 `QuantityPlacement3<Item>`。
-7. 缺少 shape-hard-binding 门禁脚本。
-8. 缺少圆柱真实几何专项测试。
+7. 缺少圆柱真实几何专项测试。
 
 ## 3. 源码硬绑定清单
 

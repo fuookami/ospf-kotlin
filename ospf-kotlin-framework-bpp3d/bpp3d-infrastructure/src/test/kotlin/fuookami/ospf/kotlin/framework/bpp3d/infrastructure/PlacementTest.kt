@@ -1,11 +1,13 @@
 ﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PlacementTest {
@@ -17,6 +19,17 @@ class PlacementTest {
         override val enabledOrientations: List<Orientation> = Orientation.entries
     ) : Cuboid<Box> {
         override val self: Box
+            get() = this
+    }
+
+    private data class Column(
+        override val radius: InfraQuantity,
+        override val height: InfraQuantity,
+        override val axis: Axis3,
+        override val weight: InfraQuantity,
+        override val enabledAxes: List<Axis3>
+    ) : Cylinder<Column> {
+        override val self: Column
             get() = this
     }
 
@@ -98,6 +111,153 @@ class PlacementTest {
         assertEquals(2, bottom.size)
         assertTrue(bottom.contains(p0))
         assertTrue(bottom.contains(isolated))
+    }
+
+    @Test
+    fun shapePlacement3CircleCircleOverlapShouldFollowFootprintGeometry() {
+        val column = Column(
+            radius = infraScalar(1.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            axis = Axis3.Y,
+            weight = infraScalar(1.0) * Kilogram,
+            enabledAxes = listOf(Axis3.Y)
+        )
+        val shape = column.asPackingShape3()
+        val left = ShapePlacement3(
+            shape = shape,
+            position = QuantityPoint3(
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val tangent = ShapePlacement3(
+            shape = shape,
+            position = QuantityPoint3(
+                x = infraScalar(2.0) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val far = ShapePlacement3(
+            shape = shape,
+            position = QuantityPoint3(
+                x = infraScalar(2.1) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+
+        assertTrue(left overlapped tangent)
+        assertFalse(left overlapped far)
+    }
+
+    @Test
+    fun shapePlacement3CircleRectangleOverlapShouldFollowFootprintGeometry() {
+        val column = Column(
+            radius = infraScalar(1.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            axis = Axis3.Y,
+            weight = infraScalar(1.0) * Kilogram,
+            enabledAxes = listOf(Axis3.Y)
+        )
+        val box = Box(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram
+        )
+        val circle = ShapePlacement3(
+            shape = column.asPackingShape3(),
+            position = QuantityPoint3(
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val overlappedRect = ShapePlacement3(
+            shape = box.asPackingShape3(),
+            position = QuantityPoint3(
+                x = infraScalar(1.5) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val separatedRect = ShapePlacement3(
+            shape = box.asPackingShape3(),
+            position = QuantityPoint3(
+                x = infraScalar(2.1) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+
+        assertTrue(circle overlapped overlappedRect)
+        assertFalse(circle overlapped separatedRect)
+    }
+
+    @Test
+    fun shapePlacement3OverlapShouldRequirePositiveVerticalIntersection() {
+        val box = Box(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram
+        )
+        val base = ShapePlacement3(
+            shape = box.asPackingShape3(),
+            position = QuantityPoint3(
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(0.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val touchingTop = ShapePlacement3(
+            shape = box.asPackingShape3(),
+            position = QuantityPoint3(
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(2.0) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+        val crossingTop = ShapePlacement3(
+            shape = box.asPackingShape3(),
+            position = QuantityPoint3(
+                x = infraScalar(0.0) * Meter,
+                y = infraScalar(1.9) * Meter,
+                z = infraScalar(0.0) * Meter
+            )
+        )
+
+        assertFalse(base overlapped touchingTop)
+        assertTrue(base overlapped crossingTop)
+    }
+
+    @Test
+    fun quantityPlacement3ShouldConvertToShapePlacement3WithAbsolutePosition() {
+        val box = Box(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(4.0) * Meter,
+            weight = infraScalar(1.0) * Kilogram
+        )
+        val placement = QuantityPlacement3(
+            view = box.view()!!,
+            position = QuantityPoint3(
+                x = infraScalar(1.0) * Meter,
+                y = infraScalar(2.0) * Meter,
+                z = infraScalar(3.0) * Meter
+            )
+        )
+
+        val shapePlacement = placement.asShapePlacement3()
+
+        assertTrue(shapePlacement.x eq placement.absoluteX)
+        assertTrue(shapePlacement.y eq placement.absoluteY)
+        assertTrue(shapePlacement.z eq placement.absoluteZ)
+        assertTrue(shapePlacement.boundingWidth eq placement.width)
+        assertTrue(shapePlacement.boundingHeight eq placement.height)
+        assertTrue(shapePlacement.boundingDepth eq placement.depth)
     }
 }
 

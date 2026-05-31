@@ -106,6 +106,8 @@ private fun itemPackQuantityToInfra(value: Quantity<*>): Quantity<InfraNumber> {
 interface Item : Cuboid<Item>, Indexed {
     override val self: Item
         get() = this
+    val explicitPackingShape: PackingShape3<InfraNumber>?
+        get() = null
     val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
     val warehouse: String?

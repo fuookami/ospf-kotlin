@@ -7,8 +7,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
+import fuookami.ospf.kotlin.math.geometry.QuantityCircle2
 import fuookami.ospf.kotlin.math.geometry.QuantityPlacement2 as GeometryPlacement2
 import fuookami.ospf.kotlin.math.geometry.QuantityPlacement3 as GeometryPlacement3
+import fuookami.ospf.kotlin.math.geometry.QuantityProjection2
 import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -272,6 +274,89 @@ data class QuantityPlacement3<T : Cuboid<T>>(
 
         return true
     }
+}
+
+data class ShapePlacement3(
+    val shape: PackingShape3<InfraNumber>,
+    val position: QuantityPoint3
+) : Copyable<ShapePlacement3> {
+    val x by position::x
+    val y by position::y
+    val z by position::z
+
+    val boundingWidth by shape::boundingWidth
+    val boundingHeight by shape::boundingHeight
+    val boundingDepth by shape::boundingDepth
+
+    val maxX: Quantity<InfraNumber> get() = x + boundingWidth
+    val maxY: Quantity<InfraNumber> get() = y + boundingHeight
+    val maxZ: Quantity<InfraNumber> get() = z + boundingDepth
+
+    private val footprintPlacement: GeometryPlacement2<InfraNumber>
+        get() {
+            val footprintShape: QuantityProjection2<InfraNumber> = when (val footprint = shape.footprint()) {
+                is ShapeFootprint2.Circle -> QuantityCircle2(footprint.radius)
+                is ShapeFootprint2.Rectangle -> QuantityRectangle2(
+                    width = footprint.width,
+                    height = footprint.depth
+                )
+            }
+            return GeometryPlacement2(
+                x = x,
+                y = z,
+                shape = footprintShape
+            )
+        }
+
+    private fun verticalOverlapped(rhs: ShapePlacement3): Boolean {
+        return (maxY gr rhs.y) == true && (y ls rhs.maxY) == true
+    }
+
+    fun contains(
+        point: QuantityPoint3,
+        withLowerBound: Boolean = true,
+        withUpperBound: Boolean = true,
+        withBorder: Boolean = true
+    ): Boolean {
+        val heightContains = containsInRange(
+            value = point.y,
+            lb = y,
+            ub = maxY,
+            withLowerBound = withLowerBound,
+            withUpperBound = withUpperBound
+        )
+        if (!heightContains) {
+            return false
+        }
+        return footprintPlacement.contains(
+            x = point.x,
+            y = point.z,
+            withLowerBound = withLowerBound,
+            withUpperBound = withUpperBound,
+            withBorder = withBorder
+        )
+    }
+
+    infix fun overlapped(rhs: ShapePlacement3): Boolean {
+        if (!verticalOverlapped(rhs)) {
+            return false
+        }
+        return footprintPlacement.overlapped(rhs.footprintPlacement)
+    }
+
+    override fun copy(): ShapePlacement3 {
+        return ShapePlacement3(
+            shape = shape,
+            position = position
+        )
+    }
+}
+
+fun QuantityPlacement3<*>.asShapePlacement3(): ShapePlacement3 {
+    return ShapePlacement3(
+        shape = view.asPackingShape3(),
+        position = absolutePosition
+    )
 }
 
 fun topPlacements(placements: List<QuantityPlacement3<*>>): List<QuantityPlacement3<*>> {

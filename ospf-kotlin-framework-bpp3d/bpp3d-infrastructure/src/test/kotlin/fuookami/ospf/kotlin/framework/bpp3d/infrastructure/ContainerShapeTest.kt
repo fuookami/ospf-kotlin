@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.CubicMeter
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -132,6 +133,54 @@ class ContainerShapeTest {
 
         assertTrue(front3.width eq (infraScalar(4.0) * Meter))
         assertTrue(front3.height eq (infraScalar(3.0) * Meter))
+    }
+
+    @Test
+    fun enabledWithVerticalCylinderShapeShouldUseRadiusBoundary() {
+        val shape = Container3Shape(
+            width = infraScalar(10.0) * Meter,
+            height = infraScalar(6.0) * Meter,
+            depth = infraScalar(8.0) * Meter
+        )
+        val cylinder = object : AbstractCylinder<InfraNumber> {
+            override val radius = infraScalar(1.5) * Meter
+            override val height = infraScalar(4.0) * Meter
+            override val axis = Axis3.Y
+            override val weight = infraScalar(2.0) * Kilogram
+        }.asPackingShape3()
+
+        assertTrue(
+            shape.enabled(
+                shape = cylinder,
+                position = QuantityPoint3(
+                    x = infraScalar(2.0) * Meter,
+                    y = infraScalar(1.0) * Meter,
+                    z = infraScalar(3.0) * Meter
+                )
+            )
+        )
+
+        assertFalse(
+            shape.enabled(
+                shape = cylinder,
+                position = QuantityPoint3(
+                    x = infraScalar(8.0) * Meter,
+                    y = infraScalar(1.0) * Meter,
+                    z = infraScalar(3.0) * Meter
+                )
+            )
+        )
+
+        assertFalse(
+            shape.enabled(
+                shape = cylinder,
+                position = QuantityPoint3(
+                    x = infraScalar(-0.1) * Meter,
+                    y = infraScalar(1.0) * Meter,
+                    z = infraScalar(3.0) * Meter
+                )
+            )
+        )
     }
 }
 

@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.testing.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.model.basic.Variable as SolverVariable
 
 class GenericSolveTest {
     @Test
@@ -283,7 +284,7 @@ class GenericSolveTest {
     }
 
     private fun linearTriadModel(name: String): LinearTriadModel {
-        val variable = Variable(
+        val variable = SolverVariable(
             index = 0,
             lowerBound = Flt64.zero,
             upperBound = Flt64.ten,
@@ -314,7 +315,7 @@ class GenericSolveTest {
     }
 
     private fun quadraticTetradModel(name: String): QuadraticTetradModel {
-        val variable = Variable(
+        val variable = SolverVariable(
             index = 0,
             lowerBound = Flt64.zero,
             upperBound = Flt64.ten,
