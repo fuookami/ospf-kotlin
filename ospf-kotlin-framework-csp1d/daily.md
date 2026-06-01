@@ -432,3 +432,33 @@ git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-c
 6. 统一 `ProductDemand<V>` 与三种旧需求方式的 adapter 转换。
 7. yield、length assignment、wasting minimization 三个增强上下文。
 8. application wrapper、KPI、render mapper 和兼容入口。
+
+## 12. 执行进展与交接（2026-06-01）
+
+### 12.1 本次已完成（不改动原目标与验收定义）
+
+1. 已补齐并接通 C0 模块骨架：`csp1d-domain-cutting-plan-generation-context`、`csp1d-domain-produce-context`、`csp1d-domain-yield-context`、`csp1d-domain-length-assignment-context`、`csp1d-domain-wasting-minimization-context`、`csp1d-application`。
+2. 已清理旧 `csp1d-produce-context` 中 `framework.bpp3d` 兼容包路径残留，并迁移到 `framework.csp1d` 命名边界。
+3. 已完成 C1-1/C1-2/C1-3/C1-4 的最小可用落地：`Product/Production/WidthRange/QuantityRange/ProductDemand/DemandMode/CuttingPlanDemandContribution/RenderMapper` 等核心模型已可编译与测试。
+4. 已补齐 C0-1 最小应用编排：`Csp1dProblem`、`Csp1dSolution`、`Csp1dMilp`、`Csp1dColumnGeneration`、`Csp1dRecovery`、`Csp1dSchedule`、`TopKCuttingPlans`。
+5. `Csp1dColumnGeneration` 已实现从主问题影子价格触发 pricing 生成新列的最小流程（含调试 trace）。
+6. 已新增并通过 C0-1 验收向测试：
+   - `Csp1dApplicationAcceptanceTest.milpShouldSolveRollDemandWithoutPoitDependency`
+   - `Csp1dApplicationAcceptanceTest.milpShouldCoverCostarRestWidthAndMachineCapacity`
+   - `Csp1dApplicationAcceptanceTest.columnGenerationShouldGenerateNewPlansFromShadowPrice`
+
+### 12.2 本次验证记录
+
+1. 编译通过：
+   - `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -DskipTests=true -Dgpg.skip=true compile`
+2. 指定验收测试通过：
+   - `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -Dgpg.skip=true -Dtest=Csp1dApplicationAcceptanceTest -Dsurefire.failIfNoSpecifiedTests=false test`
+3. 门禁 grep 结果：
+   - `git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-csp1d` 仅命中本 `daily.md` 文档说明。
+   - `git grep -n "com.poit\\|framework.bpp3d" -- ospf-kotlin-framework-csp1d` 仅命中本 `daily.md` 文档说明。
+
+### 12.3 交接给下个会话的待续项
+
+1. 在不改动本文件原始目标定义的前提下，按真实完成度回填各阶段验收勾选状态（当前仍保留原始待办勾选）。
+2. 将 `CuttingPlan.restWidth` 的最小运行时类型分支（当前支持 `Flt64/FltX`）进一步抽象为更统一的泛型数值策略（如引入统一 `Quantity` 减法适配）。
+3. 按后续优先级继续推进 `yield`、`length assignment`、`wasting minimization` 的实质约束与目标建模实现（目前为骨架/占位模块）。

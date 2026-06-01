@@ -9,13 +9,13 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>ospf-kotlin-framework-csp1d-domain-material-context</name>
-    <artifactId>ospf-kotlin-framework-csp1d-domain-material-context</artifactId>
+    <name>ospf-kotlin-framework-csp1d-domain-length-assignment-context</name>
+    <artifactId>ospf-kotlin-framework-csp1d-domain-length-assignment-context</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-infrastructure</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
