@@ -1,6 +1,6 @@
 # OSPF Kotlin Framework BPP3D（中文）
 
-[English README](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 ## 模块范围
 

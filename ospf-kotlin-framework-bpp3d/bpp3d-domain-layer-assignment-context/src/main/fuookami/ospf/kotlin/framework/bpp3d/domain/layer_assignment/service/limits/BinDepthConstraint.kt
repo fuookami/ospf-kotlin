@@ -5,8 +5,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dSolverValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dSolverValueAdapter
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
  * @property name 约束名称 / constraint name
  */
 class BinDepthConstraint(
-    private val bins: List<Bin<BinLayer>>,
+    private val bins: List<LayerBin>,
     private val capacity: Capacity,
     private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter,
     val name: String = "bin_depth_constraint"

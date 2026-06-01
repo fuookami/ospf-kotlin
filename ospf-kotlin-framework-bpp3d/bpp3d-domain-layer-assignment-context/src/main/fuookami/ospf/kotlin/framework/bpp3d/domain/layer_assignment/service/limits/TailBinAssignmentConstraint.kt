@@ -5,8 +5,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
  * @property name 约束名称 / constraint name
  */
 class TailBinAssignmentConstraint(
-    private val bins: List<Bin<BinLayer>>,
+    private val bins: List<LayerBin>,
     private val assignment: PreciseAssignment,
     val name: String = "tail_bin_assignment_constraint"
 ) {

@@ -59,14 +59,14 @@ class MultiLayerHeuristicSearchAlgorithm(
         items: Map<Item, UInt64>,
         bins: Map<BinType, UInt64>,
         blockTable: List<Block>,
-    ): Pair<List<Bin<Block>>, List<Item>> {
+    ): Pair<List<BlockBin>, List<Item>> {
         requireNoCylinderItemsForCuboidSearch(
             items = items,
             source = "MultiLayerHeuristicSearchAlgorithm.invoke(items,bins,blockTable)"
         )
         val restItems = items.toMutableMap()
         val availableBins = bins.toMutableMap()
-        val usedBins = ArrayList<Bin<Block>>()
+        val usedBins = ArrayList<BlockBin>()
         try {
             coroutineScope {
                 while (!finished(restItems)) {
@@ -98,7 +98,15 @@ class MultiLayerHeuristicSearchAlgorithm(
                         break
                     }
 
-                    val bin = Bin(binType, spaces.map { QuantityPlacement3(it.block!!.view()!!, it.position) })
+                    val bin = Bin(
+                        binType,
+                        spaces.map { space ->
+                            placement3Of(
+                                view = space.block!!.view()!!,
+                                position = point3(space.position)
+                            )
+                        }
+                    )
                     for ((item, amount) in bin.amounts) {
                         restItems[item as Item] = restItems[item]!! - amount
                     }

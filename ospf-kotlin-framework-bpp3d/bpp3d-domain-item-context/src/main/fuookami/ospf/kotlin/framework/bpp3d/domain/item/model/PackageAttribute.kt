@@ -350,8 +350,7 @@ data class PackageAttribute(
                 for (bottomItem in directBottomItems) {
                     if (bottomItem.type == item.type) {
                         promises.add(async(Dispatchers.Default) {
-                            val thisBottomPlacement = QuantityPlacement2(bottomItem, Bottom)
-                            val thisBottomPlacements = indirectBottomItems.filter { QuantityPlacement2(it, Bottom).overlapped(thisBottomPlacement) }
+                            val thisBottomPlacements = indirectBottomItems.filterBottomOverlapped(bottomItem).filterIsInstance<ItemPlacement3>()
                             if (thisBottomPlacements.isNotEmpty()) {
                                 UInt64.one + layerLayer(bottomItem, thisBottomPlacements)
                             } else {
@@ -382,8 +381,7 @@ data class PackageAttribute(
                 for (bottomItem in directBottomItems) {
                     if (bottomItem.type == item.type) {
                         promises.add(async(Dispatchers.Default) {
-                            val thisBottomPlacement = QuantityPlacement2(bottomItem, Bottom)
-                            val thisBottomPlacements = indirectBottomItems.filter { QuantityPlacement2(it, Bottom).overlapped(thisBottomPlacement) }
+                            val thisBottomPlacements = indirectBottomItems.filterBottomOverlapped(bottomItem).filterIsInstance<ItemPlacement3>()
                             if (thisBottomPlacements.isNotEmpty()) {
                                 bottomItem.height + layerHeight(bottomItem, thisBottomPlacements)
                             } else {

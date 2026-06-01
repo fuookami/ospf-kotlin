@@ -17,11 +17,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationA
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 
@@ -82,7 +82,7 @@ class LoadingOrderCalculatorCylinderTest {
         val higherItem = cylinderItem("higher")
         val lowerItem = cylinderItem("lower")
         val placements = listOf(
-            QuantityPlacement3(
+            placement3Of(
                 view = higherItem.view(Orientation.Upright),
                 position = point3(
                     x = infraScalar(0.0) * Meter,
@@ -90,7 +90,7 @@ class LoadingOrderCalculatorCylinderTest {
                     z = infraScalar(0.0) * Meter
                 )
             ),
-            QuantityPlacement3(
+            placement3Of(
                 view = lowerItem.view(Orientation.Upright),
                 position = point3(
                     x = infraScalar(0.8) * Meter,
@@ -114,7 +114,7 @@ class LoadingOrderCalculatorCylinderTest {
     @Test
     fun loadingOrderShouldRejectNonVerticalCylinderAxis() {
         val placements = listOf(
-            QuantityPlacement3(
+            placement3Of(
                 view = cylinderItem(id = "cyl-x", axis = Axis3.X).view(Orientation.Upright),
                 position = point3(x = infraScalar(0.0) * Meter)
             )
@@ -167,7 +167,7 @@ class LoadingOrderCalculatorCylinderTest {
         )
 
         val placements = listOf(
-            QuantityPlacement3(
+            placement3Of(
                 view = frontFirst.view(Orientation.Upright),
                 position = point3(
                     x = infraScalar(2.0) * Meter,
@@ -175,7 +175,7 @@ class LoadingOrderCalculatorCylinderTest {
                     z = infraScalar(0.0) * Meter
                 )
             ),
-            QuantityPlacement3(
+            placement3Of(
                 view = sideCandidate.view(Orientation.Upright),
                 position = point3(
                     x = infraScalar(0.0) * Meter,

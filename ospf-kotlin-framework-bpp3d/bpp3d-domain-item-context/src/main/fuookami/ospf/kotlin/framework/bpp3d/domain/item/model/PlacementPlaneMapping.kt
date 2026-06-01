@@ -8,54 +8,34 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractContainer2Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Front
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PlaneProjection
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ProjectivePlane
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Side
-
-
-
-
-
-private fun <T : Cuboid<T>, P : ProjectivePlane> PlaneProjection<T, P>.asSideProjectionOrNull(): PlaneProjection<T, Side>? {
-    return if (plane == Side) {
-        PlaneProjection(view = view, plane = Side)
+private fun <P : ProjectivePlane> AnyPlacement2<P>.asSidePlacementOrNull(): AnySidePlacement2? {
+    return if (plane == Side && projection is PlaneProjection<*, *>) {
+        @Suppress("UNCHECKED_CAST")
+        this as AnySidePlacement2
     } else {
         null
     }
 }
 
-private fun <T : Cuboid<T>, P : ProjectivePlane> PlaneProjection<T, P>.asFrontProjectionOrNull(): PlaneProjection<T, Front>? {
-    return if (plane == Front) {
-        PlaneProjection(view = view, plane = Front)
+private fun <P : ProjectivePlane> AnyPlacement2<P>.asFrontPlacementOrNull(): AnyFrontPlacement2? {
+    return if (plane == Front && projection is PlaneProjection<*, *>) {
+        @Suppress("UNCHECKED_CAST")
+        this as AnyFrontPlacement2
     } else {
         null
     }
 }
 
-private fun <P : ProjectivePlane> QuantityPlacement2<*, P>.asSidePlacementOrNull(): QuantityPlacement2<*, Side>? {
-    val sideProjection = (projection as? PlaneProjection<*, P>)?.asSideProjectionOrNull() ?: return null
-    return QuantityPlacement2(
-        projection = sideProjection,
-        position = position
-    )
-}
-
-private fun <P : ProjectivePlane> QuantityPlacement2<*, P>.asFrontPlacementOrNull(): QuantityPlacement2<*, Front>? {
-    val frontProjection = (projection as? PlaneProjection<*, P>)?.asFrontProjectionOrNull() ?: return null
-    return QuantityPlacement2(
-        projection = frontProjection,
-        position = position
-    )
-}
-
-private fun QuantityPlacement2<*, Side>.asItemSidePlacementOrNull(): ItemPlacement2<Side>? {
+private fun AnySidePlacement2.asItemSidePlacementOrNull(): ItemPlacement2<Side>? {
     val item = unit as? Item ?: return null
     val itemView = item.view(orientation) ?: return null
-    return QuantityPlacement2(
+    return placement2Of(
         projection = PlaneProjection(
             view = itemView,
             plane = Side
@@ -64,10 +44,10 @@ private fun QuantityPlacement2<*, Side>.asItemSidePlacementOrNull(): ItemPlaceme
     )
 }
 
-private fun QuantityPlacement2<*, Front>.asItemFrontPlacementOrNull(): ItemPlacement2<Front>? {
+private fun AnyFrontPlacement2.asItemFrontPlacementOrNull(): ItemPlacement2<Front>? {
     val item = unit as? Item ?: return null
     val itemView = item.view(orientation) ?: return null
-    return QuantityPlacement2(
+    return placement2Of(
         projection = PlaneProjection(
             view = itemView,
             plane = Front
@@ -76,10 +56,10 @@ private fun QuantityPlacement2<*, Front>.asItemFrontPlacementOrNull(): ItemPlace
     )
 }
 
-private fun QuantityPlacement2<*, Side>.asBlockSidePlacementOrNull(): BlockPlacement2<Side>? {
+private fun AnySidePlacement2.asBlockSidePlacementOrNull(): BlockPlacement2<Side>? {
     val block = unit as? Block ?: return null
     val blockView = block.view(orientation) ?: return null
-    return QuantityPlacement2(
+    return placement2Of(
         projection = PlaneProjection(
             view = blockView,
             plane = Side
@@ -88,10 +68,10 @@ private fun QuantityPlacement2<*, Side>.asBlockSidePlacementOrNull(): BlockPlace
     )
 }
 
-private fun QuantityPlacement2<*, Front>.asBlockFrontPlacementOrNull(): BlockPlacement2<Front>? {
+private fun AnyFrontPlacement2.asBlockFrontPlacementOrNull(): BlockPlacement2<Front>? {
     val block = unit as? Block ?: return null
     val blockView = block.view(orientation) ?: return null
-    return QuantityPlacement2(
+    return placement2Of(
         projection = PlaneProjection(
             view = blockView,
             plane = Front
@@ -100,13 +80,13 @@ private fun QuantityPlacement2<*, Front>.asBlockFrontPlacementOrNull(): BlockPla
     )
 }
 
-fun <P : ProjectivePlane> List<QuantityPlacement2<*, P>?>.toSidePlacements(): List<QuantityPlacement2<*, Side>> {
+fun <P : ProjectivePlane> List<AnyPlacement2<P>?>.toSidePlacements(): List<AnySidePlacement2> {
     return this.filterNotNull().mapNotNull { placement ->
         placement.asSidePlacementOrNull()
     }
 }
 
-fun <P : ProjectivePlane> List<QuantityPlacement2<*, P>?>.toFrontPlacements(): List<QuantityPlacement2<*, Front>> {
+fun <P : ProjectivePlane> List<AnyPlacement2<P>?>.toFrontPlacements(): List<AnyFrontPlacement2> {
     return this.filterNotNull().mapNotNull { placement ->
         placement.asFrontPlacementOrNull()
     }
@@ -130,8 +110,8 @@ private fun <P : ProjectivePlane> AbstractContainer2Shape<P>.restFrontSpace(posi
     )
 }
 
-suspend fun <P : ProjectivePlane> QuantityPlacement2<*, P>.enabledItemStackingOnPlane(
-    bottomItems: List<QuantityPlacement2<*, P>?>,
+suspend fun <P : ProjectivePlane> AnyPlacement2<P>.enabledItemStackingOnPlane(
+    bottomItems: List<AnyPlacement2<P>?>,
     space: AbstractContainer2Shape<P>
 ): Boolean {
     return when (plane) {
@@ -157,8 +137,8 @@ suspend fun <P : ProjectivePlane> QuantityPlacement2<*, P>.enabledItemStackingOn
     }
 }
 
-suspend fun <P : ProjectivePlane> QuantityPlacement2<*, P>.enabledBlockStackingOnPlane(
-    bottomItems: List<QuantityPlacement2<*, P>?>,
+suspend fun <P : ProjectivePlane> AnyPlacement2<P>.enabledBlockStackingOnPlane(
+    bottomItems: List<AnyPlacement2<P>?>,
     space: AbstractContainer2Shape<P>
 ): Boolean {
     return when (plane) {

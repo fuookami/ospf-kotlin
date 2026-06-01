@@ -139,7 +139,12 @@ class Pile(
             val units = ArrayList<ItemPlacement3>()
             var y = infraZero() * items.first().height.unit
             for (item in items) {
-                units.add(QuantityPlacement3(item, point3(y = y)))
+                units.add(
+                    placement3Of(
+                        view = item,
+                        position = point3(y = y)
+                    )
+                )
                 y += item.height
             }
             return units

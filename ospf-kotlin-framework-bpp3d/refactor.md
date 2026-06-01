@@ -327,31 +327,104 @@ mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg
 
 ## 10. 未完成事项交接（下一会话入口）
 
-以下事项截至 2026-05-31 仍未完成，下一会话请按顺序继续：
+以下事项截至 2026-06-01 仍未完成，下一会话请按顺序继续：
 
-1. Gurobi 回归与 CSV suite 的最终验收闭环未完成。
-2. 旧 three.js renderer 的圆柱字段适配未完成（当前仓内未发现 legacy three.js 代码，需外部仓或前端项目协同）。
-3. 主链仍存在 `Cuboid` / `QuantityPlacement*` 硬绑定，尚未完成“真实 shape 主链化”。
+1. 旧 three.js renderer 的圆柱字段适配未完成（当前仓内未发现 legacy three.js 代码，需外部仓或前端项目协同）。
+2. 主链仍存在 `Cuboid` / `QuantityPlacement*` 硬绑定，尚未完成“真实 shape 主链化”。
+3. 应用层 `QuantityPlacement3` 直写构造已完成收口：主链与测试夹具已迁移到显式 adapter（含无门禁测试专用入口 `toLayerPlacementWithoutAxisGuard`），仅保留 adapter 内部统一构造。
+
+### 10.0 本轮范围说明（2026-06-01）
+
+1. 用户确认：旧 three.js renderer 不在本轮 `refactor.md` 执行范围，不作为本轮验收阻塞项。
+2. 本轮重点继续执行第 2、3 项：应用层收口完成，主链硬绑定持续压缩（block-loading 子域新增统一 placement 工厂并替换散落构造；`domain-item-context` 的 `Item/PackageAttribute/Pattern` 已补齐 Bottom 平面重叠 helper 与 `placement2Of` 构造收口，减少 `QuantityPlacement2(..., Bottom)` 业务层散点；`LoadingOrderCalculator/ItemMerger` 已新增并接入 `placement3Of`，继续压缩业务层 `QuantityPlacement3(...)` 直写构造；`Bin/Block/Item/PlacementTyping/QuantityDomainModels` 与 `domain-bla-context` 的 `BottomUpLeftJustifiedAlgorithm` 已接入 `placement2Of/placement3Of`，进一步收口主链构造散点）。
 
 ### 10.1 当前可确认的阻塞
 
-1. 根工程应用链路测试命令：
-   `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true`
-   当前阻塞在 `ospf-kotlin-utils` 测试编译：
-   `ParallelConcurrencyControlTest.kt` 存在 `ULong -> UInt64` 参数类型不匹配（约在 114/115 行）。
-2. Gurobi 回归命令与 CSV suite 命令：
-   `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test ...`
-   当前阻塞在私服依赖解析：
-   `io.github.fuookami.ospf.kotlin.core.plugin:ospf-kotlin-core-plugin-gurobi:1.1.0`
-   从 `poitech_public` 拉取时 `Connection reset`。
+1. 当前环境未复现 `ospf-kotlin-utils` 编译阻塞与 Gurobi 私服依赖拉取阻塞：
+   - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test "-Dgpg.skip=true"` 已通过。
+   - 两条 Gurobi 验收命令均可执行；`CSV suite` 目录属性在相对路径场景下已由测试内路径解析兼容。
+2. 仍有执行注意事项：
+   - 在 PowerShell 中建议对 `-D...` 参数使用引号（例如 `"-Dbpp3d.gurobi.cg.test.enabled=true"`），避免被误解析为生命周期阶段。
+   - 不要并行执行两条 Maven 全链路命令，避免 `target/` 目录互相清理导致的瞬时编译异常（如 `generated-sources/annotations` 缺失）。
 
 ### 10.2 下一会话建议执行顺序
 
-1. 先修复或隔离根工程 `ospf-kotlin-utils` 测试编译阻塞（保证应用链路命令可跑通）。
-2. 验证私服可达性或切换可用依赖源，解除 `ospf-kotlin-core-plugin-gurobi` 解析阻塞。
-3. 重跑以下四条命令并记录结论：
+1. 重跑以下四条命令并记录结论（PowerShell 下建议给每个 `-D` 参数加引号）：
    - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`
    - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true`
    - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`
    - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`
-4. 如果 three.js 代码仍不在本仓，补充“外部仓路径/负责人/交付接口”并在本文档回填对接结果。
+2. 在 `ospf-kotlin-framework-bpp3d` 范围内继续收敛剩余 `Cuboid` / `QuantityPlacement*` 硬绑定散点（优先 `domain-item-context` 其余 service 路径与 `domain-layer-generation-context`）。
+3. 如果后续会话涉及 three.js，请按“本轮非阻塞项”策略单独立项，并补充外部仓路径/负责人/交付接口。
+
+### 10.3 本轮门禁与剩余绑定快照（2026-06-01）
+
+1. 四个门禁脚本在本轮收口后均通过：
+   - `generic-boundary-check.ps1`：`STRICT_GENERIC_BOUNDARY_PASS`
+   - `shape-boundary-check.ps1`：`SHAPE_BOUNDARY_PASS`
+   - `geometry-boundary-check.ps1`：`GEOMETRY_BOUNDARY_PASS`
+   - `geometry-module-dry-run.ps1`：`GEOMETRY_MODULE_DRY_RUN_PASS`（`WARNINGS=8`，`INTERNAL_BASELINE_OK=8`）
+2. `shape-boundary-check.ps1` 已补充 allowlist，允许“集中构造入口”持有最小 `Cuboid` / `CuboidView` 绑定：
+   - `bpp3d-domain-item-context/.../model/PlacementFactory.kt`
+3. `bpp3d-domain-block-loading-context` 已删除本地 `BlockPlacementFactory`，并统一改为复用 `domain-item-context` 的 `placement3Of` 构造入口，减少重复 `Cuboid` 绑定面。
+4. 当前 `src/main`（排除 `bpp3d-infrastructure`）内 `QuantityPlacement2/3(...)` 直写构造已收敛到统一工厂入口，不再在业务主链散落直写。
+5. `BottomUpLeftJustifiedAlgorithm` 已移除仅用于类型回包的 `invokeT` 重载，保留星号泛型入口 `invoke(originProjections: List<Projection<*, P>>)`，进一步减少业务侧公开 `T : Cuboid<T>` 绑定面。
+6. `DemandConstraint` / `VolumeMinimization` 已新增 item 专用构造入口（`forItem`），`bpp3d-application` 与 layer-assignment 回归测试调用已迁移，减少调用侧显式 `<..., Item>` 泛型噪声。
+7. `PlacementPlaneMapping` 已移除文件内私有桥接函数的 `T : Cuboid<T>` 泛型显式约束，改为基于 `plane` 的受控类型收敛；相关 item-context 回归测试与门禁通过。
+8. 当前第 2 项状态：`shape-aware policy` 已可用并持续接管主链调用，但“完全去除主链 `Cuboid` 泛型硬绑定”尚未完成；剩余绑定主要集中在 `Bin` 类定义、`DemandConstraint`/`VolumeMinimization` 类型定义本体，以及统一工厂 `PlacementFactory` 的必要边界。
+9. `Bin` 调用面别名收口已完成第一阶段：`Bin.kt` 新增 `typealias BlockBin = Bin<Block>`，`layer-assignment` 与 `block-loading` 主链调用已从 `Bin<BinLayer>` / `Bin<Block>` 迁移至 `LayerBin` / `BlockBin`，减少调用侧显式 `Cuboid` 绑定噪声。
+10. 本轮曾出现 `LayerBin` 未导入导致的编译失败（`Assignment.kt`、`Capacity.kt` 及 `service/limits/*` 多文件）；已补齐 import 并恢复编译通过，`bpp3d-domain-layer-assignment-context` 现可稳定通过 `compile`。
+11. 本轮回归验证（仅 `ospf-kotlin-framework-bpp3d` 范围）已通过：
+    - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test "-Dtest=PreciseLoadMultiBinAggregationTest,ItemDemandConstraintModeKeyTest" "-Dsurefire.failIfNoSpecifiedTests=false" "-Dgpg.skip=true"`
+    - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test "-Dtest=SearchAlgorithmCylinderGuardTest" "-Dsurefire.failIfNoSpecifiedTests=false" "-Dgpg.skip=true"`
+    - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test "-Dtest=ColumnGenerationAlgorithmTest,ColumnGenerationPackingAnalyzerGenericEntryPointTest,MaterialPackingApplicationIntegrationTest" "-Dsurefire.failIfNoSpecifiedTests=false" "-Dgpg.skip=true"`
+    - `generic-boundary-check.ps1` / `shape-boundary-check.ps1` 通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+12. 测试调用面继续收敛：`bpp3d-application` 与 `bpp3d-domain-packing-context` 的测试辅助与断言类型已从 `Bin<BinLayer>` 迁移为 `LayerBin`；当前仓内剩余 `Bin<BinLayer>` 仅在 `Bin.kt` 的 `typealias LayerBin = Bin<BinLayer>` 定义与本交接文档说明中出现。
+13. `QuantityPlacement3<BinLayer>` 调用面继续收敛：application 与 layer-assignment 的主链/测试调用已迁移到 `BinLayerPlacement`；当前仓内剩余仅在 `Layer.kt` 中 `typealias BinLayerPlacement = QuantityPlacement3<BinLayer>` 定义出现。
+14. `QuantityPlacement3<Item>` 调用面继续收敛：`LayerPlacementAdapter`、`SimpleBlockGenerator`、`QuantityDomainModels` 已迁移为 `ItemPlacement3` 别名，减少业务侧显式泛型标注噪声。
+15. 针对上述收敛的回归验证已通过：
+    - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test "-Dtest=SearchAlgorithmCylinderGuardTest" "-Dsurefire.failIfNoSpecifiedTests=false" "-Dgpg.skip=true"`
+    - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test "-Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest" "-Dsurefire.failIfNoSpecifiedTests=false" "-Dgpg.skip=true"`
+    - `generic-boundary-check.ps1` / `shape-boundary-check.ps1` 通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+16. `QuantityPlacement2<*, P>` 调用面已在业务主链完成第二阶段收口：`Item.kt` 新增统一别名 `AnyPlacement2<P>`（以及 `AnySidePlacement2` / `AnyFrontPlacement2`），`DemandStatistics`、`ItemContainer`、`PlacementPlaneMapping`、`BottomUpLeftJustifiedAlgorithm` 已迁移到该别名体系，减少主链星号泛型直写噪声。
+17. 本轮收口后，`rg --line-number "QuantityPlacement2<\\*," ospf-kotlin-framework-bpp3d --glob "*.kt" --glob "!**/bpp3d-infrastructure/**"` 扫描结果仅剩别名定义处（`Item.kt`），未再出现业务调用侧直写。
+18. 针对第 16-17 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=PreciseLoadMultiBinAggregationTest,ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test -Dtest=SearchAlgorithmCylinderGuardTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `generic-boundary-check.ps1` / `shape-boundary-check.ps1` 通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+19. `ItemContainer` 调用面继续收敛：新增 `ItemContainerPlacement2/3`、`ItemContainerSidePlacement2`、`ItemContainerFrontPlacement2` 别名，并迁移 `ItemContainer.kt` 内对应扩展函数签名，进一步压缩业务侧 `QuantityPlacement2<S, ...>` / `QuantityPlacement3<S>` 泛型噪声。
+20. 针对第 19 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test -Dtest=SearchAlgorithmCylinderGuardTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `generic-boundary-check.ps1` / `shape-boundary-check.ps1` 通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+21. `QuantityPlacement3<*>` 调用面在 `domain-item-context` 完成第二阶段收口：`LoadingOrderCalculator`、`ItemMerger.dump`、`PlacementFactory`、`PlacementTyping`、`DemandStatistics`、`Bin`、`Layer`、`ItemContainer`、`Item` 的业务签名与扩展已迁移到 `AnyPlacement3` 别名，减少主链星号泛型直写噪声。
+22. 本轮收口后，`rg --line-number "QuantityPlacement3<\\*>" ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item --glob "*.kt"` 扫描结果仅剩 `Item.kt` 的 `typealias AnyPlacement3 = QuantityPlacement3<*>` 定义。
+23. 针对第 21-22 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test -Dtest=SearchAlgorithmCylinderGuardTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=PreciseLoadMultiBinAggregationTest,ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `generic-boundary-check.ps1` / `shape-boundary-check.ps1` 通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+24. 测试侧 `QuantityPlacement3(...)` 调用面继续收口：`PreciseLoadMultiBinAggregationTest` 与 `PackerAndRendererAdapterTest` 已改为统一使用 `placement3Of(...)`，并补齐相应 import，消除测试编译期的 `Unresolved reference 'placement3Of'` 与连带类型推断噪声。
+25. 针对第 24 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=PreciseLoadMultiBinAggregationTest,ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test -Dtest=SearchAlgorithmCylinderGuardTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-packing-context -am test -Dtest=PackerAndRendererAdapterTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\generic-boundary-check.ps1`：`STRICT_GENERIC_BOUNDARY_PASS`
+    - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\shape-boundary-check.ps1`：`SHAPE_BOUNDARY_PASS`
+    - `git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+26. `Bin` 调用面类型签名继续收口：`Bin.kt` 中 `override val units` 已从 `List<QuantityPlacement3<T>>` 迁移为 `List<ItemContainerPlacement3<T>>`，与既有别名体系对齐，进一步压缩 `QuantityPlacement3` 在业务类定义层的直接暴露。
+27. 针对第 26 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=PreciseLoadMultiBinAggregationTest,ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context -am test -Dtest=SearchAlgorithmCylinderGuardTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\generic-boundary-check.ps1`：`STRICT_GENERIC_BOUNDARY_PASS`
+    - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\shape-boundary-check.ps1`：`SHAPE_BOUNDARY_PASS`
+    - `git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+28. Item 专用约束/目标类型别名继续收口并用于主链显式类型：`DemandConstraint.forItem` 返回类型改为 `ItemDemandConstraint<Args>`，`VolumeMinimization.forItem` 返回类型改为 `ItemVolumeMinimization<Args>`；`ColumnGenerationStandardExecutors.RmpArtifacts` 的 `demandConstraint` 字段已迁移为 `ItemDemandConstraint<BPP3DShadowPriceArguments>`，进一步降低 application 侧对 `DemandConstraint<..., Item>` 的显式泛型暴露。
+29. 为避免别名回包触发弃用告警，`ItemDemandConstraint<Args>` 已从“弃用兼容别名”调整为正式别名（保留 `ItemDemandShadowPriceKey` 的弃用兼容声明），`bpp3d-domain-layer-assignment-context` 定向回归可稳定通过。
+30. 针对第 28-29 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+31. 下会话可继续项（不改变 10.2 原顺序）：在 `ospf-kotlin-framework-bpp3d` 范围内继续收敛剩余 `Cuboid` / `QuantityPlacement*` 硬绑定，优先 `DemandConstraint` / `VolumeMinimization` 定义本体与 `PlacementFactory` 必要边界；three.js 仍按“本轮非阻塞项”处理。

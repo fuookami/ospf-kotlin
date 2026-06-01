@@ -36,7 +36,7 @@ data class Space(
     val forwardLink: Pair<ProjectivePlane, Space>? = null
 ) {
     companion object {
-        fun from(blocks: Bin<Block>): List<Space>? {
+        fun from(blocks: BlockBin): List<Space>? {
             return from(blocks.units)
         }
 

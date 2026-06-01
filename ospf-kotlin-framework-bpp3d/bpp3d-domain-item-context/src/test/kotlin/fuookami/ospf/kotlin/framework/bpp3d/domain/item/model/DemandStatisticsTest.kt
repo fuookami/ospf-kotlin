@@ -5,7 +5,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -186,11 +185,11 @@ class DemandStatisticsTest {
         assertTrue(patterned.materialWeights[materialB.key]!! eq (infraScalar(9.0) * Kilogram))
 
         val placements = listOf(
-            QuantityPlacement3(item1.view(), point3(x = infraScalar(0.0) * Meter)),
-            QuantityPlacement3(item1.view(), point3(x = infraScalar(1.0) * Meter)),
-            QuantityPlacement3(item1.view(), point3(x = infraScalar(2.0) * Meter)),
-            QuantityPlacement3(item2.view(), point3(x = infraScalar(3.0) * Meter)),
-            QuantityPlacement3(item2.view(), point3(x = infraScalar(4.0) * Meter))
+            placement3Of(item1.view(), point3(x = infraScalar(0.0) * Meter)),
+            placement3Of(item1.view(), point3(x = infraScalar(1.0) * Meter)),
+            placement3Of(item1.view(), point3(x = infraScalar(2.0) * Meter)),
+            placement3Of(item2.view(), point3(x = infraScalar(3.0) * Meter)),
+            placement3Of(item2.view(), point3(x = infraScalar(4.0) * Meter))
         )
         val layer = BinLayer(
             iteration = Int64(0),
@@ -282,11 +281,11 @@ class DemandStatisticsTest {
         )
 
         val placements = listOf(
-            QuantityPlacement3(
+            placement3Of(
                 view = cylinderItem.view(),
                 position = point3(x = infraScalar(0.0) * Meter)
             ),
-            QuantityPlacement3(
+            placement3Of(
                 view = cylinderItem.view(),
                 position = point3(x = infraScalar(1.2) * Meter)
             )

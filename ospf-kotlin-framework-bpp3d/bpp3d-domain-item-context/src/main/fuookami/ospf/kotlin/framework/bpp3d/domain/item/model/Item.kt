@@ -508,6 +508,14 @@ open class ItemView(
 
 typealias ItemProjection<P> = Projection<Item, P>
 typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
+/** 任意二维放置。Generic 2D placement. */
+typealias AnyPlacement2<P> = QuantityPlacement2<*, P>
+/** 任意侧视二维放置。Generic side-plane 2D placement. */
+typealias AnySidePlacement2 = AnyPlacement2<Side>
+/** 任意前视二维放置。Generic front-plane 2D placement. */
+typealias AnyFrontPlacement2 = AnyPlacement2<Front>
+/** 任意三维放置。Generic 3D placement. */
+typealias AnyPlacement3 = QuantityPlacement3<*>
 typealias ItemPlacement2<P> = QuantityPlacement2<Item, P>
 typealias ItemPlacement3 = QuantityPlacement3<Item>
 
@@ -602,7 +610,7 @@ val ItemPlacement3.topFlat: Boolean
     }
 @JvmName("itemPlacement2SideEnabledStackingOn")
 suspend fun ItemPlacement2<Side>.enabledStackingOn(
-    bottomItems: List<QuantityPlacement2<*, Side>>,
+    bottomItems: List<AnySidePlacement2>,
     space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -611,8 +619,7 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
             val promises = ArrayList<Deferred<Boolean>>()
             for (item in toPlacement3()) {
                 promises.add(async(Dispatchers.Default) {
-                    val bottomPlacement = QuantityPlacement2(item, Bottom)
-                    val thisBottomPlacements = bottomPlacements.filter { QuantityPlacement2(it, Bottom).overlapped(bottomPlacement) }
+                    val thisBottomPlacements = bottomPlacements.filterBottomOverlapped(item)
                     (view as ItemView).enabledStackingOn(
                         bottomSupport = bottomSupport(
                             unit = item,
@@ -641,8 +648,8 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                                 else -> {
                                     emptyList()
                                 }
-                            }.filter { QuantityPlacement3 ->
-                                it.maxY leq this@enabledStackingOn.y && QuantityPlacement2(QuantityPlacement3, Bottom).overlapped(bottomPlacement)
+                            }.filter { bottomItem ->
+                                bottomItem.maxY leq this@enabledStackingOn.y && bottomItem.overlappedOnBottom(item)
                             }
                         },
                         space = Container3Shape(space)
@@ -662,7 +669,7 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
 }
 @JvmName("itemPlacement2FrontEnabledStackingOn")
 suspend fun ItemPlacement2<Front>.enabledStackingOn(
-    bottomItems: List<QuantityPlacement2<*, Front>>,
+    bottomItems: List<AnyFrontPlacement2>,
     space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -671,8 +678,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
             val promises = ArrayList<Deferred<Boolean>>()
             for (item in toPlacement3()) {
                 promises.add(async(Dispatchers.Default) {
-                    val bottomPlacement = QuantityPlacement2(item, Bottom)
-                    val thisBottomPlacements = bottomPlacements.filter { QuantityPlacement2(it, Bottom).overlapped(bottomPlacement) }
+                    val thisBottomPlacements = bottomPlacements.filterBottomOverlapped(item)
                     (view as ItemView).enabledStackingOn(
                         bottomSupport = bottomSupport(
                             unit = item,
@@ -703,7 +709,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                                 }
                             }
                         }.filter {
-                            it.maxY leq this@enabledStackingOn.y && QuantityPlacement2(it, Bottom).overlapped(bottomPlacement)
+                            it.maxY leq this@enabledStackingOn.y && it.overlappedOnBottom(item)
                         },
                         space = Container3Shape(space)
                     )
@@ -722,10 +728,9 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
 }
 @JvmName("itemPlacement3EnabledStackingOn")
 suspend fun ItemPlacement3.enabledStackingOn(
-    bottomItems: List<QuantityPlacement3<*>>,
+    bottomItems: List<AnyPlacement3>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
-    val bottomPlacement = QuantityPlacement2(this, Bottom)
     return if (absoluteY eq infraZero()) {
         unit.packageAttribute.enabledStackingOn(
             item = this,
@@ -747,7 +752,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
         ) && unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItems = bottomItems.filter {
-                it.maxY leq this.y && QuantityPlacement2(it, Bottom).overlapped(bottomPlacement)
+                it.maxY leq this.y && it.overlappedOnBottom(this)
             }.flatMap {
                 when (val unit = it.unit) {
                     is Item -> {
@@ -765,7 +770,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
                     }
                 }
             }.filter {
-                QuantityPlacement2(it, Bottom).overlapped(bottomPlacement)
+                it.overlappedOnBottom(this)
             },
             space = space
         )
@@ -804,11 +809,11 @@ fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
-fun List<QuantityPlacement3<*>>.dump(offset: Point<Dim3, InfraNumber>): List<ItemPlacement3> {
+fun List<AnyPlacement3>.dump(offset: Point<Dim3, InfraNumber>): List<ItemPlacement3> {
     return dump(point3(offset))
 }
 
-fun List<QuantityPlacement3<*>>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+fun List<AnyPlacement3>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
     val offsetVector = QuantityVector3(offset.x, offset.y, offset.z)
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
@@ -818,7 +823,12 @@ fun List<QuantityPlacement3<*>>.dump(offset: QuantityPoint3 = point3()): List<It
             }
 
             is Item -> {
-                items.add(QuantityPlacement3(placement.view as ItemView, placement.position + offsetVector))
+                items.add(
+                    placement3Of(
+                        view = placement.view as ItemView,
+                        position = placement.position + offsetVector
+                    )
+                )
             }
 
             else -> {}
@@ -827,11 +837,11 @@ fun List<QuantityPlacement3<*>>.dump(offset: QuantityPoint3 = point3()): List<It
     return items
 }
 
-fun List<QuantityPlacement3<*>>.dumpAbsolutely(offset: Point<Dim3, InfraNumber>): List<ItemPlacement3> {
+fun List<AnyPlacement3>.dumpAbsolutely(offset: Point<Dim3, InfraNumber>): List<ItemPlacement3> {
     return dumpAbsolutely(point3(offset))
 }
 
-fun List<QuantityPlacement3<*>>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
     val offsetVector = QuantityVector3(offset.x, offset.y, offset.z)
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
@@ -841,7 +851,12 @@ fun List<QuantityPlacement3<*>>.dumpAbsolutely(offset: QuantityPoint3 = point3()
             }
 
             is Item -> {
-                items.add(QuantityPlacement3(placement.view as ItemView, placement.absolutePosition + offsetVector))
+                items.add(
+                    placement3Of(
+                        view = placement.view as ItemView,
+                        position = placement.absolutePosition + offsetVector
+                    )
+                )
             }
 
             else -> {}
@@ -873,13 +888,13 @@ val Projection<*, *>.packageType: PackageType
     }
 
 @get:JvmName("cuboidPlacement2PackageType")
-val QuantityPlacement2<*, *>.packageType: PackageType
+val AnyPlacement2<*>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("cuboidPlacement3PackageType")
-val QuantityPlacement3<*>.packageType: PackageType
+val AnyPlacement3.packageType: PackageType
     get() {
         return unit.packageType
     }
@@ -907,13 +922,13 @@ val Projection<*, *>.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidPlacement2PackageCategory")
-val QuantityPlacement2<*, *>.packageCategory: PackageCategory
+val AnyPlacement2<*>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("cuboidPlacement3PackageCategory")
-val QuantityPlacement3<*>.packageCategory: PackageCategory
+val AnyPlacement3.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
@@ -941,13 +956,13 @@ val Projection<*, *>.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidPlacement2BottomOnly")
-val QuantityPlacement2<*, *>.bottomOnly: Boolean
+val AnyPlacement2<*>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
 
 @get:JvmName("cuboidPlacement3BottomOnly")
-val QuantityPlacement3<*>.bottomOnly: Boolean
+val AnyPlacement3.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
@@ -979,13 +994,13 @@ val Projection<*, *>.topFlat: Boolean
     }
 
 @get:JvmName("cuboidPlacement2TopFlat")
-val QuantityPlacement2<*, *>.topFlat: Boolean
+val AnyPlacement2<*>.topFlat: Boolean
     get() {
         return unit.topFlat
     }
 
 @get:JvmName("cuboidPlacement3TopFlat")
-val QuantityPlacement3<*>.topFlat: Boolean
+val AnyPlacement3.topFlat: Boolean
     get() {
         return unit.topFlat
     }

@@ -66,7 +66,7 @@ class BinLayer(
     val bin: BinType? = null,
     // inherited from Container3<BinLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<QuantityPlacement3<*>>,
+    override val units: List<AnyPlacement3>,
 ) : ItemContainer<BinLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
@@ -135,7 +135,7 @@ class PalletLayer(
     val from: KClass<*>,
     // inherited from Container3<PalletLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<QuantityPlacement3<*>>,
+    override val units: List<AnyPlacement3>,
 ) : ItemContainer<PalletLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(

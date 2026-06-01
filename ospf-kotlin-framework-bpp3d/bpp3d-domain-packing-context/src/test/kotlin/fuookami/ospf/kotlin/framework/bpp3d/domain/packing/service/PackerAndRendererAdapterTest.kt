@@ -14,7 +14,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
@@ -26,7 +28,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -112,7 +113,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun toPackingResult(bin: Bin<BinLayer>): PackingResult {
+    private fun toPackingResult(bin: LayerBin): PackingResult {
         val packed = PackedBin(
             name = "bin-test",
             type = bin.shape,
@@ -128,7 +129,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun layerBin(items: List<ActualItem>): Bin<BinLayer> {
+    private fun layerBin(items: List<ActualItem>): LayerBin {
         val binType = BinType(
             width = infraScalar(3.0) * Meter,
             height = infraScalar(3.0) * Meter,
@@ -139,7 +140,7 @@ class PackerAndRendererAdapterTest {
             typeCode = "BIN-A"
         )
         val placements = items.mapIndexed { index, item ->
-            QuantityPlacement3(
+            placement3Of(
                 view = item.view(Orientation.Upright),
                 position = point3(
                     x = infraScalar(index.toDouble()) * Meter,
@@ -158,7 +159,7 @@ class PackerAndRendererAdapterTest {
         return Bin(
             shape = binType,
             units = listOf(
-                QuantityPlacement3(
+                placement3Of(
                     view = layer.view(Orientation.Upright)!!,
                     position = point3()
                 )

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
@@ -167,7 +167,7 @@ class ItemDemandConstraintModeKeyTest {
             name = "material-amount-only-demand",
             converter = InfraNumber
         )
-        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(load)
 
         assertTrue(constraint(model) is Ok)
         assertEquals(setOf(Bpp3dDemandMode.Material), demandModesInModel(model))
@@ -191,7 +191,7 @@ class ItemDemandConstraintModeKeyTest {
             name = "material-weight-only-demand",
             converter = InfraNumber
         )
-        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(load)
 
         assertTrue(constraint(model) is Ok)
         assertEquals(setOf(Bpp3dDemandMode.Material), demandModesInModel(model))
@@ -221,7 +221,7 @@ class ItemDemandConstraintModeKeyTest {
             name = "mixed-demand-modes",
             converter = InfraNumber
         )
-        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(load)
 
         assertTrue(constraint(model) is Ok)
         assertEquals(
@@ -281,7 +281,7 @@ class ItemDemandConstraintModeKeyTest {
             override val lessEnabled: Boolean = true
         }
 
-        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(load)
         val extractor = constraint.extractor()!!
 
         val map = BPP3DShadowPriceMap()
@@ -309,7 +309,7 @@ class ItemDemandConstraintModeKeyTest {
                 materials = listOf(Pair(material, infraScalar(12.0) * Kilogram))
             )
         )
-        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(load)
         val extractor = constraint.extractor()!!
 
         val amountKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemAmount, Bpp3dDemandKey.Item(item))
@@ -370,7 +370,7 @@ class ItemDemandConstraintModeKeyTest {
         val materialAmountKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))
         val materialWeightKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialWeight, Bpp3dDemandKey.Material(material.key))
 
-        val constraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(load)
+        val constraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(load)
         val extractor = constraint.extractor()!!
 
         val map = BPP3DShadowPriceMap()

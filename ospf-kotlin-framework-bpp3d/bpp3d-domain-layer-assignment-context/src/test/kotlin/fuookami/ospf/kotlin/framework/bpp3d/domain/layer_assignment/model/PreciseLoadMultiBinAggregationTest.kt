@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttri
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
@@ -21,12 +22,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -106,7 +107,7 @@ class PreciseLoadMultiBinAggregationTest {
             bin = sharedBinType,
             shape = Container3Shape(sharedBinType),
             units = listOf(
-                QuantityPlacement3(
+                placement3Of(
                     view = actualItem.view(Orientation.Upright),
                     position = point3()
                 )
@@ -115,12 +116,12 @@ class PreciseLoadMultiBinAggregationTest {
         val bins = listOf(
             Bin(
                 shape = sharedBinType,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = BatchNo("B-LOAD-MULTI-BIN-0")
             ),
             Bin(
                 shape = sharedBinType,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = BatchNo("B-LOAD-MULTI-BIN-1")
             )
         )
@@ -213,7 +214,7 @@ class PreciseLoadMultiBinAggregationTest {
             bin = sharedBinType,
             shape = Container3Shape(sharedBinType),
             units = listOf(
-                QuantityPlacement3(
+                placement3Of(
                     view = cuboidItem.view(Orientation.Upright),
                     position = point3()
                 )
@@ -225,7 +226,7 @@ class PreciseLoadMultiBinAggregationTest {
             bin = sharedBinType,
             shape = Container3Shape(sharedBinType),
             units = listOf(
-                QuantityPlacement3(
+                placement3Of(
                     view = cylinderItem.view(Orientation.Upright),
                     position = point3(x = infraScalar(1.0) * Meter)
                 )
@@ -234,12 +235,12 @@ class PreciseLoadMultiBinAggregationTest {
         val bins = listOf(
             Bin(
                 shape = sharedBinType,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = BatchNo("B-LOAD-MIX-0")
             ),
             Bin(
                 shape = sharedBinType,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = BatchNo("B-LOAD-MIX-1")
             )
         )

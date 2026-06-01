@@ -170,7 +170,7 @@ fun ItemView.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandV
     return unit.statistics(mode)
 }
 
-fun QuantityPlacement2<*, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+fun AnyPlacement2<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in toPlacement3()) {
         counter.mergeDemand(placement.statistics(mode))
@@ -178,7 +178,7 @@ fun QuantityPlacement2<*, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandK
     return counter
 }
 
-fun QuantityPlacement3<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+fun AnyPlacement3.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return statisticsOf(unit, mode)
 }
 
@@ -216,7 +216,7 @@ fun ItemContainer<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3
     return (this as Container3<*>).statistics(mode)
 }
 
-fun Iterable<QuantityPlacement3<*>>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+fun Iterable<AnyPlacement3>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in this) {
         counter.mergeDemand(placement.statistics(mode))

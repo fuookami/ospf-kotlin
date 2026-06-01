@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.application.service
+package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
@@ -10,11 +10,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
@@ -123,7 +125,7 @@ class ColumnGenerationAlgorithmTest {
     private fun layerBin(
         items: List<ActualItem>,
         typeCode: String = "BIN-A"
-    ): Bin<BinLayer> {
+    ): LayerBin {
         val binType = BinType(
             width = infraScalar(3.0) * Meter,
             height = infraScalar(3.0) * Meter,
@@ -134,9 +136,8 @@ class ColumnGenerationAlgorithmTest {
             typeCode = typeCode
         )
         val placements = items.mapIndexed { index, item ->
-            QuantityPlacement3(
-                view = item.view(Orientation.Upright),
-                position = point3(x = infraScalar(index.toDouble()) * Meter, y = infraScalar(0.0) * Meter, z = infraScalar(0.0) * Meter)
+            item.toItemPlacement(
+                x = infraScalar(index.toDouble()) * Meter
             )
         }
         val layer = BinLayer(
@@ -149,10 +150,7 @@ class ColumnGenerationAlgorithmTest {
         return Bin(
             shape = binType,
             units = listOf(
-                QuantityPlacement3(
-                    view = layer.view(Orientation.Upright)!!,
-                    position = point3()
-                )
+                layer.toLayerPlacement()
             )
         )
     }
@@ -439,9 +437,9 @@ class ColumnGenerationAlgorithmTest {
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val finalBin: Bin<BinLayer> = Bin(
+        val finalBin: LayerBin = Bin(
             shape = seedBin.shape,
-            units = emptyList<QuantityPlacement3<BinLayer>>(),
+            units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
         val demandValue = InfraNumber.one
@@ -856,9 +854,9 @@ class ColumnGenerationAlgorithmTest {
         val actualItem = item("item-3", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val finalBin: Bin<BinLayer> = Bin(
+        val finalBin: LayerBin = Bin(
             shape = seedBin.shape,
-            units = emptyList<QuantityPlacement3<BinLayer>>(),
+            units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
         val demandValue = InfraNumber.one
@@ -971,9 +969,9 @@ class ColumnGenerationAlgorithmTest {
         val actualItem = item("item-4", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val finalBin: Bin<BinLayer> = Bin(
+        val finalBin: LayerBin = Bin(
             shape = seedBin.shape,
-            units = emptyList<QuantityPlacement3<BinLayer>>(),
+            units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
         val demandValue = InfraNumber(2.0)
@@ -1090,12 +1088,12 @@ class ColumnGenerationAlgorithmTest {
         val finalBins = listOf(
             Bin(
                 shape = seedBinA.shape,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBinA.batchNo
             ),
             Bin(
                 shape = seedBinB.shape,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBinB.batchNo
             )
         )
@@ -1238,7 +1236,7 @@ class ColumnGenerationAlgorithmTest {
         val finalBins = seedBins.map { seedBin ->
             Bin(
                 shape = seedBin.shape,
-                units = emptyList<QuantityPlacement3<BinLayer>>(),
+                units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBin.batchNo
             )
         }

@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMa
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
@@ -38,6 +38,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limi
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandConstraint
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.ItemDemandConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.VolumeMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
@@ -46,7 +47,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGe
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceAwareLayerScore
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -299,7 +299,7 @@ class ColumnGenerationStandardExecutors(
             )
             ensureTry(load.register(model), "register precise load")
 
-            val demandConstraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(
+            val demandConstraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(
                 load = load,
                 demandEntries = demandEntries
             )
@@ -402,7 +402,7 @@ class ColumnGenerationStandardExecutors(
 
     private data class RmpArtifacts(
         val model: LinearMetaModel<InfraNumber>,
-        val demandConstraint: DemandConstraint<BPP3DShadowPriceArguments, Item>
+        val demandConstraint: ItemDemandConstraint<BPP3DShadowPriceArguments>
     )
 
     private suspend fun buildRmpArtifacts(
@@ -445,14 +445,14 @@ class ColumnGenerationStandardExecutors(
             }
         }
 
-        val demandConstraint = DemandConstraint<BPP3DShadowPriceArguments, Item>(
+        val demandConstraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(
             load = load,
             demandEntries = demandEntries
         )
         demandConstraint.register(model)
         ensureTry(demandConstraint.invoke(model), "build rmp demand constraint")
 
-        val volumeMinimization = VolumeMinimization<BPP3DShadowPriceArguments, Item>(
+        val volumeMinimization = VolumeMinimization.forItem<BPP3DShadowPriceArguments>(
             assignment = assignment,
             coefficient = config.rmpVolumeCoefficient
         )
@@ -492,7 +492,7 @@ class ColumnGenerationStandardExecutors(
     ): List<LayerBin> {
         val selected = ArrayList<LayerBin>()
         for ((binIndex, baseBin) in bins.withIndex()) {
-            val placements = ArrayList<QuantityPlacement3<BinLayer>>()
+            val placements = ArrayList<BinLayerPlacement>()
             var zCursor = baseBin.shape.depth - baseBin.shape.depth
             for ((columnIndex, column) in columns.withIndex()) {
                 val raw = tokenValue(model, assignment.x[binIndex, columnIndex])
@@ -502,12 +502,7 @@ class ColumnGenerationStandardExecutors(
                 }
                 repeat(copies) {
                     val layerCopy = column.copy()
-                    placements.add(
-                        QuantityPlacement3(
-                            view = BinLayerView(layerCopy),
-                            position = point3(z = zCursor)
-                        )
-                    )
+                    placements.add(layerCopy.toLayerPlacement(z = zCursor))
                     zCursor = zCursor + layerCopy.depth
                 }
             }

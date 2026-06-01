@@ -9,6 +9,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ComplexBlock
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -152,8 +153,11 @@ class ComplexBlockGenerator(
         val rhsView = rhs.view() ?: return null
         return ComplexBlock(
             blocks = listOf(
-                QuantityPlacement3(lhsView, point3()),
-                QuantityPlacement3(rhsView, point3(x = lhs.width.value))
+                placement3Of(view = lhsView, position = point3()),
+                placement3Of(
+                    view = rhsView,
+                    position = point3(x = lhs.width.value)
+                )
             )
         )
     }
@@ -163,8 +167,11 @@ class ComplexBlockGenerator(
         val rhsView = rhs.view() ?: return null
         return ComplexBlock(
             blocks = listOf(
-                QuantityPlacement3(lhsView, point3()),
-                QuantityPlacement3(rhsView, point3(y = lhs.height.value))
+                placement3Of(view = lhsView, position = point3()),
+                placement3Of(
+                    view = rhsView,
+                    position = point3(y = lhs.height.value)
+                )
             )
         )
     }
@@ -174,8 +181,11 @@ class ComplexBlockGenerator(
         val rhsView = rhs.view() ?: return null
         return ComplexBlock(
             blocks = listOf(
-                QuantityPlacement3(lhsView, point3()),
-                QuantityPlacement3(rhsView, point3(z = lhs.depth.value))
+                placement3Of(view = lhsView, position = point3()),
+                placement3Of(
+                    view = rhsView,
+                    position = point3(z = lhs.depth.value)
+                )
             )
         )
     }

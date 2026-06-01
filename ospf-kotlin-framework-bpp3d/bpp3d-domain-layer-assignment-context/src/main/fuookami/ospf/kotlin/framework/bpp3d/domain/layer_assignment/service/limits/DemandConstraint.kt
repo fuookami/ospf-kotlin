@@ -172,6 +172,24 @@ open class DemandConstraint<
             }
             return DemandConstraint(load, demands, shadowPriceExtractor, name)
         }
+
+        /**
+         * 创建 Item 专用需求约束，隐藏调用侧 `T : Cuboid<T>` 泛型暴露。
+         * Build item-only demand constraint and hide caller-side `T : Cuboid<T>` generic exposure.
+         */
+        fun <Args : AbstractBPP3DShadowPriceArguments<Item>> forItem(
+            load: Load<InfraNumber>,
+            demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
+            shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
+            name: String = "demand"
+        ): ItemDemandConstraint<Args> {
+            return DemandConstraint(
+                load = load,
+                demandEntries = demandEntries,
+                shadowPriceExtractor = shadowPriceExtractor,
+                name = name
+            )
+        }
     }
 
     private fun symbolAt(index: Int): Symbol {
@@ -349,11 +367,7 @@ open class DemandConstraint<
     }
 }
 
-@Deprecated(
-    message = "Use DemandConstraint instead.",
-    replaceWith = ReplaceWith("DemandConstraint<Args, T>")
-)
-typealias ItemDemandConstraint<Args, T> = DemandConstraint<Args, T>
+typealias ItemDemandConstraint<Args> = DemandConstraint<Args, Item>
 
 @Deprecated(
     message = "Use DemandShadowPriceKey instead.",

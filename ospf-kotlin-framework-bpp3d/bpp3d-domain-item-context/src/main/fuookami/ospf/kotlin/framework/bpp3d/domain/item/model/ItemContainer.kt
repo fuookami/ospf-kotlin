@@ -77,6 +77,15 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
     }
 }
 
+/** 货物容器二维放置。2D placement of item container. */
+typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, P>
+/** 货物容器侧视二维放置。Side-plane 2D placement of item container. */
+typealias ItemContainerSidePlacement2<S> = ItemContainerPlacement2<S, Side>
+/** 货物容器前视二维放置。Front-plane 2D placement of item container. */
+typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
+/** 货物容器三维放置。3D placement of item container. */
+typealias ItemContainerPlacement3<S> = QuantityPlacement3<S>
+
 @get:JvmName("itemContainerPackageType")
 val <S : ItemContainer<S>> CuboidView<S>.packageType: PackageType
     get() {
@@ -110,27 +119,27 @@ fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: QuantityPoint3 =
 }
 
 @get:JvmName("itemContainerPlacementPackageType")
-val <S : ItemContainer<S>> QuantityPlacement3<S>.packageType: PackageType
+val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemContainerPlacementPackageCategory")
-val <S : ItemContainer<S>> QuantityPlacement3<S>.packageCategory: PackageCategory
+val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
-fun <S : ItemContainer<S>> QuantityPlacement3<S>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
     return unit.dump(position + QuantityVector3(offset.x, offset.y, offset.z))
 }
 
-fun <S : ItemContainer<S>> QuantityPlacement3<S>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
     return unit.dump(absolutePosition + QuantityVector3(offset.x, offset.y, offset.z))
 }
 @JvmName("itemContainerPlacement2SideEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, Side>.enabledStackingOn(
-    bottomItems: List<QuantityPlacement2<*, Side>>,
+suspend fun <S : ItemContainer<S>> ItemContainerSidePlacement2<S>.enabledStackingOn(
+    bottomItems: List<AnySidePlacement2>,
     space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -158,8 +167,8 @@ suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, Side>.enabledStackingOn
     }
 }
 @JvmName("itemContainerPlacement2FrontEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, Front>.enabledStackingOn(
-    bottomItems: List<QuantityPlacement2<*, Front>>,
+suspend fun <S : ItemContainer<S>> ItemContainerFrontPlacement2<S>.enabledStackingOn(
+    bottomItems: List<AnyFrontPlacement2>,
     space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -187,8 +196,8 @@ suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, Front>.enabledStackingO
     }
 }
 @JvmName("itemContainerPlacement3EnabledStackingOn")
-suspend fun <S : ItemContainer<S>> QuantityPlacement3<S>.enabledStackingOn(
-    bottomItems: List<QuantityPlacement3<*>>,
+suspend fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.enabledStackingOn(
+    bottomItems: List<AnyPlacement3>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val thisBottomItems = bottomItemPlacements(this.dump())

@@ -19,7 +19,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -268,9 +267,9 @@ data class GenericItemPlacement<V : FloatingNumber<V>>(
     fun toModel(
         materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
         itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
-    ): QuantityPlacement3<Item> {
+    ): ItemPlacement3 {
         val modelItem = item.toModel(materialCache, itemCache)
-        return QuantityPlacement3(
+        return placement3Of(
             view = modelItem.view(orientation),
             position = point3(
                 x = x.toInfraQuantity().value,

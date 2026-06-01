@@ -6,7 +6,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
@@ -18,9 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.Packer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
@@ -86,18 +83,22 @@ class ColumnGenerationPackingAnalyzer(
      * @param state 列生成状态 / column generation state
      */
     override suspend fun analyze(state: ColumnGenerationState<InfraNumber>) {
+        for (bin in state.bins) {
+            for (unit in bin.units) {
+                ensureVerticalCylinderAxis(
+                    layer = unit.unit,
+                    source = "ColumnGenerationPackingAnalyzer.analyze"
+                )
+            }
+        }
         val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
             state.columns.mapNotNull { layer ->
                 val bin = layer.bin ?: return@mapNotNull null
-                val placement: QuantityPlacement3<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer> = QuantityPlacement3(
-                    view = BinLayerView(layer.copy()),
-                    position = point3()
-                )
                 Bin(
                     shape = bin,
-                    units = listOf(placement)
+                    units = listOf(layer.copy().toLayerPlacement())
                 )
             }
         }
