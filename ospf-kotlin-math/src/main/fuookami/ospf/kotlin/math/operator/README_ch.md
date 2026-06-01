@@ -1,6 +1,6 @@
 # ospf-kotlin-math/operator
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的数学运算符接口。将代数运算定义为可复用的接口，由数值类型和其他代数结构实现。
 

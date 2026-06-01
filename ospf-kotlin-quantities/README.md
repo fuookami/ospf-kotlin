@@ -1,6 +1,6 @@
 # ospf-kotlin-quantities
 
-[中文文档 (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 A comprehensive physical quantities and units library for OSPF Kotlin. Provides strongly-typed physical quantities, unit conversions, and dimensional analysis with a focus on type safety, correctness, and ease of use.
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math/chaotic_operator
 
-[中文文档 (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Chaotic system attractors and iterative maps for OSPF Kotlin. Provides 27+ implementations of well-known chaotic systems for simulation, visualization, and research.
 

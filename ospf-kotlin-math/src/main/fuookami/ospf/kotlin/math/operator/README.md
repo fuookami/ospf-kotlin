@@ -1,6 +1,6 @@
 # ospf-kotlin-math/operator
 
-[Chinese Documentation (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Mathematical operator interfaces for OSPF Kotlin. Defines algebraic operations as reusable interfaces that number types and other algebraic structures implement.
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-quantities / OSPF Kotlin 物理量模块
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的综合物理量和单位库。提供强类型物理量、单位转换和量纲分析，专注于类型安全、正确性和易用性。
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math/combinatorics
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的组合算法，用于生成排列、组合和笛卡尔积。
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math/multiarray
 
-[中文文档 (README_ch.md)](README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Multi-dimensional array operations including fast summation and Einstein summation (einsum) for OSPF Kotlin.
 

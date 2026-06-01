@@ -1,6 +1,6 @@
 # ospf-kotlin-math/parallel
 
-[中文文档 (README_ch.md)](README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Parallel computation utilities using Kotlin coroutines for OSPF Kotlin.
 

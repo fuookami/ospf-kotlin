@@ -1,6 +1,6 @@
 # ospf-kotlin-math
 
-[Chinese Documentation (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 A comprehensive mathematical algebra, symbol, and geometry system for OSPF Kotlin. Provides foundational mathematical types, algebraic structures, symbolic expressions, geometric primitives, and numerical operations with a focus on type safety, precision, and performance.
 

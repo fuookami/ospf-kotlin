@@ -1,6 +1,6 @@
 # ospf-kotlin-math/symbol/expression / 表达式模块
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 通用表达式 AST，用于 SQL 风格的布尔和标量表达式。提供与 `symbol.parse` 多项式/不等式解析器并行的新系统，增强逻辑运算能力。
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math/ordinary
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的常用数学运算，包括 GCD、LCM、质数、因式分解和工具函数。
 

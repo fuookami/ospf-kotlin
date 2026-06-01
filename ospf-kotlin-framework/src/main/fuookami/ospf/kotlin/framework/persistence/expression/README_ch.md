@@ -1,6 +1,6 @@
 # ospf-kotlin-framework/persistence/expression / 表达式仓储 DSL
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 本包是 framework 层的表达式仓储 DSL 与仓储模型，不是完整 SQL AST，也不是某个数据库后端的查询构造器。
 

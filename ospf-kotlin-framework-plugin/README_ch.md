@@ -1,6 +1,6 @@
 # ospf-kotlin-framework-plugin 边界说明
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 本模块组提供消息与持久化插件，同时把领域物理量建模职责留在插件外部。
 

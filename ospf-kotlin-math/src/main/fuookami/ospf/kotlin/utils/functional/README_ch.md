@@ -1,6 +1,6 @@
 # ospf-kotlin-math/functional
 
-[English Documentation (README.md)](README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的集合扩展函数，用于求和、平均值和函数式操作。
 

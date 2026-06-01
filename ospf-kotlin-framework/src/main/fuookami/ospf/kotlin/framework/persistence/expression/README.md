@@ -1,6 +1,6 @@
 # ospf-kotlin-framework/persistence/expression / Expression Repository DSL
 
-[中文文档 (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 This package contains the framework-level expression repository DSL and repository models. It is not a complete SQL AST and it is not a database-specific query builder.
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math / OSPF Kotlin 数学模块
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的综合数学代数、符号与几何系统。提供基础数学类型、代数结构、符号表达式、几何原语和数值运算，专注于类型安全、精度和性能。
 

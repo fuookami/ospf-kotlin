@@ -1,6 +1,6 @@
 # ospf-kotlin-math/algebra/value_range
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的类型化与动态区间算术。
 

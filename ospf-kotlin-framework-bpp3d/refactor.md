@@ -414,6 +414,14 @@ mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg
     - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\generic-boundary-check.ps1`：`STRICT_GENERIC_BOUNDARY_PASS`
     - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\shape-boundary-check.ps1`：`SHAPE_BOUNDARY_PASS`
     - `git diff --check -- ospf-kotlin-framework-bpp3d` 仅 CRLF 警告、无格式错误。
+26. layer-assignment / application 调用面继续收口：`DemandConstraint.forItem(...)` 返回类型已收口为 `ItemDemandConstraint<Args>`，并新增 `ItemVolumeMinimization<Args>` 别名；`ColumnGenerationStandardExecutors` 的 `RmpArtifacts.demandConstraint` 已迁移为 item 专用别名类型，减少应用层 `DemandConstraint<..., Item>` 泛型直写暴露。
+27. 针对第 26 项回归验证已通过：
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=ItemDemandConstraintModeKeyTest,PreciseLoadMultiBinAggregationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
+    - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\generic-boundary-check.ps1`：`STRICT_GENERIC_BOUNDARY_PASS`
+    - `pwsh -File .\\ospf-kotlin-framework-bpp3d\\scripts\\shape-boundary-check.ps1`：`SHAPE_BOUNDARY_PASS`
+    - `git diff --check -- ospf-kotlin-framework-bpp3d` 通过（本轮无新增格式告警输出）。
 26. `Bin` 调用面类型签名继续收口：`Bin.kt` 中 `override val units` 已从 `List<QuantityPlacement3<T>>` 迁移为 `List<ItemContainerPlacement3<T>>`，与既有别名体系对齐，进一步压缩 `QuantityPlacement3` 在业务类定义层的直接暴露。
 27. 针对第 26 项回归验证已通过：
     - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=PreciseLoadMultiBinAggregationTest,ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`

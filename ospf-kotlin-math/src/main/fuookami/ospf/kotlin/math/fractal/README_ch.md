@@ -1,6 +1,6 @@
 # ospf-kotlin-math/fractal_operator
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的分形生成算法。
 

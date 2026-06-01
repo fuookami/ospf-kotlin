@@ -1,6 +1,6 @@
 # ospf-kotlin-math/ordinary
 
-[Chinese Documentation (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Common mathematical operations including GCD, LCM, prime numbers, factorization, and utility functions for OSPF Kotlin.
 

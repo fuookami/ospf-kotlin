@@ -1,6 +1,6 @@
 # ospf-kotlin-math/multiarray
 
-[English Documentation (README.md)](README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的多维数组运算，包括快速求和与爱因斯坦求和（einsum）。
 

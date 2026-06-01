@@ -1,6 +1,6 @@
 # ospf-kotlin-math/fractal_operator
 
-[Chinese Documentation (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Fractal generation algorithms for OSPF Kotlin.
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math/chaotic_operator
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的混沌系统吸引子和迭代映射。提供 27+ 著名混沌系统的实现，用于仿真、可视化和研究。
 

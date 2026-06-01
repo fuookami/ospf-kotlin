@@ -1,6 +1,6 @@
 # ospf-kotlin-math/algebra
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的代数结构、数值类型和值范围。
 

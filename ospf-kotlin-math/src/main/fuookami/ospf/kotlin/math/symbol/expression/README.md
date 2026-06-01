@@ -1,6 +1,6 @@
 # ospf-kotlin-math/symbol/expression
 
-[中文文档 (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Generic expression AST for SQL-like boolean and scalar expressions. Provides a parallel system to the `symbol.parse` polynomial/inequality parsers with enhanced logical operations.
 

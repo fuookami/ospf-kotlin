@@ -1,6 +1,6 @@
 # ospf-kotlin-framework-plugin Boundary Guide
 
-[中文文档 (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 This module set provides persistence and message plugins, and keeps domain quantity modeling outside plugin internals.
 

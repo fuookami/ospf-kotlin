@@ -1,6 +1,6 @@
 # ospf-kotlin-math/algebra/value_range
 
-[Chinese Documentation (README_ch.md)](./README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 Typed and dynamic interval arithmetic for OSPF Kotlin.
 

@@ -1,6 +1,6 @@
 # ospf-kotlin-math/geometry
 
-[English Documentation (README.md)](./README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的维度泛型 2D/3D 几何基本类型与算法。
 

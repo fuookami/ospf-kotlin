@@ -1,6 +1,6 @@
 # ospf-kotlin-math/parallel
 
-[English Documentation (README.md)](README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 OSPF Kotlin 的并行计算工具，使用 Kotlin 协程实现。
 
