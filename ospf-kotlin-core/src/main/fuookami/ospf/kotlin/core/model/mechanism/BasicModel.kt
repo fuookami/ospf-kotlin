@@ -40,15 +40,33 @@ open class BasicModel<V>(
 
     // ── Variable management ──────────────────────────────────────────────
 
-    /** 添加变量项。 / Add a single variable item. */
+    /**
+     * 添加变量项。
+     * Add a single variable item.
+     *
+     * @param item 待添加的变量项 / The variable item to add
+     * @return 操作结果 / The operation result
+     */
     open fun add(item: AbstractVariableItem<*, *>): Try = tokens.add(item)
 
-    /** 批量添加变量项。 / Add variable items in batch. */
+    /**
+     * 批量添加变量项。
+     * Add variable items in batch.
+     *
+     * @param items 待添加的变量项集合 / The collection of variable items to add
+     * @return 操作结果 / The operation result
+     */
     open fun add(items: Iterable<AbstractVariableItem<*, *>>): Try = tokens.add(items)
 
     // ── Symbol management ────────────────────────────────────────────────
 
-    /** 添加符号到模型。 / Add a symbol to the model. */
+    /**
+     * 添加符号到模型。
+     * Add a symbol to the model.
+     *
+     * @param symbol 待添加的符号 / The symbol to add
+     * @return 操作结果 / The operation result
+     */
     fun addSymbol(symbol: IntermediateSymbol<*>): Try {
         symbols.add(symbol)
         return tokens.add(symbol)
@@ -87,7 +105,12 @@ open class BasicModel<V>(
         return tokens.add(symbol)
     }
 
-    /** 从模型中移除符号。 / Remove a symbol from the model. */
+    /**
+     * 从模型中移除符号。
+     * Remove a symbol from the model.
+     *
+     * @param symbol 待移除的符号 / The symbol to remove
+     */
     fun removeSymbol(symbol: IntermediateSymbol<*>) {
         symbols.remove(symbol)
         tokens.remove(symbol)
@@ -95,7 +118,12 @@ open class BasicModel<V>(
 
     // ── Lifecycle ────────────────────────────────────────────────────────
 
-    /** 刷新模型状态；当 [force] 为 `true` 时同时清除已缓存的求解结果。 / Flush model state; when [force] is `true`, also clear cached solution data. */
+    /**
+     * 刷新模型状态；当 [force] 为 `true` 时同时清除已缓存的求解结果。
+     * Flush model state; when [force] is `true`, also clear cached solution data.
+     *
+     * @param force 是否强制清除已缓存的求解结果 / Whether to force clear cached solution data
+     */
     open fun flush(force: Boolean) {
         if (force) {
             tokens.clearSolution()

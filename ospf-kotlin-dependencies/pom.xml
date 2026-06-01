@@ -389,11 +389,6 @@
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-                <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
                 <artifactId>ospf-kotlin-framework-bpp3d-application</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -411,6 +406,31 @@
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
                 <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+                <artifactId>ospf-kotlin-framework-csp1d-domain-cutting-plan-generation-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+                <artifactId>ospf-kotlin-framework-csp1d-domain-yield-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+                <artifactId>ospf-kotlin-framework-csp1d-domain-length-assignment-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+                <artifactId>ospf-kotlin-framework-csp1d-domain-wasting-minimization-context</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+                <artifactId>ospf-kotlin-framework-csp1d-application</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-gantt-scheduling -->

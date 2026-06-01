@@ -97,7 +97,7 @@ data class FeasibleSolverOutput<V>(
  * @param converter 值转换器 / Value converter
  * @return 转换后的可行求解器输出 / Converted feasible solver output
  */
-fun <V> FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
+fun <V> FeasibleSolverOutput<Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
         where V : RealNumber<V>, V : NumberField<V> {
     return FeasibleSolverOutput(
         obj = obj,

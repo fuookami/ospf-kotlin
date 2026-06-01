@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.core.solver.output.*
  * @param model 线性三元模型视图 / Linear triad model view
  * @return 求解结果 / Solve result
  */
-suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -39,7 +39,7 @@ suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<Feasibl
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearTriadModelView,
     options: SolveOptions
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+): Ret<FeasibleSolverOutput<Flt64>> {
     when (val validation = validateLinearModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -67,7 +67,7 @@ suspend fun AbstractLinearSolver.solveWithOptions(
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @return 求解结果 / Solve result
  */
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -82,7 +82,7 @@ suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticTetradModelView,
     options: SolveOptions
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+): Ret<FeasibleSolverOutput<Flt64>> {
     when (val validation = validateQuadraticModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -188,7 +188,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearTriadModelView,
     options: SolveOptions,
     iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
+): Ret<Pair<SolverOutput, List<List<Flt64>>>> {
     when (val validation = validateLinearModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -360,7 +360,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticTetradModelView,
     options: SolveOptions,
     iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
+): Ret<Pair<SolverOutput, List<List<Flt64>>>> {
     when (val validation = validateQuadraticModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -454,7 +454,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
  * @param result 包含求解器输出与解列表的配对结果 / A paired result containing solver output and solution list
  * @return 仅包含求解器输出的求解结果 / Solve result containing only the solver output
  */
-private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>): Ret<FeasibleSolverOutput<Flt64>> {
     return when (result) {
         is Ok -> {
             Ok(result.value.first)
@@ -482,8 +482,8 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.k
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
+    callBack: ((Ret<FeasibleSolverOutput<Flt64>>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutput<Flt64>>> {
     return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
@@ -503,8 +503,8 @@ fun AbstractLinearSolver.solveAsync(
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
+    callBack: ((Ret<FeasibleSolverOutput<Flt64>>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutput<Flt64>>> {
     return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)

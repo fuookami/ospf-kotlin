@@ -56,13 +56,13 @@ class ParallelCombinatorialQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null
+                var result: FeasibleSolverOutput<Flt64>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -208,13 +208,13 @@ class ParallelCombinatorialQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>? = null
+                var result: Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>? = null
                 val lock = Any()
                 try {
                     coroutineScope {

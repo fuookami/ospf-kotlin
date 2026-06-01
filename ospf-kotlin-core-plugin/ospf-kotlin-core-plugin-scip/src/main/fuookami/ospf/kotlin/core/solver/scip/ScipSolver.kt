@@ -113,7 +113,11 @@ abstract class ScipSolver : AutoCloseable {
         return ok
     }
 
-    /** 分析 SCIP 求解状态 / Analyze SCIP solving status */
+    /**
+     * 分析 SCIP 求解状态 / Analyze SCIP solving status
+     *
+     * @return 操作结果 / Operation result
+     */
     protected suspend fun analyzeStatus(): Try {
         val solution = scip.bestSol
         status = when (scip.status) {

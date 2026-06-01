@@ -132,7 +132,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param solution Flt64 求解结果列表 / Flt64 solution list
      */
-    fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
+    fun setSolverSolution(solution: List<Flt64>) {
         flush()
         tokenList.setSolverSolution(solution)
     }
@@ -219,7 +219,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param converter 值转换器 / Value converter
      * @return 是否已缓存 / Whether cached
      */
-    fun cachedSolver(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>): Boolean? {
+    fun cachedSolver(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): Boolean? {
         return cached(cacheKey, solution?.map { converter.intoValue(it) })
     }
 
@@ -243,7 +243,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param converter 值转换器 / Value converter
      * @return 缓存值 / Cached value
      */
-    fun cachedSolverValue(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>): V? {
+    fun cachedSolverValue(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): V? {
         return cachedValue(cacheKey, solution?.map { converter.intoValue(it) })
     }
 
@@ -268,7 +268,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param converter 值转换器 / Value converter
      * @return 存入的值 / The stored value
      */
-    fun cacheSolver(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, value: V, converter: IntoValue<V>): V {
+    fun cacheSolver(cacheKey: Any, solution: List<Flt64>? = null, value: V, converter: IntoValue<V>): V {
         return cache(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
 
@@ -466,7 +466,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param converter 值转换器 / Value converter
      * @return 缓存值 / Cached value
      */
-    fun cacheSolverIfNotCached(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, value: () -> V?, converter: IntoValue<V>): V? {
+    fun cacheSolverIfNotCached(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?, converter: IntoValue<V>): V? {
         return cacheIfNotCached(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
 
@@ -540,7 +540,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>) {
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
         cache(symbols, solution?.map { converter.intoValue(it) })
     }
 
@@ -566,7 +566,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>) {
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
         cache(symbols, solution?.map { converter.intoValue(it) })
     }
 

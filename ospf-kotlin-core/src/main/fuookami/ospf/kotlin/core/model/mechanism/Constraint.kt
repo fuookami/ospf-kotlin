@@ -1,7 +1,3 @@
-/**
- * 约束与表达式分类
- * Constraint and expression category types
- */
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -18,39 +14,10 @@ import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 
-/**
- * 符号线性不等式包装 / Symbolic linear inequality wrapper
- *
- * @property inequality 线性不等式 / The linear inequality
- */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 
-/**
- * 符号二次不等式包装 / Symbolic quadratic inequality wrapper
- *
- * @property inequality 二次不等式 / The quadratic inequality
- */
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
 
-// ========== Constraint<V, P> ==========
-
-/**
- * 泛型约束接口
- * Generic constraint interface
- *
- * 包含 V 类型值的约束。Flt64 求值由求解器适配器处理。
- * Constraint with V-typed values. Flt64 evaluation is handled by the solver adapter.
- *
- * @param V 数值类型 / The number type
- * @param P 多项式类别（线性/二次）/ Polynomial category (linear/quadratic)
- * @property lhs 左侧单元列表 / Left-hand side cell list
- * @property sign 约束关系符号 / Constraint relation sign
- * @property rhs 右侧常量 / Right-hand side constant
- * @property lazy 是否延迟求值 / Whether lazy evaluation
- * @property name 约束名称 / Constraint name
- * @property origin 来源约束 / Origin constraint
- * @property from 来源符号和标志 / Source symbol and flag
- */
 interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Category {
     val lhs: List<Cell<V>>
     val sign: ConstraintRelation
@@ -64,19 +31,11 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Cate
     fun isTrue(results: List<V>): Boolean?
 }
 
-/**
- * 元对偶解，将约束和符号映射到对偶值。
- * Meta dual solution mapping constraints and symbols to dual values.
- *
- * @property constraints 约束到对偶值的映射 / Mapping from constraints to dual values
- * @property symbols     符号到对偶值的映射 / Mapping from symbols to dual values
- */
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
     val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
 )
 
-/** 将线性对偶解映射转换为元对偶解 / Convert a linear dual solution mapping to meta dual solution */
 @JvmName("linearDualSolutionToMetaDualSolution")
 fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
@@ -91,9 +50,8 @@ fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualS
     )
 }
 
-/** 将二次对偶解映射转换为元对偶解 / Convert a quadratic dual solution mapping to meta dual solution */
 @JvmName("quadraticDualSolutionToMetaDualSolution")
-fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
+fun Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -106,23 +64,6 @@ fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDu
     )
 }
 
-/**
- * 约束实现密封基类
- * Sealed constraint implementation base class
- *
- * 提供 LHS 求值和约束判断能力。
- * Provides LHS evaluation and constraint checking.
- *
- * @param V 数值类型 / The number type
- * @param P 多项式类别 / Polynomial category
- * @property lhs 左侧单元列表 / Left-hand side cell list
- * @property sign 约束关系符号 / Constraint relation sign
- * @property _rhs 右侧常量（私有存储）/ Right-hand side constant (private storage)
- * @property lazy 是否延迟求值 / Whether lazy evaluation
- * @property name 约束名称 / Constraint name
- * @property origin 来源约束 / Origin constraint
- * @property from 来源符号和标志 / Source symbol and flag
- */
 sealed class ConstraintImpl<V, P : Category>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
@@ -151,19 +92,6 @@ sealed class ConstraintImpl<V, P : Category>(
     }
 }
 
-/**
- * 线性约束实现
- * Linear constraint implementation
- *
- * @param V 数值类型 / The number type
- * @property lhs 线性单元列表 / Linear cell list
- * @param sign 约束关系符号 / Constraint relation sign
- * @param rhs 右侧常量 / Right-hand side constant
- * @param lazy 是否延迟求值 / Whether lazy evaluation
- * @param name 约束名称 / Constraint name
- * @param origin 来源约束 / Origin constraint
- * @param from 来源符号和标志 / Source symbol and flag
- */
 class LinearConstraintImpl<V>(
     override val lhs: List<LinearCell<V>>,
     sign: ConstraintRelation,
@@ -208,19 +136,6 @@ class LinearConstraintImpl<V>(
     }
 }
 
-/**
- * 二次约束实现
- * Quadratic constraint implementation
- *
- * @param V 数值类型 / The number type
- * @property lhs 二次单元列表 / Quadratic cell list
- * @param sign 约束关系符号 / Constraint relation sign
- * @param rhs 右侧常量 / Right-hand side constant
- * @param lazy 是否延迟求值 / Whether lazy evaluation
- * @param name 约束名称 / Constraint name
- * @param origin 来源约束 / Origin constraint
- * @param from 来源符号和标志 / Source symbol and flag
- */
 class QuadraticConstraintImpl<V>(
     override val lhs: List<QuadraticCell<V>>,
     sign: ConstraintRelation,
@@ -265,20 +180,8 @@ class QuadraticConstraintImpl<V>(
     }
 }
 
-// Type aliases for Constraint<V, P> with specific polynomial kinds
-
-/**
- * 从线性单项式和符号表创建线性单元列表
- * Create linear cells from linear monomials and token table
- *
- * @param V 数值类型 / The number type
- * @param monomials Flt64 线性单项式列表 / Flt64 linear monomial list
- * @param tokens 符号表 / Token table
- * @param converter 值转换器 / Value converter
- * @return 线性单元列表 / Linear cell list
- */
 internal fun <V> createLinearCells(
-    monomials: List<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    monomials: List<LinearMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>
 ): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
@@ -293,18 +196,8 @@ internal fun <V> createLinearCells(
     return cells
 }
 
-/**
- * 从二次单项式和符号表创建二次单元列表
- * Create quadratic cells from quadratic monomials and token table
- *
- * @param V 数值类型 / The number type
- * @param monomials Flt64 二次单项式列表 / Flt64 quadratic monomial list
- * @param tokens 符号表 / Token table
- * @param converter 值转换器 / Value converter
- * @return 二次单元列表 / Quadratic cell list
- */
 internal fun <V> createQuadraticCells(
-    monomials: List<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    monomials: List<QuadraticMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>
 ): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {

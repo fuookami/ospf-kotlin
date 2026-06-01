@@ -23,7 +23,14 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     val comparator: ThreeWayComparator<V>
 
-    /** 比较两个目标值的优先级顺序，任一为 null 时另一个更优。 / Compare the ordering of two objective values; when either is null, the other is preferred. */
+    /**
+     * 比较两个目标值的优先级顺序，任一为 null 时另一个更优。
+     * Compare the ordering of two objective values; when either is null, the other is preferred.
+     *
+     * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
+     * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
+     * @return 比较结果，任一为 null 时另一个更优 / The comparison result; when either is null, the other is preferred
+     */
     fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
@@ -36,7 +43,14 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
         }
     }
 
-    /** 根据指定的初始解数量和变量数量生成初始解列表。 / Generate a list of initial solutions based on the given solution count and variable count. */
+    /**
+     * 根据指定的初始解数量和变量数量生成初始解列表。
+     * Generate a list of initial solutions based on the given solution count and variable count.
+     *
+     * @param initialSolutionAmount 初始解数量 / The number of initial solutions
+     * @param variableAmount 变量数量 / The number of variables
+     * @return 初始解列表 / The list of initial solutions
+     */
     fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<V>> {
         return listOf((UInt64.zero until variableAmount).map { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") })
     }
@@ -64,6 +78,14 @@ class FunctionalCallBackModelPolicy<V>(
         }
     }
 
+    /**
+     * 比较两个目标值的优先级顺序，使用自定义目标比较器。
+     * Compare the ordering of two objective values using the custom objective comparator.
+     *
+     * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
+     * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
+     * @return 比较结果 / The comparison result
+     */
     override fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
@@ -82,6 +104,14 @@ class FunctionalCallBackModelPolicy<V>(
         }
     }
 
+    /**
+     * 根据指定的初始解数量和变量数量生成初始解列表。
+     * Generate a list of initial solutions based on the given solution count and variable count.
+     *
+     * @param initialSolutionAmount 初始解数量 / The number of initial solutions
+     * @param variableAmount 变量数量 / The number of variables
+     * @return 初始解列表 / The list of initial solutions
+     */
     override fun initialSolutions(
         initialSolutionAmount: UInt64,
         variableAmount: UInt64
@@ -287,10 +317,26 @@ class CallBackModel<V> internal constructor(
         return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
     }
 
+    /**
+     * 比较两个非空目标值的优先级顺序。
+     * Compare the ordering of two non-null objective values.
+     *
+     * @param lhs 左侧目标值 / The left-hand side objective value
+     * @param rhs 右侧目标值 / The right-hand side objective value
+     * @return 比较结果 / The comparison result
+     */
     override fun compareObjective(lhs: V, rhs: V): Order {
         return policy.comparator(lhs, rhs)
     }
 
+    /**
+     * 比较两个可空目标值的优先级顺序，null 视为最差。
+     * Compare the ordering of two nullable objective values, treating null as worst.
+     *
+     * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
+     * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
+     * @return 比较结果 / The comparison result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("compareObjectiveNullable")
     override fun compareObjective(lhs: V?, rhs: V?): Order? {

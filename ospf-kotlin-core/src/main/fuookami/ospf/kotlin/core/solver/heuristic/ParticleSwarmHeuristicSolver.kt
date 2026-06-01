@@ -73,7 +73,7 @@ class BasicHeuristicPolicy(
 data class Particle<ObjValue, V>(
     val fitness: ObjValue,
     val solution: Solution<V>,
-    val velocity: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    val velocity: List<Flt64>,
     val bestPosition: Solution<V>? = null,
     val bestFitness: ObjValue? = null
 ) where V : RealNumber<V>, V : NumberField<V>
@@ -103,7 +103,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     val c2: Flt64 = Flt64.two,
     val maxVelocity: Flt64 = Flt64(10000),
     val solveOnObjectiveMiss: Boolean = true,
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64> = { Flt64(0.5) },
+    private val randomGenerator: Generator<Flt64> = { Flt64(0.5) },
     private val initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero },
     private val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -116,7 +116,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param randomGenerator 新的随机数生成器 / New random number generator
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
      */
-    fun withRandomGenerator(randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>): ParticleSwarmHeuristicSolver<ObjValue, V> {
+    fun withRandomGenerator(randomGenerator: Generator<Flt64>): ParticleSwarmHeuristicSolver<ObjValue, V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,
@@ -260,7 +260,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
     ): Particle<ObjValue, V> {
         val localBest = particle.bestPosition ?: particle.solution
         val newSolution = ArrayList<V>(particle.solution.size)
-        val newVelocity = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>(particle.solution.size)
+        val newVelocity = ArrayList<Flt64>(particle.solution.size)
         for (index in particle.solution.indices) {
             val positionFlt64 = converter.fromValue(particle.solution[index])
             val velocity = particle.velocity.getOrElse(index) { Flt64.zero }

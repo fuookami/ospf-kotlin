@@ -79,7 +79,7 @@ fun BaseTable<*>.f32(name: String): Column<Flt32> {
  * @param name 列名 / Column name
  * @return Flt64 类型的列 / Column of Flt64 type
  */
-fun BaseTable<*>.f64(name: String): Column<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun BaseTable<*>.f64(name: String): Column<Flt64> {
     return double(name).transform({ Flt64(it) }, { it.toDouble() })
 }
 

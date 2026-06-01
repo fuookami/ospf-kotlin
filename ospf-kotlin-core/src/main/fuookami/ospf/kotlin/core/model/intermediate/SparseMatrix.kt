@@ -186,7 +186,7 @@ fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
 fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
     val result = SparseMatrix<Flt64>()
     for (row in rows) {
-        val newRow = SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
+        val newRow = SparseVector<Flt64>()
         for (entry in row.entries) {
             newRow.add(entry.index, -entry.value)
         }

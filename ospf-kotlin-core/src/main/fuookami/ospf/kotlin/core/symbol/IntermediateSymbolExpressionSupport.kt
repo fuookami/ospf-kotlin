@@ -9,25 +9,19 @@
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * IntermediateSymbol 表达式求值与缓存支持。
@@ -52,7 +46,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 internal fun IntermediateSymbol<*>.shouldPrepare(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    tokenTable: AbstractTokenTable<Flt64>
 ): Boolean {
     val tt = tokenTable
     return (!values.isNullOrEmpty() || tt.cachedSolution) && if (values.isNullOrEmpty()) {
@@ -72,7 +66,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
  */
 internal fun IntermediateSymbol<*>.shouldPrepare(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    tokenTable: AbstractTokenTable<Flt64>
 ): Boolean {
     return shouldPrepare(this, values, tokenTable)
 }
@@ -89,10 +83,9 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    tokenTable: AbstractTokenTable<Flt64>
 ): Boolean {
-    val tt = tokenTable
-    return (!values.isNullOrEmpty() || tt.cachedSolution) && tt.cached(cacheKey) == false
+    return (!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(cacheKey) == false
 }
 
 /**
@@ -105,7 +98,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
  */
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    tokenTable: AbstractTokenTable<Flt64>
 ): Boolean {
     return shouldPrepareWithFixedCacheKey(this, values, tokenTable)
 }
@@ -123,7 +116,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    tokenTable: AbstractTokenTable<Flt64>,
     block: () -> T?
 ): T? {
     return if (shouldPrepare(cacheKey, values, tokenTable)) {
@@ -144,7 +137,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
  */
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    tokenTable: AbstractTokenTable<Flt64>,
     block: () -> T?
 ): T? {
     return prepareIfNotCached(this, values, tokenTable, block)
@@ -163,7 +156,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    tokenTable: AbstractTokenTable<Flt64>,
     block: () -> T?
 ): T? {
     return if (shouldPrepareWithFixedCacheKey(cacheKey, values, tokenTable)) {
@@ -184,7 +177,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
  */
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    tokenTable: AbstractTokenTable<Flt64>,
     block: () -> T?
 ): T? {
     return prepareIfNotCachedWithFixedCacheKey(this, values, tokenTable, block)
@@ -242,7 +235,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
  * @return 求值结果 / Evaluation result
  */
 private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
-    results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    results: List<Flt64>,
     tokenTable: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     zeroIfNone: Boolean,
@@ -546,7 +539,7 @@ class LinearExpressionSymbol<V>(
 
     // 求解器边界使用的 Flt64 视图。
     // Flt64 view used at the solver boundary.
-    private val _polyFlt64: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = SolverBoundaryCasts.linearPolynomialAsFlt64(_utilsPolynomial)
+    private val _polyFlt64: MutableLinearPolynomial<Flt64> get() = SolverBoundaryCasts.linearPolynomialAsFlt64(_utilsPolynomial)
 
     override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
@@ -594,7 +587,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
@@ -640,7 +633,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val token = tokenList.find(symbol)
@@ -661,7 +654,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenList.indexOf(symbol)
@@ -683,7 +676,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -709,9 +702,9 @@ class LinearExpressionSymbol<V>(
      *
      * @return Flt64 值域，若依赖符号无值域则返回 null / Flt64 value range, or null if dependency symbols have no range
      */
-    private fun calculateRange(): ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+    private fun calculateRange(): ValueRange<Flt64>? {
         val poly = _polyFlt64
-        var range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = ValueRange(poly.constant, Flt64).value
+        var range: ValueRange<Flt64>? = ValueRange(poly.constant, Flt64).value
         for (monomial in poly.monomials) {
             val symRange = when (val sym = monomial.symbol) {
                 is AbstractVariableItem<*, *> -> sym.range.valueRange
@@ -749,7 +742,7 @@ class LinearExpressionSymbol<V>(
         category = Linear,
         prefix = "__linear_expression_flatten_cache__"
     )
-    private fun cacheTokenTable(): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+    private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
             dependencies
                 .asSequence()
@@ -796,16 +789,14 @@ class LinearExpressionSymbol<V>(
         return if (values.isNullOrEmpty()) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, converter, false)
-                if (symbolValue == null) return null
+                val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, converter, false) ?: return null
                 ret += monomial.coefficient * symbolValue
             }
             converter.intoValue(ret)
         } else {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, converter, false)
-                if (symbolValue == null) return null
+                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, converter, false) ?: return null
                 ret += monomial.coefficient * symbolValue
             }
             converter.intoValue(ret)
@@ -846,7 +837,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, tokenList, zeroIfNone)
@@ -888,7 +879,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return 求值结果 / Evaluation result
      */
-    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -946,7 +937,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, results, tokenList, zeroIfNone)
@@ -965,7 +956,7 @@ class LinearExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1318,7 +1309,7 @@ class QuadraticExpressionSymbol<V>(
 
     // 求解器边界使用的 Flt64 视图。
     // Flt64 view used at the solver boundary.
-    private val _polyFlt64: MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = SolverBoundaryCasts.quadraticPolynomialAsFlt64(_utilsPolynomial)
+    private val _polyFlt64: MutableQuadraticPolynomial<Flt64> get() = SolverBoundaryCasts.quadraticPolynomialAsFlt64(_utilsPolynomial)
 
     override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
@@ -1366,7 +1357,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -1412,7 +1403,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val token = tokenList.find(symbol)
@@ -1434,7 +1425,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenList.indexOf(symbol)
@@ -1457,7 +1448,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -1492,16 +1483,16 @@ class QuadraticExpressionSymbol<V>(
      *
      * @return Flt64 值域，若依赖符号无值域则返回 null / Flt64 value range, or null if dependency symbols have no range
      */
-    private fun calculateRange(): ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
-        var range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = ValueRange(_polyFlt64.constant, Flt64).value
+    private fun calculateRange(): ValueRange<Flt64>? {
+        var range: ValueRange<Flt64>? = ValueRange(_polyFlt64.constant, Flt64).value
         for (monomial in _polyFlt64.monomials) {
-            val sym1Range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = when (val sym1 = monomial.symbol1) {
+            val sym1Range: ValueRange<Flt64>? = when (val sym1 = monomial.symbol1) {
                 is AbstractVariableItem<*, *> -> sym1.range.valueRange
                 is LinearIntermediateSymbol<*> -> sym1.range.valueRange
                 is QuadraticIntermediateSymbol<*> -> sym1.range.valueRange
                 else -> null
             }
-            val sym2Range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = if (monomial.symbol2 != null) {
+            val sym2Range: ValueRange<Flt64>? = if (monomial.symbol2 != null) {
                 when (val sym2 = monomial.symbol2!!) {
                     is AbstractVariableItem<*, *> -> sym2.range.valueRange
                     is LinearIntermediateSymbol<*> -> sym2.range.valueRange
@@ -1561,7 +1552,7 @@ class QuadraticExpressionSymbol<V>(
         category = Quadratic,
         prefix = "__quadratic_expression_flatten_cache__"
     )
-    private fun cacheTokenTable(): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+    private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
             dependencies
                 .asSequence()
@@ -1675,7 +1666,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, tokenList, zeroIfNone)
@@ -1726,7 +1717,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenList, zeroIfNone)
@@ -1751,7 +1742,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return 求值结果 / Evaluation result
      */
-    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -1777,7 +1768,7 @@ class QuadraticExpressionSymbol<V>(
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
      */
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1938,11 +1929,11 @@ operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol
 // Solver-boundary extensions delegate to SolverBoundaryCasts to avoid scattered unchecked casts.
 
 /** 获取线性中间符号的 Flt64 求解器边界扁平化单项式数据。 / Get Flt64 solver-boundary flattened monomial data for linear intermediate symbol. */
-internal val <V> LinearIntermediateSymbol<V>.solverFlattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal val <V> LinearIntermediateSymbol<V>.solverFlattenedMonomials: LinearFlattenData<Flt64>
     where V : RealNumber<V>, V : Ring<V>, V : NumberField<V>
     get() = SolverBoundaryCasts.linearSolverFlattenedMonomials(this)
 
 /** 获取二次中间符号的 Flt64 求解器边界扁平化单项式数据。 / Get Flt64 solver-boundary flattened monomial data for quadratic intermediate symbol. */
-internal val <V> QuadraticIntermediateSymbol<V>.solverFlattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal val <V> QuadraticIntermediateSymbol<V>.solverFlattenedMonomials: QuadraticFlattenData<Flt64>
     where V : RealNumber<V>, V : Ring<V>, V : NumberField<V>
     get() = SolverBoundaryCasts.quadraticSolverFlattenedMonomials(this)

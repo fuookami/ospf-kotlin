@@ -7,14 +7,14 @@
  */
 package fuookami.ospf.kotlin.core.token
 
+import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.utils.functional.*
-import kotlinx.coroutines.*
 
 /**
  * Token 注册与缓存预热支持（含并发路径）。
@@ -48,7 +48,7 @@ private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenColl
  */
 private fun IntermediateSymbol<*>.prepareStar(
     fixedValues: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    tokenTable: AbstractTokenTable<Flt64>
 ): Flt64? {
     return SolverBoundaryCasts.prepareStar(this, fixedValues, tokenTable)
 }
@@ -59,7 +59,7 @@ private fun IntermediateSymbol<*>.prepareStar(
  *
  * @param symbol 中间符号 / Intermediate symbol
  */
-private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
+private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol<*> -> {
@@ -79,7 +79,7 @@ private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.c
  *
  * @param symbols 中间符号集合 / Intermediate symbol collection
  */
-private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
+private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }
@@ -95,7 +95,7 @@ private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.c
  */
 @Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol<*>>.register(
-    tokenTable: MutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    tokenTable: MutableTokenTable<Flt64>,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
 ): Try {

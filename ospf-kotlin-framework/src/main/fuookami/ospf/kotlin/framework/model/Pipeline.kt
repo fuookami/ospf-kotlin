@@ -208,7 +208,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      * @param solution 解向量 / Solution vector
      * @return 启发式分析目标值 / Heuristic analysis objective value
      */
-    operator fun invoke(model: M, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<Obj> =
+    operator fun invoke(model: M, solution: List<Flt64>): Ret<Obj> =
         when (val obj = calculate(model, solution)) {
             is Ok -> if (obj.value != null) {
                 Ok(Obj(this.name, obj.value!!))
@@ -229,7 +229,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      * @param solution 解向量 / Solution vector
      * @return 目标值，可能为 null / Objective value, may be null
      */
-    fun calculate(model: M, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<Flt64?>
+    fun calculate(model: M, solution: List<Flt64>): Ret<Flt64?>
 
     /**
      * 检查解的有效性
@@ -239,7 +239,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      * @param solution 解向量 / Solution vector
      * @return 操作结果 / Operation result
      */
-    fun check(model: M, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Try = when (val obj = calculate(model, solution)) {
+    fun check(model: M, solution: List<Flt64>): Try = when (val obj = calculate(model, solution)) {
         is Ok -> if (obj.value != null) {
             ok
         } else {

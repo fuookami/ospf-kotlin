@@ -436,7 +436,7 @@ class LinearMechanismModel<V>(
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
+        dualSolution: Map<Constraint<V, Linear>, V>
     ): List<LinearInequality<V>> {
         return buildLinearOptimalCut(
             constraints = linearConstraints,
@@ -461,7 +461,7 @@ class LinearMechanismModel<V>(
      */
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
+        farkasDualSolution: Map<Constraint<V, Linear>, V>
     ): List<LinearInequality<V>> {
         return buildLinearFeasibleCut(
             constraints = linearConstraints,
@@ -473,7 +473,7 @@ class LinearMechanismModel<V>(
         )
     }
 
-    private fun toFlt64LinearCut(cut: LinearInequality<V>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    private fun toFlt64LinearCut(cut: LinearInequality<V>): LinearInequality<Flt64> {
         return LinearInequality(
             lhs = LinearPolynomial(
                 monomials = cut.lhs.monomials.map { LinearMonomial(parent.converter.fromValue(it.coefficient), it.symbol) },
@@ -496,7 +496,7 @@ class LinearMechanismModel<V>(
     ): List<LinearInequality<V>> {
         val zero = parent.converter.zero
         validateDualById(linearConstraints, dualSolutionById, logger)
-        val dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V> = buildMap {
+        val dualSolution: Map<Constraint<V, Linear>, V> = buildMap {
             for (constraint in linearConstraints) {
                 val dual = dualSolutionById[constraint.name]
                 if (dual != null && dual neq zero) {
@@ -513,7 +513,7 @@ class LinearMechanismModel<V>(
     ): List<LinearInequality<V>> {
         val zero = parent.converter.zero
         validateDualById(linearConstraints, farkasDualSolutionById, logger)
-        val dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V> = buildMap {
+        val dualSolution: Map<Constraint<V, Linear>, V> = buildMap {
             for (constraint in linearConstraints) {
                 val dual = farkasDualSolutionById[constraint.name]
                 if (dual != null && dual neq zero) {
@@ -540,8 +540,8 @@ class LinearMechanismModel<V>(
     fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+        dualSolution: Map<Constraint<Flt64, Linear>, Flt64>
+    ): List<LinearInequality<Flt64>> {
         // 求解器边界：对偶解来自求解器原生类型。 / Solver boundary: dual solution from solver raw type.
         val dualByConstraint: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
         for (constraint in linearConstraints) {
@@ -573,8 +573,8 @@ class LinearMechanismModel<V>(
      */
     fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+        farkasDualSolution: Map<Constraint<Flt64, Linear>, Flt64>
+    ): List<LinearInequality<Flt64>> {
         // 求解器边界：Farkas 对偶解来自求解器原生类型。 / Solver boundary: Farkas dual solution from solver raw type.
         val dualByConstraint: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
         for (constraint in linearConstraints) {
@@ -613,9 +613,9 @@ class LinearMechanismModel<V>(
     internal fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualValues: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        dualValues: List<Flt64>,
         triadModel: LinearTriadModelView
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    ): List<LinearInequality<Flt64>> {
         val dualSolution = triadModel.tidyDualSolution(dualValues)
         return generateFlt64OptimalCut(objectVariable, fixedVariables, dualSolution)
     }
@@ -640,9 +640,9 @@ class LinearMechanismModel<V>(
      */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualValues: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        farkasDualValues: List<Flt64>,
         triadModel: LinearTriadModelView
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    ): List<LinearInequality<Flt64>> {
         val farkasDualSolution = triadModel.tidyDualSolution(farkasDualValues)
         return generateFlt64FeasibleCut(fixedVariables, farkasDualSolution)
     }
@@ -969,7 +969,7 @@ class QuadraticMechanismModel<V>(
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
+        dualSolution: Map<Constraint<V, Quadratic>, V>
     ): List<Any> {
         return buildQuadraticOptimalCut(
             constraints = quadraticConstraints,
@@ -994,7 +994,7 @@ class QuadraticMechanismModel<V>(
      */
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
+        farkasDualSolution: Map<Constraint<V, Quadratic>, V>
     ): List<Any> {
         return buildQuadraticFeasibleCut(
             constraints = quadraticConstraints,
@@ -1052,7 +1052,7 @@ class QuadraticMechanismModel<V>(
     ): List<Any> {
         val zero = parent.converter.zero
         validateDualById(quadraticConstraints, dualSolutionById, logger)
-        val dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V> = buildMap {
+        val dualSolution: Map<Constraint<V, Quadratic>, V> = buildMap {
             for (constraint in quadraticConstraints) {
                 val dual = dualSolutionById[constraint.name]
                 if (dual != null && dual neq zero) {
@@ -1069,7 +1069,7 @@ class QuadraticMechanismModel<V>(
     ): List<Any> {
         val zero = parent.converter.zero
         validateDualById(quadraticConstraints, farkasDualSolutionById, logger)
-        val dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V> = buildMap {
+        val dualSolution: Map<Constraint<V, Quadratic>, V> = buildMap {
             for (constraint in quadraticConstraints) {
                 val dual = farkasDualSolutionById[constraint.name]
                 if (dual != null && dual neq zero) {
@@ -1096,7 +1096,7 @@ class QuadraticMechanismModel<V>(
     fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+        dualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
         val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
@@ -1129,7 +1129,7 @@ class QuadraticMechanismModel<V>(
      */
     fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+        farkasDualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
         val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
@@ -1171,7 +1171,7 @@ class QuadraticMechanismModel<V>(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualValues: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        dualValues: List<Flt64>,
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val dualSolution = tetradModel.tidyDualSolution(dualValues)
@@ -1198,7 +1198,7 @@ class QuadraticMechanismModel<V>(
      */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualValues: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        farkasDualValues: List<Flt64>,
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val farkasDualSolution = tetradModel.tidyDualSolution(farkasDualValues)

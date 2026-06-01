@@ -30,7 +30,7 @@ interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : Numbe
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         objs: List<ObjValue>
-    ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    ): List<Flt64>
 }
 
 /**
@@ -38,7 +38,7 @@ interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : Numbe
  * Min-max normalization, mapping objective values to [0, 1] range.
  */
 data object MinMaxNormalization : ObjectiveNormalization<Flt64, Flt64> {
-    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<Flt64>): List<Flt64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         return if (model.compareObjective(minObj, maxObj) is Order.Less) {
@@ -54,7 +54,7 @@ data object MinMaxNormalization : ObjectiveNormalization<Flt64, Flt64> {
  * Sum normalization, converting objective values to proportionate weights.
  */
 data object SumNormalization : ObjectiveNormalization<Flt64, Flt64> {
-    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<Flt64>): List<Flt64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         val minMaxObjs = objs.map { (it - minObj) / (maxObj - minObj) }

@@ -40,3 +40,4 @@ package-lock.json
 Cargo.lock
 .VSCodeCounter/
 .tmp-*/
+/.codegraph/

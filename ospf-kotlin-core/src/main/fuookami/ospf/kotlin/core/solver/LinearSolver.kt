@@ -36,7 +36,7 @@ interface AbstractLinearSolver {
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
+    ): Ret<FeasibleSolverOutput<Flt64>>
 
     /**
      * 求解线性模型并启用 IIS 诊断（阻塞）。
@@ -73,8 +73,8 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-    ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
+        callBack: ((Ret<FeasibleSolverOutput<Flt64>>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutput<Flt64>>> {
         return coreSolverAsyncScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -125,7 +125,7 @@ interface AbstractLinearSolver {
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>
 
     /**
      * 求解线性模型获取多个解并启用 IIS 诊断（阻塞）。
@@ -142,7 +142,7 @@ interface AbstractLinearSolver {
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
-    ): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
+    ): Ret<Pair<SolverOutput, List<List<Flt64>>>> {
         return solveWithOptionsAndIISForSolutionPool(
             model = model,
             options = SolveOptions(
@@ -167,8 +167,8 @@ interface AbstractLinearSolver {
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
+        callBack: ((Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>> {
         return coreSolverAsyncScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -196,8 +196,8 @@ interface AbstractLinearSolver {
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
-        callBack: ((Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
+        callBack: ((Ret<Pair<SolverOutput, List<List<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<SolverOutput, List<List<Flt64>>>>> {
         return coreSolverAsyncScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -280,7 +280,7 @@ interface AbstractLinearSolver {
     ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
         return when (val converted = convertMechanismModelToFlt64(model)) {
             is Ok -> {
-                val linearModel = converted.value as? LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+                val linearModel = converted.value as? LinearMechanismModel<Flt64>
                     ?: return Failed(Err(ErrorCode.IllegalArgument, "Linear solver requires LinearMechanismModel, but got ${converted.value::class.simpleName}"))
                 dump(linearModel).use { solve(it, converter, solvingStatusCallBack) }
             }
@@ -314,7 +314,7 @@ interface AbstractLinearSolver {
     ): Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
         return when (val converted = convertMechanismModelToFlt64(model)) {
             is Ok -> {
-                val linearModel = converted.value as? LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+                val linearModel = converted.value as? LinearMechanismModel<Flt64>
                     ?: return Failed(Err(ErrorCode.IllegalArgument, "Linear solver requires LinearMechanismModel, but got ${converted.value::class.simpleName}"))
                 dump(linearModel).use { solve(it, solutionAmount, converter, solvingStatusCallBack) }
             }
@@ -336,7 +336,7 @@ interface AbstractLinearSolver {
      * @param model 线性机制模型 / Linear mechanism model
      * @return 线性三元组模型 / Linear triad model
      */
-    suspend fun dump(model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearTriadModel {
+    suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {
         return LinearTriadModel(model)
     }
 
@@ -350,12 +350,12 @@ interface AbstractLinearSolver {
      * @return 线性机制模型 / Linear mechanism model
      */
     suspend fun dump(
-        model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
-    ): Ret<LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    ): Ret<LinearMechanismModel<Flt64>> {
         @Suppress("DEPRECATION")
-        return LinearMechanismModel.invoke<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        return LinearMechanismModel.invoke<Flt64>(
             metaModel = model,
             registrationStatusCallBack = registrationStatusCallBack,
             dumpingStatusCallBack = dumpingStatusCallBack
@@ -372,7 +372,7 @@ interface AbstractLinearSolver {
 interface LinearSolver : AbstractLinearSolver {
     val config: SolverConfig
 
-    override suspend fun dump(model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearTriadModel {
+    override suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {
         return LinearTriadModel(
             model = model,
             fixedVariables = null,
@@ -383,12 +383,12 @@ interface LinearSolver : AbstractLinearSolver {
     }
 
     override suspend fun dump(
-        model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
-    ): Ret<LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    ): Ret<LinearMechanismModel<Flt64>> {
         @Suppress("DEPRECATION")
-        return LinearMechanismModel.invoke<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        return LinearMechanismModel.invoke<Flt64>(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpIntermediateModelConcurrent,

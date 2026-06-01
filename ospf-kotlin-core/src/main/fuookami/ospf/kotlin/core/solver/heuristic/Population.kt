@@ -36,7 +36,7 @@ interface Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
 data class PopulationBuilder(
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
-    val mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    val mutationRateRange: ValueRange<Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 )
 
@@ -61,7 +61,7 @@ data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
     val best: T,
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
-    val mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    val mutationRateRange: ValueRange<Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 ) where V : RealNumber<V>, V : NumberField<V> {
     /** 种群密度（个体数量）/ Population density (individual count) */

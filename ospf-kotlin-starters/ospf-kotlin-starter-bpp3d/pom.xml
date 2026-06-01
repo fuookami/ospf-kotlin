@@ -55,11 +55,6 @@
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-            <artifactId>ospf-kotlin-framework-bpp3d-domain-layer-selection-context</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
             <artifactId>ospf-kotlin-framework-bpp3d-application</artifactId>
             <version>${project.version}</version>
         </dependency>

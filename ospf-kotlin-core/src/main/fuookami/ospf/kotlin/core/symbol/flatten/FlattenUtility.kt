@@ -51,14 +51,14 @@ internal fun mergeLinearMonomials(
         }
     }
 
-    val normalizedMonomials = ArrayList<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>(mergedMonomials.size)
+    val normalizedMonomials = ArrayList<LinearMonomial<Flt64>>(mergedMonomials.size)
     for ((variable, coefficient) in mergedMonomials) {
         if (coefficient neq Flt64.zero) {
             normalizedMonomials.add(LinearMonomial(coefficient, variable))
         }
     }
 
-    return LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+    return LinearFlattenData(
         monomials = normalizedMonomials,
         constant = constant
     )
@@ -73,9 +73,9 @@ internal fun mergeLinearMonomials(
  * @return 合并后的 LinearFlattenData / Merged LinearFlattenData
  */
 internal fun mergeLinearFlattenDataFlt64(
-    flattenDataList: List<LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    flattenDataList: List<LinearFlattenData<Flt64>>,
     initialConstant: Flt64 = Flt64.zero
-): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): LinearFlattenData<Flt64> {
     val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
     var totalConstant = initialConstant
     for (flattenData in flattenDataList) {
@@ -112,9 +112,9 @@ internal fun mergeLinearFlattenDataFlt64(
  * @return 合并后的 QuadraticFlattenData，系数已合并 / Merged QuadraticFlattenData with combined coefficients
  */
 internal fun mergeQuadraticMonomials(
-    monomials: List<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    monomials: List<QuadraticMonomial<Flt64>>,
     constant: Flt64
-): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): QuadraticFlattenData<Flt64> {
     val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
 
     for (m in monomials) {
@@ -145,7 +145,7 @@ internal fun mergeQuadraticMonomials(
         }
     }
 
-    return QuadraticFlattenData<Flt64>(
+    return QuadraticFlattenData(
         monomials = normalizedMonomials,
         constant = constant
     )
@@ -160,9 +160,9 @@ internal fun mergeQuadraticMonomials(
  * @return 合并后的 QuadraticFlattenData / Merged QuadraticFlattenData
  */
 internal fun mergeQuadraticFlattenDataFlt64(
-    flattenDataList: List<QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    flattenDataList: List<QuadraticFlattenData<Flt64>>,
     initialConstant: Flt64 = Flt64.zero
-): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): QuadraticFlattenData<Flt64> {
     val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
     var totalConstant = initialConstant
     for (flattenData in flattenDataList) {
@@ -213,10 +213,10 @@ internal fun mergeQuadraticFlattenDataFlt64(
  * @return 相乘后的二次扁平化数据 / Quadratic flatten data resulting from multiplication
  */
 internal fun multiplyLinear(
-    lhs: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    rhs: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    val monomials = ArrayList<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+    lhs: LinearFlattenData<Flt64>,
+    rhs: LinearFlattenData<Flt64>
+): QuadraticFlattenData<Flt64> {
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // m1 * m2 terms (quadratic) / m1 * m2 项（二次项）
     for (m1 in lhs.monomials) {
@@ -267,10 +267,10 @@ internal fun multiplyLinear(
  * @return 相乘后的二次扁平化数据 / Quadratic flatten data resulting from multiplication
  */
 internal fun multiplyLinearQuadratic(
-    linear: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    quadratic: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    val monomials = ArrayList<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+    linear: LinearFlattenData<Flt64>,
+    quadratic: QuadraticFlattenData<Flt64>
+): QuadraticFlattenData<Flt64> {
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // Linear monomials * Quadratic monomials -> Quadratic (cubic would require higher order) / 线性单项式 * 二次单项式 -> 二次（三次项需要更高阶）
     // Since we only support quadratic, this is handled differently / 由于仅支持二次，此处以不同方式处理
@@ -320,12 +320,12 @@ internal fun multiplyLinearQuadratic(
  * @return 相乘后的二次扁平化数据 / Quadratic flatten data resulting from multiplication
  */
 internal fun multiplyQuadratic(
-    lhs: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    rhs: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    lhs: QuadraticFlattenData<Flt64>,
+    rhs: QuadraticFlattenData<Flt64>
+): QuadraticFlattenData<Flt64> {
     // Quadratic * Quadratic is not fully supported / 二次 * 二次未完全支持
     // Only handle constant multiplication / 仅处理常量乘法
-    val monomials = ArrayList<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // lhs monomials * rhs constant / 左侧单项式 * 右侧常量
     if (rhs.constant neq Flt64.zero) {
@@ -361,8 +361,8 @@ internal fun multiplyQuadratic(
  * @param data 待归一化的线性扁平化数据 / Linear flatten data to normalize
  * @return 归一化后的线性扁平化数据 / Normalized linear flatten data
  */
-internal fun normalizeLinear(data: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+internal fun normalizeLinear(data: LinearFlattenData<Flt64>): LinearFlattenData<Flt64> {
+    return LinearFlattenData(
         monomials = data.monomials.filter { it.coefficient neq Flt64.zero },
         constant = data.constant
     )
@@ -375,7 +375,7 @@ internal fun normalizeLinear(data: LinearFlattenData<fuookami.ospf.kotlin.math.a
  * @param data 待归一化的二次扁平化数据 / Quadratic flatten data to normalize
  * @return 归一化后的二次扁平化数据 / Normalized quadratic flatten data
  */
-internal fun normalizeQuadratic(data: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+internal fun normalizeQuadratic(data: QuadraticFlattenData<Flt64>): QuadraticFlattenData<Flt64> {
     return mergeQuadraticMonomials(
         monomials = data.monomials.filter { it.coefficient neq Flt64.zero },
         constant = data.constant

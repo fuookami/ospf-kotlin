@@ -215,7 +215,7 @@ class TokenList<T : RealNumber<T>>(
         }
     }
 
-    override fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
+    override fun setSolverSolution(solution: List<Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
@@ -393,7 +393,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         }
     }
 
-    override fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
+    override fun setSolverSolution(solution: List<Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {

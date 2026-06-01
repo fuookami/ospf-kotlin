@@ -40,13 +40,13 @@ import fuookami.ospf.kotlin.core.variable.*
  * between V-typed data and Flt64 when constructing constraints internally.
  *
  * 运行时 token 集合与机制模型仍位于 Flt64 求解器边界，因此调用点会传入
- * `AddableTokenCollection<fuookami.ospf.kotlin.math.algebra.number.Flt64>` 与
- * `AbstractLinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>`，
+ * `AddableTokenCollection<Flt64>` 与
+ * `AbstractLinearMechanismModel<Flt64>`，
  * 它们也是 V 类型接口的子类型。
  *
  * At runtime, the token collection and mechanism model are always Flt64-based
- * (solver boundary), so call sites pass `AddableTokenCollection<fuookami.ospf.kotlin.math.algebra.number.Flt64>` and
- * `AbstractLinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>` which are subtypes of the V-typed interfaces.
+ * (solver boundary), so call sites pass `AddableTokenCollection<Flt64>` and
+ * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-typed interfaces.
  */
 interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
@@ -308,7 +308,7 @@ class LinearFunctionSymbolAdapter<V>(
      * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
      * @return 计算结果 / evaluation result
      */
-    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
     /**
      * 基于结果列表和 token 列表的 Flt64 求值（默认返回 null）/ Flt64 evaluation based on results and token list (default returns null)
      * @param results 结果值列表 / the result value list
@@ -316,7 +316,7 @@ class LinearFunctionSymbolAdapter<V>(
      * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
      * @return 计算结果 / evaluation result
      */
-    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
     /**
      * 基于符号值映射的 Flt64 求值 / Flt64 evaluation based on symbol-value mapping
      * @param values Flt64 符号值映射 / Flt64 symbol-value mapping
@@ -324,7 +324,7 @@ class LinearFunctionSymbolAdapter<V>(
      * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
      * @return 计算结果 / evaluation result
      */
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         val v = delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.fromValue(v)
     }
@@ -372,7 +372,7 @@ class LinearFunctionSymbolAdapter<V>(
      * @param zeroIfNone 缺失值时是否使用零 / whether to use zero for missing values
      * @return 计算结果 / evaluation result
      */
-    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val typedResults = results.map { converter.intoValue(it) }
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
@@ -391,24 +391,24 @@ class LinearFunctionSymbolAdapter<V>(
 
 // ---- Converter-based helpers (safe, no unchecked casts) ----
 
-/** 使用提供的转换器将 LinearPolynomial<V> 转换为 LinearPolynomial<Flt64>。 / Convert LinearPolynomial<V> to LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> using the provided converter. */
-internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+/** 使用提供的转换器将 LinearPolynomial<V> 转换为 LinearPolynomial<Flt64>。 / Convert LinearPolynomial<V> to LinearPolynomial<Flt64> using the provided converter. */
+internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
         converter.fromValue(constant)
     )
 }
 
-/** 使用提供的转换器将 QuadraticPolynomial<V> 转换为 QuadraticPolynomial<Flt64>。 / Convert QuadraticPolynomial<V> to QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> using the provided converter. */
-internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+/** 使用提供的转换器将 QuadraticPolynomial<V> 转换为 QuadraticPolynomial<Flt64>。 / Convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> using the provided converter. */
+internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
         converter.fromValue(constant)
     )
 }
 
-/** 使用提供的转换器将 QuadraticPolynomial<Flt64> 转换为 QuadraticPolynomial<V>。 / Convert QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> to QuadraticPolynomial<V> using the provided converter. */
-internal fun <V> QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.asVQuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+/** 使用提供的转换器将 QuadraticPolynomial<Flt64> 转换为 QuadraticPolynomial<V>。 / Convert QuadraticPolynomial<Flt64> to QuadraticPolynomial<V> using the provided converter. */
+internal fun <V> QuadraticPolynomial<Flt64>.asVQuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },
         converter.intoValue(constant)

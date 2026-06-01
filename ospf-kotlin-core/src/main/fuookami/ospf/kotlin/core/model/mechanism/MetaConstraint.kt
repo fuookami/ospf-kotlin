@@ -307,7 +307,7 @@ fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathCo
     return group.run { this@constraintsOfGroup.constraintsOfGroup() }
 }
 
-// ========== Math Inequality-based Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64> Types ==========
+// ========== Math Inequality-based Constraint<Flt64> Types ==========
 
 /**
  * 数学约束通用接口。

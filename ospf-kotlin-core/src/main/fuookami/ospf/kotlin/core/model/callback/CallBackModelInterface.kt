@@ -38,7 +38,13 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
     /** 目标函数列表（提取器与名称的配对） / Objective function list (pairs of extractor and name) */
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<SolutionValue>>, String>>
 
-    /** 生成初始解列表，默认为空。 / Generate a list of initial solutions, empty by default. */
+    /**
+     * 生成初始解列表，默认为空。
+     * Generate a list of initial solutions, empty by default.
+     *
+     * @param initialSolutionAmount 初始解数量 / The number of initial solutions
+     * @return 初始解列表 / The list of initial solutions
+     */
     fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution<SolutionValue>> {
         return emptyList()
     }
@@ -70,7 +76,13 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      */
     fun objectiveValue(obj: Obj): ObjValue
 
-    /** 计算解的目标值，遍历所有目标函数并聚合。 / Compute the objective value of a solution by aggregating all objective functions. */
+    /**
+     * 计算解的目标值，遍历所有目标函数并聚合。
+     * Compute the objective value of a solution by aggregating all objective functions.
+     *
+     * @param solution 待计算的解 / The solution to evaluate
+     * @return 聚合后的目标值，任一目标函数返回 null 时整体返回 null / The aggregated objective value, or null if any objective function returns null
+     */
     fun objective(solution: Solution<SolutionValue>): ObjValue? {
         var obj = objectiveValue()
         for ((objectiveFunction, _) in objectiveFunctions) {
@@ -80,10 +92,24 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
         return obj
     }
 
-    /** 比较两个非空目标值的优先级顺序。 / Compare the ordering of two non-null objective values. */
+    /**
+     * 比较两个非空目标值的优先级顺序。
+     * Compare the ordering of two non-null objective values.
+     *
+     * @param lhs 左侧目标值 / The left-hand side objective value
+     * @param rhs 右侧目标值 / The right-hand side objective value
+     * @return 比较结果 / The comparison result
+     */
     fun compareObjective(lhs: ObjValue, rhs: ObjValue): Order?
 
-    /** 比较两个可空目标值的优先级顺序，null 视为最差。 / Compare the ordering of two nullable objective values, treating null as worst. */
+    /**
+     * 比较两个可空目标值的优先级顺序，null 视为最差。
+     * Compare the ordering of two nullable objective values, treating null as worst.
+     *
+     * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
+     * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
+     * @return 比较结果，任一为 null 时另一个更优 / The comparison result; when either is null, the other is preferred
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("comparePartialObjective")
     fun compareObjective(lhs: ObjValue?, rhs: ObjValue?): Order? {

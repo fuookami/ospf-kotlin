@@ -35,13 +35,21 @@ class GurobiLinearSolverCallBack(
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, MutableList<LinearFunction>> = EnumMap(Point::class.java)
 ) : Copyable<GurobiLinearSolverCallBack> {
-    /** 设置原生回调函数 / Set native callback function */
+    /**
+     * 设置原生回调函数 / Set native callback function
+     *
+     * @param function 原生回调函数 / Native callback function
+     */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
         nativeCallback = function
     }
 
-    /** 设置创建环境函数 / Set creating environment function */
+    /**
+     * 设置创建环境函数 / Set creating environment function
+     *
+     * @param function 创建环境函数 / Creating environment function
+     */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
         creatingEnvironmentFunction = function
@@ -59,20 +67,50 @@ class GurobiLinearSolverCallBack(
         return this
     }
 
-    /** 设置创建环境回调 / Set creating environment callback */
+    /**
+     * 设置创建环境回调 / Set creating environment callback
+     *
+     * @param function 创建环境函数 / Creating environment function
+     */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
-    /** 设置建模完成后的回调 / Set after modeling callback */
+    /**
+     * 设置建模完成后的回调 / Set after modeling callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun afterModeling(function: LinearFunction) = set(Point.AfterModeling, function)
-    /** 设置配置阶段的回调 / Set configuration callback */
+    /**
+     * 设置配置阶段的回调 / Set configuration callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun configuration(function: LinearFunction) = set(Point.Configuration, function)
-    /** 设置分析解阶段的回调 / Set analyzing solution callback */
+    /**
+     * 设置分析解阶段的回调 / Set analyzing solution callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
-    /** 设置求解失败后的回调 / Set after failure callback */
+    /**
+     * 设置求解失败后的回调 / Set after failure callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
-    /** 检查是否包含指定时机的回调 / Check if callback at specified point is contained */
+    /**
+     * 检查是否包含指定时机的回调 / Check if callback at specified point is contained
+     *
+     * @param point 回调时机 / Callback point
+     * @return 是否包含 / Whether contained
+     */
     fun contains(point: Point) = map.containsKey(point)
-    /** 获取指定时机的回调函数列表 / Get callback function list at specified point */
+    /**
+     * 获取指定时机的回调函数列表 / Get callback function list at specified point
+     *
+     * @param point 回调时机 / Callback point
+     * @return 回调函数列表 / Callback function list
+     */
     fun get(point: Point): List<LinearFunction>? = map[point]
 
     /**
@@ -131,13 +169,21 @@ class GurobiQuadraticSolverCallBack(
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, MutableList<QuadraticFunction>> = EnumMap(Point::class.java)
 ) : Copyable<GurobiQuadraticSolverCallBack> {
-    /** 设置原生回调函数 / Set native callback function */
+    /**
+     * 设置原生回调函数 / Set native callback function
+     *
+     * @param function 原生回调函数 / Native callback function
+     */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
         nativeCallback = function
     }
 
-    /** 设置创建环境函数 / Set creating environment function */
+    /**
+     * 设置创建环境函数 / Set creating environment function
+     *
+     * @param function 创建环境函数 / Creating environment function
+     */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
         creatingEnvironmentFunction = function
@@ -155,20 +201,50 @@ class GurobiQuadraticSolverCallBack(
         return this
     }
 
-    /** 设置创建环境回调 / Set creating environment callback */
+    /**
+     * 设置创建环境回调 / Set creating environment callback
+     *
+     * @param function 创建环境函数 / Creating environment function
+     */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
-    /** 设置建模完成后的回调 / Set after modeling callback */
+    /**
+     * 设置建模完成后的回调 / Set after modeling callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun afterModeling(function: QuadraticFunction) = set(Point.AfterModeling, function)
-    /** 设置配置阶段的回调 / Set configuration callback */
+    /**
+     * 设置配置阶段的回调 / Set configuration callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun configuration(function: QuadraticFunction) = set(Point.Configuration, function)
-    /** 设置分析解阶段的回调 / Set analyzing solution callback */
+    /**
+     * 设置分析解阶段的回调 / Set analyzing solution callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
-    /** 设置求解失败后的回调 / Set after failure callback */
+    /**
+     * 设置求解失败后的回调 / Set after failure callback
+     *
+     * @param function 回调函数 / Callback function
+     */
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
-    /** 检查是否包含指定时机的回调 / Check if callback at specified point is contained */
+    /**
+     * 检查是否包含指定时机的回调 / Check if callback at specified point is contained
+     *
+     * @param point 回调时机 / Callback point
+     * @return 是否包含 / Whether contained
+     */
     fun contains(point: Point) = map.containsKey(point)
-    /** 获取指定时机的回调函数列表 / Get callback function list at specified point */
+    /**
+     * 获取指定时机的回调函数列表 / Get callback function list at specified point
+     *
+     * @param point 回调时机 / Callback point
+     * @return 回调函数列表 / Callback function list
+     */
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
     /**

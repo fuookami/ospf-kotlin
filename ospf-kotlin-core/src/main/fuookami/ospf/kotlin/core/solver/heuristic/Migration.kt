@@ -43,7 +43,7 @@ interface Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class RandomMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -72,7 +72,7 @@ data class RandomMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class BetterToWorseMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -101,7 +101,7 @@ data class BetterToWorseMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class MoreToLessMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -126,7 +126,7 @@ data class MoreToLessMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class MigrationMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -155,7 +155,7 @@ data class MigrationMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class RingExchangeMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -182,7 +182,7 @@ data class RingExchangeMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class RandomDiffusionMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -209,7 +209,7 @@ data class RandomDiffusionMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class ElitistMigrationMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -241,7 +241,7 @@ data class ElitistMigrationMigration<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  */
 data class PopulationMergeMigration<ObjValue, V>(
-    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,

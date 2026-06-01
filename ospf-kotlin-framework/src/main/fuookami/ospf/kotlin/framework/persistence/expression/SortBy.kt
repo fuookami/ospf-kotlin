@@ -34,6 +34,10 @@ data class SortBy(
         /**
          * 升序排序
          * Ascending sort
+         *
+         * @param path 字段路径 / Field path
+         * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
+         * @return 排序定义 / Sort definition
          */
         fun asc(path: String, nulls: NullsOrder? = null): SortBy =
             SortBy(listOf(SortItem(path, SortDirection.Asc, nulls)))
@@ -41,6 +45,10 @@ data class SortBy(
         /**
          * 降序排序
          * Descending sort
+         *
+         * @param path 字段路径 / Field path
+         * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
+         * @return 排序定义 / Sort definition
          */
         fun desc(path: String, nulls: NullsOrder? = null): SortBy =
             SortBy(listOf(SortItem(path, SortDirection.Desc, nulls)))
@@ -48,6 +56,10 @@ data class SortBy(
         /**
          * 按属性升序排序
          * Ascending sort by property
+         *
+         * @param property 属性引用 / Property reference
+         * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
+         * @return 排序定义 / Sort definition
          */
         fun <E, T> asc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
             asc(property.name, nulls)
@@ -55,20 +67,30 @@ data class SortBy(
         /**
          * 按属性降序排序
          * Descending sort by property
+         *
+         * @param property 属性引用 / Property reference
+         * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
+         * @return 排序定义 / Sort definition
          */
         fun <E, T> desc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
             desc(property.name, nulls)
 
         /**
-         * 从多个路径创建升序排�?
+         * 从多个路径创建升序排序
          * Create ascending sort from multiple paths
+         *
+         * @param paths 字段路径列表 / Field path list
+         * @return 排序定义 / Sort definition
          */
         fun asc(vararg paths: String): SortBy =
             SortBy(paths.map { SortItem(it, SortDirection.Asc) })
 
         /**
-         * 从多个路径创建降序排�?
+         * 从多个路径创建降序排序
          * Create descending sort from multiple paths
+         *
+         * @param paths 字段路径列表 / Field path list
+         * @return 排序定义 / Sort definition
          */
         fun desc(vararg paths: String): SortBy =
             SortBy(paths.map { SortItem(it, SortDirection.Desc) })
@@ -76,6 +98,9 @@ data class SortBy(
         /**
          * 从多个属性创建升序排序
          * Create ascending sort from multiple properties
+         *
+         * @param properties 属性引用列表 / Property reference list
+         * @return 排序定义 / Sort definition
          */
         fun <E> asc(vararg properties: KProperty1<E, *>): SortBy =
             SortBy(properties.map { SortItem(it.name, SortDirection.Asc) })
@@ -83,6 +108,9 @@ data class SortBy(
         /**
          * 从多个属性创建降序排序
          * Create descending sort from multiple properties
+         *
+         * @param properties 属性引用列表 / Property reference list
+         * @return 排序定义 / Sort definition
          */
         fun <E> desc(vararg properties: KProperty1<E, *>): SortBy =
             SortBy(properties.map { SortItem(it.name, SortDirection.Desc) })
@@ -95,15 +123,23 @@ data class SortBy(
     operator fun plus(other: SortBy): SortBy = SortBy(items + other.items)
 
     /**
-     * 添加升序排序�?
+     * 添加升序排序项
      * Add ascending sort item
+     *
+     * @param path 字段路径 / Field path
+     * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
+     * @return 排序定义 / Sort definition
      */
     fun thenAsc(path: String, nulls: NullsOrder? = null): SortBy =
         SortBy(items + SortItem(path, SortDirection.Asc, nulls))
 
     /**
-     * 添加降序排序�?
+     * 添加降序排序项
      * Add descending sort item
+     *
+     * @param path 字段路径 / Field path
+     * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
+     * @return 排序定义 / Sort definition
      */
     fun thenDesc(path: String, nulls: NullsOrder? = null): SortBy =
         SortBy(items + SortItem(path, SortDirection.Desc, nulls))

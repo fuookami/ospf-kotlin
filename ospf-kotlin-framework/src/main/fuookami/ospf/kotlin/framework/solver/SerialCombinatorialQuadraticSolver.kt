@@ -56,7 +56,7 @@ class SerialCombinatorialQuadraticSolver(
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solvingStatusCallBack)) {
                 is Ok -> {
@@ -83,7 +83,7 @@ class SerialCombinatorialQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack)) {
                 is Ok -> {

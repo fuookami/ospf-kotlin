@@ -20,7 +20,6 @@ internal data class TokenCacheKey(
     val prefix: String,
     val identifier: UInt64 = IdentifierGenerator.gen()
 ) {
-    /** @return 格式为 "prefix_identifier" 的字符串 / String in "prefix_identifier" format */
     override fun toString(): String {
         return "${prefix}_${identifier}"
     }
