@@ -129,15 +129,14 @@ interface LinearBendersDecompositionSolver {
     val name: String
 
     /**
-     * 求解线性主问题
-     * Solve linear master problem
+     * 求解线性 Benders 主问题 / Solve linear Benders master problem
      *
-     * @param name 求解名称 / Solve name
-     * @param metaModel 线性元模型 / Linear meta model
-     * @param toLogModel 是否输出模型日志 / Whether to log the model
-     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
-     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
-     * @return 求解结果 / Solve result
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param toLogModel 是否导出模型文件 / whether to export model file
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果 / solving result
      */
     suspend fun solveMaster(
         name: String,
@@ -160,7 +159,7 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-        fun solveMasterAsync(
+    fun solveMasterAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean = false,
@@ -178,7 +177,7 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-        fun solveMasterAsync(
+    fun solveMasterAsync(
         metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> {
@@ -210,7 +209,7 @@ interface LinearBendersDecompositionSolver {
      */
     data class LinearFeasibleResult(
         val result: FeasibleSolverOutput<Flt64>,
-        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
+        val dualSolution: Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<Flt64>>?
     ) : LinearSubResult {
         val obj: Flt64 by result::obj
@@ -228,10 +227,22 @@ interface LinearBendersDecompositionSolver {
      * @property cuts 割平面列表 / Cut list
      */
     data class LinearInfeasibleResult(
-        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
+        val farkasDualSolution: Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<Flt64>>?
     ) : LinearSubResult
 
+    /**
+     * 求解线性 Benders 子问题 / Solve linear Benders sub problem
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param objectVariable 目标变量 / objective variable
+     * @param fixedVariables 固定变量映射 / fixed variables mapping
+     * @param toLogModel 是否导出模型文件 / whether to export model file
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 子问题求解结果 / sub problem solving result
+     */
     suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -259,7 +270,7 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-        fun solveSubAsync(
+    fun solveSubAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -281,7 +292,7 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-        fun solveSubAsync(
+    fun solveSubAsync(
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -363,7 +374,7 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -383,7 +394,7 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -397,7 +408,7 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         toLogModel: Boolean = false,
@@ -677,7 +688,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun solveMasterAsync(
+    fun solveMasterAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> {
@@ -764,7 +775,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-        fun solveSubAsync(
+    fun solveSubAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -786,7 +797,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun solveSubAsync(
+    fun solveSubAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -868,7 +879,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -888,7 +899,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -902,7 +913,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         toLogModel: Boolean = false,
@@ -920,7 +931,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun <V> solveMasterVAsync(
+    fun <V> solveMasterVAsync(
         metaModel: QuadraticMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
@@ -939,7 +950,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     data class QuadraticFeasibleResultV<V>(
         val result: FeasibleSolverOutput<V>,
-        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+        val dualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<V>>?,
         override val quadraticCuts: List<QuadraticInequalityOf<V>>?
     ) : QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -951,7 +962,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     data class QuadraticInfeasibleResultV<V>(
-        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+        val farkasDualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<V>>?,
         override val quadraticCuts: List<QuadraticInequalityOf<V>>?
     ) : QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V>
@@ -1062,7 +1073,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-        fun <V> solveSubVAsync(
+    fun <V> solveSubVAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1086,7 +1097,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun <V> solveSubVAsync(
+    fun <V> solveSubVAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -1104,7 +1115,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun <V> solveSubVAsync(
+    fun <V> solveSubVAsync(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1126,7 +1137,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-        fun <V> solveSubVAsync(
+    fun <V> solveSubVAsync(
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,

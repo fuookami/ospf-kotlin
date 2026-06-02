@@ -37,16 +37,6 @@ class CplexLinearBendersDecompositionSolver(
 ) : LinearBendersDecompositionSolver {
     override val name = "copt"
 
-    /**
-     * 求解线性 Benders 主问题 / Solve linear Benders master problem
-     *
-     * @param name 模型名称 / model name
-     * @param metaModel 线性元模型 / linear meta model
-     * @param toLogModel 是否导出模型文件 / whether to export model file
-     * @param registrationStatusCallBack 注册状态回调 / registration status callback
-     * @param solvingStatusCallBack 求解状态回调 / solving status callback
-     * @return 求解结果 / solving result
-     */
     override suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -169,34 +159,35 @@ class CplexLinearBendersDecompositionSolver(
                     })
                 }
 
-                /**
-     * 求解线性 Benders 子问题 / Solve linear Benders sub problem
-     *
-     * @param name 模型名称 / model name
-     * @param metaModel 线性元模型 / linear meta model
-     * @param objectVariable 目标变量 / objective variable
-     * @param fixedVariables 固定变量映射 / fixed variables mapping
-     * @param toLogModel 是否导出模型文件 / whether to export model file
-     * @param registrationStatusCallBack 注册状态回调 / registration status callback
-     * @param solvingStatusCallBack 求解状态回调 / solving status callback
-     * @return 子问题求解结果 / sub problem solving result
-     */
-    override suspend fun solveSub(
-        name: String,
-        metaModel: LinearMetaModel<Flt64>,
-        objectVariable: AbstractVariableItem<*, *>,
-        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        toLogModel: Boolean,
-        registrationStatusCallBack: RegistrationStatusCallBack?,
-        solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<LinearBendersDecompositionSolver.LinearSubResult> {
-        val jobs = ArrayList<Job>()
-        if (toLogModel) {
-            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
-                metaModel.export("$name.opm")
-            })
-        }
-        return when (val result = LinearMechanismModel(
+                lateinit var dualSolution: Map<Constraint<Flt64, Linear>, Flt64>
+                lateinit var farkasSolution: Map<Constraint<Flt64, Linear>, Flt64>
+                val solver = CoptLinearSolver(
+                    config = config,
+                    callBack = linearCallBack.copy()
+                        .analyzingSolution { _, _, _, constraints ->
+                            dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                                Flt64(constraint.get(COPT.DoubleInfo.Dual))
+                            })
+                            ok
+                        }
+                        .afterFailure { status, _, _, constraints ->
+                            if (status == SolverStatus.Infeasible) {
+                                farkasSolution = model.tidyDualSolution(constraints.map { constraint ->
+                                    Flt64(constraint.get(COPT.DoubleInfo.DualFarkas))
+                                })
+                            }
+                            ok
+                        }
+                )
+
+                when (val result = solver(model, solvingStatusCallBack)) {
+                    is Ok -> {
+                        metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
+                            token.variable to result.value.solution[index]
+                        }.toMap() + fixedVariables)
+                        jobs.joinAll()
+                        Ok(
+                            LinearBendersDecompositionSolver.LinearFeasibleResult(
                                 result = result.value,
                                 dualSolution = dualSolution,
                                 cuts = mechanismModel.generateFlt64OptimalCut(
