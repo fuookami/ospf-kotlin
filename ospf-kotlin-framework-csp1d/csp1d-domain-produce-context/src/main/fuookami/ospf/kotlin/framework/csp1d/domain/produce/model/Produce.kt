@@ -62,16 +62,25 @@ data class Produce<V : RealNumber<V>>(
 )
 
 /**
+ * 需求贡献聚合键（产品ID + 单位），确保同产品不同单位贡献不混算 / Contribution aggregation key (product ID + unit) ensuring same-product different-unit contributions are not mixed
+ */
+data class ContributionKey(
+    val productId: String,
+    val unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+)
+
+/**
  * 汇总切割方案贡献 / Aggregate cutting plan contributions
  *
  * @param V 数值类型 / Numeric value type
- * @return 按产品聚合的需求贡献 / Demand contribution grouped by product
+ * @return 按产品+单位聚合的需求贡献 / Demand contribution grouped by product+unit
  */
-fun <V : RealNumber<V>> Produce<V>.contributions(): Map<String, List<CuttingPlanDemandContribution<V>>> {
-    val contributions = LinkedHashMap<String, MutableList<CuttingPlanDemandContribution<V>>>()
+fun <V : RealNumber<V>> Produce<V>.contributions(): Map<ContributionKey, List<CuttingPlanDemandContribution<V>>> {
+    val contributions = LinkedHashMap<ContributionKey, MutableList<CuttingPlanDemandContribution<V>>>()
     for (usage in cuttingPlans) {
         for (contribution in usage.plan.demandContributions) {
-            contributions.getOrPut(contribution.product.id) { ArrayList() }.add(contribution)
+            val key = ContributionKey(contribution.product.id, contribution.quantity.unit)
+            contributions.getOrPut(key) { ArrayList() }.add(contribution)
         }
     }
     return contributions

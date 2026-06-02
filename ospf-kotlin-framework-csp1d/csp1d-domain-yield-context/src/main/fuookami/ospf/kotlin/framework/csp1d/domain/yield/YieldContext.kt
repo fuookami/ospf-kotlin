@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.DemandAggregationKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.OverProduction
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.ProductOutput
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.UnderProduction
@@ -15,7 +16,7 @@ import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
- * 产出上下文，负责汇总切割方案贡献并与需求对比 / Yield context: aggregates cutting plan contributions and compares with demands
+ * 产出上下文，按产品+单位聚合贡献并与需求对比 / Yield context: aggregates contributions by product+unit and compares with demands
  *
  * @param V 数值类型 / Numeric value type
  */
@@ -23,7 +24,7 @@ class YieldContext<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>
 ) {
     /**
-     * 分析产出偏差：按统一 ProductDemand 口径计算欠产和超产 / Analyze yield deviation: compute under/over production per unified ProductDemand
+     * 分析产出偏差：按产品+单位聚合贡献，只在同单位下比较 / Analyze yield deviation: aggregate by product+unit, compare only under same unit
      *
      * @param produce 主问题产出 / Master problem output
      * @param demands 需求列表 / Demand list
@@ -33,13 +34,14 @@ class YieldContext<V : RealNumber<V>>(
         produce: Produce<V>,
         demands: List<ProductDemand<V>>
     ): YieldAnalysis<V> {
-        val contributionByProductId = aggregateContributions(produce)
+        val contributionByKey = aggregateContributions(produce)
         val underProductions = ArrayList<UnderProduction<V>>()
         val overProductions = ArrayList<OverProduction<V>>()
         val outputs = ArrayList<ProductOutput<V>>()
 
         for (demand in demands) {
-            val contributions = contributionByProductId[demand.product.id] ?: emptyList()
+            val key = DemandAggregationKey<V>(demand.product.id, demand.quantity.unit)
+            val contributions = contributionByKey[key] ?: emptyList()
             val totalOutput = sumContributions(contributions)
             if (totalOutput == null) {
                 underProductions.add(
@@ -94,12 +96,13 @@ class YieldContext<V : RealNumber<V>>(
 
     private fun aggregateContributions(
         produce: Produce<V>
-    ): Map<String, List<CuttingPlanDemandContribution<V>>> {
-        val map = LinkedHashMap<String, MutableList<CuttingPlanDemandContribution<V>>>()
+    ): Map<DemandAggregationKey<V>, List<CuttingPlanDemandContribution<V>>> {
+        val map = LinkedHashMap<DemandAggregationKey<V>, MutableList<CuttingPlanDemandContribution<V>>>()
         for (usage in produce.cuttingPlans) {
             for (contribution in usage.plan.demandContributions) {
                 val multiplied = multiplyContribution(contribution, usage.amount.toULong())
-                map.getOrPut(contribution.product.id) { ArrayList() }.add(multiplied)
+                val key = DemandAggregationKey<V>(contribution.product.id, multiplied.quantity.unit)
+                map.getOrPut(key) { ArrayList() }.add(multiplied)
             }
         }
         return map

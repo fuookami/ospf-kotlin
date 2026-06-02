@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionAnalyzer
@@ -9,48 +10,43 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1d
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceSolver
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.SimpleProduceSolver
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 
-/**
- * CSP1D 静态 MILP 入口（最小实现）/ CSP1D static MILP entry point (minimal implementation)
- *
- * @param V 数值类型 / Numeric value type
- */
 class Csp1dMilp<V : RealNumber<V>>(
+    private val solver: ColumnGenerationSolver,
     private val initialGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
-    private val produceSolver: ProduceSolver<V> = SimpleProduceSolver(),
     private val analyzer: Csp1dSolutionAnalyzer<V> = DefaultCsp1dSolutionAnalyzer()
 ) {
-    /**
-     * 求解 CSP1D / Solve CSP1D
-     *
-     * @param problem 问题定义 / Problem definition
-     * @return 求解结果 / Solution
-     */
-    fun solve(problem: Csp1dProblem<V>): Csp1dSolution<V> {
-        val generationInput = CuttingPlanGenerationInput(
-            products = problem.products,
-            materials = problem.materials,
-            machines = problem.machines,
-            costars = problem.costars,
-            demands = problem.demands
+    suspend fun solve(
+        problem: Csp1dProblem<V>
+    ): Csp1dSolution<V> {
+        val generatedPlans = initialGenerator.generate(
+            CuttingPlanGenerationInput(
+                products = problem.products,
+                materials = problem.materials,
+                machines = problem.machines,
+                costars = problem.costars,
+                demands = problem.demands
+            )
         )
-        val plans = initialGenerator
-            .generate(generationInput)
-            .take(problem.configuration.maxInitialPlans)
-        val produce = produceSolver.solve(
+        val result = Csp1dMilpSolver(solver).solve(
             ProduceInput(
-                candidatePlans = plans,
+                candidatePlans = generatedPlans,
                 demands = problem.demands,
+                materials = problem.materials,
                 machines = problem.machines
             )
+        )
+        val produce = result?.produce ?: Produce(
+            cuttingPlans = emptyList(),
+            materialUsages = emptyList(),
+            machineUsages = emptyList(),
+            unmetDemands = problem.demands
         )
         return analyzer.analyze(
             problem = problem,
             produce = produce,
-            generatedPlans = plans
+            generatedPlans = generatedPlans
         )
     }
 }
-

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 
@@ -10,7 +11,8 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
  * @param V 数值类型 / Numeric value type
  */
 class Csp1dSchedule<V : RealNumber<V>>(
-    private val columnGeneration: Csp1dColumnGeneration<V> = Csp1dColumnGeneration()
+    solver: ColumnGenerationSolver,
+    private val columnGeneration: Csp1dColumnGeneration<V> = Csp1dColumnGeneration(solver)
 ) {
     /**
      * 以列生成作为默认排程求解路径 / Use column generation as the default scheduling path
@@ -18,7 +20,7 @@ class Csp1dSchedule<V : RealNumber<V>>(
      * @param problem 问题定义 / Problem definition
      * @return 求解结果 / Solution
      */
-    fun solve(problem: Csp1dProblem<V>): Csp1dSolution<V> {
+    suspend fun solve(problem: Csp1dProblem<V>): Csp1dSolution<V> {
         return columnGeneration.solve(problem)
     }
 }

@@ -403,6 +403,9 @@ git grep -n "Flt64\\|FltX" -- ospf-kotlin-framework-csp1d
 2. legacy factory。
 3. typealias。
 4. 测试。
+5. QuantityArithmetic 实现（Flt64QuantityArithmetic / FltXQuantityArithmetic / DefaultQuantityArithmetic.resolveFor）。
+6. application render mapper / sorting 边界（在 mapper 内显式转换，领域模型不应泄漏）。
+7. QuantityArithmetic.zero() 实现内部。
 
 其它领域模型中的固定数值类型应迁移为泛型。
 
@@ -487,118 +490,123 @@ git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-c
 2. **length-assignment-context 求解器集成**：当前 `LengthAssignmentContext` 已实现分配流程和超长检测，但 `LengthDerivation<V>` 依赖下游注入；下一步需提供 `Flt64` / `FltX` 默认实现，并接入 solver 变量和约束。
 3. **wasting-minimization-context 目标建模**：当前 `WastingMinimizationContext` 已实现浪费分析（余宽/余料汇总），下一步需将 `WasteMinimizationObjective<V>` 的四个子类接入 solver 目标函数。
 4. **切割方案生成算法补齐**：按第 11 节优先级，继续实现 DFS/FullSum/N-Same/N-Sum 等不依赖 solver 的方案生成算法（当前仅有 `SimpleInitialCuttingPlanGenerator` 和 `SimplePricingGenerator`）。
-5. **主问题 MILP 求解器替换**：当前 `SimpleProduceSolver` 为最小启发式选择器，需替换为真实的 MILP solver 调用（通过 `ospf-kotlin-core` 的 `AbstractLinearMetaModel` 接入）。
+5. **主问题 MILP 建模方式修正**：`ProduceSolver` / `SimpleProduceSolver` 是 C0-1 为跑通验收临时加入的占位设计，下一步应删除该领域层 solver 接口，并在 `Csp1dMilp` / `Csp1dColumnGeneration` 的 application 层直接构建 `LinearMetaModel`。
 
-## 14. 审查总结与下一轮计划（2026-06-02）
+## 14. 当前交接与下一轮计划（2026-06-02）
 
-### 14.1 已完成事项总结
+### 14.1 已完成事项摘要
 
-本轮审查确认，CSP1D 当前已经完成第一阶段骨架和最小功能落地，但整体目标尚未完全达成。
+CSP1D 当前已完成阶段性基础建设，可作为后续继续推进的基础，但 C3 尚未完成验收。
 
-已完成并可作为后续基础的事项如下：
+已完成事项仅保留高层摘要：
 
-1. 已完成 CSP1D 第一阶段模块骨架、命名边界清理和最小应用编排。
-2. 已完成核心领域模型的泛型化与物理量化基础改造。
-3. 已完成切割方案余宽计算的泛型算术策略抽象。
-4. 已完成增强上下文的分析层骨架。
-5. 已完成本轮基础编译、测试和门禁验证。
+1. 已完成 CSP1D 基础模块、领域模型和应用入口的第一阶段骨架。
+2. 已完成核心物理量、需求口径和泛型算术的基础收口。
+3. 已完成增强上下文的分析层基础能力与测试补充。
+4. 已完成切割方案生成的基础算法与测试补充。
+5. 已开始 application 层主问题 MILP 化改造，但仍需继续收口编译、测试和接口一致性。
 
-### 14.2 本轮未完成事项与风险
+### 14.2 下一轮目标
 
-以下事项不能视为真正完成，只能视为骨架或最小实现：
-
-1. **统一需求汇总仍有语义风险**：`YieldContext` 当前按 `product.id` 聚合贡献，没有按 `quantity.unit` / dimension 隔离；同一产品同时存在卷数、重量、张数需求时，可能混算不同单位。
-2. **`DefaultQuantityArithmetic.resolve()` 接口不可靠**：无参泛型解析无法在运行时判断 `V`，实际会优先返回 `Flt64QuantityArithmetic`；当前主路径使用 `resolveFor(sample)`，但该公开接口应删除或改造。
-3. **增强上下文尚未接入 solver**：`yield`、`length_assignment`、`wasting_minimization` 当前只做分析或检测，没有把欠产、超产、超长、浪费目标转化为 solver 变量、约束或目标函数。
-4. **切割方案生成算法未补齐**：DFS、FullSum、N-Same、N-Sum 等非 solver 生成算法尚未实现。
-5. **主问题仍非真实 MILP**：`SimpleProduceSolver` 仍是最小启发式选择器，未通过 `AbstractLinearMetaModel` 接入真实 MILP。
-6. **`Flt64/FltX` 门禁需重新精确定义**：除 DTO、typealias、legacy factory、test、arithmetic adapter 外，application render / sorting 边界也存在 `Flt64/FltX` 转换，应明确是否允许。
-7. **新增增强上下文缺少直接测试**：`YieldContext`、`LengthAssignmentContext`、`WastingMinimizationContext` 目前没有独立单元测试覆盖。
-
-### 14.3 下一轮目标
-
-下一轮目标是先收紧当前阶段质量，而不是继续扩展模块范围。
+下一轮目标保持为 C3：消除 C0-1 骨架阶段留下的占位 solver 设计，在 application 层完成真实主问题 MILP 编排。
 
 核心目标：
 
-1. 修正统一需求分析的单位语义，确保 demand 与 contribution 只在相同 unit / dimension 下比较。
-2. 清理不可靠的默认算术解析接口，保证 `QuantityArithmetic<V>` 的使用方式明确且可测试。
-3. 为 yield、length assignment、wasting minimization 三个增强上下文补齐分析层单元测试。
-4. 修正本文档中容易误导的完成状态，把“骨架落地”和“solver 建模完成”明确区分。
-5. 在完成上述质量收口后，再选择进入“切割方案生成算法补齐”或“主问题 MILP 化”。
+1. 删除或彻底脱离 `ProduceSolver` / `SimpleProduceSolver` 的领域层 solver 设计，不把它泛化成长期抽象。
+2. 在 `Csp1dMilp` / `Csp1dColumnGeneration` 的 application 层直接构建 `LinearMetaModel`。
+3. 在 application 层注册切割方案使用变量、需求约束、物料/设备约束和基础目标，并调用 `ColumnGenerationSolver.solveMILP()`。
+4. 从 solver 输出回填模型解，提取 `Produce`，再经 `DefaultCsp1dSolutionAnalyzer` 组装 `Csp1dSolution`。
+5. 保留 C1/C2 已建立的单位语义、泛型算术和方案生成基础，不在 C3 中回退这些边界。
 
-### 14.4 下一轮原则
+### 14.3 下一轮原则
 
-1. **先修验收语义，再扩功能**：已经勾选但语义不稳的验收项优先修正。
-2. **单位优先**：所有涉及 `Quantity<V>` 的比较、加减和聚合必须先确认 unit / dimension 一致。
-3. **显式注入优先**：泛型数值策略优先显式传入或由样例值解析，不使用无法真实判断泛型类型的默认分发。
-4. **骨架与建模分离**：分析层模型、启发式流程、solver 变量约束要在文档和命名上明确区分。
-5. **小步验证**：每次改动至少补一个贴近验收语义的单元测试，再跑对应模块测试。
-6. **不混入非 CSP1D 改动**：下一轮提交只处理 `ospf-kotlin-framework-csp1d` 目录下文件。
+1. **不新增领域层 solver 接口**：主问题建模属于 application 编排，不再放回 domain。
+2. **对齐 BPP3D 模式**：application 层直接建模、注册变量/约束/目标、调用 solver、提取结果。
+3. **helper 只留在 application 内部**：若变量、约束、目标有复用需求，只抽 application 内部 helper。
+4. **单位语义优先**：需求和贡献仍必须按 product + unit 口径匹配，不允许跨单位聚合。
+5. **显式注入 solver**：应用入口应显式依赖 `ColumnGenerationSolver`，测试使用 fake solver。
+6. **C3 不混入 C4/C5**：shadow price/pricing 和 yield/length/wasting solver 化等后续内容只保留接口空间，不在本轮扩展。
+7. **小步验证**：先保证 application 编译和验收测试，再继续扩展列生成迭代。
+8. **只提交 CSP1D 范围**：不触碰 `ospf-kotlin-framework-csp1d` 之外的改动。
 
-### 14.5 下一轮事项
+### 14.4 本轮未完成事项
 
-建议按以下顺序执行：
+1. **C3 尚未验收完成**：application 主问题 MILP 化已有工作区改动，但还没有完整编译和测试通过记录。
+2. **application 测试仍需同步**：旧验收测试仍按无参 `Csp1dMilp<Flt64>()` / `Csp1dColumnGeneration<Flt64>()` 调用，需要改成显式注入 fake `ColumnGenerationSolver`。
+3. **列生成仍停留在主问题求解**：`solveWithTrace` 可保留追踪结果，但 C4 的 shadow price 提取和 pricing 新列生成尚未实现。
+4. **方案生成仍有后续增强**：FullSum、缺陷/分段、unitBatch、单位长度、并行和时间限制仍未完成。
+5. **增强上下文尚未 solver 化**：yield、length assignment、wasting minimization 仍是分析层能力，尚未转为主问题约束或目标插件。
+6. **验证记录需要重跑**：最近一次完整 `-am` 编译曾到达 application；`Shape1` import 修复后，后续编译被中断，必须由下个会话重新执行。
 
-1. **修复 `YieldContext` 聚合键**：
-   - 将贡献聚合键从 `product.id` 扩展为 `product.id + quantity.unit`，必要时增加内部 key 类型。
-   - `sumContributions` 只累加同 unit contribution。
-   - demand 找不到同 unit contribution 时按全量欠产处理。
-2. **补齐多需求测试**：
-   - 新增同一产品同时存在 `DemandMode.Roll`、`DemandMode.Weight`、`DemandMode.Sheet` 的测试。
-   - 验证三种单位的产出、欠产、超产互不混算。
-3. **清理 `DefaultQuantityArithmetic.resolve()`**：
-   - 删除无参 `resolve()`，或改为必须传入 sample / KClass / strategy registry。
-   - 保留并测试 `resolveFor(sample)` 的 `Flt64` / `FltX` 分发。
-4. **补齐增强上下文单元测试**：
-   - `YieldContext`：欠产、超产、同单位聚合、不同单位隔离。
-   - `LengthAssignmentContext`：动态长度分配、超长检测、无可推导长度时跳过。
-   - `WastingMinimizationContext`：余宽汇总、余料汇总、车次数量放大。
-5. **修正文档验收状态**：
-   - 对尚未 solver 化的 yield / length / wasting 项改为“骨架完成，solver 建模待续”。
-   - 重写 `Flt64/FltX` 允许出现位置，覆盖 application render / sorting 边界或迁移这些转换。
-6. **下一阶段二选一**：
-   - 若优先提高方案生成能力，实现 DFS / FullSum / N-Same / N-Sum。
-   - 若优先提高求解可信度，将 `SimpleProduceSolver` 替换为基于 `AbstractLinearMetaModel` 的真实 MILP 主问题。
+### 14.5 下一轮详细计划
 
-### 14.6 整体计划
+1. **收口 C3 编译**
+   - 检查 `Csp1dAssignment` 是否使用 `fuookami.ospf.kotlin.multiarray.Shape1`。
+   - 检查 `Csp1dMilpSolver` 的 imports、`LinearPolynomial` / `LinearInequality` 构造、`solveMILP` 返回处理和 `model.setSolution(...)` 回填。
+   - 使用 `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -DskipTests=true -Dgpg.skip=true compile` 验证；不要用单模块无 `-am` 命令，因为本地未安装的 CSP1D 子模块会触发远端依赖解析失败。
+2. **同步 application 验收测试**
+   - 将 `Csp1dApplicationAcceptanceTest` 改为 `runBlocking` 调用 suspend API。
+   - 添加固定解 fake `ColumnGenerationSolver`，按 `metaModel.tokens.tokensInSolver.size` 返回 solution。
+   - 验证 `Csp1dMilp` 能从初始方案池构建主问题并输出非空 `Produce`。
+   - 验证 `Csp1dColumnGeneration.solveWithTrace` 在 C3 阶段返回初始方案池与空 pricing trace，不声称 C4 已完成。
+3. **清理占位 solver 设计**
+   - 用 `rg -n "ProduceSolver|SimpleProduceSolver" ospf-kotlin-framework-csp1d -g "*.kt"` 检查 Kotlin 代码中无残留。
+   - 保留 `ProduceInput` 作为主问题输入聚合模型；不要把它变成 solver 接口。
+   - 确认 `Csp1dProblem` 不新增 `candidatePlans` 字段，候选方案由 application 调 generator 生成。
+4. **稳定结果提取**
+   - 用一个 `UIntVariable1("x", Shape1(planCount))` 表达方案使用量。
+   - 从 solver solution 回填 token 后读取变量值，构造 `CuttingPlanUsage`、`MaterialUsage`、`MachineCapacityUsage` 和 `unmetDemands`。
+   - 对连续/离散需求暂按现有贡献值语义处理，不能跨 unit 聚合。
+5. **验证并更新文档**
+   - 跑 application 编译和验收测试。
+   - 选择性跑 C1/C2 涉及的 domain 测试，防止主问题改造破坏方案生成和聚合语义。
+   - 更新 `daily.md` 的 C3 状态，不把未完成的 C4/C5 写成已完成。
 
-1. **C1 收口**：修复统一需求语义、算术策略接口和增强上下文测试。
-2. **C2 方案生成**：实现不依赖 solver 的 DFS、FullSum、N-Same、N-Sum，并覆盖余宽、刀数、配规和机器兼容测试。
-3. **C3 主问题 MILP**：用 `AbstractLinearMetaModel` 建模切割方案使用、需求满足、物料使用、机器产能和基础目标。
-4. **C4 Column Generation 深化**：从主问题提取 shadow price，接入 pricing 生成负 reduced cost 新列，并补充迭代终止条件。
-5. **C5 增强上下文 solver 化**：将 yield、length assignment、wasting minimization 的分析模型转化为约束和目标插件。
-6. **C6 应用与 KPI 完整化**：完善 `Csp1dSolution`、KPI、render mapper、Top-K、recovery、schedule variant 和 adapter 边界。
+### 14.6 下一轮修改清单
 
-### 14.7 本次提交修改清单
+建议下个会话重点检查和修改以下文件：
 
-本次提交范围限定为 `ospf-kotlin-framework-csp1d`：
+1. `csp1d-application/src/main/.../application/model/Csp1dAssignment.kt`
+   - 保持一维整数变量组合建模。
+   - 确认变量注册返回 `Try` 并被调用方检查。
+2. `csp1d-application/src/main/.../application/service/Csp1dMilpSolver.kt`
+   - 完成 application 内部主问题 `LinearMetaModel` 建模。
+   - 完成需求、物料、设备约束和目标函数注册。
+   - 完成 solver 输出回填和 `Produce` 提取。
+3. `csp1d-application/src/main/.../application/service/Csp1dMilp.kt`
+   - 由 `Csp1dProblem` 生成初始方案池。
+   - 显式注入 `ColumnGenerationSolver`。
+   - 通过 analyzer 组装 `Csp1dSolution`。
+4. `csp1d-application/src/main/.../application/service/Csp1dColumnGeneration.kt`
+   - C3 阶段先复用主问题 MILP。
+   - 保留 trace，但 pricing 数量应反映 C4 未接入。
+5. `csp1d-application/src/main/.../application/service/Csp1dRecovery.kt` 和 `Csp1dSchedule.kt`
+   - 同步 suspend API 和显式 solver 注入。
+6. `csp1d-application/src/test/.../Csp1dApplicationAcceptanceTest.kt`
+   - 改造旧无参入口测试。
+   - 补 fake solver 和 C3 验收断言。
+7. `daily.md`
+   - 在 C3 通过编译和测试后更新验证记录。
 
-1. `csp1d-domain-material-context`：
-   - 修改 `CuttingPlan.kt`，通过 `QuantityArithmetic<V>` 计算 `usedWidth`、`restWidth` 和 repeat quantity。
-   - 新增 `QuantityArithmetic.kt`，提供 `QuantityArithmetic<V>`、`Flt64QuantityArithmetic`、`FltXQuantityArithmetic`、`DefaultQuantityArithmetic.resolveFor(sample)`。
-   - 修改 `MaterialTypeAliases.kt`，补充 `Flt64Arithmetic`、`FltXArithmetic`。
-2. `csp1d-domain-yield-context`：
-   - 新增 `YieldModel.kt` 和 `YieldContext.kt`，提供产出、欠产、超产分析骨架。
-3. `csp1d-domain-length-assignment-context`：
-   - 新增 `LengthAssignmentModel.kt` 和 `LengthAssignmentContext.kt`，提供动态卷长分配、约束模型和超长检测骨架。
-4. `csp1d-domain-wasting-minimization-context`：
-   - 新增 `WasteModel.kt` 和 `WastingMinimizationContext.kt`，提供余宽、余料和浪费目标分析骨架。
-5. `daily.md`：
-   - 回填阶段验收勾选状态。
-   - 记录 2026-06-02 的完成事项、验证结果、风险、下一轮目标、执行原则、整体计划、修改清单和验收标准。
+### 14.7 下一轮验收标准
 
-### 14.8 下一轮验收标准
+1. `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -DskipTests=true -Dgpg.skip=true compile` 通过。
+2. `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -Dgpg.skip=true -Dtest=Csp1dApplicationAcceptanceTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过。
+3. `rg -n "ProduceSolver|SimpleProduceSolver" ospf-kotlin-framework-csp1d -g "*.kt"` 无命中。
+4. application 层不再引用 `problem.candidatePlans`。
+5. `Csp1dMilp` 与 `Csp1dColumnGeneration` 都通过 application 层 `LinearMetaModel` 建模并调用 `ColumnGenerationSolver.solveMILP()`。
+6. solver 输出通过 `model.setSolution(...)` 回填后再从 token 读取变量值。
+7. `Csp1dSolution` 统一由 `DefaultCsp1dSolutionAnalyzer` 或等价 analyzer 组装。
+8. C3 文档明确区分：主问题 MILP 已完成时才可进入 C4；shadow price/pricing 不得提前标记完成。
+9. C1/C2 既有测试保持通过，至少覆盖 quantity arithmetic、yield 聚合和 cutting plan generation 的关键测试。
+10. `daily.md` 的已完成事项只保留阶段级摘要，不恢复逐类逐测试的明细罗列。
 
-下一轮至少满足以下标准后再继续扩大功能范围：
+### 14.8 当前提交说明
 
-1. `YieldContext` 对同一产品的 roll / weight / sheet demand 能按 unit 分别汇总，不混算。
-2. `YieldContext` 新增测试覆盖欠产、超产、同单位聚合、不同单位隔离，全部通过。
-3. `DefaultQuantityArithmetic.resolve()` 不再作为不可靠公开入口存在，或已改造成可真实分发的接口。
-4. `QuantityArithmetic` 的 `Flt64` / `FltX` 分发和加减测试通过。
-5. `LengthAssignmentContext` 和 `WastingMinimizationContext` 至少各有 2 个直接单元测试，覆盖核心分析行为。
-6. `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-domain-material-context,ospf-kotlin-framework-csp1d/csp1d-domain-yield-context,ospf-kotlin-framework-csp1d/csp1d-domain-length-assignment-context,ospf-kotlin-framework-csp1d/csp1d-domain-wasting-minimization-context -am -Dgpg.skip=true test` 通过。
-7. `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -DskipTests=true -Dgpg.skip=true compile` 通过。
-8. `git grep -n "com.poit\\|framework.bpp3d" -- ospf-kotlin-framework-csp1d` 仍仅命中文档说明。
-9. `git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-csp1d` 仍仅命中文档说明、adapter、legacy factory 或测试。
-10. `daily.md` 中不得把尚未接入 solver 的功能描述为“约束与目标建模已完成”。
+本次提交用于把中断会话的 CSP1D 工作区状态和交接文档固化，交给下个会话继续执行。
+
+注意事项：
+
+1. 本次提交包含 C1/C2 已落地改动和 C3 已开始但未验收完成的 application 改造。
+2. 最新确认的阻断点是 C3 仍需重新跑完整 `-am` 编译与 application 验收测试。
+3. 下个会话应优先完成 C3 编译、测试和 acceptance 同步，再推进 C4 pricing 或 C5 增强上下文 solver 化。
