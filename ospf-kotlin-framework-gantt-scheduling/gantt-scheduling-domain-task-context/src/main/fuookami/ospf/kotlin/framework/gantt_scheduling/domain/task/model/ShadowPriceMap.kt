@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -91,15 +92,16 @@ typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPri
  * @return 缩减成本 / The reduced cost
  */
 fun <
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         > AbstractGanttSchedulingShadowPriceMap<
         AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
         >.reducedCost(
-    bunch: AbstractTaskBunch<T, E, A>
+    bunch: AbstractTaskBunch<T, E, A, V>
 ): Flt64 {
-    var ret = bunch.cost.sum!!
+    var ret = bunch.cost.sum!!.toFlt64()
     if (bunch.executor.indexed) {
         ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
         for ((index, task) in bunch.tasks.withIndex()) {

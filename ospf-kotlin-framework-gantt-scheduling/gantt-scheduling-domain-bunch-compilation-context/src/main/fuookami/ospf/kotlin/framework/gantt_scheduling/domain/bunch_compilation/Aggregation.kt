@@ -35,7 +35,7 @@ import kotlin.time.Duration
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
  */
 abstract class AbstractBunchCompilationAggregation<
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -455,7 +455,7 @@ abstract class AbstractBunchCompilationAggregation<
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
  */
 open class BunchCompilationAggregation<
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -487,12 +487,12 @@ open class BunchCompilationAggregation<
  * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
  */
 open class BunchCompilationAggregationWithTime<
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),

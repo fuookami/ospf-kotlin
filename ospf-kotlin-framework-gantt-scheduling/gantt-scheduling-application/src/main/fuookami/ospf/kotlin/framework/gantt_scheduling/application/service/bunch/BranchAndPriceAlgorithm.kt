@@ -54,7 +54,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 class BranchAndPriceAlgorithm<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -84,7 +84,7 @@ class BranchAndPriceAlgorithm<
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
             Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-            B : AbstractTaskBunch<T, E, A>,
+            B : AbstractTaskBunch<T, E, A, Flt64>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
@@ -92,7 +92,7 @@ class BranchAndPriceAlgorithm<
         val contextBuilder: () -> BunchCompilationContext<Args, B, T, E, A>,
         val extractContextBuilder: List<(BunchCompilationContext<Args, B, T, E, A>) -> List<ExtractBunchCompilationContext<Args, B, T, E, A>>>,
         val shadowPriceMap: () -> Map,
-        val reducedCost: (Map, AbstractTaskBunch<T, E, A>) -> Flt64,
+        val reducedCost: (Map, AbstractTaskBunch<T, E, A, Flt64>) -> Flt64,
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
     )
 
@@ -780,7 +780,7 @@ class BranchAndPriceAlgorithm<
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
             maximumColumnAmount,
-            { bunch: AbstractTaskBunch<T, E, A> -> policy.reducedCost(shadowPriceMap, bunch) },
+            { bunch: AbstractTaskBunch<T, E, A, Flt64> -> policy.reducedCost(shadowPriceMap, bunch) },
             fixedBunches,
             keptBunches,
             model

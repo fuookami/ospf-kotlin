@@ -9,6 +9,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -23,6 +24,7 @@ import kotlin.time.Duration
  * @param T 任务类型 / The task type
  * @param E 执行者类型 / The executor type
  * @param A 分配策略类型 / The assignment policy type
+ * @param V 数值类型 / The numeric type for cost values (defaults to Flt64 for backward compatibility)
  * @property executor 执行者 / The executor
  * @property time 时间范围 / The time range
  * @property tasks 任务列表 / The list of tasks
@@ -33,15 +35,16 @@ import kotlin.time.Duration
 open class AbstractTaskBunch<
         out T : AbstractTask<E, A>,
         out E : Executor,
-        out A : AssignmentPolicy<E>
+        out A : AssignmentPolicy<E>,
+        V : RealNumber<V>
         > internal constructor(
     open val executor: E,
     val time: TimeRange,
     open val tasks: List<T>,
-    val cost: Cost,
+    val cost: Cost<V>,
     open val initialUsability: ExecutorInitialUsability<T, E, A>,
     val iteration: Int64 = Int64(-1)
-) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>> {
+) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A, @UnsafeVariance V>> {
     companion object {
         val originIteration = UInt64.maximum
 
@@ -58,7 +61,7 @@ open class AbstractTaskBunch<
         executor = executor,
         time = TimeRange(time, DISTANT_FUTURE),
         tasks = emptyList(),
-        cost = Cost(),
+        cost = ImmutableCost<V>(emptyList()),
         initialUsability = initialUsability,
         iteration = iteration,
     )
@@ -67,7 +70,7 @@ open class AbstractTaskBunch<
         executor: E,
         initialUsability: ExecutorInitialUsability<T, E, A>,
         tasks: List<T>,
-        cost: Cost = Cost(),
+        cost: Cost<V> = ImmutableCost<V>(emptyList()),
         iteration: Int64 = Int64(-1)
     ) : this(
         executor = executor,
@@ -87,7 +90,7 @@ open class AbstractTaskBunch<
 
     /** 成本密度（成本/任务数）/ Cost density (cost/number of tasks) */
     open val costDensity by lazy {
-        (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
+        (cost.sum?.toFlt64() ?: Flt64.zero) / Flt64(size.toDouble())
     }
 
     /** 忙碌时间 / Busy time */
@@ -196,7 +199,7 @@ open class AbstractTaskBunch<
         }
     }
 
-    override fun partialEq(rhs: AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>): Boolean? {
+    override fun partialEq(rhs: AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A, @UnsafeVariance V>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 
@@ -214,6 +217,4 @@ open class AbstractTaskBunch<
 }
 
 /** 任务束类型别名 / Task bunch type alias */
-typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A>
-
-
+typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A, Flt64>

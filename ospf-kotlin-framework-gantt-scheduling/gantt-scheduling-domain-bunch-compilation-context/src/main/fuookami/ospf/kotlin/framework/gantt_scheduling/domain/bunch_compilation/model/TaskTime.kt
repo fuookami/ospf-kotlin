@@ -76,12 +76,12 @@ private fun slackSymbol(
  * @param redundancyRange 冗余范围 / Redundancy range
  */
 open class BunchSchedulingTaskTime<
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     override val compilation: BunchCompilation<B, T, E, A>,
     private val redundancyRange: Duration? = null,

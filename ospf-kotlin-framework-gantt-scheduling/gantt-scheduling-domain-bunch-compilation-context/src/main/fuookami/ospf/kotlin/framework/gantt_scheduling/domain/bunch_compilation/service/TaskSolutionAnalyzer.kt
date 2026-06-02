@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 /** 任务束上下文任务解分析器 / Task solution analyzer in bunch context */
 data object TaskSolutionAnalyzer {
     operator fun <
-            B : AbstractTaskBunch<T, E, A>,
+            B : AbstractTaskBunch<T, E, A, Flt64>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>

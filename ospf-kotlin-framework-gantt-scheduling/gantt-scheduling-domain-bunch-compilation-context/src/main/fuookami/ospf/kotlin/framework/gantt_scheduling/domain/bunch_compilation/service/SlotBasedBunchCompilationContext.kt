@@ -36,7 +36,7 @@ interface SlotBasedBunchCompilationContext<
         M,
         R
         > : BunchCompilationContext<Args, B, T, E, A>
-        where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
+        where B : AbstractTaskBunch<T, E, A, Flt64>, B : SlotBasedBunch<T, E, A> {
 
     /**
      * 时隙列表

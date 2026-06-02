@@ -66,8 +66,8 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
      * @param reducedCost 约简成本函数 / Reduced cost function
      */
     fun refreshLowerBound(
-        newBunches: List<AbstractTaskBunch<T, E, A>>,
-        reducedCost: (AbstractTaskBunch<T, E, A>) -> Flt64
+        newBunches: List<AbstractTaskBunch<T, E, A, Flt64>>,
+        reducedCost: (AbstractTaskBunch<T, E, A, Flt64>) -> Flt64
     ) {
         val bestReducedCost = HashMap<E, Flt64>()
         for (bunch in newBunches) {

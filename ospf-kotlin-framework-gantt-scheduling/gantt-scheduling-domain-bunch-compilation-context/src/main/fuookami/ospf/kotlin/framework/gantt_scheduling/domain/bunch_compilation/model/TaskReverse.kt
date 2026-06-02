@@ -6,6 +6,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlin.time.Duration
 
 /**
@@ -17,7 +18,7 @@ import kotlin.time.Duration
  * @param A 分配策略类型 / Assignment policy type
  */
 open class TaskReverseBuilder<
-        out B : AbstractTaskBunch<T, E, A>,
+        out B : AbstractTaskBunch<T, E, A, Flt64>,
         out T : AbstractPlannedTask<*, E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>

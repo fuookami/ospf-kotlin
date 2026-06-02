@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.multiarray.Shape2
  * @param bunchAggregation 任务束聚合 / Bunch aggregation
  */
 open class BunchCompilation<
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>

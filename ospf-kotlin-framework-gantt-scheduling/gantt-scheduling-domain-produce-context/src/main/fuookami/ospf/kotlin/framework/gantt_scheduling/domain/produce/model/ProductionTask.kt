@@ -100,7 +100,7 @@ fun <
         E : Executor,
         A : AssignmentPolicy<E>,
         P : AbstractMaterial
-        > AbstractTaskBunch<T, E, A>.produce(product: P): Flt64 {
+        > AbstractTaskBunch<T, E, A, Flt64>.produce(product: P): Flt64 {
     return tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *> -> {
@@ -129,7 +129,7 @@ fun <
         E : Executor,
         A : AssignmentPolicy<E>,
         C : AbstractMaterial
-        > AbstractTaskBunch<T, E, A>.consumption(material: C): Flt64 {
+        > AbstractTaskBunch<T, E, A, Flt64>.consumption(material: C): Flt64 {
     return tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *> -> {

@@ -46,7 +46,7 @@ open class SlotBasedBunchCompilation<
     withExecutorLeisure = withExecutorLeisure,
     bunchAggregation = SlotBasedBunchAggregation()
 )
-        where B : AbstractTaskBunch<T, E, A>, B : SlotBasedBunch<T, E, A> {
+        where B : AbstractTaskBunch<T, E, A, Flt64>, B : SlotBasedBunch<T, E, A> {
 
     /**
      * 按时隙分组的 bunches

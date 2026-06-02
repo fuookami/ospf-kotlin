@@ -525,7 +525,7 @@ open class IterativeTaskCompilation<
         iteration: UInt64,
         newTasks: List<IT>,
         model: AbstractLinearMetaModel<Flt64>,
-        cost: (IT) -> Cost,
+        cost: (IT) -> Cost<Flt64>,
         conflict: (IT, IT) -> Boolean
     ): Ret<List<IT>> {
         val unduplicatedTasks = aggregation.addColumns(newTasks)

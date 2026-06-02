@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  */
-typealias TotalCostCalculator<T, E> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost?
+typealias TotalCostCalculator<T, E> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost<Flt64>?
 
 /**
  * 生成任务束 / Generate bunch
@@ -35,7 +35,7 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
     executor: E,
     executorUsability: ExecutorInitialUsability<T, E, A>,
     totalCostCalculator: TotalCostCalculator<T, E>
-): AbstractTaskBunch<T, E, A>? {
+): AbstractTaskBunch<T, E, A, Flt64>? {
     if (label.node !is EndNode) {
         return null
     }
@@ -86,13 +86,13 @@ private fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> gene
  * @param bunchCtor 任务束构造器 / Bunch constructor
  * @return 任务束或null / Bunch or null
  */
-private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
+private fun <B : AbstractTaskBunch<T, E, A, Flt64>, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A>,
     iteration: Int64,
     executor: E,
     executorUsability: ExecutorInitialUsability<T, E, A>,
     totalCostCalculator: TotalCostCalculator<T, E>,
-    bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost) -> B
+    bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost<Flt64>) -> B
 ): B? {
     if (label.node !is EndNode) {
         return null
@@ -134,7 +134,7 @@ private fun <B : AbstractTaskBunch<T, E, A>, T : AbstractTask<E, A>, E : Executo
  * @param task 任务 / Task
  */
 open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
-    val cost: Cost,
+    val cost: Cost<Flt64>,
     val shadowPrice: Flt64,
 
     val prevLabel: Label<T, E, A>? = null,
@@ -225,7 +225,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         executor: E,
         executorUsability: ExecutorInitialUsability<T, E, A>,
         totalCostCalculator: TotalCostCalculator<T, E>
-    ): AbstractTaskBunch<T, E, A>? {
+    ): AbstractTaskBunch<T, E, A, Flt64>? {
         return generateBunch(
             label = this,
             iteration = iteration,
@@ -246,12 +246,12 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
      * @param bunchCtor 任务束构造器 / Bunch constructor
      * @return 任务束或null / Bunch or null
      */
-    fun <B : AbstractTaskBunch<T, E, A>> generateBunch(
+    fun <B : AbstractTaskBunch<T, E, A, Flt64>> generateBunch(
         iteration: Int64,
         executor: E,
         executorUsability: ExecutorInitialUsability<T, E, A>,
         totalCostCalculator: TotalCostCalculator<T, E>,
-        bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost) -> B
+        bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost<Flt64>) -> B
     ): B? {
         return generateBunch(
             label = this,

@@ -109,7 +109,7 @@ abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
      * @return 使用量 / Used quantity
      */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        bunch: AbstractTaskBunch<T, E, A>,
+        bunch: AbstractTaskBunch<T, E, A, Flt64>,
         time: TimeRange
     ): Flt64
 }
@@ -145,7 +145,7 @@ interface ResourceTimeSlot<
     }
 
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
-        bunch: AbstractTaskBunch<T, E, A>
+        bunch: AbstractTaskBunch<T, E, A, Flt64>
     ): Flt64 {
         return resource.usedQuantity(bunch, time)
     }

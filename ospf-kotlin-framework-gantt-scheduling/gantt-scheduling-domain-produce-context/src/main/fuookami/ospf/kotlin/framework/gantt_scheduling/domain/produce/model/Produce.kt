@@ -320,7 +320,7 @@ class BunchSchedulingProduce<
     }
 
     fun <
-            B : AbstractTaskBunch<T, E, A>,
+            B : AbstractTaskBunch<T, E, A, Flt64>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>

@@ -55,7 +55,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             out E : Executor,
             out A : AssignmentPolicy<E>
             >(
-        val cost: (IT) -> Cost,
+        val cost: (IT) -> Cost<Flt64>,
         val conflict: (IT, IT) -> Boolean
     )
 
@@ -446,7 +446,7 @@ open class IterativeTaskCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     executors: List<E>,
     override val policy: Policy<IT, E, A>,

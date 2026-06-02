@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
  */
 interface BunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -372,7 +372,7 @@ interface BunchCompilationContext<
  */
 interface ExtractBunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A>,
+        B : AbstractTaskBunch<T, E, A, Flt64>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
