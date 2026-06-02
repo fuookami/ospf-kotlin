@@ -4,9 +4,9 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.service
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64SlotConstraints
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
@@ -36,6 +36,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
  * @param Action 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
+ * @param V 影子价格数值类型 / Shadow price numeric type
  */
 interface SlotBasedBunchGenerator<
         B : SlotBasedBunch<T, E, A>,
@@ -44,7 +45,8 @@ interface SlotBasedBunchGenerator<
         A : AssignmentPolicy<E>,
         Action : ProductionAction,
         M,
-        R
+        R,
+        V : RealNumber<V>
         > {
     /**
      * 支持的执行器列表
@@ -65,8 +67,8 @@ interface SlotBasedBunchGenerator<
     suspend fun generate(
         iteration: UInt64,
         slot: TimeSlot,
-        constraints: SlotConstraints<M, R>,
-        shadowPrices: Map<T, Flt64>
+        constraints: Flt64SlotConstraints<M, R>,
+        shadowPrices: Map<T, V>
     ): Ret<List<B>>
 
     /**
@@ -80,8 +82,8 @@ interface SlotBasedBunchGenerator<
      */
     suspend fun generateAll(
         iteration: UInt64,
-        intermediateValues: CapacityIntermediateValues<Action, M, R>,
-        shadowPrices: Map<T, Flt64>
+        intermediateValues: Flt64CapacityIntermediateValues<Action, M, R>,
+        shadowPrices: Map<T, V>
     ): Ret<List<B>> {
         val allBunches = mutableListOf<B>()
 
@@ -133,7 +135,8 @@ interface SlotBasedBunchGeneratorFactory<
         A : AssignmentPolicy<E>,
         Action : ProductionAction,
         M,
-        R
+        R,
+        V : RealNumber<V>
         > {
     /**
      * 创建指定执行器的生成�?
@@ -142,7 +145,5 @@ interface SlotBasedBunchGeneratorFactory<
      * @param executor The executor / 执行�?
      * @return Bunch generator / 任务束生成器
      */
-    fun create(executor: E): SlotBasedBunchGenerator<B, T, E, A, Action, M, R>?
+    fun create(executor: E): SlotBasedBunchGenerator<B, T, E, A, Action, M, R, V>?
 }
-
-

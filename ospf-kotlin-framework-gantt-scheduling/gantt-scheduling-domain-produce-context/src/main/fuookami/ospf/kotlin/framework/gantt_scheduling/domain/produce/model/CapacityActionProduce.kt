@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -16,20 +17,24 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  */
 interface CapacityActionProduce<
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V : RealNumber<V>
         > {
     /**
      * 生产动作对应的产品产量（单位操作时间的产量）
      * Product produce per unit operation time
      */
-    val produce: Map<P, Flt64>
+    val produce: Map<P, V>
 
     /**
      * 生产动作对应的原料消耗（单位操作时间的消耗）
      * Material consumption per unit operation time
      */
-    val consumption: Map<C, Flt64>
+    val consumption: Map<C, V>
 }
+
+/** Flt64 生产动作产出消耗类型别名 / Flt64 production action produce-consumption type alias */
+typealias Flt64CapacityActionProduce<P, C> = CapacityActionProduce<P, C, Flt64>
 
 /**
  * 按产品方向读取生产动作的单位产量映射。
@@ -39,11 +44,11 @@ interface CapacityActionProduce<
  * Production action material types are bound by the corresponding column/produce construction path.
  */
 @Suppress("UNCHECKED_CAST")
-internal fun <P : AbstractMaterial> unitProduceMapOf(
+fun <P : AbstractMaterial, V : RealNumber<V>> unitProduceMapOf(
     action: ProductionAction
-): Map<P, Flt64>? {
-    val produceAction = action as? CapacityActionProduce<*, *> ?: return null
-    return produceAction.produce as Map<P, Flt64>
+): Map<P, V>? {
+    val produceAction = action as? CapacityActionProduce<*, *, *> ?: return null
+    return produceAction.produce as Map<P, V>
 }
 
 /**
@@ -54,11 +59,11 @@ internal fun <P : AbstractMaterial> unitProduceMapOf(
  * Production action material types are bound by the corresponding column/produce construction path.
  */
 @Suppress("UNCHECKED_CAST")
-internal fun <C : AbstractMaterial> unitConsumptionMapOf(
+fun <C : AbstractMaterial, V : RealNumber<V>> unitConsumptionMapOf(
     action: ProductionAction
-): Map<C, Flt64>? {
-    val produceAction = action as? CapacityActionProduce<*, *> ?: return null
-    return produceAction.consumption as Map<C, Flt64>
+): Map<C, V>? {
+    val produceAction = action as? CapacityActionProduce<*, *, *> ?: return null
+    return produceAction.consumption as Map<C, V>
 }
 
 /**
@@ -69,10 +74,10 @@ internal fun <C : AbstractMaterial> unitConsumptionMapOf(
  * @return 产量 / Produce amount
  */
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
-        CapacityColumn<E, A>.produce(product: P): Flt64 {
+        CapacityColumn<E, A, Flt64>.produce(product: P): Flt64 {
     var result = Flt64.zero
     for ((action, amount) in allocations) {
-        val unitProduce = unitProduceMapOf<P>(action)?.get(product) ?: Flt64.zero
+        val unitProduce = unitProduceMapOf<P, Flt64>(action)?.get(product) ?: Flt64.zero
         result += unitProduce * amount.toFlt64()
     }
     return result
@@ -86,13 +91,11 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
  * @return 消耗量 / Consumption amount
  */
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
-        CapacityColumn<E, A>.consumption(material: C): Flt64 {
+        CapacityColumn<E, A, Flt64>.consumption(material: C): Flt64 {
     var result = Flt64.zero
     for ((action, amount) in allocations) {
-        val unitConsumption = unitConsumptionMapOf<C>(action)?.get(material) ?: Flt64.zero
+        val unitConsumption = unitConsumptionMapOf<C, Flt64>(action)?.get(material) ?: Flt64.zero
         result += unitConsumption * amount.toFlt64()
     }
     return result
 }
-
-

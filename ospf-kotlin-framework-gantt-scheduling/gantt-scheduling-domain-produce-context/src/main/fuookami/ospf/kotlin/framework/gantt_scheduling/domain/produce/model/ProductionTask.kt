@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
@@ -79,10 +80,72 @@ interface ProductionTask<
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V : RealNumber<V>
         > : AbstractTask<E, A> {
-    val produce: Map<P, Flt64>
-    val consumption: Map<C, Flt64>
+    val produce: Map<P, V>
+    val consumption: Map<C, V>
+}
+
+/** Flt64 生产任务类型别名 / Flt64 production task type alias */
+typealias Flt64ProductionTask<E, A, P, C> = ProductionTask<E, A, P, C, Flt64>
+
+/**
+ * 读取 Flt64 兼容生产量 / Read Flt64-compatible produce quantity
+ *
+ * @param P 生产材料类型 / Production material type
+ * @param product 产品 / Product
+ * @return 生产量 / Produce quantity
+ */
+fun <P : AbstractMaterial> ProductionTask<*, *, *, *, *>.flt64Produce(product: P): Flt64? {
+    return produce.entries.firstOrNull { it.key == product }?.value as? Flt64
+}
+
+/**
+ * 读取非零 Flt64 兼容生产物料 / Read non-zero Flt64-compatible produce materials
+ *
+ * @param P 生产材料类型 / Production material type
+ * @return 非零生产物料 / Non-zero produce materials
+ */
+fun <P : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroFlt64ProduceMaterials(): List<P> {
+    return produce.mapNotNull { (product, quantity) ->
+        val value = quantity as? Flt64 ?: return@mapNotNull null
+        if (value neq Flt64.zero) {
+            @Suppress("UNCHECKED_CAST")
+            product as P
+        } else {
+            null
+        }
+    }
+}
+
+/**
+ * 读取 Flt64 兼容消耗量 / Read Flt64-compatible consumption quantity
+ *
+ * @param C 消耗材料类型 / Consumption material type
+ * @param material 材料 / Material
+ * @return 消耗量 / Consumption quantity
+ */
+fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.flt64Consumption(material: C): Flt64? {
+    return consumption.entries.firstOrNull { it.key == material }?.value as? Flt64
+}
+
+/**
+ * 读取非零 Flt64 兼容消耗物料 / Read non-zero Flt64-compatible consumption materials
+ *
+ * @param C 消耗材料类型 / Consumption material type
+ * @return 非零消耗物料 / Non-zero consumption materials
+ */
+fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroFlt64ConsumptionMaterials(): List<C> {
+    return consumption.mapNotNull { (material, quantity) ->
+        val value = quantity as? Flt64 ?: return@mapNotNull null
+        if (value neq Flt64.zero) {
+            @Suppress("UNCHECKED_CAST")
+            material as C
+        } else {
+            null
+        }
+    }
 }
 
 /**
@@ -103,9 +166,7 @@ fun <
         > AbstractTaskBunch<T, E, A, Flt64>.produce(product: P): Flt64 {
     return tasks.mapNotNull {
         when (it) {
-            is ProductionTask<*, *, *, *> -> {
-                it.produce[product]
-            }
+            is ProductionTask<*, *, *, *, *> -> it.flt64Produce(product)
 
             else -> {
                 null
@@ -132,9 +193,7 @@ fun <
         > AbstractTaskBunch<T, E, A, Flt64>.consumption(material: C): Flt64 {
     return tasks.mapNotNull {
         when (it) {
-            is ProductionTask<*, *, *, *> -> {
-                it.consumption[material]
-            }
+            is ProductionTask<*, *, *, *, *> -> it.flt64Consumption(material)
 
             else -> {
                 null
@@ -142,6 +201,3 @@ fun <
         }
     }.sumOf { it }
 }
-
-
-

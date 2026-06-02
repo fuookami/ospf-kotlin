@@ -238,13 +238,13 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      */
     suspend fun addColumns(
         iteration: UInt64,
-        newColumns: List<CapacityColumn<E, A>>,
+        newColumns: List<CapacityColumn<E, A, Flt64>>,
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<List<CapacityColumn<E, A>>> {
+    ): Ret<List<CapacityColumn<E, A, Flt64>>> {
         // Group columns by executor
         // 按执行器分组
         val columnsByExec = newColumns.groupBy { it.executor }
-        val allAddedColumns = mutableListOf<CapacityColumn<E, A>>()
+        val allAddedColumns = mutableListOf<CapacityColumn<E, A, Flt64>>()
 
         for ((executor, columns) in columnsByExec) {
             val columnAggregation = columnsByExecutor[executor] ?: continue
@@ -335,7 +335,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      */
     fun locateColumnDecision(
         iteration: UInt64,
-        column: CapacityColumn<E, A>
+        column: CapacityColumn<E, A, Flt64>
     ): Pair<UIntVariable2, Int>? {
         val iterIdx = iteration.toInt()
         val executorVar = _x[column.executor] ?: return null
@@ -355,7 +355,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 计算列变量上界
      * Calculate upper bound for a column decision variable
      */
-    private fun columnUpperBound(column: CapacityColumn<E, A>): UInt64 {
+    private fun columnUpperBound(column: CapacityColumn<E, A, Flt64>): UInt64 {
         if (column.slotIndex !in slots.indices) {
             return UInt64.zero
         }

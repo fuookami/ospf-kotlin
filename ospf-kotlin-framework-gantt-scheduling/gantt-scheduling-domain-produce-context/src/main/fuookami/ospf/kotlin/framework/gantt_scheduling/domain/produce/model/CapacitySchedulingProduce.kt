@@ -32,7 +32,7 @@ abstract class CapacitySchedulingProduce<
     protected val slots: List<TimeSlot>,
     protected val timeWindow: TimeWindow
 ) : AbstractProduce<
-        ProductionTask<Executor, AssignmentPolicy<Executor>, P, C>,
+        ProductionTask<Executor, AssignmentPolicy<Executor>, P, C, Flt64>,
         Executor,
         AssignmentPolicy<Executor>,
         P,
@@ -92,6 +92,5 @@ abstract class CapacitySchedulingProduce<
         return ok
     }
 }
-
 
 

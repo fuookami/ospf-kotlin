@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -22,7 +23,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * @param R 资源容量类型 / Resource capacity type
  * @param V 数值类型 / Numeric type for quantity values
  */
-data class SlotBasedCapacityResult<A : ProductionAction, M, R, V : RealNumber<V>>(
+data class SlotBasedCapacityResult<A : ProductionAction, M, R, V>(
     /**
      * 所属时隙
      * The time slot
@@ -64,7 +65,7 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R, V : RealNumber<V>
      * Resource usage by resource in this slot
      */
     val resourceUsageByResource: Map<R, V>
-)
+) where V : RealNumber<V>, V : PlusGroup<V>
 
 /**
  * 产能中间值集合
@@ -78,7 +79,7 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R, V : RealNumber<V>
  * @param R 资源容量类型 / Resource capacity type
  * @param V 数值类型 / Numeric type for quantity values
  */
-class CapacityIntermediateValues<A : ProductionAction, M, R, V : RealNumber<V>>(
+class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
     /**
      * 时隙列表
      * List of time slots
@@ -90,7 +91,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V : RealNumber<V>>(
      * Capacity results by slot
      */
     val results: Map<TimeSlot, SlotBasedCapacityResult<A, M, R, V>>
-) {
+) where V : RealNumber<V>, V : PlusGroup<V> {
     /**
      * 获取指定时隙的产品产量
      * Get product production for specified slot
@@ -152,7 +153,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V : RealNumber<V>>(
  * @param R 资源容量类型 / Resource capacity type
  * @param V 数值类型 / Numeric type for quantity values
  */
-data class SlotConstraints<M, R, V : RealNumber<V>>(
+data class SlotConstraints<M, R, V>(
     /**
      * 所属时隙
      * The time slot
@@ -200,7 +201,7 @@ data class SlotConstraints<M, R, V : RealNumber<V>>(
      * Minimum resource usage by resource
      */
     val minResourceUsage: Map<R, V>
-) {
+) where V : RealNumber<V>, V : PlusGroup<V> {
     companion object {
         /**
          * 从产能结果创建约束
@@ -210,10 +211,10 @@ data class SlotConstraints<M, R, V : RealNumber<V>>(
          * @param tolerance Tolerance added to bounds / 添加到边界的容差
          * @return Slot constraints / 时隙约束
          */
-        fun <A : ProductionAction, M, R, V : RealNumber<V>> from(
+        fun <A : ProductionAction, M, R, V> from(
             result: SlotBasedCapacityResult<A, M, R, V>,
             tolerance: V? = null
-        ): SlotConstraints<M, R, V> {
+        ): SlotConstraints<M, R, V> where V : RealNumber<V>, V : PlusGroup<V> {
             if (tolerance == null) {
                 return SlotConstraints(
                     slot = result.slot,
@@ -229,11 +230,32 @@ data class SlotConstraints<M, R, V : RealNumber<V>>(
 
             val zero = tolerance.constants.zero
             val maxProduce = result.produceByProduct.mapValues { (_, v) -> v + tolerance }
-            val minProduce = result.produceByProduct.mapValues { (_, v) -> maxOf(zero, v - tolerance) }
+            val minProduce = result.produceByProduct.mapValues { (_, v) ->
+                val value = v - tolerance
+                if (value ls zero) {
+                    zero
+                } else {
+                    value
+                }
+            }
             val maxConsumption = result.consumptionByMaterial.mapValues { (_, v) -> v + tolerance }
-            val minConsumption = result.consumptionByMaterial.mapValues { (_, v) -> maxOf(zero, v - tolerance) }
+            val minConsumption = result.consumptionByMaterial.mapValues { (_, v) ->
+                val value = v - tolerance
+                if (value ls zero) {
+                    zero
+                } else {
+                    value
+                }
+            }
             val maxResourceUsage = result.resourceUsageByResource.mapValues { (_, v) -> v + tolerance }
-            val minResourceUsage = result.resourceUsageByResource.mapValues { (_, v) -> maxOf(zero, v - tolerance) }
+            val minResourceUsage = result.resourceUsageByResource.mapValues { (_, v) ->
+                val value = v - tolerance
+                if (value ls zero) {
+                    zero
+                } else {
+                    value
+                }
+            }
 
             return SlotConstraints(
                 slot = result.slot,

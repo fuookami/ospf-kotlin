@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.resolveFlt64ValueConverter
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -91,8 +92,8 @@ typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPri
  * @param bunch 任务束 / The task bunch
  * @return 缩减成本 / The reduced cost
  */
-fun <
-        V : RealNumber<V>,
+inline fun <
+        reified V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -100,7 +101,7 @@ fun <
         AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
         >.reducedCost(
     bunch: AbstractTaskBunch<T, E, A, V>
-): Flt64 {
+): V {
     var ret = bunch.cost.sum!!.toFlt64()
     if (bunch.executor.indexed) {
         ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
@@ -128,7 +129,7 @@ fun <
             )
         }
     }
-    return ret
+    return resolveFlt64ValueConverter<V>("GanttSchedulingShadowPriceMap.reducedCost").intoValue(ret)
 }
 
 /** 抽象甘特调度影子价格提取器类型别名 / Abstract Gantt scheduling shadow price extractor type alias */

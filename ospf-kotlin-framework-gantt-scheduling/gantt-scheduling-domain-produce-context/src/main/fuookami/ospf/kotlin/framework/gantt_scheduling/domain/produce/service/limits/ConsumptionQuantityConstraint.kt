@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Abst
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroFlt64ConsumptionMaterials
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
@@ -181,9 +182,9 @@ class ConsumptionQuantityConstraint<
             shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
-                        is ProductionTask<*, *, *, *> -> {
-                            val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
-                            materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        is ProductionTask<*, *, *, *, *> -> {
+                            task.nonZeroFlt64ConsumptionMaterials<C>()
+                                .sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {
@@ -194,9 +195,9 @@ class ConsumptionQuantityConstraint<
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
-                        is ProductionTask<*, *, *, *> -> {
-                            val materials = task.consumption.filter { it.value neq Flt64.zero }.map { it.key }
-                            materials.sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        is ProductionTask<*, *, *, *, *> -> {
+                            task.nonZeroFlt64ConsumptionMaterials<C>()
+                                .sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {

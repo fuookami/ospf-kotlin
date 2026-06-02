@@ -54,7 +54,7 @@ class BunchCapacitySchedulingProduce<
     @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,
-        columns: List<CapacityColumn<E, A>>,
+        columns: List<CapacityColumn<E, A, Flt64>>,
         compilation: IterativeCapacityCompilation<E, A>
     ): Try {
         // Rebuild from operationTime to keep consistency when iterative x variables are reshaped.
@@ -65,7 +65,7 @@ class BunchCapacitySchedulingProduce<
                 it.setConstant(Flt64.zero)
             }
             for ((actionIndex, action) in actions.withIndex()) {
-                val unitProduce = unitProduceMapOf<P>(action)?.get(product) ?: Flt64.zero
+                val unitProduce = unitProduceMapOf<P, Flt64>(action)?.get(product) ?: Flt64.zero
                 if (unitProduce eq Flt64.zero) {
                     continue
                 }
@@ -77,5 +77,4 @@ class BunchCapacitySchedulingProduce<
         return ok
     }
 }
-
 

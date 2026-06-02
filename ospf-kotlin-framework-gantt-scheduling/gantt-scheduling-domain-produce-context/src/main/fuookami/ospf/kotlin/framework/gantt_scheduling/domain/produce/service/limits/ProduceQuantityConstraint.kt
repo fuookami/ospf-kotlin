@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Abst
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroFlt64ProduceMaterials
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
@@ -180,9 +181,9 @@ class ProduceQuantityConstraint<
             shadowPriceArguments?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
-                        is ProductionTask<*, *, *, *> -> {
-                            val materials = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
-                            materials.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        is ProductionTask<*, *, *, *, *> -> {
+                            task.nonZeroFlt64ProduceMaterials<P>()
+                                .sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {
@@ -193,9 +194,9 @@ class ProduceQuantityConstraint<
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
-                        is ProductionTask<*, *, *, *> -> {
-                            val materials = task.produce.filter { it.value neq Flt64.zero }.map { it.key }
-                            materials.sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                        is ProductionTask<*, *, *, *, *> -> {
+                            task.nonZeroFlt64ProduceMaterials<P>()
+                                .sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {

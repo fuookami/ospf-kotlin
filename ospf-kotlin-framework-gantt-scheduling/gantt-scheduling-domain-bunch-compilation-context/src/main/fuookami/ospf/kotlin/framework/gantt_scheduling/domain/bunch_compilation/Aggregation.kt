@@ -492,7 +492,7 @@ open class BunchCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),

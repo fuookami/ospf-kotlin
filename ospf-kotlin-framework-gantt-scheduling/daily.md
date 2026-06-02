@@ -389,6 +389,45 @@ mvn -pl ospf-kotlin-framework-gantt-scheduling test
 | 改动面大 | 126 个 Kotlin 文件 | 按子模块分阶段，每阶段保持 Flt64 wrapper 编译 |
 | ProductivityCalendar 单位语义迁移 | 裸 Q 迁移到 `Quantity<V>` 会影响排程耗时和产量计算 | 新增 `QuantityProductivityCalendar` 后迁移调用方，旧 API wrapper 兼容 |
 
+## 9. 实际进展状态（2026-06-02）
+
+### G0 状态：完成
+
+- G0-baseline-report.md 已包含可复现的扫描命令和允许保留文件清单
+- 门禁命令可复现
+- G0 是历史基线，不随 G1 新增的 Flt64 兼容 wrapper/typealias 重新定义
+
+### G1 状态：完成
+
+当前扫描值：
+
+- `KtMain=129`
+- `Flt64=1268`
+- `SolverLeak=349`
+
+**已完成：**
+
+- [x] Cost.kt → `Cost<V : RealNumber<V>>`，含 Flt64 typealias
+- [x] TaskBunch.kt → `AbstractTaskBunch<..., V : RealNumber<V>>`，Flt64 旧路径保留
+- [x] CapacityColumn.kt → `CapacityColumn<E, A, V : RealNumber<V>>`，含 Flt64 typealias
+- [x] SlotBasedCapacityResult.kt → `SlotBasedCapacityResult<A, M, R, V>`，含 Flt64 typealias
+- [x] CapacityActionProduce.kt → `CapacityActionProduce<P, C, V>`，`produce/consumption` 为 `Map<*, V>`
+- [x] ProductionTask.kt → `ProductionTask<..., V>`，`produce/consumption` 为 `Map<*, V>`，Flt64 兼容读取集中到 helper
+- [x] produce quantity constraints 不再直接强转领域数量 Map 为 `Map<*, Flt64>`
+- [x] SlotBasedBunchGenerator shadow price 入参泛型化为 `Map<T, V>`
+- [x] reducedCost 扩展函数返回 `V`，内部 Flt64 solver 边界通过 `Flt64ValueConverter` 转回领域数值
+- [x] 11 个 gantt-scheduling reactor 模块完整 `test` 通过
+- [x] Flt64 typealias 和 Flt64 旧调用路径保留
+
+**仍保留的 Flt64 边界：**
+
+- `AbstractGanttSchedulingShadowPriceMap` 继承 framework `AbstractShadowPriceMap`，framework shadow price API 当前固定 `Flt64`
+- `ProduceQuantityConstraint` / `ConsumptionQuantityConstraint` 内部 shadow price 汇总缓存仍为 `HashMap<*, Flt64>`，用于写回 `ShadowPrice`
+- `SlotBasedCapacityPreSolver`、bunch compilation aggregation、application iteration / branch-and-price 中的 `Map<*, Flt64>` 属于 G3/G5 的 solver/application 链路
+- `MetaModel<Flt64>`、`LinearIntermediateSymbols<Flt64>` 等 solver 建模类型仍属于 G3+ 范围
+
+**结论：G0 完成；G1 按“基础领域类型 + 领域数量 Map + shadow price/reduced cost 领域签名”的边界已完成。剩余 Flt64 不属于 G1，归入 solver/framework/application 后续阶段。**
+
 ## 8. 向后兼容
 
 建议保留：

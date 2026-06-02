@@ -120,7 +120,7 @@ class BunchCapacitySchedulingResourceUsage<
     @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,
-        columns: List<CapacityColumn<E, A>>,
+        columns: List<CapacityColumn<E, A, Flt64>>,
         compilation: IterativeCapacityCompilation<E, A>
     ): Try {
         // Rebuild from operationTime to keep consistency when iterative x variables are reshaped.

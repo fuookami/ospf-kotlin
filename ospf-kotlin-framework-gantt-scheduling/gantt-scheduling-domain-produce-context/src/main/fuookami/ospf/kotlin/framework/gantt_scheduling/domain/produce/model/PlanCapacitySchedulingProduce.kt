@@ -39,7 +39,7 @@ class PlanCapacitySchedulingProduce<
         // Bind compilation object at construction
         for ((product, _) in products) {
             for (action in actions) {
-                val unitProduce = unitProduceMapOf<P>(action)?.get(product) ?: Flt64.zero
+                val unitProduce = unitProduceMapOf<P, Flt64>(action)?.get(product) ?: Flt64.zero
                 if (unitProduce neq Flt64.zero) {
                     for ((s, _) in slots.withIndex()) {
                         val actionIndex = actions.indexOf(action)
@@ -56,5 +56,4 @@ class PlanCapacitySchedulingProduce<
         return addQuantityToModel(model)
     }
 }
-
 

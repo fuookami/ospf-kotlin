@@ -51,7 +51,7 @@ interface Produce {
  * @param products 产品与需求列表 / List of products and demands
  */
 abstract class AbstractProduce<
-        out T : ProductionTask<E, A, P, C>,
+        out T : ProductionTask<E, A, P, C, Flt64>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
@@ -236,7 +236,7 @@ abstract class AbstractProduce<
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 class TaskSchedulingProduce<
-        out T : ProductionTask<E, A, P, C>,
+        out T : ProductionTask<E, A, P, C, Flt64>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
@@ -266,7 +266,7 @@ class TaskSchedulingProduce<
  * @param products 产品与需求列表 / List of products and demands
  */
 class BunchSchedulingProduce<
-        out T : ProductionTask<E, A, P, C>,
+        out T : ProductionTask<E, A, P, C, Flt64>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,

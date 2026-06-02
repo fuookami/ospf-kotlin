@@ -51,7 +51,7 @@ interface Consumption {
  * @param materials 材料与储备列表 / List of materials and reserves
  */
 abstract class AbstractConsumption<
-        out T : ProductionTask<E, A, P, C>,
+        out T : ProductionTask<E, A, P, C, Flt64>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
@@ -236,7 +236,7 @@ abstract class AbstractConsumption<
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 class TaskSchedulingConsumption<
-        out T : ProductionTask<E, A, P, C>,
+        out T : ProductionTask<E, A, P, C, Flt64>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
@@ -266,7 +266,7 @@ class TaskSchedulingConsumption<
  * @param materials 材料与储备列表 / List of materials and reserves
  */
 class BunchSchedulingConsumption<
-        out T : ProductionTask<E, A, P, C>,
+        out T : ProductionTask<E, A, P, C, Flt64>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,

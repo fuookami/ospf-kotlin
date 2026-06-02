@@ -446,7 +446,7 @@ open class IterativeTaskCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow,
     tasks: List<T>,
     executors: List<E>,
     override val policy: Policy<IT, E, A>,

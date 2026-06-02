@@ -6,8 +6,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
@@ -196,9 +196,9 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      */
     suspend fun addColumns(
         iteration: UInt64,
-        columns: List<CapacityColumn<E, A>>,
+        columns: List<CapacityColumn<E, A, Flt64>>,
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<List<CapacityColumn<E, A>>> {
+    ): Ret<List<CapacityColumn<E, A, Flt64>>> {
         if (!useColumnGeneration) {
             return Failed(
                 ErrorCode.IllegalArgument,
@@ -223,8 +223,8 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
     suspend fun solve(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver,
-        initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A>>> = emptyMap()
-    ): Ret<CapacityIntermediateValues<A, M, R>> {
+        initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A, Flt64>>> = emptyMap()
+    ): Ret<Flt64CapacityIntermediateValues<A, M, R>> {
         if (useColumnGeneration && initialColumnsByIteration.isNotEmpty()) {
             val initialColumnEntries = initialColumnsByIteration.entries.sortedBy { it.key }
             for ((iteration, columns) in initialColumnEntries) {
@@ -261,8 +261,8 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      */
     fun extractIntermediateValues(
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<CapacityIntermediateValues<A, M, R>> {
-        val results = HashMap<TimeSlot, SlotBasedCapacityResult<A, M, R>>()
+    ): Ret<Flt64CapacityIntermediateValues<A, M, R>> {
+        val results = HashMap<TimeSlot, Flt64SlotBasedCapacityResult<A, M, R>>()
 
         // Extract capacity solution
         // 提取产能�?
@@ -328,7 +328,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
                 }
             }
 
-            results[slot] = SlotBasedCapacityResult(
+            results[slot] = Flt64SlotBasedCapacityResult(
                 slot = slot,
                 slotIndex = slotIndex,
                 actionAllocations = allocations,
@@ -339,8 +339,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
             )
         }
 
-        return Ok(CapacityIntermediateValues(slots, results))
+        return Ok(Flt64CapacityIntermediateValues(slots, results))
     }
 }
-
 
