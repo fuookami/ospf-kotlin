@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.lim
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
@@ -27,7 +28,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
  * @property coefficient 体积系数 / volume coefficient
  * @property name 管道名称 / pipeline name
  */
-class VolumeMinimization<
+open class VolumeMinimization<
         Args : AbstractBPP3DShadowPriceArguments<T>,
         T : Cuboid<T>
         >(
@@ -37,15 +38,15 @@ class VolumeMinimization<
 ) : CGPipeline<Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>> {
     companion object {
         /**
-         * 创建 Item 专用体积最小化目标，隐藏调用侧 `T : Cuboid<T>` 泛型暴露。
-         * Build item-only volume minimization objective and hide caller-side `T : Cuboid<T>` generic exposure.
+         * 创建 Item 专用体积最小化目标，不暴露 `T : Cuboid<T>` 泛型约束。
+         * Build item-only volume minimization objective without exposing `T : Cuboid<T>` generic constraint.
          */
-        fun <Args : AbstractBPP3DShadowPriceArguments<Item>> forItem(
+        fun forItem(
             assignment: ImpreciseAssignment,
             coefficient: InfraNumber,
             name: String = "volume_minimization"
-        ): ItemVolumeMinimization<Args> {
-            return VolumeMinimization(
+        ): ItemVolumeMinimization {
+            return ItemVolumeMinimization(
                 assignment = assignment,
                 coefficient = coefficient,
                 name = name
@@ -80,8 +81,23 @@ class VolumeMinimization<
     }
 }
 
-/** Item 专用体积最小化目标。Item-only volume minimization objective. */
-typealias ItemVolumeMinimization<Args> = VolumeMinimization<Args, Item>
+/**
+ * Item 专用体积最小化目标，不暴露 `T : Cuboid<T>` 泛型约束。
+ * Item-only volume minimization objective, does not expose `T : Cuboid<T>` generic constraint.
+ *
+ * @property assignment 不精确赋值 / imprecise assignment
+ * @property coefficient 体积系数 / volume coefficient
+ * @property name 管道名称 / pipeline name
+ */
+class ItemVolumeMinimization(
+    private val assignment: ImpreciseAssignment,
+    private val coefficient: InfraNumber,
+    override val name: String = "volume_minimization"
+) : VolumeMinimization<BPP3DShadowPriceArguments, Item>(
+    assignment = assignment,
+    coefficient = coefficient,
+    name = name
+)
 
 
 

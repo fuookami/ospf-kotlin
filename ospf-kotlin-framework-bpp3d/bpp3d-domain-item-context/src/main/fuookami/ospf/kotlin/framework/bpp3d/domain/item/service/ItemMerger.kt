@@ -671,6 +671,12 @@ data object ItemMerger {
         return Pair(mergedItems, restItems)
     }
 
+    /**
+     * 将合并结果展开为 Item 列表。
+     * 仅支持长方体（Cuboid-only）：圆柱在此路径被显式拒绝。
+     * Flatten merged results to Item list.
+     * Cuboid-only: cylinders are explicitly rejected in this path.
+     */
     @JvmName("dumpItems")
     fun dump(cuboids: List<Cuboid<*>>): List<Item> {
         return cuboids.flatMap {

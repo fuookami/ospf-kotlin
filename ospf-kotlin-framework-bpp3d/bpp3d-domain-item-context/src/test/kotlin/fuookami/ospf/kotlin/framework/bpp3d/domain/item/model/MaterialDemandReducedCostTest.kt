@@ -67,7 +67,7 @@ class MaterialDemandReducedCostTest {
         shadowPriceMap[itemKey] = ShadowPrice(itemKey, Flt64(100.0))
 
         val reducedCost = shadowPriceMap.reducedCost(
-            cuboid = item,
+            unit = item,
             demandEntries = listOf(Pair(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))),
             shadowPriceOf = { mode, key ->
                 shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price?.toDouble()?.let(::InfraNumber)

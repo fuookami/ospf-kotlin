@@ -866,6 +866,7 @@ fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<
 }
 
 @get:JvmName("cuboidUnitPackageType")
+/** 长方体包装类型属性（Cuboid-only compat）。Cuboid-only compat extension for package type. */
 val Cuboid<*>.packageType: PackageType
     get() {
         return when (this) {
@@ -876,6 +877,7 @@ val Cuboid<*>.packageType: PackageType
     }
 
 @get:JvmName("cuboidViewPackageType")
+/** 长方体视图包装类型属性（CuboidView-only compat）。CuboidView-only compat extension for package type. */
 val CuboidView<*>.packageType: PackageType
     get() {
         return unit.packageType
@@ -910,6 +912,7 @@ val ItemCuboid.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidViewPackageCategory")
+/** 长方体视图包装类别属性（CuboidView-only compat）。CuboidView-only compat extension for package category. */
 val CuboidView<*>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
@@ -934,6 +937,7 @@ val AnyPlacement3.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidUnitBottomOnly")
+/** 长方体底部限定属性（Cuboid-only compat）。Cuboid-only compat extension for bottom-only constraint. */
 val Cuboid<*>.bottomOnly: Boolean
     get() {
         return when (this) {
@@ -944,6 +948,7 @@ val Cuboid<*>.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidViewBottomOnly")
+/** 长方体视图底部限定属性（CuboidView-only compat）。CuboidView-only compat extension for bottom-only constraint. */
 val CuboidView<*>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
@@ -968,6 +973,7 @@ val AnyPlacement3.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidUnitTopFlat")
+/** 长方体顶部平整属性（Cuboid-only compat）。Cuboid-only compat extension for top-flat constraint. */
 val Cuboid<*>.topFlat: Boolean
     get() {
         return when (this) {
@@ -978,6 +984,7 @@ val Cuboid<*>.topFlat: Boolean
     }
 
 @get:JvmName("cuboidViewTopFlat")
+/** 长方体视图顶部平整属性（CuboidView-only compat）。CuboidView-only compat extension for top-flat constraint. */
 val CuboidView<*>.topFlat: Boolean
     get() {
         return when (unit) {

@@ -27,31 +27,31 @@ open class BPP3DShadowPriceArguments(
 
 typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, Item>;
 
-fun BPP3DShadowPriceMap.reducedCost(cuboid: Cuboid<*>): ShadowPriceNumber {
+fun BPP3DShadowPriceMap.reducedCost(unit: Any): ShadowPriceNumber {
     fun shadowPriceOf(item: Item): ShadowPriceNumber {
         return ShadowPriceNumber(this(BPP3DShadowPriceArguments(item)).toDouble())
     }
 
-    return when (cuboid) {
-        is Container3<*> -> cuboid.units.fold(ShadowPriceNumber.zero) { acc, placement ->
-            acc + when (val unit = placement.unit) {
-                is Container3<*> -> reducedCost(unit)
-                is Item -> unit.volume.value - shadowPriceOf(unit)
+    return when (unit) {
+        is Container3<*> -> unit.units.fold(ShadowPriceNumber.zero) { acc, placement ->
+            acc + when (val child = placement.unit) {
+                is Container3<*> -> reducedCost(child)
+                is Item -> child.volume.value - shadowPriceOf(child)
                 else -> ShadowPriceNumber.zero
             }
         }
 
-        is Item -> cuboid.volume.value - shadowPriceOf(cuboid)
+        is Item -> unit.volume.value - shadowPriceOf(unit)
         else -> ShadowPriceNumber.zero
     }
 }
 
 fun BPP3DShadowPriceMap.reducedCost(
-    cuboid: Cuboid<*>,
+    unit: Any,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>
 ): ShadowPriceNumber {
     return reducedCost(
-        cuboid = cuboid,
+        unit = unit,
         demandEntries = demandEntries,
         shadowPriceOf = { mode, key ->
             val price = this.map.entries.firstOrNull { entry ->

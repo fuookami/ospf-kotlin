@@ -6,23 +6,22 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
 
 private fun demandStatisticsForReducedCost(
-    cuboid: Cuboid<*>,
+    unit: Any,
     mode: Bpp3dDemandMode
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
-    return when (cuboid) {
-        is Item -> cuboid.statistics(mode)
-        is Container3<*> -> cuboid.statistics(mode)
-        is Container2<*, *> -> cuboid.statistics(mode)
+    return when (unit) {
+        is Item -> unit.statistics(mode)
+        is Container3<*> -> unit.statistics(mode)
+        is Container2<*, *> -> unit.statistics(mode)
         else -> emptyMap()
     }
 }
 
 fun BPP3DShadowPriceMap.reducedCost(
-    cuboid: Cuboid<*>,
+    unit: Any,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>,
     shadowPriceOf: (Bpp3dDemandMode, Bpp3dDemandKey) -> ShadowPriceNumber,
     demandValueToScalar: (Bpp3dDemandValue) -> ShadowPriceNumber
@@ -34,7 +33,7 @@ fun BPP3DShadowPriceMap.reducedCost(
 
     var reducedCost = ShadowPriceNumber.zero
     for ((mode, key) in activeDemandEntries) {
-        val value = demandStatisticsForReducedCost(cuboid, mode)[key] ?: continue
+        val value = demandStatisticsForReducedCost(unit, mode)[key] ?: continue
         val shadow = shadowPriceOf(mode, key)
         if (shadow neq ShadowPriceNumber.zero) {
             reducedCost += shadow * demandValueToScalar(value)

@@ -298,7 +298,7 @@ class ColumnGenerationStandardExecutors(
             )
             ensureTry(load.register(model), "register precise load")
 
-            val demandConstraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(
+            val demandConstraint = DemandConstraint.forItem(
                 load = load,
                 demandEntries = demandEntries
             )
@@ -401,7 +401,7 @@ class ColumnGenerationStandardExecutors(
 
     private data class RmpArtifacts(
         val model: LinearMetaModel<InfraNumber>,
-        val demandConstraint: ItemDemandConstraint<BPP3DShadowPriceArguments>
+        val demandConstraint: ItemDemandConstraint
     )
 
     private suspend fun buildRmpArtifacts(
@@ -444,14 +444,14 @@ class ColumnGenerationStandardExecutors(
             }
         }
 
-        val demandConstraint = DemandConstraint.forItem<BPP3DShadowPriceArguments>(
+        val demandConstraint = DemandConstraint.forItem(
             load = load,
             demandEntries = demandEntries
         )
         demandConstraint.register(model)
         ensureTry(demandConstraint.invoke(model), "build rmp demand constraint")
 
-        val volumeMinimization = VolumeMinimization.forItem<BPP3DShadowPriceArguments>(
+        val volumeMinimization = VolumeMinimization.forItem(
             assignment = assignment,
             coefficient = config.rmpVolumeCoefficient
         )

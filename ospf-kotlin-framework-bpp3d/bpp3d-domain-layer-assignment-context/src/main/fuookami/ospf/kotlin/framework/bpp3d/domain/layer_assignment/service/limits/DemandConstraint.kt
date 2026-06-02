@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
@@ -103,11 +104,16 @@ private fun domainTag(domain: Bpp3dDemandDomain): String {
 }
 
 /**
- * 获取立方体的需求统计。
- * Get demand statistics from cuboid.
+ * 获取需求统计。
+ * Get demand statistics.
+ *
+ * 使用 Any 参数代替 Cuboid<*>：when-dispatch 本身即为运行时类型检查，
+ * Any 等价且更通用，减少 domain 层对基础设施层 Cuboid 类型的绑定。
+ * Uses Any parameter instead of Cuboid<*>: when-dispatch is runtime type checking,
+ * Any is equivalent and more general, reducing domain-layer binding to infrastructure Cuboid type.
  */
 private fun demandStatistics(
-    cuboid: Cuboid<*>,
+    cuboid: Any,
     mode: Bpp3dDemandMode
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (cuboid) {
@@ -174,16 +180,16 @@ open class DemandConstraint<
         }
 
         /**
-         * 创建 Item 专用需求约束，隐藏调用侧 `T : Cuboid<T>` 泛型暴露。
-         * Build item-only demand constraint and hide caller-side `T : Cuboid<T>` generic exposure.
+         * 创建 Item 专用需求约束，不暴露 `T : Cuboid<T>` 泛型约束。
+         * Build item-only demand constraint without exposing `T : Cuboid<T>` generic constraint.
          */
-        fun <Args : AbstractBPP3DShadowPriceArguments<Item>> forItem(
+        fun forItem(
             load: Load<InfraNumber>,
             demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
-            shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
+            shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
             name: String = "demand"
-        ): ItemDemandConstraint<Args> {
-            return DemandConstraint(
+        ): ItemDemandConstraint {
+            return ItemDemandConstraint(
                 load = load,
                 demandEntries = demandEntries,
                 shadowPriceExtractor = shadowPriceExtractor,
@@ -367,7 +373,26 @@ open class DemandConstraint<
     }
 }
 
-typealias ItemDemandConstraint<Args> = DemandConstraint<Args, Item>
+/**
+ * Item 专用需求约束，不暴露 `T : Cuboid<T>` 泛型约束。
+ * Item-only demand constraint, does not expose `T : Cuboid<T>` generic constraint.
+ *
+ * @property load 负载符号 / load symbols
+ * @property demandEntries 需求条目列表 / demand entry list
+ * @property shadowPriceExtractor 自定义影子价格提取器（可选） / custom shadow price extractor (optional)
+ * @property name 约束名称 / constraint name
+ */
+class ItemDemandConstraint(
+    load: Load<InfraNumber>,
+    demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
+    shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
+    name: String = "demand"
+) : DemandConstraint<BPP3DShadowPriceArguments, Item>(
+    load = load,
+    demandEntries = demandEntries,
+    shadowPriceExtractor = shadowPriceExtractor,
+    name = name
+)
 
 @Deprecated(
     message = "Use DemandShadowPriceKey instead.",

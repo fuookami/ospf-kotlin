@@ -2,7 +2,7 @@
 
 日期：2026-05-31  
 状态：`cylinder.md` 已合并到本文档，后续只维护 `refactor.md`。
-最近更新：2026-06-02（全子域 `Cuboid` / `QuantityPlacement*` 硬绑定扫描完成，`src/main` 直写构造已全部收敛到 `PlacementFactory`；清理未使用 import 与 lambda 参数命名遮蔽；`DemandConstraint` / `VolumeMinimization` 定义本体 `Cuboid<T>` 约束确认为结构性绑定，源自基础设施层接口；已补充下一轮结构性解耦交接计划）。
+最近更新：2026-06-02（结构性解耦续轮：`DemandConstraint.demandStatistics` 与 `LoadingOrderCalculator.isSameType` 参数从 `Cuboid<*>`/`AbstractCuboid<*>` 替换为 `Any`；`VolumeMinimization` 声明为 `open class` 以允许 `ItemVolumeMinimization` 继承；测试兼容性修复：`MaterialDemandReducedCostTest` 参数名 `cuboid→unit`、`ItemDemandConstraintModeKeyTest` 移除 `forItem<>` 类型参数、`ColumnGenerationStandardExecutors` 移除 `forItem<>` 类型参数）。
 
 ## 1. 总目标
 
@@ -440,9 +440,110 @@ mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg
    - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`：21 tests, 0 failures, 1 skipped, BUILD SUCCESS。
    - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：21 tests, 0 failures, 0 skipped, BUILD SUCCESS。
 
-## 11. 下一轮结构性解耦交接（2026-06-02）
+## 12. 结构性解耦执行记录（2026-06-02）
 
-本节是给下一会话的直接执行入口。前文 1-10 节保留历史、目标和验收记录；下一轮应优先按本节执行，不要把“门禁通过”误认为“完全泛型化完成”。
+### 12.1 本轮完成事项
+
+1. `ItemDemandConstraint<Args>` typealias 已替换为独立类 `ItemDemandConstraint`，签名中不再暴露 `T : Cuboid<T>` 泛型约束。
+2. `ItemVolumeMinimization<Args>` typealias 已替换为独立类 `ItemVolumeMinimization`，签名中不再暴露 `T : Cuboid<T>` 泛型约束。
+3. `DemandConstraint.forItem` 和 `VolumeMinimization.forItem` 工厂方法已更新：移除 `Args` 泛型参数，返回独立类。
+4. `ColumnGenerationStandardExecutors` 已更新：`demandConstraint` 类型从 `ItemDemandConstraint<BPP3DShadowPriceArguments>` 简化为 `ItemDemandConstraint`，`forItem<BPP3DShadowPriceArguments>(...)` 简化为 `forItem(...)`。
+5. `DemandReducedCost.kt`：`Cuboid<*>` 参数已替换为 `Any`，移除 `Cuboid` import。
+6. `ShadowPriceMap.kt`（domain-item-context）：`Cuboid<*>` 参数已替换为 `Any`，移除 `Cuboid` import。
+7. `ItemMerger.kt`：为 `dump(cuboids: List<Cuboid<*>>)` 补充 cuboid-only KDoc。
+8. `Item.kt`：为 `Cuboid<*>.packageType`/`bottomOnly`/`topFlat` 和 `CuboidView<*>.packageType`/`bottomOnly`/`topFlat`/`packageCategory` 补充 cuboid-only compat KDoc。
+9. 通用 `DemandConstraint<Args, T>` 和 `VolumeMinimization<Args, T>` 基础设施层类保持不变。
+
+### 12.2 本轮验证结果
+
+1. 编译通过（JetBrains IDE build + file problems check，7 个修改文件均无错误）。
+2. 定向测试通过：
+   - `ItemDemandConstraintModeKeyTest`：PASS
+   - `PreciseLoadMultiBinAggregationTest`：PASS
+   - `SearchAlgorithmCylinderGuardTest`：PASS
+   - `ColumnGenerationAlgorithmTest`：PASS
+   - `MaterialPackingApplicationIntegrationTest`：PASS
+3. BPP3D 全量测试：57 tests, 0 failures, BUILD SUCCESS（注：测试环境仅包含 `ospf-kotlin-framework-bpp3d/pom.xml` 范围内的模块，部分模块可能不在当前 reactor 内）。
+4. Application 链路测试：27 tests, 0 failures, BUILD SUCCESS。
+5. 代码中不再有 `ItemDemandConstraint<...>` 或 `ItemVolumeMinimization<...>` 的参数化使用。
+6. `DemandReducedCost.kt` 和 `ShadowPriceMap.kt`（domain-item-context）不再引用 `Cuboid` 类型。
+
+### 12.3 仍存在的结构性绑定
+
+1. `Item : Cuboid<Item>` — Item 仍继承 Cuboid，长期目标是将 Item 从 Cuboid 继承中解耦。
+2. `Bin<T : Cuboid<T>>` — Bin 定义仍有 Cuboid 泛型约束。
+3. `DemandConstraint<Args, T : Cuboid<T>>` / `VolumeMinimization<Args, T : Cuboid<T>>` — 泛型基类仍保留，用于基础设施层兼容；domain 层通过 `ItemDemandConstraint` / `ItemVolumeMinimization` 封装。
+4. `PlacementFactory` — 集中构造入口，设计性绑定。
+5. `Cuboid<*>` / `CuboidView<*>` 在 `Item.kt` 扩展属性 — cuboid-only compat 扩展，已标注 KDoc。
+6. `Cuboid<*>` 在 `ItemMerger.dump` — cuboid-only 业务路径，已标注 KDoc。
+7. `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>` — 基础设施层核心类型，暂不改。
+8. 旧 three.js renderer 未适配 — 非本轮阻塞项。
+
+### 12.4 下一会话建议
+
+1. 继续收敛 `Bin<T : Cuboid<T>>` 的调用面：评估是否可引入 `ItemBin` 独立类（与 `ItemDemandConstraint` 同模式）。
+2. 评估 `Item : Cuboid<Item>` 解耦的长期路径：需要引入 `PackingShape3` 级别的 domain 抽象替换 `Cuboid<T>` 的几何能力。
+3. 继续在 `domain-item-context` 中将 `CuboidView<*>` 扩展迁移为 `Item` 直接属性（如 `packageType`、`bottomOnly`、`topFlat`），减少 `CuboidView` 在业务层的暴露。
+4. 更新门禁脚本 allowlist 以反映 `DemandConstraint.kt` / `VolumeMinimization.kt` 的 domain 层解耦成果。
+5. 运行完整 Gurobi 回归和 CSV suite 验证。
+
+本节是给下一会话的直接执行入口。前文 1-10 节保留历史、目标和验收记录；下一轮应优先按本节执行，不要把”门禁通过”误认为”完全泛型化完成”。
+
+## 13. 结构性解耦执行记录（2026-06-02 续）
+
+### 13.1 本轮完成事项
+
+1. `DemandConstraint.demandStatistics(cuboid: Cuboid<*>, mode)` 已替换为 `demandStatistics(cuboid: Any, mode)`：when-dispatch 本身即为运行时类型检查，`Any` 等价且更通用，减少 domain 层对 `Cuboid` 类型的绑定。
+2. `LoadingOrderCalculator.isSameType(lhs: AbstractCuboid<*>, rhs: AbstractCuboid<*>)` 已替换为 `isSameType(lhs: Any, rhs: Any)`：同理，when-dispatch 为运行时类型检查，`Any` 等价且更通用；移除 `AbstractCuboid` import。
+3. Shadow price 能力边界评估完成：
+   - `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>` 的 `T : Cuboid<T>` 约束源自 `CGPipeline` 类型链，当前无法在不重设计基础设施层求解器类型系统的情况下移除。
+   - `ItemDemandConstraint` / `ItemVolumeMinimization` 封装模式为本阶段正确策略。
+4. `Bin<T : Cuboid<T>>` 评估完成：
+   - `Bin` 继承 `Container3<Bin<T>>`，而 `Container3` 继承 `Cuboid`，`T : Cuboid<T>` 约束同样源自基础设施层。
+   - `ItemBin` / `LayerBin` / `BlockBin` 类型别名为本阶段正确封装策略。
+5. `CuboidView<*>` 扩展评估完成：
+   - `CuboidView<*>.packageType` / `bottomOnly` / `topFlat` / `packageCategory` 为放置系统的结构性桥接（从 `CuboidView` 到 `Item` 属性），无法在不重写 `QuantityPlacement2` 投影体系的情况下移除。
+   - 已正确标注 cuboid-only compat KDoc。
+6. `VolumeMinimization<Args, T>` 声明从 `class` 改为 `open class`，允许 `ItemVolumeMinimization` 继承。
+7. 测试兼容性修复：
+   - `MaterialDemandReducedCostTest.kt`：`cuboid = item` 参数名改为 `unit = item`，与 `DemandReducedCost.kt` 的 `unit: Any` 参数名对齐。
+   - `ItemDemandConstraintModeKeyTest.kt`：`DemandConstraint.forItem<BPP3DShadowPriceArguments>(...)` 简化为 `DemandConstraint.forItem(...)`，与 `forItem` 工厂签名对齐。
+   - `ColumnGenerationStandardExecutors.kt`：`DemandConstraint.forItem<BPP3DShadowPriceArguments>(...)` 简化为 `DemandConstraint.forItem(...)`，与 `forItem` 工厂签名对齐。
+
+### 13.2 本轮验证结果
+
+1. 编译通过（JetBrains IDE file problems check + Maven compile）。
+2. 定向测试通过：
+   - `ItemDemandConstraintModeKeyTest`：PASS
+   - `PreciseLoadMultiBinAggregationTest`：PASS
+   - `SearchAlgorithmCylinderGuardTest`：PASS
+   - `ColumnGenerationAlgorithmTest`：PASS
+   - `MaterialPackingApplicationIntegrationTest`：PASS
+3. BPP3D 全量测试：173 tests, 0 failures, BUILD SUCCESS。
+4. Application 链路测试：27 tests, 0 failures, BUILD SUCCESS。
+5. `git diff --check -- ospf-kotlin-framework-bpp3d`：仅 CRLF 警告，无格式错误。
+
+### 13.3 仍存在的结构性绑定
+
+1. `Item : Cuboid<Item>` — Item 仍继承 Cuboid，长期目标是将 Item 从 Cuboid 继承中解耦（需引入 `PackingShape3` 级别 domain 抽象）。
+2. `Bin<T : Cuboid<T>>` — 源自 `Container3 : Cuboid`，`ItemBin`/`LayerBin`/`BlockBin` 别名为当前正确封装。
+3. `DemandConstraint<Args, T : Cuboid<T>>` / `VolumeMinimization<Args, T : Cuboid<T>>` — 源自 `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>` 与 `CGPipeline` 类型链，`ItemDemandConstraint`/`ItemVolumeMinimization` 为当前正确封装；`VolumeMinimization` 已改为 `open class`。
+4. `PlacementFactory` — 集中构造入口，设计性绑定。
+5. `Cuboid<*>` / `CuboidView<*>` 在 `Item.kt` 扩展属性 — cuboid-only compat 扩展，放置系统结构性桥接，已标注 KDoc。
+6. `Cuboid<*>` 在 `ItemMerger.dump` — cuboid-only 业务路径，已标注 KDoc。
+7. `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>` — 基础设施层核心类型，暂不改。
+8. `CuboidView<*>` 在 `ItemContainer.kt` — `Container3CuboidUnit<S>` 继承链的结构性桥接。
+9. 旧 three.js renderer 未适配 — 非本轮阻塞项。
+
+### 13.4 下一会话建议
+
+1. 当前 `domain` 层已收敛的 `Cuboid`/`CuboidView` 绑定均为结构性必要（源自基础设施层继承或类型链），不可在不重设计基础设施层的情况下进一步移除。
+2. 下一步方向选择：
+   - **方向 A**：评估引入 `PackingShape3` 接口作为 `Cuboid<T>` 的 domain 层替代，使 `Item` 从 `Cuboid<Item>` 继承中解耦。这是长期目标，影响面大，需先形成迁移计划。
+   - **方向 B**：继续收口剩余业务层 `Cuboid`/`CuboidView` 用法（如 `ItemMerger`、`Pattern`、`PackageAttribute`），确保圆柱路径不静默退化。
+   - **方向 C**：完善圆柱真实几何主链闭环（block/layer/packing 主链迁移），推进阶段 3 目标。
+3. 门禁脚本在当前环境因 `rg` 不在 `PATH` 中无法直接执行；等效手动扫描已确认当前绑定状态。
+4. 运行完整 Gurobi 回归和 CSV suite 验证（如环境允许）。
 
 ### 11.1 已完成事项汇总
 

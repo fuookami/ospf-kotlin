@@ -190,7 +190,16 @@ class LoadingOrderCalculator(
         }
     }
 
-    private fun isSameType(lhs: AbstractCuboid<*>, rhs: AbstractCuboid<*>): Boolean {
+    /**
+     * 判断两个单元是否同类型。
+     * Determine whether two units are the same type.
+     *
+     * 使用 Any 参数代替 AbstractCuboid<*>：when-dispatch 本身即为运行时类型检查，
+     * Any 等价且更通用，减少 domain 层对基础设施层 Cuboid 类型体系的绑定。
+     * Uses Any parameter instead of AbstractCuboid<*>: when-dispatch is runtime type checking,
+     * Any is equivalent and more general, reducing domain-layer binding to infrastructure Cuboid type hierarchy.
+     */
+    private fun isSameType(lhs: Any, rhs: Any): Boolean {
         return if (lhs is Item && rhs is Item) {
             return sameTypeJudger(lhs, rhs)
         } else if (lhs is ItemContainer<*> && rhs is ItemContainer<*>) {
