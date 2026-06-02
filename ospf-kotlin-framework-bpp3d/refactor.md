@@ -2,7 +2,7 @@
 
 日期：2026-05-31  
 状态：`cylinder.md` 已合并到本文档，后续只维护 `refactor.md`。
-最近更新：2026-05-31（阶段 1 完成，阶段 2 完成首版支撑几何收口；阶段 3 补充 DFS/MLHS 空间切分主链圆柱 unsupported 显式门禁与回归；阶段 4 补充 ItemMerger 圆柱 unsupported 门禁、LoadingOrderCalculator 三平面 shape-aware 判定并增加非 `Axis3.Y` 圆柱门禁、需求统计与 layer-assignment 圆柱语义回归，并新增可变半径元数据预留入口第一阶段；阶段 5 补充 README 与示例，完成泛型应用请求 shapeSpec 输入协议第一阶段打通，并补齐 CSV 协议收口与可执行验收记录）。
+最近更新：2026-06-02（全子域 `Cuboid` / `QuantityPlacement*` 硬绑定扫描完成，`src/main` 直写构造已全部收敛到 `PlacementFactory`；清理未使用 import 与 lambda 参数命名遮蔽；`DemandConstraint` / `VolumeMinimization` 定义本体 `Cuboid<T>` 约束确认为结构性绑定，源自基础设施层接口；已补充下一轮结构性解耦交接计划）。
 
 ## 1. 总目标
 
@@ -20,38 +20,12 @@
 
 当前已经完成以下方向的基础工作，后续不要重复铺垫：
 
-1. strict generic boundary 门禁已建立并通过。
-2. shape boundary 门禁已建立并通过。
-3. infrastructure 已有 `PackingShape3`、`ShapeBoundingBox3`、`ShapeFootprint2`、`CuboidPackingShape3`、`CylinderPackingShape3`。
-4. 长方体和圆柱已具备基础 shape adapter、真实体积、bounding box 和 footprint 能力。
-5. `ShapePlacement3` 已存在，并能用 circle/rectangle footprint 做基础 overlap 判断。
-6. container 已新增 shape-aware 边界判断入口，loading rate 可基于真实体积。
-7. renderer DTO 已扩展 shape metadata，包含 shape type、algorithm shape type、axis、radius、diameter、bounding box、actualVolume。
-8. packing renderer adapter 已能从 item shape metadata 输出长方体和固定半径竖直圆柱字段，并用 actualVolume 计算 loading rate。
-9. `Item` 已有 `explicitPackingShape` 作为过渡入口。
-10. layer generation 已有委托式 generator 框架，并新增 `CirclePackingLayerGenerator` 的初步矩形/六角圆密排候选。
-11. block/layer/renderer/packing 侧已有圆柱轴向门禁，非 `Axis3.Y` 圆柱会被拒绝。
-12. 已补充 infrastructure、renderer、packing、block loading、layer generation 的部分圆柱专项测试。
-13. `PackageShape` 已新增稳定 `shapeSpec`（`Cuboid` / `VerticalCylinder`），`ActualItem` 已支持 `shapeSpecOverride`。
-14. `Item` 已新增统一 `packingShape` 入口，主链 `Packer` / `PackingRendererAdapter` / `SimpleBlockGenerator` / `LayerGenerationContext` 已优先使用该入口。
-15. `ShapePlacement3` 已新增 footprint overlap area 计算（圆-圆、圆-矩形、矩形-矩形），`bottomSupport` 已支持 shape resolver，并在 item 堆叠路径注入 `item.packingShape`。
-16. `git diff --check` 与四个门禁脚本（generic/shape/geometry/dry-run）在上述改造后继续通过。
-17. `ItemMerger` 的旧长方体合并入口已对圆柱 item 给出明确 unsupported，不再静默按长方体尺寸做 pile/block/hollow-square/pattern 合并。
-18. `LoadingOrderCalculator` 的 `Bottom` 平面重叠判断已切换为 `ShapePlacement3.footprintOverlapArea`，`Side`/`Front` 平面也已切换为基于 shape bounding 的投影重叠判定，不再依赖 `QuantityPlacement2` 的 cuboid 视图重叠；并对非 `Axis3.Y` 圆柱给出显式 unsupported。
-19. 已补圆柱 `DemandStatistics` 回归测试，覆盖 `ItemAmount` / `ItemMaterialAmount` / `ItemMaterialWeight` 与 layer 聚合统计。
-20. 已补 layer-assignment `DemandConstraint.extractor` 圆柱语义回归测试，验证圆柱 item 在多模式下仍按原始 item/material 统计键与数值参与影子价格提取。
-21. 已新增 `README.md` / `README_ch.md`（中英互链），并补固定半径竖直圆柱输入示例与 renderer DTO 圆柱字段输出示例。
-22. `PackageShapeSpec.VerticalCylinder` 已预留可变半径显式入口（`radiusCandidates` / `radiusMin` / `radiusMax` / `radiusWeightFunctionKey`），并增加基本一致性校验；当前求解与渲染仍仅使用已决策 `radius`，不会把候选或范围当最终半径输出。
-23. `DepthFirstSearchAlgorithm` / `MultiLayerHeuristicSearchAlgorithm` 已接入 `CylinderUnsupportedGuard`，对圆柱 item 在 DFS/MLHS 空间切分路径给出显式 unsupported，并新增回归测试，避免静默按外接盒进入 cuboid-only 搜索。
-24. `GenericPackageShape` 已新增 `shapeSpec`（含 `GenericPackageShapeSpec.VerticalCylinder`）并映射到 `PackageShapeSpec`，`ColumnGenerationGenericApplicationRequest -> toModelRequest` 路径可显式携带圆柱 shape metadata；已补 domain/application 双侧回归测试。
-25. `bpp3d-application` 的 Gurobi CSV 分组场景入口已支持 `shape_type` / `radius_meter` / `axis` 列并映射到 `PackageShapeSpec`（含 `VerticalCylinder`），同时兼容旧 6 列协议默认 `Cuboid`；已补 CSV 解析回归测试与数据集样例更新。
-26. `bpp3d-application` 的 `material,width,amount` CSV 场景入口已支持 `shape_type` / `radius_meter` / `axis` 列并映射到 `PackageShapeSpec`（含 `VerticalCylinder`），同时兼容旧列协议默认 `Cuboid`；已补协议一致性校验（非法 axis、缺 shape_type 但提供 radius/axis）回归测试，并新增样例数据集文件。
-27. 已补充中英 README 的应用级 CSV 输入协议说明（两类 CSV 形态、必填/可选列、shape 列规则、错误语义、样例路径），并在 CSV 解析入口新增 schema 先验校验：当存在 `radius_meter` / `axis` 列时必须存在 `shape_type` 列。
-28. `bpp3d-application/src/test/resources/gurobi` 已补齐 mixed-shape 样例：分组分层形态 `grouped-layer-cylinder-mixed-sample.csv` 与物料宽度数量形态 `material-width-amount-cylinder-sample.csv`。
-29. CSV suite 加载流程已接入 schema 预检报告：目录扫描与显式路径模式均会先执行表头识别、schema 校验与文件名声明类型校验（`grouped-layer` / `material-width-amount`），不一致时显式拒绝并输出 precheck 日志。
-30. 已新增 CSV 协议 smoke 回归测试：样例分组 mixed-shape 文件与样例 material-width-amount mixed-shape 文件可直接完成场景构建（不依赖 Gurobi 求解）；并新增 declared-kind mismatch 拒绝用例。
-31. 已完成本仓可执行验收：四个门禁脚本（generic/shape/geometry/dry-run）通过，`git diff --check` 通过（仅 LF/CRLF 警告），`mvn -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true` 通过。
-32. 已补充阻塞记录：`mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true` 在 `ospf-kotlin-utils` 测试编译失败（`ParallelConcurrencyControlTest.kt` 的 `ULong -> UInt64` 参数类型不匹配）；Gurobi 回归与 CSV suite 受 `ospf-kotlin-core-plugin-gurobi:1.1.0` 私服依赖拉取失败（`poitech_public` connection reset）阻塞。
+1. 竖直圆柱第一阶段 MVP 的真实几何基础、shape-aware 主入口和 renderer DTO metadata 已建立。
+2. domain item/package 层已具备长方体与竖直圆柱的稳定 shape metadata 入口。
+3. block、layer、packing、loading order、demand、renderer、CSV/application 入口已完成第一阶段圆柱接入或显式 unsupported 门禁。
+4. Gurobi CSV 两类入口、README / README_ch、样例数据和协议 smoke 回归已完成第一阶段收口。
+5. 主链硬绑定调用面已阶段性收敛：`src/main` 中 `QuantityPlacement2/3(...)` 直写构造集中到 `PlacementFactory`，调用侧显式泛型噪声已明显减少。
+6. 四个门禁脚本、BPP3D 全量测试、根 POM application 链路、Gurobi 回归和 CSV suite 在当前环境均可执行通过。
 
 ## 3. 当前未完成事项
 
@@ -436,3 +410,227 @@ mvn -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg
     - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am test -Dtest=ItemDemandConstraintModeKeyTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
     - `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dtest=ColumnGenerationAlgorithmTest,MaterialPackingApplicationIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`
 31. 下会话可继续项（不改变 10.2 原顺序）：在 `ospf-kotlin-framework-bpp3d` 范围内继续收敛剩余 `Cuboid` / `QuantityPlacement*` 硬绑定，优先 `DemandConstraint` / `VolumeMinimization` 定义本体与 `PlacementFactory` 必要边界；three.js 仍按“本轮非阻塞项”处理。
+
+### 10.4 本轮收口与全量绑定快照（2026-06-02）
+
+1. 接手确认：四个门禁脚本均 PASS（generic / shape / geometry / dry-run）；`mvn -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true` 全量 173 测试通过、BUILD SUCCESS；`git diff --check -- ospf-kotlin-framework-bpp3d` 无格式错误。
+2. 全子域硬绑定扫描完成，结论：`src/main`（排除 `bpp3d-infrastructure`）内 `QuantityPlacement2/3(...)` 直写构造已全部收敛到 `PlacementFactory`，不再在业务主链散落直写。各子域状态：
+   - `bpp3d-domain-layer-generation-context`：CLEAN（无 `Cuboid` / `QuantityPlacement` / `CuboidView` 引用）。
+   - `bpp3d-domain-block-loading-context`：CLEAN（仅函数名 `requireNoCylinderItemsForCuboidSearch` 含 "Cuboid" 语义前缀，非类型绑定）。
+   - `bpp3d-domain-packing-context`：CLEAN（仅 `PackingShapeType.Cuboid` 等枚举值映射，非 `Cuboid` 类型引用）。
+   - `bpp3d-domain-bla-context`：CLEAN。
+   - `bpp3d-application`：1 个未使用 `QuantityPlacement3` import（已清理）。
+   - `bpp3d-domain-layer-assignment-context`：`DemandConstraint` / `VolumeMinimization` 定义本体仍持有 `T : Cuboid<T>` 泛型约束，属于结构性绑定——该约束源自基础设施层 `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>` 接口，当前无法在不重设计影子价格系统的情况下移除；已有 `forItem` 工厂与 `ItemDemandConstraint` / `ItemVolumeMinimization` 别名对业务调用者屏蔽。
+   - `bpp3d-domain-item-context`：`PlacementFactory` 为集中构造入口（设计如此）；`Item.kt` 中 3 处 lambda 参数名 `QuantityPlacement3` 遮蔽了同名类型（已重命名为 `itemPlacement`）。
+3. 本轮清理：
+   - `ColumnGenerationStandardExecutors.kt`：移除未使用的 `import ...infrastructure.QuantityPlacement3`。
+   - `Item.kt`：3 处 `.let { QuantityPlacement3 -> listOf(QuantityPlacement3) }` 重命名为 `.let { itemPlacement -> listOf(itemPlacement) }`，消除变量名对类型名的遮蔽。
+   - `ColumnGenerationPackingAnalyzerGenericEntryPointTest.kt` / `ColumnGenerationAlgorithmTest.kt` / `MaterialPackingApplicationIntegrationTest.kt` / `GurobiColumnGenerationTest.kt`：各移除未使用的 `import ...QuantityPlacement3` 和 `import ...point3` 对（共 8 条死 import）。
+4. 回归验证：
+   - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-item-context -am test -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`：26 tests, 0 failures。
+   - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dsurefire.failIfNoSpecifiedTests=false -Dgpg.skip=true`：27 tests, 0 failures。
+   - `mvn -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`：全量 173 tests, 0 failures, BUILD SUCCESS。
+   - `git diff --check -- ospf-kotlin-framework-bpp3d`：通过，无格式错误。
+5. 下会话可继续项：
+   - `DemandConstraint` / `VolumeMinimization` 定义本体的 `Cuboid<T>` 泛型约束为当前最后的 domain 层类型级耦合，如后续引入 `PackingShape3` 级别的 domain 抽象（如 `VolumeProvider` 或 `SpatialDimensions` 接口）替换 `AbstractBPP3DShadowPriceArguments` 中的 `Cuboid<T>` 约束，可彻底去除该绑定；在此之前 `forItem` + 别名体系为正确的封装策略。
+   - `Item` 仍继承 `Cuboid<Item>`，完全泛型化需要将 `Item` 从 `Cuboid` 继承中解耦（长期目标，非第一阶段 MVP 范围）。
+   - three.js 仍按"本轮非阻塞项"处理。
+6. 复核补充（2026-06-02）：当前环境未复现历史阻塞；以下交接验收命令均可执行并通过：
+   - `mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test -Dgpg.skip=true`：BUILD SUCCESS。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`：21 tests, 0 failures, 1 skipped, BUILD SUCCESS。
+   - `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：21 tests, 0 failures, 0 skipped, BUILD SUCCESS。
+
+## 11. 下一轮结构性解耦交接（2026-06-02）
+
+本节是给下一会话的直接执行入口。前文 1-10 节保留历史、目标和验收记录；下一轮应优先按本节执行，不要把“门禁通过”误认为“完全泛型化完成”。
+
+### 11.1 已完成事项汇总
+
+1. 竖直圆柱第一阶段 MVP 已建立，真实几何主入口、metadata、renderer、CSV/application 入口和 unsupported 门禁均已完成阶段性接入。
+2. 主链硬绑定调用面已阶段性收敛，`QuantityPlacement2/3(...)` 直写构造集中到 `PlacementFactory`，调用侧显式泛型噪声已减少。
+3. 文档、样例、门禁和回归测试已同步到当前第一阶段状态。
+4. 本轮只做低风险清理和交接文档更新，没有改变装箱业务语义。
+
+### 11.2 本轮未完成事项
+
+1. 完全泛型化尚未完成：
+   - `Item` 仍继承 `Cuboid<Item>`。
+   - `QuantityPlacement3<T : Cuboid<T>>` 与 `QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 仍是基础设施层核心类型。
+   - `CuboidView` 仍承载旧矩形投影语义。
+2. 最后明确的 domain 层结构性绑定仍存在：
+   - `DemandConstraint` / `VolumeMinimization` 定义本体仍有 `T : Cuboid<T>`。
+   - 该约束源自 `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>`，不能只靠别名彻底移除。
+3. `domain-item-context` 仍有业务兼容绑定：
+   - `ItemContainer`、`Layer`、`Block`、`Bin`、`ItemMerger.dump`、`packageType` / `bottomOnly` / `topFlat` 等扩展仍以 `Cuboid` / `CuboidView` 为部分语义载体。
+4. 圆柱搜索支持仍是第一阶段策略：
+   - DFS / MLHS 对圆柱是显式 unsupported，不是真实几何搜索支持。
+   - `CirclePackingLayerGenerator` 仍是初步候选生成器，不是完整可替换圆柱算法服务。
+5. 可变半径只完成 metadata 预留：
+   - `radiusCandidates` / `radiusMin` / `radiusMax` / `radiusWeightFunctionKey` 不参与连续优化。
+   - renderer 不应输出未决策半径范围作为最终半径。
+6. legacy three.js renderer 未在本仓适配：
+   - 当前仓内未发现旧 three.js 前端代码。
+   - 需要外部仓或前端项目协同，不作为下一轮默认阻塞项。
+
+### 11.3 下一轮目标
+
+下一轮目标是处理“结构性解耦”，不是继续做表面 import 或别名清理。
+
+优先目标：
+
+1. 为 shadow price / demand / volume 相关系统设计可替代 `Cuboid<T>` 的最小 domain 能力边界。
+2. 判断并尽可能迁移 `DemandConstraint` / `VolumeMinimization` 定义本体，减少或去除 domain 层 `T : Cuboid<T>` 结构性约束。
+3. 梳理 `Item : Cuboid<Item>` 的长期解耦路径，形成可分阶段执行的迁移计划。
+4. 在不破坏长方体行为的前提下，继续将业务层 `Cuboid` / `CuboidView` 用法收敛到 shape-aware 或明确 cuboid-only 边界。
+5. 同步收紧门禁 allowlist，避免新增主链硬绑定。
+
+非目标：
+
+1. 不一次性重写 `QuantityPlacement2/3` 基础设施。
+2. 不强行把 DFS / MLHS 改成圆柱真实几何搜索。
+3. 不引入任意 shape 通用装箱框架。
+4. 不实现连续半径优化器。
+5. 不在缺少外部前端上下文时适配 legacy three.js renderer。
+
+### 11.4 下一轮原则
+
+1. 先证明边界，再改实现：
+   - 优先读 `AbstractBPP3DShadowPriceArguments`、`DemandConstraint`、`VolumeMinimization`、`BPP3DShadowPriceMap`、`DemandReducedCost`。
+   - 先明确它们真正需要的是 volume、demand key、material key、item identity 还是完整 cuboid geometry。
+2. 不用别名掩盖结构性问题：
+   - 别名可以减少调用噪声，但不能宣称完成解耦。
+   - 若底层仍是 `T : Cuboid<T>`，文档必须如实记录。
+3. 保持 cuboid-only 边界显式：
+   - 确实依赖长方体合并、矩形切分或 cuboid view 的路径，要么迁移为 shape-aware，要么在命名、异常或门禁中明确 cuboid-only。
+4. 小步迁移并保持回归：
+   - 每次迁移一个结构边界后，先跑对应模块测试，再跑 BPP3D 全量门禁。
+   - 不做跨模块大规模格式化。
+5. 不扩大 allowlist：
+   - 新增 allowlist 前必须说明为什么该绑定是结构性必要。
+   - 如果迁移成功，应删除对应 allowlist 项。
+
+### 11.5 下一轮事项
+
+建议按以下顺序执行：
+
+1. 建立新基线：
+   - `git status --short --branch`
+   - 四个门禁脚本
+   - `rg --line-number "\b(Cuboid|CuboidView|QuantityPlacement2|QuantityPlacement3|QuantityRectangle2|QuantityCuboid3)\b" ospf-kotlin-framework-bpp3d --glob "*.kt" --glob "!**/bpp3d-infrastructure/**"`
+   - `rg --line-number "QuantityPlacement[23]\(" ospf-kotlin-framework-bpp3d --glob "*.kt" --glob "!**/bpp3d-infrastructure/**"`
+2. Shadow price 解耦设计：
+   - 梳理 `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>` 的真实能力需求。
+   - 评估新增最小接口，例如 `VolumeProvider`、`DemandMeasurable`、`SpatialDimensions`、`PackingDemandUnit`，名称以代码语义为准。
+   - 形成方案后再改 `DemandConstraint` / `VolumeMinimization`，不要直接大面积替换泛型约束。
+3. 迁移 item 专用路径：
+   - 优先保证 `DemandConstraint.forItem` / `VolumeMinimization.forItem` 继续作为 application 与 layer-assignment 的首选入口。
+   - 如果底层泛型可收窄，补充 `ItemDemandConstraintModeKeyTest` 和 `PreciseLoadMultiBinAggregationTest` 回归。
+4. 清理 `domain-item-context` 兼容绑定：
+   - 检查 `DemandReducedCost.kt`、`ShadowPriceMap.kt`、`ItemContainer.kt`、`ItemMerger.kt`、`Bin.kt`、`Layer.kt`、`Item.kt`。
+   - 能转为 `Item` / `ItemContainer` / `packingShape` / bounding box 语义的地方优先迁移。
+   - 不能迁移的地方标注 cuboid-only 边界，并确保圆柱不会静默进入。
+5. 门禁调整：
+   - 更新 `generic-boundary-check.ps1` 和 `shape-boundary-check.ps1`。
+   - 对已迁移文件收紧 allowlist。
+6. 文档更新：
+   - 只记录实际完成和实际验证结果。
+   - 不把结构性绑定减少写成“完全泛型化完成”。
+
+### 11.6 下一轮整体计划
+
+阶段 0：接手与基线确认
+
+1. 读取 `.rules/chore.md` 与本节。
+2. 记录工作树状态，确认是否存在其他模块无关改动。
+3. 跑四个门禁脚本与 `git diff --check -- ospf-kotlin-framework-bpp3d`。
+4. 跑 BPP3D 全量测试；如时间允许，跑根 POM application 链路。
+
+阶段 1：Shadow price 能力边界设计
+
+1. 画出 `DemandConstraint` / `VolumeMinimization` / `AbstractBPP3DShadowPriceArguments` / `BPP3DShadowPriceMap` 的类型依赖。
+2. 提出最小接口或泛型收窄方案。
+3. 判断是否能在不改求解器外部契约的情况下替换 `T : Cuboid<T>`。
+
+阶段 2：实现最小可验证迁移
+
+1. 先迁移 item 专用路径，不动所有泛型调用者。
+2. 保持 `forItem` 与 `ItemDemandConstraint` / `ItemVolumeMinimization` 兼容。
+3. 补或更新定向测试。
+
+阶段 3：收紧业务兼容绑定
+
+1. 清理 `domain-item-context` 中仍可迁移的 `Cuboid<*>` / `CuboidView<*>` 扩展。
+2. 对 `ItemMerger`、`ItemContainer.dump` 等 cuboid-only 语义写清边界。
+3. 确保圆柱路径仍显式 unsupported 或走真实 geometry policy。
+
+阶段 4：门禁与全量验收
+
+1. 更新门禁 allowlist。
+2. 跑基础门禁、BPP3D 全量测试、根 POM application 链路、Gurobi 回归、CSV suite。
+3. 更新 `refactor.md` 记录命令、结果、剩余缺口。
+
+### 11.7 下一轮重点修改清单
+
+优先文件：
+
+1. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/DemandConstraint.kt`
+2. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/VolumeMinimization.kt`
+3. `bpp3d-domain-layer-assignment-context/src/main/.../model/*ShadowPrice*`
+4. `bpp3d-domain-item-context/src/main/.../model/DemandReducedCost.kt`
+5. `bpp3d-domain-item-context/src/main/.../model/ShadowPriceMap.kt`
+6. `bpp3d-domain-item-context/src/main/.../model/Item.kt`
+7. `bpp3d-domain-item-context/src/main/.../model/ItemContainer.kt`
+8. `bpp3d-domain-item-context/src/main/.../model/Bin.kt`
+9. `bpp3d-domain-item-context/src/main/.../model/Layer.kt`
+10. `bpp3d-domain-item-context/src/main/.../service/ItemMerger.kt`
+11. `bpp3d-domain-item-context/src/main/.../model/PlacementFactory.kt`
+12. `ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1`
+13. `ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1`
+14. `ospf-kotlin-framework-bpp3d/refactor.md`
+
+验证相关文件：
+
+1. `bpp3d-domain-layer-assignment-context/src/test/.../ItemDemandConstraintModeKeyTest.kt`
+2. `bpp3d-domain-layer-assignment-context/src/test/.../PreciseLoadMultiBinAggregationTest.kt`
+3. `bpp3d-domain-item-context/src/test/.../DemandStatisticsTest.kt`
+4. `bpp3d-domain-item-context/src/test/.../GenericDemandReducedCostTest.kt`
+5. `bpp3d-domain-block-loading-context/src/test/.../SearchAlgorithmCylinderGuardTest.kt`
+6. `bpp3d-domain-packing-context/src/test/.../PackerAndRendererAdapterTest.kt`
+7. `bpp3d-application/src/test/.../ColumnGenerationAlgorithmTest.kt`
+8. `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt`
+
+### 11.8 下一轮验收标准
+
+阶段性验收标准：
+
+1. 本轮新增或迁移的 domain 层代码不新增散落 `QuantityPlacement2/3(...)` 直写构造。
+2. 如果 `DemandConstraint` / `VolumeMinimization` 仍保留 `T : Cuboid<T>`，必须在文档中说明原因和下一步；不能宣称结构性解耦完成。
+3. 如果成功移除某个结构性 `Cuboid<T>` 约束，必须同步删除或收紧对应 allowlist。
+4. 圆柱路径不能因类型迁移退回外接盒判定。
+5. 长方体既有测试、CSV 入口和 Gurobi 流程不回退。
+
+必须执行的命令：
+
+```powershell
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1
+git diff --check -- ospf-kotlin-framework-bpp3d
+mvn -f ospf-kotlin-framework-bpp3d/pom.xml test "-Dgpg.skip=true"
+```
+
+建议执行的完整验收：
+
+```powershell
+mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test "-Dgpg.skip=true"
+mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true
+mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true
+```
+
+文档验收标准：
+
+1. `refactor.md` 必须同步记录实际执行命令与结果。
+2. 未执行的测试不能写成通过。
+3. 仍未完成的结构性绑定必须保留在“未完成事项”中。
+4. 如果遇到依赖仓库、Gurobi license、JVM code cache 等环境问题，只记录为环境阻塞，不修改业务结论。

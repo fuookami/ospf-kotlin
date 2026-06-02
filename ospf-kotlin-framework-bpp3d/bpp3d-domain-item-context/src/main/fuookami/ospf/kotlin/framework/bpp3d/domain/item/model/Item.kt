@@ -636,8 +636,8 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                         bottomItems = thisBottomPlacements.flatMap {
                             when (val unit = it.unit) {
                                 is Item -> {
-                                    it.toItemPlacementOrNull()?.let { QuantityPlacement3 ->
-                                        listOf(QuantityPlacement3)
+                                    it.toItemPlacementOrNull()?.let { itemPlacement ->
+                                        listOf(itemPlacement)
                                     } ?: emptyList()
                                 }
 
@@ -695,8 +695,8 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                         bottomItems = thisBottomPlacements.flatMap {
                             when (val unit = it.unit) {
                                 is Item -> {
-                                    it.toItemPlacementOrNull()?.let { QuantityPlacement3 ->
-                                        listOf(QuantityPlacement3)
+                                    it.toItemPlacementOrNull()?.let { itemPlacement ->
+                                        listOf(itemPlacement)
                                     } ?: emptyList()
                                 }
 
@@ -756,8 +756,8 @@ suspend fun ItemPlacement3.enabledStackingOn(
             }.flatMap {
                 when (val unit = it.unit) {
                     is Item -> {
-                        it.toItemPlacementOrNull()?.let { QuantityPlacement3 ->
-                            listOf(QuantityPlacement3)
+                        it.toItemPlacementOrNull()?.let { itemPlacement ->
+                            listOf(itemPlacement)
                         } ?: emptyList()
                     }
 

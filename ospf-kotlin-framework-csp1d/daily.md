@@ -437,15 +437,10 @@ git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-c
 
 ### 12.1 本次已完成（不改动原目标与验收定义）
 
-1. 已补齐并接通 C0 模块骨架：`csp1d-domain-cutting-plan-generation-context`、`csp1d-domain-produce-context`、`csp1d-domain-yield-context`、`csp1d-domain-length-assignment-context`、`csp1d-domain-wasting-minimization-context`、`csp1d-application`。
-2. 已清理旧 `csp1d-produce-context` 中 `framework.bpp3d` 兼容包路径残留，并迁移到 `framework.csp1d` 命名边界。
-3. 已完成 C1-1/C1-2/C1-3/C1-4 的最小可用落地：`Product/Production/WidthRange/QuantityRange/ProductDemand/DemandMode/CuttingPlanDemandContribution/RenderMapper` 等核心模型已可编译与测试。
-4. 已补齐 C0-1 最小应用编排：`Csp1dProblem`、`Csp1dSolution`、`Csp1dMilp`、`Csp1dColumnGeneration`、`Csp1dRecovery`、`Csp1dSchedule`、`TopKCuttingPlans`。
-5. `Csp1dColumnGeneration` 已实现从主问题影子价格触发 pricing 生成新列的最小流程（含调试 trace）。
-6. 已新增并通过 C0-1 验收向测试：
-   - `Csp1dApplicationAcceptanceTest.milpShouldSolveRollDemandWithoutPoitDependency`
-   - `Csp1dApplicationAcceptanceTest.milpShouldCoverCostarRestWidthAndMachineCapacity`
-   - `Csp1dApplicationAcceptanceTest.columnGenerationShouldGenerateNewPlansFromShadowPrice`
+1. 已完成 C0 模块骨架和命名边界清理。
+2. 已完成 C1 核心泛型模型与物理量边界的最小落地。
+3. 已完成 C0-1 最小应用编排与列生成入口骨架。
+4. 已补齐基础验收测试并通过指定验证。
 
 ### 12.2 本次验证记录
 
@@ -467,22 +462,10 @@ git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-c
 
 ### 13.1 本次已完成
 
-1. **验收回填**：已将 C0、C0-1、C1-0、C1-1、C1-2、C1-3、C1-4 共 22 项验收勾选从 `[ ]` 更新为 `[x]`，与代码实际完成度一致，未改动原始目标定义。
-2. **`CuttingPlan.restWidth` 泛型数值策略抽象**：
-   - 新增 `QuantityArithmetic<V>` 接口，提供 `add` / `subtract` 方法抽象 `Quantity<V>` 的加减运算能力。
-   - 实现 `Flt64QuantityArithmetic` 和 `FltXQuantityArithmetic` 两个具体策略。
-   - 提供 `DefaultQuantityArithmetic.resolveFor(sample)` 按运行时值自动分发。
-   - 重构 `CuttingPlan<V>` 新增可选 `arithmetic: QuantityArithmetic<V>?` 参数，`usedWidth` / `restWidth` / `repeat` 全部改用 `QuantityArithmetic<V>` 调用，移除原有 `Flt64/FltX` 运行时类型分支。
-   - 在 `MaterialTypeAliases.kt` 中补齐 `Flt64Arithmetic` / `FltXArithmetic` 别名。
-3. **yield-context 模块**：
-   - 新增 `YieldModel.kt`：`ProductOutput<V>`、`UnderProduction<V>`、`OverProduction<V>`、`YieldAnalysis<V>`。
-   - 新增 `YieldContext.kt`：基于 `QuantityArithmetic<V>` 汇总切割方案贡献并与统一 `ProductDemand<V>` 对比，输出欠产 / 超产 / 产出聚合分析。
-4. **length-assignment-context 模块**：
-   - 新增 `LengthAssignmentModel.kt`：`LengthAssignment<V>`、`OverLengthRecord<V>`、`LengthAssignmentObjective<V>`（sealed）。
-   - 新增 `LengthAssignmentContext.kt`：`LengthDerivation<V>` 函数接口（由下游按业务单位注入除法逻辑）、`LengthAssignmentConstraint<V>`（sealed）、`LengthAssignmentInput<V>`、`LengthAssignmentResult<V>`、`LengthAssignmentContext<V>` 实现动态卷长分配与超长检测。
-5. **wasting-minimization-context 模块**：
-   - 新增 `WasteModel.kt`：`RestWidthWaste<V>`、`RestMaterialWaste<V>`、`OverProductionAreaWaste<V>`、`WasteMinimizationObjective<V>`（sealed）。
-   - 新增 `WastingMinimizationContext.kt`：`WasteAnalysis<V>`、`WastingMinimizationContext<V>` 基于 `QuantityArithmetic<V>` 分析选中方案的余宽 / 余料浪费并汇总。
+1. 已按当前最小完成度回填阶段验收勾选状态。
+2. 已完成 `CuttingPlan.restWidth` 的泛型数值策略抽象。
+3. 已完成 yield、length assignment、wasting minimization 三个增强上下文的分析层骨架。
+4. 已完成本轮编译、测试和门禁检查。
 
 ### 13.2 本次验证记录
 
@@ -514,14 +497,11 @@ git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-c
 
 已完成并可作为后续基础的事项如下：
 
-1. **模块骨架**：`csp1d-domain-cutting-plan-generation-context`、`csp1d-domain-produce-context`、`csp1d-domain-yield-context`、`csp1d-domain-length-assignment-context`、`csp1d-domain-wasting-minimization-context`、`csp1d-application` 已纳入 Maven reactor。
-2. **命名边界清理**：`com.poit` 和 `framework.bpp3d` 未出现在 CSP1D 领域源码中，仅在本文档中作为历史说明出现。
-3. **泛型与物理量模型**：`Product<V>`、`Production<V>`、`WidthRange<V>`、`QuantityRange<V>`、`ProductDemand<V>`、`DemandMode`、`CuttingPlanDemandContribution<V>` 等模型已使用 `V : RealNumber<V>` 和 `Quantity<V>`。
-4. **兼容边界**：保留 DTO、legacy factory、typealias 和 render mapper 中的 `Flt64` / `FltX` 兼容入口。
-5. **切割方案余宽计算**：`CuttingPlan<V>` 已引入 `QuantityArithmetic<V>` 策略，`usedWidth`、`restWidth`、`repeat` 不再直接在 `CuttingPlan.kt` 中写 `Flt64/FltX` 类型分支。
-6. **最小应用编排**：已有 `Csp1dProblem`、`Csp1dSolution`、`Csp1dMilp`、`Csp1dColumnGeneration`、`Csp1dRecovery`、`Csp1dSchedule`、`TopKCuttingPlans`。
-7. **增强上下文骨架**：`YieldContext`、`LengthAssignmentContext`、`WastingMinimizationContext` 已具备分析层模型和最小计算流程。
-8. **验证结果**：17 个 CSP1D 相关 reactor 模块编译通过；`Csp1dApplicationAcceptanceTest`、`ProductGenericTypeTest`、`ProductDemandModelTest` 的 surefire 报告均为 0 failure / 0 error。
+1. 已完成 CSP1D 第一阶段模块骨架、命名边界清理和最小应用编排。
+2. 已完成核心领域模型的泛型化与物理量化基础改造。
+3. 已完成切割方案余宽计算的泛型算术策略抽象。
+4. 已完成增强上下文的分析层骨架。
+5. 已完成本轮基础编译、测试和门禁验证。
 
 ### 14.2 本轮未完成事项与风险
 
