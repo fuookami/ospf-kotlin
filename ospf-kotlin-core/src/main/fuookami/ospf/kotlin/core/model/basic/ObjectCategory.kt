@@ -9,10 +9,12 @@ package fuookami.ospf.kotlin.core.model.basic
  * Objective function category enumeration indicating optimization direction (maximization or minimization).
  */
 enum class ObjectCategory {
+    /** 最大化目标 / Maximization objective */
     Maximum {
         override val reverse get() = Minimum
         override fun toString() = "Maximum"
     },
+    /** 最小化目标 / Minimization objective */
     Minimum {
         override val reverse get() = Maximum
         override fun toString() = "Minimum"

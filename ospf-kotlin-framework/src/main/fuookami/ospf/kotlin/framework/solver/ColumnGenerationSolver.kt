@@ -65,6 +65,14 @@ interface ColumnGenerationSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Flt64FeasibleSolverOutput>
 
+    /**
+     * 使用选项求解 MILP 问题（便捷重载）
+     * Solve MILP problem with options (convenience overload)
+     *
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果 / Solve result
+     */
     suspend fun solveMILP(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -90,7 +98,18 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun solveMILPAsync(
+    /**
+     * 异步求解 MILP 问题
+     * Asynchronously solve MILP problem
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun solveMILPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         toLogModel: Boolean = false,
@@ -108,7 +127,15 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun solveMILPAsync(
+    /**
+     * 使用选项异步求解 MILP 问题
+     * Asynchronously solve MILP problem with options
+     *
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun solveMILPAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<Flt64FeasibleSolverOutput>> {
@@ -120,6 +147,18 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 求解 MILP 问题并返回指定数量的解
+     * Solve MILP problem and return a specified number of solutions
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param amount 期望解数量 / Desired solution amount
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果与解池 / Solve result with solution pool
+     */
     suspend fun solveMILP(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -138,6 +177,14 @@ interface ColumnGenerationSolver {
             .map { Pair(it, listOf(it.solution)) }
     }
 
+    /**
+     * 使用选项求解 MILP 问题并返回解池
+     * Solve MILP problem with options and return solution pool
+     *
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果与解池 / Solve result with solution pool
+     */
     suspend fun solveMILPWithSolutionPool(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions
@@ -152,7 +199,19 @@ interface ColumnGenerationSolver {
         )
     }
 
-        fun solveMILPAsync(
+    /**
+     * 异步求解 MILP 问题并返回指定数量的解
+     * Asynchronously solve MILP problem and return a specified number of solutions
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param amount 期望解数量 / Desired solution amount
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
+     */
+    fun solveMILPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         amount: UInt64,
@@ -172,7 +231,15 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun solveMILPWithSolutionPoolAsync(
+    /**
+     * 使用选项异步求解 MILP 问题并返回解池
+     * Asynchronously solve MILP problem with options and return solution pool
+     *
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
+     */
+    fun solveMILPWithSolutionPoolAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions
     ): CompletableFuture<Ret<Pair<Flt64FeasibleSolverOutput, List<List<Flt64>>>>> {
@@ -221,6 +288,14 @@ interface ColumnGenerationSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<LPResult>
 
+    /**
+     * 使用选项求解 LP 问题（便捷重载）
+     * Solve LP problem with options (convenience overload)
+     *
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果 / Solve result
+     */
     suspend fun solveLP(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -234,7 +309,18 @@ interface ColumnGenerationSolver {
         )
     }
 
-        fun solveLPAsync(
+    /**
+     * 异步求解 LP 问题
+     * Asynchronously solve LP problem
+     *
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun solveLPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         toLogModel: Boolean = false,
@@ -252,7 +338,15 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun solveLPAsync(
+    /**
+     * 使用选项异步求解 LP 问题
+     * Asynchronously solve LP problem with options
+     *
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun solveLPAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LPResult>> {
@@ -264,6 +358,19 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 带值转换求解 MILP 问题
+     * Solve MILP problem with value conversion
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveMILPV(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -285,6 +392,18 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 带值转换求解 MILP 问题（使用模型自带转换器）
+     * Solve MILP problem with value conversion (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveMILPV(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -302,6 +421,16 @@ interface ColumnGenerationSolver {
         )
     }
 
+    /**
+     * 使用选项带值转换求解 MILP 问题
+     * Solve MILP problem with value conversion and options
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveMILPV(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -317,6 +446,15 @@ interface ColumnGenerationSolver {
         )
     }
 
+    /**
+     * 使用选项带值转换求解 MILP 问题（使用模型自带转换器）
+     * Solve MILP problem with value conversion and options (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveMILPV(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -330,7 +468,20 @@ interface ColumnGenerationSolver {
         )
     }
 
-        fun <V> solveMILPVAsync(
+    /**
+     * 异步带值转换求解 MILP 问题
+     * Asynchronously solve MILP problem with value conversion
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveMILPVAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -350,7 +501,19 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveMILPVAsync(
+    /**
+     * 异步带值转换求解 MILP 问题（使用模型自带转换器）
+     * Asynchronously solve MILP problem with value conversion (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveMILPVAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         toLogModel: Boolean = false,
@@ -368,7 +531,17 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveMILPVAsync(
+    /**
+     * 使用选项异步带值转换求解 MILP 问题
+     * Asynchronously solve MILP problem with value conversion and options
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveMILPVAsync(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -382,7 +555,16 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveMILPVAsync(
+    /**
+     * 使用选项异步带值转换求解 MILP 问题（使用模型自带转换器）
+     * Asynchronously solve MILP problem with value conversion and options (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveMILPVAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<FeasibleSolverOutput<V>>> where V : RealNumber<V>, V : NumberField<V> {
@@ -394,6 +576,20 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 带值转换求解 MILP 问题并返回指定数量的解
+     * Solve MILP problem with value conversion and return a specified number of solutions
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param amount 期望解数量 / Desired solution amount
+     * @param converter 值转换器 / Value converter
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果与解池 / Solve result with solution pool
+     */
     suspend fun <V> solveMILPV(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -420,6 +616,19 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 带值转换求解 MILP 问题并返回指定数量的解（使用模型自带转换器）
+     * Solve MILP problem with value conversion and return a specified number of solutions (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param amount 期望解数量 / Desired solution amount
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果与解池 / Solve result with solution pool
+     */
     suspend fun <V> solveMILPV(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -439,7 +648,21 @@ interface ColumnGenerationSolver {
         )
     }
 
-        fun <V> solveMILPVAsync(
+    /**
+     * 异步带值转换求解 MILP 问题并返回指定数量的解
+     * Asynchronously solve MILP problem with value conversion and return a specified number of solutions
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param amount 期望解数量 / Desired solution amount
+     * @param converter 值转换器 / Value converter
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
+     */
+    fun <V> solveMILPVAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         amount: UInt64,
@@ -461,7 +684,20 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveMILPVAsync(
+    /**
+     * 异步带值转换求解 MILP 问题并返回指定数量的解（使用模型自带转换器）
+     * Asynchronously solve MILP problem with value conversion and return a specified number of solutions (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param amount 期望解数量 / Desired solution amount
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
+     */
+    fun <V> solveMILPVAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         amount: UInt64,
@@ -481,6 +717,16 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 使用选项带值转换求解 MILP 问题并返回解池
+     * Solve MILP problem with value conversion, options, and return solution pool
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果与解池 / Solve result with solution pool
+     */
     suspend fun <V> solveMILPVWithSolutionPool(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -497,6 +743,15 @@ interface ColumnGenerationSolver {
         )
     }
 
+    /**
+     * 使用选项带值转换求解 MILP 问题并返回解池（使用模型自带转换器）
+     * Solve MILP problem with value conversion, options, and return solution pool (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果与解池 / Solve result with solution pool
+     */
     suspend fun <V> solveMILPVWithSolutionPool(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions
@@ -508,7 +763,17 @@ interface ColumnGenerationSolver {
         )
     }
 
-        fun <V> solveMILPVWithSolutionPoolAsync(
+    /**
+     * 使用选项异步带值转换求解 MILP 问题并返回解池
+     * Asynchronously solve MILP problem with value conversion, options, and return solution pool
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
+     */
+    fun <V> solveMILPVWithSolutionPoolAsync(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions
@@ -522,7 +787,16 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveMILPVWithSolutionPoolAsync(
+    /**
+     * 使用选项异步带值转换求解 MILP 问题并返回解池（使用模型自带转换器）
+     * Asynchronously solve MILP problem with value conversion, options, and return solution pool (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
+     */
+    fun <V> solveMILPVWithSolutionPoolAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>>> where V : RealNumber<V>, V : NumberField<V> {
@@ -553,6 +827,19 @@ interface ColumnGenerationSolver {
         val gap: Flt64 by result::gap
     }
 
+    /**
+     * 带值转换求解 LP 问题
+     * Solve LP problem with value conversion
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveLPV(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -574,6 +861,18 @@ interface ColumnGenerationSolver {
         }
     }
 
+    /**
+     * 带值转换求解 LP 问题（使用模型自带转换器）
+     * Solve LP problem with value conversion (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveLPV(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -591,6 +890,16 @@ interface ColumnGenerationSolver {
         )
     }
 
+    /**
+     * 使用选项带值转换求解 LP 问题
+     * Solve LP problem with value conversion and options
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveLPV(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -606,6 +915,15 @@ interface ColumnGenerationSolver {
         )
     }
 
+    /**
+     * 使用选项带值转换求解 LP 问题（使用模型自带转换器）
+     * Solve LP problem with value conversion and options (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果 / Solve result
+     */
     suspend fun <V> solveLPV(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -619,7 +937,20 @@ interface ColumnGenerationSolver {
         )
     }
 
-        fun <V> solveLPVAsync(
+    /**
+     * 异步带值转换求解 LP 问题
+     * Asynchronously solve LP problem with value conversion
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveLPVAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -639,7 +970,19 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveLPVAsync(
+    /**
+     * 异步带值转换求解 LP 问题（使用模型自带转换器）
+     * Asynchronously solve LP problem with value conversion (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param name 求解名称 / Solve name
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param toLogModel 是否输出模型日志 / Whether to log the model
+     * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveLPVAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         toLogModel: Boolean = false,
@@ -657,7 +1000,17 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveLPVAsync(
+    /**
+     * 使用选项异步带值转换求解 LP 问题
+     * Asynchronously solve LP problem with value conversion and options
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param converter 值转换器 / Value converter
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveLPVAsync(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -671,7 +1024,16 @@ interface ColumnGenerationSolver {
         }
     }
 
-        fun <V> solveLPVAsync(
+    /**
+     * 使用选项异步带值转换求解 LP 问题（使用模型自带转换器）
+     * Asynchronously solve LP problem with value conversion and options (using model's built-in converter)
+     *
+     * @param V 目标数值类型 / Target number type
+     * @param metaModel 线性元模型 / Linear meta model
+     * @param options 框架求解选项 / Framework solve options
+     * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
+     */
+    fun <V> solveLPVAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LPResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {

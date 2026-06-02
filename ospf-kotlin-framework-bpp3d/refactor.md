@@ -3,6 +3,8 @@
 日期：2026-05-31
 最近更新：2026-06-02
 状态：`cylinder.md` 已合并到本文档，后续只维护 `refactor.md`。
+能力边界评估结论：`Item : Cuboid<Item>` 的继承只为服务 placement 基础设施（`view()`/`toQuantity()`），业务属性已通过 `packingShape` 可用；`Cuboid<*>`/`CuboidView<*>` 扩展为放置系统结构性桥接，无法在不重写 placement 体系的情况下移除；`PackingShape` 已是 domain 层 shape capability 的正确抽象，无需额外接口层。
+状态：`cylinder.md` 已合并到本文档，后续只维护 `refactor.md`。
 
 ## 1. 总目标
 
@@ -27,6 +29,7 @@
 5. 主链硬绑定调用面已阶段性收敛，`QuantityPlacement2/3(...)` 直写构造集中到 `PlacementFactory`，调用侧显式泛型噪声明显减少。
 6. domain 层对 `Cuboid` / `CuboidView` 的显式绑定已进一步收敛，Item 专用封装模式已建立；底层结构性绑定仍保留。
 7. 四个门禁脚本、BPP3D 全量测试、根 POM application 链路、Gurobi 回归和 CSV suite 在当前环境均可执行通过。
+8. **能力边界评估完成**：`Item : Cuboid<Item>` 继承只为 placement 基础设施（`view()`/`toQuantity()`），业务属性已通过 `packingShape` 可用；`PackingShape` 是 domain 层 shape capability 的正确抽象；`Cuboid<*>`/`CuboidView<*>` 扩展为放置系统结构性桥接。
 
 ## 3. 当前未完成事项
 
@@ -34,10 +37,10 @@
 
 核心缺口：
 
-1. `Item` 仍继承 `Cuboid<Item>`，这是最大结构性耦合。
-2. `QuantityPlacement3<T : Cuboid<T>>`、`QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 和 `CuboidView` 仍是 placement / projection 基础类型。
-3. `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>`、`DemandConstraint<Args, T : Cuboid<T>>`、`VolumeMinimization<Args, T : Cuboid<T>>` 仍保留基础设施类型链约束。
-4. `Bin<T : Cuboid<T>>`、`Container3`、`ItemContainer`、`Layer`、`Block` 仍有以 `Cuboid` 为核心的继承或兼容语义。
+1. `Item` 仍继承 `Cuboid<Item>`，但能力边界评估已确认：继承只为 placement 基础设施（`view()`/`toQuantity()`），业务属性已通过 `packingShape` 可用。去除继承需重写 `QuantityPlacement2/3` 和 `CuboidView` 体系，是长期目标。
+2. `QuantityPlacement3<T : Cuboid<T>>`、`QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>` 和 `CuboidView` 仍是 placement / projection 基础类型，业务层已通过别名和工厂封装。
+3. `AbstractBPP3DShadowPriceArguments<T : Cuboid<T>>`、`DemandConstraint<Args, T : Cuboid<T>>`、`VolumeMinimization<Args, T : Cuboid<T>>` 仍保留基础设施类型链约束，domain 层通过 `ItemDemandConstraint`/`ItemVolumeMinimization` 独立类封装。
+4. `Bin<T : Cuboid<T>>`、`Container3`、`ItemContainer`、`Layer`、`Block` 仍有以 `Cuboid` 为核心的继承，业务层通过 `LayerBin`/`BlockBin`/`BinLayerPlacement` 别名封装。
 5. `PackageAttribute`、`Pattern`、`ItemMerger`、部分 `CuboidView<*>` 扩展仍保留 cuboid-only 业务桥接。
 6. DFS / MLHS / 空间切分对圆柱仍是显式 unsupported，不是真实圆柱几何搜索支持。
 7. 圆密排候选仍是初步候选生成器，不是完整可替换圆柱算法服务。
@@ -50,8 +53,8 @@
 
 优先目标：
 
-1. 制定并落地 `Item : Cuboid<Item>` 解耦的第一阶段可运行方案。
-2. 建立 domain 层 shape capability 抽象，用于替代业务层直接依赖 `Cuboid` / `CuboidView` 的场景。
+1. ~~制定并落地 `Item : Cuboid<Item>` 解耦的第一阶段可运行方案。~~ **已完成评估**：`Item : Cuboid<Item>` 继承只为 placement 基础设施，业务属性已通过 `packingShape` 可用；去除继承需重写 `QuantityPlacement2/3` 体系，是长期目标。
+2. ~~建立 domain 层 shape capability 抽象~~ **已完成评估**：`PackingShape` 已是正确的 domain 层 shape capability 抽象，无需额外接口层。
 3. 将 item、container、demand、shadow price、bin/layer/block 的业务能力拆成 shape-aware 或 cuboid-only 明确边界。
 4. 推进 placement / projection 适配层，让业务主链尽量依赖 `packingShape`、bounding box、footprint、support policy，而不是直接依赖 `CuboidView`。
 5. 继续保持圆柱路径真实几何或显式 unsupported，严禁退回外接盒最终判定。

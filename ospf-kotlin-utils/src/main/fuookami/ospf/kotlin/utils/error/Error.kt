@@ -124,6 +124,35 @@ open class Err<out C : Any>(
 }
 
 /**
+ * 惰性消息错误类
+ *
+ * Lazy message error class for deferring message construction until
+ * the message is actually accessed.
+ * 惰性消息错误类，用于将错误消息的构造推迟到实际访问时执行。
+ *
+ * @param C 错误代码类型 / Error code type
+ * @property code 错误代码 / The error code
+ * @param messageLazy 惰性错误消息 / Lazy error message
+ */
+open class LazyErr<out C : Any>(
+    override val code: C,
+    messageLazy: Lazy<String>
+) : Err<C>(code, "") {
+    override val message: String by messageLazy
+
+    /**
+     * 使用消息初始化函数创建惰性错误
+     *
+     * Creates a lazy error with a message initializer.
+     * 使用消息初始化函数创建惰性错误。
+     *
+     * @param code 错误代码 / The error code
+     * @param message 错误消息初始化函数 / Error message initializer
+     */
+    constructor(code: C, message: () -> String) : this(code, lazy(message))
+}
+
+/**
  * 带值的扩展错误类
  *
  * Extended error class that carries an associated value of type T.
@@ -154,6 +183,81 @@ open class ExErr<out C : Any, out T>(
      * @param value 与错误关联的值 / The value associated with the error
      */
     constructor(code: C, value: T) : this(code, code.toString(), value)
+}
+
+/**
+ * 惰性扩展错误类
+ *
+ * Lazy extended error class that defers both message and associated value
+ * construction until they are actually accessed.
+ * 惰性扩展错误类，用于将错误消息和关联值的构造推迟到实际访问时执行。
+ *
+ * @param C 错误代码类型 / Error code type
+ * @param T 关联值的类型 / The type of the associated value
+ * @property code 错误代码 / The error code
+ * @property message 错误消息 / The error message
+ * @property value 与错误关联的值 / The value associated with the error
+ * @param messageLazy 惰性错误消息 / Lazy error message
+ * @param valueLazy 惰性关联值 / Lazy associated value
+ */
+open class LazyExErr<out C : Any, out T>(
+    override val code: C,
+    messageLazy: Lazy<String>,
+    valueLazy: Lazy<T>
+) : Error<C>() {
+    override val message: String by messageLazy
+    override val value: T by valueLazy
+
+    /**
+     * 使用消息和值初始化函数创建惰性扩展错误
+     *
+     * Creates a lazy extended error with message and value initializers.
+     * 使用消息和值初始化函数创建惰性扩展错误。
+     *
+     * @param code 错误代码 / The error code
+     * @param message 错误消息初始化函数 / Error message initializer
+     * @param value 关联值初始化函数 / Associated value initializer
+     */
+    constructor(
+        code: C,
+        message: () -> String,
+        value: () -> T
+    ) : this(
+        code = code,
+        messageLazy = lazy(message),
+        valueLazy = lazy(value)
+    )
+
+    /**
+     * 使用惰性值创建惰性扩展错误
+     *
+     * Creates a lazy extended error with code's string representation as
+     * the lazy message and the provided lazy associated value.
+     * 使用代码字符串作为惰性消息，并使用给定的惰性关联值创建惰性扩展错误。
+     *
+     * @param code 错误代码 / The error code
+     * @param valueLazy 惰性关联值 / Lazy associated value
+     */
+    constructor(code: C, valueLazy: Lazy<T>) : this(
+        code = code,
+        messageLazy = lazy { code.toString() },
+        valueLazy = valueLazy
+    )
+
+    /**
+     * 使用值初始化函数创建惰性扩展错误
+     *
+     * Creates a lazy extended error with code's string representation as
+     * the lazy message and a value initializer.
+     * 使用代码字符串作为惰性消息，并使用值初始化函数创建惰性扩展错误。
+     *
+     * @param code 错误代码 / The error code
+     * @param value 关联值初始化函数 / Associated value initializer
+     */
+    constructor(code: C, value: () -> T) : this(
+        code = code,
+        valueLazy = lazy(value)
+    )
 }
 
 /**
