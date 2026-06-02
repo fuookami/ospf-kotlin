@@ -38,3 +38,9 @@ typealias Flt64CuttingPlan = CuttingPlan<Flt64>
 
 /** FltX 切割方案别名 / FltX cutting plan alias */
 typealias FltXCuttingPlan = CuttingPlan<FltX>
+
+/** Flt64 物理量算术别名 / Flt64 quantity arithmetic alias */
+typealias Flt64Arithmetic = Flt64QuantityArithmetic
+
+/** FltX 物理量算术别名 / FltX quantity arithmetic alias */
+typealias FltXArithmetic = FltXQuantityArithmetic

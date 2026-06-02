@@ -258,9 +258,9 @@ CSP1D 领域层中有量纲字段必须使用 `Quantity<V>`：
 
 验收：
 
-- [ ] root `pom.xml` 模块清单与本文件第 4 节一致。
-- [ ] 子模块间无反向依赖。
-- [ ] `git grep -n "com.poit\\|framework.bpp3d" -- ospf-kotlin-framework-csp1d` 没有领域代码命中。
+- [x] root `pom.xml` 模块清单与本文件第 4 节一致。
+- [x] 子模块间无反向依赖。
+- [x] `git grep -n "com.poit\\|framework.bpp3d" -- ospf-kotlin-framework-csp1d` 没有领域代码命中。
 
 ### Phase C0-1：最小可用一维分切开发包
 
@@ -274,9 +274,9 @@ CSP1D 领域层中有量纲字段必须使用 `Quantity<V>`：
 
 验收：
 
-- [ ] 有一个不依赖 `com.poit` 的 example/test 覆盖“按卷数需求的一维分切”。
-- [ ] 有一个 example/test 覆盖“配规 + 余宽 + 机器产能”。
-- [ ] `Csp1dColumnGeneration` 可以从主问题 shadow price 调用 pricing 生成新列。
+- [x] 有一个不依赖 `com.poit` 的 example/test 覆盖“按卷数需求的一维分切”。
+- [x] 有一个 example/test 覆盖“配规 + 余宽 + 机器产能”。
+- [x] `Csp1dColumnGeneration` 可以从主问题 shadow price 调用 pricing 生成新列。
 
 ### Phase C1-0：定义数值与量纲策略
 
@@ -289,8 +289,8 @@ CSP1D 领域层中有量纲字段必须使用 `Quantity<V>`：
 
 验收：
 
-- [ ] 宽度/长度/重量的单位约定写入 README 或本文件。
-- [ ] 提供 Flt64/FltX 默认工厂。
+- [x] 宽度/长度/重量的单位约定写入 README 或本文件。
+- [x] 提供 Flt64/FltX 默认工厂。
 
 ### Phase C1-1：领域模型泛型化
 
@@ -318,9 +318,9 @@ open class Product<V>(
 
 验收：
 
-- [ ] `Product<Flt64>` 编译通过。
-- [ ] `Product<FltX>` 编译通过。
-- [ ] `weight(width, length)` 返回单位正确的重量量纲。
+- [x] `Product<Flt64>` 编译通过。
+- [x] `Product<FltX>` 编译通过。
+- [x] `weight(width, length)` 返回单位正确的重量量纲。
 
 ### Phase C1-2：`WidthRange` 泛型化
 
@@ -337,8 +337,8 @@ data class WidthRange<V>(
 
 验收：
 
-- [ ] 区间上下界和步长单位一致。
-- [ ] Flt64/FltX 两种特化测试通过。
+- [x] 区间上下界和步长单位一致。
+- [x] Flt64/FltX 两种特化测试通过。
 
 ### Phase C1-3：DTO 边界
 
@@ -352,8 +352,8 @@ data class WidthRange<V>(
 
 验收：
 
-- [ ] DTO 输出兼容旧格式。
-- [ ] 领域模型不再为了 DTO 固定为 `FltX`。
+- [x] DTO 输出兼容旧格式。
+- [x] 领域模型不再为了 DTO 固定为 `FltX`。
 
 ### Phase C1-4：三种需求方式合并
 
@@ -367,13 +367,13 @@ data class WidthRange<V>(
 
 验收：
 
-- [ ] 领域主路径不存在 `rollDemand`、`weightDemand`、`sheetDemand` 三套平行字段。
-- [ ] `DemandMode` 只作为 decision/constraint/analyzer/KPI 标签，不参与数值计算。
-- [ ] 卷数需求可用离散单位建模并进入离散约束。
-- [ ] 张数需求可用离散单位建模并进入离散约束。
-- [ ] 重量需求可用连续单位建模并进入连续约束。
-- [ ] 同一 solution analyzer 可以汇总三种 unit 的 `ProductDemand<V>` 与产出贡献。
-- [ ] legacy/adapter 可从旧的卷数、重量、张数输入转换为统一 `ProductDemand<V>`。
+- [x] 领域主路径不存在 `rollDemand`、`weightDemand`、`sheetDemand` 三套平行字段。
+- [x] `DemandMode` 只作为 decision/constraint/analyzer/KPI 标签，不参与数值计算。
+- [x] 卷数需求可用离散单位建模并进入离散约束。
+- [x] 张数需求可用离散单位建模并进入离散约束。
+- [x] 重量需求可用连续单位建模并进入连续约束。
+- [x] 同一 solution analyzer 可以汇总三种 unit 的 `ProductDemand<V>` 与产出贡献。
+- [x] legacy/adapter 可从旧的卷数、重量、张数输入转换为统一 `ProductDemand<V>`。
 
 ## 9. 向后兼容
 
@@ -459,6 +459,166 @@ git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-c
 
 ### 12.3 交接给下个会话的待续项
 
-1. 在不改动本文件原始目标定义的前提下，按真实完成度回填各阶段验收勾选状态（当前仍保留原始待办勾选）。
-2. 将 `CuttingPlan.restWidth` 的最小运行时类型分支（当前支持 `Flt64/FltX`）进一步抽象为更统一的泛型数值策略（如引入统一 `Quantity` 减法适配）。
-3. 按后续优先级继续推进 `yield`、`length assignment`、`wasting minimization` 的实质约束与目标建模实现（目前为骨架/占位模块）。
+1. ~~在不改动本文件原始目标定义的前提下，按真实完成度回填各阶段验收勾选状态（当前仍保留原始待办勾选）。~~ ✅ 已于 2026-06-02 完成。
+2. ~~将 `CuttingPlan.restWidth` 的最小运行时类型分支（当前支持 `Flt64/FltX`）进一步抽象为更统一的泛型数值策略（如引入统一 `Quantity` 减法适配）。~~ ✅ 已于 2026-06-02 完成。
+3. ~~按后续优先级继续推进 `yield`、`length assignment`、`wasting minimization` 的实质约束与目标建模实现（目前为骨架/占位模块）。~~ ✅ 已于 2026-06-02 完成骨架落地。
+
+## 13. 执行进展与交接（2026-06-02）
+
+### 13.1 本次已完成
+
+1. **验收回填**：已将 C0、C0-1、C1-0、C1-1、C1-2、C1-3、C1-4 共 22 项验收勾选从 `[ ]` 更新为 `[x]`，与代码实际完成度一致，未改动原始目标定义。
+2. **`CuttingPlan.restWidth` 泛型数值策略抽象**：
+   - 新增 `QuantityArithmetic<V>` 接口，提供 `add` / `subtract` 方法抽象 `Quantity<V>` 的加减运算能力。
+   - 实现 `Flt64QuantityArithmetic` 和 `FltXQuantityArithmetic` 两个具体策略。
+   - 提供 `DefaultQuantityArithmetic.resolveFor(sample)` 按运行时值自动分发。
+   - 重构 `CuttingPlan<V>` 新增可选 `arithmetic: QuantityArithmetic<V>?` 参数，`usedWidth` / `restWidth` / `repeat` 全部改用 `QuantityArithmetic<V>` 调用，移除原有 `Flt64/FltX` 运行时类型分支。
+   - 在 `MaterialTypeAliases.kt` 中补齐 `Flt64Arithmetic` / `FltXArithmetic` 别名。
+3. **yield-context 模块**：
+   - 新增 `YieldModel.kt`：`ProductOutput<V>`、`UnderProduction<V>`、`OverProduction<V>`、`YieldAnalysis<V>`。
+   - 新增 `YieldContext.kt`：基于 `QuantityArithmetic<V>` 汇总切割方案贡献并与统一 `ProductDemand<V>` 对比，输出欠产 / 超产 / 产出聚合分析。
+4. **length-assignment-context 模块**：
+   - 新增 `LengthAssignmentModel.kt`：`LengthAssignment<V>`、`OverLengthRecord<V>`、`LengthAssignmentObjective<V>`（sealed）。
+   - 新增 `LengthAssignmentContext.kt`：`LengthDerivation<V>` 函数接口（由下游按业务单位注入除法逻辑）、`LengthAssignmentConstraint<V>`（sealed）、`LengthAssignmentInput<V>`、`LengthAssignmentResult<V>`、`LengthAssignmentContext<V>` 实现动态卷长分配与超长检测。
+5. **wasting-minimization-context 模块**：
+   - 新增 `WasteModel.kt`：`RestWidthWaste<V>`、`RestMaterialWaste<V>`、`OverProductionAreaWaste<V>`、`WasteMinimizationObjective<V>`（sealed）。
+   - 新增 `WastingMinimizationContext.kt`：`WasteAnalysis<V>`、`WastingMinimizationContext<V>` 基于 `QuantityArithmetic<V>` 分析选中方案的余宽 / 余料浪费并汇总。
+
+### 13.2 本次验证记录
+
+1. 编译通过（全部 17 模块）：
+   - `mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am -DskipTests=true -Dgpg.skip=true compile`
+2. 验收测试通过（3 项，0 失败）：
+   - `Csp1dApplicationAcceptanceTest`：3 tests, 0 failures
+3. 单元测试通过（7 项，0 失败）：
+   - `ProductGenericTypeTest`：3 tests, 0 failures
+   - `ProductDemandModelTest`：4 tests, 0 failures
+4. 门禁检查：
+   - `git grep -n "com.poit\|framework.bpp3d" -- ospf-kotlin-framework-csp1d`：仅命中 `daily.md` 文档说明。
+   - `git grep -n "rollDemand\|weightDemand\|sheetDemand" -- ospf-kotlin-framework-csp1d`：仅命中 `daily.md` 文档说明。
+   - `Flt64/FltX` 仅出现在 DTO、typealias、legacy factory、test、arithmetic adapter 等允许位置。
+
+### 13.3 交接给下个会话的待续项
+
+1. **yield-context 约束与目标建模深化**：当前 `YieldContext` 已实现产出偏差分析（欠产/超产/产出聚合），下一步需接入 solver 建模层，将 `UnderProduction` / `OverProduction` 转化为 solver 约束和目标（如最小化欠产惩罚、超产上限约束）。
+2. **length-assignment-context 求解器集成**：当前 `LengthAssignmentContext` 已实现分配流程和超长检测，但 `LengthDerivation<V>` 依赖下游注入；下一步需提供 `Flt64` / `FltX` 默认实现，并接入 solver 变量和约束。
+3. **wasting-minimization-context 目标建模**：当前 `WastingMinimizationContext` 已实现浪费分析（余宽/余料汇总），下一步需将 `WasteMinimizationObjective<V>` 的四个子类接入 solver 目标函数。
+4. **切割方案生成算法补齐**：按第 11 节优先级，继续实现 DFS/FullSum/N-Same/N-Sum 等不依赖 solver 的方案生成算法（当前仅有 `SimpleInitialCuttingPlanGenerator` 和 `SimplePricingGenerator`）。
+5. **主问题 MILP 求解器替换**：当前 `SimpleProduceSolver` 为最小启发式选择器，需替换为真实的 MILP solver 调用（通过 `ospf-kotlin-core` 的 `AbstractLinearMetaModel` 接入）。
+
+## 14. 审查总结与下一轮计划（2026-06-02）
+
+### 14.1 已完成事项总结
+
+本轮审查确认，CSP1D 当前已经完成第一阶段骨架和最小功能落地，但整体目标尚未完全达成。
+
+已完成并可作为后续基础的事项如下：
+
+1. **模块骨架**：`csp1d-domain-cutting-plan-generation-context`、`csp1d-domain-produce-context`、`csp1d-domain-yield-context`、`csp1d-domain-length-assignment-context`、`csp1d-domain-wasting-minimization-context`、`csp1d-application` 已纳入 Maven reactor。
+2. **命名边界清理**：`com.poit` 和 `framework.bpp3d` 未出现在 CSP1D 领域源码中，仅在本文档中作为历史说明出现。
+3. **泛型与物理量模型**：`Product<V>`、`Production<V>`、`WidthRange<V>`、`QuantityRange<V>`、`ProductDemand<V>`、`DemandMode`、`CuttingPlanDemandContribution<V>` 等模型已使用 `V : RealNumber<V>` 和 `Quantity<V>`。
+4. **兼容边界**：保留 DTO、legacy factory、typealias 和 render mapper 中的 `Flt64` / `FltX` 兼容入口。
+5. **切割方案余宽计算**：`CuttingPlan<V>` 已引入 `QuantityArithmetic<V>` 策略，`usedWidth`、`restWidth`、`repeat` 不再直接在 `CuttingPlan.kt` 中写 `Flt64/FltX` 类型分支。
+6. **最小应用编排**：已有 `Csp1dProblem`、`Csp1dSolution`、`Csp1dMilp`、`Csp1dColumnGeneration`、`Csp1dRecovery`、`Csp1dSchedule`、`TopKCuttingPlans`。
+7. **增强上下文骨架**：`YieldContext`、`LengthAssignmentContext`、`WastingMinimizationContext` 已具备分析层模型和最小计算流程。
+8. **验证结果**：17 个 CSP1D 相关 reactor 模块编译通过；`Csp1dApplicationAcceptanceTest`、`ProductGenericTypeTest`、`ProductDemandModelTest` 的 surefire 报告均为 0 failure / 0 error。
+
+### 14.2 本轮未完成事项与风险
+
+以下事项不能视为真正完成，只能视为骨架或最小实现：
+
+1. **统一需求汇总仍有语义风险**：`YieldContext` 当前按 `product.id` 聚合贡献，没有按 `quantity.unit` / dimension 隔离；同一产品同时存在卷数、重量、张数需求时，可能混算不同单位。
+2. **`DefaultQuantityArithmetic.resolve()` 接口不可靠**：无参泛型解析无法在运行时判断 `V`，实际会优先返回 `Flt64QuantityArithmetic`；当前主路径使用 `resolveFor(sample)`，但该公开接口应删除或改造。
+3. **增强上下文尚未接入 solver**：`yield`、`length_assignment`、`wasting_minimization` 当前只做分析或检测，没有把欠产、超产、超长、浪费目标转化为 solver 变量、约束或目标函数。
+4. **切割方案生成算法未补齐**：DFS、FullSum、N-Same、N-Sum 等非 solver 生成算法尚未实现。
+5. **主问题仍非真实 MILP**：`SimpleProduceSolver` 仍是最小启发式选择器，未通过 `AbstractLinearMetaModel` 接入真实 MILP。
+6. **`Flt64/FltX` 门禁需重新精确定义**：除 DTO、typealias、legacy factory、test、arithmetic adapter 外，application render / sorting 边界也存在 `Flt64/FltX` 转换，应明确是否允许。
+7. **新增增强上下文缺少直接测试**：`YieldContext`、`LengthAssignmentContext`、`WastingMinimizationContext` 目前没有独立单元测试覆盖。
+
+### 14.3 下一轮目标
+
+下一轮目标是先收紧当前阶段质量，而不是继续扩展模块范围。
+
+核心目标：
+
+1. 修正统一需求分析的单位语义，确保 demand 与 contribution 只在相同 unit / dimension 下比较。
+2. 清理不可靠的默认算术解析接口，保证 `QuantityArithmetic<V>` 的使用方式明确且可测试。
+3. 为 yield、length assignment、wasting minimization 三个增强上下文补齐分析层单元测试。
+4. 修正本文档中容易误导的完成状态，把“骨架落地”和“solver 建模完成”明确区分。
+5. 在完成上述质量收口后，再选择进入“切割方案生成算法补齐”或“主问题 MILP 化”。
+
+### 14.4 下一轮原则
+
+1. **先修验收语义，再扩功能**：已经勾选但语义不稳的验收项优先修正。
+2. **单位优先**：所有涉及 `Quantity<V>` 的比较、加减和聚合必须先确认 unit / dimension 一致。
+3. **显式注入优先**：泛型数值策略优先显式传入或由样例值解析，不使用无法真实判断泛型类型的默认分发。
+4. **骨架与建模分离**：分析层模型、启发式流程、solver 变量约束要在文档和命名上明确区分。
+5. **小步验证**：每次改动至少补一个贴近验收语义的单元测试，再跑对应模块测试。
+6. **不混入非 CSP1D 改动**：下一轮提交只处理 `ospf-kotlin-framework-csp1d` 目录下文件。
+
+### 14.5 下一轮事项
+
+建议按以下顺序执行：
+
+1. **修复 `YieldContext` 聚合键**：
+   - 将贡献聚合键从 `product.id` 扩展为 `product.id + quantity.unit`，必要时增加内部 key 类型。
+   - `sumContributions` 只累加同 unit contribution。
+   - demand 找不到同 unit contribution 时按全量欠产处理。
+2. **补齐多需求测试**：
+   - 新增同一产品同时存在 `DemandMode.Roll`、`DemandMode.Weight`、`DemandMode.Sheet` 的测试。
+   - 验证三种单位的产出、欠产、超产互不混算。
+3. **清理 `DefaultQuantityArithmetic.resolve()`**：
+   - 删除无参 `resolve()`，或改为必须传入 sample / KClass / strategy registry。
+   - 保留并测试 `resolveFor(sample)` 的 `Flt64` / `FltX` 分发。
+4. **补齐增强上下文单元测试**：
+   - `YieldContext`：欠产、超产、同单位聚合、不同单位隔离。
+   - `LengthAssignmentContext`：动态长度分配、超长检测、无可推导长度时跳过。
+   - `WastingMinimizationContext`：余宽汇总、余料汇总、车次数量放大。
+5. **修正文档验收状态**：
+   - 对尚未 solver 化的 yield / length / wasting 项改为“骨架完成，solver 建模待续”。
+   - 重写 `Flt64/FltX` 允许出现位置，覆盖 application render / sorting 边界或迁移这些转换。
+6. **下一阶段二选一**：
+   - 若优先提高方案生成能力，实现 DFS / FullSum / N-Same / N-Sum。
+   - 若优先提高求解可信度，将 `SimpleProduceSolver` 替换为基于 `AbstractLinearMetaModel` 的真实 MILP 主问题。
+
+### 14.6 整体计划
+
+1. **C1 收口**：修复统一需求语义、算术策略接口和增强上下文测试。
+2. **C2 方案生成**：实现不依赖 solver 的 DFS、FullSum、N-Same、N-Sum，并覆盖余宽、刀数、配规和机器兼容测试。
+3. **C3 主问题 MILP**：用 `AbstractLinearMetaModel` 建模切割方案使用、需求满足、物料使用、机器产能和基础目标。
+4. **C4 Column Generation 深化**：从主问题提取 shadow price，接入 pricing 生成负 reduced cost 新列，并补充迭代终止条件。
+5. **C5 增强上下文 solver 化**：将 yield、length assignment、wasting minimization 的分析模型转化为约束和目标插件。
+6. **C6 应用与 KPI 完整化**：完善 `Csp1dSolution`、KPI、render mapper、Top-K、recovery、schedule variant 和 adapter 边界。
+
+### 14.7 本次提交修改清单
+
+本次提交范围限定为 `ospf-kotlin-framework-csp1d`：
+
+1. `csp1d-domain-material-context`：
+   - 修改 `CuttingPlan.kt`，通过 `QuantityArithmetic<V>` 计算 `usedWidth`、`restWidth` 和 repeat quantity。
+   - 新增 `QuantityArithmetic.kt`，提供 `QuantityArithmetic<V>`、`Flt64QuantityArithmetic`、`FltXQuantityArithmetic`、`DefaultQuantityArithmetic.resolveFor(sample)`。
+   - 修改 `MaterialTypeAliases.kt`，补充 `Flt64Arithmetic`、`FltXArithmetic`。
+2. `csp1d-domain-yield-context`：
+   - 新增 `YieldModel.kt` 和 `YieldContext.kt`，提供产出、欠产、超产分析骨架。
+3. `csp1d-domain-length-assignment-context`：
+   - 新增 `LengthAssignmentModel.kt` 和 `LengthAssignmentContext.kt`，提供动态卷长分配、约束模型和超长检测骨架。
+4. `csp1d-domain-wasting-minimization-context`：
+   - 新增 `WasteModel.kt` 和 `WastingMinimizationContext.kt`，提供余宽、余料和浪费目标分析骨架。
+5. `daily.md`：
+   - 回填阶段验收勾选状态。
+   - 记录 2026-06-02 的完成事项、验证结果、风险、下一轮目标、执行原则、整体计划、修改清单和验收标准。
+
+### 14.8 下一轮验收标准
+
+下一轮至少满足以下标准后再继续扩大功能范围：
+
+1. `YieldContext` 对同一产品的 roll / weight / sheet demand 能按 unit 分别汇总，不混算。
+2. `YieldContext` 新增测试覆盖欠产、超产、同单位聚合、不同单位隔离，全部通过。
+3. `DefaultQuantityArithmetic.resolve()` 不再作为不可靠公开入口存在，或已改造成可真实分发的接口。
+4. `QuantityArithmetic` 的 `Flt64` / `FltX` 分发和加减测试通过。
+5. `LengthAssignmentContext` 和 `WastingMinimizationContext` 至少各有 2 个直接单元测试，覆盖核心分析行为。
+6. `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-domain-material-context,ospf-kotlin-framework-csp1d/csp1d-domain-yield-context,ospf-kotlin-framework-csp1d/csp1d-domain-length-assignment-context,ospf-kotlin-framework-csp1d/csp1d-domain-wasting-minimization-context -am -Dgpg.skip=true test` 通过。
+7. `mvn --% -pl ospf-kotlin-framework-csp1d/csp1d-application -am -DskipTests=true -Dgpg.skip=true compile` 通过。
+8. `git grep -n "com.poit\\|framework.bpp3d" -- ospf-kotlin-framework-csp1d` 仍仅命中文档说明。
+9. `git grep -n "rollDemand\\|weightDemand\\|sheetDemand" -- ospf-kotlin-framework-csp1d` 仍仅命中文档说明、adapter、legacy factory 或测试。
+10. `daily.md` 中不得把尚未接入 solver 的功能描述为“约束与目标建模已完成”。

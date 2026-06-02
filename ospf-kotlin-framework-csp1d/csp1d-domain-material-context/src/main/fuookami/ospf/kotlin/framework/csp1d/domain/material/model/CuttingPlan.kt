@@ -1,8 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -29,27 +27,31 @@ data class CuttingPlanSlice<V : RealNumber<V>>(
  * @property machineId 设备标识 / Machine identifier
  * @property slices 切片列表 / Cut slices
  * @property demandContributions 需求贡献 / Demand contributions
+ * @property arithmetic 物理量算术策略，为空时按物料值自动解析 / Quantity arithmetic strategy, auto-resolved from material value when null
  */
 data class CuttingPlan<V : RealNumber<V>>(
     val id: String,
     val material: Material<V>,
     val machineId: String? = material.machineId,
     val slices: List<CuttingPlanSlice<V>>,
-    val demandContributions: List<CuttingPlanDemandContribution<V>> = emptyList()
+    val demandContributions: List<CuttingPlanDemandContribution<V>> = emptyList(),
+    val arithmetic: QuantityArithmetic<V>? = null
 ) {
+    private val resolvedArithmetic: QuantityArithmetic<V> by lazy {
+        arithmetic ?: DefaultQuantityArithmetic.resolveFor(material.widthRange.upperBound.value)
+    }
+
     /**
      * 已使用幅宽 / Used width
      */
     val usedWidth: Quantity<V>? by lazy {
+        val arith = resolvedArithmetic
         slices.fold<CuttingPlanSlice<V>, Quantity<V>?>(null) { acc, slice ->
-            val sliceWidth = slice.width.repeat(slice.amount)
+            val sliceWidth = slice.width.repeat(slice.amount, arith)
             if (acc == null) {
                 sliceWidth
             } else {
-                addQuantity(
-                    lhs = acc,
-                    rhs = sliceWidth
-                )
+                arith.add(acc, sliceWidth)
             }
         }
     }
@@ -59,13 +61,11 @@ data class CuttingPlan<V : RealNumber<V>>(
      */
     val restWidth: Quantity<V>? by lazy {
         val currentUsedWidth = usedWidth ?: return@lazy null
-        if (material.widthRange.upperBound.unit != currentUsedWidth.unit) {
+        val upperBound = material.widthRange.upperBound
+        if (upperBound.unit != currentUsedWidth.unit) {
             return@lazy null
         }
-        subtractQuantity(
-            lhs = material.widthRange.upperBound,
-            rhs = currentUsedWidth
-        )
+        resolvedArithmetic.subtract(upperBound, currentUsedWidth)
     }
 }
 
@@ -73,53 +73,16 @@ data class CuttingPlan<V : RealNumber<V>>(
  * 将物理量按离散次数累加 / Repeat quantity by discrete amount
  *
  * @param amount 累加次数 / Repeat amount
+ * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
  * @return 累加结果 / Repeated quantity
  */
-fun <V : RealNumber<V>> Quantity<V>.repeat(amount: UInt64): Quantity<V> {
+fun <V : RealNumber<V>> Quantity<V>.repeat(
+    amount: UInt64,
+    arithmetic: QuantityArithmetic<V>
+): Quantity<V> {
     var result = Quantity(value.constants.zero, unit)
     for (i in amount.indices) {
-        result = addQuantity(
-            lhs = result,
-            rhs = this
-        )
+        result = arithmetic.add(result, this)
     }
     return result
-}
-
-private fun <V : RealNumber<V>> addQuantity(
-    lhs: Quantity<V>,
-    rhs: Quantity<V>
-): Quantity<V> {
-    check(lhs.unit == rhs.unit)
-    return Quantity(
-        value = lhs.value + rhs.value,
-        unit = lhs.unit
-    )
-}
-
-private fun <V : RealNumber<V>> subtractQuantity(
-    lhs: Quantity<V>,
-    rhs: Quantity<V>
-): Quantity<V>? {
-    check(lhs.unit == rhs.unit)
-    @Suppress("UNCHECKED_CAST")
-    return when {
-        lhs.value is Flt64 && rhs.value is Flt64 -> {
-            Quantity(
-                value = (lhs.value as Flt64) - (rhs.value as Flt64),
-                unit = lhs.unit
-            ) as Quantity<V>
-        }
-
-        lhs.value is FltX && rhs.value is FltX -> {
-            Quantity(
-                value = (lhs.value as FltX) - (rhs.value as FltX),
-                unit = lhs.unit
-            ) as Quantity<V>
-        }
-
-        else -> {
-            null
-        }
-    }
 }
