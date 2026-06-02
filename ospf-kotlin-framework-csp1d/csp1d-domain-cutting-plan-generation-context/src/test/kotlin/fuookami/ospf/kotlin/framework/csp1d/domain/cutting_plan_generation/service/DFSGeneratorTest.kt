@@ -80,8 +80,8 @@ class DFSGeneratorTest {
 
         assertTrue(plans.isNotEmpty())
         for (plan in plans) {
-            val totalAmount = plan.slices.sumOf { it.amount }
-            assertTrue(totalAmount <= UInt64(2UL), "Total amount should not exceed knife count")
+            val totalAmount = plan.slices.sumOf { it.amount.toInt() }
+            assertTrue(totalAmount <= 2, "Total amount should not exceed knife count")
         }
     }
 

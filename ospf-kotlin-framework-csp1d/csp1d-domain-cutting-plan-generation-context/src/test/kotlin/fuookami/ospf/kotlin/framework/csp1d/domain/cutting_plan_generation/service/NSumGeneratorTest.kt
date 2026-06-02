@@ -54,8 +54,8 @@ class NSumGeneratorTest {
 
         assertTrue(plans.isNotEmpty())
         for (plan in plans) {
-            val totalAmount = plan.slices.sumOf { it.amount }
-            assertTrue(totalAmount <= UInt64(2UL), "Total slices should not exceed maxDepth")
+            val totalAmount = plan.slices.sumOf { it.amount.toInt() }
+            assertTrue(totalAmount <= 2, "Total slices should not exceed maxDepth")
         }
     }
 

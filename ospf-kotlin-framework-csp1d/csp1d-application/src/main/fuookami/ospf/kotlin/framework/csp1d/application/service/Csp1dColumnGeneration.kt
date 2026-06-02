@@ -37,7 +37,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val generatedPlans = initialPlans(problem)
         val result = Csp1dMilpSolver(solver).solve(
             ProduceInput(
-                candidatePlans = generatedPlans,
+                cuttingPlans = generatedPlans,
                 demands = problem.demands,
                 materials = problem.materials,
                 machines = problem.machines

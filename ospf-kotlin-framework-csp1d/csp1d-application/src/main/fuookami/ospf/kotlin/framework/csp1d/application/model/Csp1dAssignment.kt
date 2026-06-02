@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.model
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.UIntVariable1
-import fuookami.ospf.kotlin.utils.functional.Try
 
 class Csp1dAssignment(
     val x: UIntVariable1,

@@ -108,11 +108,11 @@ class ParallelConcurrencyControlTest {
     @Test
     fun defaultConcurrentAmountShouldBeUsedWhenNotSpecified() = runBlocking {
         val collection = (1..100).toList()
-        val expectedDefault = collection.defaultConcurrentAmount
+        val expectedDefault = collection.defaultConcurrentAmount.toLong()
 
         // Verify default calculation / 验证默认值计算
-        assertTrue(expectedDefault >= 1uL, "Default concurrent amount should be at least 1")
-        assertTrue(expectedDefault <= Runtime.getRuntime().availableProcessors().toULong(),
+        assertTrue(expectedDefault >= 1L, "Default concurrent amount should be at least 1")
+        assertTrue(expectedDefault <= Runtime.getRuntime().availableProcessors().toLong(),
             "Default concurrent amount should not exceed available processors")
 
         val activeCount = AtomicInteger(0)

@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -43,7 +42,7 @@ class Csp1dMilpSolver(
     suspend fun <V : RealNumber<V>> solve(
         input: ProduceInput<V>
     ): MilpResult<V>? {
-        if (input.candidatePlans.isEmpty()) {
+        if (input.cuttingPlans.isEmpty()) {
             return null
         }
 
@@ -51,7 +50,7 @@ class Csp1dMilpSolver(
             name = "csp1d_produce",
             converter = IntoValue.Identity
         )
-        val assignment = Csp1dAssignment.create(input.candidatePlans.size)
+        val assignment = Csp1dAssignment.create(input.cuttingPlans.size)
         ensureTry(assignment.register(model), "register assignment")
 
         addDemandConstraints(
@@ -81,7 +80,7 @@ class Csp1dMilpSolver(
             ),
             stage = "solve CSP1D produce MILP"
         )
-        model.setSolution(normalizeScalarSolution(output.solution))
+        model.setSolution(output.solution)
 
         val produce = extractProduce(
             input = input,
@@ -103,7 +102,7 @@ class Csp1dMilpSolver(
     ) {
         for (demand in input.demands) {
             val lhs = LinearPolynomial(
-                monomials = input.candidatePlans.mapIndexedNotNull { index, plan ->
+                monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
                     val contribution = plan.demandContributions.find {
                         it.product.id == demand.product.id && it.quantity.unit == demand.quantity.unit
                     } ?: return@mapIndexedNotNull null
@@ -140,7 +139,7 @@ class Csp1dMilpSolver(
             }
 
             val lhs = LinearPolynomial(
-                monomials = input.candidatePlans.mapIndexedNotNull { index, plan ->
+                monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
                     if (plan.material.id != material.id) {
                         return@mapIndexedNotNull null
                     }
@@ -177,7 +176,7 @@ class Csp1dMilpSolver(
         for (machine in input.machines) {
             val maxBatchCount = machine.maxBatchCount ?: continue
             val lhs = LinearPolynomial(
-                monomials = input.candidatePlans.mapIndexedNotNull { index, plan ->
+                monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
                     if (plan.machineId != machine.id) {
                         return@mapIndexedNotNull null
                     }
@@ -234,7 +233,7 @@ class Csp1dMilpSolver(
         model: LinearMetaModel<Flt64>
     ): Produce<V> {
         val cuttingPlans = ArrayList<CuttingPlanUsage<V>>()
-        for ((index, plan) in input.candidatePlans.withIndex()) {
+        for ((index, plan) in input.cuttingPlans.withIndex()) {
             val amount = solutionAmount(
                 model = model,
                 assignment = assignment,
@@ -340,16 +339,6 @@ class Csp1dMilpSolver(
             monomials = emptyList(),
             constant = value
         )
-    }
-
-    private fun normalizeScalarSolution(values: Solution<Flt64>): Solution<Flt64> {
-        return values.mapIndexed { index, value ->
-            when (value) {
-                is Flt64 -> value
-                is Number -> Flt64(value.toDouble())
-                else -> throw IllegalStateException("unsupported solution value at $index: ${value?.javaClass?.name}")
-            }
-        }
     }
 
     private fun ensureTry(result: Try, stage: String) {

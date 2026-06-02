@@ -5,16 +5,16 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.eq
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MaterialUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MachineCapacityUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.DemandAggregationKey
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class YieldContextTest {
     private val arithmetic = Flt64QuantityArithmetic
@@ -143,19 +143,19 @@ class YieldContextTest {
             machineUsages = emptyList()
         )
 
-        // Same product, roll demand (different unit) — should see full under-production
-        val rollDemand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
-        val weightDemand = ProductDemand.weight(p, Quantity(Flt64(10.0), Kilogram))
+        // 同一产品不同单位需求应分别分析 / Same-product demands with different units are analyzed separately
+        val rollRequirement = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
+        val weightRequirement = ProductDemand.weight(p, Quantity(Flt64(10.0), Kilogram))
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, listOf(rollDemand, weightDemand))
+        val analysis = ctx.analyze(produce, listOf(rollRequirement, weightRequirement))
 
-        // Roll demand: no contribution with RollCountUnit → full under-production
+        // 卷数单位没有贡献，应全量欠产 / Roll-count unit has no contribution, so it is fully under-produced
         assertEquals(2, analysis.underProductions.size)
         val rollUnder = analysis.underProductions.first { it.demand.mode == DemandMode.Roll }
         assertTrue(rollUnder.shortfall eq Quantity(Flt64(5.0), RollCountUnit))
 
-        // Weight demand: 8 kg output < 10 kg demand → 2 kg under-production
+        // 重量产出 8 kg 小于需求 10 kg，欠产 2 kg / Weight output 8 kg is below 10 kg demand
         val weightUnder = analysis.underProductions.first { it.demand.mode == DemandMode.Weight }
         assertTrue(weightUnder.shortfall eq Quantity(Flt64(2.0), Kilogram))
     }
@@ -171,10 +171,10 @@ class YieldContextTest {
             materialUsages = emptyList(),
             machineUsages = emptyList()
         )
-        val sheetDemand = ProductDemand.sheet(p, Quantity(Flt64(100.0), SheetCountUnit))
+        val sheetRequirement = ProductDemand.sheet(p, Quantity(Flt64(100.0), SheetCountUnit))
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, listOf(sheetDemand))
+        val analysis = ctx.analyze(produce, listOf(sheetRequirement))
 
         assertEquals(1, analysis.underProductions.size)
         assertTrue(analysis.underProductions[0].shortfall eq Quantity(Flt64(100.0), SheetCountUnit))

@@ -31,7 +31,7 @@ class Csp1dMilp<V : RealNumber<V>>(
         )
         val result = Csp1dMilpSolver(solver).solve(
             ProduceInput(
-                candidatePlans = generatedPlans,
+                cuttingPlans = generatedPlans,
                 demands = problem.demands,
                 materials = problem.materials,
                 machines = problem.machines
