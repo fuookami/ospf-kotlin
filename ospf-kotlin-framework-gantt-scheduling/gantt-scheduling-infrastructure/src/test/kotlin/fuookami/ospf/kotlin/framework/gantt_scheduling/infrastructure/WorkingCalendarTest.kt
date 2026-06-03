@@ -917,6 +917,102 @@ class WorkingCalendarTest {
         }
         assert(thrown) { "Expected IllegalArgumentException for inconsistent unitYield units" }
     }
-}
 
+    @Test
+    fun testQuantityProductivityCalendarMaterialSpecificUnits() {
+        val calendar = DiscreteQuantityProductivityCalendar(
+            timeWindow = TimeWindow.minutes(
+                timeWindow = TimeRange(
+                    start = Instant.parse("2020-08-30T08:00:00Z"),
+                    end = Instant.parse("2020-08-30T18:00:00Z")
+                )
+            ),
+            productivity = listOf(
+                QuantityProductivity<UInt64, Int, Int>(
+                    timeWindow = TimeRange(
+                        start = Instant.parse("2020-08-30T08:00:00Z"),
+                        end = Instant.parse("2020-08-30T18:00:00Z")
+                    ),
+                    extractor = { it },
+                    capacities = emptyMap(),
+                    unitYields = mapOf(
+                        Pair(1, Quantity(UInt64(1), Kilogram)),
+                        Pair(2, Quantity(UInt64(2), Gram))
+                    )
+                )
+            ),
+            quantityUnit = NoneUnit
+        )
+
+        val gramQuantity = calendar.actualQuantity(
+            material = 2,
+            time = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            )
+        )
+        assert(gramQuantity.value == UInt64(120)) { "Expected 120, got ${gramQuantity.value}" }
+        assert(gramQuantity.unit == Gram) { "Expected Gram, got ${gramQuantity.unit}" }
+
+        val gramTime = calendar.actualTimeFrom(
+            material = 2,
+            quantity = Quantity(UInt64(120), Gram),
+            startTime = Instant.parse("2020-08-30T08:00:00Z")
+        )
+        assert(
+            gramTime.time == TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            )
+        )
+    }
+
+    @Test
+    fun testQuantityProductivityCalendarActualQuantityRejectsInconsistentMaterialUnits() {
+        val calendar = DiscreteQuantityProductivityCalendar(
+            timeWindow = TimeWindow.minutes(
+                timeWindow = TimeRange(
+                    start = Instant.parse("2020-08-30T08:00:00Z"),
+                    end = Instant.parse("2020-08-30T18:00:00Z")
+                )
+            ),
+            productivity = listOf(
+                QuantityProductivity<UInt64, Int, Int>(
+                    timeWindow = TimeRange(
+                        start = Instant.parse("2020-08-30T08:00:00Z"),
+                        end = Instant.parse("2020-08-30T12:00:00Z")
+                    ),
+                    extractor = { it },
+                    capacities = emptyMap(),
+                    unitYields = mapOf(Pair(1, Quantity(UInt64(60), Kilogram)))
+                ),
+                QuantityProductivity<UInt64, Int, Int>(
+                    timeWindow = TimeRange(
+                        start = Instant.parse("2020-08-30T13:00:00Z"),
+                        end = Instant.parse("2020-08-30T18:00:00Z")
+                    ),
+                    extractor = { it },
+                    capacities = emptyMap(),
+                    unitYields = mapOf(Pair(1, Quantity(UInt64(30), Gram)))
+                )
+            ),
+            quantityUnit = Kilogram
+        )
+
+        var thrown = false
+        try {
+            calendar.actualQuantity(
+                material = 1,
+                time = TimeRange(
+                    start = Instant.parse("2020-08-30T08:00:00Z"),
+                    end = Instant.parse("2020-08-30T18:00:00Z")
+                )
+            )
+        } catch (e: IllegalArgumentException) {
+            thrown = true
+            assert(e.message!!.contains("Inconsistent")) { "Unexpected message: ${e.message}" }
+        }
+        assert(thrown) { "Expected IllegalArgumentException for inconsistent material unitYield units" }
+    }
+}
 

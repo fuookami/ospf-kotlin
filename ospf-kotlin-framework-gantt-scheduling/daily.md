@@ -310,7 +310,7 @@ git grep -n "Flt64\\|AbstractLinearMetaModel<Flt64>\\|MetaModel<Flt64>\\|LinearI
 - [x] 新增 `testQuantityProductivityCalendarActualTime`，覆盖 `Quantity<UInt64>` (Discrete) 和 `Quantity<Flt64>` (Continuous)。
 - [x] `actualQuantity` 返回 `Quantity<V>` 带单位结果（`Quantity(UInt64(60), NoneUnit)`）。
 - [x] `averageUnitYield` 返回 `Map<U, Quantity<V>>`，`actualTimeFrom/Until` 接受 `Quantity<V>` 入参。
-- [ ] 单位不一致的 `unitYields` 聚合有明确失败路径或显式拒绝策略。（当前使用日历级 `quantityUnit` 统一单位，尚未实现跨单位拒绝）
+- [x] 单位不一致的 `unitYields` 聚合有明确失败路径：`averageUnitYield` 要求所有条目单位一致（`require(units.size == 1)`），`actualTimeFrom/Until` 入口校验 Quantity 单位匹配 `resolveQuantityUnit()`，不匹配时抛出 `IllegalArgumentException`
 
 ### Phase G3：task/bunch compilation 泛型化
 
@@ -445,6 +445,9 @@ mvn -pl ospf-kotlin-framework-gantt-scheduling test
 - [x] 新增 DiscreteQuantityProductivityCalendar (V=UInt64) 和 ContinuousQuantityProductivityCalendar (V=Flt64)
 - [x] 旧 Productivity / ProductivityCalendar 保持不变，零下游消费者
 - [x] 新增 testQuantityProductivityCalendarActualTime 测试覆盖离散和连续路径
+- [x] actualTimeFrom/Until 入口添加 Quantity 单位校验（resolveQuantityUnit + validateQuantityUnit）
+- [x] averageUnitYield 要求所有条目单位一致，结果保留原始单位而非日历级 quantityUnit
+- [x] 新增 3 个测试：unitYields Kilogram 路径、Gram/Kilogram 不匹配拒绝、averageUnitYield 混合单位拒绝
 - [x] 10 个 gantt-scheduling reactor 模块编译 + 测试通过
 
 ## 8. 向后兼容

@@ -2356,27 +2356,48 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
 ) : WorkingCalendar(timeWindow) where P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
 
     /**
-     * 从生产力列表中解析产出数量的期望单位。
-     * Resolves the expected quantity unit from productivity entries.
+     * 按材料解析产出数量的期望单位。
+     * Resolves the expected quantity unit for a material.
      *
-     * 优先使用第一个 unitYields 条目的单位；若无则回退到日历级 quantityUnit。
-     * Prefers the first unitYields entry's unit; falls back to calendar-level quantityUnit.
+     * 只检查指定材料在候选生产力条目中的 unitYield；若没有显式 unitYield，则回退到日历级 quantityUnit。
+     * Checks only the material's unitYield in candidate productivity entries; falls back to calendar-level quantityUnit when absent.
+     *
+     * @param material 材料 / The material
+     * @param productivityCalendar 候选生产力条目 / The candidate productivity entries
+     * @return 解析出的产出单位 / The resolved production unit
+     * @throws IllegalArgumentException 当同一材料存在多个 unitYield 单位时 / When the same material has multiple unitYield units
      */
-    private fun resolveQuantityUnit(): PhysicalUnit {
-        return productivity.firstNotNullOfOrNull { p ->
-            p.unitYields.values.firstOrNull()?.unit
-                ?: p.conditionUnitYields.firstOrNull()?.second?.unit
-        } ?: quantityUnit
+    private fun resolveQuantityUnit(
+        material: T,
+        productivityCalendar: List<QuantityProductivity<V, T, U>> = productivity
+    ): PhysicalUnit {
+        val units = productivityCalendar.mapNotNull {
+            it.unitYieldOf(material)?.unit
+        }.distinct()
+        require(units.size <= 1) {
+            "Inconsistent unitYield units for material '$material': $units"
+        }
+        return units.firstOrNull() ?: quantityUnit
     }
 
     /**
-     * 校验输入数量的单位是否与日历的产出单位一致。
-     * Validates that the input quantity's unit matches the calendar's production unit.
+     * 校验输入数量的单位是否与指定材料的产出单位一致。
+     * Validates that the input quantity's unit matches the material's production unit.
      *
+     * @param material 材料 / The material
+     * @param productivityCalendar 候选生产力条目 / The candidate productivity entries
+     * @param quantity 输入数量 / The input quantity
      * @throws IllegalArgumentException 当单位不一致时 / When units don't match
      */
-    private fun validateQuantityUnit(quantity: Quantity<V>) {
-        val expected = resolveQuantityUnit()
+    private fun validateQuantityUnit(
+        material: T,
+        productivityCalendar: List<QuantityProductivity<V, T, U>>,
+        quantity: Quantity<V>
+    ) {
+        val expected = resolveQuantityUnit(
+            material = material,
+            productivityCalendar = productivityCalendar
+        )
         require(quantity.unit == expected) {
             "Quantity unit '${quantity.unit}' does not match productivity unit '$expected'"
         }
@@ -2769,7 +2790,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
     ): Quantity<V> {
         val productivityCalendar = productivity.find(time, QuantityProductivity<V, T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
-            return Quantity(constants.zero, resolveQuantityUnit())
+            return Quantity(constants.zero, resolveQuantityUnit(material))
         }
         return actualQuantityInternal(
             material = material, time = time,
@@ -2821,7 +2842,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
     ): Quantity<V> {
         val productivityCalendar = productivity.findParallelly(time, QuantityProductivity<V, T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
-            return Quantity(constants.zero, resolveQuantityUnit())
+            return Quantity(constants.zero, resolveQuantityUnit(material))
         }
         return actualQuantityInternal(
             material = material, time = time,
@@ -2875,7 +2896,11 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        validateQuantityUnit(quantity)
+        validateQuantityUnit(
+            material = material,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity
+        )
         val quantityValue = quantity.value
         var produceQuantity = Flt64.zero
         var currentTime = startTime
@@ -2947,7 +2972,11 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
-        validateQuantityUnit(quantity)
+        validateQuantityUnit(
+            material = material,
+            productivityCalendar = productivityCalendar,
+            quantity = quantity
+        )
         val quantityValue = quantity.value
         var produceQuantity = Flt64.zero
         var currentTime = endTime
@@ -3018,7 +3047,10 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Quantity<V> {
-        val resolvedUnit = resolveQuantityUnit()
+        val resolvedUnit = resolveQuantityUnit(
+            material = material,
+            productivityCalendar = productivityCalendar
+        )
         val validTimes = validTimes(
             time = time,
             unavailableTimes = unavailableTimes,
