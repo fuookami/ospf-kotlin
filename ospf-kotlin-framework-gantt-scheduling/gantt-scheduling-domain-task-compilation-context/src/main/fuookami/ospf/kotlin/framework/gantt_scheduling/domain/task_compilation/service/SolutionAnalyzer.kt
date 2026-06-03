@@ -110,7 +110,7 @@ data object SolutionAnalyzer {
             E : Executor,
             A : AssignmentPolicy<E>
             > invoke(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         tasks: List<T>,
         executors: List<E>,
         compilation: TaskCompilation<T, E, A>,

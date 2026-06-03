@@ -121,7 +121,7 @@ abstract class TaskTimeImpl<
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    protected val timeWindow: TimeWindow,
+    protected val timeWindow: TimeWindow<Flt64>,
     protected val tasks: List<T>
 ) : TaskTime {
     protected abstract val compilation: Compilation
@@ -944,7 +944,7 @@ class TaskSchedulingTaskTime<
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     override val compilation: TaskCompilation<T, E, A>,
     private val estimateEndTimeCalculator: (T, LinearPolynomial<Flt64>) -> LinearPolynomial<Flt64>,
@@ -1189,7 +1189,7 @@ open class IterativeTaskSchedulingTaskTime<
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     override val compilation: IterativeTaskCompilation<IT, T, E, A>,
     private val redundancyRange: Duration? = null

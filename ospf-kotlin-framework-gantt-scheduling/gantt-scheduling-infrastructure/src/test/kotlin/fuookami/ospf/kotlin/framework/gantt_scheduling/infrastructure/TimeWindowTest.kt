@@ -9,6 +9,7 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * Unit tests for TimeWindow class.
@@ -30,7 +31,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:30:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Generate time slots with 1-hour interval
@@ -70,7 +73,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val timeSlots = timeWindow.roundTimeSlotsOf(
@@ -104,7 +109,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude 09:00-10:00
@@ -153,7 +160,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T16:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude 09:00-10:00 and 13:00-14:00
@@ -204,7 +213,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Use 30-minute interval for 10:00-11:00, 1-hour for rest
@@ -250,7 +261,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-09-01T08:00:00Z")
             ),
             durationUnit = DurationUnit.HOURS,
-            interval = 1.toDuration(DurationUnit.HOURS)
+            interval = 1.toDuration(DurationUnit.HOURS),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val timeSlots = timeWindow.roundTimeSlotsOf(
@@ -285,7 +298,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude 08:00-09:00 (at the beginning)
@@ -323,7 +338,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude 11:00-12:00 (at the end)
@@ -361,7 +378,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude a small portion in the middle
@@ -401,7 +420,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude 07:00-09:00 (partially overlaps before window)
@@ -439,7 +460,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude 11:00-13:00 (extends beyond window end)
@@ -477,7 +500,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude exactly 09:00-10:00 (aligned with slot boundaries)
@@ -523,7 +548,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude entire 09:00-10:00 slot plus more
@@ -585,7 +612,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T08:05:00Z")
             ),
             durationUnit = DurationUnit.SECONDS,
-            interval = 10.toDuration(DurationUnit.SECONDS)
+            interval = 10.toDuration(DurationUnit.SECONDS),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val timeSlots = timeWindow.roundTimeSlotsOf(
@@ -626,7 +655,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val timeSlots = timeWindow.roundTimeSlotsOf(
@@ -661,7 +692,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude entire window
@@ -699,7 +732,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Exclude two adjacent time ranges: 09:00-10:00 and 10:00-11:00
@@ -749,7 +784,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T11:43:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val timeSlots = timeWindow.roundTimeSlotsOf(
@@ -795,7 +832,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T08:00:01Z")
             ),
             durationUnit = DurationUnit.SECONDS,
-            interval = 1.toDuration(DurationUnit.SECONDS)
+            interval = 1.toDuration(DurationUnit.SECONDS),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val timeSlots = timeWindow.roundTimeSlotsOf(
@@ -829,7 +868,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T12:00:00Z")
             ),
             durationUnit = DurationUnit.MINUTES,
-            interval = 30.toDuration(DurationUnit.MINUTES)
+            interval = 30.toDuration(DurationUnit.MINUTES),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         // Overlapping excluded times: 09:00-10:30 and 10:00-11:00
@@ -878,7 +919,9 @@ class TimeWindowTest {
                 end = Instant.parse("2020-08-30T10:00:00Z")
             ),
             durationUnit = DurationUnit.MILLISECONDS,
-            interval = 1.toDuration(DurationUnit.MILLISECONDS)
+            interval = 1.toDuration(DurationUnit.MILLISECONDS),
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
         )
 
         val exception = runCatching { timeWindow.upperInterval }.exceptionOrNull()

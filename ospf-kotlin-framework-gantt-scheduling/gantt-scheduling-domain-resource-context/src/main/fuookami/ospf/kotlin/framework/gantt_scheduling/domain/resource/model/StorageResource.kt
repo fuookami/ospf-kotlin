@@ -155,7 +155,7 @@ data class StorageResourceTimeSlot<
         out R : StorageResource<C>,
         out C : AbstractResourceCapacity
         >(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     override val origin: TimeSlot,
     override val resource: R,
     override val resourceCapacity: C,
@@ -215,7 +215,7 @@ abstract class AbstractStorageResourceUsage<
         out R : StorageResource<C>,
         out C : AbstractResourceCapacity
         >(
-    protected val timeWindow: TimeWindow,
+    protected val timeWindow: TimeWindow<Flt64>,
     protected val executors: List<E>,
     protected val resources: List<R>,
     times: List<TimeSlot>,
@@ -376,7 +376,7 @@ class TaskSchedulingStorageResourceUsage<
         out R : StorageResource<C>,
         out C : AbstractResourceCapacity
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     executors: List<E>,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -392,7 +392,7 @@ class TaskSchedulingStorageResourceUsage<
     interval = interval
 ) {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         executors: List<E>,
         resources: List<R>,
         times: List<TimeRange>,
@@ -411,7 +411,7 @@ class TaskSchedulingStorageResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
@@ -457,7 +457,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
         out R : StorageResource<C>,
         out C : AbstractResourceCapacity
         > private constructor(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     executors: List<E>,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -471,7 +471,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
     interval = interval
 ) {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         executors: List<E>,
         resources: List<R>,
         times: List<TimeRange>,
@@ -486,7 +486,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
@@ -648,7 +648,7 @@ class BunchSchedulingStorageResourceUsage<
         out R : StorageResource<C>,
         out C : AbstractResourceCapacity
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     executors: List<E>,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -662,7 +662,7 @@ class BunchSchedulingStorageResourceUsage<
     interval = interval
 ) {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         executors: List<E>,
         resources: List<R>,
         times: List<TimeSlot>,
@@ -677,7 +677,7 @@ class BunchSchedulingStorageResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,

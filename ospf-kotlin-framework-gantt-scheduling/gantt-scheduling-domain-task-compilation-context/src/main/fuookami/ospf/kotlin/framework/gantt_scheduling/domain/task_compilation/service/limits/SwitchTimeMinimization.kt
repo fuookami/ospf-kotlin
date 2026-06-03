@@ -34,7 +34,7 @@ class SwitchTimeMinimization<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     private val tasks: List<T>,
     private val switch: Switch,
     private val threshold: Extractor<Duration?, Pair<T, T>> = { Duration.ZERO },

@@ -31,7 +31,7 @@ class PlanCapacitySchedulingProduce<
     private val compilation: Capacity<A>,
     actions: List<A>,
     slots: List<TimeSlot>,
-    timeWindow: TimeWindow
+    timeWindow: TimeWindow<Flt64>
 ) : CapacitySchedulingProduce<A, P, C>(products, actions, slots, timeWindow) {
 
     init {

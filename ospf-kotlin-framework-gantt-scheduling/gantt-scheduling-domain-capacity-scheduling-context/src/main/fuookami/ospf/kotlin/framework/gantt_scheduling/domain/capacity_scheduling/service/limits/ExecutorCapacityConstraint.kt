@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 class ExecutorCapacityConstraint<A : ProductionAction>(
     private val capacity: Capacity<A>,
     private val slots: List<TimeSlot>,
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     val name: String = "executor_capacity"
 ) {
     /**

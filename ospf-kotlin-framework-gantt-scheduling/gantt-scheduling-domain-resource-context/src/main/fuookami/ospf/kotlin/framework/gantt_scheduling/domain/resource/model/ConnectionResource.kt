@@ -142,7 +142,7 @@ abstract class AbstractConnectionResourceUsage<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity
         >(
-    protected val timeWindow: TimeWindow,
+    protected val timeWindow: TimeWindow<Flt64>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval
@@ -216,7 +216,7 @@ class TaskSchedulingConnectionResourceUsage<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity
         > private constructor(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
@@ -230,7 +230,7 @@ class TaskSchedulingConnectionResourceUsage<
     interval = interval
 ) {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String,
@@ -247,7 +247,7 @@ class TaskSchedulingConnectionResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
         name: String,
@@ -287,7 +287,7 @@ class BunchSchedulingConnectionResourceUsage<
         out R : ConnectionResource<C>,
         out C : AbstractResourceCapacity
         > private constructor(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
@@ -299,7 +299,7 @@ class BunchSchedulingConnectionResourceUsage<
     interval = interval
 ) {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String
@@ -312,7 +312,7 @@ class BunchSchedulingConnectionResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<Flt64>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
         name: String

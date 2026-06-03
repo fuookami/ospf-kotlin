@@ -34,7 +34,7 @@ class TaskOverMaxAdvanceTimeMinimization<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     private val taskTime: TaskTime,
     private val threshold: Extractor<Duration?, T> = { Duration.ZERO },

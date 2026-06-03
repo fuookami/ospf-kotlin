@@ -60,7 +60,7 @@ class TaskSchedulingSwitch<
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     private val tasks: List<T>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,

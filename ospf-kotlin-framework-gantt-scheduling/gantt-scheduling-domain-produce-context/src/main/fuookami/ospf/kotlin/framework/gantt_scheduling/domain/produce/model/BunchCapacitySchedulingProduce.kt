@@ -32,7 +32,7 @@ class BunchCapacitySchedulingProduce<
     products: List<Pair<P, MaterialDemand?>>,
     actions: List<A>,
     slots: List<TimeSlot>,
-    timeWindow: TimeWindow
+    timeWindow: TimeWindow<Flt64>
 ) : CapacitySchedulingProduce<A, P, C>(products, actions, slots, timeWindow) {
 
     override fun register(model: LinearMetaModel<Flt64>): Try {

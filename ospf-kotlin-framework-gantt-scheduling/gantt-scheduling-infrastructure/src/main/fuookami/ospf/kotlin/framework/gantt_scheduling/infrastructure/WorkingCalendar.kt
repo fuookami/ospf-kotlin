@@ -26,7 +26,7 @@ import kotlin.time.Duration
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  */
 open class WorkingCalendar(
-    val timeWindow: TimeWindow,
+    val timeWindow: TimeWindow<Flt64>,
     unavailableTimes: List<TimeRange> = emptyList()
 ) {
     /**
@@ -1310,12 +1310,12 @@ open class Productivity<Q, T, U>(
  * @param floor 向下取整运算 / The floor operation
  */
 sealed class ProductivityCalendar<Q, P, T, U>(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null,
     private val constants: RealNumberConstants<Q>,
-    private val mul: (TimeWindow, Q, Duration) -> Q,
-    private val div: (TimeWindow, Q, Duration) -> Q,
+    private val mul: (TimeWindow<Flt64>, Q, Duration) -> Q,
+    private val div: (TimeWindow<Flt64>, Q, Duration) -> Q,
     private val floor: Extractor<Q, Flt64>
 ) : WorkingCalendar(timeWindow) where P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q : TimesGroup<Q> {
     /**
@@ -2093,7 +2093,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  */
 open class DiscreteProductivityCalendar<P, T, U>(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
 ) : ProductivityCalendar<UInt64, P, T, U>(
@@ -2121,7 +2121,7 @@ open class DiscreteProductivityCalendar<P, T, U>(
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  */
 open class ContinuousProductivityCalendar<P, T, U>(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
 ) : ProductivityCalendar<Flt64, P, T, U>(

@@ -40,7 +40,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 class CapacityCompilation<A : ProductionAction>(
     private val actions: List<A>,
     private val slots: List<TimeSlot>,
-    private val timeWindow: TimeWindow
+    private val timeWindow: TimeWindow<Flt64>
 ) : Capacity<A> {
     override val executors: List<Executor> = actions.map { it.executor }.distinct()
 

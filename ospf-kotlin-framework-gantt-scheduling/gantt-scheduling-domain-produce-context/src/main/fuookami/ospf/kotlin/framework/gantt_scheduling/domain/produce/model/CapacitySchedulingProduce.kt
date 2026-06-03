@@ -30,7 +30,7 @@ abstract class CapacitySchedulingProduce<
     products: List<Pair<P, MaterialDemand?>>,
     protected val actions: List<A>,
     protected val slots: List<TimeSlot>,
-    protected val timeWindow: TimeWindow
+    protected val timeWindow: TimeWindow<Flt64>
 ) : AbstractProduce<
         ProductionTask<Executor, AssignmentPolicy<Executor>, P, C, Flt64>,
         Executor,

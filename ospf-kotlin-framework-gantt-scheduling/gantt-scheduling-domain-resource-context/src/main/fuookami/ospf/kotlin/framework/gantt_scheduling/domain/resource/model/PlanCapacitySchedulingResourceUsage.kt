@@ -40,7 +40,7 @@ class PlanCapacitySchedulingResourceUsage<
     private val compilation: Capacity<A>,
     times: List<TimeSlot>,
     actions: List<A>,
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     interval: Duration = timeWindow.interval
 ) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
     timeWindow, resources, actions, interval

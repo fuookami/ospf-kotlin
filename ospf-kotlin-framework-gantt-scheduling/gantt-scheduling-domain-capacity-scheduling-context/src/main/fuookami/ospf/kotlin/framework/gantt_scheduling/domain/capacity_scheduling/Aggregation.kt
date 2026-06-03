@@ -35,7 +35,7 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
      * 时间窗口
      * Time window
      */
-    val timeWindow: TimeWindow
+    val timeWindow: TimeWindow<Flt64>
 ) {
     /**
      * 按执行器分组的动�?

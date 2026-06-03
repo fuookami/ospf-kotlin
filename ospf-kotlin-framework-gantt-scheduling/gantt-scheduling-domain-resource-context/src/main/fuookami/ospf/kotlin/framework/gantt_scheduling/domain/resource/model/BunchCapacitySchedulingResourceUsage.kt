@@ -33,7 +33,7 @@ class BunchCapacitySchedulingResourceUsage<
         R,
         C : AbstractResourceCapacity
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     resources: List<R>,
     times: List<TimeSlot>,
     actions: List<A>,

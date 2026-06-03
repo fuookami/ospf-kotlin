@@ -66,7 +66,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 时间窗口
      * Time window
      */
-    private val timeWindow: TimeWindow
+    private val timeWindow: TimeWindow<Flt64>
 ) : Capacity<A> {
 
     init {

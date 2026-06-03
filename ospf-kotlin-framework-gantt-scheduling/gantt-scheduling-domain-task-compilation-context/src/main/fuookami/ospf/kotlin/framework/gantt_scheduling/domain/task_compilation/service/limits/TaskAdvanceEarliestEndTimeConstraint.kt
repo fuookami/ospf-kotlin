@@ -46,7 +46,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     tasks: List<AbstractTask<E, A>>,
     private val taskTime: TaskTime,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,

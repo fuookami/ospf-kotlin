@@ -34,7 +34,7 @@ abstract class AbstractTaskSchedulingAggregation<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
@@ -109,7 +109,7 @@ open class TaskCompilationAggregation<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
@@ -150,7 +150,7 @@ open class TaskCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),

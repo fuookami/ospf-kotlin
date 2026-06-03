@@ -41,7 +41,7 @@ interface CapacitySchedulingContext<A : ProductionAction> {
      * 时间窗口
      * Time window
      */
-    val timeWindow: TimeWindow
+    val timeWindow: TimeWindow<Flt64>
 
     /**
      * 产能编译对象

@@ -72,7 +72,7 @@ interface ProductionAction {
      * @param timeWindow Time window / 时间窗口
      * @return Unit capacity as Flt64 / 单位产能
      */
-    fun unitCapacity(timeWindow: TimeWindow): Flt64
+    fun unitCapacity(timeWindow: TimeWindow<Flt64>): Flt64
 
     /**
      * 单位成本
@@ -91,6 +91,6 @@ interface ProductionAction {
      * @param timeWindow Time window / 时间窗口
      * @return Upper bound value / 上界�?
      */
-    fun upperBound(slot: TimeSlot, timeWindow: TimeWindow): UInt64
+    fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>): UInt64
 }
 

@@ -81,7 +81,7 @@ open class BunchSchedulingTaskTime<
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     override val compilation: BunchCompilation<B, T, E, A>,
     private val redundancyRange: Duration? = null,

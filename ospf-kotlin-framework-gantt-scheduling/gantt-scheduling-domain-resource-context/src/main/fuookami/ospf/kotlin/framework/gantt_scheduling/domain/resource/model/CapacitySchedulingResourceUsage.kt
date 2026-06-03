@@ -26,7 +26,7 @@ abstract class CapacitySchedulingResourceUsage<
         R : Resource<C>,
         C : AbstractResourceCapacity
         >(
-    protected val timeWindow: TimeWindow,
+    protected val timeWindow: TimeWindow<Flt64>,
     resources: List<R>,
     protected val actions: List<A>,
     interval: Duration = timeWindow.interval
