@@ -12,6 +12,9 @@ import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
 import kotlinx.datetime.DayOfWeek
@@ -2137,3 +2140,928 @@ open class ContinuousProductivityCalendar<P, T, U>(
     },
     floor = { it }
 ) where P : Productivity<Flt64, T, U>
+
+// ============================================================================
+// Quantity-based Productivity API (G2.5)
+// 基于物理量的生产力 API，为产出数量提供 Quantity<V> 单位语义
+// ============================================================================
+
+/**
+ * 基于物理量的生产力，描述时间窗口内的生产能力，产出数量携带单位 /
+ * Quantity-based productivity describing production capacity within a time window,
+ * with production quantities carrying physical units.
+ *
+ * @param V 数值类型 / The numeric value type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @property timeWindow 时间窗口 / The time window
+ * @property extractor 键提取器 / The key extractor
+ * @property weekDays 生效的星期几集合 / The set of applicable weekdays
+ * @property monthDays 生效的月份天数集合 / The set of applicable month days
+ * @property capacities 材料到生产单位所需时间的映射 / Mapping from material to time required per unit
+ * @property unitYields 材料到单位时间产量的映射（携带单位）/ Mapping from material to unit time production (with unit)
+ * @property conditionCapacities 条件产能列表 / The list of conditional capacities
+ * @property conditionUnitYields 条件单位产量列表（携带单位）/ The list of conditional unit yields (with unit)
+ */
+open class QuantityProductivity<V, T, U>(
+    val timeWindow: TimeRange,
+    val extractor: Extractor<U, T>,
+    val weekDays: Set<DayOfWeek> = emptySet(),
+    val monthDays: Set<Int> = emptySet(),
+    val capacities: Map<U, Duration>,
+    val unitYields: Map<U, Quantity<V>>,
+    val conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList(),
+    val conditionUnitYields: List<Pair<ProductivityCondition<T>, Quantity<V>>> = emptyList()
+) {
+    companion object {
+        @JvmName("buildByCapacityAndUnitYieldWithoutExtractor")
+        operator fun <V, T> invoke(
+            timeWindow: TimeRange,
+            weekDays: Set<DayOfWeek> = emptySet(),
+            monthDays: Set<Int> = emptySet(),
+            capacities: Map<T, Duration>,
+            unitYields: Map<T, Quantity<V>>,
+            conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList(),
+            conditionUnitYields: List<Pair<ProductivityCondition<T>, Quantity<V>>> = emptyList()
+        ): QuantityProductivity<V, T, T> {
+            return QuantityProductivity(
+                timeWindow = timeWindow,
+                extractor = { it },
+                weekDays = weekDays,
+                monthDays = monthDays,
+                capacities = capacities,
+                unitYields = unitYields,
+                conditionCapacities = conditionCapacities,
+                conditionUnitYields = conditionUnitYields
+            )
+        }
+
+        @JvmName("buildByCapacityWithoutExtractor")
+        operator fun <V, T> invoke(
+            timeWindow: TimeRange,
+            weekDays: Set<DayOfWeek> = emptySet(),
+            monthDays: Set<Int> = emptySet(),
+            capacities: Map<T, Duration>,
+            conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList()
+        ): QuantityProductivity<V, T, T> {
+            return QuantityProductivity(
+                timeWindow = timeWindow,
+                extractor = { it },
+                weekDays = weekDays,
+                monthDays = monthDays,
+                capacities = capacities,
+                unitYields = emptyMap(),
+                conditionCapacities = conditionCapacities,
+                conditionUnitYields = emptyList()
+            )
+        }
+
+        @JvmName("buildByCapacityWithExtractor")
+        operator fun <V, T, U> invoke(
+            timeWindow: TimeRange,
+            extractor: Extractor<U, T>,
+            weekDays: Set<DayOfWeek> = emptySet(),
+            monthDays: Set<Int> = emptySet(),
+            capacities: Map<U, Duration>,
+            conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>> = emptyList()
+        ): QuantityProductivity<V, T, U> {
+            return QuantityProductivity(
+                timeWindow = timeWindow,
+                extractor = extractor,
+                weekDays = weekDays,
+                monthDays = monthDays,
+                capacities = capacities,
+                unitYields = emptyMap(),
+                conditionCapacities = conditionCapacities,
+                conditionUnitYields = emptyList()
+            )
+        }
+
+        @JvmName("buildByUnitYieldWithoutExtractor")
+        operator fun <V, T> invoke(
+            timeWindow: TimeRange,
+            weekDays: Set<DayOfWeek> = emptySet(),
+            monthDays: Set<Int> = emptySet(),
+            unitYields: Map<T, Quantity<V>>,
+            conditionUnitYields: List<Pair<ProductivityCondition<T>, Quantity<V>>> = emptyList()
+        ): QuantityProductivity<V, T, T> {
+            return QuantityProductivity(
+                timeWindow = timeWindow,
+                extractor = { it },
+                weekDays = weekDays,
+                monthDays = monthDays,
+                capacities = emptyMap(),
+                unitYields = unitYields,
+                conditionCapacities = emptyList(),
+                conditionUnitYields = conditionUnitYields
+            )
+        }
+
+        @JvmName("buildByUnitYieldWithExtractor")
+        operator fun <V, T, U> invoke(
+            timeWindow: TimeRange,
+            extractor: Extractor<U, T>,
+            weekDays: Set<DayOfWeek> = emptySet(),
+            monthDays: Set<Int> = emptySet(),
+            unitYields: Map<U, Quantity<V>>,
+            conditionUnitYields: List<Pair<ProductivityCondition<T>, Quantity<V>>> = emptyList()
+        ): QuantityProductivity<V, T, U> {
+            return QuantityProductivity(
+                timeWindow = timeWindow,
+                extractor = extractor,
+                weekDays = weekDays,
+                monthDays = monthDays,
+                capacities = emptyMap(),
+                unitYields = unitYields,
+                conditionCapacities = emptyList(),
+                conditionUnitYields = conditionUnitYields
+            )
+        }
+    }
+
+    private val cache1 = HashMap<T, Duration?>()
+    private val cache2 = HashMap<T, Quantity<V>?>()
+
+    /**
+     * 获取指定材料的产能 / Get the capacity for the specified material
+     */
+    open fun capacityOf(material: T): Duration? {
+        return capacities[extractor(material)]
+            ?: cache1.getOrPut(material) {
+                conditionCapacities.firstOrNull { it.first(material) }?.second
+            }
+    }
+
+    /**
+     * 获取指定材料的单位产量（携带单位）/ Get the unit yield for the specified material (with unit)
+     */
+    open fun unitYieldOf(material: T): Quantity<V>? {
+        return unitYields[extractor(material)]
+            ?: cache2.getOrPut(material) {
+                conditionUnitYields.firstOrNull { it.first(material) }?.second
+            }
+    }
+
+    /**
+     * 创建新的生产力实例 / Create a new productivity instance
+     */
+    open fun new(
+        timeWindow: TimeRange? = null,
+        extractor: Extractor<U, T>? = null,
+        weekDays: Set<DayOfWeek>? = null,
+        monthDays: Set<Int>? = null,
+        capacities: Map<U, Duration>? = null,
+        unitYields: Map<U, Quantity<V>>? = null,
+        conditionCapacities: List<Pair<ProductivityCondition<T>, Duration>>? = null,
+        conditionUnitYields: List<Pair<ProductivityCondition<T>, Quantity<V>>>? = null
+    ): QuantityProductivity<V, T, U> {
+        return QuantityProductivity(
+            timeWindow = timeWindow ?: this.timeWindow,
+            extractor = extractor ?: this.extractor,
+            weekDays = weekDays ?: this.weekDays,
+            monthDays = monthDays ?: this.monthDays,
+            capacities = capacities ?: this.capacities,
+            unitYields = unitYields ?: this.unitYields,
+            conditionCapacities = conditionCapacities ?: this.conditionCapacities,
+            conditionUnitYields = conditionUnitYields ?: this.conditionUnitYields,
+        )
+    }
+}
+
+/**
+ * 基于物理量的生产力日历，结合工作日历和生产力信息 /
+ * Quantity-based productivity calendar combining working calendar and productivity information.
+ *
+ * 与 [ProductivityCalendar] 的区别在于产出数量携带 [Quantity] 单位，
+ * 支持物理量纲检查和单位转换。内部计算逻辑不变，仅在 API 边界包装/解包 [Quantity]。
+ *
+ * @param V 数值类型 / The numeric value type
+ * @param P 生产力类型 / The productivity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @param timeWindow 时间窗口 / The time window
+ * @param productivity 生产力列表 / The list of productivities
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ * @param quantityUnit 产出数量的默认单位 / The default unit for production quantities
+ * @param constants 数值常量 / The numeric constants
+ * @param quantityFloor 物理量向下取整运算 / The floor operation for quantities
+ */
+sealed class QuantityProductivityCalendar<V, P, T, U>(
+    timeWindow: TimeWindow<Flt64>,
+    productivity: List<P>,
+    unavailableTimes: List<TimeRange>? = null,
+    private val quantityUnit: PhysicalUnit,
+    private val constants: RealNumberConstants<V>,
+    private val quantityFloor: (Flt64) -> Quantity<V>
+) : WorkingCalendar(timeWindow) where P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
+
+    @Suppress("UNCHECKED_CAST")
+    private fun rebuiltProductivityOf(source: P, timeWindow: TimeRange): P {
+        return source.new(timeWindow = timeWindow) as P
+    }
+
+    /** 生产力列表（已处理不可用时间）/ Productivity list (with unavailable times processed) */
+    val productivity: List<P> by lazy {
+        if (unavailableTimes != null) {
+            productivity.flatMap {
+                val timeRanges = it.timeWindow.differenceWith(unavailableTimes)
+                timeRanges.map { time ->
+                    rebuiltProductivityOf(it, time)
+                }
+            }.sortedBy { it.timeWindow.start }
+        } else {
+            productivity.sortedBy { it.timeWindow.start }
+        }
+    }
+
+    /** 平均产能映射 / Average capacity mapping */
+    val averageCapacity: Map<U, Duration> by lazy {
+        val materials = productivity.flatMap { it.capacities.keys }.distinct()
+        materials.associateWith { material ->
+            val thisProductivity = productivity.mapNotNull {
+                it.capacities[material]?.let { capacity ->
+                    it.timeWindow.duration to capacity
+                }
+            }
+            timeWindow.durationOf(
+                thisProductivity.sumOf { timeWindow.valueOf(it.first) * timeWindow.valueOf(it.second) }
+                        / thisProductivity.sumOf { timeWindow.valueOf(it.first) }
+            )
+        }
+    }
+
+    /** 平均单位产量映射（携带单位）/ Average unit yield mapping (with unit) */
+    val averageUnitYield: Map<U, Quantity<V>> by lazy {
+        val materials = productivity.flatMap { it.unitYields.keys }.distinct()
+        materials.associateWith { material ->
+            val entries = productivity.mapNotNull {
+                it.unitYields[material]?.let { qty ->
+                    it.timeWindow.duration to qty
+                }
+            }
+            if (entries.isEmpty()) {
+                Quantity(constants.zero, quantityUnit)
+            } else {
+                val totalWeighted = entries.fold(Flt64.zero) { acc, (dur, qty) ->
+                    acc + qty.value.toFlt64() * timeWindow.valueOf(dur)
+                }
+                val totalDuration = entries.fold(Duration.ZERO) { acc, (dur, _) -> acc + dur }
+                val avgValue = totalWeighted / timeWindow.valueOf(totalDuration)
+                quantityFloor(avgValue)
+            }
+        }
+    }
+
+    override val unavailableTimes: List<TimeRange> by lazy {
+        unavailableTimes
+            ?: productivity.flatMapIndexed { i, produceTime ->
+                val result = ArrayList<TimeRange>()
+                if (i == 0) {
+                    produceTime.timeWindow.front?.let { result.add(it) }
+                } else {
+                    produceTime.timeWindow.frontBetween(productivity[i - 1].timeWindow)?.let { result.add(it) }
+                }
+                if (i == productivity.lastIndex) {
+                    produceTime.timeWindow.back?.let { result.add(it) }
+                }
+                result
+            }
+    }
+
+    fun actualStartTimeFrom(
+        material: T,
+        startTime: Instant,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Instant {
+        val productivityCalendar = productivity.findFrom(startTime, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return Instant.DISTANT_FUTURE
+        }
+
+        var currentTime = startTime
+        for (calendar in productivityCalendar) {
+            val currentProductivity = calendar.unitYieldOf(material)?.value?.toFlt64()
+                ?: calendar.capacityOf(material)
+                    ?.let {
+                        Flt64.one / with(timeWindow) {
+                            it.value
+                        }
+                    }
+                ?: continue
+
+            val validTimes = validTimes(
+                time = calendar.timeWindow.intersectionWith(TimeRange(start = currentTime)) ?: continue,
+                unavailableTimes = unavailableTimes,
+                beforeConnectionTime = beforeConnectionTime,
+                afterConnectionTime = afterConnectionTime,
+                beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+                afterConditionalConnectionTime = afterConditionalConnectionTime,
+                currentDuration = if (currentTime == startTime) {
+                    currentDuration
+                } else {
+                    Duration.ZERO
+                },
+                maxDuration = Duration.INFINITE,
+                breakTime = breakTime
+            )
+            for (produceTime in validTimes.times) {
+                val thisQuantity = with(timeWindow) {
+                    produceTime.duration.value * currentProductivity
+                }
+                if (thisQuantity gr constants.zero.toFlt64()) {
+                    return produceTime.start
+                }
+            }
+            currentTime = maxEndTime(
+                validTimes.times,
+                validTimes.breakTimes,
+                validTimes.connectionTimes
+            )
+        }
+
+        return Instant.DISTANT_FUTURE
+    }
+
+    fun actualTimeFrom(
+        material: T,
+        startTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime {
+        val productivityCalendar = productivity.findFrom(startTime, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(start = startTime, end = Instant.DISTANT_FUTURE),
+                workingTimes = emptyList(),
+                breakTimes = emptyList(),
+                connectionTimes = emptyList()
+            )
+        }
+        return actualTimeFromInternal(
+            material = material, startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    fun actualTimeFromOrNull(
+        material: T,
+        startTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime? {
+        val productivityCalendar = productivity.findFrom(startTime, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) return null
+        return actualTimeFromInternal(
+            material = material, startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    suspend fun actualTimeFromParallelly(
+        material: T,
+        startTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime {
+        val productivityCalendar = productivity.findFromParallelly(startTime, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(start = startTime, end = Instant.DISTANT_FUTURE),
+                workingTimes = emptyList(), breakTimes = emptyList(), connectionTimes = emptyList()
+            )
+        }
+        return actualTimeFromInternal(
+            material = material, startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    suspend fun actualTimeFromOrNullParallelly(
+        material: T,
+        startTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime? {
+        val productivityCalendar = productivity.findFromParallelly(startTime, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) return null
+        return actualTimeFromInternal(
+            material = material, startTime = startTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    fun actualTimeUntil(
+        material: T,
+        endTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime {
+        val productivityCalendar = productivity.findUntil(endTime, QuantityProductivity<V, T, U>::timeWindow).reversed()
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(start = Instant.DISTANT_PAST, end = endTime),
+                workingTimes = emptyList(), breakTimes = emptyList(), connectionTimes = emptyList()
+            )
+        }
+        return actualTimeUntilInternal(
+            material = material, endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        )
+    }
+
+    fun actualTimeUntilOrNull(
+        material: T,
+        endTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime? {
+        val productivityCalendar = productivity.findUntil(endTime, QuantityProductivity<V, T, U>::timeWindow).reversed()
+        if (productivityCalendar.isEmpty()) return null
+        return actualTimeUntilInternal(
+            material = material, endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        )
+    }
+
+    suspend fun actualTimeUntilParallelly(
+        material: T,
+        endTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime {
+        val productivityCalendar = productivity.findUntilParallelly(endTime, QuantityProductivity<V, T, U>::timeWindow).reversed()
+        if (productivityCalendar.isEmpty()) {
+            return ActualTime(
+                time = TimeRange(start = Instant.DISTANT_PAST, end = endTime),
+                workingTimes = emptyList(), breakTimes = emptyList(), connectionTimes = emptyList()
+            )
+        }
+        return actualTimeUntilInternal(
+            material = material, endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        )
+    }
+
+    suspend fun actualTimeUntilOrNullParallelly(
+        material: T,
+        endTime: Instant,
+        quantity: Quantity<V> = Quantity(constants.one, quantityUnit),
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime? {
+        val productivityCalendar = productivity.findUntilParallelly(endTime, QuantityProductivity<V, T, U>::timeWindow).reversed()
+        if (productivityCalendar.isEmpty()) return null
+        return actualTimeUntilInternal(
+            material = material, endTime = endTime,
+            productivityCalendar = productivityCalendar,
+            quantityValue = quantity.value,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            breakTime = breakTime
+        )
+    }
+
+    fun actualQuantity(
+        material: T,
+        time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Quantity<V> {
+        val productivityCalendar = productivity.find(time, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return Quantity(constants.zero, quantityUnit)
+        }
+        return actualQuantityInternal(
+            material = material, time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    fun actualQuantityOrNull(
+        material: T,
+        time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Quantity<V>? {
+        val productivityCalendar = productivity.find(time, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) return null
+        return actualQuantityInternal(
+            material = material, time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    suspend fun actualQuantityParallelly(
+        material: T,
+        time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Quantity<V> {
+        val productivityCalendar = productivity.findParallelly(time, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) {
+            return Quantity(constants.zero, quantityUnit)
+        }
+        return actualQuantityInternal(
+            material = material, time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    suspend fun actualQuantityOrNullParallelly(
+        material: T,
+        time: TimeRange,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Quantity<V>? {
+        val productivityCalendar = productivity.findParallelly(time, QuantityProductivity<V, T, U>::timeWindow)
+        if (productivityCalendar.isEmpty()) return null
+        return actualQuantityInternal(
+            material = material, time = time,
+            productivityCalendar = productivityCalendar,
+            unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration, breakTime = breakTime
+        )
+    }
+
+    // -- Internal computation: same logic as ProductivityCalendar, operating on V values via Flt64 --
+
+    private fun actualTimeFromInternal(
+        material: T,
+        startTime: Instant,
+        productivityCalendar: List<QuantityProductivity<V, T, U>>,
+        quantityValue: V,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime {
+        var produceQuantity = Flt64.zero
+        var currentTime = startTime
+        val workingTimes = ArrayList<TimeRange>()
+        val breakTimes = ArrayList<TimeRange>()
+        val connectionTimes = ArrayList<TimeRange>()
+        val quantityFlt64 = quantityValue.toFlt64()
+        for (calendar in productivityCalendar) {
+            val currentProductivity = calendar.unitYieldOf(material)?.value?.toFlt64()
+                ?: calendar.capacityOf(material)
+                    ?.let { Flt64.one / with(timeWindow) { it.value } }
+                ?: continue
+            val maxDuration = with(timeWindow) {
+                durationOf((quantityFlt64 - produceQuantity) / currentProductivity).ceil
+            }
+
+            val validTimes = validTimes(
+                time = calendar.timeWindow.intersectionWith(TimeRange(start = currentTime)) ?: continue,
+                unavailableTimes = unavailableTimes,
+                beforeConnectionTime = beforeConnectionTime,
+                afterConnectionTime = afterConnectionTime,
+                beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+                afterConditionalConnectionTime = afterConditionalConnectionTime,
+                currentDuration = if (currentTime == startTime) currentDuration else Duration.ZERO,
+                maxDuration = maxDuration,
+                breakTime = breakTime
+            )
+            workingTimes.addAll(validTimes.times)
+            breakTimes.addAll(validTimes.breakTimes)
+            connectionTimes.addAll(validTimes.connectionTimes)
+            for (produceTime in validTimes.times) {
+                val thisQuantity = with(timeWindow) {
+                    produceTime.duration.value * currentProductivity
+                }
+                produceQuantity += min(
+                    quantityFlt64 - produceQuantity,
+                    thisQuantity.toFlt64()
+                )
+            }
+            currentTime = maxEndTime(validTimes.times, validTimes.breakTimes, validTimes.connectionTimes)
+
+            if (produceQuantity eq quantityFlt64) {
+                break
+            }
+        }
+
+        return if (produceQuantity eq quantityFlt64) {
+            ActualTime(
+                time = TimeRange(start = startTime, end = currentTime),
+                workingTimes = workingTimes, breakTimes = breakTimes, connectionTimes = connectionTimes
+            )
+        } else {
+            ActualTime(
+                time = TimeRange(start = startTime, end = Instant.DISTANT_FUTURE),
+                workingTimes = workingTimes, breakTimes = breakTimes, connectionTimes = connectionTimes
+            )
+        }
+    }
+
+    private fun actualTimeUntilInternal(
+        material: T,
+        endTime: Instant,
+        productivityCalendar: List<QuantityProductivity<V, T, U>>,
+        quantityValue: V,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): ActualTime {
+        var produceQuantity = Flt64.zero
+        var currentTime = endTime
+        val workingTimes = ArrayList<TimeRange>()
+        val breakTimes = ArrayList<TimeRange>()
+        val connectionTimes = ArrayList<TimeRange>()
+        val quantityFlt64 = quantityValue.toFlt64()
+        for (calendar in productivityCalendar) {
+            val currentProductivity = calendar.unitYieldOf(material)?.value?.toFlt64()
+                ?: calendar.capacityOf(material)
+                    ?.let { Flt64.one / with(timeWindow) { it.value } }
+                ?: continue
+            val maxDuration = with(timeWindow) {
+                durationOf((quantityFlt64 - produceQuantity) / currentProductivity).ceil
+            }
+
+            val validTimes = reversedValidTimes(
+                time = calendar.timeWindow.intersectionWith(TimeRange(end = currentTime)) ?: continue,
+                unavailableTimes = unavailableTimes,
+                beforeConnectionTime = beforeConnectionTime,
+                afterConnectionTime = afterConnectionTime,
+                beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+                afterConditionalConnectionTime = afterConditionalConnectionTime,
+                maxDuration = maxDuration,
+                breakTime = breakTime
+            )
+            workingTimes.addAll(validTimes.times)
+            breakTimes.addAll(validTimes.breakTimes)
+            connectionTimes.addAll(validTimes.connectionTimes)
+            for (produceTime in validTimes.times) {
+                val thisQuantity = with(timeWindow) {
+                    produceTime.duration.value * currentProductivity
+                }
+                produceQuantity += min(
+                    quantityFlt64 - produceQuantity,
+                    thisQuantity.toFlt64()
+                )
+            }
+            currentTime = minStartTime(validTimes.times, validTimes.breakTimes, validTimes.connectionTimes)
+
+            if (produceQuantity eq quantityFlt64) {
+                break
+            }
+        }
+
+        return if (produceQuantity eq quantityFlt64) {
+            ActualTime(
+                time = TimeRange(start = currentTime, end = endTime),
+                workingTimes = workingTimes, breakTimes = breakTimes, connectionTimes = connectionTimes
+            )
+        } else {
+            ActualTime(
+                time = TimeRange(start = Instant.DISTANT_PAST, end = endTime),
+                workingTimes = workingTimes, breakTimes = breakTimes, connectionTimes = connectionTimes
+            )
+        }
+    }
+
+    private fun actualQuantityInternal(
+        material: T,
+        time: TimeRange,
+        productivityCalendar: List<QuantityProductivity<V, T, U>>,
+        unavailableTimes: List<TimeRange> = emptyList(),
+        beforeConnectionTime: DurationRange? = null,
+        afterConnectionTime: DurationRange? = null,
+        beforeConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
+        currentDuration: Duration = Duration.ZERO,
+        breakTime: Pair<DurationRange, Duration>? = null
+    ): Quantity<V> {
+        val validTimes = validTimes(
+            time = time,
+            unavailableTimes = unavailableTimes,
+            beforeConnectionTime = beforeConnectionTime,
+            afterConnectionTime = afterConnectionTime,
+            beforeConditionalConnectionTime = beforeConditionalConnectionTime,
+            afterConditionalConnectionTime = afterConditionalConnectionTime,
+            currentDuration = currentDuration,
+            breakTime = breakTime
+        ).times
+
+        var totalFlt64 = Flt64.zero
+        for (calendar in productivityCalendar) {
+            for (validTime in validTimes) {
+                if (validTime.end <= calendar.timeWindow.start) {
+                    continue
+                } else if (validTime.start >= calendar.timeWindow.end) {
+                    break
+                }
+
+                val produceTime = validTime.intersectionWith(calendar.timeWindow)?.duration ?: continue
+                val currentProductivity = calendar.unitYieldOf(material)?.value?.toFlt64()
+                    ?: calendar.capacityOf(material)
+                        ?.let { Flt64.one / with(timeWindow) { it.value } }
+                    ?: Flt64.zero
+                totalFlt64 += with(timeWindow) {
+                    produceTime.value * currentProductivity
+                }
+            }
+        }
+        return quantityFloor(totalFlt64)
+    }
+}
+
+/**
+ * 离散物理量生产力日历，使用 UInt64 作为产量数值类型 /
+ * Discrete quantity-based productivity calendar using UInt64 as the quantity value type.
+ *
+ * @param P 生产力类型 / The productivity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @param timeWindow 时间窗口 / The time window
+ * @param productivity 生产力列表 / The list of productivities
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ * @param quantityUnit 产出数量的默认单位 / The default unit for production quantities
+ */
+open class DiscreteQuantityProductivityCalendar<P, T, U>(
+    timeWindow: TimeWindow<Flt64>,
+    productivity: List<P>,
+    unavailableTimes: List<TimeRange>? = null,
+    quantityUnit: PhysicalUnit = NoneUnit
+) : QuantityProductivityCalendar<UInt64, P, T, U>(
+    timeWindow = timeWindow,
+    productivity = productivity,
+    unavailableTimes = unavailableTimes,
+    quantityUnit = quantityUnit,
+    constants = UInt64,
+    quantityFloor = { value -> Quantity(value.floor().toUInt64(), quantityUnit) }
+) where P : QuantityProductivity<UInt64, T, U>
+
+/**
+ * 连续物理量生产力日历，使用 Flt64 作为产量数值类型 /
+ * Continuous quantity-based productivity calendar using Flt64 as the quantity value type.
+ *
+ * @param P 生产力类型 / The productivity type
+ * @param T 材料类型 / The material type
+ * @param U 键类型 / The key type
+ * @param timeWindow 时间窗口 / The time window
+ * @param productivity 生产力列表 / The list of productivities
+ * @param unavailableTimes 不可用时间列表 / The list of unavailable times
+ * @param quantityUnit 产出数量的默认单位 / The default unit for production quantities
+ */
+open class ContinuousQuantityProductivityCalendar<P, T, U>(
+    timeWindow: TimeWindow<Flt64>,
+    productivity: List<P>,
+    unavailableTimes: List<TimeRange>? = null,
+    quantityUnit: PhysicalUnit = NoneUnit
+) : QuantityProductivityCalendar<Flt64, P, T, U>(
+    timeWindow = timeWindow,
+    productivity = productivity,
+    unavailableTimes = unavailableTimes,
+    quantityUnit = quantityUnit,
+    constants = Flt64,
+    quantityFloor = { value -> Quantity(value, quantityUnit) }
+) where P : QuantityProductivity<Flt64, T, U>

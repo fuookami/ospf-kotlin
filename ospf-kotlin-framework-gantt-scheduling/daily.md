@@ -428,6 +428,24 @@ mvn -pl ospf-kotlin-framework-gantt-scheduling test
 
 **结论：G0 完成；G1 按“基础领域类型 + 领域数量 Map + shadow price/reduced cost 领域签名”的边界已完成。剩余 Flt64 不属于 G1，归入 solver/framework/application 后续阶段。**
 
+### G2 状态：完成
+
+- [x] TimeWindow.kt → TimeWindow<V : RealNumber<V>>，新增 fromDouble/toDouble 转换函数
+- [x] Flt64TimeWindow typealias 保留旧 API
+- [x] 所有下游 ~40 个文件统一使用 TimeWindow<Flt64>
+- [x] WorkingCalendar.kt 中 6 处 TimeWindow 类型标注更新
+- [x] TimeWindowTest.kt 21 个构造调用更新
+- [x] 10 个 gantt-scheduling reactor 模块编译 + 测试通过
+
+### G2.5 状态：完成
+
+- [x] 新增 QuantityProductivity<V, T, U> — unitYields: Map<U, Quantity<V>>，携带物理单位
+- [x] 新增 QuantityProductivityCalendar<V, P, T, U> sealed class — actualTimeFrom/Until/Quantity 使用 Quantity<V>
+- [x] 新增 DiscreteQuantityProductivityCalendar (V=UInt64) 和 ContinuousQuantityProductivityCalendar (V=Flt64)
+- [x] 旧 Productivity / ProductivityCalendar 保持不变，零下游消费者
+- [x] 新增 testQuantityProductivityCalendarActualTime 测试覆盖离散和连续路径
+- [x] 10 个 gantt-scheduling reactor 模块编译 + 测试通过
+
 ## 8. 向后兼容
 
 建议保留：
