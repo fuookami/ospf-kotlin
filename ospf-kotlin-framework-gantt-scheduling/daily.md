@@ -306,10 +306,11 @@ git grep -n "Flt64\\|AbstractLinearMetaModel<Flt64>\\|MetaModel<Flt64>\\|LinearI
 
 验收：
 
-- [ ] 旧 `ProductivityCalendar` 测试通过。
-- [ ] 新增 `QuantityProductivityCalendarTest`，覆盖 `Quantity<Flt64>` 和 `Quantity<FltX>`。
-- [ ] `actualQuantity` 返回带单位结果。
-- [ ] 单位不一致的 `unitYields` 聚合有明确失败路径或显式拒绝策略。
+- [x] 旧 `ProductivityCalendar` 测试通过。
+- [x] 新增 `testQuantityProductivityCalendarActualTime`，覆盖 `Quantity<UInt64>` (Discrete) 和 `Quantity<Flt64>` (Continuous)。
+- [x] `actualQuantity` 返回 `Quantity<V>` 带单位结果（`Quantity(UInt64(60), NoneUnit)`）。
+- [x] `averageUnitYield` 返回 `Map<U, Quantity<V>>`，`actualTimeFrom/Until` 接受 `Quantity<V>` 入参。
+- [ ] 单位不一致的 `unitYields` 聚合有明确失败路径或显式拒绝策略。（当前使用日历级 `quantityUnit` 统一单位，尚未实现跨单位拒绝）
 
 ### Phase G3：task/bunch compilation 泛型化
 
