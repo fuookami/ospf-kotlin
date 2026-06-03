@@ -23,6 +23,11 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MachineCapacityUsage
@@ -37,6 +42,13 @@ class Csp1dMilpSolver(
         val model: LinearMetaModel<Flt64>,
         val assignment: Csp1dAssignment,
         val output: FeasibleSolverOutput<Flt64>
+    )
+
+    data class LpResult<V : RealNumber<V>>(
+        val shadowPrices: ShadowPriceMap<V>,
+        val model: LinearMetaModel<Flt64>,
+        val assignment: Csp1dAssignment,
+        val lpOutput: ColumnGenerationSolver.LPResult
     )
 
     suspend fun <V : RealNumber<V>> solve(
@@ -92,6 +104,57 @@ class Csp1dMilpSolver(
             model = model,
             assignment = assignment,
             output = output
+        )
+    }
+
+    suspend fun <V : RealNumber<V>> solveLP(
+        input: ProduceInput<V>
+    ): LpResult<V>? {
+        if (input.cuttingPlans.isEmpty()) {
+            return null
+        }
+
+        val model = LinearMetaModel(
+            name = "csp1d_produce_lp",
+            converter = IntoValue.Identity
+        )
+        val assignment = Csp1dAssignment.create(input.cuttingPlans.size)
+        ensureTry(assignment.register(model), "register assignment")
+
+        addDemandConstraints(
+            input = input,
+            assignment = assignment,
+            model = model
+        )
+        addMaterialConstraints(
+            input = input,
+            assignment = assignment,
+            model = model
+        )
+        addMachineConstraints(
+            input = input,
+            assignment = assignment,
+            model = model
+        )
+        setObjective(
+            assignment = assignment,
+            model = model
+        )
+
+        val lpResult = ensureRet(
+            result = solver.solveLP(
+                name = "csp1d-produce-lp",
+                metaModel = model
+            ),
+            stage = "solve CSP1D produce LP"
+        )
+
+        val shadowPrices = extractShadowPrices<V>(lpResult)
+        return LpResult(
+            shadowPrices = shadowPrices,
+            model = model,
+            assignment = assignment,
+            lpOutput = lpResult
         )
     }
 
@@ -225,6 +288,41 @@ class Csp1dMilpSolver(
             ),
             "build objective"
         )
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <V : RealNumber<V>> extractShadowPrices(
+        lpResult: ColumnGenerationSolver.LPResult
+    ): ShadowPriceMap<V> {
+        val shadowPrices = HashMap<ShadowPriceKey, V>()
+        val dualSolution = lpResult.dualSolution
+
+        for ((constraint, dualValue) in dualSolution) {
+            val key = shadowPriceKeyFromName(constraint.name)
+            if (key == null) continue
+
+            @Suppress("UNCHECKED_CAST")
+            val vDual = dualValue as? V ?: continue
+            val existingValue = shadowPrices[key]
+            shadowPrices[key] = if (existingValue != null) existingValue + vDual else vDual
+        }
+        return ShadowPriceMap(shadowPrices)
+    }
+
+    private fun shadowPriceKeyFromName(name: String): ShadowPriceKey? {
+        if (name.startsWith("demand_")) {
+            val productId = name.removePrefix("demand_").split("_").first()
+            return ProductDemandShadowPriceKey(productId)
+        }
+        if (name.startsWith("material_")) {
+            val materialId = name.removePrefix("material_")
+            return MaterialUsageShadowPriceKey(materialId)
+        }
+        if (name.startsWith("machine_")) {
+            val machineId = name.removePrefix("machine_").split("_").first()
+            return MachineCapacityShadowPriceKey(machineId)
+        }
+        return null
     }
 
     private fun <V : RealNumber<V>> extractProduce(

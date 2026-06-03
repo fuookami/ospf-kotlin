@@ -35,7 +35,7 @@ class NSameGenerator<V : RealNumber<V>>(
         for (material in input.materials) {
             for (demand in input.demands) {
                 for (productWidth in demand.product.width) {
-                    if (!material.widthRange.width.contains(productWidth)) continue
+                    if (!material.widthRange.canCut(productWidth)) continue
 
                     val maxAmount = computeMaxAmount(
                         productWidth = productWidth,

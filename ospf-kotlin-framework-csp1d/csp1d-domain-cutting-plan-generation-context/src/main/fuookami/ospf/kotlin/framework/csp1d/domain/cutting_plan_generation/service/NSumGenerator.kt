@@ -46,7 +46,7 @@ class NSumGenerator<V : RealNumber<V>>(
         if (entries.isEmpty()) return emptyList()
 
         for (material in input.materials) {
-            val materialEntries = entries.filter { material.widthRange.width.contains(it.width) }
+            val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
             if (materialEntries.isEmpty()) continue
 
             nSumSearch(

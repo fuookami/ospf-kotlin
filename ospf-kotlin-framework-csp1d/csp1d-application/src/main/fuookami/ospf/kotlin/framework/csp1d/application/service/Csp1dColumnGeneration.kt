@@ -8,8 +8,11 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionAnalyzer
 import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSolutionAnalyzer
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimplePricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
@@ -23,6 +26,7 @@ data class Csp1dColumnGenerationTrace(
 class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val solver: ColumnGenerationSolver,
     private val initialGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
+    private val pricingGenerator: Csp1dPricingGenerator<V> = SimplePricingGenerator(),
     private val analyzer: Csp1dSolutionAnalyzer<V> = DefaultCsp1dSolutionAnalyzer()
 ) {
     suspend fun solve(
@@ -34,16 +38,58 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     suspend fun solveWithTrace(
         problem: Csp1dProblem<V>
     ): Csp1dColumnGenerationResult<V> {
-        val generatedPlans = initialPlans(problem)
-        val result = Csp1dMilpSolver(solver).solve(
+        val initialPlans = initialPlans(problem)
+        val initialCount = initialPlans.size
+        val config = problem.configuration
+
+        var currentPlans = initialPlans
+        val pricedPlanCounts = ArrayList<UInt64>()
+
+        for (iteration in 0 until config.iterationLimit) {
+            val lpResult = Csp1dMilpSolver(solver).solveLP(
+                ProduceInput(
+                    cuttingPlans = currentPlans,
+                    demands = problem.demands,
+                    materials = problem.materials,
+                    machines = problem.machines
+                )
+            )
+            if (lpResult == null) break
+
+            val shadowPrices = lpResult.shadowPrices
+
+            val pricingInput = Csp1dPricingInput(
+                generationInput = CuttingPlanGenerationInput(
+                    products = problem.products,
+                    materials = problem.materials,
+                    machines = problem.machines,
+                    costars = problem.costars,
+                    demands = problem.demands,
+                    existingPlans = currentPlans
+                ),
+                shadowPrices = shadowPrices,
+                maxGeneratedPlans = UInt64(config.maxPricingPlans)
+            )
+            val newPlans = pricingGenerator.generate(pricingInput)
+
+            if (newPlans.isEmpty()) break
+
+            val addedPlans = deduplicatePlans(currentPlans, newPlans)
+            if (addedPlans.isEmpty()) break
+
+            currentPlans = currentPlans + addedPlans
+            pricedPlanCounts.add(UInt64(addedPlans.size))
+        }
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
             ProduceInput(
-                cuttingPlans = generatedPlans,
+                cuttingPlans = currentPlans,
                 demands = problem.demands,
                 materials = problem.materials,
                 machines = problem.machines
             )
         )
-        val produce = result?.produce ?: Produce(
+        val produce = milpResult?.produce ?: Produce(
             cuttingPlans = emptyList(),
             materialUsages = emptyList(),
             machineUsages = emptyList(),
@@ -53,12 +99,12 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             solution = analyzer.analyze(
                 problem = problem,
                 produce = produce,
-                generatedPlans = generatedPlans
+                generatedPlans = currentPlans
             ),
             trace = Csp1dColumnGenerationTrace(
-                initialPlanCount = UInt64(generatedPlans.size),
-                finalPlanCount = UInt64(generatedPlans.size),
-                pricedPlanCount = emptyList()
+                initialPlanCount = UInt64(initialCount),
+                finalPlanCount = UInt64(currentPlans.size),
+                pricedPlanCount = pricedPlanCounts
             )
         )
     }
@@ -73,6 +119,14 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 demands = problem.demands
             )
         )
+    }
+
+    private fun deduplicatePlans(
+        existing: List<CuttingPlan<V>>,
+        candidates: List<CuttingPlan<V>>
+    ): List<CuttingPlan<V>> {
+        val existingIds = existing.map { it.id }.toSet()
+        return candidates.filter { it.id !in existingIds }
     }
 }
 

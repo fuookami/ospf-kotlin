@@ -81,7 +81,7 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
         for (material in input.materials) {
             for (demand in input.demands) {
                 val width = demand.product.width.firstOrNull { productWidth ->
-                    material.widthRange.width.contains(productWidth)
+                    material.widthRange.canCut(productWidth)
                 } ?: continue
                 plans.add(
                     CuttingPlan(

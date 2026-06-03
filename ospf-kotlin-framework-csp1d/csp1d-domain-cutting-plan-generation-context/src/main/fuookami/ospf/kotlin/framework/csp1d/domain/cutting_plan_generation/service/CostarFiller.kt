@@ -113,7 +113,7 @@ class CostarFiller<V : RealNumber<V>>(
         return CuttingPlan(
             id = original.id,
             material = original.material,
-            slices = slices,
+            slices = slices.toList(),
             demandContributions = original.demandContributions,
             arithmetic = arithmetic
         )
