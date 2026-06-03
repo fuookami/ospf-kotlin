@@ -182,5 +182,70 @@ class ContainerShapeTest {
             )
         )
     }
+
+    @Test
+    fun enabledWithHorizontalCylinderShapeShouldUseBoundingBoxBoundary() {
+        val shape = Container3Shape(
+            width = infraScalar(10.0) * Meter,
+            height = infraScalar(6.0) * Meter,
+            depth = infraScalar(8.0) * Meter
+        )
+        val cylinderX = object : AbstractCylinder<InfraNumber> {
+            override val radius = infraScalar(1.0) * Meter
+            override val height = infraScalar(5.0) * Meter
+            override val axis = Axis3.X
+            override val weight = infraScalar(2.0) * Kilogram
+        }.asPackingShape3()
+        val cylinderZ = object : AbstractCylinder<InfraNumber> {
+            override val radius = infraScalar(1.0) * Meter
+            override val height = infraScalar(5.0) * Meter
+            override val axis = Axis3.Z
+            override val weight = infraScalar(2.0) * Kilogram
+        }.asPackingShape3()
+
+        assertTrue(
+            shape.enabled(
+                shape = cylinderX,
+                position = QuantityPoint3(
+                    x = infraScalar(5.0) * Meter,
+                    y = infraScalar(4.0) * Meter,
+                    z = infraScalar(6.0) * Meter
+                )
+            )
+        )
+
+        assertFalse(
+            shape.enabled(
+                shape = cylinderX,
+                position = QuantityPoint3(
+                    x = infraScalar(6.0) * Meter,
+                    y = infraScalar(4.0) * Meter,
+                    z = infraScalar(6.0) * Meter
+                )
+            )
+        )
+
+        assertTrue(
+            shape.enabled(
+                shape = cylinderZ,
+                position = QuantityPoint3(
+                    x = infraScalar(8.0) * Meter,
+                    y = infraScalar(4.0) * Meter,
+                    z = infraScalar(3.0) * Meter
+                )
+            )
+        )
+
+        assertFalse(
+            shape.enabled(
+                shape = cylinderZ,
+                position = QuantityPoint3(
+                    x = infraScalar(8.0) * Meter,
+                    y = infraScalar(4.0) * Meter,
+                    z = infraScalar(4.0) * Meter
+                )
+            )
+        )
+    }
 }
 

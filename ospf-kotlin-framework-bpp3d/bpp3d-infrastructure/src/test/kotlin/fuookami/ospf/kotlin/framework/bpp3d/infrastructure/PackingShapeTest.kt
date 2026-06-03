@@ -83,7 +83,7 @@ class PackingShapeTest {
     }
 
     @Test
-    fun nonVerticalCylinderShouldFallbackToBoundingCuboidAlgorithmType() {
+    fun horizontalCylinderXShouldExposeBoundingCuboidMetadata() {
         val cylinder = Column(
             radius = infraScalar(2.0) * Meter,
             height = infraScalar(6.0) * Meter,
@@ -93,11 +93,42 @@ class PackingShapeTest {
         )
         val shape = cylinder.asPackingShape3()
 
+        assertEquals(PackingShapeType.Cylinder, shape.shapeType)
         assertEquals(PackingAlgorithmShapeType.BoundingCuboid, shape.algorithmShapeType)
+        assertEquals(PackingAxis3.X, cylinder.axis.asPackingAxis3())
+        assertTrue(shape.boundingWidth eq (infraScalar(6.0) * Meter))
+        assertTrue(shape.boundingHeight eq (infraScalar(4.0) * Meter))
+        assertTrue(shape.boundingDepth eq (infraScalar(4.0) * Meter))
+        assertTrue(shape.actualVolume eq ((infraScalar(PI) * infraScalar(2.0) * infraScalar(2.0) * infraScalar(6.0)) * CubicMeter))
 
         val footprint = shape.footprint()
         assertIs<ShapeFootprint2.Rectangle<InfraNumber>>(footprint)
         assertTrue(footprint.width eq (infraScalar(6.0) * Meter))
         assertTrue(footprint.depth eq (infraScalar(4.0) * Meter))
+    }
+
+    @Test
+    fun horizontalCylinderZShouldExposeBoundingCuboidMetadata() {
+        val cylinder = Column(
+            radius = infraScalar(2.0) * Meter,
+            height = infraScalar(6.0) * Meter,
+            axis = Axis3.Z,
+            weight = infraScalar(9.0) * Kilogram,
+            enabledAxes = listOf(Axis3.Z)
+        )
+        val shape = cylinder.asPackingShape3()
+
+        assertEquals(PackingShapeType.Cylinder, shape.shapeType)
+        assertEquals(PackingAlgorithmShapeType.BoundingCuboid, shape.algorithmShapeType)
+        assertEquals(PackingAxis3.Z, cylinder.axis.asPackingAxis3())
+        assertTrue(shape.boundingWidth eq (infraScalar(4.0) * Meter))
+        assertTrue(shape.boundingHeight eq (infraScalar(4.0) * Meter))
+        assertTrue(shape.boundingDepth eq (infraScalar(6.0) * Meter))
+        assertTrue(shape.actualVolume eq ((infraScalar(PI) * infraScalar(2.0) * infraScalar(2.0) * infraScalar(6.0)) * CubicMeter))
+
+        val footprint = shape.footprint()
+        assertIs<ShapeFootprint2.Rectangle<InfraNumber>>(footprint)
+        assertTrue(footprint.width eq (infraScalar(4.0) * Meter))
+        assertTrue(footprint.depth eq (infraScalar(6.0) * Meter))
     }
 }

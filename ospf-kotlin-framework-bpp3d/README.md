@@ -23,9 +23,17 @@ Unsupported or not fully generalized yet:
 
 1. Arbitrary 3D cylinder rotation.
 2. Fully shape-generic migration for all legacy cuboid algorithms.
-3. Legacy three.js renderer adaptation for new cylinder metadata fields.
+3. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
 
 See detailed progress in [refactor.md](./refactor.md).
+
+## Cylinder Axis Support Matrix
+
+| Axis | Meaning | Current status |
+| --- | --- | --- |
+| `Axis3.Y` | Vertical cylinder; circular footprint on the loading plane. | Supported in guarded vertical-cylinder paths with real footprint checks. |
+| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Parsed for metadata and policy validation, but placement remains unsupported unless a path explicitly adds real-geometry support. |
+| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Parsed for metadata and policy validation, but placement remains unsupported unless a path explicitly adds real-geometry support. |
 
 ## CSV Input Protocol (Gurobi Dataset)
 
@@ -39,12 +47,36 @@ See detailed progress in [refactor.md](./refactor.md).
 Optional shape metadata columns:
 
 1. `shape_type`: `cuboid` or `vertical_cylinder` (aliases: `vertical-cylinder`, `verticalcylinder`, `cylinder`).
-2. `radius_meter`: required when `shape_type` is cylinder.
-3. `axis`: optional for cylinder, default `Y`, accepted values: `Y`, `AXIS3.Y`, `X`, `AXIS3.X`, `Z`, `AXIS3.Z`.
+2. `radius_meter`: fixed cylinder radius.
+3. `radius_min` / `radius_min_meter`, `radius_max` / `radius_max_meter`, `radius_step` / `radius_step_meter`: dynamic radius interval.
+4. `diameter_min` / `diameter_min_meter`, `diameter_max` / `diameter_max_meter`, `diameter_step` / `diameter_step_meter`: dynamic diameter interval.
+5. `axis`: optional for cylinder, default `Y`, accepted values: `Y`, `AXIS3.Y`, `X`, `AXIS3.X`, `Z`, `AXIS3.Z`.
+
+For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` can be parsed for metadata and policy validation, but current production loading paths still support only guarded `Axis3.Y` vertical cylinder placement unless a path has explicit real-geometry support.
+
+### Depth Boundary Layer Policy Columns
+
+Optional scenario-level policy columns:
+
+1. `first_layer_allowed_cylinder_axes`
+2. `last_layer_allowed_cylinder_axes`
+3. `first_layer_allowed_cuboid_orientations`
+4. `last_layer_allowed_cuboid_orientations`
+
+These fields constrain only the first and last depth layers after final placement collection. They are application-level hard validation after final MILP solving, not native MILP constraints and not candidate-generation filters.
+
+Column semantics:
+
+1. Missing column means no restriction for that boundary/type.
+2. Present but empty value is a configuration error, not "unrestricted".
+3. Multiple values can be separated by `|` or `;`.
+4. Axis values use the same parser as `axis`.
+5. Cuboid orientation values use existing `Orientation` labels, such as `Upright`, `Side`, or `Lie`.
+6. Values are scenario-level; if the same column has inconsistent values across CSV rows, the loader rejects the file.
 
 Schema guard rules:
 
-1. If `radius_meter` or `axis` column exists, `shape_type` column must exist.
+1. If shape metadata columns exist, `shape_type` column must exist.
 2. If `shape_type` is empty, the row is treated as `cuboid`.
 3. Invalid `axis` value for cylinder is rejected explicitly.
 4. In dataset suite mode, file name can declare scenario kind:
@@ -139,3 +171,6 @@ val cylinderItem = ActualItem(
 
 Field definitions are in:
 `bpp3d-infrastructure/src/main/.../dto/RendererDTO.kt`.
+
+A minimal mixed `Cuboid + Axis3.Y Cylinder` renderer fixture is available at:
+`bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`.

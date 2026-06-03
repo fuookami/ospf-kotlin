@@ -80,6 +80,7 @@ private fun <T : FloatingNumber<T>> toInfraQuantity(
  * @param finalBins 最终箱子 / final bins
  * @param generators 层生成器列表 / layer generator list
  * @param cgConfig 列生成配置 / column generation config
+ * @param depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @param executorConfig 执行器配置 / executor config
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
@@ -99,6 +100,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromGeneric(
     finalBins: List<LayerBin> = emptyList(),
     generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
+    depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
     materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
     itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
@@ -135,6 +137,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromGeneric(
         finalBins = finalBins,
         generators = generators,
         cgConfig = cgConfig,
+        depthBoundaryLayerOrientationPolicy = depthBoundaryLayerOrientationPolicy,
         executorConfig = executorConfig
     )
 }
@@ -156,6 +159,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromGeneric(
  * @property finalBins 最终箱子 / final bins
  * @property generators 层生成器列表 / layer generator list
  * @property cgConfig 列生成配置 / column generation config
+ * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @property executorConfig 执行器配置 / executor config
  */
 data class ColumnGenerationApplicationRequest(
@@ -172,6 +176,7 @@ data class ColumnGenerationApplicationRequest(
     val finalBins: List<LayerBin> = emptyList(),
     val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
+    val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 )
 
@@ -193,6 +198,7 @@ data class ColumnGenerationApplicationRequest(
  * @property finalBins 最终箱子 / final bins
  * @property generators 层生成器列表 / layer generator list
  * @property cgConfig 列生成配置 / column generation config
+ * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @property executorConfig 执行器配置 / executor config
  */
 data class ColumnGenerationGenericApplicationRequest<T : FloatingNumber<T>>(
@@ -209,6 +215,7 @@ data class ColumnGenerationGenericApplicationRequest<T : FloatingNumber<T>>(
     val finalBins: List<LayerBin> = emptyList(),
     val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
+    val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 )
 
@@ -239,6 +246,7 @@ fun <T : FloatingNumber<T>> ColumnGenerationGenericApplicationRequest<T>.toModel
         finalBins = finalBins,
         generators = generators,
         cgConfig = cgConfig,
+        depthBoundaryLayerOrientationPolicy = depthBoundaryLayerOrientationPolicy,
         executorConfig = executorConfig,
         materialCache = materialCache,
         itemCache = itemCache
@@ -371,7 +379,7 @@ class ColumnGenerationApplicationService(
             itemDemands = resolvedItemDemands,
             demandEntries = entries,
             finalBins = request.finalBins,
-            config = request.executorConfig
+            config = resolveExecutorConfig(request)
         )
         val layerGenerator = LayerGenerationContext(
             generators = request.generators.ifEmpty { defaultLayerGenerators() }
@@ -456,6 +464,20 @@ class ColumnGenerationApplicationService(
             catalog.putIfAbsent(key, material)
         }
         return catalog
+    }
+
+    private fun resolveExecutorConfig(
+        request: ColumnGenerationApplicationRequest
+    ): ColumnGenerationStandardExecutorConfig {
+        val requestPolicy = request.depthBoundaryLayerOrientationPolicy
+            ?: return request.executorConfig
+        val executorPolicy = request.executorConfig.depthBoundaryLayerOrientationPolicy
+        require(executorPolicy == null || executorPolicy == requestPolicy) {
+            "depthBoundaryLayerOrientationPolicy conflicts with executorConfig.depthBoundaryLayerOrientationPolicy."
+        }
+        return request.executorConfig.copy(
+            depthBoundaryLayerOrientationPolicy = requestPolicy
+        )
     }
 }
 

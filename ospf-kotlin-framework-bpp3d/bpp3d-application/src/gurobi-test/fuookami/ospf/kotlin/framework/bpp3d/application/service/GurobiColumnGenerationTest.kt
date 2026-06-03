@@ -177,7 +177,8 @@ class GurobiColumnGenerationTest {
         val materialCount: Int,
         val totalLayerCount: Int,
         val totalItemCount: Int,
-        val packedLayerCount: Int = totalLayerCount
+        val packedLayerCount: Int = totalLayerCount,
+        val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null
     )
 
     private data class CsvDrivenScenarioCase(
@@ -474,6 +475,10 @@ class GurobiColumnGenerationTest {
         val diameterMaxMeterColumn = optionalLengthColumn("diameter_max")
         val diameterStepMeterColumn = optionalLengthColumn("diameter_step")
         val axisColumn = optionalColumn("axis")
+        val firstLayerAllowedCylinderAxesColumn = optionalColumn("first_layer_allowed_cylinder_axes")
+        val lastLayerAllowedCylinderAxesColumn = optionalColumn("last_layer_allowed_cylinder_axes")
+        val firstLayerAllowedCuboidOrientationsColumn = optionalColumn("first_layer_allowed_cuboid_orientations")
+        val lastLayerAllowedCuboidOrientationsColumn = optionalColumn("last_layer_allowed_cuboid_orientations")
 
         val rows = lines.drop(1).mapIndexed { index, line ->
             val cols = line.split(",").map { it.trim() }
@@ -653,6 +658,13 @@ class GurobiColumnGenerationTest {
                 ?: throw IllegalStateException("missing material weight in map: ${entry.key}")
             Pair(material, (Flt64(entry.value.toLong()) * weightKg) * Kilogram)
         }
+        val depthBoundaryLayerOrientationPolicy = depthBoundaryPolicyFromRows(
+            rows = lines.drop(1).map { line -> line.split(",").map { it.trim() } },
+            firstLayerAllowedCylinderAxesColumn = firstLayerAllowedCylinderAxesColumn,
+            lastLayerAllowedCylinderAxesColumn = lastLayerAllowedCylinderAxesColumn,
+            firstLayerAllowedCuboidOrientationsColumn = firstLayerAllowedCuboidOrientationsColumn,
+            lastLayerAllowedCuboidOrientationsColumn = lastLayerAllowedCuboidOrientationsColumn
+        )
         val demandEntries = demandEntriesFromItems(items = itemDemands) +
                 demandEntriesFromMaterialAmounts(
                     materials = materialAmountDemands.entries.map { entry ->
@@ -671,7 +683,8 @@ class GurobiColumnGenerationTest {
             groupCount = rowsByGroup.size,
             materialCount = materialsByNo.size,
             totalLayerCount = initialColumns.size,
-            totalItemCount = rows.size
+            totalItemCount = rows.size,
+            depthBoundaryLayerOrientationPolicy = depthBoundaryLayerOrientationPolicy
         )
     }
 
@@ -705,6 +718,106 @@ class GurobiColumnGenerationTest {
         }
         return parseAxis3OrNull(axis)
             ?: throw IllegalStateException("invalid axis for cylinder row: axis=$axis, $rowDescription")
+    }
+
+    private fun depthBoundaryPolicyFromRows(
+        rows: List<List<String>>,
+        firstLayerAllowedCylinderAxesColumn: Int?,
+        lastLayerAllowedCylinderAxesColumn: Int?,
+        firstLayerAllowedCuboidOrientationsColumn: Int?,
+        lastLayerAllowedCuboidOrientationsColumn: Int?
+    ): DepthBoundaryLayerOrientationPolicy? {
+        val firstLayerAllowedCylinderAxes = parseOptionalAxisSetColumn(
+            rows = rows,
+            column = firstLayerAllowedCylinderAxesColumn,
+            fieldName = "first_layer_allowed_cylinder_axes"
+        )
+        val lastLayerAllowedCylinderAxes = parseOptionalAxisSetColumn(
+            rows = rows,
+            column = lastLayerAllowedCylinderAxesColumn,
+            fieldName = "last_layer_allowed_cylinder_axes"
+        )
+        val firstLayerAllowedCuboidOrientations = parseOptionalOrientationSetColumn(
+            rows = rows,
+            column = firstLayerAllowedCuboidOrientationsColumn,
+            fieldName = "first_layer_allowed_cuboid_orientations"
+        )
+        val lastLayerAllowedCuboidOrientations = parseOptionalOrientationSetColumn(
+            rows = rows,
+            column = lastLayerAllowedCuboidOrientationsColumn,
+            fieldName = "last_layer_allowed_cuboid_orientations"
+        )
+        if (firstLayerAllowedCylinderAxes == null
+            && lastLayerAllowedCylinderAxes == null
+            && firstLayerAllowedCuboidOrientations == null
+            && lastLayerAllowedCuboidOrientations == null
+        ) {
+            return null
+        }
+        return DepthBoundaryLayerOrientationPolicy(
+            firstLayerAllowedCylinderAxes = firstLayerAllowedCylinderAxes,
+            lastLayerAllowedCylinderAxes = lastLayerAllowedCylinderAxes,
+            firstLayerAllowedCuboidOrientations = firstLayerAllowedCuboidOrientations,
+            lastLayerAllowedCuboidOrientations = lastLayerAllowedCuboidOrientations
+        )
+    }
+
+    private fun parseOptionalAxisSetColumn(
+        rows: List<List<String>>,
+        column: Int?,
+        fieldName: String
+    ): Set<Axis3>? {
+        return parseOptionalSetColumn(
+            rows = rows,
+            column = column,
+            fieldName = fieldName,
+            parseValue = { raw ->
+                parseAxis3OrNull(raw)
+                    ?: throw IllegalStateException("invalid axis in $fieldName: $raw")
+            }
+        )
+    }
+
+    private fun parseOptionalOrientationSetColumn(
+        rows: List<List<String>>,
+        column: Int?,
+        fieldName: String
+    ): Set<Orientation>? {
+        return parseOptionalSetColumn(
+            rows = rows,
+            column = column,
+            fieldName = fieldName,
+            parseValue = { raw ->
+                runCatching { Orientation.require(raw.trim()) }
+                    .getOrElse {
+                        throw IllegalStateException("invalid orientation in $fieldName: $raw")
+                    }
+            }
+        )
+    }
+
+    private fun <T> parseOptionalSetColumn(
+        rows: List<List<String>>,
+        column: Int?,
+        fieldName: String,
+        parseValue: (String) -> T
+    ): Set<T>? {
+        if (column == null) {
+            return null
+        }
+        val rawValues = rows.map { row -> row.getOrNull(column).orEmpty().trim() }
+            .distinct()
+        if (rawValues.size > 1) {
+            throw IllegalStateException("inconsistent $fieldName in csv rows: ${rawValues.joinToString()}")
+        }
+        val raw = rawValues.singleOrNull().orEmpty()
+        if (raw.isEmpty()) {
+            return emptySet()
+        }
+        return raw.split("|", ";")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .mapTo(LinkedHashSet()) { parseValue(it) }
     }
 
     @Test
@@ -861,6 +974,39 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun csvShapeSpecParserShouldAcceptHorizontalCylinderAxesAsMetadata() {
+        val cylinderXSpec = toPackageShapeSpec(
+            shapeType = "vertical_cylinder",
+            radiusMeter = Flt64(0.5),
+            radiusMinMeter = null,
+            radiusMaxMeter = null,
+            radiusStepMeter = null,
+            diameterMinMeter = null,
+            diameterMaxMeter = null,
+            diameterStepMeter = null,
+            axis = "X",
+            rowDescription = "axis=x metadata parser test"
+        ) as? PackageShapeSpec.VerticalCylinder
+            ?: throw IllegalStateException("axis=x shape spec should be VerticalCylinder")
+        val cylinderZSpec = toPackageShapeSpec(
+            shapeType = "vertical_cylinder",
+            radiusMeter = Flt64(0.5),
+            radiusMinMeter = null,
+            radiusMaxMeter = null,
+            radiusStepMeter = null,
+            diameterMinMeter = null,
+            diameterMaxMeter = null,
+            diameterStepMeter = null,
+            axis = "Axis3.Z",
+            rowDescription = "axis=z metadata parser test"
+        ) as? PackageShapeSpec.VerticalCylinder
+            ?: throw IllegalStateException("axis=z shape spec should be VerticalCylinder")
+
+        assertEquals(Axis3.X, cylinderXSpec.axis)
+        assertEquals(Axis3.Z, cylinderZSpec.axis)
+    }
+
+    @Test
     fun materialWidthAmountCsvShouldRemainCompatibleWithLegacyColumns() {
         val csv = """
             material,width,amount
@@ -929,6 +1075,37 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerCsvShouldMapDepthBoundaryPolicyColumns() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,first_layer_allowed_cylinder_axes,last_layer_allowed_cylinder_axes,first_layer_allowed_cuboid_orientations,last_layer_allowed_cuboid_orientations
+            0,0,item-a,MAT-A,Material-A,1.0,Y|Z,X,Upright|Side,Lie
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val policy = scenario.depthBoundaryLayerOrientationPolicy
+
+        assertNotNull(policy)
+        assertEquals(setOf(Axis3.Y, Axis3.Z), policy.firstLayerAllowedCylinderAxes)
+        assertEquals(setOf(Axis3.X), policy.lastLayerAllowedCylinderAxes)
+        assertEquals(setOf(Orientation.Upright, Orientation.Side), policy.firstLayerAllowedCuboidOrientations)
+        assertEquals(setOf(Orientation.Lie), policy.lastLayerAllowedCuboidOrientations)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectEmptyDepthBoundaryPolicySet() {
+        val csv = """
+            material,width,amount,first_layer_allowed_cylinder_axes
+            MAT-A,1000,1,
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("firstLayerAllowedCylinderAxes") == true)
+    }
+
+    @Test
     fun declaredGroupedLayerScenarioKindShouldRejectMaterialWidthAmountHeader() {
         val csv = """
             material,width,amount
@@ -991,6 +1168,10 @@ class GurobiColumnGenerationTest {
         val diameterMaxMeterColumn = optionalLengthColumn("diameter_max")
         val diameterStepMeterColumn = optionalLengthColumn("diameter_step")
         val axisColumn = optionalColumn("axis")
+        val firstLayerAllowedCylinderAxesColumn = optionalColumn("first_layer_allowed_cylinder_axes")
+        val lastLayerAllowedCylinderAxesColumn = optionalColumn("last_layer_allowed_cylinder_axes")
+        val firstLayerAllowedCuboidOrientationsColumn = optionalColumn("first_layer_allowed_cuboid_orientations")
+        val lastLayerAllowedCuboidOrientationsColumn = optionalColumn("last_layer_allowed_cuboid_orientations")
         val widthScale = optionalFlt64Property("bpp3d.gurobi.dataset.material.width.scale")
             ?: Flt64(1000.0)
         val defaultMaterialWeightKg = optionalFlt64Property("bpp3d.gurobi.dataset.material.default.weight.kg")
@@ -1182,6 +1363,13 @@ class GurobiColumnGenerationTest {
                     }
                 ) +
                 demandEntriesFromMaterialWeights(materials = materialWeightDemands)
+        val depthBoundaryLayerOrientationPolicy = depthBoundaryPolicyFromRows(
+            rows = lines.drop(1).map { line -> line.split(",").map { it.trim() } },
+            firstLayerAllowedCylinderAxesColumn = firstLayerAllowedCylinderAxesColumn,
+            lastLayerAllowedCylinderAxesColumn = lastLayerAllowedCylinderAxesColumn,
+            firstLayerAllowedCuboidOrientationsColumn = firstLayerAllowedCuboidOrientationsColumn,
+            lastLayerAllowedCuboidOrientationsColumn = lastLayerAllowedCuboidOrientationsColumn
+        )
 
         return CsvDrivenScenario(
             itemDemands = itemDemands,
@@ -1193,7 +1381,8 @@ class GurobiColumnGenerationTest {
             materialCount = materialAmountDemands.size,
             totalLayerCount = initialColumns.size,
             totalItemCount = totalAmount.toInt(),
-            packedLayerCount = totalAmount.toInt()
+            packedLayerCount = totalAmount.toInt(),
+            depthBoundaryLayerOrientationPolicy = depthBoundaryLayerOrientationPolicy
         )
     }
 
@@ -2011,6 +2200,7 @@ class GurobiColumnGenerationTest {
                     iterationLimit = 4,
                     maxColumnsPerIteration = 96
                 ),
+                depthBoundaryLayerOrientationPolicy = scenario.depthBoundaryLayerOrientationPolicy,
                 executorConfig = ColumnGenerationStandardExecutorConfig(
                     integralityTolerance = Flt64(1e-5)
                 ),
@@ -2123,6 +2313,7 @@ class GurobiColumnGenerationTest {
                         iterationLimit = 4,
                         maxColumnsPerIteration = 96
                     ),
+                    depthBoundaryLayerOrientationPolicy = scenario.depthBoundaryLayerOrientationPolicy,
                     executorConfig = ColumnGenerationStandardExecutorConfig(
                         integralityTolerance = Flt64(1e-5)
                     ),
@@ -2228,6 +2419,7 @@ class GurobiColumnGenerationTest {
                         iterationLimit = 4,
                         maxColumnsPerIteration = 96
                     ),
+                    depthBoundaryLayerOrientationPolicy = scenario.depthBoundaryLayerOrientationPolicy,
                     executorConfig = ColumnGenerationStandardExecutorConfig(
                         integralityTolerance = Flt64(1e-5)
                     ),

@@ -102,4 +102,21 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
         assertTrue(cylinderSpec.diameterStep!! eq (infraScalar(0.1) * Meter))
         assertEquals(2, cylinderSpec.resolvedRadiusCandidates.size)
     }
+
+    @Test
+    fun genericRequestShouldKeepDepthBoundaryPolicyWhenMappingToModel() {
+        val policy = DepthBoundaryLayerOrientationPolicy(
+            firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
+            lastLayerAllowedCuboidOrientations = setOf(Orientation.Upright, Orientation.Side)
+        )
+        val request = ColumnGenerationGenericApplicationRequest<FltX>(
+            itemDemands = emptyList(),
+            depthBoundaryLayerOrientationPolicy = policy
+        )
+
+        val modelRequest = request.toModelRequest()
+
+        assertEquals(policy, modelRequest.depthBoundaryLayerOrientationPolicy)
+        assertEquals(null, modelRequest.executorConfig.depthBoundaryLayerOrientationPolicy)
+    }
 }
