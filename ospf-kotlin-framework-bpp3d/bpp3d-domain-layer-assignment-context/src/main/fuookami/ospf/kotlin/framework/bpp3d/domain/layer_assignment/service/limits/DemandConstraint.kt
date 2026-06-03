@@ -189,7 +189,7 @@ open class DemandConstraint<
             shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
             name: String = "demand"
         ): ItemDemandConstraint {
-            return ItemDemandConstraint(
+            return itemDemandConstraint(
                 load = load,
                 demandEntries = demandEntries,
                 shadowPriceExtractor = shadowPriceExtractor,
@@ -371,6 +371,30 @@ open class DemandConstraint<
     ): Try {
         return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
     }
+}
+
+/**
+ * 创建 Item 专用需求约束，供业务调用侧避开泛型基类入口。
+ * Build item-only demand constraint so business callers avoid the generic base entry.
+ *
+ * @param load 负载符号 / load symbols
+ * @param demandEntries 需求条目列表 / demand entry list
+ * @param shadowPriceExtractor 自定义影子价格提取器（可选） / custom shadow price extractor (optional)
+ * @param name 约束名称 / constraint name
+ * @return Item 专用需求约束 / item-only demand constraint
+ */
+fun itemDemandConstraint(
+    load: Load<InfraNumber>,
+    demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
+    shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
+    name: String = "demand"
+): ItemDemandConstraint {
+    return ItemDemandConstraint(
+        load = load,
+        demandEntries = demandEntries,
+        shadowPriceExtractor = shadowPriceExtractor,
+        name = name
+    )
 }
 
 /**

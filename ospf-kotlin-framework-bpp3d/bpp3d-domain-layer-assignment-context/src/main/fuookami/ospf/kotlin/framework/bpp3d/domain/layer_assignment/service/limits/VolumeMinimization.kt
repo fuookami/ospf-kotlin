@@ -46,7 +46,7 @@ open class VolumeMinimization<
             coefficient: InfraNumber,
             name: String = "volume_minimization"
         ): ItemVolumeMinimization {
-            return ItemVolumeMinimization(
+            return itemVolumeMinimization(
                 assignment = assignment,
                 coefficient = coefficient,
                 name = name
@@ -79,6 +79,27 @@ open class VolumeMinimization<
 
         return ok
     }
+}
+
+/**
+ * 创建 Item 专用体积最小化目标，供业务调用侧避开泛型基类入口。
+ * Build item-only volume minimization objective so business callers avoid the generic base entry.
+ *
+ * @param assignment 不精确赋值 / imprecise assignment
+ * @param coefficient 体积系数 / volume coefficient
+ * @param name 管道名称 / pipeline name
+ * @return Item 专用体积最小化目标 / item-only volume minimization objective
+ */
+fun itemVolumeMinimization(
+    assignment: ImpreciseAssignment,
+    coefficient: InfraNumber,
+    name: String = "volume_minimization"
+): ItemVolumeMinimization {
+    return ItemVolumeMinimization(
+        assignment = assignment,
+        coefficient = coefficient,
+        name = name
+    )
 }
 
 /**

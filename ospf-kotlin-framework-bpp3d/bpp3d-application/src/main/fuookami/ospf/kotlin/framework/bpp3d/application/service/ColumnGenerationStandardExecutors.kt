@@ -37,10 +37,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demand
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinAmountMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.ItemDemandConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.VolumeMinimization
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.itemDemandConstraint
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.itemVolumeMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
@@ -298,7 +298,7 @@ class ColumnGenerationStandardExecutors(
             )
             ensureTry(load.register(model), "register precise load")
 
-            val demandConstraint = DemandConstraint.forItem(
+            val demandConstraint = itemDemandConstraint(
                 load = load,
                 demandEntries = demandEntries
             )
@@ -444,14 +444,14 @@ class ColumnGenerationStandardExecutors(
             }
         }
 
-        val demandConstraint = DemandConstraint.forItem(
+        val demandConstraint = itemDemandConstraint(
             load = load,
             demandEntries = demandEntries
         )
         demandConstraint.register(model)
         ensureTry(demandConstraint.invoke(model), "build rmp demand constraint")
 
-        val volumeMinimization = VolumeMinimization.forItem(
+        val volumeMinimization = itemVolumeMinimization(
             assignment = assignment,
             coefficient = config.rmpVolumeCoefficient
         )

@@ -114,6 +114,15 @@ interface Item : Cuboid<Item>, Indexed {
         get() = explicitPackingShape
             ?: packageShape.toPackingShapeOrNull()
             ?: view().asPackingShape3()
+    /** 包围盒（从 packingShape 派生，不直接依赖 Cuboid 继承）。Bounding box derived from packingShape, not directly from Cuboid inheritance. */
+    val shapeBoundingBox: ShapeBoundingBox3<InfraNumber>
+        get() = packingShape.boundingBox
+    /** 底面轮廓（从 packingShape 派生，不直接依赖 Cuboid 继承）。Bottom footprint derived from packingShape, not directly from Cuboid inheritance. */
+    val shapeFootprint: ShapeFootprint2<InfraNumber>
+        get() = packingShape.footprint()
+    /** 形状实际体积（从 packingShape 派生，不直接依赖 Cuboid 继承）。Shape geometric volume derived from packingShape, not directly from Cuboid inheritance. */
+    val shapeVolume: Quantity<InfraNumber>
+        get() = packingShape.actualVolume
     val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
     val warehouse: String?

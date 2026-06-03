@@ -87,24 +87,28 @@ typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
 typealias ItemContainerPlacement3<S> = QuantityPlacement3<S>
 
 @get:JvmName("itemContainerPackageType")
+/** 货物容器视图包装类型属性（CuboidView-only compat）。CuboidView-only compat extension for container package type. */
 val <S : ItemContainer<S>> CuboidView<S>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemContainerPackageCategory")
+/** 货物容器视图包装类别属性（CuboidView-only compat）。CuboidView-only compat extension for container package category. */
 val <S : ItemContainer<S>> CuboidView<S>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("itemContainerBottomOnly")
+/** 货物容器视图仅底面放置属性（CuboidView-only compat）。CuboidView-only compat extension for container bottom-only placement. */
 val <S : ItemContainer<S>> CuboidView<S>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
 
 @get:JvmName("itemContainerTopFlat")
+/** 货物容器视图顶面平整属性（CuboidView-only compat）。CuboidView-only compat extension for container top-flat constraint. */
 val <S : ItemContainer<S>> CuboidView<S>.topFlat: Boolean
     get() {
         return unit.topFlat
