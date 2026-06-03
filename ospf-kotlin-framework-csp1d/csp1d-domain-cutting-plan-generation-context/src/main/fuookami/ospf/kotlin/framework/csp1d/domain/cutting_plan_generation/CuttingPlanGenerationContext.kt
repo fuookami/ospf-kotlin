@@ -1,19 +1,27 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation
 
+import java.util.Comparator
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.utils.functional.Order
+
+private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
+    return unit.symbol ?: unit.name ?: unit.toString()
+}
 
 /**
  * 切割方案生成输入 / Cutting plan generation input
@@ -121,7 +129,12 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
             if (pricedPlans.size.toULong() >= maxGeneratedPlans.toULong()) {
                 break
             }
-            val shadowPrice = input.shadowPrices[ProductDemandShadowPriceKey(demand.product.id)] ?: continue
+            val shadowPrice = input.shadowPrices[
+                ProductDemandShadowPriceKey(
+                    productId = demand.product.id,
+                    unitSymbol = shadowPriceUnitSymbol(demand.quantity.unit)
+                )
+            ] ?: continue
             if (!isPositive(shadowPrice)) {
                 continue
             }
@@ -154,6 +167,101 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
         return when (value partialOrd value.constants.zero) {
             is Order.Greater -> true
             else -> false
+        }
+    }
+}
+
+/**
+ * Reduced cost 定价生成器 / Reduced cost pricing generator
+ *
+ * 使用枚举子问题生成候选切割方案，通过 shadow price 计算 reduced cost，
+ * 返回 reduced cost 为负的方案（即有潜力改善主问题目标的新列）。
+ *
+ * Uses enumeration sub-problem to generate candidate cutting plans,
+ * computes reduced cost via shadow prices, and returns plans with
+ * negative reduced cost (columns that can improve the master problem objective).
+ *
+ * reduced_cost = objective_coefficient - Σ(contribution_ij * shadow_price_i) - Σ(material_usage_m * shadow_price_m)
+ * 当 reduced_cost < 0 时，该方案可能改善当前 LP 松弛目标。
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property enumerator 底层枚举生成器 / Underlying enumeration generator
+ */
+class ReducedCostPricingGenerator<V : RealNumber<V>>(
+    private val enumerator: Csp1dInitialCuttingPlanGenerator<V>
+) : Csp1dPricingGenerator<V> {
+    override fun generate(input: Csp1dPricingInput<V>): List<CuttingPlan<V>> {
+        val candidates = enumerator.generate(input.generationInput)
+        if (candidates.isEmpty()) return emptyList()
+
+        val existingIds = input.generationInput.existingPlans.map { it.id }.toSet()
+        val maxGeneratedPlans = input.maxGeneratedPlans.toULong()
+        val shadowPrices = input.shadowPrices
+
+        return candidates
+            .asSequence()
+            .filter { it.id !in existingIds }
+            .map { plan -> plan to computeDualBenefit(plan, shadowPrices) }
+            .filter { (_, benefit) -> isGreaterThanOne(benefit) }
+            .sortedWith(compareByDualBenefit())
+            .map { it.first }
+            .take(maxGeneratedPlans.toInt())
+            .toList()
+    }
+
+    /**
+     * 计算切割方案的对偶收益 / Compute dual benefit of a cutting plan
+     *
+     * benefit = Σ(contribution_ij * shadow_price_i) + Σ(material_usage_m * shadow_price_m)
+     * 当 benefit > 1 时，等价于 reduced_cost < 0。
+     *
+     * benefit = Σ(contribution_ij * shadow_price_i) + Σ(material_usage_m * shadow_price_m)
+     * When benefit > 1, it is equivalent to reduced_cost < 0.
+     */
+    private fun computeDualBenefit(plan: CuttingPlan<V>, shadowPrices: ShadowPriceMap<V>): V {
+        var benefit = plan.material.widthRange.upperBound.value.constants.zero
+
+        for (contribution in plan.demandContributions) {
+            val key = ProductDemandShadowPriceKey(
+                productId = contribution.product.id,
+                unitSymbol = shadowPriceUnitSymbol(contribution.quantity.unit)
+            )
+            val sp = shadowPrices[key] ?: continue
+            benefit += contribution.quantity.value * sp
+        }
+
+        val materialKey = MaterialUsageShadowPriceKey(plan.material.id)
+        val materialSp = shadowPrices[materialKey]
+        if (materialSp != null) {
+            benefit += materialSp
+        }
+
+        val machineId = plan.machineId
+        if (machineId != null) {
+            val machineKey = MachineCapacityShadowPriceKey(machineId)
+            val machineSp = shadowPrices[machineKey]
+            if (machineSp != null) {
+                benefit += machineSp
+            }
+        }
+
+        return benefit
+    }
+
+    private fun isGreaterThanOne(value: V): Boolean {
+        return when (value partialOrd value.constants.one) {
+            is Order.Greater -> true
+            else -> false
+        }
+    }
+
+    private fun compareByDualBenefit(): Comparator<Pair<CuttingPlan<V>, V>> {
+        return Comparator { left, right ->
+            when (left.second partialOrd right.second) {
+                is Order.Greater -> -1
+                is Order.Less -> 1
+                else -> 0
+            }
         }
     }
 }

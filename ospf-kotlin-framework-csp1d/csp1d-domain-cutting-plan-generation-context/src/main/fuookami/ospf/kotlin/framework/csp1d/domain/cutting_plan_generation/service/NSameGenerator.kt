@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
@@ -67,7 +68,12 @@ class NSameGenerator<V : RealNumber<V>>(
                         )
                         val contribution = CuttingPlanDemandContribution(
                             product = demand.product,
-                            quantity = computeContributionQuantity(demand.product, productWidth, amount, material)
+                            quantity = computeContributionQuantity(
+                                product = demand.product,
+                                width = productWidth,
+                                amount = amount,
+                                demandUnit = demand.quantity.unit
+                            )
                         )
 
                         val plan = CuttingPlan(
@@ -93,18 +99,18 @@ class NSameGenerator<V : RealNumber<V>>(
     ): UInt64 {
         var maxAmount = UInt64.maximum
 
-        // Width constraint: productWidth * amount <= material upper bound
+        // 宽度约束：productWidth * amount <= material upper bound / Width constraint: productWidth * amount <= material upper bound
         val upperBound = material.widthRange.upperBound
         if ((productWidth.value partialOrd upperBound.value) is Order.Greater) return UInt64.zero
         val maxWidthAmount = computeMaxByWidth(productWidth, upperBound)
         if (maxWidthAmount < maxAmount) maxAmount = maxWidthAmount
 
-        // Knife count constraint
+        // 刀数约束 / Knife count constraint
         constraints.maxKnifeCount?.let { maxKnife ->
             if (maxKnife < maxAmount) maxAmount = maxKnife
         }
 
-        // Over-produce length constraint
+        // 超产长度约束 / Over-produce length constraint
         constraints.maxOverProduceLength?.let { maxOverLength ->
             product.length?.let { productLength ->
                 if ((productLength.value partialOrd maxOverLength.value) is Order.Greater) {
@@ -121,7 +127,7 @@ class NSameGenerator<V : RealNumber<V>>(
         if (comparison is Order.Less) return UInt64.zero
         if (comparison is Order.Equal) return UInt64.one
 
-        // Integer division: upperBound / productWidth
+        // 整数除法：upperBound / productWidth / Integer division: upperBound / productWidth
         var remaining = upperBound
         var count = UInt64.zero
         while ((remaining.value partialOrd productWidth.value) !is Order.Less) {
@@ -135,15 +141,10 @@ class NSameGenerator<V : RealNumber<V>>(
         product: Product<V>,
         width: Quantity<V>,
         amount: UInt64,
-        material: Material<V>
+        demandUnit: PhysicalUnit
     ): Quantity<V> {
-        // For discrete demands (rolls/sheets): contribution = 1 roll/sheet per piece
-        // For continuous demands (weight): contribution = width * length * unitWeight * amount
-        // The actual quantity calculation depends on the demand unit; we delegate to the caller to interpret
         val unitContribution = product.unitWeight?.let { unitWeight ->
             product.length?.let { length ->
-                // width * length * unitWeight gives a mass-like quantity
-                // This is a simplified calculation; real units need proper Quantity multiplication
                 val areaValue = width.value * length.value
                 val weightValue = areaValue * unitWeight.value
                 Quantity(weightValue, unitWeight.unit)
@@ -152,8 +153,7 @@ class NSameGenerator<V : RealNumber<V>>(
         if (unitContribution != null) {
             return repeatQuantity(unitContribution, amount)
         }
-        // Default: 1 per piece (for roll/sheet count demands)
-        val onePerPiece = Quantity(width.value.constants.one, width.unit)
+        val onePerPiece = Quantity(width.value.constants.one, demandUnit)
         return repeatQuantity(onePerPiece, amount)
     }
 

@@ -14,25 +14,26 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dAssignment
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MachineCapacityUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MaterialUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dAssignment
 
 class Csp1dMilpSolver(
     private val solver: ColumnGenerationSolver
@@ -119,22 +120,26 @@ class Csp1dMilpSolver(
             converter = IntoValue.Identity
         )
         val assignment = Csp1dAssignment.create(input.cuttingPlans.size)
+        val shadowPriceKeys = LinkedHashMap<String, ShadowPriceKey>()
         ensureTry(assignment.register(model), "register assignment")
 
         addDemandConstraints(
             input = input,
             assignment = assignment,
-            model = model
+            model = model,
+            shadowPriceKeys = shadowPriceKeys
         )
         addMaterialConstraints(
             input = input,
             assignment = assignment,
-            model = model
+            model = model,
+            shadowPriceKeys = shadowPriceKeys
         )
         addMachineConstraints(
             input = input,
             assignment = assignment,
-            model = model
+            model = model,
+            shadowPriceKeys = shadowPriceKeys
         )
         setObjective(
             assignment = assignment,
@@ -149,7 +154,10 @@ class Csp1dMilpSolver(
             stage = "solve CSP1D produce LP"
         )
 
-        val shadowPrices = extractShadowPrices<V>(lpResult)
+        val shadowPrices = extractShadowPrices<V>(
+            lpResult = lpResult,
+            shadowPriceKeys = shadowPriceKeys
+        )
         return LpResult(
             shadowPrices = shadowPrices,
             model = model,
@@ -161,9 +169,10 @@ class Csp1dMilpSolver(
     private fun <V : RealNumber<V>> addDemandConstraints(
         input: ProduceInput<V>,
         assignment: Csp1dAssignment,
-        model: LinearMetaModel<Flt64>
+        model: LinearMetaModel<Flt64>,
+        shadowPriceKeys: MutableMap<String, ShadowPriceKey>? = null
     ) {
-        for (demand in input.demands) {
+        for ((demandIndex, demand) in input.demands.withIndex()) {
             val lhs = LinearPolynomial(
                 monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
                     val contribution = plan.demandContributions.find {
@@ -177,6 +186,14 @@ class Csp1dMilpSolver(
                 constant = Flt64.zero
             )
             val rhs = constantPolynomial(demand.quantity.value.toFlt64())
+            val constraintName = "demand_$demandIndex"
+            shadowPriceKeys?.set(
+                constraintName,
+                ProductDemandShadowPriceKey(
+                    productId = demand.product.id,
+                    unitSymbol = shadowPriceUnitSymbol(demand.quantity.unit)
+                )
+            )
             ensureTry(
                 model.addConstraint(
                     relation = LinearInequality(
@@ -184,7 +201,7 @@ class Csp1dMilpSolver(
                         rhs = rhs,
                         comparison = Comparison.GE
                     ),
-                    name = "demand_${demand.product.id}_${demand.quantity.unit.symbol}"
+                    name = constraintName
                 ),
                 "build demand constraint"
             )
@@ -194,9 +211,10 @@ class Csp1dMilpSolver(
     private fun <V : RealNumber<V>> addMaterialConstraints(
         input: ProduceInput<V>,
         assignment: Csp1dAssignment,
-        model: LinearMetaModel<Flt64>
+        model: LinearMetaModel<Flt64>,
+        shadowPriceKeys: MutableMap<String, ShadowPriceKey>? = null
     ) {
-        for (material in input.materials) {
+        for ((materialIndex, material) in input.materials.withIndex()) {
             if (material.availableBatches == UInt64.maximum) {
                 continue
             }
@@ -217,6 +235,11 @@ class Csp1dMilpSolver(
                 continue
             }
 
+            val constraintName = "material_$materialIndex"
+            shadowPriceKeys?.set(
+                constraintName,
+                MaterialUsageShadowPriceKey(material.id)
+            )
             ensureTry(
                 model.addConstraint(
                     relation = LinearInequality(
@@ -224,7 +247,7 @@ class Csp1dMilpSolver(
                         rhs = constantPolynomial(material.availableBatches.toFlt64()),
                         comparison = Comparison.LE
                     ),
-                    name = "material_${material.id}"
+                    name = constraintName
                 ),
                 "build material constraint"
             )
@@ -234,9 +257,10 @@ class Csp1dMilpSolver(
     private fun <V : RealNumber<V>> addMachineConstraints(
         input: ProduceInput<V>,
         assignment: Csp1dAssignment,
-        model: LinearMetaModel<Flt64>
+        model: LinearMetaModel<Flt64>,
+        shadowPriceKeys: MutableMap<String, ShadowPriceKey>? = null
     ) {
-        for (machine in input.machines) {
+        for ((machineIndex, machine) in input.machines.withIndex()) {
             val maxBatchCount = machine.maxBatchCount ?: continue
             val lhs = LinearPolynomial(
                 monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
@@ -254,6 +278,11 @@ class Csp1dMilpSolver(
                 continue
             }
 
+            val constraintName = "machine_$machineIndex"
+            shadowPriceKeys?.set(
+                constraintName,
+                MachineCapacityShadowPriceKey(machine.id)
+            )
             ensureTry(
                 model.addConstraint(
                     relation = LinearInequality(
@@ -261,7 +290,7 @@ class Csp1dMilpSolver(
                         rhs = constantPolynomial(maxBatchCount.toFlt64()),
                         comparison = Comparison.LE
                     ),
-                    name = "machine_${machine.id}_batch"
+                    name = constraintName
                 ),
                 "build machine batch constraint"
             )
@@ -292,14 +321,14 @@ class Csp1dMilpSolver(
 
     @Suppress("UNCHECKED_CAST")
     private fun <V : RealNumber<V>> extractShadowPrices(
-        lpResult: ColumnGenerationSolver.LPResult
+        lpResult: ColumnGenerationSolver.LPResult,
+        shadowPriceKeys: Map<String, ShadowPriceKey>
     ): ShadowPriceMap<V> {
         val shadowPrices = HashMap<ShadowPriceKey, V>()
         val dualSolution = lpResult.dualSolution
 
         for ((constraint, dualValue) in dualSolution) {
-            val key = shadowPriceKeyFromName(constraint.name)
-            if (key == null) continue
+            val key = shadowPriceKeys[constraint.name] ?: continue
 
             @Suppress("UNCHECKED_CAST")
             val vDual = dualValue as? V ?: continue
@@ -307,22 +336,6 @@ class Csp1dMilpSolver(
             shadowPrices[key] = if (existingValue != null) existingValue + vDual else vDual
         }
         return ShadowPriceMap(shadowPrices)
-    }
-
-    private fun shadowPriceKeyFromName(name: String): ShadowPriceKey? {
-        if (name.startsWith("demand_")) {
-            val productId = name.removePrefix("demand_").split("_").first()
-            return ProductDemandShadowPriceKey(productId)
-        }
-        if (name.startsWith("material_")) {
-            val materialId = name.removePrefix("material_")
-            return MaterialUsageShadowPriceKey(materialId)
-        }
-        if (name.startsWith("machine_")) {
-            val machineId = name.removePrefix("machine_").split("_").first()
-            return MachineCapacityShadowPriceKey(machineId)
-        }
-        return null
     }
 
     private fun <V : RealNumber<V>> extractProduce(
@@ -437,6 +450,10 @@ class Csp1dMilpSolver(
             monomials = emptyList(),
             constant = value
         )
+    }
+
+    private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
+        return unit.symbol ?: unit.name ?: unit.toString()
     }
 
     private fun ensureTry(result: Try, stage: String) {

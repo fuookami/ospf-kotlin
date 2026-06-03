@@ -14,11 +14,15 @@ sealed interface ShadowPriceKey {
 
 /**
  * 产品需求影子价格键 / Product demand shadow price key
+ *
+ * @property productId 产品 ID / Product id
+ * @property unitSymbol 需求单位符号 / Demand unit symbol
  */
 data class ProductDemandShadowPriceKey(
-    val productId: String
+    val productId: String,
+    val unitSymbol: String
 ) : ShadowPriceKey {
-    override val name = "product-demand:$productId"
+    override val name = "product-demand:$productId:$unitSymbol"
 }
 
 /**

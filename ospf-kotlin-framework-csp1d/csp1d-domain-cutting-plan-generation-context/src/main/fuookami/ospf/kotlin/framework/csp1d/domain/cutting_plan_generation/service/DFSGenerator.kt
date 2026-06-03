@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
@@ -33,7 +34,7 @@ class DFSGenerator<V : RealNumber<V>>(
     private data class ProductWidthEntry<V : RealNumber<V>>(
         val product: Product<V>,
         val width: Quantity<V>,
-        val demandIndex: Int
+        val demandUnit: PhysicalUnit
     )
 
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
@@ -72,7 +73,7 @@ class DFSGenerator<V : RealNumber<V>>(
         val cutStack = ArrayDeque<UInt64>()
         val indexStack = ArrayDeque<Int>()
 
-        // Start: index 0, zero width, zero cuts
+        // 起点：索引 0、零宽度、零刀数 / Start: index 0, zero width, zero cuts
         stack.addLast(ArrayList())
         widthStack.addLast(arithmetic.zero(upperBound.unit))
         cutStack.addLast(UInt64.zero)
@@ -85,7 +86,7 @@ class DFSGenerator<V : RealNumber<V>>(
             val currentIndex = indexStack.removeLast()
 
             if (currentIndex >= entries.size) {
-                // Leaf node: build plan
+                // 叶节点：构造方案 / Leaf node: build plan
                 if (currentSlices.isNotEmpty()) {
                     val plan = buildPlan(
                         material = material,
@@ -101,27 +102,27 @@ class DFSGenerator<V : RealNumber<V>>(
             val entry = entries[currentIndex]
             val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
 
-            // Max amount for this product-width
+            // 当前产品宽度的最大数量 / Max amount for this product-width
             val maxAmount = computeMaxAmount(
                 productWidth = entry.width,
                 remainingWidth = remainingWidth,
                 currentCuts = currentCuts
             )
 
-            // Try amount 0 (skip this product)
+            // 尝试数量 0，即跳过当前产品 / Try amount 0, skipping this product
             stack.addLast(ArrayList(currentSlices))
             widthStack.addLast(currentWidth)
             cutStack.addLast(currentCuts)
             indexStack.addLast(currentIndex + 1)
 
-            // Try amounts 1..maxAmount
+            // 尝试数量 1..maxAmount / Try amounts 1..maxAmount
             var amount = UInt64.one
             while (amount <= maxAmount) {
                 val addedWidth = repeatWidth(entry.width, amount)
                 val newWidth = arithmetic.add(currentWidth, addedWidth)
                 val newCuts = currentCuts + amount
 
-                // Prune: check width and knife constraints
+                // 剪枝：检查宽度和刀数约束 / Prune: check width and knife constraints
                 if ((newWidth.value partialOrd upperBound.value) is Order.Greater) {
                     amount += UInt64.one
                     continue
@@ -158,13 +159,18 @@ class DFSGenerator<V : RealNumber<V>>(
     ): CuttingPlan<V> {
         val contributions = slices.map { slice ->
             val product = slice.production as Product<V>
-            val demandIndex = entries.firstOrNull {
+            val demandUnit = entries.firstOrNull {
                 it.product == slice.production && it.width == slice.width
-            }?.demandIndex ?: -1
+            }?.demandUnit ?: slice.width.unit
 
             CuttingPlanDemandContribution(
                 product = product,
-                quantity = computeSliceContribution(product, slice.width, slice.amount)
+                quantity = computeSliceContribution(
+                    product = product,
+                    width = slice.width,
+                    amount = slice.amount,
+                    demandUnit = demandUnit
+                )
             )
         }
 
@@ -182,7 +188,7 @@ class DFSGenerator<V : RealNumber<V>>(
         remainingWidth: Quantity<V>,
         currentCuts: UInt64
     ): UInt64 {
-        // Width constraint
+        // 宽度约束 / Width constraint
         if ((remainingWidth.value partialOrd productWidth.value) is Order.Less) return UInt64.zero
         var maxByWidth = UInt64.zero
         var w = remainingWidth
@@ -191,7 +197,7 @@ class DFSGenerator<V : RealNumber<V>>(
             maxByWidth = maxByWidth + UInt64.one
         }
 
-        // Knife constraint
+        // 刀数约束 / Knife constraint
         val maxByKnife = constraints.maxKnifeCount?.let { maxKnife ->
             if (currentCuts >= maxKnife) UInt64.zero else maxKnife - currentCuts
         } ?: maxByWidth
@@ -199,7 +205,12 @@ class DFSGenerator<V : RealNumber<V>>(
         return minOf(maxByWidth, maxByKnife)
     }
 
-    private fun computeSliceContribution(product: Product<V>, width: Quantity<V>, amount: UInt64): Quantity<V> {
+    private fun computeSliceContribution(
+        product: Product<V>,
+        width: Quantity<V>,
+        amount: UInt64,
+        demandUnit: PhysicalUnit
+    ): Quantity<V> {
         val unitContribution = product.unitWeight?.let { unitWeight ->
             product.length?.let { length ->
                 val areaValue = width.value * length.value
@@ -210,15 +221,21 @@ class DFSGenerator<V : RealNumber<V>>(
         if (unitContribution != null) {
             return repeatQuantity(unitContribution, amount)
         }
-        val onePerPiece = Quantity(width.value.constants.one, width.unit)
+        val onePerPiece = Quantity(width.value.constants.one, demandUnit)
         return repeatQuantity(onePerPiece, amount)
     }
 
     private fun buildProductWidthEntries(demands: List<ProductDemand<V>>): List<ProductWidthEntry<V>> {
         val entries = ArrayList<ProductWidthEntry<V>>()
-        demands.forEachIndexed { index, demand ->
+        for (demand in demands) {
             for (width in demand.product.width) {
-                entries.add(ProductWidthEntry(demand.product, width, index))
+                entries.add(
+                    ProductWidthEntry(
+                        product = demand.product,
+                        width = width,
+                        demandUnit = demand.quantity.unit
+                    )
+                )
             }
         }
         return entries
