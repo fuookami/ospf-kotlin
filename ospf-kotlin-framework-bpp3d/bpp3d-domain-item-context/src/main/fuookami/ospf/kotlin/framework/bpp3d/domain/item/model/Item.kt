@@ -441,6 +441,8 @@ open class ItemView(
     unit: Item,
     orientation: Orientation = Orientation.Upright
 ) : CuboidView<Item>(unit, orientation) {
+    /** 放置级装载形状覆盖。Placement-level packing shape override. */
+    open val placementPackingShape: PackingShape3<InfraNumber>? get() = null
     open val type get() = ItemType(unit.packageType, orientation.category)
     val packageType by unit::packageType
     val packageCategory by unit::packageCategory
@@ -527,6 +529,23 @@ typealias AnyFrontPlacement2 = AnyPlacement2<Front>
 typealias AnyPlacement3 = QuantityPlacement3<*>
 typealias ItemPlacement2<P> = QuantityPlacement2<Item, P>
 typealias ItemPlacement3 = QuantityPlacement3<Item>
+
+/**
+ * 解析放置级真实装载形状，优先使用 ItemView 携带的候选几何。
+ * Resolve placement-level packing shape, preferring candidate geometry carried by ItemView.
+ *
+ * @return 放置级装载形状 / placement-level packing shape
+ */
+fun AnyPlacement3.resolvedPackingShape(): PackingShape3<InfraNumber> {
+    val itemView = view as? ItemView
+    itemView?.placementPackingShape?.let {
+        return it
+    }
+    return when (val placementUnit = unit) {
+        is Item -> placementUnit.packingShape
+        else -> view.asPackingShape3()
+    }
+}
 
 @get:JvmName("itemProjectionType")
 val ItemProjection<*>.type: ItemType

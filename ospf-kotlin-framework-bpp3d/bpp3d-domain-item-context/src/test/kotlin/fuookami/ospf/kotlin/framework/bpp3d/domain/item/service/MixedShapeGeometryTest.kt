@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import kotlin.math.PI
+import kotlin.test.assertFalse
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -13,6 +14,7 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BottomSupport
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CuboidPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
@@ -22,6 +24,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingAlgorithmShapeType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShapeType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -30,10 +33,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationA
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
 
 /** 混装长方体+竖直圆柱几何回归测试。Mixed cuboid + vertical cylinder geometry regression test. */
 class MixedShapeGeometryTest {
-    private fun packageAttribute(): PackageAttribute {
+    private fun packageAttribute(withWeight: Boolean = true): PackageAttribute {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
@@ -41,7 +46,7 @@ class MixedShapeGeometryTest {
             maxDepth = infraScalar(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero, withWeight = withWeight),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -50,7 +55,8 @@ class MixedShapeGeometryTest {
         id: String,
         width: Double,
         height: Double,
-        depth: Double
+        depth: Double,
+        attribute: PackageAttribute = packageAttribute()
     ): ActualItem {
         return ActualItem(
             id = id,
@@ -61,14 +67,16 @@ class MixedShapeGeometryTest {
             weight = infraScalar(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
-            packageAttribute = packageAttribute()
+            packageAttribute = attribute
         )
     }
 
     private fun cylinderItem(
         id: String,
         radiusValue: Double,
-        heightValue: Double
+        heightValue: Double,
+        attribute: PackageAttribute = packageAttribute(),
+        axis: Axis3 = Axis3.Y
     ): ActualItem {
         val radius = infraScalar(radiusValue) * Meter
         return ActualItem(
@@ -80,13 +88,27 @@ class MixedShapeGeometryTest {
             weight = infraScalar(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
-            packageAttribute = packageAttribute(),
+            packageAttribute = attribute,
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
-                axis = Axis3.Y
+                axis = axis
             )
         )
     }
+
+    private fun placementOf(
+        item: ActualItem,
+        x: Double = 0.0,
+        y: Double = 0.0,
+        z: Double = 0.0
+    ) = placement3Of(
+        view = item.view(Orientation.Upright),
+        position = point3(
+            x = infraScalar(x) * Meter,
+            y = infraScalar(y) * Meter,
+            z = infraScalar(z) * Meter
+        )
+    )
 
     private fun space(): Container3Shape {
         return Container3Shape(
@@ -149,6 +171,147 @@ class MixedShapeGeometryTest {
         assertEquals(PackingShapeType.Cylinder, cylinder.packingShape.shapeType)
         assertEquals(PackingAlgorithmShapeType.Cuboid, cuboid.packingShape.algorithmShapeType)
         assertEquals(PackingAlgorithmShapeType.VerticalCylinder, cylinder.packingShape.algorithmShapeType)
+    }
+
+    @Test
+    fun `direct cylinder bottom support uses circular footprint area`() {
+        val cylinder = cylinderItem("cyl1", 0.5, 1.0)
+        val support = BottomSupport(
+            area = (infraScalar(0.8) * Meter) * (infraScalar(1.0) * Meter),
+            weight = infraScalar(10.0) * Kilogram
+        )
+
+        assertTrue(cylinder.enabledStackingOn(support))
+    }
+
+    @Test
+    fun `cylinder on cuboid accepts full circular support`() = runBlocking {
+        val attribute = packageAttribute(withWeight = false)
+        val bottom = cuboidItem(
+            id = "bottom-box",
+            width = 2.0,
+            height = 1.0,
+            depth = 2.0,
+            attribute = attribute
+        )
+        val top = cylinderItem(
+            id = "top-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            attribute = attribute
+        )
+
+        val bottomPlacement = placementOf(item = bottom)
+        val topPlacement = placementOf(
+            item = top,
+            x = 0.5,
+            y = 1.0,
+            z = 0.5
+        )
+
+        assertTrue(
+            topPlacement.enabledStackingOn(
+                bottomItems = listOf(bottomPlacement),
+                space = space()
+            )
+        )
+    }
+
+    @Test
+    fun `cuboid on cylinder rejects bounding-box-only support`() = runBlocking {
+        val attribute = packageAttribute(withWeight = false)
+        val bottom = cylinderItem(
+            id = "bottom-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            attribute = attribute
+        )
+        val top = cuboidItem(
+            id = "top-box",
+            width = 1.0,
+            height = 1.0,
+            depth = 1.0,
+            attribute = attribute
+        )
+
+        val bottomPlacement = placementOf(item = bottom)
+        val topPlacement = placementOf(
+            item = top,
+            y = 1.0
+        )
+
+        assertFalse(
+            topPlacement.enabledStackingOn(
+                bottomItems = listOf(bottomPlacement),
+                space = space()
+            )
+        )
+    }
+
+    @Test
+    fun `cylinder on cylinder uses true circular overlap`() = runBlocking {
+        val attribute = packageAttribute(withWeight = false)
+        val bottom = cylinderItem(
+            id = "bottom-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            attribute = attribute
+        )
+        val alignedTop = cylinderItem(
+            id = "aligned-top-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            attribute = attribute
+        )
+        val shiftedTop = cylinderItem(
+            id = "shifted-top-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            attribute = attribute
+        )
+
+        val bottomPlacement = placementOf(item = bottom)
+        val alignedTopPlacement = placementOf(
+            item = alignedTop,
+            y = 1.0
+        )
+        val shiftedTopPlacement = placementOf(
+            item = shiftedTop,
+            x = 0.25,
+            y = 1.0
+        )
+
+        assertTrue(
+            alignedTopPlacement.enabledStackingOn(
+                bottomItems = listOf(bottomPlacement),
+                space = space()
+            )
+        )
+        assertFalse(
+            shiftedTopPlacement.enabledStackingOn(
+                bottomItems = listOf(bottomPlacement),
+                space = space()
+            )
+        )
+    }
+
+    @Test
+    fun `cylinder hanging support rejects non-upright orientation`() {
+        val cylinder = cylinderItem(
+            id = "side-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0
+        )
+        val support = BottomSupport(
+            area = (infraScalar(1.0) * Meter) * (infraScalar(1.0) * Meter),
+            weight = infraScalar(10.0) * Kilogram
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            cylinder.view(Orientation.Side).enabledStackingOn(support)
+        }
+
+        assertTrue(error.message?.contains("upright Axis3.Y") == true)
     }
 
     @Test

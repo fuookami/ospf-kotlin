@@ -41,7 +41,11 @@ sealed interface GenericPackageShapeSpec {
         val radiusCandidates: List<Quantity<V>> = emptyList(),
         val radiusMin: Quantity<V>? = null,
         val radiusMax: Quantity<V>? = null,
-        val radiusWeightFunctionKey: String? = null
+        val radiusWeightFunctionKey: String? = null,
+        val radiusStep: Quantity<V>? = null,
+        val diameterMin: Quantity<V>? = null,
+        val diameterMax: Quantity<V>? = null,
+        val diameterStep: Quantity<V>? = null
     ) : GenericPackageShapeSpec
 }
 
@@ -55,7 +59,11 @@ private fun GenericPackageShapeSpec.toModel(): PackageShapeSpec {
                 radiusCandidates = radiusCandidates.map { it.toInfraQuantityUnsafe() },
                 radiusMin = radiusMin?.toInfraQuantityUnsafe(),
                 radiusMax = radiusMax?.toInfraQuantityUnsafe(),
-                radiusWeightFunctionKey = radiusWeightFunctionKey
+                radiusWeightFunctionKey = radiusWeightFunctionKey,
+                radiusStep = radiusStep?.toInfraQuantityUnsafe(),
+                diameterMin = diameterMin?.toInfraQuantityUnsafe(),
+                diameterMax = diameterMax?.toInfraQuantityUnsafe(),
+                diameterStep = diameterStep?.toInfraQuantityUnsafe()
             )
         }
     }

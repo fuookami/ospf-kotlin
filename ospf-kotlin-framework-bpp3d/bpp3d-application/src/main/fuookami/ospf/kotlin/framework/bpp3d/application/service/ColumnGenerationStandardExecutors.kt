@@ -112,6 +112,7 @@ private fun extractDualSolutionMap(result: Any): Map<*, *> {
  * @property enableFinalBinCapacityConstraint 是否启用最终箱子容量约束 / whether to enable final bin capacity constraint
  * @property enableShadowPriceAwareRequestScore 是否启用影子价格感知请求评分 / whether to enable shadow price aware request score
  * @property integralityTolerance 整性容差 / integrality tolerance
+ * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向硬约束 / hard axis/orientation constraints for depth boundary layers
  */
 data class ColumnGenerationStandardExecutorConfig(
     val rmpSolveNamePrefix: String = "bpp3d-rmp",
@@ -123,7 +124,8 @@ data class ColumnGenerationStandardExecutorConfig(
     val enableFinalBinDepthConstraint: Boolean = true,
     val enableFinalBinCapacityConstraint: Boolean = true,
     val enableShadowPriceAwareRequestScore: Boolean = true,
-    val integralityTolerance: InfraNumber = InfraNumber(1e-6)
+    val integralityTolerance: InfraNumber = InfraNumber(1e-6),
+    val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null
 )
 
 /**
@@ -349,6 +351,7 @@ class ColumnGenerationStandardExecutors(
             )
             model.setSolution(normalizeScalarSolution(solved.solution))
             val selectedBins = collectSelectedBins(model, bins, state.columns, assignment)
+            config.depthBoundaryLayerOrientationPolicy?.ensureSatisfied(selectedBins)
             val selectedColumns = collectSelectedColumns(
                 model = model,
                 columns = state.columns,

@@ -394,6 +394,13 @@ data class ShapePlacement3(
         val integrationLb = max(left, centerX - radius)
         val integrationUb = min(right, centerX + radius)
         val areaUnit = (circle.radius * circle.radius).unit
+        if (left <= centerX - radius
+            && right >= centerX + radius
+            && front <= centerZ - radius
+            && back >= centerZ + radius
+        ) {
+            return infraScalar(PI * radius * radius) * areaUnit
+        }
         if (integrationLb >= integrationUb) {
             return infraZero() * areaUnit
         }

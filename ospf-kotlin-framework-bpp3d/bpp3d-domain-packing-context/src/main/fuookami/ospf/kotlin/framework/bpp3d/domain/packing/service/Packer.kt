@@ -7,6 +7,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.MaterialSummary
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
@@ -43,7 +44,7 @@ class Packer(
         val packedBins = bins.mapIndexed { index, bin ->
             val itemPlacements = bin.dump().units
             itemPlacements.forEach { placement ->
-                val shape = placement.unit.packingShape
+                val shape = placement.resolvedPackingShape()
                 requireVerticalCylinderAxis(
                     shape = shape,
                     source = "Packer.invoke"

@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingAlgorithmShapeType
@@ -59,7 +60,7 @@ class PackingRendererAdapter {
         val loadingPlans = result.aggregation.bins.map { bin ->
             val itemDtos = bin.items.map { packed ->
                 val placement = packed.placement
-                val shape = placement.unit.packingShape
+                val shape = placement.resolvedPackingShape()
                 requireVerticalCylinderAxis(
                     shape = shape,
                     source = "PackingRendererAdapter.toSchema"

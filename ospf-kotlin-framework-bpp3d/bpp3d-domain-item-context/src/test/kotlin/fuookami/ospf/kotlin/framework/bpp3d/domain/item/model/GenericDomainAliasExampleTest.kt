@@ -135,7 +135,11 @@ class GenericDomainAliasExampleTest {
                 ),
                 radiusMin = FltX(0.5) * Meter,
                 radiusMax = FltX(0.6) * Meter,
-                radiusWeightFunctionKey = "radius-weight-v1"
+                radiusWeightFunctionKey = "radius-weight-v1",
+                radiusStep = FltX(0.05) * Meter,
+                diameterMin = FltX(1.0) * Meter,
+                diameterMax = FltX(1.2) * Meter,
+                diameterStep = FltX(0.1) * Meter
             )
         )
 
@@ -146,5 +150,10 @@ class GenericDomainAliasExampleTest {
         assertEquals(Axis3.Y, cylinderSpec.axis)
         assertEquals("radius-weight-v1", cylinderSpec.radiusWeightFunctionKey)
         assertEquals(2, cylinderSpec.radiusCandidates.size)
+        assertTrue(cylinderSpec.radiusStep!! eq (infraScalar(0.05) * Meter))
+        assertTrue(cylinderSpec.diameterMin!! eq (infraScalar(1.0) * Meter))
+        assertTrue(cylinderSpec.diameterMax!! eq (infraScalar(1.2) * Meter))
+        assertTrue(cylinderSpec.diameterStep!! eq (infraScalar(0.1) * Meter))
+        assertEquals(2, cylinderSpec.resolvedRadiusCandidates.size)
     }
 }

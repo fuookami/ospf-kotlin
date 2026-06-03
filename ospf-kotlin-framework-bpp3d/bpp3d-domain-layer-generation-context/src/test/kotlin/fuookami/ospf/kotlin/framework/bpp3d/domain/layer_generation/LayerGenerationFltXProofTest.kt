@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
@@ -23,14 +24,22 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asShapePlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -42,6 +51,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import kotlin.math.abs
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -64,8 +74,12 @@ class LayerGenerationFltXProofTest {
         return value * unit
     }
 
-    private fun cylinderItem(id: String, axis: Axis3): ActualItem {
-        val radius = infraScalar(0.5) * Meter
+    private fun cylinderItem(
+        id: String,
+        axis: Axis3,
+        radiusValue: Double = 0.5
+    ): ActualItem {
+        val radius = infraScalar(radiusValue) * Meter
         val height = infraScalar(1.0) * Meter
         val weight = infraScalar(0.2) * Kilogram
         val shape = PackageShape(
@@ -94,6 +108,50 @@ class LayerGenerationFltXProofTest {
                 axis = axis
             )
         )
+    }
+
+    private fun cuboidItem(
+        id: String,
+        widthValue: Double = 1.0,
+        heightValue: Double = 1.0,
+        depthValue: Double = 1.0
+    ): ActualItem {
+        val shape = PackageShape(
+            width = infraScalar(widthValue) * Meter,
+            height = infraScalar(heightValue) * Meter,
+            depth = infraScalar(depthValue) * Meter,
+            weight = infraScalar(0.2) * Kilogram,
+            packageType = PackageType.CartonContainer
+        )
+        val pack = PackingProgram.innerPackage(
+            shape = shape,
+            materials = emptyMap()
+        )
+        return ActualItem(
+            id = id,
+            name = id,
+            width = pack.width,
+            height = pack.height,
+            depth = pack.depth,
+            weight = pack.weight,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-$id"),
+            packageAttribute = defaultPackageAttribute()
+        )
+    }
+
+    private fun assertCirclePackingLayerGeometry(layer: BinLayer) {
+        val shapePlacements = layer.units.map { placement ->
+            val shape = placement.resolvedPackingShape()
+            assertTrue(layer.shape.enabled(shape, placement.absolutePosition))
+            placement.asShapePlacement3 { shape }
+        }
+        for (lhsIndex in shapePlacements.indices) {
+            for (rhsIndex in (lhsIndex + 1) until shapePlacements.size) {
+                val overlap = shapePlacements[lhsIndex].footprintOverlapArea(shapePlacements[rhsIndex])
+                assertTrue(abs(overlap.toDouble()) < 1e-7)
+            }
+        }
     }
 
     @Test
@@ -654,8 +712,8 @@ class LayerGenerationFltXProofTest {
 
         assertTrue(generated.isNotEmpty())
         assertTrue(generated.any { it.source == "circle-packing-rect" })
-        assertTrue(generated.any { it.source == "circle-packing-hex" })
         assertTrue(generated.all { it.layer.units.size > 1 })
+        generated.forEach { result -> assertCirclePackingLayerGeometry(result.layer) }
     }
 
     @Test
@@ -799,6 +857,226 @@ class LayerGenerationFltXProofTest {
                     shape.axis == Axis3.Y
             }
         )
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldValidateVerticalCylinderFootprints() = runBlocking {
+        val item = cylinderItem(
+            id = "item-circle-geometry",
+            axis = Axis3.Y
+        )
+        val bin = BinType(
+            width = infraScalar(3.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-GEOMETRY"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { it.layer.units.size > 1 })
+        generated.forEach { result -> assertCirclePackingLayerGeometry(result.layer) }
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldKeepMixedShapeCandidatesGeometricallyValid() = runBlocking {
+        val cuboid = cuboidItem(
+            id = "item-circle-mixed-cuboid",
+            widthValue = 0.9,
+            depthValue = 0.8
+        )
+        val smallCylinder = cylinderItem(
+            id = "item-circle-mixed-small-cylinder",
+            axis = Axis3.Y,
+            radiusValue = 0.5
+        )
+        val largeCylinder = cylinderItem(
+            id = "item-circle-mixed-large-cylinder",
+            axis = Axis3.Y,
+            radiusValue = 0.75
+        )
+        val bin = BinType(
+            width = infraScalar(3.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(3.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-MIXED"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(cuboid, smallCylinder, largeCylinder),
+                maxCandidates = 8
+            )
+        )
+
+        assertTrue(generated.any { result -> result.layer.units.any { it.unit === cuboid } })
+        assertTrue(generated.any { result -> result.layer.units.any { it.unit === smallCylinder } })
+        assertTrue(generated.any { result -> result.layer.units.any { it.unit === largeCylinder } })
+        generated.forEach { result -> assertCirclePackingLayerGeometry(result.layer) }
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldAcceptBoundaryTangentVerticalCylinder() = runBlocking {
+        val item = cylinderItem(
+            id = "item-circle-boundary",
+            axis = Axis3.Y,
+            radiusValue = 1.0
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-BOUNDARY"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.all { it.layer.units.size == 1 })
+        generated.forEach { result -> assertCirclePackingLayerGeometry(result.layer) }
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldExpandDynamicRadiusCandidates() = runBlocking {
+        val radius = infraScalar(0.15) * Meter
+        val height = infraScalar(1.0) * Meter
+        val weight = infraScalar(0.2) * Kilogram
+        val shape = PackageShape(
+            width = radius + radius,
+            height = height,
+            depth = radius + radius,
+            weight = weight,
+            packageType = PackageType.CartonContainer
+        )
+        val pack = PackingProgram.innerPackage(
+            shape = shape,
+            materials = emptyMap()
+        )
+        val item = ActualItem(
+            id = "item-circle-dynamic-radius",
+            name = "item-circle-dynamic-radius",
+            width = pack.width,
+            height = pack.height,
+            depth = pack.depth,
+            weight = pack.weight,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-CIRCLE-DYNAMIC-RADIUS"),
+            packageAttribute = defaultPackageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = radius,
+                axis = Axis3.Y,
+                diameterMin = infraScalar(0.30) * Meter,
+                diameterMax = infraScalar(0.36) * Meter,
+                diameterStep = infraScalar(0.01) * Meter
+            )
+        )
+        val bin = BinType(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-DYNAMIC-RADIUS"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 20
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { result -> result.source.contains("r=0.15") })
+        assertTrue(generated.any { result -> result.source.contains("r=0.18") })
+        assertTrue(generated.flatMap { it.layer.units }.all { placement -> placement.unit === item })
+        generated.forEach { result -> assertCirclePackingLayerGeometry(result.layer) }
+
+        val candidatesByRadius = generated.map { result ->
+            val shape = result.layer.units.first().resolvedPackingShape() as CylinderPackingShape3
+            Pair(result, shape.radius.toDouble())
+        }
+        val smallRadius = candidatesByRadius.first { (_, radiusValue) -> abs(radiusValue - 0.15) < 1e-9 }.first
+        val largeRadius = candidatesByRadius.first { (_, radiusValue) -> abs(radiusValue - 0.18) < 1e-9 }.first
+        assertTrue(smallRadius.layer.units.size > largeRadius.layer.units.size)
+
+        val packedBin = PackedBin(
+            name = "bin-dynamic-radius",
+            type = bin,
+            items = largeRadius.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val schema = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        )
+        val renderedItem = schema.loadingPlans.first().items.first()
+        assertEquals(0.18, renderedItem.radius!!.toDouble(), 1e-9)
+        assertEquals(0.36, renderedItem.diameter!!.toDouble(), 1e-9)
+        assertTrue(renderedItem.actualVolume!!.toDouble() > 0.0)
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldRejectOversizedCylinderCandidate() = runBlocking {
+        val item = cylinderItem(
+            id = "item-circle-oversized",
+            axis = Axis3.Y,
+            radiusValue = 1.1
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-OVERSIZED"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+
+        assertTrue(generated.isEmpty())
     }
 }
 

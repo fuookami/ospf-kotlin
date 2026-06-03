@@ -35,8 +35,7 @@ class LoadingOrderCalculator(
 ) {
     private fun requireVerticalCylinderAxisForLoadingOrder(placements: List<AnyPlacement3>) {
         val unsupportedCylinder = placements.firstOrNull { placement ->
-            val item = placement.unit as? Item ?: return@firstOrNull false
-            val shape = item.packingShape
+            val shape = placement.resolvedPackingShape()
             shape is CylinderPackingShape3 && shape.axis != Axis3.Y
         }?.unit as? Item
 
@@ -48,10 +47,7 @@ class LoadingOrderCalculator(
     }
 
     private fun resolvePackingShape(placement: AnyPlacement3): PackingShape3<InfraNumber> {
-        return when (val unit = placement.unit) {
-            is Item -> unit.packingShape
-            else -> placement.view.asPackingShape3()
-        }
+        return placement.resolvedPackingShape()
     }
 
     private fun bottomFootprintOverlapped(lhs: AnyPlacement3, rhs: AnyPlacement3): Boolean {

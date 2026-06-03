@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -9,11 +10,29 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 
 class PackageShapeSpecTest {
+    private fun assertRadiusValues(
+        actual: List<InfraQuantity>,
+        expected: List<Double>
+    ) {
+        assertEquals(
+            expected = expected.size,
+            actual = actual.size
+        )
+        for ((index, expectedValue) in expected.withIndex()) {
+            assertEquals(
+                expected = expectedValue,
+                actual = actual[index].value.toDouble(),
+                absoluteTolerance = 1e-9
+            )
+        }
+    }
+
     @Test
     fun verticalCylinderShouldKeepResolvedRadiusForPackingShape() {
         val shape = PackageShape(
@@ -40,6 +59,10 @@ class PackageShapeSpecTest {
         assertTrue(packingShape is CylinderPackingShape3)
         assertTrue(packingShape.radius eq (infraScalar(0.5) * Meter))
         assertTrue(packingShape.boundingWidth eq (infraScalar(1.0) * Meter))
+        assertRadiusValues(
+            actual = (shape.shapeSpec as PackageShapeSpec.VerticalCylinder).resolvedRadiusCandidates,
+            expected = listOf(0.4, 0.5, 0.6)
+        )
     }
 
     @Test
@@ -64,6 +87,107 @@ class PackageShapeSpecTest {
                 axis = Axis3.Y,
                 radiusMin = infraScalar(0.6) * Meter,
                 radiusMax = infraScalar(0.4) * Meter
+            )
+        }
+    }
+
+    @Test
+    fun verticalCylinderShouldGenerateRadiusCandidatesFromDiameterInterval() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(0.15) * Meter,
+            axis = Axis3.Y,
+            diameterMin = infraScalar(0.30) * Meter,
+            diameterMax = infraScalar(0.36) * Meter,
+            diameterStep = infraScalar(0.01) * Meter
+        )
+
+        assertRadiusValues(
+            actual = spec.resolvedRadiusCandidates,
+            expected = listOf(0.15, 0.155, 0.16, 0.165, 0.17, 0.175, 0.18)
+        )
+    }
+
+    @Test
+    fun verticalCylinderShouldGenerateRadiusCandidatesFromRadiusInterval() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(0.15) * Meter,
+            axis = Axis3.Y,
+            radiusMin = infraScalar(0.15) * Meter,
+            radiusMax = infraScalar(0.18) * Meter,
+            radiusStep = infraScalar(0.005) * Meter
+        )
+
+        assertRadiusValues(
+            actual = spec.resolvedRadiusCandidates,
+            expected = listOf(0.15, 0.155, 0.16, 0.165, 0.17, 0.175, 0.18)
+        )
+    }
+
+    @Test
+    fun verticalCylinderShouldPreferExplicitRadiusCandidatesOverIntervals() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(0.16) * Meter,
+            axis = Axis3.Y,
+            radiusCandidates = listOf(
+                infraScalar(0.16) * Meter,
+                infraScalar(0.15) * Meter,
+                infraScalar(0.16) * Meter
+            ),
+            radiusMin = infraScalar(0.15) * Meter,
+            radiusMax = infraScalar(0.18) * Meter,
+            radiusStep = infraScalar(0.005) * Meter,
+            diameterMin = infraScalar(0.30) * Meter,
+            diameterMax = infraScalar(0.36) * Meter,
+            diameterStep = infraScalar(0.01) * Meter
+        )
+
+        assertRadiusValues(
+            actual = spec.resolvedRadiusCandidates,
+            expected = listOf(0.15, 0.16)
+        )
+    }
+
+    @Test
+    fun verticalCylinderShouldRejectInvalidDynamicRadiusIntervals() {
+        assertFailsWith<IllegalArgumentException> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.15) * Meter,
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.15) * Meter,
+                radiusMax = infraScalar(0.18) * Meter,
+                radiusStep = infraScalar(0.0) * Meter
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.15) * Meter,
+                axis = Axis3.Y,
+                diameterMin = infraScalar(0.30) * Meter,
+                diameterMax = infraScalar(0.36) * Meter,
+                diameterStep = infraScalar(-0.01) * Meter
+            )
+        }
+        assertFailsWith<IllegalArgumentException> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.15) * Meter,
+                axis = Axis3.Y,
+                radiusStep = infraScalar(0.005) * Meter
+            )
+        }
+    }
+
+    @Test
+    fun verticalCylinderShouldRejectMixedRadiusAndDiameterIntervalsWithoutExplicitCandidates() {
+        assertFailsWith<IllegalArgumentException> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.15) * Meter,
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.15) * Meter,
+                radiusMax = infraScalar(0.18) * Meter,
+                radiusStep = infraScalar(0.005) * Meter,
+                diameterMin = infraScalar(0.30) * Meter,
+                diameterMax = infraScalar(0.36) * Meter,
+                diameterStep = infraScalar(0.01) * Meter
             )
         }
     }

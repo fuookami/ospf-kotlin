@@ -140,6 +140,12 @@ class GurobiColumnGenerationTest {
         val materialWeightKg: Flt64,
         val shapeType: String?,
         val radiusMeter: Flt64?,
+        val radiusMinMeter: Flt64?,
+        val radiusMaxMeter: Flt64?,
+        val radiusStepMeter: Flt64?,
+        val diameterMinMeter: Flt64?,
+        val diameterMaxMeter: Flt64?,
+        val diameterStepMeter: Flt64?,
         val axis: String?
     )
 
@@ -152,6 +158,12 @@ class GurobiColumnGenerationTest {
         val materialWeightKg: Flt64?,
         val shapeType: String?,
         val radiusMeter: Flt64?,
+        val radiusMinMeter: Flt64?,
+        val radiusMaxMeter: Flt64?,
+        val radiusStepMeter: Flt64?,
+        val diameterMinMeter: Flt64?,
+        val diameterMaxMeter: Flt64?,
+        val diameterStepMeter: Flt64?,
         val axis: String?
     )
 
@@ -388,14 +400,48 @@ class GurobiColumnGenerationTest {
                 "missing required csv columns: ${missingColumns.joinToString()}, header=$headerLine"
             )
         }
-        val hasShapeType = headerColumns.contains("shape_type")
-        val hasRadiusMeter = headerColumns.contains("radius_meter")
-        val hasAxis = headerColumns.contains("axis")
-        if ((hasRadiusMeter || hasAxis) && !hasShapeType) {
+        val normalizedHeaderColumns = headerColumns.map { column ->
+            column.lowercase(Locale.getDefault())
+        }
+        val hasShapeType = normalizedHeaderColumns.contains("shape_type")
+        val shapeMetadataColumns = listOf(
+            "radius_meter",
+            "radius_min",
+            "radius_min_meter",
+            "radius_max",
+            "radius_max_meter",
+            "radius_step",
+            "radius_step_meter",
+            "diameter_min",
+            "diameter_min_meter",
+            "diameter_max",
+            "diameter_max_meter",
+            "diameter_step",
+            "diameter_step_meter",
+            "axis"
+        )
+        val hasShapeMetadata = shapeMetadataColumns.any { column ->
+            normalizedHeaderColumns.contains(column)
+        }
+        if (hasShapeMetadata && !hasShapeType) {
             throw IllegalStateException(
-                "invalid csv schema: shape_type is required when radius_meter or axis column exists, header=$headerLine"
+                "invalid csv schema: shape_type is required when shape metadata columns exist, header=$headerLine"
             )
         }
+    }
+
+    private fun optionalCsvFlt64(
+        cols: List<String>,
+        column: Int?,
+        fieldName: String,
+        rowIndex: Int
+    ): Flt64? {
+        val raw = column
+            ?.let { cols.getOrNull(it) }
+            ?.takeIf { it.isNotEmpty() }
+            ?: return null
+        return raw.toDoubleOrNull()?.let { Flt64(it) }
+            ?: throw IllegalStateException("invalid $fieldName at row $rowIndex: $raw")
     }
 
     private fun loadGroupedLayerCsvScenario(lines: List<String>): CsvDrivenScenario {
@@ -409,6 +455,9 @@ class GurobiColumnGenerationTest {
         fun optionalColumn(name: String): Int? {
             return headerIndex[name]
         }
+        fun optionalLengthColumn(name: String): Int? {
+            return optionalColumn(name) ?: optionalColumn("${name}_meter")
+        }
 
         val groupIndexColumn = requiredColumn("group_index")
         val layerIndexColumn = requiredColumn("layer_index")
@@ -418,10 +467,17 @@ class GurobiColumnGenerationTest {
         val materialWeightColumn = requiredColumn("material_weight_kg")
         val shapeTypeColumn = optionalColumn("shape_type")
         val radiusMeterColumn = optionalColumn("radius_meter")
+        val radiusMinMeterColumn = optionalLengthColumn("radius_min")
+        val radiusMaxMeterColumn = optionalLengthColumn("radius_max")
+        val radiusStepMeterColumn = optionalLengthColumn("radius_step")
+        val diameterMinMeterColumn = optionalLengthColumn("diameter_min")
+        val diameterMaxMeterColumn = optionalLengthColumn("diameter_max")
+        val diameterStepMeterColumn = optionalLengthColumn("diameter_step")
         val axisColumn = optionalColumn("axis")
 
         val rows = lines.drop(1).mapIndexed { index, line ->
             val cols = line.split(",").map { it.trim() }
+            val rowIndex = index + 2
             val requiredColumnCount = listOf(
                 groupIndexColumn,
                 layerIndexColumn,
@@ -431,39 +487,70 @@ class GurobiColumnGenerationTest {
                 materialWeightColumn
             ).max() + 1
             if (cols.size < requiredColumnCount) {
-                throw IllegalStateException("invalid csv columns at row ${index + 2}: $line")
+                throw IllegalStateException("invalid csv columns at row $rowIndex: $line")
             }
             val materialWeight = cols.getOrNull(materialWeightColumn)
                 ?.toDoubleOrNull()
                 ?.let { Flt64(it) }
-                ?: throw IllegalStateException("invalid material_weight_kg at row ${index + 2}: ${cols.getOrNull(materialWeightColumn)}")
+                ?: throw IllegalStateException("invalid material_weight_kg at row $rowIndex: ${cols.getOrNull(materialWeightColumn)}")
             CsvScenarioRow(
                 groupIndex = cols.getOrNull(groupIndexColumn)?.toIntOrNull()
-                    ?: throw IllegalStateException("invalid group_index at row ${index + 2}: ${cols.getOrNull(groupIndexColumn)}"),
+                    ?: throw IllegalStateException("invalid group_index at row $rowIndex: ${cols.getOrNull(groupIndexColumn)}"),
                 layerIndex = cols.getOrNull(layerIndexColumn)?.toIntOrNull()
-                    ?: throw IllegalStateException("invalid layer_index at row ${index + 2}: ${cols.getOrNull(layerIndexColumn)}"),
+                    ?: throw IllegalStateException("invalid layer_index at row $rowIndex: ${cols.getOrNull(layerIndexColumn)}"),
                 itemId = cols.getOrNull(itemIdColumn)
                     ?.takeIf { it.isNotEmpty() }
-                    ?: throw IllegalStateException("empty item_id at row ${index + 2}"),
+                    ?: throw IllegalStateException("empty item_id at row $rowIndex"),
                 materialNo = cols.getOrNull(materialNoColumn)
                     ?.takeIf { it.isNotEmpty() }
-                    ?: throw IllegalStateException("empty material_no at row ${index + 2}"),
+                    ?: throw IllegalStateException("empty material_no at row $rowIndex"),
                 materialName = cols.getOrNull(materialNameColumn)
                     ?.takeIf { it.isNotEmpty() }
-                    ?: throw IllegalStateException("empty material_name at row ${index + 2}"),
+                    ?: throw IllegalStateException("empty material_name at row $rowIndex"),
                 materialWeightKg = materialWeight,
                 shapeType = shapeTypeColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() },
-                radiusMeter = radiusMeterColumn?.let { column ->
-                    cols.getOrNull(column)
-                        ?.takeIf { it.isNotEmpty() }
-                        ?.toDoubleOrNull()
-                        ?.let { Flt64(it) }
-                        ?: cols.getOrNull(column)
-                            ?.takeIf { it.isNotEmpty() }
-                            ?.let {
-                                throw IllegalStateException("invalid radius_meter at row ${index + 2}: $it")
-                            }
-                },
+                radiusMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = radiusMeterColumn,
+                    fieldName = "radius_meter",
+                    rowIndex = rowIndex
+                ),
+                radiusMinMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = radiusMinMeterColumn,
+                    fieldName = "radius_min",
+                    rowIndex = rowIndex
+                ),
+                radiusMaxMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = radiusMaxMeterColumn,
+                    fieldName = "radius_max",
+                    rowIndex = rowIndex
+                ),
+                radiusStepMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = radiusStepMeterColumn,
+                    fieldName = "radius_step",
+                    rowIndex = rowIndex
+                ),
+                diameterMinMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = diameterMinMeterColumn,
+                    fieldName = "diameter_min",
+                    rowIndex = rowIndex
+                ),
+                diameterMaxMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = diameterMaxMeterColumn,
+                    fieldName = "diameter_max",
+                    rowIndex = rowIndex
+                ),
+                diameterStepMeter = optionalCsvFlt64(
+                    cols = cols,
+                    column = diameterStepMeterColumn,
+                    fieldName = "diameter_step",
+                    rowIndex = rowIndex
+                ),
                 axis = axisColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() }
             )
         }
@@ -592,6 +679,12 @@ class GurobiColumnGenerationTest {
         return toPackageShapeSpec(
             shapeType = shapeType,
             radiusMeter = radiusMeter,
+            radiusMinMeter = radiusMinMeter,
+            radiusMaxMeter = radiusMaxMeter,
+            radiusStepMeter = radiusStepMeter,
+            diameterMinMeter = diameterMinMeter,
+            diameterMaxMeter = diameterMaxMeter,
+            diameterStepMeter = diameterStepMeter,
             axis = axis,
             rowDescription = "item_id=$itemId, group_index=$groupIndex, layer_index=$layerIndex"
         )
@@ -639,6 +732,50 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerCsvShouldMapDynamicDiameterColumnsToVerticalCylinderShapeSpec() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,diameter_min,diameter_max,diameter_step,axis
+            0,0,item-cylinder,MAT-A,Material-A,1.0,vertical_cylinder,0.30,0.36,0.01,Y
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val cylinderItem = scenario.itemDemands
+            .firstOrNull()
+            ?.first
+            ?: throw IllegalStateException("missing item-cylinder in scenario")
+        val cylinderSpec = cylinderItem.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+            ?: throw IllegalStateException("item-cylinder shape spec should be VerticalCylinder")
+
+        assertEquals(Axis3.Y, cylinderSpec.axis)
+        assertEquals(
+            expected = 0.15,
+            actual = cylinderSpec.radius.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.30,
+            actual = cylinderSpec.diameterMin!!.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.36,
+            actual = cylinderSpec.diameterMax!!.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.01,
+            actual = cylinderSpec.diameterStep!!.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(7, cylinderSpec.resolvedRadiusCandidates.size)
+        assertEquals(
+            expected = 0.18,
+            actual = cylinderSpec.resolvedRadiusCandidates.last().value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+    }
+
+    @Test
     fun groupedLayerCsvShouldRemainCompatibleWithLegacySixColumns() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg
@@ -677,6 +814,50 @@ class GurobiColumnGenerationTest {
         assertEquals(Axis3.Y, cylinderSpec.axis)
         assertEquals(0.4, cylinderSpec.radius.value.toDouble())
         assertEquals(PackageShapeSpec.Cuboid, cuboidEntry.first.packageShape.shapeSpec)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldMapDynamicRadiusColumnsToVerticalCylinderShapeSpec() {
+        val csv = """
+            material,width,amount,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_step,axis
+            MAT-A,1200,2,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,0.005,Y
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val cylinderItem = scenario.itemDemands
+            .firstOrNull()
+            ?.first
+            ?: throw IllegalStateException("missing cylinder entry")
+        val cylinderSpec = cylinderItem.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+            ?: throw IllegalStateException("item-material-width-0 should be VerticalCylinder")
+
+        assertEquals(Axis3.Y, cylinderSpec.axis)
+        assertEquals(
+            expected = 0.15,
+            actual = cylinderSpec.radius.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.15,
+            actual = cylinderSpec.radiusMin!!.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.18,
+            actual = cylinderSpec.radiusMax!!.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.005,
+            actual = cylinderSpec.radiusStep!!.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(7, cylinderSpec.resolvedRadiusCandidates.size)
+        assertEquals(
+            expected = 0.18,
+            actual = cylinderSpec.resolvedRadiusCandidates.last().value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
     }
 
     @Test
@@ -791,6 +972,9 @@ class GurobiColumnGenerationTest {
         fun optionalColumn(name: String): Int? {
             return headerIndex[name]
         }
+        fun optionalLengthColumn(name: String): Int? {
+            return optionalColumn(name) ?: optionalColumn("${name}_meter")
+        }
 
         val materialColumn = requiredColumn("material")
         val widthColumn = requiredColumn("width")
@@ -800,6 +984,12 @@ class GurobiColumnGenerationTest {
         val materialWeightColumn = optionalColumn("material_weight_kg")
         val shapeTypeColumn = optionalColumn("shape_type")
         val radiusMeterColumn = optionalColumn("radius_meter")
+        val radiusMinMeterColumn = optionalLengthColumn("radius_min")
+        val radiusMaxMeterColumn = optionalLengthColumn("radius_max")
+        val radiusStepMeterColumn = optionalLengthColumn("radius_step")
+        val diameterMinMeterColumn = optionalLengthColumn("diameter_min")
+        val diameterMaxMeterColumn = optionalLengthColumn("diameter_max")
+        val diameterStepMeterColumn = optionalLengthColumn("diameter_step")
         val axisColumn = optionalColumn("axis")
         val widthScale = optionalFlt64Property("bpp3d.gurobi.dataset.material.width.scale")
             ?: Flt64(1000.0)
@@ -811,19 +1001,20 @@ class GurobiColumnGenerationTest {
         val rows = ArrayList<MaterialWidthAmountScenarioRow>()
         for ((index, line) in lines.drop(1).withIndex()) {
             val cols = line.split(",").map { it.trim() }
+            val rowIndex = index + 2
             if (cols.size < 3) {
-                throw IllegalStateException("invalid csv columns at row ${index + 2}: $line")
+                throw IllegalStateException("invalid csv columns at row $rowIndex: $line")
             }
             val material = cols.getOrNull(materialColumn)
                 ?.takeIf { it.isNotEmpty() }
-                ?: throw IllegalStateException("empty material at row ${index + 2}")
+                ?: throw IllegalStateException("empty material at row $rowIndex")
             val width = cols.getOrNull(widthColumn)
                 ?.toDoubleOrNull()
                 ?.let { Flt64(it) }
-                ?: throw IllegalStateException("invalid width at row ${index + 2}: ${cols.getOrNull(widthColumn)}")
+                ?: throw IllegalStateException("invalid width at row $rowIndex: ${cols.getOrNull(widthColumn)}")
             val amountAsDouble = cols.getOrNull(amountColumn)
                 ?.toDoubleOrNull()
-                ?: throw IllegalStateException("invalid amount at row ${index + 2}: ${cols.getOrNull(amountColumn)}")
+                ?: throw IllegalStateException("invalid amount at row $rowIndex: ${cols.getOrNull(amountColumn)}")
             val amount = amountAsDouble.toLong()
             if (amount <= 0L) {
                 continue
@@ -837,17 +1028,48 @@ class GurobiColumnGenerationTest {
                     materialName = materialNameColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
                     materialWeightKg = materialWeightColumn?.let { cols.getOrNull(it)?.toDoubleOrNull()?.let { value -> Flt64(value) } },
                     shapeType = shapeTypeColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
-                    radiusMeter = radiusMeterColumn?.let { column ->
-                        cols.getOrNull(column)
-                            ?.takeIf { it.isNotEmpty() }
-                            ?.toDoubleOrNull()
-                            ?.let { Flt64(it) }
-                            ?: cols.getOrNull(column)
-                                ?.takeIf { it.isNotEmpty() }
-                                ?.let {
-                                    throw IllegalStateException("invalid radius_meter at row ${index + 2}: $it")
-                                }
-                    },
+                    radiusMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = radiusMeterColumn,
+                        fieldName = "radius_meter",
+                        rowIndex = rowIndex
+                    ),
+                    radiusMinMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = radiusMinMeterColumn,
+                        fieldName = "radius_min",
+                        rowIndex = rowIndex
+                    ),
+                    radiusMaxMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = radiusMaxMeterColumn,
+                        fieldName = "radius_max",
+                        rowIndex = rowIndex
+                    ),
+                    radiusStepMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = radiusStepMeterColumn,
+                        fieldName = "radius_step",
+                        rowIndex = rowIndex
+                    ),
+                    diameterMinMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = diameterMinMeterColumn,
+                        fieldName = "diameter_min",
+                        rowIndex = rowIndex
+                    ),
+                    diameterMaxMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = diameterMaxMeterColumn,
+                        fieldName = "diameter_max",
+                        rowIndex = rowIndex
+                    ),
+                    diameterStepMeter = optionalCsvFlt64(
+                        cols = cols,
+                        column = diameterStepMeterColumn,
+                        fieldName = "diameter_step",
+                        rowIndex = rowIndex
+                    ),
                     axis = axisColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } }
                 )
             )
@@ -881,6 +1103,12 @@ class GurobiColumnGenerationTest {
             val shapeSpec = toPackageShapeSpec(
                 shapeType = row.shapeType,
                 radiusMeter = row.radiusMeter,
+                radiusMinMeter = row.radiusMinMeter,
+                radiusMaxMeter = row.radiusMaxMeter,
+                radiusStepMeter = row.radiusStepMeter,
+                diameterMinMeter = row.diameterMinMeter,
+                diameterMaxMeter = row.diameterMaxMeter,
+                diameterStepMeter = row.diameterStepMeter,
                 axis = row.axis,
                 rowDescription = "material=${row.material},row_index=${index + 2}"
             )
@@ -972,12 +1200,26 @@ class GurobiColumnGenerationTest {
     private fun toPackageShapeSpec(
         shapeType: String?,
         radiusMeter: Flt64?,
+        radiusMinMeter: Flt64?,
+        radiusMaxMeter: Flt64?,
+        radiusStepMeter: Flt64?,
+        diameterMinMeter: Flt64?,
+        diameterMaxMeter: Flt64?,
+        diameterStepMeter: Flt64?,
         axis: String?,
         rowDescription: String
     ): PackageShapeSpec {
-        if (shapeType.isNullOrBlank() && (radiusMeter != null || !axis.isNullOrBlank())) {
+        val hasShapeMetadata = radiusMeter != null
+                || radiusMinMeter != null
+                || radiusMaxMeter != null
+                || radiusStepMeter != null
+                || diameterMinMeter != null
+                || diameterMaxMeter != null
+                || diameterStepMeter != null
+                || !axis.isNullOrBlank()
+        if (shapeType.isNullOrBlank() && hasShapeMetadata) {
             throw IllegalStateException(
-                "shape_type is required when radius_meter or axis is provided: $rowDescription"
+                "shape_type is required when shape metadata is provided: $rowDescription"
             )
         }
         val normalizedShapeType = shapeType
@@ -993,8 +1235,10 @@ class GurobiColumnGenerationTest {
             || normalizedShapeType == "cylinder"
         ) {
             val resolvedRadiusMeter = radiusMeter
+                ?: radiusMinMeter
+                ?: diameterMinMeter?.let { it / Flt64(2.0) }
                 ?: throw IllegalStateException(
-                    "missing radius_meter for cylinder row: $rowDescription"
+                    "missing radius_meter, radius_min, or diameter_min for cylinder row: $rowDescription"
                 )
             val resolvedAxis = parseAxis3OrThrow(
                 axis = axis,
@@ -1002,7 +1246,13 @@ class GurobiColumnGenerationTest {
             )
             return PackageShapeSpec.VerticalCylinder(
                 radius = resolvedRadiusMeter * Meter,
-                axis = resolvedAxis
+                axis = resolvedAxis,
+                radiusMin = radiusMinMeter?.let { it * Meter },
+                radiusMax = radiusMaxMeter?.let { it * Meter },
+                radiusStep = radiusStepMeter?.let { it * Meter },
+                diameterMin = diameterMinMeter?.let { it * Meter },
+                diameterMax = diameterMaxMeter?.let { it * Meter },
+                diameterStep = diameterStepMeter?.let { it * Meter }
             )
         }
         throw IllegalStateException(

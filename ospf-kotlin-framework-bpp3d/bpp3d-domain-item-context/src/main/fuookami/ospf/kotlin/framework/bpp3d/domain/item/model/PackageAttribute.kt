@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
@@ -33,6 +34,41 @@ private typealias PackageNumber = InfraNumber
 private typealias PackageCuboid = AbstractCuboid<PackageNumber>
 private typealias PackageQuantity = Quantity<PackageNumber>
 private typealias PackageVector3 = Vector<Dim3, PackageNumber>
+
+private fun PackageCuboid.supportPackingShape(): PackingShape3<InfraNumber> {
+    val itemShape = when (this) {
+        is Item -> packingShape
+        is ItemView -> unit.packingShape
+        else -> null
+    }
+    if (itemShape is CylinderPackingShape3) {
+        val itemOrientation = if (this is ItemView) {
+            orientation
+        } else {
+            Orientation.Upright
+        }
+        require(itemShape.axis == Axis3.Y && itemOrientation == Orientation.Upright) {
+            "Cylinder stacking and hanging support only accepts upright Axis3.Y items."
+        }
+        return itemShape
+    }
+    return asPackingShape3()
+}
+
+private fun PackageCuboid.bottomFootprintArea(): PackageQuantity {
+    val shapePlacement = ShapePlacement3(
+        shape = supportPackingShape(),
+        position = point3()
+    )
+    return shapePlacement.footprintOverlapArea(shapePlacement)
+}
+
+private fun PackageCuboid.bottomFootprintMinSpan(): PackageQuantity {
+    return when (val footprint = supportPackingShape().footprint()) {
+        is ShapeFootprint2.Circle -> footprint.radius + footprint.radius
+        is ShapeFootprint2.Rectangle -> if (footprint.width leq footprint.depth) footprint.width else footprint.depth
+    }
+}
 
 interface AbstractWeightAttribute {
     val maxLayer: UInt64
@@ -102,11 +138,11 @@ data class AbsoluteHangingPolicy(
             return false
         }
 
-        val length = Bottom.length(unit)
-        val width = Bottom.width(unit)
-        val minEdge = if (length leq width) length else width
-        val maxHangingArea = maxDifference * minEdge
-        val hangingArea = length * width - bottomSupport.area
+        val footprintArea = unit.bottomFootprintArea()
+        val footprintMinSpan = unit.bottomFootprintMinSpan()
+        val maxDifferenceSpan = maxDifference * (infraOne() * footprintMinSpan.unit)
+        val maxHangingArea = maxDifferenceSpan * footprintMinSpan
+        val hangingArea = footprintArea - bottomSupport.area
         return hangingArea leq maxHangingArea
     }
 
@@ -141,11 +177,9 @@ data class RelativeHangingPolicy(
             return false
         }
 
-        val length = Bottom.length(unit)
-        val width = Bottom.width(unit)
-        val s = length * width
-        val maxHangingArea = s * hangingPercentage
-        val hangingArea = s - bottomSupport.area
+        val footprintArea = unit.bottomFootprintArea()
+        val maxHangingArea = footprintArea * hangingPercentage
+        val hangingArea = footprintArea - bottomSupport.area
         return hangingArea leq maxHangingArea
     }
 

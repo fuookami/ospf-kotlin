@@ -7,6 +7,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.convertTo
 import fuookami.ospf.kotlin.quantities.quantity.neq
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.quantity.toFltX
@@ -20,6 +21,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.utils.functional.Eq
+import kotlin.math.abs
 import kotlin.math.ceil
 
 data class PackageBottomShape<V : FloatingNumber<V>>(
@@ -153,17 +155,29 @@ sealed interface PackageShapeSpec {
         val radiusCandidates: List<Quantity<InfraNumber>> = emptyList(),
         val radiusMin: Quantity<InfraNumber>? = null,
         val radiusMax: Quantity<InfraNumber>? = null,
-        val radiusWeightFunctionKey: String? = null
+        val radiusWeightFunctionKey: String? = null,
+        val radiusStep: Quantity<InfraNumber>? = null,
+        val diameterMin: Quantity<InfraNumber>? = null,
+        val diameterMax: Quantity<InfraNumber>? = null,
+        val diameterStep: Quantity<InfraNumber>? = null
     ) : PackageShapeSpec {
+        val resolvedRadiusCandidates: List<Quantity<InfraNumber>> = resolveVerticalCylinderRadiusCandidates(
+            radius = radius,
+            radiusCandidates = radiusCandidates,
+            radiusMin = radiusMin,
+            radiusMax = radiusMax,
+            radiusStep = radiusStep,
+            diameterMin = diameterMin,
+            diameterMax = diameterMax,
+            diameterStep = diameterStep
+        )
+
         init {
             require(radius.value.toDouble() > 0.0) {
                 "Vertical cylinder radius must be positive."
             }
-            require(radiusCandidates.all { it.value.toDouble() > 0.0 }) {
-                "Vertical cylinder radius candidates must all be positive."
-            }
             if (radiusCandidates.isNotEmpty()) {
-                require(radiusCandidates.any { it.value.toDouble() == radius.value.toDouble() }) {
+                require(resolvedRadiusCandidates.any { it sameCylinderRadiusValue radius }) {
                     "Resolved radius must be included in radius candidates when candidates are provided."
                 }
             }
@@ -178,21 +192,193 @@ sealed interface PackageShapeSpec {
                 }
             }
             if (radiusMin != null && radiusMax != null) {
-                require(radiusMin.value.toDouble() <= radiusMax.value.toDouble()) {
+                require(radiusMin.convertTo(radius.unit)!!.value.toDouble() <= radiusMax.convertTo(radius.unit)!!.value.toDouble()) {
                     "Vertical cylinder radiusMin must be less than or equal to radiusMax."
                 }
             }
             radiusMin?.let {
-                require(radius.value.toDouble() >= it.value.toDouble()) {
+                require(radius.value.toDouble() >= it.convertTo(radius.unit)!!.value.toDouble()) {
                     "Resolved radius must be greater than or equal to radiusMin."
                 }
             }
             radiusMax?.let {
-                require(radius.value.toDouble() <= it.value.toDouble()) {
+                require(radius.value.toDouble() <= it.convertTo(radius.unit)!!.value.toDouble()) {
                     "Resolved radius must be less than or equal to radiusMax."
                 }
             }
+            diameterMin?.let {
+                val minimumRadius = it.toRadiusQuantity(radius.unit, "diameterMin")
+                require(radius.value.toDouble() >= minimumRadius.value.toDouble()) {
+                    "Resolved radius diameter must be greater than or equal to diameterMin."
+                }
+            }
+            diameterMax?.let {
+                val maximumRadius = it.toRadiusQuantity(radius.unit, "diameterMax")
+                require(radius.value.toDouble() <= maximumRadius.value.toDouble()) {
+                    "Resolved radius diameter must be less than or equal to diameterMax."
+                }
+            }
         }
+    }
+}
+
+private const val CylinderRadiusCandidateTolerance = 1e-9
+
+private infix fun Quantity<InfraNumber>.sameCylinderRadiusValue(rhs: Quantity<InfraNumber>): Boolean {
+    val converted = rhs.convertTo(unit) ?: return false
+    return abs(value.toDouble() - converted.value.toDouble()) <= CylinderRadiusCandidateTolerance
+}
+
+private fun Quantity<InfraNumber>.toPositiveQuantity(
+    unit: PhysicalUnit,
+    fieldName: String
+): Quantity<InfraNumber> {
+    val converted = convertTo(unit)
+        ?: throw IllegalArgumentException("Vertical cylinder $fieldName must use a length-compatible unit.")
+    require(converted.value.toDouble() > 0.0) {
+        "Vertical cylinder $fieldName must be positive."
+    }
+    return converted
+}
+
+private fun Quantity<InfraNumber>.toRadiusQuantity(
+    unit: PhysicalUnit,
+    fieldName: String
+): Quantity<InfraNumber> {
+    val converted = toPositiveQuantity(unit, fieldName)
+    return Quantity(infraScalar(converted.value.toDouble() / 2.0), unit)
+}
+
+private fun distinctSortedRadiusCandidates(
+    candidates: List<Quantity<InfraNumber>>
+): List<Quantity<InfraNumber>> {
+    val sorted = candidates.sortedWith { lhs, rhs ->
+        lhs.value.toDouble().compareTo(rhs.value.toDouble())
+    }
+    val distinct = ArrayList<Quantity<InfraNumber>>()
+    for (candidate in sorted) {
+        if (distinct.none { it sameCylinderRadiusValue candidate }) {
+            distinct.add(candidate)
+        }
+    }
+    return distinct
+}
+
+private fun intervalCandidates(
+    min: Quantity<InfraNumber>,
+    max: Quantity<InfraNumber>,
+    step: Quantity<InfraNumber>,
+    unit: PhysicalUnit,
+    fieldPrefix: String
+): List<Quantity<InfraNumber>> {
+    val normalizedMin = min.toPositiveQuantity(unit, "${fieldPrefix}Min")
+    val normalizedMax = max.toPositiveQuantity(unit, "${fieldPrefix}Max")
+    val normalizedStep = step.toPositiveQuantity(unit, "${fieldPrefix}Step")
+    val minValue = normalizedMin.value.toDouble()
+    val maxValue = normalizedMax.value.toDouble()
+    val stepValue = normalizedStep.value.toDouble()
+    require(minValue <= maxValue + CylinderRadiusCandidateTolerance) {
+        "Vertical cylinder ${fieldPrefix}Min must be less than or equal to ${fieldPrefix}Max."
+    }
+
+    val values = ArrayList<Double>()
+    values.add(minValue)
+    while (values.last() + stepValue < maxValue - CylinderRadiusCandidateTolerance) {
+        values.add(values.last() + stepValue)
+        require(values.size <= 100000) {
+            "Vertical cylinder $fieldPrefix interval generates too many radius candidates."
+        }
+    }
+    if (abs(values.last() - maxValue) > CylinderRadiusCandidateTolerance) {
+        values.add(maxValue)
+    }
+    return values.map { Quantity(infraScalar(it), unit) }
+}
+
+private fun diameterIntervalRadiusCandidates(
+    min: Quantity<InfraNumber>,
+    max: Quantity<InfraNumber>,
+    step: Quantity<InfraNumber>,
+    unit: PhysicalUnit
+): List<Quantity<InfraNumber>> {
+    return intervalCandidates(
+        min = min,
+        max = max,
+        step = step,
+        unit = unit,
+        fieldPrefix = "diameter"
+    ).map {
+        Quantity(infraScalar(it.value.toDouble() / 2.0), unit)
+    }
+}
+
+private fun resolveVerticalCylinderRadiusCandidates(
+    radius: Quantity<InfraNumber>,
+    radiusCandidates: List<Quantity<InfraNumber>>,
+    radiusMin: Quantity<InfraNumber>?,
+    radiusMax: Quantity<InfraNumber>?,
+    radiusStep: Quantity<InfraNumber>?,
+    diameterMin: Quantity<InfraNumber>?,
+    diameterMax: Quantity<InfraNumber>?,
+    diameterStep: Quantity<InfraNumber>?
+): List<Quantity<InfraNumber>> {
+    radius.toPositiveQuantity(radius.unit, "radius")
+    radiusMin?.toPositiveQuantity(radius.unit, "radiusMin")
+    radiusMax?.toPositiveQuantity(radius.unit, "radiusMax")
+    radiusStep?.toPositiveQuantity(radius.unit, "radiusStep")
+    diameterMin?.toPositiveQuantity(radius.unit, "diameterMin")
+    diameterMax?.toPositiveQuantity(radius.unit, "diameterMax")
+    diameterStep?.toPositiveQuantity(radius.unit, "diameterStep")
+
+    if (radiusMin != null && radiusMax != null) {
+        require(radiusMin.convertTo(radius.unit)!!.value.toDouble() <= radiusMax.convertTo(radius.unit)!!.value.toDouble()) {
+            "Vertical cylinder radiusMin must be less than or equal to radiusMax."
+        }
+    }
+    if (diameterMin != null && diameterMax != null) {
+        require(diameterMin.convertTo(radius.unit)!!.value.toDouble() <= diameterMax.convertTo(radius.unit)!!.value.toDouble()) {
+            "Vertical cylinder diameterMin must be less than or equal to diameterMax."
+        }
+    }
+    if (radiusStep != null) {
+        require(radiusMin != null && radiusMax != null) {
+            "Vertical cylinder radiusStep requires radiusMin and radiusMax."
+        }
+    }
+    if (diameterStep != null) {
+        require(diameterMin != null && diameterMax != null) {
+            "Vertical cylinder diameterStep requires diameterMin and diameterMax."
+        }
+    }
+
+    val hasExplicitCandidates = radiusCandidates.isNotEmpty()
+    val hasRadiusInterval = radiusMin != null && radiusMax != null && radiusStep != null
+    val hasDiameterInterval = diameterMin != null && diameterMax != null && diameterStep != null
+    require(hasExplicitCandidates || !hasRadiusInterval || !hasDiameterInterval) {
+        "Vertical cylinder radius interval and diameter interval cannot both generate candidates."
+    }
+
+    return when {
+        hasExplicitCandidates -> distinctSortedRadiusCandidates(
+            radiusCandidates.map { it.toPositiveQuantity(radius.unit, "radiusCandidates") }
+        )
+
+        hasRadiusInterval -> intervalCandidates(
+            min = radiusMin,
+            max = radiusMax,
+            step = radiusStep,
+            unit = radius.unit,
+            fieldPrefix = "radius"
+        )
+
+        hasDiameterInterval -> diameterIntervalRadiusCandidates(
+            min = diameterMin,
+            max = diameterMax,
+            step = diameterStep,
+            unit = radius.unit
+        )
+
+        else -> listOf(radius.toPositiveQuantity(radius.unit, "radius"))
     }
 }
 

@@ -265,6 +265,18 @@ abstract class Pattern {
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
     ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
+        val unsupportedCylinder = originItems.keys.firstOrNull { item ->
+            item.packingShape is CylinderPackingShape3
+        }
+        if (unsupportedCylinder != null) {
+            return Failed(
+                Err(
+                    ErrorCode.ApplicationError,
+                    "Unsupported cylinder in Pattern: pattern placement paths are cuboid-only and do not provide verified cylinder geometry yet."
+                )
+            )
+        }
+
         val items = originItems
             .asSequence()
             .filter {

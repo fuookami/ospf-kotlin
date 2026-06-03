@@ -6,18 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-
-
-
-
-
 
 typealias ShadowPriceNumber = InfraNumber
 
@@ -25,7 +14,7 @@ open class BPP3DShadowPriceArguments(
     override val cuboid: Item
 ) : AbstractBPP3DShadowPriceArguments<Item>
 
-typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, Item>;
+typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, Item>
 
 fun BPP3DShadowPriceMap.reducedCost(unit: Any): ShadowPriceNumber {
     fun shadowPriceOf(item: Item): ShadowPriceNumber {
@@ -36,12 +25,12 @@ fun BPP3DShadowPriceMap.reducedCost(unit: Any): ShadowPriceNumber {
         is Container3<*> -> unit.units.fold(ShadowPriceNumber.zero) { acc, placement ->
             acc + when (val child = placement.unit) {
                 is Container3<*> -> reducedCost(child)
-                is Item -> child.volume.value - shadowPriceOf(child)
+                is Item -> child.shapeVolume.value - shadowPriceOf(child)
                 else -> ShadowPriceNumber.zero
             }
         }
 
-        is Item -> unit.volume.value - shadowPriceOf(unit)
+        is Item -> unit.shapeVolume.value - shadowPriceOf(unit)
         else -> ShadowPriceNumber.zero
     }
 }
@@ -74,9 +63,7 @@ fun BPP3DShadowPriceMap.reducedCost(
     )
 }
 
-typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>;
-typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>;
-typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>;
-
-
+typealias BPP3DShadowPriceExtractor = AbstractBPP3DShadowPriceExtractor<BPP3DShadowPriceArguments, Item>
+typealias BPP3DCGPipeline = AbstractBPP3DCGPipeline<BPP3DShadowPriceArguments, Item>
+typealias BPP3DCGPipelineList = AbstractBPP3DCGPipelineList<BPP3DShadowPriceArguments, Item>
 
