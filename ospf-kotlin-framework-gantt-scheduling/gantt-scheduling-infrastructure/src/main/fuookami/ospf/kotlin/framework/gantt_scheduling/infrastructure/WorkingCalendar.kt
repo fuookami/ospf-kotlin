@@ -2355,6 +2355,33 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
     private val quantityFloor: (Flt64) -> Quantity<V>
 ) : WorkingCalendar(timeWindow) where P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
 
+    /**
+     * 从生产力列表中解析产出数量的期望单位。
+     * Resolves the expected quantity unit from productivity entries.
+     *
+     * 优先使用第一个 unitYields 条目的单位；若无则回退到日历级 quantityUnit。
+     * Prefers the first unitYields entry's unit; falls back to calendar-level quantityUnit.
+     */
+    private fun resolveQuantityUnit(): PhysicalUnit {
+        return productivity.firstNotNullOfOrNull { p ->
+            p.unitYields.values.firstOrNull()?.unit
+                ?: p.conditionUnitYields.firstOrNull()?.second?.unit
+        } ?: quantityUnit
+    }
+
+    /**
+     * 校验输入数量的单位是否与日历的产出单位一致。
+     * Validates that the input quantity's unit matches the calendar's production unit.
+     *
+     * @throws IllegalArgumentException 当单位不一致时 / When units don't match
+     */
+    private fun validateQuantityUnit(quantity: Quantity<V>) {
+        val expected = resolveQuantityUnit()
+        require(quantity.unit == expected) {
+            "Quantity unit '${quantity.unit}' does not match productivity unit '$expected'"
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun rebuiltProductivityOf(source: P, timeWindow: TimeRange): P {
         return source.new(timeWindow = timeWindow) as P
@@ -2402,12 +2429,19 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
             if (entries.isEmpty()) {
                 Quantity(constants.zero, quantityUnit)
             } else {
+                // 校验所有条目的单位一致 / Validate all entries share the same unit
+                val units = entries.map { it.second.unit }.distinct()
+                require(units.size == 1) {
+                    "Inconsistent unitYield units for material '$material': $units"
+                }
+                val yieldUnit = units.single()
                 val totalWeighted = entries.fold(Flt64.zero) { acc, (dur, qty) ->
                     acc + qty.value.toFlt64() * timeWindow.valueOf(dur)
                 }
                 val totalDuration = entries.fold(Duration.ZERO) { acc, (dur, _) -> acc + dur }
                 val avgValue = totalWeighted / timeWindow.valueOf(totalDuration)
-                quantityFloor(avgValue)
+                val floored = quantityFloor(avgValue)
+                Quantity(floored.value, yieldUnit)
             }
         }
     }
@@ -2512,7 +2546,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeFromInternal(
             material = material, startTime = startTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2539,7 +2573,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeFromInternal(
             material = material, startTime = startTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2571,7 +2605,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeFromInternal(
             material = material, startTime = startTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2598,7 +2632,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeFromInternal(
             material = material, startTime = startTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2629,7 +2663,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeUntilInternal(
             material = material, endTime = endTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2655,7 +2689,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeUntilInternal(
             material = material, endTime = endTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2686,7 +2720,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeUntilInternal(
             material = material, endTime = endTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2712,7 +2746,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         return actualTimeUntilInternal(
             material = material, endTime = endTime,
             productivityCalendar = productivityCalendar,
-            quantityValue = quantity.value,
+            quantity = quantity,
             unavailableTimes = (unavailableTimes + this.unavailableTimes).merge(),
             beforeConnectionTime = beforeConnectionTime,
             afterConnectionTime = afterConnectionTime,
@@ -2735,7 +2769,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
     ): Quantity<V> {
         val productivityCalendar = productivity.find(time, QuantityProductivity<V, T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
-            return Quantity(constants.zero, quantityUnit)
+            return Quantity(constants.zero, resolveQuantityUnit())
         }
         return actualQuantityInternal(
             material = material, time = time,
@@ -2787,7 +2821,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
     ): Quantity<V> {
         val productivityCalendar = productivity.findParallelly(time, QuantityProductivity<V, T, U>::timeWindow)
         if (productivityCalendar.isEmpty()) {
-            return Quantity(constants.zero, quantityUnit)
+            return Quantity(constants.zero, resolveQuantityUnit())
         }
         return actualQuantityInternal(
             material = material, time = time,
@@ -2832,7 +2866,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         material: T,
         startTime: Instant,
         productivityCalendar: List<QuantityProductivity<V, T, U>>,
-        quantityValue: V,
+        quantity: Quantity<V>,
         unavailableTimes: List<TimeRange> = emptyList(),
         beforeConnectionTime: DurationRange? = null,
         afterConnectionTime: DurationRange? = null,
@@ -2841,6 +2875,8 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
+        validateQuantityUnit(quantity)
+        val quantityValue = quantity.value
         var produceQuantity = Flt64.zero
         var currentTime = startTime
         val workingTimes = ArrayList<TimeRange>()
@@ -2903,7 +2939,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         material: T,
         endTime: Instant,
         productivityCalendar: List<QuantityProductivity<V, T, U>>,
-        quantityValue: V,
+        quantity: Quantity<V>,
         unavailableTimes: List<TimeRange> = emptyList(),
         beforeConnectionTime: DurationRange? = null,
         afterConnectionTime: DurationRange? = null,
@@ -2911,6 +2947,8 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         afterConditionalConnectionTime: ((TimeRange) -> DurationRange?)? = null,
         breakTime: Pair<DurationRange, Duration>? = null
     ): ActualTime {
+        validateQuantityUnit(quantity)
+        val quantityValue = quantity.value
         var produceQuantity = Flt64.zero
         var currentTime = endTime
         val workingTimes = ArrayList<TimeRange>()
@@ -2980,6 +3018,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         currentDuration: Duration = Duration.ZERO,
         breakTime: Pair<DurationRange, Duration>? = null
     ): Quantity<V> {
+        val resolvedUnit = resolveQuantityUnit()
         val validTimes = validTimes(
             time = time,
             unavailableTimes = unavailableTimes,
@@ -3001,7 +3040,8 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
                 }
 
                 val produceTime = validTime.intersectionWith(calendar.timeWindow)?.duration ?: continue
-                val currentProductivity = calendar.unitYieldOf(material)?.value?.toFlt64()
+                val unitYieldQty = calendar.unitYieldOf(material)
+                val currentProductivity = unitYieldQty?.value?.toFlt64()
                     ?: calendar.capacityOf(material)
                         ?.let { Flt64.one / with(timeWindow) { it.value } }
                     ?: Flt64.zero
@@ -3010,7 +3050,8 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
                 }
             }
         }
-        return quantityFloor(totalFlt64)
+        val floored = quantityFloor(totalFlt64)
+        return Quantity(floored.value, resolvedUnit)
     }
 }
 
