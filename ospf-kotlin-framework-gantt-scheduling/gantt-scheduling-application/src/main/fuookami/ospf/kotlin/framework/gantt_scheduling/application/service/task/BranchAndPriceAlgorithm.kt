@@ -6,7 +6,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.task
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
@@ -27,13 +27,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * 分支定价算法 / Branch and price algorithm
@@ -152,7 +145,7 @@ class BranchAndPriceAlgorithm<
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: TaskSolution<T, E, A>
-        return LinearMetaModel<Flt64>(id, converter = flt64Converter).use { model ->
+        return LinearMetaModel<Flt64>(id, converter = SchedulingSolverValueAdapter.Flt64).use { model ->
             try {
                 var iteration = Iteration<IT, E, A>()
                 when (val result = register(model)) {

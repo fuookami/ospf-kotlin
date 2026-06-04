@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.AndFunction
@@ -21,13 +21,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray.Shape3
 import fuookami.ospf.kotlin.multiarray._a
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /** 切换接口 / Switch interface */
 interface Switch {
@@ -89,11 +82,11 @@ class TaskSchedulingSwitch<
                         IfFunction.from(
                             inequality = LinearConstraintInput.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
-                                converter = flt64Converter,
+                                converter = SchedulingSolverValueAdapter.Flt64,
                                 lhsRange = taskTime.estimateStartTime[task1].range.range!!,
                                 rhsConstant = Flt64.zero
                             ),
-                            converter = flt64Converter,
+                            converter = SchedulingSolverValueAdapter.Flt64,
                             name = "front_of_${task1}_$task2"
                         )
                     }
@@ -133,7 +126,7 @@ class TaskSchedulingSwitch<
                                 frontOf[task1, task3],
                                 frontOf[task3, task2]
                             ),
-                            converter = flt64Converter,
+                            converter = SchedulingSolverValueAdapter.Flt64,
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     }
@@ -183,7 +176,7 @@ class TaskSchedulingSwitch<
                     }
                     AndFunction.fromLinearPolynomials(
                         polynomials = conditions,
-                        converter = flt64Converter,
+                        converter = SchedulingSolverValueAdapter.Flt64,
                         name = "switch_${executor}_${task1}_${task2}"
                     )
                 } else {
@@ -195,7 +188,7 @@ class TaskSchedulingSwitch<
                                 compilation.taskAssignment[executor, task1],
                                 compilation.taskAssignment[executor, task2]
                             ),
-                            converter = flt64Converter,
+                            converter = SchedulingSolverValueAdapter.Flt64,
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     } else {
@@ -233,7 +226,7 @@ class TaskSchedulingSwitch<
                         name = "switch_time_x_${task1}_$task2"
                     ),
                     mask = thisSwitch,
-                    converter = flt64Converter,
+                    converter = SchedulingSolverValueAdapter.Flt64,
                     name = "switch_time_${task1}_$task2"
                 )
             }

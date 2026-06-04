@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.flatMap
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -21,13 +21,6 @@ import fuookami.ospf.kotlin.multiarray.Shape2
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * 迭代产能编译决策对象（列生成主问题）
@@ -510,7 +503,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         // 从 operationTime 计算执行器产能
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
-                val capValue = capacity[e, s].evaluate(model.tokens, flt64Converter)
+                val capValue = capacity[e, s].evaluate(model.tokens, SchedulingSolverValueAdapter.Flt64)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
                     timeWindow.durationOf(capValue)
                 } else {

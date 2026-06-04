@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.OrFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -26,13 +26,6 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /** 编译接口 / Compilation interface */
 interface Compilation {
@@ -251,7 +244,7 @@ class TaskCompilation<
                 val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
                 val or = OrFunction(
                     polynomials = orPolynomials,
-                    converter = flt64Converter,
+                    converter = SchedulingSolverValueAdapter.Flt64,
                     name = "executor_compilation_or_${executors[i]}"
                 )
                 orFunctions.add(or)
@@ -266,7 +259,7 @@ class TaskCompilation<
                 )
             }
             for (or in orFunctions) {
-                when (val result = model.add(LinearFunctionSymbolAdapter(or, flt64Converter))) {
+                when (val result = model.add(LinearFunctionSymbolAdapter(or, SchedulingSolverValueAdapter.Flt64))) {
                     is Ok -> {}
 
                     is Failed -> {

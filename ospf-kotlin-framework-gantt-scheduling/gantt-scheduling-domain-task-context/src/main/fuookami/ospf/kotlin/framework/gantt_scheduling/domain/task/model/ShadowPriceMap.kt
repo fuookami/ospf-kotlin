@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.resolveFlt64ValueConverter
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -129,7 +128,7 @@ inline fun <
             )
         }
     }
-    return resolveFlt64ValueConverter<V>("GanttSchedulingShadowPriceMap.reducedCost").intoValue(ret)
+    return SchedulingSolverValueAdapter.create<V>().intoValue(ret)
 }
 
 /** 抽象甘特调度影子价格提取器类型别名 / Abstract Gantt scheduling shadow price extractor type alias */

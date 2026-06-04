@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.IfFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.symbol.function.IfThenFunction
 import fuookami.ospf.kotlin.core.symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
@@ -34,13 +34,6 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * 松弛符号构建 / Slack symbol construction
@@ -68,10 +61,10 @@ private fun slackSymbol(
             type = type,
             withNegative = withNegative,
             withPositive = withPositive,
-            converter = flt64Converter,
+            converter = SchedulingSolverValueAdapter.Flt64,
             name = name
         ),
-        converter = flt64Converter
+        converter = SchedulingSolverValueAdapter.Flt64
     )
 }
 
@@ -163,7 +156,7 @@ abstract class TaskTimeImpl<
                         MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
                             mask = compilation.taskCompilation[task],
-                            converter = flt64Converter,
+                            converter = SchedulingSolverValueAdapter.Flt64,
                             name = "delay_time_${task}"
                         )
                     } else {
@@ -227,7 +220,7 @@ abstract class TaskTimeImpl<
                         MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
                             mask = compilation.taskCompilation[task],
-                            converter = flt64Converter,
+                            converter = SchedulingSolverValueAdapter.Flt64,
                             name = "advance_time_${task}"
                         )
                     } else {
@@ -324,7 +317,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = flt64Converter,
+                                            converter = SchedulingSolverValueAdapter.Flt64,
                                             name = "over_max_delay_time_${task}"
                                         )
                                     } else {
@@ -419,7 +412,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = flt64Converter,
+                                            converter = SchedulingSolverValueAdapter.Flt64,
                                             name = "over_max_advance_time_${task}"
                                         )
                                     } else {
@@ -514,7 +507,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = flt64Converter,
+                                            converter = SchedulingSolverValueAdapter.Flt64,
                                             name = "delay_last_end_time_${task}"
                                         )
                                     } else {
@@ -605,7 +598,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = flt64Converter,
+                                            converter = SchedulingSolverValueAdapter.Flt64,
                                             name = "advance_earliest_end_time_${task}"
                                         )
                                     } else {
@@ -675,11 +668,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
-                                        converter = flt64Converter,
+                                        converter = SchedulingSolverValueAdapter.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = flt64Converter,
+                                    converter = SchedulingSolverValueAdapter.Flt64,
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -725,11 +718,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
-                                        converter = flt64Converter,
+                                        converter = SchedulingSolverValueAdapter.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = flt64Converter,
+                                    converter = SchedulingSolverValueAdapter.Flt64,
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -809,11 +802,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
-                                        converter = flt64Converter,
+                                        converter = SchedulingSolverValueAdapter.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = flt64Converter,
+                                    converter = SchedulingSolverValueAdapter.Flt64,
                                     name = "not_on_last_end_time_${task}"
                                 )
                             }
@@ -859,11 +852,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
-                                        converter = flt64Converter,
+                                        converter = SchedulingSolverValueAdapter.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = flt64Converter,
+                                    converter = SchedulingSolverValueAdapter.Flt64,
                                     name = "not_on_earliest_end_time_${task}"
                                 )
                             }

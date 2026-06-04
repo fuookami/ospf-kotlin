@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -24,13 +24,6 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Instant
-
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * 将求解流程中的任务对象收敛为目标任务类型。
@@ -154,7 +147,7 @@ data object SolutionAnalyzer {
         }
 
         val assignedECT = assignedExecutor.entries.associate { (task, _) ->
-            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, flt64Converter)?.let {
+            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, SchedulingSolverValueAdapter.Flt64)?.let {
                 with(timeWindow) { it.instant }
             } ?: Instant.DISTANT_FUTURE)
         }
