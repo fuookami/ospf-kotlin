@@ -622,19 +622,19 @@ val ItemPlacement3.bottomOnly: Boolean
 @get:JvmName("itemProjectionTopFlat")
 val ItemProjection<*>.topFlat: Boolean
     get() {
-        return view.topFlat
+        return (view as ItemView).topFlat
     }
 
 @get:JvmName("itemPlacement2TopFlat")
 val ItemPlacement2<*>.topFlat: Boolean
     get() {
-        return view.topFlat
+        return (view as ItemView).topFlat
     }
 
 @get:JvmName("itemPlacement3TopFlat")
 val ItemPlacement3.topFlat: Boolean
     get() {
-        return view.topFlat
+        return (view as ItemView).topFlat
     }
 @JvmName("itemPlacement2SideEnabledStackingOn")
 suspend fun ItemPlacement2<Side>.enabledStackingOn(
@@ -894,21 +894,14 @@ fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<
 }
 
 @get:JvmName("cuboidUnitPackageType")
-/** 长方体包装类型属性（Cuboid-only compat）。Cuboid-only compat extension for package type. */
-val Cuboid<*>.packageType: PackageType
+/** 货物域立方体包装类型属性（item-domain cuboid compat）。Item-domain cuboid compat extension for package type. */
+val ItemCuboid.packageType: PackageType
     get() {
         return when (this) {
             is Item -> packageType
             is ItemContainer<*> -> packageType
             else -> PackageType.CartonContainer
         }
-    }
-
-@get:JvmName("cuboidViewPackageType")
-/** 长方体视图包装类型属性（CuboidView-only compat）。CuboidView-only compat extension for package type. */
-val CuboidView<*>.packageType: PackageType
-    get() {
-        return unit.packageType
     }
 
 @get:JvmName("cuboidProjectionPackageType")
@@ -939,13 +932,6 @@ val ItemCuboid.packageCategory: PackageCategory
         }
     }
 
-@get:JvmName("cuboidViewPackageCategory")
-/** 长方体视图包装类别属性（CuboidView-only compat）。CuboidView-only compat extension for package category. */
-val CuboidView<*>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
 @get:JvmName("cuboidProjectionPackageCategory")
 val Projection<*, *>.packageCategory: PackageCategory
     get() {
@@ -965,21 +951,14 @@ val AnyPlacement3.packageCategory: PackageCategory
     }
 
 @get:JvmName("cuboidUnitBottomOnly")
-/** 长方体底部限定属性（Cuboid-only compat）。Cuboid-only compat extension for bottom-only constraint. */
-val Cuboid<*>.bottomOnly: Boolean
+/** 货物域立方体底部限定属性（item-domain cuboid compat）。Item-domain cuboid compat extension for bottom-only constraint. */
+val ItemCuboid.bottomOnly: Boolean
     get() {
         return when (this) {
             is Item -> bottomOnly
             is ItemContainer<*> -> bottomOnly
             else -> false
         }
-    }
-
-@get:JvmName("cuboidViewBottomOnly")
-/** 长方体视图底部限定属性（CuboidView-only compat）。CuboidView-only compat extension for bottom-only constraint. */
-val CuboidView<*>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
     }
 
 @get:JvmName("cuboidProjectionBottomOnly")
@@ -1001,23 +980,12 @@ val AnyPlacement3.bottomOnly: Boolean
     }
 
 @get:JvmName("cuboidUnitTopFlat")
-/** 长方体顶部平整属性（Cuboid-only compat）。Cuboid-only compat extension for top-flat constraint. */
-val Cuboid<*>.topFlat: Boolean
+/** 货物域立方体顶部平整属性（item-domain cuboid compat）。Item-domain cuboid compat extension for top-flat constraint. */
+val ItemCuboid.topFlat: Boolean
     get() {
         return when (this) {
             is Item -> topFlat
             is ItemContainer<*> -> topFlat
-            else -> false
-        }
-    }
-
-@get:JvmName("cuboidViewTopFlat")
-/** 长方体视图顶部平整属性（CuboidView-only compat）。CuboidView-only compat extension for top-flat constraint. */
-val CuboidView<*>.topFlat: Boolean
-    get() {
-        return when (unit) {
-            is Item -> (this as ItemView).topFlat
-            is ItemContainer<*> -> (unit as ItemContainer<*>).topFlat
             else -> false
         }
     }

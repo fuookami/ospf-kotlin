@@ -539,7 +539,7 @@ data class PackageAttribute(
         val (layer, height) = layer(item, bottomItems)
 
         for (bottomItem in directBottomItems) {
-            if (!bottomItem.view.topFlat) {
+            if (!bottomItem.topFlat) {
                 if (!bottomItem.unit.enabledOrientations.contains(bottomItem.orientation) && !item.unit.enabledOrientations.contains(item.orientation)) {
                     if (item.orientation.category == OrientationCategory.Side && layer >= item.unit.sideOnTopLayer) {
                         return false
