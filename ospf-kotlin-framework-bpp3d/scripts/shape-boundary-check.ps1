@@ -79,7 +79,6 @@ Add-TokenViolation -Check "CuboidTypeBoundOutOfAllowList" -Pattern "T\s*:\s*Cubo
 
 Add-TokenViolation -Check "CuboidWildcardOutOfAllowList" -Pattern "\bCuboid\s*<\s*\*\s*>" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt",
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/ItemMerger.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/LoadingOrderCalculator.kt",
     "/bpp3d-domain-layer-assignment-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_assignment/service/limits/DemandConstraint.kt"
 )

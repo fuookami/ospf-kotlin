@@ -33,12 +33,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -80,16 +82,25 @@ class PackerAndRendererAdapterTest {
     private fun cylinderItem(
         id: String,
         material: Material<InfraNumber>,
-        axis: Axis3 = Axis3.Y
+        axis: Axis3 = Axis3.Y,
+        radiusValue: Double = 0.5,
+        lengthValue: Double = 1.2
     ): ActualItem {
-        val radius = infraScalar(0.5) * Meter
-        val height = infraScalar(1.2) * Meter
+        val radius = infraScalar(radiusValue) * Meter
+        val height = infraScalar(lengthValue) * Meter
         val cylinderWeight = infraScalar(1.0) * Kilogram
+        val diameter = radius + radius
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = infraScalar(1.0) * Meter,
+                width = when (axis) {
+                    Axis3.X -> height
+                    Axis3.Y, Axis3.Z -> diameter
+                },
                 height = height,
-                depth = infraScalar(1.0) * Meter,
+                depth = when (axis) {
+                    Axis3.Z -> height
+                    Axis3.X, Axis3.Y -> diameter
+                },
                 weight = cylinderWeight,
                 packageType = PackageType.CartonContainer
             ),
@@ -99,9 +110,18 @@ class PackerAndRendererAdapterTest {
             id = id,
             name = id,
             pack = pack,
-            width = infraScalar(1.0) * Meter,
-            height = height,
-            depth = infraScalar(1.0) * Meter,
+            width = when (axis) {
+                Axis3.X -> height
+                Axis3.Y, Axis3.Z -> diameter
+            },
+            height = when (axis) {
+                Axis3.X, Axis3.Z -> diameter
+                Axis3.Y -> height
+            },
+            depth = when (axis) {
+                Axis3.Z -> height
+                Axis3.X, Axis3.Y -> diameter
+            },
             weight = cylinderWeight,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
@@ -367,6 +387,8 @@ class PackerAndRendererAdapterTest {
             )
         }
         assertTrue(error.message?.contains("outside bin") == true)
+        assertTrue(error.message?.contains("type=outside_bin") == true)
+        assertTrue(error.message?.contains("item[0]") == true)
     }
 
     @Test
@@ -390,6 +412,8 @@ class PackerAndRendererAdapterTest {
             )
         }
         assertTrue(error.message?.contains("overlaps") == true)
+        assertTrue(error.message?.contains("type=overlap") == true)
+        assertTrue(error.message?.contains("bin=bin-1") == true)
     }
 
     @Test
@@ -433,6 +457,7 @@ class PackerAndRendererAdapterTest {
             PackingRendererAdapter().toSchema(result)
         }
         assertTrue(error.message?.contains("overlaps") == true)
+        assertTrue(error.message?.contains("type=overlap") == true)
     }
 
     @Test
@@ -589,6 +614,249 @@ class PackerAndRendererAdapterTest {
             )
         }
         assertTrue(error.message?.contains("must be placed on bin floor") == true)
+        assertTrue(error.message?.contains("type=horizontal_support") == true)
+    }
+
+    @Test
+    fun rendererAdapterShouldAcceptHorizontalCylinderWithFullLengthCuboidSupport() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-H-SUPPORTED"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-H-SUPPORTED",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val result = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = item("support-full", material).view(Orientation.Upright),
+                                    position = point3()
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = cylinderItem(
+                                        id = "cyl-x-supported",
+                                        material = material,
+                                        axis = Axis3.X,
+                                        lengthValue = 1.0
+                                    ).view(Orientation.Upright),
+                                    position = point3(y = infraScalar(1.0) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+
+        assertEquals(2, items.size)
+        assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
+    }
+
+    @Test
+    fun rendererAdapterShouldRejectHorizontalCylinderWithPartialCuboidSupport() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-H-PARTIAL-SUPPORT"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-H-PARTIAL-SUPPORT",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val result = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = item("support-partial", material).view(Orientation.Upright),
+                                    position = point3()
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = cylinderItem(
+                                        id = "cyl-x-partial-support",
+                                        material = material,
+                                        axis = Axis3.X,
+                                        lengthValue = 1.2
+                                    ).view(Orientation.Upright),
+                                    position = point3(y = infraScalar(1.0) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(result)
+        }
+        assertTrue(error.message?.contains("type=horizontal_support") == true)
+        assertTrue(error.message?.contains("full-length support") == true)
+    }
+
+    @Test
+    fun rendererAdapterShouldAcceptSameAxisCylinderBoundaryTangentAndRejectTinyOverlap() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-SAME-AXIS"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-SAME-AXIS",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val tangentResult = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = cylinderItem("cyl-y-tangent-1", material, radiusValue = 0.4).view(Orientation.Upright),
+                                    position = point3(z = infraScalar(0.2) * Meter)
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = cylinderItem("cyl-y-tangent-2", material, radiusValue = 0.6, lengthValue = 1.8).view(Orientation.Upright),
+                                    position = point3(x = infraScalar(0.8) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val tangentSchema = PackingRendererAdapter().toSchema(tangentResult)
+        assertEquals(2, tangentSchema.loadingPlans.first().items.size)
+
+        val overlapResult = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = cylinderItem("cyl-y-overlap-1", material, radiusValue = 0.4).view(Orientation.Upright),
+                                    position = point3(z = infraScalar(0.2) * Meter)
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = placement3Of(
+                                    view = cylinderItem("cyl-y-overlap-2", material, radiusValue = 0.6, lengthValue = 1.8).view(Orientation.Upright),
+                                    position = point3(x = infraScalar(0.799) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(overlapResult)
+        }
+        assertTrue(error.message?.contains("type=overlap") == true)
+        assertTrue(error.message?.contains("VerticalCylinder") == true)
+    }
+
+    @Test
+    fun rendererAdapterShouldAcceptAndRejectDifferentAxisCylinderCriticalGeometry() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-DIFF-AXIS"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-DIFF-AXIS",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val separatedBin = layerBin(
+            items = listOf(
+                cylinderItem("cyl-x-separated", material, axis = Axis3.X),
+                cylinderItem("cyl-y-separated", material, axis = Axis3.Y)
+            ),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.0, 1.1))
+        )
+        val separatedResult = toPackingResult(separatedBin)
+        val separatedSchema = PackingRendererAdapter().toSchema(separatedResult)
+
+        assertEquals(2, separatedSchema.loadingPlans.first().items.size)
+
+        val crossingBin = layerBin(
+            items = listOf(
+                cylinderItem("cyl-x-crossing", material, axis = Axis3.X),
+                cylinderItem("cyl-y-crossing", material, axis = Axis3.Y)
+            ),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.0, 0.25))
+        )
+        val crossingResult = toPackingResult(crossingBin)
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(crossingResult)
+        }
+        assertTrue(error.message?.contains("type=overlap") == true)
+        assertTrue(error.message?.contains("HorizontalCylinderX") == true)
+        assertTrue(error.message?.contains("VerticalCylinder") == true)
+    }
+
+    @Test
+    fun packerShouldUseRealCylinderBoxCornerGeometryAtBoundary() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-BOX-CORNER"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-BOX-CORNER",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val tangentBin = layerBin(
+            items = listOf(item("box-corner-tangent", material), cylinderItem("cyl-corner-tangent", material)),
+            positions = listOf(Pair(0.0, 0.0), Pair(1.0 - 0.5 + (0.5 / sqrt(2.0)), 1.0 - 0.5 + (0.5 / sqrt(2.0))))
+        )
+
+        val tangentResult = Packer().invoke(
+            bins = listOf(tangentBin),
+            context = PackingContext()
+        )
+        assertEquals(2, tangentResult.aggregation.bins.first().items.size)
+
+        val overlapBin = layerBin(
+            items = listOf(item("box-corner-overlap", material), cylinderItem("cyl-corner-overlap", material)),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.75, 0.75))
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            Packer().invoke(
+                bins = listOf(overlapBin),
+                context = PackingContext()
+            )
+        }
+        assertTrue(error.message?.contains("type=overlap") == true)
+        assertTrue(error.message?.contains("Cuboid") == true)
+        assertTrue(error.message?.contains("VerticalCylinder") == true)
     }
 }
 

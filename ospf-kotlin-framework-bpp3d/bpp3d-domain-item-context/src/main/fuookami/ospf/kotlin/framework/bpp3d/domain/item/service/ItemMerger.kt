@@ -133,7 +133,7 @@ data object ItemMerger {
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<Cuboid<*>> {
+    ): List<ItemCuboid> {
         requireNoCylinderItemsForMerge(
             items = items,
             source = "ItemMerger.merge"
@@ -157,7 +157,7 @@ data object ItemMerger {
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<Cuboid<*>> {
+    ): List<ItemCuboid> {
         requireNoCylinderItemsForMerge(
             items = items,
             source = "ItemMerger.merge"
@@ -169,7 +169,7 @@ data object ItemMerger {
         } else {
             items.filter { item -> predicate?.let { it(item) } != false }
         }
-        val mergedItems = ArrayList<Cuboid<*>>()
+        val mergedItems = ArrayList<ItemCuboid>()
 
         if (config.mergeAsPatternBlock) {
             val (thisMergedItems, thisRestItems) = mergePatternBlocks(
@@ -678,7 +678,7 @@ data object ItemMerger {
      * Cuboid-only: cylinders are explicitly rejected in this path.
      */
     @JvmName("dumpItems")
-    fun dump(cuboids: List<Cuboid<*>>): List<Item> {
+    fun dump(cuboids: List<ItemCuboid>): List<Item> {
         return cuboids.flatMap {
             when (it) {
                 is Item -> listOf(it)

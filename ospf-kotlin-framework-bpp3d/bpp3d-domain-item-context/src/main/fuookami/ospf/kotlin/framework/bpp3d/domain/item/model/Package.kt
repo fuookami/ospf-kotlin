@@ -382,12 +382,20 @@ private fun resolveVerticalCylinderRadiusCandidates(
     }
 }
 
+private fun PackageShape<InfraNumber>.cylinderAxisLength(axis: Axis3): Quantity<InfraNumber> {
+    return when (axis) {
+        Axis3.X -> width
+        Axis3.Y -> height
+        Axis3.Z -> depth
+    }
+}
+
 fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>? {
-    val shapeHeight = height
     val shapeWeight = weight
     return when (val spec = shapeSpec) {
         PackageShapeSpec.Cuboid -> null
         is PackageShapeSpec.VerticalCylinder -> {
+            val shapeHeight = cylinderAxisLength(spec.axis)
             CylinderPackingShape3(
                 cylinder = object : AbstractCylinder<InfraNumber> {
                     override val radius = spec.radius

@@ -17,7 +17,7 @@
 
 1. 候选生成、block loading、stacking 和 hanging 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
 2. 最终装箱转换/渲染路径可以接受 `Axis3.X` / `Axis3.Z` 横向圆柱，但前提是坐标已经固定，并由 `PackingGeometryGuard` 执行真实轴对齐圆柱几何校验。
-3. 横向圆柱必须贴在箱底；悬空横向圆柱会被拒绝。
+3. 横向圆柱必须贴在箱底，或由下方长方体提供全长支撑；无支撑或局部支撑的横向圆柱会被拒绝。
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
 5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
 6. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
@@ -35,8 +35,8 @@
 | 轴向 | 含义 | 当前状态 |
 | --- | --- | --- |
 | `Axis3.Y` | 竖直圆柱；装载平面上的 footprint 为圆。 | 已在带门禁的竖直圆柱路径支持，并使用真实 footprint 校验。 |
-| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 仅在最终装箱/渲染路径中由真实 3D 几何 guard 保护后支持；候选生成、支撑和 stacking 路径仍为 unsupported。 |
-| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 仅在最终装箱/渲染路径中由真实 3D 几何 guard 保护后支持；候选生成、支撑和 stacking 路径仍为 unsupported。 |
+| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 仅在最终装箱/渲染路径中由真实 3D 几何和贴地/全长长方体支撑 guard 保护后支持；候选生成、stacking 和 hanging 路径仍为 unsupported。 |
+| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 仅在最终装箱/渲染路径中由真实 3D 几何和贴地/全长长方体支撑 guard 保护后支持；候选生成、stacking 和 hanging 路径仍为 unsupported。 |
 
 ## CSV 输入协议（Gurobi 数据集）
 

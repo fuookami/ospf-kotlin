@@ -27,20 +27,9 @@ private data class PackingGeometry(
     val maxX = minX + shape.boundingWidth.toDouble()
     val maxY = minY + shape.boundingHeight.toDouble()
     val maxZ = minZ + shape.boundingDepth.toDouble()
-}
 
-private fun requireHorizontalCylinderSupport(
-    geometry: PackingGeometry,
-    index: Int,
-    binName: String,
-    source: String
-) {
-    val cylinder = geometry.shape as? CylinderPackingShape3 ?: return
-    if (cylinder.axis != Axis3.Y && abs(geometry.minY) > PackingGeometryOverlapTolerance) {
-        throw IllegalArgumentException(
-            "Unsupported placement geometry in $source: horizontal cylinder item[$index] must be placed on bin floor in bin $binName."
-        )
-    }
+    val diagnostic: String
+        get() = "shape=${shape.algorithmShapeType}, axis=${shape.axis ?: "none"}"
 }
 
 private fun intervalOverlaps(lhsMin: Double, lhsMax: Double, rhsMin: Double, rhsMax: Double): Boolean {
@@ -81,6 +70,94 @@ private fun PackingGeometry.max(axis: Axis3): Double {
 
 private fun axesExcept(axis: Axis3): List<Axis3> {
     return Axis3.entries.filter { it != axis }
+}
+
+private fun horizontalCylinderSupportRadialAxis(axis: Axis3): Axis3 {
+    return when (axis) {
+        Axis3.X -> Axis3.Z
+        Axis3.Y -> Axis3.Y
+        Axis3.Z -> Axis3.X
+    }
+}
+
+private fun containsCoordinate(min: Double, max: Double, coordinate: Double): Boolean {
+    return coordinate >= min - PackingGeometryOverlapTolerance
+            && coordinate <= max + PackingGeometryOverlapTolerance
+}
+
+private fun intervalsCover(targetMin: Double, targetMax: Double, intervals: List<Pair<Double, Double>>): Boolean {
+    var coveredMax = targetMin
+    for ((intervalMin, intervalMax) in intervals.sortedBy { it.first }) {
+        if (intervalMax <= coveredMax + PackingGeometryOverlapTolerance) {
+            continue
+        }
+        if (intervalMin - coveredMax > PackingGeometryOverlapTolerance) {
+            return false
+        }
+        coveredMax = max(coveredMax, intervalMax)
+        if (coveredMax >= targetMax - PackingGeometryOverlapTolerance) {
+            return true
+        }
+    }
+    return coveredMax >= targetMax - PackingGeometryOverlapTolerance
+}
+
+private fun hasFullLengthHorizontalCylinderSupport(
+    geometry: PackingGeometry,
+    index: Int,
+    geometries: List<PackingGeometry>
+): Boolean {
+    val cylinder = geometry.shape as? CylinderPackingShape3 ?: return true
+    val axis = cylinder.axis
+    if (axis == Axis3.Y || abs(geometry.minY) <= PackingGeometryOverlapTolerance) {
+        return true
+    }
+
+    val radialAxis = horizontalCylinderSupportRadialAxis(axis)
+    val bottomLineCoordinate = geometry.center(radialAxis)
+    val supportIntervals = geometries.mapIndexedNotNull { candidateIndex, candidate ->
+        if (candidateIndex == index || candidate.shape is CylinderPackingShape3) {
+            return@mapIndexedNotNull null
+        }
+        if (abs(candidate.maxY - geometry.minY) > PackingGeometryOverlapTolerance) {
+            return@mapIndexedNotNull null
+        }
+        if (!containsCoordinate(candidate.min(radialAxis), candidate.max(radialAxis), bottomLineCoordinate)) {
+            return@mapIndexedNotNull null
+        }
+        val intervalMin = max(candidate.min(axis), geometry.min(axis))
+        val intervalMax = min(candidate.max(axis), geometry.max(axis))
+        if (intervalMax - intervalMin <= PackingGeometryOverlapTolerance) {
+            null
+        } else {
+            Pair(intervalMin, intervalMax)
+        }
+    }
+
+    return intervalsCover(
+        targetMin = geometry.min(axis),
+        targetMax = geometry.max(axis),
+        intervals = supportIntervals
+    )
+}
+
+private fun requireHorizontalCylinderSupport(
+    geometry: PackingGeometry,
+    index: Int,
+    geometries: List<PackingGeometry>,
+    binName: String,
+    source: String
+) {
+    if (!hasFullLengthHorizontalCylinderSupport(
+            geometry = geometry,
+            index = index,
+            geometries = geometries
+        )
+    ) {
+        throw IllegalArgumentException(
+            "Unsupported placement geometry in $source: type=horizontal_support, bin=$binName, item[$index] ${geometry.diagnostic} must be placed on bin floor or full-length support."
+        )
+    }
 }
 
 private fun boxBoxOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean {
@@ -180,28 +257,35 @@ internal fun requirePackedBinShapeGeometry(
         val placement = packed.placement
         val shape = placement.resolvedPackingShape()
         if (!bin.type.enabled(shape, placement.absolutePosition)) {
+            val geometry = PackingGeometry(
+                shape = shape,
+                position = placement.absolutePosition
+            )
             throw IllegalArgumentException(
-                "Unsupported placement geometry in $source: item[$index] is outside bin ${bin.name}."
+                "Unsupported placement geometry in $source: type=outside_bin, bin=${bin.name}, item[$index] ${geometry.diagnostic} is outside bin."
             )
         }
         PackingGeometry(
             shape = shape,
             position = placement.absolutePosition
-        ).also { geometry ->
-            requireHorizontalCylinderSupport(
-                geometry = geometry,
-                index = index,
-                binName = bin.name,
-                source = source
-            )
-        }
+        )
+    }
+
+    geometries.forEachIndexed { index, geometry ->
+        requireHorizontalCylinderSupport(
+            geometry = geometry,
+            index = index,
+            geometries = geometries,
+            binName = bin.name,
+            source = source
+        )
     }
 
     for (lhsIndex in geometries.indices) {
         for (rhsIndex in (lhsIndex + 1) until geometries.size) {
             if (geometries[lhsIndex].overlaps(geometries[rhsIndex])) {
                 throw IllegalArgumentException(
-                    "Unsupported placement geometry in $source: item[$lhsIndex] overlaps item[$rhsIndex] in bin ${bin.name}."
+                    "Unsupported placement geometry in $source: type=overlap, bin=${bin.name}, item[$lhsIndex] ${geometries[lhsIndex].diagnostic} overlaps item[$rhsIndex] ${geometries[rhsIndex].diagnostic}."
                 )
             }
         }

@@ -17,7 +17,7 @@ For the current MVP:
 
 1. Candidate generation, block loading, stacking, and hanging support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
 2. Final packing conversion/rendering can accept `Axis3.X` / `Axis3.Z` horizontal cylinders only when coordinates are already fixed and `PackingGeometryGuard` validates real axis-aligned cylinder geometry.
-3. Horizontal cylinders must be on the bin floor; suspended horizontal cylinders are rejected.
+3. Horizontal cylinders must be on the bin floor or have full-length cuboid support underneath; unsupported or partially supported horizontal cylinders are rejected.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
 6. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
@@ -35,8 +35,8 @@ See detailed progress in [refactor.md](./refactor.md).
 | Axis | Meaning | Current status |
 | --- | --- | --- |
 | `Axis3.Y` | Vertical cylinder; circular footprint on the loading plane. | Supported in guarded vertical-cylinder paths with real footprint checks. |
-| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported only in final packing/rendering paths guarded by real 3D geometry checks; generation/support/stacking paths remain unsupported. |
-| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported only in final packing/rendering paths guarded by real 3D geometry checks; generation/support/stacking paths remain unsupported. |
+| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported only in final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
+| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported only in final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
 
 ## CSV Input Protocol (Gurobi Dataset)
 
