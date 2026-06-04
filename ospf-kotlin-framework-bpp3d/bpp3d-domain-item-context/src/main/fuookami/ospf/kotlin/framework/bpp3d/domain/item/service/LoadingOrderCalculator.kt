@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -33,19 +32,6 @@ class LoadingOrderCalculator(
     private val maxBlockDepth: LoadingDepthLimit?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
-    private fun requireVerticalCylinderAxisForLoadingOrder(placements: List<AnyPlacement3>) {
-        val unsupportedCylinder = placements.firstOrNull { placement ->
-            val shape = placement.resolvedPackingShape()
-            shape is CylinderPackingShape3 && shape.axis != Axis3.Y
-        }?.unit as? Item
-
-        if (unsupportedCylinder != null) {
-            throw IllegalArgumentException(
-                "Unsupported cylinder axis in LoadingOrderCalculator: only Axis3.Y is allowed."
-            )
-        }
-    }
-
     private fun resolvePackingShape(placement: AnyPlacement3): PackingShape3<InfraNumber> {
         return placement.resolvedPackingShape()
     }
@@ -106,7 +92,6 @@ class LoadingOrderCalculator(
     }
 
     operator fun invoke(placements: List<AnyPlacement3>): List<Pair<ItemPlacement3, UInt64>> {
-        requireVerticalCylinderAxisForLoadingOrder(placements)
         val thisPlacements = merge(placements)
             .sortedWithThreeWayComparator { lhs, rhs ->
                 when (val ret = lhs.z ord rhs.z) {

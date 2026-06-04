@@ -77,6 +77,28 @@ Add-TokenViolation -Check "CuboidTypeBoundOutOfAllowList" -Pattern "T\s*:\s*Cubo
     "/bpp3d-domain-layer-assignment-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_assignment/service/limits/VolumeMinimization.kt"
 )
 
+Add-TokenViolation -Check "CuboidWildcardOutOfAllowList" -Pattern "\bCuboid\s*<\s*\*\s*>" -AllowSuffixes @(
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/ItemMerger.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/LoadingOrderCalculator.kt",
+    "/bpp3d-domain-layer-assignment-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_assignment/service/limits/DemandConstraint.kt"
+)
+
+Add-TokenViolation -Check "AbstractCuboidOutOfAllowList" -Pattern "\bAbstractCuboid\s*<" -AllowSuffixes @(
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Cuboid.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Orientation.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Container.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericContainerCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/PackingShape.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/ShadowPriceMap.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/InfraAliases.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemModelAliases.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PackageAttribute.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/LoadingOrderCalculator.kt"
+)
+
 Add-TokenViolation -Check "CuboidViewOutOfAllowList" -Pattern "\bCuboidView\b" -AllowSuffixes @(
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Cuboid.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
@@ -109,6 +131,27 @@ Add-TokenViolation -Check "BoundingCuboidOutOfRendererDto" -Pattern "\bBoundingC
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/PackingShape.kt",
     "/bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingRendererAdapter.kt"
 )
+
+Add-TokenViolation -Check "QuantityPlacementTypeOutOfAllowList" -Pattern "\bQuantityPlacement[23]\s*<" -AllowSuffixes @(
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Cuboid.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Container.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemContainer.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Block.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Layer.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt"
+)
+
+Add-TokenViolation -Check "DirectQuantityPlacementConstructorOutOfFactory" -Pattern "\bQuantityPlacement[23]\s*\(" -AllowSuffixes @(
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt"
+)
+
+Add-TokenViolation -Check "ApplicationDirectItemLimitFactory" -Pattern "\b(DemandConstraint|VolumeMinimization)\.forItem\s*\(" -AllowSuffixes @()
 
 if ($violations.Count -eq 0) {
     Write-Host "SHAPE_BOUNDARY_PASS"

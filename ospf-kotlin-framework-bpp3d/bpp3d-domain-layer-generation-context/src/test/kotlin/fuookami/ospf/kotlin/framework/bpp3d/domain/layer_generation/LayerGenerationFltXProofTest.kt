@@ -52,6 +52,7 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
+import kotlin.math.PI
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -1044,10 +1045,14 @@ class LayerGenerationFltXProofTest {
                 aggregation = PackingAggregation(listOf(packedBin))
             )
         )
+        val sourcePlacement = largeRadius.layer.items.first()
         val renderedItem = schema.loadingPlans.first().items.first()
         assertEquals(0.18, renderedItem.radius!!.toDouble(), 1e-9)
         assertEquals(0.36, renderedItem.diameter!!.toDouble(), 1e-9)
-        assertTrue(renderedItem.actualVolume!!.toDouble() > 0.0)
+        assertEquals(sourcePlacement.absoluteX.toDouble(), renderedItem.x.toDouble(), 1e-9)
+        assertEquals(sourcePlacement.absoluteY.toDouble(), renderedItem.y.toDouble(), 1e-9)
+        assertEquals(sourcePlacement.absoluteZ.toDouble(), renderedItem.z.toDouble(), 1e-9)
+        assertEquals(PI * 0.18 * 0.18 * 1.0, renderedItem.actualVolume!!.toDouble(), 1e-9)
     }
 
     @Test

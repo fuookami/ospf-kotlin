@@ -94,7 +94,7 @@ class PackingShapeTest {
         val shape = cylinder.asPackingShape3()
 
         assertEquals(PackingShapeType.Cylinder, shape.shapeType)
-        assertEquals(PackingAlgorithmShapeType.BoundingCuboid, shape.algorithmShapeType)
+        assertEquals(PackingAlgorithmShapeType.HorizontalCylinderX, shape.algorithmShapeType)
         assertEquals(PackingAxis3.X, cylinder.axis.asPackingAxis3())
         assertTrue(shape.boundingWidth eq (infraScalar(6.0) * Meter))
         assertTrue(shape.boundingHeight eq (infraScalar(4.0) * Meter))
@@ -119,7 +119,7 @@ class PackingShapeTest {
         val shape = cylinder.asPackingShape3()
 
         assertEquals(PackingShapeType.Cylinder, shape.shapeType)
-        assertEquals(PackingAlgorithmShapeType.BoundingCuboid, shape.algorithmShapeType)
+        assertEquals(PackingAlgorithmShapeType.HorizontalCylinderZ, shape.algorithmShapeType)
         assertEquals(PackingAxis3.Z, cylinder.axis.asPackingAxis3())
         assertTrue(shape.boundingWidth eq (infraScalar(4.0) * Meter))
         assertTrue(shape.boundingHeight eq (infraScalar(4.0) * Meter))

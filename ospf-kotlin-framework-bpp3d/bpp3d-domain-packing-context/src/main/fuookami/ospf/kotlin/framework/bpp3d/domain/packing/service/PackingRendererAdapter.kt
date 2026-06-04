@@ -37,6 +37,8 @@ class PackingRendererAdapter {
         return when (this) {
             PackingAlgorithmShapeType.Cuboid -> RenderAlgorithmShapeTypeDTO.Cuboid
             PackingAlgorithmShapeType.VerticalCylinder -> RenderAlgorithmShapeTypeDTO.VerticalCylinder
+            PackingAlgorithmShapeType.HorizontalCylinderX -> RenderAlgorithmShapeTypeDTO.HorizontalCylinderX
+            PackingAlgorithmShapeType.HorizontalCylinderZ -> RenderAlgorithmShapeTypeDTO.HorizontalCylinderZ
             PackingAlgorithmShapeType.BoundingCuboid -> RenderAlgorithmShapeTypeDTO.BoundingCuboid
         }
     }
@@ -58,13 +60,13 @@ class PackingRendererAdapter {
      */
     fun toSchema(result: PackingResult): SchemaDTO {
         val loadingPlans = result.aggregation.bins.map { bin ->
+            requirePackedBinShapeGeometry(
+                bin = bin,
+                source = "PackingRendererAdapter.toSchema"
+            )
             val itemDtos = bin.items.map { packed ->
                 val placement = packed.placement
                 val shape = placement.resolvedPackingShape()
-                requireVerticalCylinderAxis(
-                    shape = shape,
-                    source = "PackingRendererAdapter.toSchema"
-                )
                 val renderShapeType = shape.shapeType.toRenderShapeType()
                 RenderLoadingPlanItemDTO(
                     name = placement.unit.toString(),

@@ -1,0 +1,109 @@
+{
+  "kpi": {
+    "bin_count": "1",
+    "material_count": "4",
+    "fixture": "cylinder-axis-renderer-schema"
+  },
+  "loadingPlans": [
+    {
+      "group": [
+        "renderer-fixture"
+      ],
+      "name": "bin-axis-fixture-1",
+      "typeCode": "BIN-AXIS",
+      "width": "5.0",
+      "height": "3.0",
+      "depth": "5.0",
+      "loadingRate": "0.0730235937515394",
+      "weight": "4.0",
+      "volume": "5.476769531365455",
+      "items": [
+        {
+          "name": "box-1",
+          "packageType": "CartonContainer",
+          "width": "1.0",
+          "height": "1.0",
+          "depth": "1.0",
+          "x": "0.0",
+          "y": "0.0",
+          "z": "0.0",
+          "weight": "1.0",
+          "loadingOrder": 1,
+          "shapeType": "Cuboid",
+          "renderShapeType": "Cuboid",
+          "algorithmShapeType": "Cuboid",
+          "boundingWidth": "1.0",
+          "boundingHeight": "1.0",
+          "boundingDepth": "1.0",
+          "actualVolume": "1.0"
+        },
+        {
+          "name": "cyl-x-1",
+          "packageType": "CartonContainer",
+          "width": "2.0",
+          "height": "1.0",
+          "depth": "1.0",
+          "x": "1.2",
+          "y": "0.0",
+          "z": "0.0",
+          "weight": "1.0",
+          "loadingOrder": 2,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "HorizontalCylinderX",
+          "radius": "0.5",
+          "diameter": "1.0",
+          "axis": "X",
+          "boundingWidth": "2.0",
+          "boundingHeight": "1.0",
+          "boundingDepth": "1.0",
+          "actualVolume": "1.5707963267948966"
+        },
+        {
+          "name": "cyl-y-1",
+          "packageType": "CartonContainer",
+          "width": "1.0",
+          "height": "1.2",
+          "depth": "1.0",
+          "x": "3.5",
+          "y": "0.0",
+          "z": "0.0",
+          "weight": "1.0",
+          "loadingOrder": 3,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "VerticalCylinder",
+          "radius": "0.5",
+          "diameter": "1.0",
+          "axis": "Y",
+          "boundingWidth": "1.0",
+          "boundingHeight": "1.2",
+          "boundingDepth": "1.0",
+          "actualVolume": "0.9424777960769379"
+        },
+        {
+          "name": "cyl-z-1",
+          "packageType": "CartonContainer",
+          "width": "1.0",
+          "height": "1.0",
+          "depth": "2.5",
+          "x": "0.0",
+          "y": "0.0",
+          "z": "1.2",
+          "weight": "1.0",
+          "loadingOrder": 4,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "HorizontalCylinderZ",
+          "radius": "0.5",
+          "diameter": "1.0",
+          "axis": "Z",
+          "boundingWidth": "1.0",
+          "boundingHeight": "1.0",
+          "boundingDepth": "2.5",
+          "actualVolume": "1.9634954084936207"
+        }
+      ]
+    }
+  ]
+}

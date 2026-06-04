@@ -113,7 +113,7 @@ class RendererDTOTest {
                 loadingOrder = UInt64.one,
                 shapeType = RenderShapeTypeDTO.Cylinder,
                 renderShapeType = RenderShapeTypeDTO.Cylinder,
-                algorithmShapeType = RenderAlgorithmShapeTypeDTO.BoundingCuboid,
+                algorithmShapeType = RenderAlgorithmShapeTypeDTO.HorizontalCylinderX,
                 radius = FltX(0.5),
                 diameter = FltX(1.0),
                 axis = RenderAxis3DTO.X,
@@ -135,7 +135,7 @@ class RendererDTOTest {
                 loadingOrder = UInt64(2),
                 shapeType = RenderShapeTypeDTO.Cylinder,
                 renderShapeType = RenderShapeTypeDTO.Cylinder,
-                algorithmShapeType = RenderAlgorithmShapeTypeDTO.BoundingCuboid,
+                algorithmShapeType = RenderAlgorithmShapeTypeDTO.HorizontalCylinderZ,
                 radius = FltX(0.5),
                 diameter = FltX(1.0),
                 axis = RenderAxis3DTO.Z,
@@ -153,7 +153,10 @@ class RendererDTOTest {
         decoded.forEach { item ->
             assertEquals(RenderShapeTypeDTO.Cylinder, item.shapeType)
             assertEquals(RenderShapeTypeDTO.Cylinder, item.renderShapeType)
-            assertEquals(RenderAlgorithmShapeTypeDTO.BoundingCuboid, item.algorithmShapeType)
+            assertTrue(
+                item.algorithmShapeType == RenderAlgorithmShapeTypeDTO.HorizontalCylinderX
+                        || item.algorithmShapeType == RenderAlgorithmShapeTypeDTO.HorizontalCylinderZ
+            )
             assertEquals(FltX(0.5), item.radius)
             assertEquals(FltX(1.0), item.diameter)
             assertTrue(item.actualVolume!!.toDouble() > 0.0)
@@ -194,5 +197,49 @@ class RendererDTOTest {
         assertEquals(FltX(1.2), cylinder.boundingHeight)
         assertEquals(FltX(1.0), cylinder.boundingDepth)
         assertTrue(cylinder.actualVolume!!.toDouble() > 0.0)
+    }
+
+    @Test
+    fun cylinderAxisRendererFixtureShouldMatchExternalRendererCoordinateContract() {
+        val resource = requireNotNull(
+            javaClass.classLoader.getResource("renderer/cylinder-axis-renderer-schema.json")
+        )
+        val fixture = resource.openStream().bufferedReader().use { reader -> reader.readText() }
+        val schema = Json.decodeFromString(SchemaDTO.serializer(), fixture)
+        val plan = schema.loadingPlans.first()
+        val cylinderX = plan.items.first { item -> item.name == "cyl-x-1" }
+        val cylinderY = plan.items.first { item -> item.name == "cyl-y-1" }
+        val cylinderZ = plan.items.first { item -> item.name == "cyl-z-1" }
+
+        assertEquals("cylinder-axis-renderer-schema", schema.kpi["fixture"])
+        assertEquals("BIN-AXIS", plan.typeCode)
+        assertEquals(4, plan.items.size)
+
+        assertEquals(RenderAxis3DTO.X, cylinderX.axis)
+        assertEquals(RenderAlgorithmShapeTypeDTO.HorizontalCylinderX, cylinderX.algorithmShapeType)
+        assertEquals(FltX(0.5), cylinderX.radius)
+        assertEquals(FltX(1.0), cylinderX.diameter)
+        assertEquals(FltX(2.0), cylinderX.boundingWidth)
+        assertEquals(cylinderX.diameter, cylinderX.boundingHeight)
+        assertEquals(cylinderX.diameter, cylinderX.boundingDepth)
+        assertEquals(0.0, cylinderX.y.toDouble())
+
+        assertEquals(RenderAxis3DTO.Y, cylinderY.axis)
+        assertEquals(RenderAlgorithmShapeTypeDTO.VerticalCylinder, cylinderY.algorithmShapeType)
+        assertEquals(FltX(0.5), cylinderY.radius)
+        assertEquals(FltX(1.0), cylinderY.diameter)
+        assertEquals(cylinderY.diameter, cylinderY.boundingWidth)
+        assertEquals(FltX(1.2), cylinderY.boundingHeight)
+        assertEquals(cylinderY.diameter, cylinderY.boundingDepth)
+        assertEquals(0.0, cylinderY.y.toDouble())
+
+        assertEquals(RenderAxis3DTO.Z, cylinderZ.axis)
+        assertEquals(RenderAlgorithmShapeTypeDTO.HorizontalCylinderZ, cylinderZ.algorithmShapeType)
+        assertEquals(FltX(0.5), cylinderZ.radius)
+        assertEquals(FltX(1.0), cylinderZ.diameter)
+        assertEquals(cylinderZ.diameter, cylinderZ.boundingWidth)
+        assertEquals(cylinderZ.diameter, cylinderZ.boundingHeight)
+        assertEquals(FltX(2.5), cylinderZ.boundingDepth)
+        assertEquals(0.0, cylinderZ.y.toDouble())
     }
 }

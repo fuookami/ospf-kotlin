@@ -129,8 +129,8 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun layerBin(items: List<ActualItem>): LayerBin {
-        val binType = BinType(
+    private fun binType(): BinType {
+        return BinType(
             width = infraScalar(3.0) * Meter,
             height = infraScalar(3.0) * Meter,
             depth = infraScalar(3.0) * Meter,
@@ -139,13 +139,21 @@ class PackerAndRendererAdapterTest {
             lateralBalance = null,
             typeCode = "BIN-A"
         )
+    }
+
+    private fun layerBin(
+        items: List<ActualItem>,
+        positions: List<Pair<Double, Double>> = items.indices.map { index -> Pair(index.toDouble(), 0.0) }
+    ): LayerBin {
+        val binType = binType()
         val placements = items.mapIndexed { index, item ->
+            val (x, z) = positions[index]
             placement3Of(
                 view = item.view(Orientation.Upright),
                 position = point3(
-                    x = infraScalar(index.toDouble()) * Meter,
+                    x = infraScalar(x) * Meter,
                     y = infraScalar(0.0) * Meter,
-                    z = infraScalar(0.0) * Meter
+                    z = infraScalar(z) * Meter
                 )
             )
         }
@@ -164,6 +172,32 @@ class PackerAndRendererAdapterTest {
                     position = point3()
                 )
             )
+        )
+    }
+
+    private fun multiLayerBin(layers: List<Pair<List<ActualItem>, Double>>): LayerBin {
+        val binType = binType()
+        val layerPlacements = layers.mapIndexed { index, (items, z) ->
+            val layer = BinLayer(
+                iteration = Int64(index.toLong()),
+                from = PackerAndRendererAdapterTest::class,
+                bin = binType,
+                shape = Container3Shape(binType),
+                units = items.map { item ->
+                    placement3Of(
+                        view = item.view(Orientation.Upright),
+                        position = point3()
+                    )
+                }
+            )
+            placement3Of(
+                view = layer.view(Orientation.Upright)!!,
+                position = point3(z = infraScalar(z) * Meter)
+            )
+        }
+        return Bin(
+            shape = binType,
+            units = layerPlacements
         )
     }
 
@@ -191,6 +225,65 @@ class PackerAndRendererAdapterTest {
         assertEquals(1, schema.loadingPlans.size)
         assertEquals(2, schema.loadingPlans.first().items.size)
         assertTrue(schema.loadingPlans.first().loadingRate > InfraNumber.zero)
+    }
+
+    @Test
+    fun packerShouldKeepLayerPlacementOffsetInDumpedItemPositions() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-LAYER-OFFSET"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-LAYER-OFFSET",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val binType = binType()
+        val firstLayer = BinLayer(
+            iteration = Int64.zero,
+            from = PackerAndRendererAdapterTest::class,
+            bin = binType,
+            shape = Container3Shape(binType),
+            units = listOf(
+                placement3Of(
+                    view = item("item-offset-1", material).view(Orientation.Upright),
+                    position = point3()
+                )
+            )
+        )
+        val secondLayer = BinLayer(
+            iteration = Int64.one,
+            from = PackerAndRendererAdapterTest::class,
+            bin = binType,
+            shape = Container3Shape(binType),
+            units = listOf(
+                placement3Of(
+                    view = item("item-offset-2", material).view(Orientation.Upright),
+                    position = point3()
+                )
+            )
+        )
+        val bin = Bin(
+            shape = binType,
+            units = listOf(
+                placement3Of(
+                    view = firstLayer.view(Orientation.Upright)!!,
+                    position = point3()
+                ),
+                placement3Of(
+                    view = secondLayer.view(Orientation.Upright)!!,
+                    position = point3(z = infraScalar(1.0) * Meter)
+                )
+            )
+        )
+
+        val result = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        )
+        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+
+        assertEquals(2, items.size)
+        assertEquals(0.0, items[0].z.toDouble(), 1e-9)
+        assertEquals(1.0, items[1].z.toDouble(), 1e-9)
     }
 
     @Test
@@ -254,15 +347,18 @@ class PackerAndRendererAdapterTest {
     }
 
     @Test
-    fun packerShouldRejectNonVerticalCylinderAxis() = runBlocking {
+    fun packerShouldRejectPlacementOutsideBinByRealShapeGeometry() = runBlocking {
         val material = Material(
-            no = MaterialNo("M-CYL-X"),
+            no = MaterialNo("M-OUT"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
-            name = "M-CYL-X",
+            name = "M-OUT",
             weight = infraScalar(0.5) * Kilogram
         )
-        val bin = layerBin(listOf(cylinderItem("cyl-x-1", material, Axis3.X)))
+        val bin = layerBin(
+            items = listOf(cylinderItem("cyl-out", material)),
+            positions = listOf(Pair(2.2, 0.0))
+        )
 
         val error = assertFailsWith<IllegalArgumentException> {
             Packer().invoke(
@@ -270,25 +366,229 @@ class PackerAndRendererAdapterTest {
                 context = PackingContext()
             )
         }
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+        assertTrue(error.message?.contains("outside bin") == true)
     }
 
     @Test
-    fun rendererAdapterShouldRejectNonVerticalCylinderAxis() = runBlocking {
+    fun packerShouldRejectCuboidAndCylinderFootprintOverlap() = runBlocking {
         val material = Material(
-            no = MaterialNo("M-CYL-Z"),
+            no = MaterialNo("M-OVERLAP"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
-            name = "M-CYL-Z",
+            name = "M-OVERLAP",
             weight = infraScalar(0.5) * Kilogram
         )
-        val bin = layerBin(listOf(cylinderItem("cyl-z-1", material, Axis3.Z)))
+        val bin = layerBin(
+            items = listOf(item("box-overlap", material), cylinderItem("cyl-overlap", material)),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.25, 0.0))
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            Packer().invoke(
+                bins = listOf(bin),
+                context = PackingContext()
+            )
+        }
+        assertTrue(error.message?.contains("overlaps") == true)
+    }
+
+    @Test
+    fun packerShouldAcceptCuboidAndCylinderBoundaryTangent() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-TANGENT"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-TANGENT",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(item("box-tangent", material), cylinderItem("cyl-tangent", material)),
+            positions = listOf(Pair(0.0, 0.0), Pair(1.0, 0.0))
+        )
+
+        val result = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        )
+
+        assertEquals(2, result.aggregation.bins.first().items.size)
+    }
+
+    @Test
+    fun rendererAdapterShouldRejectManuallyBuiltOverlappedPackingResult() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-RENDER-OVERLAP"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-RENDER-OVERLAP",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(item("box-render-overlap", material), cylinderItem("cyl-render-overlap", material)),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.25, 0.0))
+        )
         val result = toPackingResult(bin)
 
         val error = assertFailsWith<IllegalArgumentException> {
             PackingRendererAdapter().toSchema(result)
         }
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+        assertTrue(error.message?.contains("overlaps") == true)
+    }
+
+    @Test
+    fun packerAndRendererShouldAcceptHorizontalCylinderFinalGeometry() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-X"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-X",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = multiLayerBin(
+            layers = listOf(
+                Pair(listOf(cylinderItem("cyl-x-1", material, Axis3.X)), 0.0),
+                Pair(listOf(cylinderItem("cyl-z-1", material, Axis3.Z)), 1.5)
+            )
+        )
+
+        val result = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        )
+        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+
+        assertEquals(2, items.size)
+        assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
+        assertTrue(items.any { it.axis?.name == "Z" && it.algorithmShapeType.name == "HorizontalCylinderZ" })
+    }
+
+    @Test
+    fun packerShouldRejectMixedCylinderAxesWithinSameLayer() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-MIXED-AXIS"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-MIXED-AXIS",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(cylinderItem("cyl-x-mixed", material, Axis3.X), cylinderItem("cyl-z-mixed", material, Axis3.Z)),
+            positions = listOf(Pair(0.0, 0.0), Pair(2.0, 0.0))
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            Packer().invoke(
+                bins = listOf(bin),
+                context = PackingContext()
+            )
+        }
+        assertTrue(error.message?.contains("mixes cylinder axes") == true)
+    }
+
+    @Test
+    fun packerShouldRejectHorizontalCylinderAndCuboidRealGeometryOverlap() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-H-OVERLAP"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-H-OVERLAP",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(item("box-horizontal-overlap", material), cylinderItem("cyl-x-overlap", material, Axis3.X)),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.0, 0.0))
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            Packer().invoke(
+                bins = listOf(bin),
+                context = PackingContext()
+            )
+        }
+        assertTrue(error.message?.contains("overlaps") == true)
+    }
+
+    @Test
+    fun rendererAdapterShouldRejectManuallyBuiltOverlappedHorizontalAndVerticalCylinders() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-HV-OVERLAP"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-HV-OVERLAP",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(cylinderItem("cyl-x-render-overlap", material, Axis3.X), cylinderItem("cyl-y-render-overlap", material)),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.0, 0.0))
+        )
+        val result = toPackingResult(bin)
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(result)
+        }
+        assertTrue(error.message?.contains("overlaps") == true)
+    }
+
+    @Test
+    fun rendererAdapterShouldRejectManuallyBuiltOverlappedHorizontalCylindersWithDifferentAxes() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-XZ-OVERLAP"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-XZ-OVERLAP",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(cylinderItem("cyl-x-render-overlap", material, Axis3.X), cylinderItem("cyl-z-render-overlap", material, Axis3.Z)),
+            positions = listOf(Pair(0.0, 0.0), Pair(0.0, 0.0))
+        )
+        val result = toPackingResult(bin)
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(result)
+        }
+        assertTrue(error.message?.contains("overlaps") == true)
+    }
+
+    @Test
+    fun packerShouldRejectSuspendedHorizontalCylinder() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-H-SUSPENDED"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-H-SUSPENDED",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val binType = binType()
+        val layer = BinLayer(
+            iteration = Int64.zero,
+            from = PackerAndRendererAdapterTest::class,
+            bin = binType,
+            shape = Container3Shape(binType),
+            units = listOf(
+                placement3Of(
+                    view = cylinderItem("cyl-x-suspended", material, Axis3.X).view(Orientation.Upright),
+                    position = point3(y = infraScalar(0.2) * Meter)
+                )
+            )
+        )
+        val bin = Bin(
+            shape = binType,
+            units = listOf(
+                placement3Of(
+                    view = layer.view(Orientation.Upright)!!,
+                    position = point3()
+                )
+            )
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            Packer().invoke(
+                bins = listOf(bin),
+                context = PackingContext()
+            )
+        }
+        assertTrue(error.message?.contains("must be placed on bin floor") == true)
     }
 }
 

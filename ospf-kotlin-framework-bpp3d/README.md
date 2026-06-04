@@ -9,15 +9,18 @@ This repository currently focuses on:
 
 1. Cuboid packing baseline.
 2. Vertical cylinder MVP (`Axis3.Y`) with shape-aware geometry.
+3. Guarded horizontal cylinder final packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
 
-## Vertical Cylinder Geometry Semantics
+## Cylinder Geometry Semantics
 
 For the current MVP:
 
-1. Only vertical cylinders are supported (`Axis3.Y`).
-2. Horizontal/side cylinder placement is rejected explicitly in guarded paths.
-3. Bottom overlap/support checks use real footprint geometry (circle-circle, circle-rectangle, rectangle-rectangle).
-4. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
+1. Candidate generation, block loading, stacking, and hanging support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
+2. Final packing conversion/rendering can accept `Axis3.X` / `Axis3.Z` horizontal cylinders only when coordinates are already fixed and `PackingGeometryGuard` validates real axis-aligned cylinder geometry.
+3. Horizontal cylinders must be on the bin floor; suspended horizontal cylinders are rejected.
+4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
+5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
+6. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
 
 Unsupported or not fully generalized yet:
 
@@ -32,8 +35,8 @@ See detailed progress in [refactor.md](./refactor.md).
 | Axis | Meaning | Current status |
 | --- | --- | --- |
 | `Axis3.Y` | Vertical cylinder; circular footprint on the loading plane. | Supported in guarded vertical-cylinder paths with real footprint checks. |
-| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Parsed for metadata and policy validation, but placement remains unsupported unless a path explicitly adds real-geometry support. |
-| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Parsed for metadata and policy validation, but placement remains unsupported unless a path explicitly adds real-geometry support. |
+| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported only in final packing/rendering paths guarded by real 3D geometry checks; generation/support/stacking paths remain unsupported. |
+| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported only in final packing/rendering paths guarded by real 3D geometry checks; generation/support/stacking paths remain unsupported. |
 
 ## CSV Input Protocol (Gurobi Dataset)
 
@@ -52,7 +55,9 @@ Optional shape metadata columns:
 4. `diameter_min` / `diameter_min_meter`, `diameter_max` / `diameter_max_meter`, `diameter_step` / `diameter_step_meter`: dynamic diameter interval.
 5. `axis`: optional for cylinder, default `Y`, accepted values: `Y`, `AXIS3.Y`, `X`, `AXIS3.X`, `Z`, `AXIS3.Z`.
 
-For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` can be parsed for metadata and policy validation, but current production loading paths still support only guarded `Axis3.Y` vertical cylinder placement unless a path has explicit real-geometry support.
+For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` can be parsed for metadata and policy validation; final packing/rendering accepts them only after real 3D geometry validation, while candidate generation/support/stacking paths remain guarded.
+
+Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. Continuous radius optimization is not a production capability yet; keep it as a design/prototype topic outside the default solving path.
 
 ### Depth Boundary Layer Policy Columns
 
@@ -174,3 +179,9 @@ Field definitions are in:
 
 A minimal mixed `Cuboid + Axis3.Y Cylinder` renderer fixture is available at:
 `bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`.
+
+A renderer coordinate fixture covering `Axis3.X`, `Axis3.Y`, and `Axis3.Z` cylinders is available at:
+`bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json`.
+It follows the external renderer coordinate guide: `x` / `y` / `z` are the bounding-box minimum corner, X/Z horizontal cylinders use `boundingHeight = diameter`, and `y = 0` means floor contact.
+
+External renderer source code is kept outside this repository. Build/type-check or visual validation results for that project should be recorded only after running the external renderer commands and, for visual consistency, opening one of the fixtures or an actual solver output.

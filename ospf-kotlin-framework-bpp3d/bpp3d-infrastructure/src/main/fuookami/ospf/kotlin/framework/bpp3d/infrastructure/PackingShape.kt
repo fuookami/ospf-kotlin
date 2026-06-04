@@ -19,6 +19,8 @@ enum class PackingShapeType {
 enum class PackingAlgorithmShapeType {
     Cuboid,
     VerticalCylinder,
+    HorizontalCylinderX,
+    HorizontalCylinderZ,
     BoundingCuboid
 }
 
@@ -90,10 +92,10 @@ data class CylinderPackingShape3(
 ) : PackingShape3<InfraNumber> {
     override val shapeType: PackingShapeType = PackingShapeType.Cylinder
     override val algorithmShapeType: PackingAlgorithmShapeType
-        get() = if (cylinder.axis == Axis3.Y) {
-            PackingAlgorithmShapeType.VerticalCylinder
-        } else {
-            PackingAlgorithmShapeType.BoundingCuboid
+        get() = when (cylinder.axis) {
+            Axis3.X -> PackingAlgorithmShapeType.HorizontalCylinderX
+            Axis3.Y -> PackingAlgorithmShapeType.VerticalCylinder
+            Axis3.Z -> PackingAlgorithmShapeType.HorizontalCylinderZ
         }
     override val weight: Quantity<InfraNumber> by cylinder::weight
     override val axis: Axis3 by cylinder::axis

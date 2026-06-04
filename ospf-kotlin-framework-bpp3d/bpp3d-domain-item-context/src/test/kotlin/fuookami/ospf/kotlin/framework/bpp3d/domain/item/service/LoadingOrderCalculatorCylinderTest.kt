@@ -1,8 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -112,7 +110,7 @@ class LoadingOrderCalculatorCylinderTest {
     }
 
     @Test
-    fun loadingOrderShouldRejectNonVerticalCylinderAxis() {
+    fun loadingOrderShouldAcceptHorizontalCylinderAxisForSequenceOnly() {
         val placements = listOf(
             placement3Of(
                 view = cylinderItem(id = "cyl-x", axis = Axis3.X).view(Orientation.Upright),
@@ -125,10 +123,11 @@ class LoadingOrderCalculatorCylinderTest {
             sameTypeJudger = { lhs, rhs -> lhs.pattern == rhs.pattern }
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            calculator(placements)
+        val orderedIds = calculator(placements).map { (placement, _) ->
+            (placement.unit as ActualItem).id
         }
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+
+        assertEquals(listOf("cyl-x"), orderedIds)
     }
 
     @Test

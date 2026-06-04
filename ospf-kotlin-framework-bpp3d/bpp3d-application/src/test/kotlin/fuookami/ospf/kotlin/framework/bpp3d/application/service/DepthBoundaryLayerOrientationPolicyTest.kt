@@ -190,6 +190,41 @@ class DepthBoundaryLayerOrientationPolicyTest {
         assertTrue(exception.message?.contains("cylinder_axis=Y") == true)
     }
 
+    @Test
+    fun depthBoundaryPolicyShouldCheckMixedBoundaryLayerByShapeKind() {
+        val bin = binOf(
+            placedLayer(
+                layer = mixedLayer(
+                    id = "mixed-first",
+                    cuboidOrientation = Orientation.Side,
+                    cylinderAxis = Axis3.Y
+                ),
+                z = 0.0
+            )
+        )
+
+        DepthBoundaryLayerOrientationPolicy(
+            firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
+            firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
+        ).ensureSatisfied(listOf(bin))
+
+        val cuboidException = assertFailsWith<IllegalArgumentException> {
+            DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
+                firstLayerAllowedCuboidOrientations = setOf(Orientation.Upright)
+            ).ensureSatisfied(listOf(bin))
+        }
+        assertTrue(cuboidException.message?.contains("cuboid_orientation=Side") == true)
+
+        val cylinderException = assertFailsWith<IllegalArgumentException> {
+            DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCylinderAxes = setOf(Axis3.X),
+                firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
+            ).ensureSatisfied(listOf(bin))
+        }
+        assertTrue(cylinderException.message?.contains("cylinder_axis=Y") == true)
+    }
+
     private fun packageAttribute(): PackageAttribute {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
@@ -235,6 +270,32 @@ class DepthBoundaryLayerOrientationPolicyTest {
             bin = binType,
             shape = Container3Shape(binType),
             units = listOf(item.toItemPlacement(orientation = orientation))
+        )
+    }
+
+    private fun mixedLayer(
+        id: String,
+        cuboidOrientation: Orientation,
+        cylinderAxis: Axis3
+    ): BinLayer {
+        val cuboid = item(
+            id = "$id-cuboid",
+            enabledOrientations = listOf(Orientation.Upright, Orientation.Side)
+        )
+        val cylinder = item(
+            id = "$id-cylinder",
+            enabledOrientations = listOf(Orientation.Upright),
+            shapeSpec = cylinder(cylinderAxis)
+        )
+        return BinLayer(
+            iteration = Int64.zero,
+            from = DepthBoundaryLayerOrientationPolicyTest::class,
+            bin = binType,
+            shape = Container3Shape(binType),
+            units = listOf(
+                cuboid.toItemPlacement(orientation = cuboidOrientation),
+                cylinder.toItemPlacement(orientation = Orientation.Upright)
+            )
         )
     }
 

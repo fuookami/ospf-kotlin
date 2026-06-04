@@ -9,15 +9,18 @@
 
 1. 长方体装箱基线能力。
 2. 竖直圆柱 MVP（`Axis3.Y`）及 shape-aware 几何判定。
+3. 在最终坐标已确定的装箱/渲染路径中，通过真实几何 guard 支持 `Axis3.X` / `Axis3.Z` 横向圆柱。
 
-## 竖直圆柱几何语义
+## 圆柱几何语义
 
 当前 MVP 的语义约束：
 
-1. 仅支持竖直圆柱（`Axis3.Y`）。
-2. 横放/躺放圆柱在已加门禁路径会被显式拒绝。
-3. 底面重叠与支撑使用真实 footprint 几何（圆-圆、圆-矩形、矩形-矩形）。
-4. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
+1. 候选生成、block loading、stacking 和 hanging 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
+2. 最终装箱转换/渲染路径可以接受 `Axis3.X` / `Axis3.Z` 横向圆柱，但前提是坐标已经固定，并由 `PackingGeometryGuard` 执行真实轴对齐圆柱几何校验。
+3. 横向圆柱必须贴在箱底；悬空横向圆柱会被拒绝。
+4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
+5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
+6. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
 
 当前仍未完成或未完全泛型化：
 
@@ -32,8 +35,8 @@
 | 轴向 | 含义 | 当前状态 |
 | --- | --- | --- |
 | `Axis3.Y` | 竖直圆柱；装载平面上的 footprint 为圆。 | 已在带门禁的竖直圆柱路径支持，并使用真实 footprint 校验。 |
-| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 可用于元数据解析和策略校验；除非某条路径显式补齐真实几何支持，否则 placement 仍为 unsupported。 |
-| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 可用于元数据解析和策略校验；除非某条路径显式补齐真实几何支持，否则 placement 仍为 unsupported。 |
+| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 仅在最终装箱/渲染路径中由真实 3D 几何 guard 保护后支持；候选生成、支撑和 stacking 路径仍为 unsupported。 |
+| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 仅在最终装箱/渲染路径中由真实 3D 几何 guard 保护后支持；候选生成、支撑和 stacking 路径仍为 unsupported。 |
 
 ## CSV 输入协议（Gurobi 数据集）
 
@@ -52,7 +55,9 @@
 4. `diameter_min` / `diameter_min_meter`、`diameter_max` / `diameter_max_meter`、`diameter_step` / `diameter_step_meter`：动态直径区间。
 5. `axis`：圆柱可选，默认 `Y`，可接受值：`Y`、`AXIS3.Y`、`X`、`AXIS3.X`、`Z`、`AXIS3.Z`。
 
-圆柱行至少需要提供 `radius_meter`、`radius_min` 或 `diameter_min` 之一。`axis = X` / `Z` 当前可用于元数据解析和策略校验，但生产装载主链仍只在已加真实几何校验门禁的路径支持 `Axis3.Y` 竖直圆柱摆放。
+圆柱行至少需要提供 `radius_meter`、`radius_min` 或 `diameter_min` 之一。`axis = X` / `Z` 当前可用于元数据解析和策略校验；最终装箱/渲染路径会在真实 3D 几何校验通过后接受它们，但候选生成、支撑和 stacking 路径仍保持门禁。
+
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。连续半径优化还不是生产能力，只能作为设计/原型主题保留在默认求解链路之外。
 
 ### 深度边界层策略列
 
@@ -174,3 +179,9 @@ val cylinderItem = ActualItem(
 
 最小 `Cuboid + Axis3.Y Cylinder` 混装 renderer fixture 位于：
 `bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`。
+
+覆盖 `Axis3.X`、`Axis3.Y`、`Axis3.Z` 三种圆柱轴向的 renderer 坐标 fixture 位于：
+`bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json`。
+该 fixture 遵循外部 renderer 的坐标指南：`x` / `y` / `z` 表示外接盒最小角点，X/Z 横向圆柱使用 `boundingHeight = diameter`，且 `y = 0` 表示贴地。
+
+外部 renderer 源码不纳入本仓。该工程的构建、类型检查或显示一致性结果，只有在实际执行外部 renderer 命令并打开本仓 fixture 或实际求解输出核对后，才能记录为通过。

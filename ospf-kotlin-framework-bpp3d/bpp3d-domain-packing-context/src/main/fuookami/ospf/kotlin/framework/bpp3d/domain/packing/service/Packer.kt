@@ -1,12 +1,9 @@
 @file:Suppress("DEPRECATION")
-
-/**
- * 装箱器。
- * Packer.
- */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.MaterialSummary
@@ -15,6 +12,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
@@ -29,6 +27,22 @@ class Packer(
         sameTypeJudger = { lhs, rhs -> lhs.pattern == rhs.pattern }
     )
 ) {
+    private fun requireSingleCylinderAxisPerLayer(
+        bin: LayerBin,
+        source: String
+    ) {
+        for ((layerIndex, layerPlacement) in bin.units.withIndex()) {
+            val axes = layerPlacement.unit.units.mapNotNull { placement ->
+                (placement.resolvedPackingShape() as? CylinderPackingShape3)?.axis
+            }.toSet()
+            if (axes.size > 1) {
+                throw IllegalArgumentException(
+                    "Unsupported placement geometry in $source: layer[$layerIndex] mixes cylinder axes $axes."
+                )
+            }
+        }
+    }
+
     /**
      * 终态装箱分析：将 final bins 转为 PackingResult/SchemaDTO 所需结构。
      * Final packing analyzer: converts final bins into PackingResult-ready structures.
@@ -38,20 +52,17 @@ class Packer(
      * @return 装箱结果 / packing result
      */
     suspend operator fun invoke(
-        bins: List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin>,
+        bins: List<LayerBin>,
         context: PackingContext = PackingContext()
     ): PackingResult {
         val packedBins = bins.mapIndexed { index, bin ->
+            requireSingleCylinderAxisPerLayer(
+                bin = bin,
+                source = "Packer.invoke"
+            )
             val itemPlacements = bin.dump().units
-            itemPlacements.forEach { placement ->
-                val shape = placement.resolvedPackingShape()
-                requireVerticalCylinderAxis(
-                    shape = shape,
-                    source = "Packer.invoke"
-                )
-            }
             val loadingOrders = loadingOrderCalculator(itemPlacements).toMap()
-            PackedBin(
+            val packedBin = PackedBin(
                 name = "bin-${index + 1}",
                 type = bin.shape,
                 batchNo = bin.batchNo,
@@ -62,6 +73,11 @@ class Packer(
                     )
                 }
             )
+            requirePackedBinShapeGeometry(
+                bin = packedBin,
+                source = "Packer.invoke"
+            )
+            packedBin
         }
 
         return PackingResult(
@@ -79,7 +95,7 @@ class Packer(
      * @return 物料汇总列表 / material summary list
      */
     private fun summarizeMaterials(bins: List<PackedBin>): List<MaterialSummary> {
-        val summary = LinkedHashMap<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey, UInt64>()
+        val summary = LinkedHashMap<MaterialKey, UInt64>()
         for (bin in bins) {
             for (item in bin.items) {
                 for ((material, amount) in item.placement.unit.materialAmounts) {

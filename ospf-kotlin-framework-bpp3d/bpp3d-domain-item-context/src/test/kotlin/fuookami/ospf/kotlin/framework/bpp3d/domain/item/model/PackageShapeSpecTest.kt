@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.unit.Millimeter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
@@ -104,6 +105,22 @@ class PackageShapeSpecTest {
         assertRadiusValues(
             actual = spec.resolvedRadiusCandidates,
             expected = listOf(0.15, 0.155, 0.16, 0.165, 0.17, 0.175, 0.18)
+        )
+    }
+
+    @Test
+    fun verticalCylinderShouldGenerateMillimeterRadiusCandidatesFromDiameterInterval() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(150.0) * Millimeter,
+            axis = Axis3.Y,
+            diameterMin = infraScalar(300.0) * Millimeter,
+            diameterMax = infraScalar(360.0) * Millimeter,
+            diameterStep = infraScalar(10.0) * Millimeter
+        )
+
+        assertRadiusValues(
+            actual = spec.resolvedRadiusCandidates,
+            expected = listOf(150.0, 155.0, 160.0, 165.0, 170.0, 175.0, 180.0)
         )
     }
 

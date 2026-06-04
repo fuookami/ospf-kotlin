@@ -127,11 +127,14 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private fun seedLayer(item: ActualItem): BinLayer {
+    private fun seedLayer(
+        item: ActualItem,
+        binDepthMeter: Double = 3.0
+    ): BinLayer {
         val binType = BinType(
             width = infraScalar(3.0) * Meter,
             height = infraScalar(3.0) * Meter,
-            depth = infraScalar(3.0) * Meter,
+            depth = infraScalar(binDepthMeter) * Meter,
             capacity = infraScalar(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
@@ -274,7 +277,7 @@ class MaterialPackingApplicationIntegrationTest {
     fun materialPackingSummaryShouldMatchFinalPackingAnalyzerSummary() = runBlocking {
         val material = material("M-S1", InfraNumber.one)
         val seed = seedItem("seed-s1", material)
-        val layer = seedLayer(seed)
+        val layer = seedLayer(seed, binDepthMeter = 4.0)
         val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(4.0)))
 
         val response = service.solve(

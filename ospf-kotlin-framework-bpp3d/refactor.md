@@ -1,13 +1,13 @@
-# BPP3D 形状泛型化与竖直圆柱支持重构交接
+# BPP3D 形状泛型化与圆柱支持重构交接
 
 日期：2026-05-31
 最近更新：2026-06-04
 
-本文档用于交接 BPP3D “形状泛型化 + 竖直圆柱支持”重构。当前状态不是总目标完成，而是长方体主链向 shape-aware 主链迁移后的阶段性收敛。
+本文档用于交接 BPP3D “形状泛型化 + 圆柱支持”重构。当前状态不是长期终局完成，而是长方体主链向 shape-aware 主链迁移后的阶段性收敛。
 
 ## 1. 总目标
 
-把 BPP3D 从“长方体作为隐含前提”的主流程，推进为能稳定表达长方体与竖直圆柱的 shape-aware 装载链路。
+把 BPP3D 从“长方体作为隐含前提”的主流程，推进为能稳定表达长方体与圆柱的 shape-aware 装载链路。
 
 目标边界：
 
@@ -16,565 +16,288 @@
 3. 长方体路径、旧 DTO 字段、旧 CSV 入口和现有应用流程不回退。
 4. `Cuboid` 逐步退回为 placement/projection 基础设施兼容类型，不再作为业务层唯一几何真相。
 5. 动态直径/半径分两个版本推进：先实现离散动态半径候选生成，再评估连续半径优化原型。
-6. 下一阶段开放 `Axis3.X` / `Axis3.Z` 横向圆柱摆放，仍不支持任意角度圆柱。
+6. `Axis3.X` / `Axis3.Z` 横向圆柱先按窄口径开放：仅允许已知坐标的最终装箱/渲染路径通过真实 3D 几何 guard 后接受，仍不支持任意角度圆柱。
 7. 支持可选的 depth 边界层硬约束：可分别限制第一个 layer 和最后一个 layer 的圆柱轴向或长方体朝向。
 8. 长期目标才考虑去除 `Item : Cuboid<Item>`、重写 `QuantityPlacement2/3` 和 `CuboidView` 体系。
 
-## 2. 已完成摘要
-
-以下只保留结论，不保留逐项实现细节；需要查细节时查看 git 历史和对应测试。
-
-1. 竖直圆柱第一阶段 MVP 已接入主链，shape metadata、真实体积、renderer DTO、loading rate 与 application 入口具备阶段性支持。
-2. `PackingShape3` 已成为 domain 层 shape capability 入口，`Item` 已提供从 `packingShape` 派生的形状能力访问方式。
-3. 长方体与竖直圆柱的 shape metadata、真实体积、外接盒、底面轮廓和 renderer metadata 已有回归覆盖。
-4. 不支持圆柱真实几何的旧算法路径已逐步改为显式 unsupported，避免静默退回外接盒判定。
-5. `QuantityPlacement2/3(...)` 直写构造已集中到 `PlacementFactory`，业务调用侧显式 placement 泛型暴露已收敛。
-6. `DemandConstraint` / `VolumeMinimization` 已提供 Item 专用顶层入口，application 调用侧不再直接依赖泛型基类 factory。
-7. `Cuboid<*>` / `CuboidView<*>` 相关 compat 扩展已开始集中标注，底层结构性绑定仍保留。
-8. 外部 `bpp3d-interface-renderer` 已完成 `Cuboid + axis=Y Cylinder` 渲染适配；本仓负责输出 renderer DTO 元数据。
-9. 离散动态半径输入语义已在 `PackageShapeSpec.VerticalCylinder` 闭合，支持显式半径候选、半径区间和直径区间生成 `resolvedRadiusCandidates`，已接入 `CirclePackingLayerGenerator` 候选层生成，并已补齐 Gurobi CSV 场景加载器的动态半径/直径字段解析。
-10. 深度边界层轴向/朝向策略已接入 application 最终已放置结果硬校验，支持按 bin 内 depth 坐标识别 first / last layer，并分别校验圆柱 axis 与长方体 orientation。
-11. 四个门禁脚本、BPP3D 全量测试、renderer 构建、Gurobi 求解回归和 CSV dataset suite 在最近复核中通过。
-
-### 2.1 本轮新增完成事项
-
-本轮完成日期：2026-06-03 至 2026-06-04。
-
-1. Gurobi CSV 场景加载器已支持动态半径/直径字段解析：
-   - 保持旧字段 `shape_type`、`radius_meter`、`axis` 兼容。
-   - 新增支持 `radius_min` / `radius_min_meter`、`radius_max` / `radius_max_meter`、`radius_step` / `radius_step_meter`。
-   - 新增支持 `diameter_min` / `diameter_min_meter`、`diameter_max` / `diameter_max_meter`、`diameter_step` / `diameter_step_meter`。
-   - schema 校验已收紧：任一 shape metadata 字段出现但缺 `shape_type` 时拒绝。
-   - `radius_meter` 缺失时，可从 `radius_min` 或 `diameter_min / 2` 解析确定半径，并将区间字段透传到 `PackageShapeSpec.VerticalCylinder`。
-2. 深度边界层轴向/朝向策略已完成 application 层最终结果硬校验：
-   - 新增 `DepthBoundaryLayerOrientationPolicy`。
-   - `ColumnGenerationStandardExecutorConfig` 已新增 `depthBoundaryLayerOrientationPolicy`。
-   - `ColumnGenerationStandardExecutors.finalSolver()` 已在最终 MILP 求解后对 `collectSelectedBins(...)` 得到的已放置 `LayerBin` 执行校验。
-   - 校验按 layer 的 `z` 坐标排序识别 first / last，不按生成顺序判断。
-   - 圆柱校验 `resolvedPackingShape().axis`，长方体校验 `unitPlacement.orientation`。
-   - `null` 表示不限制；空集合在策略构造阶段报配置错误。
-   - 单 layer bin 会同时应用 first 和 last 约束；两侧冲突时不可行。
-   - 拒绝信息能区分 `boundary=first/last`，并包含 `layer_z`、`item`、`cylinder_axis` 或 `cuboid_orientation`。
-3. 新增并通过 `DepthBoundaryLayerOrientationPolicyTest`：
-   - 覆盖未配置不限制、按 `z` 排序识别 first / last、first / last 长方体朝向拒绝、单 layer first/last 同时应用、空集合配置错误、圆柱 axis 通过与拒绝。
-4. 深度边界层策略输入字段已接入 application 与 Gurobi CSV 场景加载器：
-   - `ColumnGenerationApplicationRequest` 与 `ColumnGenerationGenericApplicationRequest` 已新增 `depthBoundaryLayerOrientationPolicy` 顶层字段。
-   - 顶层策略字段会合并到 `ColumnGenerationStandardExecutorConfig.depthBoundaryLayerOrientationPolicy`；两处同时配置且不一致时拒绝。
-   - Gurobi CSV 场景加载器新增场景级字段 `first_layer_allowed_cylinder_axes`、`last_layer_allowed_cylinder_axes`、`first_layer_allowed_cuboid_orientations`、`last_layer_allowed_cuboid_orientations`。
-   - CSV 字段缺失表示不限制；字段存在但单元格为空会作为空集合进入策略构造并报配置错误。
-   - CSV 字段支持用 `|` 或 `;` 分隔多个 axis / orientation；同一 CSV 内场景级字段必须一致。
-5. README / README_ch 已补齐圆柱三轴支持矩阵、动态半径/直径 CSV 字段和深度边界层策略字段：
-   - 明确 `Axis3.Y` 为当前已支持竖直圆柱路径。
-   - 明确 `Axis3.X` / `Axis3.Z` 当前只用于元数据解析和策略校验，缺少真实几何支持的 placement 路径仍为 unsupported。
-   - 明确深度边界层策略是最终 MILP 后的 application 层硬校验，不是 MILP 原生约束或候选生成过滤器。
-6. Renderer DTO 契约与 fixture 已补齐：
-   - 新增最小 `Cuboid + Axis3.Y Cylinder` 混装 JSON fixture：`bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`。
-   - `RendererDTOTest` 已覆盖长方体旧字段默认值、竖直圆柱 metadata、混装 fixture round-trip，以及 `axis = X` / `axis = Z` 的 DTO 表达能力。
-   - README / README_ch 已补充 fixture 路径；仍不宣称外部 renderer 已完成 X/Z 端到端适配。
-7. X/Z 横向圆柱 metadata 基线已补齐：
-   - `PackingShapeTest` 已覆盖 `Axis3.X` / `Axis3.Z` 的 bounding box、footprint、actualVolume 和 `BoundingCuboid` algorithm type。
-   - `ContainerShapeTest` 已覆盖 X/Z 横向圆柱的外接盒容器边界语义。
-   - 当前只是基础设施 metadata 与边界基线，不代表真实 placement、碰撞、支撑或 stacking 已开放。
-8. CSV axis metadata 解析已补充覆盖：
-   - `GurobiColumnGenerationTest#csvShapeSpecParserShouldAcceptHorizontalCylinderAxesAsMetadata` 已验证 shape-spec parser 接受 `axis = X` / `axis = Axis3.Z`。
-   - 完整 grouped-layer scenario 对 X/Z 仍会在 `LayerPlacementAdapter` placement 构造阶段显式拒绝，符合当前 Y-only 门禁。
-
-### 2.2 下一会话接手提示
-
-1. 不要继续把深度边界层策略描述为 MILP 原生约束；当前只是 application 最终已放置结果硬校验。
-2. 深度边界层的 application request 与 Gurobi CSV 场景加载器输入字段已实现；Gurobi CSV 定向测试、完整 `GurobiColumnGenerationTest` 和 CSV dataset suite 已用根 POM 带本地 `ospf-kotlin-core-plugin-gurobi` reactor 复跑通过。
-3. 深度边界层仍不是 MILP 原生约束建模，也不会在候选生成阶段提前丢弃候选。
-4. 若下一轮继续跑 Gurobi 相关测试，应优先使用根 POM；`ospf-kotlin-core-plugin-gurobi` 是本仓 reactor 模块，单独使用 BPP3D 子 POM 可能解析不到该本地模块。
-5. X/Z 横向圆柱当前只完成 metadata / DTO / 外接盒容器边界 / CSV parser 基线；不要把它写成真实横向圆柱 placement 已开放。
-6. grouped-layer 完整场景中 X/Z 仍会被 `LayerPlacementAdapter` 拒绝；除非补齐真实几何、碰撞、支撑、layer 轴向语义和 renderer 端到端契约，否则不要拆掉该门禁。
-7. 外部 renderer 源码不属于本仓；本仓新增的是 DTO fixture 与 schema 契约，外部 renderer 验收只记录命令和结果。
-8. 提交前仍需用 `git status --short --branch` 确认只包含 BPP3D 相关改动，不要混入无关模块。
-
-## 3. 当前未完成事项
-
-1. `Item` 仍继承 `Cuboid<Item>`，原因是 placement/projection 基础设施仍依赖 `view()` / `toQuantity()` / `CuboidView` 体系。
-2. `QuantityPlacement2<T : Cuboid<T>, P : ProjectivePlane>`、`QuantityPlacement3<T : Cuboid<T>>`、`CuboidView` 仍是基础设施核心类型。
-3. `Bin<T : Cuboid<T>>`、`Container3`、`Layer`、`Block` 等结构仍以 cuboid 体系作为 placement 容器基础。
-4. `DemandConstraint<Args, T : Cuboid<T>>`、`VolumeMinimization<Args, T : Cuboid<T>>`、shadow price 相关底层泛型约束仍保留。
-5. DFS / MLHS / 空间切分等搜索路径对圆柱仍是显式 unsupported，不是真实圆柱几何搜索支持。
-6. `CirclePackingLayerGenerator` 仍是初步候选生成器，不是完整可替代的圆柱算法服务。
-7. 圆柱 block / layer / packing 结果仍需要更强的真实几何二次校验。
-8. 动态直径/半径目标尚未完全完成：离散候选半径已进入 `CirclePackingLayerGenerator` 的 layer candidate 生成，并能随 placement 输出确定半径/直径；Gurobi CSV 场景加载器已支持动态半径/直径字段解析；完整 Gurobi / CSV suite 已复跑通过，连续优化仍未完成。
-9. `Axis3.X` / `Axis3.Z` 横向圆柱摆放尚未开放，当前主链多处仍有 `only Axis3.Y` 门禁。
-10. 深度方向第一个 layer / 最后一个 layer 的轴向或朝向约束已接入最终已放置 `LayerBin` 结果硬校验；application request 与 Gurobi CSV 场景加载器输入字段已接入，MILP 原生约束尚未实现。
-11. CSV / Gurobi suite 最近一轮已复跑通过；后续提交前仍需保留实际命令、日期和结果记录。
-12. 当前工作树是否存在非 BPP3D 改动需以提交前 `git status --short --branch` 为准；若存在，必须隔离。
-
-## 4. 下一轮目标
-
-下一轮要尽可能多处理结构性缺口，减少后续迭代次数。目标不是完全重写 placement/projection，而是在不推翻现有体系的前提下，把圆柱真实几何闭环、cuboid-only 边界和文档门禁一次性收紧。
-
-优先目标：
-
-1. 修正文档与门禁口径，删除不存在 API 或不可验证完成项。
-2. 补齐 circle packing adapter 的真实几何验收。
-3. 复查 block / layer / packing / support / merger 的圆柱退化风险。
-4. 将 cuboid-only 能力边界显式命名、显式 KDoc、显式 unsupported。
-5. 继续降低业务层对 `Cuboid` / `CuboidView` / `QuantityPlacement*` 的直接感知。
-6. 实现离散动态半径版本：从直径/半径区间和间隔生成候选直径，再生成圆密排候选层。
-7. 增加连续半径优化版本的模型设计与原型评估计划，不把它误写成已完成能力。
-8. 开放 `Axis3.X` / `Axis3.Z` 横向圆柱摆放：移除已完成校验路径上的 Y-only 门禁，并为未完成路径保留显式 unsupported。
-9. 深度边界层约束配置已接入 application 最终已放置结果校验，并已接入 application request 与 Gurobi CSV 场景加载器输入字段；后续仍需评估是否进入 MILP 原生建模。
-10. 补齐 renderer DTO、外部 renderer 示例和 schema 契约验收。
-11. 重新执行 Gurobi / CSV suite 或明确记录环境阻塞。
-12. 在提交前隔离无关模块改动，只提交 BPP3D 相关变更。
-
-非目标：
-
-1. 不在下一轮去除 `Item : Cuboid<Item>` 继承。
-2. 不重写 `QuantityPlacement2/3`、`CuboidView`、projection 基础设施。
-3. 不支持任意角度圆柱或任意 shape；横向圆柱只限 `Axis3.X` / `Axis3.Z` 两种轴向。
-4. 不把连续半径全局优化器作为下一轮生产能力；下一轮只做模型设计、边界评估和可选原型。
-5. 不把外部 renderer 源码纳入本仓。
-
-## 5. 下一轮事项
-
-### 5.1 接手与文档修正
-
-1. 读取 `.rules/chore.md` 和本文档。
-2. 执行 `git status --short --branch`，记录 BPP3D 与非 BPP3D 改动。
-3. 修正 `refactor.md` 中所有不存在或不可验证的 API 名称。
-4. 将历史验证、本轮验证、建议验证分开记录。
-5. 删除或改写任何“未执行但写成通过”的测试描述。
-6. 检查 README / README_ch / 示例数据与本文档是否口径一致。
-
-### 5.2 硬绑定基线与门禁
-
-1. 重新生成 `Cuboid` / `CuboidView` / `QuantityPlacement2/3` / `AbstractCuboid` 硬绑定快照。
-2. 将允许存在的绑定分成基础设施、compat adapter、测试、文档四类。
-3. 收紧门禁 allowlist，禁止 application / domain service 新增散落硬绑定。
-4. 对 `QuantityPlacement2/3(...)` 直写构造保持只允许 `PlacementFactory`。
-5. 增加或更新扫描，禁止文档继续引用不存在 API 作为完成项。
-6. 对 `DemandConstraint.forItem` / `VolumeMinimization.forItem` application 调用侧保持禁用。
-
-建议扫描：
-
-```powershell
-rg --line-number "\b(Cuboid|AbstractCuboid|CuboidView|QuantityPlacement2|QuantityPlacement3|QuantityRectangle2|QuantityCuboid3)\b" ospf-kotlin-framework-bpp3d --glob "*.kt" --glob "!**/bpp3d-infrastructure/**"
-rg --line-number "QuantityPlacement[23]\(" ospf-kotlin-framework-bpp3d --glob "*.kt" --glob "!**/bpp3d-infrastructure/**"
-rg --line-number "DemandConstraint\.forItem|VolumeMinimization\.forItem|ItemDemandConstraint<|ItemVolumeMinimization<" ospf-kotlin-framework-bpp3d --glob "*.kt"
-```
-
-### 5.3 圆柱真实几何闭环
-
-1. 为 `CirclePackingLayerGenerator` 增加 adapter 级验收。
-2. 对 circle packing 输出增加真实几何二次校验：容器内、圆柱间不重叠、与长方体不冲突。
-3. 覆盖同层多圆柱、圆柱+长方体混装、边界贴合、半径不同、超出容器等场景。
-4. 检查 loading rate、used volume、actual volume 在混装路径中是否始终使用真实体积。
-5. 将非 `Axis3.Y` 圆柱拆分处理：`Axis3.X` / `Axis3.Z` 进入横向圆柱专项，其他任意角度继续显式 unsupported。
-6. 对无法验证真实几何的 block/layer 结果明确拒绝。
-7. 复查 `PackingRendererAdapter` 输出的 shape metadata 是否覆盖外部 renderer 所需字段。
-
-### 5.4 X/Z 横向圆柱摆放
-
-目标：在保持 `Axis3.Y` 竖直圆柱稳定的前提下，开放 `Axis3.X` 与 `Axis3.Z` 横向圆柱摆放。该目标只覆盖轴向与坐标轴平行的圆柱，不覆盖任意角度旋转。
-
-能力边界：
-
-1. `Axis3.Y`：竖直圆柱，平面投影为圆，继续走 circle packing / vertical cylinder 路径。
-2. `Axis3.X`：横向圆柱，圆柱轴沿 X 方向，长度占用 X，截面圆位于 YZ 平面。
-3. `Axis3.Z`：横向圆柱，圆柱轴沿 Z 方向，长度占用 Z，截面圆位于 XY 平面。
-4. 同一个 `BinLayer` 内只允许一种圆柱轴向/朝向，不允许 X/Y/Z 混放在同一 layer。
-5. 同一个 bin 内可以包含多个 layer，不同 layer 可以选择不同轴向/朝向。
-6. 横向圆柱不能复用竖直圆柱的 XY 平面密排假设，必须单独校验投影、支撑、碰撞和 renderer 朝向。
-7. 在 XY / ZY 投影平面完成圆密排后沿投影方向拓展为 3D 圆柱时，必须重新校验全长支撑；圆柱不允许任何形式的悬空。
-
-实现事项：
-
-1. 梳理并分类当前 `only Axis3.Y` 门禁：哪些可以开放 X/Z，哪些必须保留 unsupported。
-2. 扩展 `PackingAlgorithmShapeType` 或算法能力标记，区分 `VerticalCylinder`、`HorizontalCylinderX`、`HorizontalCylinderZ`，或明确使用 `BoundingCuboid` + 真实几何校验策略。
-3. 已完成：完善 `CylinderPackingShape3.boundingBox`、`footprint()`、`actualVolume` 对 X/Y/Z 三轴的 metadata 语义测试；X/Z 当前仍标记为 `BoundingCuboid` algorithm type。
-4. 阶段完成：补充 X/Z 轴圆柱容器边界测试，当前仅固定 `Container3.enabled(shape, position)` 的外接盒边界语义；圆柱-圆柱、圆柱-长方体、圆柱-层边界真实几何校验仍未完成。
-5. 阶段完成：已复查并测试 `Container3.enabled` 对 X/Z 横向圆柱的 bounding-box 边界行为；`ShapePlacement3` / footprint overlap 对横向圆柱真实截面、碰撞和支撑仍需新增 shape-aware helper。
-6. `LayerGenerationContext` / layer candidate adapter 必须显式记录 layer 轴向，生成候选时按单一轴向成层。
-7. layer merge / assignment / packing 只能组合多个 layer，不能把不同轴向的圆柱合并到同一 `BinLayer`。
-8. 对 XY / ZY 投影密排后沿轴向拓展得到的圆柱，增加 3D 无悬空校验：圆柱轴向全长都必须有有效支撑或位于底面。
-9. 无悬空校验不能只看外接盒，也不能只看投影圆心；必须以真实圆柱 footprint / contact geometry 判定。
-10. `SimpleBlockGenerator`、`Packer`、`LayerPlacementAdapter`、`PackingRendererAdapter`、`LoadingOrderCalculator` 逐项拆门禁：完成真实几何校验的路径允许 X/Z，未完成路径继续显式拒绝。
-11. support / stacking / hanging 默认不得直接开放 X/Z；必须先定义横向圆柱支撑语义，否则保持 unsupported。
-12. renderer DTO 必须输出 `axis = X` / `axis = Z`，外部 renderer 需要按轴向旋转 `CylinderGeometry`。
-13. CSV / application / Gurobi 入口允许解析 `X`、`Y`、`Z`，但只有通过真实几何校验的路径才允许生成方案。
-14. 已完成：README / README_ch 明确列出三轴支持矩阵：Y 已支持，X/Z 当前仅用于元数据解析和策略校验，缺少真实几何支持的 placement 路径仍为 unsupported，不得笼统宣称“圆柱任意摆放”。
-
-测试事项：
-
-1. 已完成：`Axis3.X` bounding box、footprint、actualVolume 测试。
-2. 已完成：`Axis3.Z` bounding box、footprint、actualVolume 测试。
-3. 已完成：X/Z 横向圆柱容器边界测试，当前覆盖外接盒边界语义。
-4. X/Z 横向圆柱与长方体不重叠测试。
-5. X/Z 横向圆柱与竖直圆柱混装测试。
-6. 同一 `BinLayer` 内混入多个圆柱轴向时必须显式拒绝或拆分成多个 layer。
-7. 同一 bin 内多个 layer 使用不同轴向时允许通过，并保持 layer 间堆叠/顺序语义正确。
-8. XY / ZY 投影密排后沿轴向拓展导致局部悬空的案例必须被拒绝。
-9. 圆柱全长完全有支撑或位于底面时允许通过。
-10. X/Z support / stacking / hanging 未定义时显式 unsupported 测试。
-11. 已完成：renderer DTO round-trip 覆盖 `axis = X` / `axis = Z`，当前仅固定 DTO 表达能力，不代表外部 renderer 已完成 X/Z 端到端适配。
-12. 阶段完成：CSV shape-spec parser 覆盖 `X` / `Y` / `Z` 与非法值；完整 grouped-layer scenario 对 X/Z 仍会在 `LayerPlacementAdapter` placement 构造阶段显式拒绝。
-
-验收边界：
-
-1. X/Z 只能在已有真实几何校验覆盖的路径中开放。
-2. 同一 layer 内必须单一轴向；不同轴向只能出现在同一 bin 的不同 layer 中。
-3. 圆柱不允许任何形式的悬空；投影平面密排结果沿轴向拓展后必须通过 3D 全长支撑校验。
-4. 若某条主链仍缺少真实几何校验或无悬空校验，必须继续报 unsupported，不能退回外接盒最终判定。
-5. 外部 renderer 未适配 X/Z 前，本仓只能输出 metadata，不能宣称端到端渲染完成。
-
-### 5.5 深度边界层轴向/朝向约束
-
-目标：提供一个可选配置，用于约束 depth 方向第一个 layer 和最后一个 layer 的允许轴向/朝向。配置存在时必须满足；字段缺失或为 `null` 时不施加额外限制；字段存在但允许集合为空时视为配置错误。
-
-当前进展：
-
-1. 已完成：新增 `DepthBoundaryLayerOrientationPolicy`，支持分别配置 first / last layer 的圆柱允许轴向集合与长方体允许朝向集合。
-2. 已完成：`ColumnGenerationStandardExecutors.finalSolver()` 在最终 MILP 求解后，对收集出的已放置 `LayerBin` 按 `z` 坐标识别 first / last layer 并执行硬校验。
-3. 已完成：拒绝原因包含 `bin`、`boundary=first/last`、`layer_z`、`item`，以及 `cylinder_axis` 或 `cuboid_orientation`。
-4. 已完成：application request 与 Gurobi CSV 场景加载器输入字段已接入，字段缺失或为 `null` 时不限制，字段存在但集合为空时拒绝。
-5. 未完成：当前不是 MILP 原生约束建模，也不会在候选生成阶段提前丢弃候选。
-
-配置语义：
-
-1. 约束对象是同一个 bin 内按 depth 方向排序后的第一个 `BinLayer` 和最后一个 `BinLayer`。
-2. 圆柱使用轴向约束，允许值为 `Axis3.X`、`Axis3.Y`、`Axis3.Z` 的集合。
-3. 长方体使用朝向约束，允许值为现有 `Orientation` 集合，可以配置多个允许朝向。
-4. 第一个 layer 和最后一个 layer 分别配置，二者可以不同。
-5. 只配置第一个 layer 时，只约束第一个 layer；只配置最后一个 layer 时，只约束最后一个 layer。
-6. 字段缺失或为 `null` 时，表示该边界不限制轴向/朝向；字段存在但允许集合为空时，视为配置错误，不能等价为“不限制”。
-7. 若同一个边界 layer 同时包含圆柱和长方体，则圆柱检查 axis，长方体检查 orientation；对应允许集合存在时，各自必须落在允许集合中。
-8. 该配置不改变“同一 layer 内只允许一种圆柱轴向/朝向”的规则。
-
-实现事项：
-
-1. 已完成：增加配置模型 `DepthBoundaryLayerOrientationPolicy`，包含 `firstLayerAllowedCylinderAxes`、`lastLayerAllowedCylinderAxes`、`firstLayerAllowedCuboidOrientations`、`lastLayerAllowedCuboidOrientations`。
-2. 已完成：在 application request / Gurobi CSV 场景加载器中设计对应输入字段，字段缺失时保持现有行为；字段存在但集合为空时给出明确配置错误。
-3. 已完成：在 application 最终求解后增加已放置结果硬校验，按 bin 内 depth 坐标排序识别第一个和最后一个 layer，不能按生成顺序判断。
-4. 已完成：对第一个/最后一个 layer 执行轴向/朝向集合检查；不满足时返回明确错误原因。
-5. 对只有一个 layer 的 bin，同时应用 first 与 last 配置；若两侧配置冲突，则该 layer 必须同时满足两侧，否则不可行。
-6. 文档和 README 明确：该约束只作用于 depth 边界层，不约束中间 layer。
-
-测试事项：
-
-1. 未配置时不限制第一个/最后一个 layer。
-2. 只配置第一个 layer 时，最后一个 layer 不受限制。
-3. 只配置最后一个 layer 时，第一个 layer 不受限制。
-4. first/last 配置不同，bin 内多个 layer 分别满足各自约束。
-5. 单 layer bin 同时满足 first 和 last 配置时可行。
-6. 单 layer bin 无法同时满足 first 和 last 配置时不可行。
-7. 圆柱 axis 不在允许集合时拒绝。
-8. 长方体 orientation 不在允许集合时拒绝。
-9. 允许集合包含多个轴向/朝向时，任一命中即可通过。
-10. 字段缺失或为 `null` 时保持原结果；字段存在但集合为空时返回配置错误或不可行。
-
-验收边界：
-
-1. 配置存在时必须满足，不能作为软偏好。
-2. 字段缺失或为 `null` 时不能改变原有候选生成和求解结果。
-3. 空集合不能被解释为“不限制”；若输入层允许空集合，必须在校验阶段转成明确错误或不可行。
-4. 拒绝原因必须可诊断，至少能区分 first layer / last layer、圆柱 axis / 长方体 orientation。
-
-### 5.6 动态直径/半径版本
-
-动态直径/半径必须明确分为两个版本，避免把 metadata 预留误认为已完成能力。
-
-当前进展：
-
-1. 已完成离散动态半径的输入模型与候选生成：`PackageShapeSpec.VerticalCylinder` 支持 `radiusStep`、`diameterMin`、`diameterMax`、`diameterStep`，并通过 `resolvedRadiusCandidates` 输出去重、排序、含上下界的半径候选。
-2. `GenericPackageShapeSpec.VerticalCylinder` 已透传上述字段，application generic request 映射到 model 后会保留动态半径配置。
-3. 已完成候选半径接入 `CirclePackingLayerGenerator` 的 layer candidate 生成：每个候选半径生成独立 placement-level shape，保持原 `Item` identity，不破坏 demand key 与 shadow price key。
-4. 已完成 Gurobi CSV 场景加载器的动态字段解析：支持 `radius_min` / `radius_max` / `radius_step` 与 `diameter_min` / `diameter_max` / `diameter_step`，并保留 `radius_meter`、`shape_type`、`axis` 旧字段兼容。
-
-#### 5.6.1 离散动态半径版本
-
-目标：把直径/半径区间离散化成有限候选，再复用现有 layer candidate 生成、真实几何校验和评分链路。
-
-输入语义：
-
-1. 支持按直径输入区间和间隔，例如：`diameterMin = 300`、`diameterMax = 360`、`diameterStep = 10`。
-2. 上述输入必须生成候选直径：`300, 310, 320, 330, 340, 350, 360`。
-3. domain 内部可统一换算为半径候选：`150, 155, 160, 165, 170, 175, 180`。
-4. 若输入为半径区间，则同理生成半径候选，并按需要输出对应直径。
-5. 间隔必须为正数；区间端点必须为正数；`min <= max`；候选生成必须包含上下边界。
-6. 若已有显式 `radiusCandidates`，需要明确它和区间生成候选的优先级：建议显式候选优先，区间用于补全或作为另一种输入模式，不能混用出不可解释结果。
-
-实现事项：
-
-1. 已完成：扩展 `PackageShapeSpec.VerticalCylinder`，表达 `diameterMin`、`diameterMax`、`diameterStep` / `radiusMin`、`radiusMax`、`radiusStep`。
-2. 已完成：增加候选生成 helper，负责区间合法性校验、候选生成、去重、排序和单位换算。
-3. 已完成：`CirclePackingLayerGenerator` 对每个候选半径生成对应 item view / shape / layer candidate。
-4. 已完成：动态候选层的 `source` 记录候选半径，方便调试和回归断言。
-5. 已完成：每个候选半径生成的层都经过真实几何二次校验。
-6. 阶段完成：ranking 已考虑装入数量、真实体积和 shadow score；独立候选半径偏好策略尚未配置化。
-7. 已完成：Gurobi CSV 场景加载器支持直径区间和间隔字段，覆盖 `diameter_min`、`diameter_max`、`diameter_step`，同时覆盖半径区间字段 `radius_min`、`radius_max`、`radius_step`；完整 Gurobi / CSV dataset suite 已复跑通过。
-8. 已完成：renderer DTO 输出最终选中的实际 `radius`、`diameter`、外接尺寸和 `actualVolume`，不只输出区间。
-
-验收样例：
-
-1. 输入直径 `300..360`、间隔 `10`，生成 7 个候选直径。
-2. 每个候选直径生成的圆柱实际体积与外接盒体积不同，且 loading rate 使用实际体积。
-3. 候选直径越界、间隔为 0、负数半径、空候选都必须显式报错。
-4. 混装长方体 + 动态圆柱候选时，最终层通过真实几何校验。
-
-#### 5.6.2 连续半径优化版本
-
-目标：评估是否把半径作为连续变量参与优化。该版本属于独立模型设计与原型，不作为下一轮生产能力默认完成项。
-
-设计事项：
-
-1. 明确连续半径优化的数学模型：变量包括半径、圆心坐标、装入数量或选择变量。
-2. 明确约束类型：容器边界、圆-圆不重叠、圆-矩形不重叠、半径上下界、物料需求、体积/重量约束。
-3. 评估模型类别：连续非线性、MINLP、二阶锥近似、离散化 MIP 或启发式局部搜索。
-4. 评估和现有 CG / layer candidate 体系的耦合方式：作为候选生成器、pricing 子问题，还是独立 heuristic adapter。
-5. 明确求解器要求：Gurobi 是否支持目标模型，是否需要非凸参数，是否可接受性能风险。
-6. 先做小规模原型：单 bin、单物料、固定数量或最大数量，再扩展混装。
-7. 原型输出仍必须转回确定半径和确定 placement，再进入真实几何校验。
-
-验收边界：
-
-1. 连续优化原型不得替代离散动态半径生产路径。
-2. 若连续求解不可用，必须回退到离散候选半径路径。
-3. 文档必须明确连续优化是否只是原型、是否执行、是否通过。
-
-### 5.7 support / stacking / hanging 语义复查
-
-1. 梳理 `PackageAttribute.enabledStackingOn(...)` 的真实输入能力：`ItemView`、`ItemPlacement3`、底部支撑、layer、height。
-2. 判断 stacking / hanging 当前是否只能安全用于 cuboid footprint。
-3. 对任意轴向圆柱叠放增加硬约束：只有半径/直径相同的圆柱才允许叠放。
-4. 半径/直径比较必须基于归一化后的 quantity 数值，不允许用原始字符串或未换算单位比较。
-5. 任意轴向圆柱半径/直径不同但发生叠放时，必须显式拒绝或返回 unsupported，不能按外接盒或更大圆柱 footprint 静默通过。
-6. 对圆柱 top/bottom support 若尚无真实策略，保持显式 unsupported 或明确 cuboid-only。
-7. 能迁移的判断改用 `shapeFootprint`、`shapeBoundingBox`、`shapeVolume`。
-8. 不能迁移的判断补 KDoc 与测试，禁止静默按外接盒通过。
-9. 增加混装支撑测试：圆柱在盒体上、盒体在圆柱上、圆柱在圆柱上。
-
-### 5.8 Item / container / compat 边界收口
-
-1. 继续把业务几何访问迁移到 `Item.shapeBoundingBox` / `shapeFootprint` / `shapeVolume`。
-2. 检查 `Item`、`ItemContainer`、`Bin`、`Layer`、`Block` 是否还有业务逻辑直接读 `Cuboid.volume` / `width` / `height` / `depth` 当作真实形状。
-3. 将确实只为 placement 兼容存在的扩展集中到 compat 区域。
-4. 所有 compat 扩展补齐中英双语 KDoc。
-5. 移除文档中不存在的 compat 扩展描述。
-6. 不新增额外 `ShapeProvider` / `BoundingBoxProvider` 等包装接口，除非能替代真实重复依赖。
-
-### 5.9 ItemMerger / Pattern / cuboid-only 路径
-
-1. 全量复查 `ItemMerger` 的所有入口。
-2. 确保混入圆柱时所有 cuboid-only merge 路径都显式拒绝。
-3. 复查 `Pattern` 是否隐含长方体 footprint、排列或堆叠假设。
-4. 对 cuboid-only API 命名、KDoc、异常信息和测试进行统一。
-5. 补充混装负例：圆柱参与 merge、pattern block、hollow square、pile 等路径。
-6. 若发现可支持的圆柱子路径，必须加真实几何校验后再开放。
-
-### 5.10 Demand / shadow price / volume 类型链
-
-1. 保持 application 使用 `itemDemandConstraint` / `itemVolumeMinimization`。
-2. 检查测试、样例和文档不再推荐业务调用 `DemandConstraint.forItem` / `VolumeMinimization.forItem`。
-3. 评估 shadow price key、demand statistics、reduced cost 是否还有几何类型不必要依赖。
-4. 若底层 `T : Cuboid<T>` 保留，文档必须说明它是 solver unit 结构约束，不是 shape capability。
-5. 增加门禁保护，防止 application 重新引入泛型基类 factory。
-6. 保持 Item 专用封装的测试覆盖。
-
-### 5.11 Renderer DTO 与外部 renderer 契约
-
-1. 已完成：固化 renderer DTO 字段契约：`shapeType`、`renderShapeType`、`algorithmShapeType`、`radius`、`diameter`、`axis`、`boundingWidth/Height/Depth`、`actualVolume`。
-2. 已完成：为长方体旧字段兼容、竖直圆柱 metadata、混装 loading rate 增加或保留测试。
-3. 已完成：输出最小 `Cuboid + Axis3.Y Cylinder` 混装 JSON fixture `bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`，并通过 `RendererDTOTest` 固化 round-trip 契约。
-4. 外部 renderer 验收记录只写命令与结果，不把外部源码改动写成本仓修改项。
-5. 未完成：对 unsupported renderer shape 明确约定：用户可见提示优先，至少不能静默显示为普通长方体。
-
-### 5.12 CSV / Gurobi / application 完整验收
-
-1. 重新执行 application 普通测试链路。
-2. 在有 license 和数据集条件时执行 Gurobi 回归。
-3. 执行 CSV dataset suite，覆盖旧 CSV、长方体新字段、圆柱字段、动态直径区间字段、非法 shape、非法 axis。
-4. 若环境不具备 Gurobi 或 dataset，只记录环境阻塞，不写成通过。
-5. 将实际命令、结果、日期写入文档。
-6. 验证失败时优先修代码，不用文档掩盖。
-
-## 6. 下一轮整体计划
-
-### 阶段 0：基线确认
-
-1. 记录工作树和分支状态。
-2. 隔离非 BPP3D 改动。
-3. 跑门禁、diff check、BPP3D 全量测试。
-4. 记录当前未提交 BPP3D 文件清单。
-
-### 阶段 1：文档与门禁修正
-
-1. 修正本文档不准确 API 描述。
-2. 更新 README / README_ch / 示例数据口径。
-3. 收紧硬绑定扫描和 allowlist。
-4. 建立本轮实际验证记录模板。
-
-### 阶段 2：圆柱几何闭环
-
-1. 补 circle packing adapter 验收。
-2. 补真实几何二次校验。
-3. 梳理 `Axis3.X` / `Axis3.Z` 横向圆柱真实几何能力和 Y-only 门禁。
-4. 实现离散动态半径候选生成：支持直径区间、半径区间和固定间隔。
-5. 建立 layer 轴向约束：同一 layer 单一朝向，同一 bin 可包含不同朝向 layer。
-6. 深度边界层轴向/朝向约束配置已接入最终已放置结果硬校验：按 bin 内 depth 坐标识别 first / last layer，圆柱检查 axis，长方体检查 orientation；字段缺失或为 `null` 时不限制，空集合视为配置错误。application request 与 Gurobi CSV 场景加载器输入字段已接入，MILP 原生约束仍未完成。
-7. 补混装正例与 unsupported 负例。
-8. 确认 renderer DTO 输出轴向、最终选中半径/直径和真实体积。
-9. 形成连续半径优化模型设计记录，决定是否进入原型。
-
-### 阶段 3：cuboid-only 语义收口
-
-1. 收口 `ItemMerger`、`Pattern`、support / stacking / hanging。
-2. 给不可支持路径补显式异常与测试。
-3. 能迁移的路径改用 shape capability。
-4. 保持基础设施兼容，不重写 placement。
-
-### 阶段 4：solver 与 application 调用面收口
-
-1. 复查 demand / shadow price / volume 调用面。
-2. 防止 application 重新依赖泛型基类 factory。
-3. 补定向测试。
-4. 跑 application 普通链路。
-
-### 阶段 5：完整验收与提交
-
-1. 跑必跑命令。
-2. 视环境跑 Gurobi / CSV suite。
-3. 更新本文档实际结果。
-4. 确认只提交 BPP3D 相关改动。
-5. 使用具体、完整的提交信息提交。
-
-## 7. 下一轮修改清单
-
-优先检查和修改：
+## 2. 已完成事项摘要
+
+以下只保留结论，不保留实现流水账；需要查细节时查看 git 历史、测试记录和对应模块。
+
+1. 竖直圆柱 `Axis3.Y` 已接入主链，shape metadata、真实体积、renderer DTO、loading rate 与 application 入口具备阶段性支持。
+2. `PackingShape3` 已成为 domain 层 shape capability 入口，`Item` 已能从 `packingShape` 派生形状能力。
+3. 不支持真实圆柱几何的旧搜索路径已显式 unsupported，避免静默退回外接盒判定。
+4. `QuantityPlacement2/3(...)` 直写构造已集中到 `PlacementFactory`，业务调用侧对 placement 泛型的直接暴露已收敛。
+5. `DemandConstraint` / `VolumeMinimization` 已提供 Item 专用顶层入口，application 调用侧不再直接依赖泛型基类 factory。
+6. `Cuboid<*>` / `AbstractCuboid<...>` / `CuboidView<*>` / `QuantityPlacement*` 相关 compat 绑定已由 `shape-boundary-check.ps1` allowlist 分类约束；底层结构性绑定仍保留。
+7. 离散动态半径/直径输入语义已闭合，并已接入候选生成、CSV 解析和相关回归。
+8. 深度边界层轴向/朝向策略已接入 application 最终已放置结果硬校验；MILP 原生建模评估结论为暂不进入当前默认 MILP/候选生成链路。
+9. `PackingGeometryGuard` 已接入最终 packing/rendering 路径，终态会复核容器边界、圆柱/长方体碰撞、圆柱/圆柱碰撞和横向圆柱贴地语义。
+10. `Axis3.X` / `Axis3.Z` 横向圆柱已在最终装箱/渲染的已知坐标路径中开放；候选生成、block loading、LayerPlacementAdapter、stacking、hanging 和 circle packing 仍保持 Y-only 或 unsupported。
+11. Renderer DTO 契约、`Cuboid + Axis3.Y Cylinder` fixture、X/Y/Z 三轴圆柱坐标 fixture、README 口径已完成阶段性补齐；外部 renderer 已由其它工程处理完成，并已复核构建与类型检查，实际显示效果仍需人工打开 fixture 或实际输出核对。
+12. 连续半径优化已完成边界评估：不进入生产默认链路，后续只能按独立原型或候选生成增强重新建模。
+13. 本轮门禁脚本、BPP3D 全量测试、外部 renderer build/type/check 已复核通过；Gurobi 求解回归和 CSV dataset suite 属于历史复核，后续提交前如有相关改动需重新执行。
+
+## 3. 未完成事项
+
+### 3.1 Cuboid 底层基础设施去绑定
+
+**事项**
+
+`Item : Cuboid<Item>`、`QuantityPlacement2/3`、`CuboidView`、`Bin`、`Container3`、`Layer`、`Block` 等底层 placement/projection 体系仍以 cuboid 为核心。下一轮目标是继续减少业务层与应用层对这些基础设施类型的感知，不要求一次性重写底层。
+
+**计划**
+
+1. 复跑并复核 `shape-boundary-check.ps1`，确认 allowlist 没有被新改动扩大。
+2. 将仍暴露 cuboid 语义的 domain/service API 继续改为 shape capability 或明确 cuboid-only。
+3. 对不得迁移的基础设施绑定补足 KDoc、命名和 unsupported 语义。
+4. 只在局部边界推进，避免重写 `QuantityPlacement2/3`、`CuboidView` 和 projection 核心。
+
+**修改清单**
+
+1. `bpp3d-domain-item-context/src/main/.../model/Item.kt`
+2. `bpp3d-domain-item-context/src/main/.../model/Bin.kt`
+3. `bpp3d-domain-item-context/src/main/.../model/Layer.kt`
+4. `bpp3d-domain-item-context/src/main/.../model/Block.kt`
+5. `bpp3d-domain-item-context/src/main/.../model/PlacementFactory.kt`
+6. `bpp3d-domain-item-context/src/main/.../service/LoadingOrderCalculator.kt`
+7. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/DemandConstraint.kt`
+8. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/VolumeMinimization.kt`
+9. `scripts/shape-boundary-check.ps1`
+
+**验收标准**
+
+1. application / domain service 不新增散落 `Cuboid` / `AbstractCuboid` / `CuboidView` / `QuantityPlacement*` 泛型暴露。
+2. `QuantityPlacement2/3(...)` 直写构造只允许在基础设施内部和 `PlacementFactory`。
+3. application 不直接调用 `DemandConstraint.forItem` / `VolumeMinimization.forItem`。
+4. 仍保留的 cuboid 绑定必须有清晰边界说明。
+
+### 3.2 横向圆柱从终态窄口径扩展
+
+**事项**
+
+`Axis3.X` / `Axis3.Z` 横向圆柱当前只在最终 packing/rendering 已知坐标路径中开放。下一轮如继续开放，需要把候选生成、支撑、stacking、hanging 和 LayerPlacementAdapter 的真实几何语义逐步补齐；缺失语义的路径继续 unsupported。
+
+**计划**
+
+1. 梳理所有 `only Axis3.Y` 门禁，标记为“可开放”“需支撑语义”“必须继续 unsupported”三类。
+2. 为横向圆柱定义 layer 轴向语义，保持同一 `BinLayer` 内单一圆柱轴向。
+3. 设计 X/Z 横向圆柱支撑模型，明确“贴地”“全长支撑”“叠放”三类规则。
+4. 评估 circle packing 是否能扩展为横向圆柱候选生成，不能复用 Y 轴 XY 平面密排作为最终判定。
+5. 对开放路径补正例和负例；未开放路径补显式 unsupported 测试。
+
+**修改清单**
 
 1. `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`
-2. `bpp3d-domain-layer-generation-context/src/test/.../LayerGenerationProgramCandidateAdaptersTest.kt`
-3. `bpp3d-domain-layer-generation-context/src/test/.../LayerGenerationFltXProofTest.kt`
-4. `bpp3d-domain-layer-assignment-context/src/main/.../model/LayerAggregation.kt`
-5. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/DemandConstraint.kt`
-6. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/VolumeMinimization.kt`
-7. `bpp3d-domain-block-loading-context/src/main/.../SimpleBlockGenerator.kt`
-8. `bpp3d-domain-block-loading-context/src/main/.../CylinderUnsupportedGuard.kt`
-9. `bpp3d-domain-block-loading-context/src/test/.../SearchAlgorithmCylinderGuardTest.kt`
-10. `bpp3d-domain-item-context/src/main/.../model/Item.kt`
-11. `bpp3d-domain-item-context/src/main/.../model/ItemContainer.kt`
-12. `bpp3d-domain-item-context/src/main/.../model/Package.kt`
-13. `bpp3d-domain-item-context/src/main/.../model/QuantityDomainModels.kt`
-14. `bpp3d-domain-item-context/src/main/.../model/PackageAttribute.kt`
-15. `bpp3d-domain-item-context/src/main/.../model/Pattern.kt`
-16. `bpp3d-domain-item-context/src/main/.../model/Bin.kt`
-17. `bpp3d-domain-item-context/src/main/.../model/Layer.kt`
-18. `bpp3d-domain-item-context/src/main/.../model/Block.kt`
-19. `bpp3d-domain-item-context/src/main/.../model/PlacementFactory.kt`
-20. `bpp3d-domain-item-context/src/main/.../service/ItemMerger.kt`
-21. `bpp3d-domain-item-context/src/main/.../service/LoadingOrderCalculator.kt`
-22. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`
-23. `bpp3d-domain-packing-context/src/main/.../service/CylinderAxisGuard.kt`
-24. `bpp3d-application/src/main/.../service/ColumnGenerationApplicationService.kt`
-25. `bpp3d-application/src/main/.../service/ColumnGenerationAlgorithm.kt`
-26. `bpp3d-application/src/main/.../service/ColumnGenerationStandardExecutors.kt`
-27. `bpp3d-application/src/main/.../service/LayerPlacementAdapter.kt`
-28. `bpp3d-application/src/main/.../request-or-csv-mapping/*`
-29. `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt`
-30. `bpp3d-infrastructure/src/main/.../PackingShape.kt`
-31. `bpp3d-infrastructure/src/main/.../Placement.kt`
-32. `bpp3d-infrastructure/src/main/.../Container.kt`
-33. `bpp3d-infrastructure/src/main/.../dto/RendererDTO.kt`
-34. `scripts/generic-boundary-check.ps1`
-35. `scripts/shape-boundary-check.ps1`
-36. `scripts/geometry-boundary-check.ps1`
-37. `scripts/geometry-module-dry-run.ps1`
-38. `README.md`
-39. `README_ch.md`
-40. `refactor.md`
+2. `bpp3d-domain-layer-assignment-context/src/main/.../model/LayerAggregation.kt`
+3. `bpp3d-domain-block-loading-context/src/main/.../SimpleBlockGenerator.kt`
+4. `bpp3d-domain-item-context/src/main/.../model/Pattern.kt`
+5. `bpp3d-domain-item-context/src/main/.../service/ItemMerger.kt`
+6. `bpp3d-domain-item-context/src/main/.../service/LoadingOrderCalculator.kt`
+7. `bpp3d-domain-packing-context/src/main/.../service/PackingGeometryGuard.kt`
+8. `bpp3d-application/src/main/.../service/LayerPlacementAdapter.kt`
+9. `bpp3d-infrastructure/src/main/.../PackingShape.kt`
+10. `bpp3d-infrastructure/src/main/.../Placement.kt`
 
-建议新增或扩展测试：
+**验收标准**
 
-1. circle packing adapter 混装验收测试。
-2. 圆柱真实几何二次校验测试。
-3. `Axis3.X` / `Axis3.Z` bounding box、footprint、actualVolume 测试。
-4. X/Z 横向圆柱容器边界、圆柱-长方体、圆柱-圆柱真实几何测试。
-5. X/Z 横向圆柱与 Y 轴竖直圆柱混装测试。
-6. 同一 `BinLayer` 内多轴向圆柱混放拒绝或拆分测试。
-7. 同一 bin 内多个 layer 使用不同轴向的可行性测试。
-8. XY / ZY 投影密排后沿轴向拓展导致局部悬空的拒绝测试。
-9. 圆柱全长完全有支撑或位于底面时允许通过测试。
-10. X/Z support / stacking / hanging 未定义时显式 unsupported 测试。
-11. renderer DTO fixture round-trip 测试，覆盖 `axis = X` / `axis = Y` / `axis = Z`。
-12. 离散动态直径候选生成测试：`300..360 step 10` 生成 `300, 310, 320, 330, 340, 350, 360`。
-13. 离散动态半径候选生成测试：半径区间、边界包含、去重排序、非法间隔和空候选。
-14. 动态半径 circle packing 测试：不同候选半径生成不同 layer candidate，并通过真实几何校验。
-15. 任意轴向圆柱相同半径/直径叠放允许测试。
-16. 任意轴向圆柱不同半径/直径叠放显式拒绝测试。
-17. support / stacking / hanging 混装负例测试。
-18. `Pattern` 圆柱显式拒绝测试。
-19. `ItemMerger` 全入口圆柱拒绝测试。
-20. CSV shape 字段解析、动态直径区间字段、X/Y/Z axis 字段和非法输入测试。
-21. Gurobi CSV dataset suite 圆柱字段测试。
-22. 连续半径优化原型测试或设计验证记录。
-23. 深度边界层约束未配置时不改变 first / last layer 选择结果测试。
-24. 只配置 first layer 时，last layer 不受额外限制测试。
-25. 只配置 last layer 时，first layer 不受额外限制测试。
-26. first / last 配置不同且多 layer 分别满足测试。
-27. 单 layer bin 同时应用 first / last 配置，满足时通过、冲突时不可行测试。
-28. 圆柱允许多个 axis、长方体允许多个 orientation，任一命中通过测试。
-29. 圆柱 axis 或长方体 orientation 不在允许集合时拒绝测试。
-30. 深度边界层配置字段存在但集合为空时返回配置错误或不可行测试。
-31. 门禁脚本文档误报测试。
+1. X/Z 只能在真实碰撞、边界和支撑语义覆盖的路径中开放。
+2. 缺少支撑或 stacking 语义的路径必须继续 unsupported。
+3. 同一 `BinLayer` 内只允许一种圆柱轴向；不同 layer 可以使用不同轴向。
+4. 横向圆柱不得复用 Y 轴 circle packing 平面假设作为最终判定。
+5. 支撑测试覆盖贴地通过、悬空拒绝、全长支撑通过和局部悬空拒绝。
 
-## 8. 验收标准
+### 3.3 PackingGeometryGuard 几何能力强化
 
-### 8.1 代码验收
+**事项**
 
-1. `Item : Cuboid<Item>` 若仍保留，文档必须说明它只服务 placement/projection 兼容。
-2. application / domain service 不新增散落 `Cuboid` / `CuboidView` / `QuantityPlacement*` 泛型暴露。
-3. `QuantityPlacement2/3(...)` 直写构造仍只允许在 `PlacementFactory`。
-4. application 不直接调用 `DemandConstraint.forItem` / `VolumeMinimization.forItem`。
-5. 圆柱可支持路径必须使用真实几何校验。
-6. 不可支持圆柱路径必须显式 unsupported。
-7. cuboid-only API 命名、KDoc、异常与测试一致。
-8. `Axis3.X` / `Axis3.Z` 只能在真实几何校验覆盖的路径中开放，缺校验路径必须继续 unsupported。
-9. X/Z 横向圆柱不得复用 Y 轴 circle packing 平面假设作为最终判定。
-10. 同一 `BinLayer` 内只允许一种圆柱轴向/朝向；不同轴向不能在同一 layer 内混放。
-11. 同一 bin 内允许多个 layer，不同 layer 可以使用不同圆柱轴向/朝向。
-12. 圆柱不允许任何形式的悬空；投影平面密排后沿轴向拓展必须通过 3D 全长支撑校验。
-13. 任意轴向圆柱叠放只允许相同半径/直径；不同半径/直径必须显式拒绝或 unsupported。
-14. 半径/直径一致性比较必须基于归一化 quantity 数值。
-15. renderer DTO 必须能表达 `axis = X` / `axis = Y` / `axis = Z`。
-16. 离散动态半径支持直径/半径区间和固定间隔，候选生成包含上下边界。
-17. 输入直径 `300..360`、间隔 `10` 时必须生成 7 个候选直径：`300, 310, 320, 330, 340, 350, 360`。
-18. 动态半径候选进入 circle packing 后，最终输出必须是确定半径/直径、确定 placement 和确定 actual volume。
-19. 连续半径优化若未实现生产能力，必须明确保留为设计/原型，不得写成已完成。
-20. 深度边界层约束必须按 bin 内 depth 坐标识别 first / last layer，不能按生成顺序判断。
-21. 深度边界层约束配置存在时必须满足，字段缺失或为 `null` 时不增加限制。
-22. 深度边界层约束字段存在但允许集合为空时，必须返回配置错误或不可行，不能解释为“不限制”。
-23. 单 layer bin 必须同时应用 first / last 配置；两侧冲突时不可行。
-24. 深度边界层约束中，圆柱检查 axis，长方体检查 orientation，允许集合中任一命中即可通过。
-25. renderer DTO 对长方体旧字段和圆柱新字段均兼容。
-26. 不新增与 BPP3D 无关的改动。
+`PackingGeometryGuard` 已覆盖终态 3D 边界和碰撞，但仍是轴对齐圆柱的阶段性 guard。下一轮需要继续补足数值边界、异轴圆柱边界样例、不同半径样例和错误信息可诊断性。
 
-### 8.2 文档验收
+**计划**
+
+1. 补同轴圆柱相切、轻微重叠、不同半径、不同长度的测试。
+2. 补异轴圆柱相切、穿插、错位不相交的测试。
+3. 补圆柱与长方体角点/边缘临界样例。
+4. 明确 tolerance 语义，避免合法相切被误判为冲突。
+5. 错误信息中保留 source、bin、item index 和冲突类型。
+
+**修改清单**
+
+1. `bpp3d-domain-packing-context/src/main/.../service/PackingGeometryGuard.kt`
+2. `bpp3d-domain-packing-context/src/test/.../PackerAndRendererAdapterTest.kt`
+3. `bpp3d-infrastructure/src/test/.../PackingShapeTest.kt`
+4. `bpp3d-infrastructure/src/test/.../ContainerShapeTest.kt`
+
+**验收标准**
+
+1. 几何 guard 覆盖圆柱/圆柱同轴、异轴和圆柱/长方体临界样例。
+2. 相切应通过，真实重叠应拒绝。
+3. 错误信息足够定位 source、bin 和 item。
+4. 新增测试不依赖外接盒作为最终碰撞判定。
+
+### 3.4 连续半径优化原型
+
+**事项**
+
+当前生产链路只支持离散半径/直径候选。连续半径优化不进入默认生产链路，但可以在下一轮作为独立原型或候选生成增强进行评估。
+
+**计划**
+
+1. 写出连续半径优化模型草案，包括变量、目标函数、边界约束、非重叠约束和数值精度。
+2. 选择小规模场景做原型，不接入默认 application 求解链路。
+3. 评估连续结果如何转化为确定半径候选，再交给现有主链。
+4. 明确失败 fallback：回退离散候选，不影响现有生产能力。
+
+**修改清单**
+
+1. `bpp3d-domain-item-context/src/main/.../model/PackageShapeSpec.kt`
+2. `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`
+3. `bpp3d-domain-layer-generation-context/src/test/.../*`
+4. `README.md`
+5. `README_ch.md`
+6. `refactor.md`
+
+**验收标准**
+
+1. 连续半径优化未实现生产能力时，文档不得写成已完成。
+2. 原型不得改变默认求解链路。
+3. 离散半径/直径候选继续包含上下边界，并输出确定半径、确定 placement 和确定 actual volume。
+4. 半径/直径一致性比较基于归一化 quantity 数值。
+
+### 3.5 深度边界层约束下沉评估
+
+**事项**
+
+深度边界层策略当前是 application 后验硬校验。下一轮仅在确有收益时评估是否下沉到候选生成过滤或 MILP 原生约束；默认继续保持后验硬校验。
+
+**计划**
+
+1. 评估 first / last layer 约束下沉后对可行性解释、候选复用和求解性能的影响。
+2. 若进入 MILP，定义 boundary side 变量、圆柱 axis 兼容约束和长方体 orientation 兼容约束。
+3. 保持后验校验作为兜底，避免 solver 侧漏约束。
+4. 补 CSV/Gurobi 场景级字段的完整回归。
+
+**修改清单**
+
+1. `bpp3d-application/src/main/.../service/ColumnGenerationStandardExecutors.kt`
+2. `bpp3d-application/src/main/.../service/ColumnGenerationAlgorithm.kt`
+3. `bpp3d-application/src/main/.../request-or-csv-mapping/*`
+4. `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt`
+5. `bpp3d-application/src/test/.../DepthBoundaryLayerOrientationPolicyTest.kt`
+
+**验收标准**
+
+1. 若未下沉，文档必须明确仍是后验硬校验。
+2. 字段缺失或为 `null` 时不增加限制。
+3. 字段存在但允许集合为空时返回配置错误或不可行，不能解释为“不限制”。
+4. 单 layer bin 同时应用 first / last；冲突时不可行。
+5. 圆柱检查 axis，长方体检查 orientation。
+
+### 3.6 Renderer 显示一致性人工核对
+
+**事项**
+
+外部 renderer 已由其它工程处理完成，且 build/type/check 已通过；但实际画面显示还未在本仓记录为通过。下一轮需要按外部 renderer `README_ch.md` 的“圆柱坐标设定指南”打开 fixture 或实际求解输出核对。
+
+**计划**
+
+1. 打开 `mixed-shape-renderer-schema.json`，核对长方体与 `Axis3.Y` 圆柱混装显示。
+2. 打开 `cylinder-axis-renderer-schema.json`，核对 X/Y/Z 三轴圆柱坐标、外接盒和贴地语义。
+3. 使用一次实际求解输出核对 layer 顺序、物体位置和本仓输出坐标一致。
+4. 只记录实际打开并核对过的结果，不把 build/type/check 等同于显示通过。
+
+**修改清单**
+
+1. `bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`
+2. `bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json`
+3. `bpp3d-infrastructure/src/test/.../RendererDTOTest.kt`
+4. `README.md`
+5. `README_ch.md`
+6. `refactor.md`
+7. 外部工程：`E:\workspace\ospf\framework\bpp3d-interface-renderer\README_ch.md`
+
+**验收标准**
+
+1. 显示核对覆盖圆柱轴向、半径/直径、外接盒尺寸、外接盒最小角点和贴地语义。
+2. X/Z 横向圆柱在 `y = 0` 且 `boundingHeight = diameter` 时应贴地显示。
+3. 长方体混装、layer 顺序和实际求解输出坐标一致。
+4. 未实际打开核对的显示效果不得写成通过。
+
+### 3.7 Gurobi / CSV suite 重新复核
+
+**事项**
+
+Gurobi 求解回归和 CSV dataset suite 最近记录属于历史复核。下一轮若继续修改 application、CSV、shape spec、depth boundary 或 solver 相关代码，需要重新执行并更新记录。
+
+**计划**
+
+1. 使用根 POM 运行 Gurobi 相关测试，避免本地 reactor 模块解析问题。
+2. 复跑完整 `GurobiColumnGenerationTest`。
+3. 复跑 CSV dataset suite。
+4. 若环境不可用，明确记录阻塞原因，不把历史结果写成本轮通过。
+
+**修改清单**
+
+1. `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt`
+2. `bpp3d-application/src/test/resources/gurobi/*`
+3. `bpp3d-application/src/main/.../request-or-csv-mapping/*`
+4. `README.md`
+5. `README_ch.md`
+6. `refactor.md`
+
+**验收标准**
+
+1. 本轮执行过的 Gurobi / CSV 命令才可写入本轮复核。
+2. 未执行时必须保留为历史复核或建议验收。
+3. CSV shape 字段、动态半径/直径字段、X/Y/Z axis metadata 和 depth boundary 字段均保持兼容。
+
+### 3.8 文档、门禁与提交隔离
+
+**事项**
+
+工作区当前存在 BPP3D 与既有 CSP1D 改动。下一轮提交前必须隔离无关模块，并继续保持文档、门禁和验证记录一致。
+
+**计划**
+
+1. 每轮开始执行 `git status --short --branch`，记录 BPP3D 与非 BPP3D 改动。
+2. 提交前确认只 staged BPP3D 相关文件。
+3. 复跑必跑门禁和 `git diff --check -- ospf-kotlin-framework-bpp3d`。
+4. 已执行、历史执行、建议执行三类验证分开记录。
+5. 提交信息具体说明重构目的、关键边界和验证结果。
+
+**修改清单**
+
+1. `README.md`
+2. `README_ch.md`
+3. `refactor.md`
+4. `scripts/generic-boundary-check.ps1`
+5. `scripts/shape-boundary-check.ps1`
+6. `scripts/geometry-boundary-check.ps1`
+7. `scripts/geometry-module-dry-run.ps1`
+
+**验收标准**
 
 1. 已完成事项只保留高层摘要，不恢复实现流水账。
 2. 文档不引用当前代码中不存在的 API。
 3. 本轮未执行的测试不能写成通过。
 4. 历史验证、最近复核、建议验收必须分开。
 5. 未完成的结构性绑定必须继续保留。
-6. 外部 renderer 状态与本仓 BPP3D 状态分开描述。
+6. 非 BPP3D 改动不得混入 BPP3D 提交。
 
-### 8.3 必跑命令
+## 4. 建议验证命令
+
+### 4.1 必跑命令
 
 ```powershell
 pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
 pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
-pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1
-pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1 -ProjectRoot .
+pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1 -ProjectRoot .
 git diff --check -- ospf-kotlin-framework-bpp3d
 mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true
 ```
 
-### 8.4 建议完整验收
+### 4.2 建议完整验收
 
 ```powershell
 mvn -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am test "-Dgpg.skip=true"
@@ -591,37 +314,35 @@ npx vue-tsc --noEmit
 cargo check
 ```
 
-### 8.5 最近复核记录
+显示一致性建议验收：
+
+1. 先阅读外部 renderer `E:\workspace\ospf\framework\bpp3d-interface-renderer\README_ch.md` 的“圆柱坐标设定指南”。
+2. 使用本仓 `bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json` 打开 renderer，核对长方体与 `Axis3.Y` 圆柱混装显示。
+3. 使用本仓 `bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json` 核对 X/Y/Z 三轴圆柱坐标、外接盒和贴地语义。
+4. 使用一次实际求解输出核对 renderer 中 layer 顺序、物体位置和本仓输出坐标一致。
+
+## 5. 最近复核记录
 
 最近复核日期：2026-06-04
+
+本轮复核：
 
 1. `generic-boundary-check.ps1`：通过。
 2. `shape-boundary-check.ps1`：通过。
 3. `geometry-boundary-check.ps1`：通过。
 4. `geometry-module-dry-run.ps1`：通过，保留 8 个内部基线 warning。
-5. `git diff --check -- ospf-kotlin-framework-bpp3d`：通过，仅 CRLF 工作区提示。
-6. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`：200 tests，0 failures；保留 JVM code heap warning。
-7. 外部 renderer `npm run build` / `npx vue-tsc --noEmit` / `cargo check`：通过；保留 Rust static mut warning。
-8. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-layer-generation-context -am -Dtest=LayerGenerationFltXProofTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：19 tests，0 failures；覆盖 circle packing 真实几何二次校验、混装候选、半径不同、动态半径候选层生成、placement-level shape、renderer DTO 最终半径/直径输出、边界贴合、超出容器与非 Y 轴拒绝。
-9. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-item-context -am -Dtest=PackageShapeSpecTest,GenericDomainAliasExampleTest,MaterialDemandReducedCostTest,DemandStatisticsTest,MixedShapeGeometryTest,ItemMergerCylinderTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：35 tests，0 failures；覆盖动态半径输入语义、generic shape spec 字段透传、圆柱 reduced cost、demand statistics、support / stacking / hanging 真实 footprint，以及 `ItemMerger` / `Pattern` cuboid-only 显式拒绝。
-10. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-domain-packing-context -am -Dtest=PackerAndRendererAdapterTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：5 tests，0 failures；覆盖 packer / renderer shape metadata、混装真实体积 loading rate 和非 Y 轴拒绝。
-11. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-infrastructure -Dtest=PlacementTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：8 tests，0 failures；覆盖圆形 footprint 与矩形 footprint 的 overlap 基础行为。
-12. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=ColumnGenerationGenericShapeSpecEntryPointTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：2 tests，0 failures；覆盖 application generic request 到 model 后保留 `radiusStep` / `diameterMin` / `diameterMax` / `diameterStep`，以及 `depthBoundaryLayerOrientationPolicy` 顶层字段透传。
-13. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest#groupedLayerCsvShouldMapDynamicDiameterColumnsToVerticalCylinderShapeSpec+materialWidthAmountCsvShouldMapDynamicRadiusColumnsToVerticalCylinderShapeSpec -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：2 tests，0 failures；覆盖 Gurobi CSV 场景加载器的动态直径字段和动态半径字段解析。
-14. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest#groupedLayerCsvShouldMapVerticalCylinderShapeSpecFromCsvColumns+groupedLayerCsvShouldMapDynamicDiameterColumnsToVerticalCylinderShapeSpec+groupedLayerCsvShouldRemainCompatibleWithLegacySixColumns+materialWidthAmountCsvShouldMapVerticalCylinderShapeSpecFromCsvColumns+materialWidthAmountCsvShouldMapDynamicRadiusColumnsToVerticalCylinderShapeSpec+materialWidthAmountCsvShouldRemainCompatibleWithLegacyColumns+materialWidthAmountCsvShouldRejectInvalidCylinderAxis+materialWidthAmountCsvShouldRejectShapeColumnsWithoutShapeType+groupedLayerCsvShouldRejectSchemaWhenShapeTypeColumnMissingButShapeMetadataColumnsExist+materialWidthAmountCsvShouldRejectSchemaWhenShapeTypeColumnMissingButAxisColumnExists+declaredGroupedLayerScenarioKindShouldRejectMaterialWidthAmountHeader+groupedLayerMixedShapeSampleFileShouldBeParsable+materialWidthAmountMixedShapeSampleFileShouldBeParsable -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：13 tests，0 failures；覆盖旧 CSV 兼容、固定圆柱字段、动态半径/直径字段、非法 axis、缺失 `shape_type`、scenario kind 校验与样例 CSV 可解析性。
-15. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Dtest=DepthBoundaryLayerOrientationPolicyTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：8 tests，0 failures；覆盖深度边界层策略未配置、按 `z` 坐标识别 first / last、first / last 长方体朝向拒绝、单 layer 同时应用 first / last、空集合配置错误，以及圆柱 axis 通过/拒绝。
-16. `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest#groupedLayerCsvShouldMapDepthBoundaryPolicyColumns+materialWidthAmountCsvShouldRejectEmptyDepthBoundaryPolicySet -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`：2 tests，0 failures；覆盖 Gurobi CSV 场景加载器的深度边界层策略字段解析，以及字段存在但集合为空时拒绝。
-17. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am test -Dgpg.skip=true`：application 普通链路通过；BPP3D reactor build success，application 模块 36 tests，0 failures；保留 JVM code heap warning。
-18. `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`：Gurobi 求解回归通过；25 tests，0 failures，1 skipped；保留 JVM code heap warning 与 surefire dumpstream warning。
-19. `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am -Pgurobi-cg-test -Dbpp3d.gurobi.cg.test.enabled=true -Dbpp3d.gurobi.dataset.suite.enabled=true -Dbpp3d.gurobi.dataset.suite.dir=ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi -Dtest=GurobiColumnGenerationTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：CSV dataset suite 通过；25 tests，0 failures，0 skipped；预检并求解 `grouped-layer-cylinder-mixed-sample.csv`、`material-width-amount-cylinder-sample.csv`、`production-like-dataset.csv`；保留 JVM code heap warning 与 surefire dumpstream warning。
-20. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-infrastructure -Dtest=RendererDTOTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：3 tests，0 failures；覆盖长方体旧字段默认值、竖直圆柱 metadata round-trip，以及最小混装 renderer fixture `mixed-shape-renderer-schema.json` 的外部契约字段。
-21. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-infrastructure -Dtest=PackingShapeTest,ContainerShapeTest,RendererDTOTest -Dsurefire.failIfNoSpecifiedTests=false test -Dgpg.skip=true`：14 tests，0 failures；覆盖 X/Z 横向圆柱 bounding box、footprint、actualVolume metadata 基线，X/Z 外接盒容器边界，renderer fixture 契约，以及 `axis = X` / `axis = Z` 的 DTO round-trip。
-22. `mvn --% -f pom.xml -pl ospf-kotlin-framework-bpp3d/bpp3d-application -am -Pgurobi-cg-test -Dtest=GurobiColumnGenerationTest#csvShapeSpecParserShouldAcceptHorizontalCylinderAxesAsMetadata -Dsurefire.failIfNoSpecifiedTests=false -Dbpp3d.gurobi.cg.test.enabled=true test -Dgpg.skip=true`：1 test，0 failures；覆盖 CSV shape-spec parser 接受 `axis = X` / `axis = Axis3.Z` 作为 shape metadata；保留 JVM code heap warning。
+5. `git diff --check -- ospf-kotlin-framework-bpp3d`：通过，仅保留 CRLF 工作区提示。
+6. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`：通过；BPP3D reactor build success，225 tests，0 failures；保留 Kotlin/JVM warning 与 JVM CodeHeap warning。
+7. 外部 renderer `npm run build`：通过；保留 Vite chunk size warning。
+8. 外部 renderer `npx vue-tsc --noEmit`：通过。
+9. 外部 renderer `cargo check`：通过；保留 Rust workspace resolver warning 与 `static_mut_refs` warning。
 
-## 9. 提交前检查
+历史复核：
 
-1. `git status --short --branch` 中只能包含本轮 BPP3D 相关改动。
-2. 新增测试文件必须纳入提交。
-3. 无关 CSP1D 或其他模块改动不得混入 BPP3D 提交。
-4. 提交信息必须具体说明重构目的、关键边界和验证结果。
-5. 若后续新增改动后未重新执行 Gurobi / CSV，提交信息和文档都必须明确说明。
+1. application 普通链路测试通过。
+2. Gurobi 求解回归通过。
+3. CSV dataset suite 通过。
+4. renderer DTO / fixture 契约测试通过。
+5. 外部 renderer 构建与类型检查通过；实际显示效果一致性仍需按样例单独核对。
+
+后续新增代码后必须重新执行相关验证；未执行的命令不得继续沿用本记录写成通过。
