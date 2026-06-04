@@ -15,6 +15,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
@@ -31,27 +33,28 @@ class BunchCapacitySchedulingResourceUsage<
         E : Executor,
         A : ProductionAction,
         R,
-        C : AbstractResourceCapacity
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     actions: List<A>,
     interval: Duration = timeWindow.interval
-) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
+) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C, V>, R, C, V>(
     timeWindow, resources, actions, interval
-) where R : Resource<C>, R : CapacityActionResource<C> {
+) where R : Resource<C, V>, R : CapacityActionResource<C, V>, V : RealNumber<V>, V : NumberField<V> {
     private val capacitySlots: List<TimeSlot> = times
 
     override val name: String = "bunch_capacity_scheduling_resource"
     override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
-    final override val timeSlots: List<CapacityActionResourceTimeSlot<R, C>>
+    final override val timeSlots: List<CapacityActionResourceTimeSlot<R, C, V>>
 
     init {
-        AutoIndexed.flush<CapacityActionResourceTimeSlot<R, C>>()
+        AutoIndexed.flush<CapacityActionResourceTimeSlot<R, C, V>>()
 
-        val timeSlots = ArrayList<CapacityActionResourceTimeSlot<R, C>>()
+        val timeSlots = ArrayList<CapacityActionResourceTimeSlot<R, C, V>>()
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
@@ -120,8 +123,8 @@ class BunchCapacitySchedulingResourceUsage<
     @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,
-        columns: List<CapacityColumn<E, A, Flt64>>,
-        compilation: IterativeCapacityCompilation<E, A>
+        columns: List<CapacityColumn<E, A, V>>,
+        compilation: IterativeCapacityCompilation<V, E, A>
     ): Try {
         // Rebuild from operationTime to keep consistency when iterative x variables are reshaped.
         // 基于 operationTime 重建，避免迭代扩容后 x 变量重建导致的表达式引用失配。
@@ -136,15 +139,15 @@ class BunchCapacitySchedulingResourceUsage<
             }
             for ((actionIndex, action) in actions.withIndex()) {
                 val unitUsage = slot.resource.usedBy(action, slot.time)
-                if (unitUsage neq Flt64.zero) {
-                    quantity[slot].asMutable() += LinearMonomial(unitUsage, compilation.operationTime[actionIndex, slotIndex])
+                if (unitUsage neq unitUsage.constants.zero) {
+                    quantity[slot].asMutable() += LinearMonomial(unitUsage.toFlt64(), compilation.operationTime[actionIndex, slotIndex])
                 }
             }
         }
         return ok
     }
 
-    private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C>): Int {
+    private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C, V>): Int {
         if (capacitySlots.isNotEmpty()) {
             return capacitySlots.indexOfFirst { it.time.contains(slot.time) }
         }

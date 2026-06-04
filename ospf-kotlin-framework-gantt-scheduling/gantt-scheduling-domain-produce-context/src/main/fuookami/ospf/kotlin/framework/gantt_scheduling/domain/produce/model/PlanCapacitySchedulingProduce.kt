@@ -9,42 +9,46 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
 /**
- * Plan 模式的产能调度产品产量管�?
+ * Plan 模式的产能调度产品产量管理
  * Plan-mode produce management for Capacity Scheduling
  *
  * 用于非列生成场景，在构造时绑定 Capacity 编译对象
  * Used for non-column generation scenarios, binds to Capacity compilation object at construction
  *
- * @param products 产品列表及其需�?/ Product list with demands
+ * @param products 产品列表及其需求 / Product list with demands
  * @param compilation Capacity 编译对象 / Capacity compilation object
  */
 class PlanCapacitySchedulingProduce<
         A : ProductionAction,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    products: List<Pair<P, MaterialDemand?>>,
+    products: List<Pair<P, MaterialDemand<V>?>>,
     private val compilation: Capacity<A>,
     actions: List<A>,
     slots: List<TimeSlot>,
-    timeWindow: TimeWindow<Flt64>
-) : CapacitySchedulingProduce<A, P, C>(products, actions, slots, timeWindow) {
+    timeWindow: TimeWindow<V>
+) : CapacitySchedulingProduce<A, P, C, V>(products, actions, slots, timeWindow)
+        where V : RealNumber<V>, V : NumberField<V> {
 
     init {
         // 在构造时绑定编译对象
         // Bind compilation object at construction
         for ((product, _) in products) {
             for (action in actions) {
-                val unitProduce = unitProduceMapOf<P, Flt64>(action)?.get(product) ?: Flt64.zero
-                if (unitProduce neq Flt64.zero) {
+                val unitProduce = unitProduceMapOf<P, V>(action)?.get(product) ?: continue
+                if (unitProduce neq unitProduce.constants.zero) {
                     for ((s, _) in slots.withIndex()) {
                         val actionIndex = actions.indexOf(action)
                         if (actionIndex >= 0) {
-                            quantity[product].asMutable() += LinearMonomial(unitProduce, compilation.operationTime[actionIndex, s])
+                            quantity[product].asMutable() += LinearMonomial(unitProduce.toFlt64(), compilation.operationTime[actionIndex, s])
                         }
                     }
                 }
@@ -56,4 +60,3 @@ class PlanCapacitySchedulingProduce<
         return addQuantityToModel(model)
     }
 }
-

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -24,8 +25,8 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
  * Each order position can have at most one action with non-zero allocation.
  * 每个顺序位置最多只能有一个动作不�?0�?
  */
-class OrderConstraint<A : ProductionAction>(
-    private val compilation: CapacityOrderCompilation<A>,
+class OrderConstraint<V : RealNumber<V>, A : ProductionAction>(
+    private val compilation: CapacityOrderCompilation<V, A>,
     private val actions: List<A>,
     private val slots: List<TimeSlot>,
     private val maxOrderPerSlot: UInt64,
@@ -84,5 +85,4 @@ class OrderConstraint<A : ProductionAction>(
         return ok
     }
 }
-
 

@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape2
@@ -30,12 +31,13 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
  * Two-dimensional integer variable: x[action, slot] -> amount
  * 二维整型变量：x[action, slot] -> 数量
  */
-class CapacityCompilation<A : ProductionAction>(
+class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
     private val actions: List<A>,
     private val slots: List<TimeSlot>,
-    private val timeWindow: TimeWindow<Flt64>
+    private val timeWindow: TimeWindow<V>
 ) : Capacity<A> {
     override val executors: List<Executor> = actions.map { it.executor }.distinct()
+    private val actionTimeWindow = timeWindow.asFlt64TimeWindow()
 
     init {
         // Index actions if they implement ManualIndexed
@@ -80,7 +82,7 @@ class CapacityCompilation<A : ProductionAction>(
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
                     x[a, s].name = "x_${action.id}_$s"
-                    x[a, s].range.setUb(action.upperBound(slot, timeWindow))
+                    x[a, s].range.setUb(action.upperBound(slot, actionTimeWindow))
                 }
             }
         }
@@ -97,7 +99,7 @@ class CapacityCompilation<A : ProductionAction>(
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
                     val unitCost = action.unitCost(slot.time.start)
-                    costPoly += LinearMonomial(unitCost, x[a, s])
+                    costPoly += LinearMonomial(unitCost.toFlt64(), x[a, s])
                 }
             }
             cost = LinearExpressionSymbol(polynomial = costPoly.toLinearPolynomial(), name = "cost")
@@ -121,7 +123,7 @@ class CapacityCompilation<A : ProductionAction>(
                     } else {
                         timeWindow.valueOf(timeWindow.interval)
                     }
-                    LinearMonomial(unitOperationTime, x[actions.indexOf(action), slots.indexOf(slot)]).toLinearPolynomial()
+                    LinearMonomial(unitOperationTime.toFlt64(), x[actions.indexOf(action), slots.indexOf(slot)]).toLinearPolynomial()
                 }
             )
         }
@@ -194,7 +196,7 @@ class CapacityCompilation<A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 val capValue = capacity[e, s].evaluate(model.tokens, SchedulingSolverValueAdapter.Flt64)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
-                    timeWindow.durationOf(capValue)
+                    timeWindow.durationOf(timeWindow.fromDouble(capValue.toDouble()))
                 } else {
                     Duration.ZERO
                 }
@@ -221,5 +223,4 @@ class CapacityCompilation<A : ProductionAction>(
         )
     }
 }
-
 

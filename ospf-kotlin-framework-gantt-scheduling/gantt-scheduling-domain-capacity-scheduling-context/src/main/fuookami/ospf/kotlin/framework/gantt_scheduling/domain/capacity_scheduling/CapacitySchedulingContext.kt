@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -24,7 +25,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  *
  * @param A 生产动作类型 / Production action type
  */
-interface CapacitySchedulingContext<A : ProductionAction> {
+interface CapacitySchedulingContext<V : RealNumber<V>, A : ProductionAction> {
     /**
      * 生产动作列表
      * List of production actions
@@ -41,7 +42,7 @@ interface CapacitySchedulingContext<A : ProductionAction> {
      * 时间窗口
      * Time window
      */
-    val timeWindow: TimeWindow<Flt64>
+    val timeWindow: TimeWindow<V>
 
     /**
      * 产能编译对象

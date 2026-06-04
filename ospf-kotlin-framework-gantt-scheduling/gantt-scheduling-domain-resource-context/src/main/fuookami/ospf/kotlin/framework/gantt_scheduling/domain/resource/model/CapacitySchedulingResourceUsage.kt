@@ -7,6 +7,8 @@ import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -22,15 +24,16 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
  */
 abstract class CapacitySchedulingResourceUsage<
         A : ProductionAction,
-        S : ResourceTimeSlot<R, C>,
-        R : Resource<C>,
-        C : AbstractResourceCapacity
+        S : ResourceTimeSlot<R, C, V>,
+        R : Resource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    protected val timeWindow: TimeWindow<Flt64>,
+    protected val timeWindow: TimeWindow<V>,
     resources: List<R>,
     protected val actions: List<A>,
     interval: Duration = timeWindow.interval
-) : AbstractResourceUsage<S, R, C>() {
+) : AbstractResourceUsage<S, R, C, V>() where V : RealNumber<V>, V : NumberField<V> {
 
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
@@ -39,16 +42,16 @@ abstract class CapacitySchedulingResourceUsage<
     abstract override var quantity: LinearExpressionSymbols1<Flt64>
 
     /**
-     * 注册变量到模�?
+     * 注册变量到模型
      * Register variables to model
      */
     abstract fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
-     * 初始�?quantity 变量
+     * 初始化 quantity 变量
      * Initialize quantity variables
      *
-     * 子类应在 init 块中先计�?timeSlots，然后调用此方法初始�?quantity
+     * 子类应在 init 块中先计算 timeSlots，然后调用此方法初始化 quantity
      * Subclasses should calculate timeSlots first in init block, then call this method
      */
     protected fun initQuantity(timeSlots: List<S>) {
@@ -65,15 +68,15 @@ abstract class CapacitySchedulingResourceUsage<
         for (slot in timeSlots) {
             quantity[slot].range.set(
                 ValueRange(
-                    slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
-                    slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity ?: Flt64.zero)
+                    slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantity?.toFlt64() ?: Flt64.zero),
+                    slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantity?.toFlt64() ?: Flt64.zero)
                 ).value!!
             )
         }
     }
 
     /**
-     * �?quantity 变量添加到模�?
+     * 将 quantity 变量添加到模型
      * Add quantity variables to model
      */
     protected fun addQuantityToModel(model: LinearMetaModel<Flt64>, timeSlots: List<S>): Try {
@@ -92,5 +95,3 @@ abstract class CapacitySchedulingResourceUsage<
         return ok
     }
 }
-
-

@@ -18,6 +18,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -36,22 +38,22 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
  * @param capacities 容量列表 / List of capacities
  * @param initialQuantity 初始数量 / Initial quantity
  */
-abstract class ExecutionResource<out C : AbstractResourceCapacity>(
+abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
-    override val initialQuantity: Flt64 = Flt64.zero
-) : Resource<C>() {
+    override val initialQuantity: V = resourceQuantityZero(capacities)
+) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     abstract fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         task: AbstractTask<E, A>,
         time: TimeRange
-    ): Flt64
+    ): V
 
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        bunch: AbstractTaskBunch<T, E, A, Flt64>,
+        bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
-    ): Flt64 {
-        var counter = Flt64.zero
+    ): V {
+        var counter = initialQuantity.constants.zero
         for (task in bunch.tasks) {
             counter += usedBy(task, time)
         }
@@ -70,30 +72,32 @@ abstract class ExecutionResource<out C : AbstractResourceCapacity>(
  * @param indexInRule 规则内索引 / Index in rule
  */
 data class ExecutionResourceTimeSlot<
-        out R : ExecutionResource<C>,
-        out C : AbstractResourceCapacity
+        R : ExecutionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
     override val origin: TimeSlot,
     override val resource: R,
     override val resourceCapacity: C,
     override val indexInRule: UInt64,
-) : ResourceTimeSlot<R, C>, AutoIndexed(ExecutionResourceTimeSlot::class) {
-    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): Flt64 {
+) : ResourceTimeSlot<R, C, V>, AutoIndexed(ExecutionResourceTimeSlot::class)
+        where V : RealNumber<V>, V : NumberField<V> {
+    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): V {
         return resource.usedBy(task, time)
     }
 
     override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Flt64 {
+    ): V {
         return if (task != null) {
             usedBy(task)
         } else {
-            Flt64.zero
+            resource.initialQuantity.constants.zero
         }
     }
 
-    override fun subOf(subTime: TimeRange): ExecutionResourceTimeSlot<R, C>? {
+    override fun subOf(subTime: TimeRange): ExecutionResourceTimeSlot<R, C, V>? {
         return origin.subOf(subTime)?.let {
             ExecutionResourceTimeSlot(
                 origin = it,
@@ -110,7 +114,7 @@ data class ExecutionResourceTimeSlot<
 }
 
 /** 执行资源使用类型别名 / Execution resource usage typealias */
-typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot<R, C>, R, C>
+typealias ExecutionResourceUsage<R, C, V> = ResourceUsage<ExecutionResourceTimeSlot<R, C, V>, R, C, V>
 
 /**
  * 抽象执行资源使用 / Abstract execution resource usage
@@ -123,20 +127,22 @@ typealias ExecutionResourceUsage<R, C> = ResourceUsage<ExecutionResourceTimeSlot
  * @param interval 时间间隔 / Time interval
  */
 abstract class AbstractExecutionResourceUsage<
-        out R : ExecutionResource<C>,
-        out C : AbstractResourceCapacity
+        R : ExecutionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    protected val timeWindow: TimeWindow<Flt64>,
+    protected val timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval
-) : AbstractResourceUsage<ExecutionResourceTimeSlot<R, C>, R, C>() {
-    final override val timeSlots: List<ExecutionResourceTimeSlot<R, C>>
+) : AbstractResourceUsage<ExecutionResourceTimeSlot<R, C, V>, R, C, V>()
+        where V : RealNumber<V>, V : NumberField<V> {
+    final override val timeSlots: List<ExecutionResourceTimeSlot<R, C, V>>
 
     init {
-        AutoIndexed.flush<ExecutionResourceTimeSlot<R, C>>()
+        AutoIndexed.flush<ExecutionResourceTimeSlot<R, C, V>>()
 
-        val timeSlots = ArrayList<ExecutionResourceTimeSlot<R, C>>()
+        val timeSlots = ArrayList<ExecutionResourceTimeSlot<R, C, V>>()
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
@@ -197,24 +203,25 @@ abstract class AbstractExecutionResourceUsage<
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 class TaskSchedulingExecutionResourceUsage<
-        out R : ExecutionResource<C>,
-        out C : AbstractResourceCapacity
+        R : ExecutionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         > private constructor(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractExecutionResourceUsage<R, C>(
+) : AbstractExecutionResourceUsage<R, C, V>(
     timeWindow = timeWindow,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String,
@@ -231,7 +238,7 @@ class TaskSchedulingExecutionResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
         name: String,
@@ -268,22 +275,23 @@ class TaskSchedulingExecutionResourceUsage<
  * @param name 名称 / Name
  */
 class BunchSchedulingExecutionResourceUsage<
-        out R : ExecutionResource<C>,
-        out C : AbstractResourceCapacity
+        R : ExecutionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         > private constructor(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractExecutionResourceUsage<R, C>(
+) : AbstractExecutionResourceUsage<R, C, V>(
     timeWindow = timeWindow,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String
@@ -296,7 +304,7 @@ class BunchSchedulingExecutionResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
         name: String
@@ -322,15 +330,15 @@ class BunchSchedulingExecutionResourceUsage<
                 ) { s, _ ->
                     val slot = timeSlots[s]
                     LinearExpressionSymbol(
-                        constant = slot.resource.initialQuantity,
+                        constant = slot.resource.initialQuantity.toFlt64(),
                         name = "${name}_quantity_${slot}"
                     )
                 }
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity ?: Flt64.zero)
+                            slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantity?.toFlt64() ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantity?.toFlt64() ?: Flt64.zero)
                         ).value!!
                     )
                 }
@@ -352,14 +360,14 @@ class BunchSchedulingExecutionResourceUsage<
     }
 
     fun <
-            B : AbstractTaskBunch<T, E, A, Flt64>,
+            B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
             > addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        compilation: BunchCompilation<B, Flt64, T, E, A>
+        compilation: BunchCompilation<B, V, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -374,7 +382,7 @@ class BunchSchedulingExecutionResourceUsage<
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
                     quantity[slot].asMutable() += LinearMonomial(
-                        slot.resource.usedQuantity(bunch, slot.time),
+                        slot.resource.usedQuantity(bunch, slot.time).toFlt64(),
                         xi[bunch]
                     )
                 }

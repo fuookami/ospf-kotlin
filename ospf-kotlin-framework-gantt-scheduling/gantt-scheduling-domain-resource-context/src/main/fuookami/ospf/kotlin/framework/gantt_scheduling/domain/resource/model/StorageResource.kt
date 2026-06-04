@@ -17,6 +17,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -41,50 +43,50 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
  * @param capacities 容量列表 / List of capacities
  * @param initialQuantity 初始数量 / Initial quantity
  */
-abstract class StorageResource<out C : AbstractResourceCapacity>(
+abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
-    override val initialQuantity: Flt64 = Flt64.zero
-) : Resource<C>() {
-    open fun fixedCostIn(time: Duration): Flt64 {
-        return Flt64.zero
+    override val initialQuantity: V = resourceQuantityZero(capacities)
+) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+    open fun fixedCostIn(time: Duration): V {
+        return initialQuantity.constants.zero
     }
 
-    open fun fixedCostIn(time: TimeRange): Flt64 {
+    open fun fixedCostIn(time: TimeRange): V {
         return fixedCostIn(time.duration)
     }
 
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
         task: T,
         time: Duration
-    ): Flt64
+    ): V
 
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
         task: T,
         time: TimeRange
-    ): Flt64 {
+    ): V {
         val intersectionTime = task.time?.intersectionWith(time) ?: time
         return this.costBy(task, intersectionTime.duration)
     }
 
-    open fun fixedSupplyIn(time: Duration): Flt64 {
-        return Flt64.zero
+    open fun fixedSupplyIn(time: Duration): V {
+        return initialQuantity.constants.zero
     }
 
-    open fun fixedSupplyIn(time: TimeRange): Flt64 {
+    open fun fixedSupplyIn(time: TimeRange): V {
         return fixedSupplyIn(time.duration)
     }
 
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
         task: T,
         time: Duration
-    ): Flt64
+    ): V
 
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
         task: T,
         time: TimeRange
-    ): Flt64 {
+    ): V {
         val intersectionTime = task.time?.intersectionWith(time) ?: time
         return this.supplyBy(task, intersectionTime.duration)
     }
@@ -92,15 +94,15 @@ abstract class StorageResource<out C : AbstractResourceCapacity>(
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         task: T,
         time: TimeRange
-    ): Flt64 {
+    ): V {
         return supplyBy(task, time) - costBy(task, time)
     }
 
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
-        bunch: AbstractTaskBunch<T, E, A, Flt64>,
+        bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
-    ): Flt64 {
-        var sum = Flt64.zero
+    ): V {
+        var sum = initialQuantity.constants.zero
         for (i in bunch.tasks.indices) {
             sum += costBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
@@ -115,10 +117,10 @@ abstract class StorageResource<out C : AbstractResourceCapacity>(
     }
 
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
-        bunch: AbstractTaskBunch<T, E, A, Flt64>,
+        bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
-    ): Flt64 {
-        var sum = Flt64.zero
+    ): V {
+        var sum = initialQuantity.constants.zero
         for (i in bunch.tasks.indices) {
             sum += supplyBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
@@ -133,9 +135,9 @@ abstract class StorageResource<out C : AbstractResourceCapacity>(
     }
 
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        bunch: AbstractTaskBunch<T, E, A, Flt64>,
+        bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
-    ): Flt64 {
+    ): V {
         return supplyBy(bunch, time) - costBy(bunch, time)
     }
 }
@@ -152,31 +154,33 @@ abstract class StorageResource<out C : AbstractResourceCapacity>(
  * @param indexInRule 规则内索引 / Index in rule
  */
 data class StorageResourceTimeSlot<
-        out R : StorageResource<C>,
-        out C : AbstractResourceCapacity
+        R : StorageResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<V>,
     override val origin: TimeSlot,
     override val resource: R,
     override val resourceCapacity: C,
     override val indexInRule: UInt64,
-) : ResourceTimeSlot<R, C>, AutoIndexed(StorageResourceTimeSlot::class) {
-    fun <E : Executor, A : AssignmentPolicy<E>> costBy(task: AbstractTask<E, A>): Flt64 {
+) : ResourceTimeSlot<R, C, V>, AutoIndexed(StorageResourceTimeSlot::class)
+        where V : RealNumber<V>, V : NumberField<V> {
+    fun <E : Executor, A : AssignmentPolicy<E>> costBy(task: AbstractTask<E, A>): V {
         return resource.costBy(task, time)
     }
 
-    fun <E : Executor, A : AssignmentPolicy<E>> supplyBy(task: AbstractTask<E, A>): Flt64 {
+    fun <E : Executor, A : AssignmentPolicy<E>> supplyBy(task: AbstractTask<E, A>): V {
         return resource.supplyBy(task, time)
     }
 
     override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Flt64 {
+    ): V {
         return if (task != null) {
             supplyBy(task) - costBy(task)
         } else {
-            Flt64.zero
+            resource.initialQuantity.constants.zero
         }
     }
 
@@ -198,7 +202,7 @@ data class StorageResourceTimeSlot<
 }
 
 /** 存储资源使用类型别名 / Storage resource usage typealias */
-typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, C>, R, C>
+typealias StorageResourceUsage<R, C, V> = ResourceUsage<StorageResourceTimeSlot<R, C, V>, R, C, V>
 
 /**
  * 抽象存储资源使用 / Abstract storage resource usage
@@ -211,28 +215,30 @@ typealias StorageResourceUsage<R, C> = ResourceUsage<StorageResourceTimeSlot<R, 
  * @param interval 时间间隔 / Time interval
  */
 abstract class AbstractStorageResourceUsage<
-        out E : Executor,
-        out R : StorageResource<C>,
-        out C : AbstractResourceCapacity
+        E : Executor,
+        R : StorageResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    protected val timeWindow: TimeWindow<Flt64>,
+    protected val timeWindow: TimeWindow<V>,
     protected val executors: List<E>,
     protected val resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval
-) : AbstractResourceUsage<StorageResourceTimeSlot<R, C>, R, C>() {
+) : AbstractResourceUsage<StorageResourceTimeSlot<R, C, V>, R, C, V>()
+        where V : RealNumber<V>, V : NumberField<V> {
     abstract val executorSupply: LinearIntermediateSymbols3<Flt64>
     lateinit var supply: LinearIntermediateSymbols2<Flt64>
     abstract val cost: LinearIntermediateSymbols2<Flt64>
 
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
-    final override val timeSlots: List<StorageResourceTimeSlot<R, C>>
+    final override val timeSlots: List<StorageResourceTimeSlot<R, C, V>>
 
     init {
-        AutoIndexed.flush<StorageResourceTimeSlot<R, C>>()
+        AutoIndexed.flush<StorageResourceTimeSlot<R, C, V>>()
 
-        val timeSlots = ArrayList<StorageResourceTimeSlot<R, C>>()
+        val timeSlots = ArrayList<StorageResourceTimeSlot<R, C, V>>()
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
@@ -296,7 +302,7 @@ abstract class AbstractStorageResourceUsage<
                     acc + (elem as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()
                 }
                 LinearExpressionSymbol(
-                    polynomial = LinearPolynomial(emptyList(), fixedSupply) + executorSum,
+                    polynomial = LinearPolynomial(emptyList(), fixedSupply.toFlt64()) + executorSum,
                     name = "${name}_supply_${resource}_${slot}"
                 )
             }
@@ -322,7 +328,7 @@ abstract class AbstractStorageResourceUsage<
                     val slot = timeSlots[s]
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
-                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity) +
+                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity.toFlt64()) +
                         ((/* unchecked */ supply[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial() -
                         ((/* unchecked */ cost[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial()
                     LinearExpressionSymbol(
@@ -333,8 +339,8 @@ abstract class AbstractStorageResourceUsage<
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity ?: Flt64.zero)
+                            slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantity?.toFlt64() ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantity?.toFlt64() ?: Flt64.zero)
                         ).value!!
                     )
                 }
@@ -372,11 +378,12 @@ abstract class AbstractStorageResourceUsage<
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 class TaskSchedulingStorageResourceUsage<
-        out E : Executor,
-        out R : StorageResource<C>,
-        out C : AbstractResourceCapacity
+        E : Executor,
+        R : StorageResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     executors: List<E>,
     resources: List<R>,
     times: List<TimeSlot>,
@@ -384,15 +391,15 @@ class TaskSchedulingStorageResourceUsage<
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractStorageResourceUsage<E, R, C>(
+) : AbstractStorageResourceUsage<E, R, C, V>(
     timeWindow = timeWindow,
     executors = executors,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         executors: List<E>,
         resources: List<R>,
         times: List<TimeRange>,
@@ -411,7 +418,7 @@ class TaskSchedulingStorageResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
@@ -453,25 +460,26 @@ class TaskSchedulingStorageResourceUsage<
  * @param name 名称 / Name
  */
 class IterativeTaskSchedulingStorageResourceUsage<
-        out E : Executor,
-        out R : StorageResource<C>,
-        out C : AbstractResourceCapacity
+        E : Executor,
+        R : StorageResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         > private constructor(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     executors: List<E>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractStorageResourceUsage<E, R, C>(
+) : AbstractStorageResourceUsage<E, R, C, V>(
     timeWindow = timeWindow,
     executors = executors,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         executors: List<E>,
         resources: List<R>,
         times: List<TimeRange>,
@@ -486,7 +494,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
@@ -543,7 +551,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                 val time = TimeRange(timeWindow.start, slot.end)
                 val fixedCost = resource.fixedCostIn(time)
                 LinearExpressionSymbol(
-                    constant = fixedCost,
+                    constant = fixedCost.toFlt64(),
                     name = "${name}_cost_${resource}_${slot}"
                 )
             }
@@ -585,7 +593,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                                     task,
                                     TimeRange(timeWindow.start, timeSlot.end)
                                 )
-                                if (supplyQuantity != Flt64.zero) {
+                                if (supplyQuantity != supplyQuantity.constants.zero) {
                                     Pair(task, supplyQuantity)
                                 } else {
                                     null
@@ -595,7 +603,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                             if (thisTasks.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((task, supplyQuantity) in thisTasks) {
-                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity, xi[task])
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.toFlt64(), xi[task])
                                 }
                             }
                         }
@@ -610,7 +618,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                                 task,
                                 TimeRange(timeWindow.start, timeSlot.end)
                             )
-                            if (costQuantity != Flt64.zero) {
+                            if (costQuantity != costQuantity.constants.zero) {
                                 Pair(task, costQuantity)
                             } else {
                                 null
@@ -619,7 +627,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                         if (thisTasks.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((task, costQuantity) in thisTasks) {
-                                cost[r, t].asMutable() += LinearMonomial(costQuantity, xi[task])
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity.toFlt64(), xi[task])
                             }
                         }
                     }
@@ -644,25 +652,26 @@ class IterativeTaskSchedulingStorageResourceUsage<
  * @param name 名称 / Name
  */
 class BunchSchedulingStorageResourceUsage<
-        out E : Executor,
-        out R : StorageResource<C>,
-        out C : AbstractResourceCapacity
+        E : Executor,
+        R : StorageResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     executors: List<E>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractStorageResourceUsage<E, R, C>(
+) : AbstractStorageResourceUsage<E, R, C, V>(
     timeWindow = timeWindow,
     executors = executors,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         executors: List<E>,
         resources: List<R>,
         times: List<TimeSlot>,
@@ -677,7 +686,7 @@ class BunchSchedulingStorageResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<V>,
         executors: List<E>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
@@ -734,7 +743,7 @@ class BunchSchedulingStorageResourceUsage<
                 val time = TimeRange(timeWindow.start, slot.end)
                 val fixedCost = resource.fixedCostIn(time)
                 LinearExpressionSymbol(
-                    constant = fixedCost,
+                    constant = fixedCost.toFlt64(),
                     name = "${name}_cost_${resource}_${slot}"
                 )
             }
@@ -755,14 +764,14 @@ class BunchSchedulingStorageResourceUsage<
     }
 
     suspend fun <
-            B : AbstractTaskBunch<T, E, A, Flt64>,
+            B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
             > addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        compilation: BunchCompilation<B, Flt64, T, E, A>
+        compilation: BunchCompilation<B, V, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -781,7 +790,7 @@ class BunchSchedulingStorageResourceUsage<
                                     bunch,
                                     TimeRange(timeWindow.start, timeSlot.end)
                                 )
-                                if (supplyQuantity != Flt64.zero) {
+                                if (supplyQuantity != supplyQuantity.constants.zero) {
                                     Pair(bunch, supplyQuantity)
                                 } else {
                                     null
@@ -791,7 +800,7 @@ class BunchSchedulingStorageResourceUsage<
                             if (thisBunches.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((bunch, supplyQuantity) in thisBunches) {
-                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity, xi[bunch])
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.toFlt64(), xi[bunch])
                                 }
                             }
                         }
@@ -806,7 +815,7 @@ class BunchSchedulingStorageResourceUsage<
                                 bunch,
                                 TimeRange(timeWindow.start, timeSlot.end)
                             )
-                            if (costQuantity != Flt64.zero) {
+                            if (costQuantity != costQuantity.constants.zero) {
                                 Pair(bunch, costQuantity)
                             } else {
                                 null
@@ -816,7 +825,7 @@ class BunchSchedulingStorageResourceUsage<
                         if (thisBunches.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((bunch, costQuantity) in thisBunches) {
-                                cost[r, t].asMutable() += LinearMonomial(costQuantity, xi[bunch])
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity.toFlt64(), xi[bunch])
                             }
                         }
                     }
@@ -827,6 +836,5 @@ class BunchSchedulingStorageResourceUsage<
         return ok
     }
 }
-
 
 

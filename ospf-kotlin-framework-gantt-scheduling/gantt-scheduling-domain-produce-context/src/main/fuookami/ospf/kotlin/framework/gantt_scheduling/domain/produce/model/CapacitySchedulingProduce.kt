@@ -10,13 +10,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
 /**
- * 产能调度场景的产品产量管理抽象基�?
+ * 产能调度场景的产品产量管理抽象基类
  * Abstract base class for produce management in Capacity Scheduling
  *
  * 提供产能调度场景下产品产量计算的通用框架
@@ -25,19 +27,21 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 abstract class CapacitySchedulingProduce<
         A : ProductionAction,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    products: List<Pair<P, MaterialDemand?>>,
+    products: List<Pair<P, MaterialDemand<V>?>>,
     protected val actions: List<A>,
     protected val slots: List<TimeSlot>,
-    protected val timeWindow: TimeWindow<Flt64>
+    protected val timeWindow: TimeWindow<V>
 ) : AbstractProduce<
-        ProductionTask<Executor, AssignmentPolicy<Executor>, P, C, Flt64>,
+        ProductionTask<Executor, AssignmentPolicy<Executor>, P, C, V>,
         Executor,
         AssignmentPolicy<Executor>,
         P,
-        C
-        >(products.sortedBy { it.first.index }) {
+        C,
+        V
+        >(products.sortedBy { it.first.index }) where V : RealNumber<V>, V : NumberField<V> {
 
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
@@ -56,10 +60,14 @@ abstract class CapacitySchedulingProduce<
     init {
         for ((product, demand) in products) {
             if (demand != null) {
+                val lowerBound = demand.quantity.lowerBound.value.unwrap().toFlt64() -
+                        (demand.lessQuantity?.toFlt64() ?: Flt64.zero)
+                val upperBound = demand.quantity.upperBound.value.unwrap().toFlt64() +
+                        (demand.overQuantity?.toFlt64() ?: Flt64.zero)
                 quantity[product].range.set(
                     ValueRange(
-                        demand.quantity.lowerBound.value.unwrap() - (demand.lessQuantity ?: Flt64.zero),
-                        demand.quantity.upperBound.value.unwrap() + (demand.overQuantity ?: Flt64.zero)
+                        lowerBound,
+                        upperBound
                     ).value!!
                 )
             }
@@ -67,13 +75,13 @@ abstract class CapacitySchedulingProduce<
     }
 
     /**
-     * 注册变量到模�?
+     * 注册变量到模型
      * Register variables to model
      */
     abstract fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
-     * �?quantity 变量添加到模�?
+     * 将 quantity 变量添加到模型
      * Add quantity variables to model
      */
     protected fun addQuantityToModel(model: LinearMetaModel<Flt64>): Try {
@@ -92,5 +100,3 @@ abstract class CapacitySchedulingProduce<
         return ok
     }
 }
-
-

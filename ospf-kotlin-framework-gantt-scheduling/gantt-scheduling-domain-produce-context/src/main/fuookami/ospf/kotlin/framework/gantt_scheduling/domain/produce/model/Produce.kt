@@ -21,6 +21,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -48,17 +50,19 @@ interface Produce {
  * @param A 分配策略类型 / Assignment policy type
  * @param P 生产材料类型 / Production material type
  * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
  * @param products 产品与需求列表 / List of products and demands
  */
 abstract class AbstractProduce<
-        out T : ProductionTask<E, A, P, C, Flt64>,
+        out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    val products: List<Pair<P, MaterialDemand?>>
-) : Produce {
+    val products: List<Pair<P, MaterialDemand<V>?>>
+) : Produce where V : RealNumber<V>, V : NumberField<V> {
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
 
@@ -74,14 +78,14 @@ abstract class AbstractProduce<
                     if (demand != null && demand.overEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantity.upperBound.value.unwrap(),
+                            threshold = demand.quantity.upperBound.value.unwrap().toFlt64(),
                             type = UContinuous,
                             withNegative = false,
                             withPositive = true,
                             constraint = false,
                             name = "produce_over_quantity_${product}"
                         )
-                        demand.overQuantity?.let { overConstraints.add(slack.pos!! to it) }
+                        demand.overQuantity?.let { overConstraints.add(slack.pos!! to it.toFlt64()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -125,14 +129,14 @@ abstract class AbstractProduce<
                     if (demand != null && demand.lessEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantity.lowerBound.value.unwrap(),
+                            threshold = demand.quantity.lowerBound.value.unwrap().toFlt64(),
                             type = UContinuous,
                             withNegative = true,
                             withPositive = false,
                             constraint = false,
                             name = "produce_less_quantity_${product}"
                         )
-                        demand.lessQuantity?.let { lessConstraints.add(slack.neg!! to it) }
+                        demand.lessQuantity?.let { lessConstraints.add(slack.neg!! to it.toFlt64()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -231,21 +235,24 @@ abstract class AbstractProduce<
  * @param A 分配策略类型 / Assignment policy type
  * @param P 生产材料类型 / Production material type
  * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
  * @param products 产品与需求列表 / List of products and demands
  * @param overEnabled 是否启用超量 / Whether over quantity is enabled
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 class TaskSchedulingProduce<
-        out T : ProductionTask<E, A, P, C, Flt64>,
+        out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    products: List<Pair<P, MaterialDemand?>>,
+    products: List<Pair<P, MaterialDemand<V>?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractProduce<T, E, A, P, C>(products.sortedBy { it.first.index }) {
+) : AbstractProduce<T, E, A, P, C, V>(products.sortedBy { it.first.index })
+        where V : RealNumber<V>, V : NumberField<V> {
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
@@ -263,17 +270,20 @@ class TaskSchedulingProduce<
  * @param A 分配策略类型 / Assignment policy type
  * @param P 生产材料类型 / Production material type
  * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
  * @param products 产品与需求列表 / List of products and demands
  */
 class BunchSchedulingProduce<
-        out T : ProductionTask<E, A, P, C, Flt64>,
+        out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    products: List<Pair<P, MaterialDemand?>>
-) : AbstractProduce<T, E, A, P, C>(products.sortedBy { it.first.index }) {
+    products: List<Pair<P, MaterialDemand<V>?>>
+) : AbstractProduce<T, E, A, P, C, V>(products.sortedBy { it.first.index })
+        where V : RealNumber<V>, V : NumberField<V> {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -294,10 +304,14 @@ class BunchSchedulingProduce<
                 }
                 for ((product, demand) in products) {
                     if (demand != null) {
+                        val lowerBound = demand.quantity.lowerBound.value.unwrap().toFlt64() -
+                                (demand.lessQuantity?.toFlt64() ?: Flt64.zero)
+                        val upperBound = demand.quantity.upperBound.value.unwrap().toFlt64() +
+                                (demand.overQuantity?.toFlt64() ?: Flt64.zero)
                         quantity[product].range.set(
                             ValueRange(
-                                demand.quantity.lowerBound.value.unwrap() - (demand.lessQuantity ?: Flt64.zero),
-                                demand.quantity.upperBound.value.unwrap() + (demand.overQuantity ?: Flt64.zero)
+                                lowerBound,
+                                upperBound
                             ).value!!
                         )
                     }
@@ -320,26 +334,33 @@ class BunchSchedulingProduce<
     }
 
     fun <
-            B : AbstractTaskBunch<T, E, A, Flt64>,
+            B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
             > addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        compilation: BunchCompilation<B, Flt64, T, E, A>
+        compilation: BunchCompilation<B, V, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
         val xi = compilation.x[iteration.toInt()]
 
         for ((product, _) in products) {
-            val thisBunches = bunches.filter { bunch -> bunch.produce(product) neq Flt64.zero }
+            val thisBunches = bunches.mapNotNull { bunch ->
+                val quantity = bunch.produceV(product)
+                if (quantity neq quantity.constants.zero) {
+                    bunch to quantity
+                } else {
+                    null
+                }
+            }
 
             if (thisBunches.isNotEmpty()) {
                 quantity[product].flush()
-                for (bunch in thisBunches) {
-                    quantity[product].asMutable() += LinearMonomial(bunch.produce(product), xi[bunch])
+                for ((bunch, produceQuantity) in thisBunches) {
+                    quantity[product].asMutable() += LinearMonomial(produceQuantity.toFlt64(), xi[bunch])
                 }
             }
         }

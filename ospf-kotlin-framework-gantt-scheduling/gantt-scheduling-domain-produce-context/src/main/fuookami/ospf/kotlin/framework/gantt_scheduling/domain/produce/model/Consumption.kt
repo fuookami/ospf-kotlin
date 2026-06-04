@@ -21,6 +21,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -48,17 +50,19 @@ interface Consumption {
  * @param A 分配策略类型 / Assignment policy type
  * @param P 生产材料类型 / Production material type
  * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
  * @param materials 材料与储备列表 / List of materials and reserves
  */
 abstract class AbstractConsumption<
-        out T : ProductionTask<E, A, P, C, Flt64>,
+        out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    val materials: List<Pair<C, MaterialReserves?>>
-) : Consumption {
+    val materials: List<Pair<C, MaterialReserves<V>?>>
+) : Consumption where V : RealNumber<V>, V : NumberField<V> {
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
 
@@ -74,14 +78,14 @@ abstract class AbstractConsumption<
                     if (demand != null && demand.overEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantity.upperBound.value.unwrap(),
+                            threshold = demand.quantity.upperBound.value.unwrap().toFlt64(),
                             type = UContinuous,
                             withNegative = false,
                             withPositive = true,
                             constraint = false,
                             name = "consumption_over_quantity_${product}"
                         )
-                        demand.overQuantity?.let { overConstraints.add(slack.pos!! to it) }
+                        demand.overQuantity?.let { overConstraints.add(slack.pos!! to it.toFlt64()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -125,14 +129,14 @@ abstract class AbstractConsumption<
                     if (demand != null && demand.lessEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantity.lowerBound.value.unwrap(),
+                            threshold = demand.quantity.lowerBound.value.unwrap().toFlt64(),
                             type = UContinuous,
                             withNegative = true,
                             withPositive = false,
                             constraint = false,
                             name = "consumption_less_quantity_${product}"
                         )
-                        demand.lessQuantity?.let { lessConstraints.add(slack.neg!! to it) }
+                        demand.lessQuantity?.let { lessConstraints.add(slack.neg!! to it.toFlt64()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -231,21 +235,24 @@ abstract class AbstractConsumption<
  * @param A 分配策略类型 / Assignment policy type
  * @param P 生产材料类型 / Production material type
  * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
  * @param materials 材料与储备列表 / List of materials and reserves
  * @param overEnabled 是否启用超量 / Whether over quantity is enabled
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 class TaskSchedulingConsumption<
-        out T : ProductionTask<E, A, P, C, Flt64>,
+        out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    materials: List<Pair<C, MaterialReserves?>>,
+    materials: List<Pair<C, MaterialReserves<V>?>>,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractConsumption<T, E, A, P, C>(materials.sortedBy { it.first.index }) {
+) : AbstractConsumption<T, E, A, P, C, V>(materials.sortedBy { it.first.index })
+        where V : RealNumber<V>, V : NumberField<V> {
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
@@ -263,17 +270,20 @@ class TaskSchedulingConsumption<
  * @param A 分配策略类型 / Assignment policy type
  * @param P 生产材料类型 / Production material type
  * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
  * @param materials 材料与储备列表 / List of materials and reserves
  */
 class BunchSchedulingConsumption<
-        out T : ProductionTask<E, A, P, C, Flt64>,
+        out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
         out A : AssignmentPolicy<E>,
         P : AbstractMaterial,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    materials: List<Pair<C, MaterialReserves?>>
-) : AbstractConsumption<T, E, A, P, C>(materials.sortedBy { it.first.index }) {
+    materials: List<Pair<C, MaterialReserves<V>?>>
+) : AbstractConsumption<T, E, A, P, C, V>(materials.sortedBy { it.first.index })
+        where V : RealNumber<V>, V : NumberField<V> {
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
@@ -294,10 +304,14 @@ class BunchSchedulingConsumption<
                 }
                 for ((material, reserve) in materials) {
                     if (reserve != null) {
+                        val lowerBound = reserve.quantity.lowerBound.value.unwrap().toFlt64() -
+                                (reserve.lessQuantity?.toFlt64() ?: Flt64.zero)
+                        val upperBound = reserve.quantity.upperBound.value.unwrap().toFlt64() +
+                                (reserve.overQuantity?.toFlt64() ?: Flt64.zero)
                         quantity[material].range.set(
                             ValueRange(
-                                reserve.quantity.lowerBound.value.unwrap() - (reserve.lessQuantity ?: Flt64.zero),
-                                reserve.quantity.upperBound.value.unwrap() + (reserve.overQuantity ?: Flt64.zero)
+                                lowerBound,
+                                upperBound
                             ).value!!
                         )
                     }
@@ -320,26 +334,33 @@ class BunchSchedulingConsumption<
     }
 
     fun <
-            B : AbstractTaskBunch<T, E, A, Flt64>,
+            B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
             > addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        compilation: BunchCompilation<B, Flt64, T, E, A>
+        compilation: BunchCompilation<B, V, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
         val xi = compilation.x[iteration.toInt()]
 
         for ((material) in materials) {
-            val thisBunches = bunches.filter { bunch -> bunch.consumption(material) neq Flt64.zero }
+            val thisBunches = bunches.mapNotNull { bunch ->
+                val quantity = bunch.consumptionV(material)
+                if (quantity neq quantity.constants.zero) {
+                    bunch to quantity
+                } else {
+                    null
+                }
+            }
 
             if (thisBunches.isNotEmpty()) {
                 quantity[material].flush()
-                for (bunch in thisBunches) {
-                    quantity[material].asMutable() += LinearMonomial(bunch.consumption(material), xi[bunch])
+                for ((bunch, consumptionQuantity) in thisBunches) {
+                    quantity[material].asMutable() += LinearMonomial(consumptionQuantity.toFlt64(), xi[bunch])
                 }
             }
         }

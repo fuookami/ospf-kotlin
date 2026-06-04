@@ -9,11 +9,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Abst
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroFlt64ProduceMaterials
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroProduceMaterials
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -44,16 +46,16 @@ class ProduceQuantityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        P : AbstractMaterial
+        P : AbstractMaterial,
+        V
         >(
-    products: List<Pair<P, MaterialDemand?>>,
+    products: List<Pair<P, MaterialDemand<V>?>>,
     private val produce: Produce,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "produce_quantity"
-) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
     private val products = products
-        .filter { it.second != null }
-        .filterIsInstance<Pair<P, MaterialDemand>>()
+        .mapNotNull { (product, demand) -> demand?.let { product to it } }
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((product, demand) in products) {
@@ -62,7 +64,7 @@ class ProduceQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq demand.quantity.upperBound.value.unwrap(),
+                                polyX leq demand.quantity.upperBound.value.unwrap().toFlt64(),
                                 name = "${name}_ub_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
@@ -81,7 +83,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] leq demand.quantity.upperBound.value.unwrap(),
+                            produce.quantity[product] leq demand.quantity.upperBound.value.unwrap().toFlt64(),
                             name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
@@ -99,7 +101,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] leq demand.quantity.upperBound.value.unwrap(),
+                    produce.quantity[product] leq demand.quantity.upperBound.value.unwrap().toFlt64(),
                     name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
@@ -120,7 +122,7 @@ class ProduceQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq demand.quantity.lowerBound.value.unwrap(),
+                                polyX geq demand.quantity.lowerBound.value.unwrap().toFlt64(),
                                 name = "${name}_lb_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
@@ -139,7 +141,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap(),
+                            produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap().toFlt64(),
                             name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
@@ -157,7 +159,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap(),
+                    produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap().toFlt64(),
                     name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
@@ -182,7 +184,7 @@ class ProduceQuantityConstraint<
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
-                            task.nonZeroFlt64ProduceMaterials<P>()
+                            task.nonZeroProduceMaterials<P>()
                                 .sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
@@ -195,7 +197,7 @@ class ProduceQuantityConstraint<
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
-                            task.nonZeroFlt64ProduceMaterials<P>()
+                            task.nonZeroProduceMaterials<P>()
                                 .sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 

@@ -7,10 +7,24 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
+
+/** 转换为旧 ProductionAction API 使用的 Flt64 时间窗口 / Convert to the Flt64 time window used by legacy ProductionAction APIs */
+internal fun <V : RealNumber<V>> TimeWindow<V>.asFlt64TimeWindow(): TimeWindow<Flt64> {
+    return TimeWindow(
+        window = window,
+        continues = continues,
+        durationUnit = durationUnit,
+        dateOffset = dateOffset,
+        interval = interval,
+        fromDouble = { Flt64(it) },
+        toDouble = { it.toDouble() }
+    )
+}
 
 /**
  * 生产动作接口

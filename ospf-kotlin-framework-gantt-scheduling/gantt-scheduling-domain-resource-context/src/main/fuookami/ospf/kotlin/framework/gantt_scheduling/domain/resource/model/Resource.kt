@@ -19,6 +19,8 @@ import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -41,6 +43,17 @@ private fun setResourceSlackUpperBoundAsFlt64(
     return (range as ExpressionRange<Flt64>).setUb(upperBound)
 }
 
+/** 解析资源容量值类型的零值 / Resolve the zero value for the resource capacity value type */
+internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<V>>): V
+        where V : RealNumber<V>, V : NumberField<V> {
+    return capacities.asSequence()
+        .mapNotNull { it.quantity.lowerBound.value.unwrapOrNull() ?: it.quantity.upperBound.value.unwrapOrNull() }
+        .firstOrNull()
+        ?.constants
+        ?.zero
+        ?: throw IllegalArgumentException("resource capacities must contain at least one finite quantity bound.")
+}
+
 /**
  * 抽象资源容量接口 / Abstract resource capacity interface
  *
@@ -51,11 +64,11 @@ private fun setResourceSlackUpperBoundAsFlt64(
  * @property interval 时间间隔 / Time interval
  * @property name 名称 / Name
  */
-interface AbstractResourceCapacity {
+interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
     val time: TimeRange
-    val quantity: ValueRange<Flt64>
-    val lessQuantity: Flt64? get() = null
-    val overQuantity: Flt64? get() = null
+    val quantity: ValueRange<V>
+    val lessQuantity: V? get() = null
+    val overQuantity: V? get() = null
     val interval: Duration
     val name: String? get() = null
     val lessEnabled: Boolean get() = lessQuantity != null
@@ -72,14 +85,14 @@ interface AbstractResourceCapacity {
  * @property interval 时间间隔 / Time interval
  * @property name 名称 / Name
  */
-open class ResourceCapacity(
+open class ResourceCapacity<V>(
     override val time: TimeRange,
-    override val quantity: ValueRange<Flt64>,
-    override val lessQuantity: Flt64? = null,
-    override val overQuantity: Flt64? = null,
+    override val quantity: ValueRange<V>,
+    override val lessQuantity: V? = null,
+    override val overQuantity: V? = null,
     override val interval: Duration = Duration.INFINITE,
     override val name: String? = null
-) : AbstractResourceCapacity {
+) : AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun toString() = name ?: "${quantity}_${interval}"
 }
 
@@ -92,11 +105,11 @@ open class ResourceCapacity(
  * @property capacities 容量列表 / List of capacities
  * @property initialQuantity 初始数量 / Initial quantity
  */
-abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
+abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapacity<V>, V : RealNumber<V>, V : NumberField<V> {
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
-    abstract val initialQuantity: Flt64
+    abstract val initialQuantity: V
 
     /**
      * 计算使用量 / Calculate used quantity
@@ -109,9 +122,9 @@ abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
      * @return 使用量 / Used quantity
      */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        bunch: AbstractTaskBunch<T, E, A, Flt64>,
+        bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
-    ): Flt64
+    ): V
 }
 
 /**
@@ -121,9 +134,10 @@ abstract class Resource<out C : AbstractResourceCapacity> : ManualIndexed() {
  * @param C 资源容量类型 / Resource capacity type
  */
 interface ResourceTimeSlot<
-        out R : Resource<C>,
-        out C : AbstractResourceCapacity
-        > : TimeSlot, Indexed {
+        R : Resource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        > : TimeSlot, Indexed where V : RealNumber<V>, V : NumberField<V> {
     val origin: TimeSlot
     val resource: R
     val resourceCapacity: C
@@ -134,19 +148,20 @@ interface ResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): Boolean {
-        return relationTo(prevTask, task) neq Flt64.zero
+        val relation = relationTo(prevTask, task)
+        return relation neq relation.constants.zero
     }
 
     fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Flt64 {
-        return Flt64.zero
+    ): V {
+        return resource.initialQuantity.constants.zero
     }
 
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
-        bunch: AbstractTaskBunch<T, E, A, Flt64>
-    ): Flt64 {
+        bunch: AbstractTaskBunch<T, E, A, V>
+    ): V {
         return resource.usedQuantity(bunch, time)
     }
 }
@@ -159,10 +174,11 @@ interface ResourceTimeSlot<
  * @param C 资源容量类型 / Resource capacity type
  */
 interface ResourceUsage<
-        out S : ResourceTimeSlot<R, C>,
-        out R : Resource<C>,
-        out C : AbstractResourceCapacity
-        > {
+        S : ResourceTimeSlot<R, C, V>,
+        R : Resource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        > where V : RealNumber<V>, V : NumberField<V> {
     val name: String
 
     val timeSlots: List<S>
@@ -184,10 +200,11 @@ interface ResourceUsage<
  * @param C 资源容量类型 / Resource capacity type
  */
 abstract class AbstractResourceUsage<
-        out S : ResourceTimeSlot<R, C>,
-        out R : Resource<C>,
-        out C : AbstractResourceCapacity
-        > : ResourceUsage<S, R, C> {
+        S : ResourceTimeSlot<R, C, V>,
+        R : Resource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        > : ResourceUsage<S, R, C, V> where V : RealNumber<V>, V : NumberField<V> {
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
 
@@ -203,7 +220,7 @@ abstract class AbstractResourceUsage<
                         if (slot.resourceCapacity.overEnabled) {
                             val slack = resourceSlack(
                                 x = quantity[slot],
-                                threshold = slot.resourceCapacity.quantity.upperBound.value.unwrap(),
+                                threshold = slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64(),
                                 type = UContinuous,
                                 withNegative = false,
                                 withPositive = true,
@@ -211,7 +228,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_over_quantity_$slot"
                             )
                             slot.resourceCapacity.overQuantity?.let {
-                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.last().range, it)
+                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.last().range, it.toFlt64())
                             }
                             slack
                         } else {
@@ -245,7 +262,7 @@ abstract class AbstractResourceUsage<
                         if (slot.resourceCapacity.lessEnabled) {
                             val slack = resourceSlack(
                                 x = quantity[slot],
-                                threshold = slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
+                                threshold = slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64(),
                                 type = UContinuous,
                                 withNegative = true,
                                 withPositive = false,
@@ -253,7 +270,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_less_quantity_$slot"
                             )
                             slot.resourceCapacity.lessQuantity?.let {
-                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.first().range, it)
+                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.first().range, it.toFlt64())
                             }
                             slack
                         } else {
@@ -335,6 +352,4 @@ abstract class AbstractResourceUsage<
         return ok
     }
 }
-
-
 

@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
@@ -34,28 +36,29 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 class PlanCapacitySchedulingResourceUsage<
         A : ProductionAction,
         R,
-        C : AbstractResourceCapacity
+        C : AbstractResourceCapacity<V>,
+        V
         >(
     resources: List<R>,
     private val compilation: Capacity<A>,
     times: List<TimeSlot>,
     actions: List<A>,
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<V>,
     interval: Duration = timeWindow.interval
-) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C>, R, C>(
+) : CapacitySchedulingResourceUsage<A, CapacityActionResourceTimeSlot<R, C, V>, R, C, V>(
     timeWindow, resources, actions, interval
-) where R : Resource<C>, R : CapacityActionResource<C> {
+) where R : Resource<C, V>, R : CapacityActionResource<C, V>, V : RealNumber<V>, V : NumberField<V> {
     private val capacitySlots: List<TimeSlot> = times
 
     override val name: String = "plan_capacity_scheduling_resource"
     override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
-    final override val timeSlots: List<CapacityActionResourceTimeSlot<R, C>>
+    final override val timeSlots: List<CapacityActionResourceTimeSlot<R, C, V>>
 
     init {
-        AutoIndexed.flush<CapacityActionResourceTimeSlot<R, C>>()
+        AutoIndexed.flush<CapacityActionResourceTimeSlot<R, C, V>>()
 
-        val timeSlots = ArrayList<CapacityActionResourceTimeSlot<R, C>>()
+        val timeSlots = ArrayList<CapacityActionResourceTimeSlot<R, C, V>>()
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
@@ -100,7 +103,7 @@ class PlanCapacitySchedulingResourceUsage<
         }
         this.timeSlots = timeSlots
 
-        // 初始�?quantity 变量
+        // 初始化 quantity 变量
         // Initialize quantity variables
         initQuantity(this.timeSlots)
 
@@ -109,11 +112,11 @@ class PlanCapacitySchedulingResourceUsage<
         for (slot in this.timeSlots) {
             for (action in actions) {
                 val unitUsage = slot.resource.usedBy(action, slot.time)
-                if (unitUsage neq Flt64.zero) {
+                if (unitUsage neq unitUsage.constants.zero) {
                     val actionIndex = actions.indexOf(action)
                     val slotIndex = resolveCapacitySlotIndex(slot)
                     if (actionIndex >= 0 && slotIndex >= 0 && slotIndex < compilation.operationTime.shape[1]) {
-                        quantity[slot].asMutable() += LinearMonomial(unitUsage, compilation.operationTime[actionIndex, slotIndex])
+                        quantity[slot].asMutable() += LinearMonomial(unitUsage.toFlt64(), compilation.operationTime[actionIndex, slotIndex])
                     }
                 }
             }
@@ -124,12 +127,10 @@ class PlanCapacitySchedulingResourceUsage<
         return addQuantityToModel(model, timeSlots)
     }
 
-    private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C>): Int {
+    private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C, V>): Int {
         if (capacitySlots.isNotEmpty()) {
             return capacitySlots.indexOfFirst { it.time.contains(slot.time) }
         }
         return slot.indexInRule.toInt()
     }
 }
-
-

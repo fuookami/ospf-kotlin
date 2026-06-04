@@ -69,9 +69,9 @@ class CapacityCostMinimization<A : ProductionAction>(
      */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         val costSymbol = when (capacity) {
-            is CapacityCompilation<*> -> capacity.cost
-            is CapacityOrderCompilation<*> -> capacity.cost
-            is IterativeCapacityCompilation<*, *> -> capacity.cost
+            is CapacityCompilation<*, *> -> capacity.cost
+            is CapacityOrderCompilation<*, *> -> capacity.cost
+            is IterativeCapacityCompilation<*, *, *> -> capacity.cost
             else -> null
         } ?: return Failed(
             ErrorCode.IllegalArgument,

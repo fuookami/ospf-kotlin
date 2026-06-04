@@ -13,6 +13,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
@@ -33,14 +35,15 @@ class ConsumptionOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    products: List<Pair<C, MaterialReserves?>>,
+    products: List<Pair<C, MaterialReserves<V>?>>,
     private val consumption: Consumption,
     private val threshold: (C) -> Flt64 = { Flt64.zero },
     private val coefficient: (C) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_over_quantity_minimization"
-) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
     private val materials = if (consumption.overEnabled) {
         products.filter { it.second?.overEnabled == true }
     } else {

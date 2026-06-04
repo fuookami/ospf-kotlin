@@ -142,7 +142,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * 产能编译对象
      * Capacity compilation object
      */
-    private val capacityCompilation: CapacityCompilation<A>? = if (!useColumnGeneration) {
+    private val capacityCompilation: CapacityCompilation<Flt64, A>? = if (!useColumnGeneration) {
         CapacityCompilation(
             actions = actions,
             slots = slots,
@@ -152,7 +152,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         null
     }
 
-    private val iterativeCompilation: IterativeCapacityCompilation<E, A>? = if (useColumnGeneration) {
+    private val iterativeCompilation: IterativeCapacityCompilation<Flt64, E, A>? = if (useColumnGeneration) {
         IterativeCapacityCompilation(
             executors = executors,
             actions = actions,

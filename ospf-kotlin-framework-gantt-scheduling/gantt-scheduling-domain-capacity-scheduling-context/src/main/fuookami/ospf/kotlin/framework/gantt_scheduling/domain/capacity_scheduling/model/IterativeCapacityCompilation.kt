@@ -15,9 +15,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape2
+import kotlin.math.floor
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -36,7 +38,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
  * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
  */
-class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
+class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : ProductionAction>(
     /**
      * 执行器列表
      * List of executors
@@ -59,8 +61,9 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 时间窗口
      * Time window
      */
-    private val timeWindow: TimeWindow<Flt64>
+    private val timeWindow: TimeWindow<V>
 ) : Capacity<A> {
+    private val valueZero = timeWindow.fromDouble(0.0)
 
     init {
         // Index actions if they implement ManualIndexed
@@ -76,7 +79,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 每台设备的列聚合（按迭代分组）
      * Column aggregation per executor (grouped by iteration)
      */
-    internal val columnsByExecutor: Map<E, CapacityColumnAggregation<E, A>> =
+    internal val columnsByExecutor: Map<E, CapacityColumnAggregation<E, A, V>> =
         executors.associateWith { CapacityColumnAggregation() }
     private val executorByRef: Map<Executor, E> = executors.associateBy { it }
 
@@ -169,7 +172,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                                     if (column.slotIndex == s) {
                                         val amount = column.amountFor(action)
                                         if (amount > UInt64.zero) {
-                                            val coefficient = unitOperationTime * Flt64(amount.toLong().toDouble())
+                                            val coefficient = unitOperationTime.toFlt64() * Flt64(amount.toLong().toDouble())
                                             poly += LinearMonomial(coefficient, executorVar[iterIdx, colIdx])
                                         }
                                     }
@@ -231,13 +234,13 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      */
     suspend fun addColumns(
         iteration: UInt64,
-        newColumns: List<CapacityColumn<E, A, Flt64>>,
+        newColumns: List<CapacityColumn<E, A, V>>,
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<List<CapacityColumn<E, A, Flt64>>> {
+    ): Ret<List<CapacityColumn<E, A, V>>> {
         // Group columns by executor
         // 按执行器分组
         val columnsByExec = newColumns.groupBy { it.executor }
-        val allAddedColumns = mutableListOf<CapacityColumn<E, A, Flt64>>()
+        val allAddedColumns = mutableListOf<CapacityColumn<E, A, V>>()
 
         for ((executor, columns) in columnsByExec) {
             val columnAggregation = columnsByExecutor[executor] ?: continue
@@ -328,7 +331,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      */
     fun locateColumnDecision(
         iteration: UInt64,
-        column: CapacityColumn<E, A, Flt64>
+        column: CapacityColumn<E, A, V>
     ): Pair<UIntVariable2, Int>? {
         val iterIdx = iteration.toInt()
         val executorVar = _x[column.executor] ?: return null
@@ -348,36 +351,36 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 计算列变量上界
      * Calculate upper bound for a column decision variable
      */
-    private fun columnUpperBound(column: CapacityColumn<E, A, Flt64>): UInt64 {
+    private fun columnUpperBound(column: CapacityColumn<E, A, V>): UInt64 {
         if (column.slotIndex !in slots.indices) {
             return UInt64.zero
         }
 
-        var columnOperationTime = Flt64.zero
+        var columnOperationTime = valueZero
         for ((action, amount) in column.allocations) {
             if (amount <= UInt64.zero) {
                 continue
             }
             val unitOperationTime = if (action.discrete && action.batchDuration != null) {
                 timeWindow.valueOf(action.batchDuration!!)
-} else {
+            } else {
                 timeWindow.valueOf(timeWindow.interval)
             }
-            columnOperationTime += unitOperationTime * amount.toFlt64()
+            columnOperationTime += unitOperationTime * timeWindow.fromDouble(amount.toLong().toDouble())
         }
-        if (columnOperationTime <= Flt64.zero) {
+        if (columnOperationTime <= valueZero) {
             return UInt64.zero
         }
 
         val available = timeWindow.valueOf(slots[column.slotIndex].duration)
-        if (available <= Flt64.zero) {
+        if (available <= valueZero) {
             return UInt64.zero
         }
-        val upperBound = (available / columnOperationTime).floor()
-        return if (upperBound <= Flt64.zero) {
+        val upperBound = floor(timeWindow.toDouble(available) / timeWindow.toDouble(columnOperationTime))
+        return if (upperBound <= 0.0) {
             UInt64.zero
         } else {
-            upperBound.toUInt64()
+            UInt64(upperBound.toULong())
         }
     }
 
@@ -413,7 +416,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                         } else {
                             timeWindow.valueOf(timeWindow.interval)
                         }
-                        val coefficient = unitOperationTime * Flt64(amount.toLong().toDouble())
+                        val coefficient = unitOperationTime.toFlt64() * Flt64(amount.toLong().toDouble())
                         operationTime[actionIndex, column.slotIndex].asMutable() += LinearMonomial(coefficient, variable)
                     }
                 }
@@ -439,7 +442,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                     if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
                         continue
                     }
-                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(column.cost, executorVar[iterIdx, colIdx])
+                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(column.cost.toFlt64(), executorVar[iterIdx, colIdx])
                 }
             }
         }
@@ -505,7 +508,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 val capValue = capacity[e, s].evaluate(model.tokens, SchedulingSolverValueAdapter.Flt64)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
-                    timeWindow.durationOf(capValue)
+                    timeWindow.durationOf(timeWindow.fromDouble(capValue.toDouble()))
                 } else {
                     Duration.ZERO
                 }

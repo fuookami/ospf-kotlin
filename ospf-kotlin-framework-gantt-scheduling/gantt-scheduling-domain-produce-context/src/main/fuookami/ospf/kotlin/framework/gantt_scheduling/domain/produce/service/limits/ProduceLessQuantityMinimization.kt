@@ -13,6 +13,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
@@ -33,14 +35,15 @@ class ProduceLessQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        P : AbstractMaterial
+        P : AbstractMaterial,
+        V
         >(
-    products: List<Pair<P, MaterialDemand?>>,
+    products: List<Pair<P, MaterialDemand<V>?>>,
     private val produce: Produce,
     private val threshold: (P) -> Flt64 = { Flt64.zero },
     private val coefficient: (P) -> Flt64 = { Flt64.one },
     override val name: String = "produce_less_quantity_minimization"
-) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
     private val products = if (produce.lessEnabled) {
         products.filter { it.second?.lessEnabled == true }
     } else {

@@ -14,6 +14,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -37,15 +39,16 @@ class ResourceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        S : ResourceTimeSlot<R, C>,
-        R : Resource<C>,
-        C : AbstractResourceCapacity
+        S : ResourceTimeSlot<R, C, V>,
+        R : Resource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
         >(
-    private val quantity: ResourceUsage<S, R, C>,
+    private val quantity: ResourceUsage<S, R, C, V>,
     private val threshold: (S) -> Flt64 = { Flt64.zero },
     private val coefficient: (S) -> Flt64 = { Flt64.one },
     override val name: String = "resource_over_capacity_minimization"
-) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
     private val slots = if (quantity.overEnabled) {
         quantity.timeSlots.filter { it.resourceCapacity.overEnabled }
     } else {

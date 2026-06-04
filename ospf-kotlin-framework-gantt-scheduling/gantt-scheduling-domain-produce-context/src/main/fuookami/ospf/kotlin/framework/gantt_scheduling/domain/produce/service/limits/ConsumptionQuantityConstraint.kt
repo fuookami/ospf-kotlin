@@ -9,11 +9,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Abst
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroFlt64ConsumptionMaterials
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroConsumptionMaterials
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -44,16 +46,16 @@ class ConsumptionQuantityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
-        C : AbstractMaterial
+        C : AbstractMaterial,
+        V
         >(
-    materials: List<Pair<C, MaterialReserves?>>,
+    materials: List<Pair<C, MaterialReserves<V>?>>,
     private val consumption: Consumption,
     private val shadowPriceArguments: ((Args) -> Flt64?)? = null,
     override val name: String = "consumption_quantity"
-) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
     private val materials = materials
-        .filter { it.second != null }
-        .filterIsInstance<Pair<C, MaterialReserves>>()
+        .mapNotNull { (material, reserve) -> reserve?.let { material to it } }
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((material, reserve) in materials) {
@@ -62,7 +64,7 @@ class ConsumptionQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq reserve.quantity.upperBound.value.unwrap(),
+                                polyX leq reserve.quantity.upperBound.value.unwrap().toFlt64(),
                                 name = "${name}_ub_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
@@ -81,7 +83,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap(),
+                            consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap().toFlt64(),
                             name = "${name}_ub_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
@@ -99,7 +101,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap(),
+                    consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap().toFlt64(),
                     name = "${name}_ub_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
@@ -120,7 +122,7 @@ class ConsumptionQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq reserve.quantity.lowerBound.value.unwrap(),
+                                polyX geq reserve.quantity.lowerBound.value.unwrap().toFlt64(),
                                 name = "${name}_lb_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
@@ -139,7 +141,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap(),
+                            consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap().toFlt64(),
                             name = "${name}_lb_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
@@ -157,7 +159,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap(),
+                    consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap().toFlt64(),
                     name = "${name}_lb_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
@@ -183,7 +185,7 @@ class ConsumptionQuantityConstraint<
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
-                            task.nonZeroFlt64ConsumptionMaterials<C>()
+                            task.nonZeroConsumptionMaterials<C>()
                                 .sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
@@ -196,7 +198,7 @@ class ConsumptionQuantityConstraint<
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
-                            task.nonZeroFlt64ConsumptionMaterials<C>()
+                            task.nonZeroConsumptionMaterials<C>()
                                 .sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
