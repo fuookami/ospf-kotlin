@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.toRenderDto
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
@@ -48,6 +49,7 @@ data class Csp1dSolution<V : RealNumber<V>>(
     val produce: Produce<V>,
     val yieldResult: YieldModelingResult<V>? = null,
     val wasteResult: WasteMinimizationResult<V>? = null,
+    val lengthResult: LengthAssignmentModelingResult<V>? = null,
     val generatedPlans: List<CuttingPlan<V>>,
     val kpi: Csp1dKpi,
     val render: RenderSchemaDTO

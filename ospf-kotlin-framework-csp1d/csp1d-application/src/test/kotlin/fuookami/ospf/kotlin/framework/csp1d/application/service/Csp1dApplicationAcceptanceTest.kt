@@ -35,9 +35,10 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 
 /**
@@ -97,7 +98,7 @@ class Csp1dApplicationAcceptanceTest {
     private val fakeSolver = Csp1dFakeSolver()
 
     @Test
-    fun milpShouldSolveRollDemandWithoutPoitDependency() = runBlocking {
+    fun milpShouldSolveRollDemandWithoutPoitDependency(): Unit = runBlocking {
         val product = product(
             id = "p-roll",
             width = 1.2
@@ -139,7 +140,7 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     @Test
-    fun milpShouldCoverCostarRestWidthAndMachineCapacity() = runBlocking {
+    fun milpShouldCoverCostarRestWidthAndMachineCapacity(): Unit = runBlocking {
         val product = product(
             id = "p-capacity",
             width = 1.3
@@ -195,7 +196,7 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     @Test
-    fun columnGenerationShouldSolveInitialPlans() = runBlocking {
+    fun columnGenerationShouldSolveInitialPlans(): Unit = runBlocking {
         val product = product(
             id = "p-cg",
             width = 1.0
@@ -237,11 +238,71 @@ class Csp1dApplicationAcceptanceTest {
         assertNotNull(trace.iterations)
     }
 
+    /**
+     * 验证列生成入口透传 lengthConfig 并回填 lengthResult / Verify column generation passes lengthConfig through and fills lengthResult
+     */
+    @Test
+    fun columnGenerationShouldPassLengthConfigToFinalMilp(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-cg-length",
+            width = 1.0
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(
+                material(
+                    id = "m-cg-length",
+                    lowerWidth = 0.8,
+                    upperWidth = 1.5
+                )
+            ),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(2.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 8,
+                iterationLimit = 4
+            )
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id),
+            overLengthPenalty = mapOf(product.id to Flt64(3.0))
+        )
+        val columnGeneration = Csp1dColumnGeneration(
+            solver = fakeSolver,
+            lengthConfig = lengthConfig
+        )
+
+        val result = columnGeneration.solveWithTrace(problem)
+
+        assertNotNull(result.solution.lengthResult, "Length result should be filled when lengthConfig is provided")
+        assertEquals(product.id, result.solution.lengthResult!!.overLengths.first().productId)
+        assertEquals(Flt64.one, result.solution.lengthResult!!.overLengths.first().overLength)
+    }
+
     private fun product(
         id: String,
         width: Double
     ): Product<Flt64> {
         return Product(
+            id = id,
+            name = "product-$id",
+            width = listOf(
+                Quantity(Flt64(width), Meter)
+            )
+        )
+    }
+
+    private fun dynamicProduct(
+        id: String,
+        width: Double
+    ): Product<Flt64> {
+        return Product.dynamicLengthOf(
             id = id,
             name = "product-$id",
             width = listOf(
@@ -282,7 +343,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证 yield 建模在 MILP solver 上正确注册欠产/超产松弛变量并影响求解结果 / Verify yield modeling registers under/over production slack variables correctly and affects solve results
      */
     @Test
-    fun milpWithYieldConfigShouldProduceYieldResult() = runBlocking {
+    fun milpWithYieldConfigShouldProduceYieldResult(): Unit = runBlocking {
         val product = product(
             id = "p-yield",
             width = 0.8
@@ -332,7 +393,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证 yieldConfig 为 null 时 MILP solver 无 yield 建模，向后兼容 / Verify no yield modeling when yieldConfig is null, backward compatibility
      */
     @Test
-    fun milpWithoutYieldConfigShouldNotProduceYieldResult() = runBlocking {
+    fun milpWithoutYieldConfigShouldNotProduceYieldResult(): Unit = runBlocking {
         val product = product(
             id = "p-no-yield",
             width = 0.8
@@ -398,10 +459,141 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
+     * 验证 lengthConfig 为 null 时 MILP solver 无长度分配建模，向后兼容 / Verify no length assignment modeling when lengthConfig is null, backward compatibility
+     */
+    @Test
+    fun milpWithoutLengthConfigShouldNotProduceLengthResult(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-no-length",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-no-length",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertEquals(null, milpResult.lengthResult, "Length result should be null when lengthConfig is not provided")
+    }
+
+    /**
+     * 验证 lengthConfig 带超长惩罚时 MILP solver 回填超长结果 / Verify length modeling extracts over-length when over-length penalty is provided
+     */
+    @Test
+    fun milpWithOverLengthPenaltyShouldProduceLengthResult(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-length",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-length",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id),
+            overLengthPenalty = mapOf(product.id to Flt64(4.0))
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertNotNull(milpResult.lengthResult, "Length result should not be null when lengthConfig is provided")
+        assertEquals(product.id, milpResult.lengthResult!!.overLengths.first().productId)
+        assertEquals(Flt64.one, milpResult.lengthResult!!.overLengths.first().overLength)
+    }
+
+    /**
+     * 验证仅配置超长上限时也会注册超长松弛变量 / Verify over-length slack is registered when only upper bound is configured
+     */
+    @Test
+    fun milpWithOnlyOverLengthUpperBoundShouldProduceLengthResult(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-length-bound",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-length-bound",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id),
+            overLengthUpperBound = mapOf(product.id to Flt64(2.0))
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertNotNull(milpResult.lengthResult, "Length result should not be null when lengthConfig is provided")
+        assertEquals(Flt64.one, milpResult.lengthResult!!.overLengths.first().overLength)
+    }
+
+    /**
      * 验证 wasteConfig 为 null 时 MILP solver 无废弃建模，向后兼容 / Verify no waste modeling when wasteConfig is null, backward compatibility
      */
     @Test
-    fun milpWithoutWasteConfigShouldNotProduceWasteResult() = runBlocking {
+    fun milpWithoutWasteConfigShouldNotProduceWasteResult(): Unit = runBlocking {
         val product = product(
             id = "p-no-waste",
             width = 0.8
@@ -439,7 +631,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证 wasteConfig 带 trimWidthPenalty 时 MILP solver 正确提取余宽浪费 / Verify waste modeling extracts trim width when wasteConfig is provided
      */
     @Test
-    fun milpWithTrimWidthPenaltyShouldProduceWasteResult() = runBlocking {
+    fun milpWithTrimWidthPenaltyShouldProduceWasteResult(): Unit = runBlocking {
         val product = product(
             id = "p-trim",
             width = 0.8
@@ -489,7 +681,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证 wasteConfig 带 materialCostPenalty 时 MILP solver 正确提取物料成本 / Verify waste modeling extracts material costs when materialCostPenalty is provided
      */
     @Test
-    fun milpWithMaterialCostPenaltyShouldProduceWasteResult() = runBlocking {
+    fun milpWithMaterialCostPenaltyShouldProduceWasteResult(): Unit = runBlocking {
         val product = product(
             id = "p-cost",
             width = 0.8
@@ -537,7 +729,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证仅配置超产面积惩罚时也会注册超产松弛变量 / Verify over-production slack is registered when only over-production area penalty is configured
      */
     @Test
-    fun milpWithOnlyOverProductionAreaPenaltyShouldProduceArea() = runBlocking {
+    fun milpWithOnlyOverProductionAreaPenaltyShouldProduceArea(): Unit = runBlocking {
         val product = product(
             id = "p-area-only",
             width = 0.8
@@ -588,7 +780,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证仅配置超产上限时也会注册超产松弛变量 / Verify over-production slack is registered when only upper bound is configured
      */
     @Test
-    fun milpWithOnlyOverProductionUpperBoundShouldProduceOverYieldResult() = runBlocking {
+    fun milpWithOnlyOverProductionUpperBoundShouldProduceOverYieldResult(): Unit = runBlocking {
         val product = product(
             id = "p-over-bound",
             width = 0.8
@@ -637,7 +829,7 @@ class Csp1dApplicationAcceptanceTest {
      * 验证 yield 和 waste 联合建模时 MILP solver 正确提取两个结果 / Verify both yield and waste results are extracted when both configs are provided
      */
     @Test
-    fun milpWithYieldAndWasteConfigShouldProduceBothResults() = runBlocking {
+    fun milpWithYieldAndWasteConfigShouldProduceBothResults(): Unit = runBlocking {
         val product = product(
             id = "p-both",
             width = 0.8

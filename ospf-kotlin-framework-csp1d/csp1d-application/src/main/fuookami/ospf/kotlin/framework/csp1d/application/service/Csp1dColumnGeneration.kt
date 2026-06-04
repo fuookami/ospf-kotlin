@@ -13,12 +13,12 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Simpl
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionAnalyzer
 import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSolutionAnalyzer
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
-import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
 
 /**
  * 列生成终止原因 / Column generation termination reason
@@ -67,7 +67,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val pricingGenerator: Csp1dPricingGenerator<V> = ReducedCostPricingGenerator(initialGenerator),
     private val analyzer: Csp1dSolutionAnalyzer<V> = DefaultCsp1dSolutionAnalyzer(),
     private val yieldConfig: YieldModelingConfig<V>? = null,
-    private val wasteConfig: WasteMinimizationConfig<V>? = null
+    private val wasteConfig: WasteMinimizationConfig<V>? = null,
+    private val lengthConfig: LengthAssignmentModelingConfig<V>? = null
 ) {
     suspend fun solve(
         problem: Csp1dProblem<V>
@@ -196,7 +197,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 machines = problem.machines
             ),
             yieldConfig = yieldConfig,
-            wasteConfig = wasteConfig
+            wasteConfig = wasteConfig,
+            lengthConfig = lengthConfig
         )
         val produce = milpResult?.produce ?: Produce(
             cuttingPlans = emptyList(),
@@ -211,7 +213,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
         val solution = baseSolution.copy(
             yieldResult = milpResult?.yieldResult,
-            wasteResult = milpResult?.wasteResult
+            wasteResult = milpResult?.wasteResult,
+            lengthResult = milpResult?.lengthResult
         )
         return Csp1dColumnGenerationResult(
             solution = solution,

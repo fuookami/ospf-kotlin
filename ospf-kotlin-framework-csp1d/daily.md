@@ -22,9 +22,9 @@
 | `csp1d-domain-material-context` | 产品、需求、配规、原料、设备、幅宽、切割方案、解、重量计算和物料上下文 | 已建立 |
 | `csp1d-domain-cutting-plan-generation-context` | 初始方案生成、pricing、可行性规则、余宽和 reduced cost 目标 | 待增强 |
 | `csp1d-domain-produce-context` | 主问题输入、切割方案使用、物料使用、设备产能、解聚合模型 | 已建立 |
-| `csp1d-domain-yield-context` | 需求产出聚合、欠产/超产分析及后续约束目标插件 | 待 solver 化 |
-| `csp1d-domain-length-assignment-context` | 动态卷长分配、超长检测及后续变量约束插件 | 待 solver 化 |
-| `csp1d-domain-wasting-minimization-context` | 余宽、余料、成本、超产面积浪费分析及后续目标插件 | 待 solver 化 |
+| `csp1d-domain-yield-context` | 需求产出聚合、欠产/超产分析及后续约束目标插件 | 基础 solver 接入已完成，待真实验证和收口 |
+| `csp1d-domain-length-assignment-context` | 动态卷长分配、超长检测及后续变量约束插件 | 基础 solver 接入已完成，待动态卷长真实建模 |
+| `csp1d-domain-wasting-minimization-context` | 余宽、余料、成本、超产面积浪费分析及后续目标插件 | 基础 solver 接入已完成，待真实验证和余料收口 |
 | `csp1d-application` | MILP、列生成、恢复、排程、KPI、Top-K 和解分析入口 | 待增强 |
 
 暂不单独拆 `csp1d-domain-schedule-context`。schedule 相关能力先作为 produce、yield、length assignment、wasting minimization 的 variant 保留；当重复接口稳定后再抽出公共层。
@@ -75,8 +75,20 @@
 12. 已完成 C5 yield 上下文 solver 化：`ModeledUnderProduction`/`ModeledOverProduction` 建模层扁平类型、`YieldModelingConfig<V>`/`YieldModelingResult<V>` solver 接入、`Csp1dMilpSolver` 欠产/超产松弛变量注册、demand 等式约束转换、yield 惩罚目标、超产上限约束和 solver solution 回填。`Csp1dSolution` 已预留 `yieldResult` 字段。`Csp1dColumnGeneration` 已透传 `yieldConfig`。验收测试已增加 yield 建模正向和反向测试。
 13. 已完成 C5 wasting minimization 上下文 solver 化基础接入：`WasteMinimizationConfig<V>` 和 `WasteMinimizationResult<V>` 建模层扁平类型；`Csp1dMilpSolver.solve()` 接受 `wasteConfig` 参数；`setObjective()` 加入余宽、物料成本和超产面积线性目标表达式；`extractWasteResult()` 从 solver solution 回填总余宽、物料成本和超产面积；`MilpResult`、`Csp1dColumnGeneration`、`Csp1dSolution` 已完成 `wasteResult` / `wasteConfig` 透传；验收测试已覆盖废弃建模正向和反向路径。
 14. 已修正 waste/yield 联合建模的关键风险：超产松弛变量按 over penalty、over upper bound、over area penalty 任一需求统一注册；`extractWasteResult()` / `extractYieldResult()` 不再分散使用 `Flt64 as V`，改为集中通过 application 内部 solver 数值回填 helper 转为 `Flt64` / `FltX` 同类值；验收测试新增具体数值断言，并覆盖“仅超产面积惩罚”和“仅超产上限”场景。
+15. 已完成 C5 length assignment 上下文 solver 化基础接入：`LengthAssignmentModelingConfig<V>`、`LengthAssignmentModelingResult<V>`、`ModeledAssignedLength<V>` 和 `ModeledOverLength<V>` 建模层扁平类型；`Csp1dMilpSolver.solve()` 接受 `lengthConfig` 参数；已注册动态长度产品超长松弛变量、超长上限约束和超长惩罚目标；`extractLengthResult()` 从 solver solution 回填超长结果；`MilpResult`、`Csp1dColumnGeneration`、`Csp1dSolution` 已完成 `lengthResult` / `lengthConfig` 透传；验收测试已覆盖 lengthConfig 正反向、仅超长上限和列生成透传路径。
 
 ## 3. 未完成事项
+
+### 3.0 下一会话交接：C4~C5 未完成项
+
+C4~C5 不能按整体完成处理。当前已经完成的是列生成 trace、yield/waste/length 三个增强上下文的 application solver 基础接入和 fake solver 验收；仍需下一会话继续做真实 solver、动态卷长和端到端口径收口。
+
+下一会话建议优先顺序：
+
+1. 先推进 C4 真实 solver 收敛验证：跑通 LP -> dual price -> reduced cost pricing -> 新列加入 -> 最终 MILP，并确认 trace 与实际迭代一致。
+2. 再收口 C5 length assignment：补动态卷长决策变量、`assignedLengths` 回填、真实长度联动约束和 `totalLengthPenalty` 目标；`batchMinPenalty` 需先明确批次变量语义后再实现。
+3. 同步补 C5 yield/waste 真实 solver 端到端验证，确认 solver 回填值与分析层口径一致。
+4. 继续执行门禁搜索，避免引入 `com.poit`、`framework.bpp3d`、`ProduceSolver`、`SimpleProduceSolver`、`candidatePlans` 或不合规的固定数值类型。
 
 ### 3.1 C4 列生成真实 solver 收敛验证
 
@@ -136,34 +148,24 @@
 2. 补充 sheet、weight 需求口径下的端到端建模测试（当前测试覆盖 roll 和 unit 区分）。
 3. 考虑 yield 建模与列生成的交互：LP 轮次中是否也需要 yield slack。
 
-### 3.3 C5 length assignment 上下文 solver 化
+### 3.3 C5 length assignment 上下文 solver 化（已完成基础接入）
 
-#### 事项
+#### 已完成
 
-`LengthAssignmentContext` 已实现分配流程和超长检测，但 `LengthDerivation<V>` 仍依赖下游注入，动态卷长尚未进入主问题 solver 变量与约束。
+1. 明确 length assignment 与 produce 主问题的组合边界：`LengthAssignmentModelingConfig<V>` 作为 application 层建模参数传入 `Csp1dMilpSolver`，不侵入领域层 `ProduceInput`。
+2. 新增 `LengthAssignmentModelingConfig<V>`、`LengthAssignmentModelingResult<V>`、`ModeledAssignedLength<V>` 和 `ModeledOverLength<V>` 建模层扁平类型，与 `LengthAssignmentContext` 分析层富类型共存。
+3. `Csp1dMilpSolver.solve()` 接受 `lengthConfig` 参数，并为动态长度产品按需注册超长松弛变量。
+4. 支持超长惩罚目标和超长松弛变量上限约束，`extractLengthResult()` 可从 solver solution 回填超长结果。
+5. `Csp1dColumnGeneration` 透传 `lengthConfig`，`Csp1dSolution` 预留 `lengthResult` 字段。
+6. application 验收测试覆盖：无 `lengthConfig` 时不回填 `lengthResult`、配置超长惩罚时回填超长结果、仅配置超长上限时注册超长松弛变量，以及列生成最终 MILP 透传 `lengthConfig`。
 
-#### 计划
+#### 后续收口
 
-1. 补充 `Flt64` / `FltX` 默认 length derivation 或 adapter。
-2. 明确动态长度产品与固定长度产品在主问题中的建模差异。
-3. 将超长约束、长度最小化和批次最小化接入 application solver。
-4. 保持所有长度值使用 `Quantity<V>`，避免裸数值长度泄漏。
-
-#### 修改清单
-
-1. `csp1d-domain-length-assignment-context/src/main/...`
-   - 补充默认 derivation/adapter 和建模输入结构。
-2. `csp1d-application/src/main/.../application/service/Csp1dMilpSolver.kt`
-   - 注册动态卷长变量、超长约束和长度相关目标。
-3. `csp1d-application/src/test/...`
-   - 增加动态长度、超长限制和固定长度混合场景测试。
-
-#### 验收标准
-
-1. 动态长度产品可以由 solver 决定卷长或长度分配结果。
-2. 超长约束在违反时能阻止不可行解或产生明确惩罚。
-3. 长度相关目标能影响解选择，并可在 solution/analyzer 中追踪。
-4. `Quantity<V>` 单位一致性测试通过。
+1. 当前基础接入尚未建立动态卷长决策变量、已分配长度回填和 `assignedLength - maxOverProduceLength <= overLength` 等真实长度联动约束，需要补齐后才能让 solver 实际决定卷长。
+2. `totalLengthPenalty` 和 `batchMinPenalty` 已在配置中预留，但尚未接入目标函数，需要明确总卷长最小化和动态长度批次最小化的线性表达方式。
+3. 补充 `Flt64` / `FltX` 默认 length derivation 或 adapter，并明确动态长度产品与固定长度产品在主问题中的建模差异。
+4. 继续补充固定长度混合和 `Quantity<V>` 单位一致性端到端建模测试。
+5. 在真实 solver 上验证 length assignment 建模的超长回填值与分析层口径一致。
 
 ### 3.4 C5 wasting minimization 上下文 solver 化（已完成基础接入）
 

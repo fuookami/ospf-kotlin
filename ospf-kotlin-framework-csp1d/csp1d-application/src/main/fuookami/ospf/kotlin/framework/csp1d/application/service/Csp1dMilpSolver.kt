@@ -30,6 +30,10 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.ModeledAssignedLength
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.ModeledOverLength
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.ModeledUnderProduction
@@ -48,6 +52,7 @@ class Csp1dMilpSolver(
         val produce: Produce<V>,
         val yieldResult: YieldModelingResult<V>? = null,
         val wasteResult: WasteMinimizationResult<V>? = null,
+        val lengthResult: LengthAssignmentModelingResult<V>? = null,
         val model: LinearMetaModel<Flt64>,
         val assignment: Csp1dAssignment,
         val output: FeasibleSolverOutput<Flt64>
@@ -63,7 +68,8 @@ class Csp1dMilpSolver(
     suspend fun <V : RealNumber<V>> solve(
         input: ProduceInput<V>,
         yieldConfig: YieldModelingConfig<V>? = null,
-        wasteConfig: WasteMinimizationConfig<V>? = null
+        wasteConfig: WasteMinimizationConfig<V>? = null,
+        lengthConfig: LengthAssignmentModelingConfig<V>? = null
     ): MilpResult<V>? {
         if (input.cuttingPlans.isEmpty()) {
             return null
@@ -80,6 +86,12 @@ class Csp1dMilpSolver(
             demands = input.demands,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig,
+            model = model
+        )
+
+        val lengthSlackVars = addLengthAssignmentSlackVariables(
+            demands = input.demands,
+            lengthConfig = lengthConfig,
             model = model
         )
 
@@ -106,13 +118,21 @@ class Csp1dMilpSolver(
             yieldSlackVars = yieldSlackVars,
             model = model
         )
+        addLengthAssignmentConstraints(
+            demands = input.demands,
+            lengthConfig = lengthConfig,
+            lengthSlackVars = lengthSlackVars,
+            model = model
+        )
         setObjective(
             assignment = assignment,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig,
+            lengthConfig = lengthConfig,
             demands = input.demands,
             cuttingPlans = input.cuttingPlans,
             yieldSlackVars = yieldSlackVars,
+            lengthSlackVars = lengthSlackVars,
             model = model
         )
 
@@ -145,10 +165,17 @@ class Csp1dMilpSolver(
             assignment = assignment,
             model = model
         )
+        val lengthResult = extractLengthResult(
+            demands = input.demands,
+            lengthConfig = lengthConfig,
+            lengthSlackVars = lengthSlackVars,
+            model = model
+        )
         return MilpResult(
             produce = produce,
             yieldResult = yieldResult,
             wasteResult = wasteResult,
+            lengthResult = lengthResult,
             model = model,
             assignment = assignment,
             output = output
@@ -225,6 +252,19 @@ class Csp1dMilpSolver(
         val overProduction: List<URealVar?> = emptyList()
     ) {
         val hasAny: Boolean get() = underProduction.any { it != null } || overProduction.any { it != null }
+    }
+
+    /**
+     * 长度分配变量容器 / Length assignment variable container
+     *
+     * @param assignedLength 已分配卷长变量，按 demand 索引；仅对动态长度产品有效 / Assigned length variables, indexed by demand; only for dynamic-length products
+     * @param overLength 超长松弛变量，按 demand 索引；仅对动态长度产品有效 / Over-length slack variables, indexed by demand; only for dynamic-length products
+     */
+    private data class LengthSlackVars(
+        val assignedLength: List<URealVar?> = emptyList(),
+        val overLength: List<URealVar?> = emptyList()
+    ) {
+        val hasAny: Boolean get() = assignedLength.any { it != null } || overLength.any { it != null }
     }
 
     /**
@@ -529,9 +569,11 @@ class Csp1dMilpSolver(
         assignment: Csp1dAssignment,
         yieldConfig: YieldModelingConfig<V>?,
         wasteConfig: WasteMinimizationConfig<V>?,
+        lengthConfig: LengthAssignmentModelingConfig<V>?,
         demands: List<ProductDemand<V>>,
         cuttingPlans: List<CuttingPlan<V>>,
         yieldSlackVars: YieldSlackVars,
+        lengthSlackVars: LengthSlackVars,
         model: LinearMetaModel<Flt64>
     ) {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
@@ -607,6 +649,25 @@ class Csp1dMilpSolver(
             }
         }
 
+        // 长度分配惩罚目标 / Length assignment penalty objectives
+        if (lengthConfig != null && lengthSlackVars.hasAny) {
+            val totalLengthPenalty = lengthConfig.totalLengthPenalty
+            if (totalLengthPenalty != null) {
+                for ((demandIndex, demand) in demands.withIndex()) {
+                    if (demand.product.id !in lengthConfig.dynamicProductIds) continue
+                    val assignedVar = lengthSlackVars.assignedLength.getOrNull(demandIndex) ?: continue
+                    monomials.add(LinearMonomial(totalLengthPenalty.toFlt64(), assignedVar))
+                }
+            }
+
+            for ((demandIndex, demand) in demands.withIndex()) {
+                if (demand.product.id !in lengthConfig.dynamicProductIds) continue
+                val overVar = lengthSlackVars.overLength.getOrNull(demandIndex) ?: continue
+                val overLengthPenalty = lengthConfig.overLengthPenalty[demand.product.id] ?: continue
+                monomials.add(LinearMonomial(overLengthPenalty.toFlt64(), overVar))
+            }
+        }
+
         val objective = LinearPolynomial(
             monomials = monomials,
             constant = Flt64.zero
@@ -614,9 +675,215 @@ class Csp1dMilpSolver(
         ensureTry(
             model.minimize(
                 polynomial = objective,
-                name = "batch_yield_waste_minimization"
+                name = "batch_yield_waste_length_minimization"
             ),
             "build objective"
+        )
+    }
+
+    /**
+     * 为动态长度产品创建超长松弛变量 / Create over-length slack variables for dynamic-length products
+     */
+    private fun <V : RealNumber<V>> addLengthAssignmentSlackVariables(
+        demands: List<ProductDemand<V>>,
+        lengthConfig: LengthAssignmentModelingConfig<V>?,
+        model: LinearMetaModel<Flt64>
+    ): LengthSlackVars {
+        if (lengthConfig == null) return LengthSlackVars()
+        if (lengthConfig.dynamicProductIds.isEmpty()) return LengthSlackVars()
+
+        val assignedLengthVars = ArrayList<URealVar?>()
+        val overLengthVars = ArrayList<URealVar?>()
+
+        for ((demandIndex, demand) in demands.withIndex()) {
+            if (demand.product.id !in lengthConfig.dynamicProductIds) {
+                assignedLengthVars.add(null)
+                overLengthVars.add(null)
+                continue
+            }
+
+            val hasAssignedLengthBound = lengthConfig.assignedLengthLowerBound.containsKey(demand.product.id) ||
+                    lengthConfig.assignedLengthUpperBound.containsKey(demand.product.id)
+            val hasOverLengthConfig = lengthConfig.overLengthPenalty.containsKey(demand.product.id) ||
+                    lengthConfig.overLengthUpperBound.containsKey(demand.product.id)
+            val needsAssignedLength = hasAssignedLengthBound ||
+                    lengthConfig.totalLengthPenalty != null ||
+                    (demand.product.maxOverProduceLength != null && hasOverLengthConfig)
+            val needsOverLength = hasOverLengthConfig ||
+                    (needsAssignedLength && demand.product.maxOverProduceLength != null)
+
+            if (needsAssignedLength) {
+                val assignedVar = URealVar("assigned_length_$demandIndex")
+                when (val result = model.add(assignedVar)) {
+                    is Ok -> {}
+                    is Failed -> throw IllegalStateException("register assigned-length variable failed: ${result.error}")
+                    is Fatal -> throw IllegalStateException("register assigned-length variable fatal: ${result.errors}")
+                }
+                assignedLengthVars.add(assignedVar)
+            } else {
+                assignedLengthVars.add(null)
+            }
+
+            if (needsOverLength) {
+                val overVar = URealVar("over_length_$demandIndex")
+                when (val result = model.add(overVar)) {
+                    is Ok -> {}
+                    is Failed -> throw IllegalStateException("register over-length variable failed: ${result.error}")
+                    is Fatal -> throw IllegalStateException("register over-length variable fatal: ${result.errors}")
+                }
+                overLengthVars.add(overVar)
+            } else {
+                overLengthVars.add(null)
+            }
+        }
+
+        return LengthSlackVars(
+            assignedLength = assignedLengthVars,
+            overLength = overLengthVars
+        )
+    }
+
+    /**
+     * 添加长度分配约束 / Add length assignment constraints
+     */
+    private fun <V : RealNumber<V>> addLengthAssignmentConstraints(
+        demands: List<ProductDemand<V>>,
+        lengthConfig: LengthAssignmentModelingConfig<V>?,
+        lengthSlackVars: LengthSlackVars,
+        model: LinearMetaModel<Flt64>
+    ) {
+        if (lengthConfig == null) return
+
+        for ((demandIndex, demand) in demands.withIndex()) {
+            if (demand.product.id !in lengthConfig.dynamicProductIds) continue
+            val assignedVar = lengthSlackVars.assignedLength.getOrNull(demandIndex)
+            val overVar = lengthSlackVars.overLength.getOrNull(demandIndex)
+
+            val assignedLowerBound = lengthConfig.assignedLengthLowerBound[demand.product.id]
+            if (assignedLowerBound != null && assignedVar != null) {
+                ensureTry(
+                    model.addConstraint(
+                        relation = LinearInequality(
+                            lhs = LinearPolynomial(
+                                monomials = listOf(LinearMonomial(Flt64.one, assignedVar)),
+                                constant = Flt64.zero
+                            ),
+                            rhs = constantPolynomial(assignedLowerBound.toFlt64()),
+                            comparison = Comparison.GE
+                        ),
+                        name = "assigned_length_lower_bound_$demandIndex"
+                    ),
+                    "build assigned-length lower bound constraint"
+                )
+            }
+
+            val assignedUpperBound = lengthConfig.assignedLengthUpperBound[demand.product.id]
+            if (assignedUpperBound != null && assignedVar != null) {
+                ensureTry(
+                    model.addConstraint(
+                        relation = LinearInequality(
+                            lhs = LinearPolynomial(
+                                monomials = listOf(LinearMonomial(Flt64.one, assignedVar)),
+                                constant = Flt64.zero
+                            ),
+                            rhs = constantPolynomial(assignedUpperBound.toFlt64()),
+                            comparison = Comparison.LE
+                        ),
+                        name = "assigned_length_upper_bound_$demandIndex"
+                    ),
+                    "build assigned-length upper bound constraint"
+                )
+            }
+
+            val overUpperBound = lengthConfig.overLengthUpperBound[demand.product.id]
+            if (overUpperBound != null && overVar != null) {
+                ensureTry(
+                    model.addConstraint(
+                        relation = LinearInequality(
+                            lhs = LinearPolynomial(
+                                monomials = listOf(LinearMonomial(Flt64.one, overVar)),
+                                constant = Flt64.zero
+                            ),
+                            rhs = constantPolynomial(overUpperBound.toFlt64()),
+                            comparison = Comparison.LE
+                        ),
+                        name = "over_length_bound_$demandIndex"
+                    ),
+                    "build over-length upper bound constraint"
+                )
+            }
+
+            val maxOverProduceLength = demand.product.maxOverProduceLength
+            if (maxOverProduceLength != null && assignedVar != null && overVar != null) {
+                ensureTry(
+                    model.addConstraint(
+                        relation = LinearInequality(
+                            lhs = LinearPolynomial(
+                                monomials = listOf(
+                                    LinearMonomial(Flt64.one, assignedVar),
+                                    LinearMonomial(Flt64(-1.0), overVar)
+                                ),
+                                constant = Flt64.zero
+                            ),
+                            rhs = constantPolynomial(maxOverProduceLength.value.toFlt64()),
+                            comparison = Comparison.LE
+                        ),
+                        name = "assigned_over_length_link_$demandIndex"
+                    ),
+                    "build assigned-over-length link constraint"
+                )
+            }
+        }
+    }
+
+    /**
+     * 从 solver solution 提取长度分配建模结果 / Extract length assignment modeling result from solver solution
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun <V : RealNumber<V>> extractLengthResult(
+        demands: List<ProductDemand<V>>,
+        lengthConfig: LengthAssignmentModelingConfig<V>?,
+        lengthSlackVars: LengthSlackVars,
+        model: LinearMetaModel<Flt64>
+    ): LengthAssignmentModelingResult<V>? {
+        if (lengthConfig == null) return null
+        if (!lengthSlackVars.hasAny) return null
+
+        val assignedLengths = ArrayList<ModeledAssignedLength<V>>()
+        val overLengths = ArrayList<ModeledOverLength<V>>()
+
+        for ((demandIndex, demand) in demands.withIndex()) {
+            if (demand.product.id !in lengthConfig.dynamicProductIds) continue
+            val assignedVar = lengthSlackVars.assignedLength.getOrNull(demandIndex)
+            if (assignedVar != null) {
+                val assignedDouble = model.tokens.find(assignedVar)?.doubleResult
+                if (assignedDouble != null && assignedDouble >= 0.0) {
+                    val assignedAmount = solverValueLike(demand.quantity.value, Flt64(assignedDouble))
+                    assignedLengths.add(
+                        ModeledAssignedLength(
+                            productId = demand.product.id,
+                            assignedLength = assignedAmount
+                        )
+                    )
+                }
+            }
+
+            val overVar = lengthSlackVars.overLength.getOrNull(demandIndex) ?: continue
+            val overDouble = model.tokens.find(overVar)?.doubleResult ?: continue
+            if (overDouble > 0.0) {
+                val overAmount = solverValueLike(demand.quantity.value, Flt64(overDouble))
+                overLengths.add(
+                    ModeledOverLength(
+                        productId = demand.product.id,
+                        overLength = overAmount
+                    )
+                )
+            }
+        }
+
+        return LengthAssignmentModelingResult(
+            assignedLengths = assignedLengths,
+            overLengths = overLengths
         )
     }
 
