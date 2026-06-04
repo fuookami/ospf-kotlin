@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -32,6 +33,7 @@ import kotlin.time.Duration
  * @param lockedCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
  */
 abstract class AbstractIterativeTaskCompilationAggregation<
+        V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
@@ -52,10 +54,11 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      */
     data class Policy<
             IT : IterativeAbstractTask<E, A>,
+            V : RealNumber<V>,
             out E : Executor,
             out A : AssignmentPolicy<E>
             >(
-        val cost: (IT) -> Cost<Flt64>,
+        val cost: (IT) -> Cost<V>,
         val conflict: (IT, IT) -> Boolean
     )
 
@@ -66,7 +69,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         executors = executors,
         lockedCancelTasks = lockedCancelTasks
     )
-    abstract val policy: Policy<IT, E, A>
+    abstract val policy: Policy<IT, V, E, A>
 
     val tasksIteration: List<List<IT>> by compilation::tasksIteration
     val tasks: List<IT> by compilation::tasks
@@ -425,6 +428,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 }
 
 open class IterativeTaskCompilationAggregation<
+        V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
@@ -432,15 +436,16 @@ open class IterativeTaskCompilationAggregation<
         >(
     tasks: List<T>,
     executors: List<E>,
-    override val policy: Policy<IT, E, A>,
+    override val policy: Policy<IT, V, E, A>,
     lockedCancelTasks: Set<T> = emptySet()
-) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(
+) : AbstractIterativeTaskCompilationAggregation<V, IT, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockedCancelTasks = lockedCancelTasks
 )
 
 open class IterativeTaskCompilationAggregationWithTime<
+        V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
@@ -449,11 +454,11 @@ open class IterativeTaskCompilationAggregationWithTime<
     timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
     executors: List<E>,
-    override val policy: Policy<IT, E, A>,
+    override val policy: Policy<IT, V, E, A>,
     lockCancelTasks: Set<T> = emptySet(),
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(
+) : AbstractIterativeTaskCompilationAggregation<V, IT, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockedCancelTasks = lockCancelTasks

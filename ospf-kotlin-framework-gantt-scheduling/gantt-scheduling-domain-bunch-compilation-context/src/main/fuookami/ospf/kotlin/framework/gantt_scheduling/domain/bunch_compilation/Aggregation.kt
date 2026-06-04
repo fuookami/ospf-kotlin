@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -35,7 +36,8 @@ import kotlin.time.Duration
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
  */
 abstract class AbstractBunchCompilationAggregation<
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -47,7 +49,7 @@ abstract class AbstractBunchCompilationAggregation<
 ) {
     private val logger = org.apache.logging.log4j.kotlin.logger("BunchSchedulingAggregation")
 
-    val compilation: BunchCompilation<B, T, E, A> = BunchCompilation(
+    val compilation: BunchCompilation<B, V, T, E, A> = BunchCompilation(
         tasks = tasks,
         executors = executors,
         lockCancelTasks = lockCancelTasks,
@@ -455,7 +457,8 @@ abstract class AbstractBunchCompilationAggregation<
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
  */
 open class BunchCompilationAggregation<
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -464,7 +467,7 @@ open class BunchCompilationAggregation<
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
     withExecutorLeisure: Boolean = true
-) : AbstractBunchCompilationAggregation<B, T, E, A>(
+) : AbstractBunchCompilationAggregation<B, V, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockCancelTasks = lockCancelTasks,
@@ -487,7 +490,8 @@ open class BunchCompilationAggregation<
  * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
  */
 open class BunchCompilationAggregationWithTime<
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -499,13 +503,13 @@ open class BunchCompilationAggregationWithTime<
     withExecutorLeisure: Boolean = true,
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractBunchCompilationAggregation<B, T, E, A>(
+) : AbstractBunchCompilationAggregation<B, V, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockCancelTasks = lockCancelTasks,
     withExecutorLeisure = withExecutorLeisure
 ) {
-    val taskTime: BunchSchedulingTaskTime<B, T, E, A> = BunchSchedulingTaskTime(
+    val taskTime: BunchSchedulingTaskTime<B, V, T, E, A> = BunchSchedulingTaskTime(
         timeWindow = timeWindow,
         tasks = tasks,
         compilation = compilation,

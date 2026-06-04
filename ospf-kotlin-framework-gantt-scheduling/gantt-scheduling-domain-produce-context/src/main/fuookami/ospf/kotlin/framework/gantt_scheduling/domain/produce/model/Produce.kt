@@ -327,7 +327,7 @@ class BunchSchedulingProduce<
             > addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        compilation: BunchCompilation<B, T, E, A>
+        compilation: BunchCompilation<B, Flt64, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
 import fuookami.ospf.kotlin.framework.model.invoke
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -27,12 +28,13 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
  */
 interface BunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         > {
-    val aggregation: BunchCompilationAggregation<B, T, E, A>
+    val aggregation: BunchCompilationAggregation<B, V, T, E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
     val columnAmount get() = UInt64(aggregation.bunches.size)
@@ -349,7 +351,7 @@ interface BunchCompilationContext<
         tasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>? = null
-    ): Ret<BunchSolution<B, T, E, A>> {
+    ): Ret<BunchSolution<B, V, T, E, A>> {
         return BunchSolutionAnalyzer(
             iteration = iteration,
             tasks = tasks,
@@ -372,12 +374,13 @@ interface BunchCompilationContext<
  */
 interface ExtractBunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         > {
-    val baseContext: BunchCompilationContext<Args, B, T, E, A>
+    val baseContext: BunchCompilationContext<Args, B, V, T, E, A>
 
     fun register(model: MetaModel<Flt64>): Try
 

@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt8
@@ -514,11 +515,11 @@ open class IterativeTaskCompilation<
      * @param conflict 冲突函数 / Conflict function
      * @return 去重后的任务列表 / Deduplicated task list
      */
-    open suspend fun addColumns(
+    open suspend fun <V : RealNumber<V>> addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
         model: AbstractLinearMetaModel<Flt64>,
-        cost: (IT) -> Cost<Flt64>,
+        cost: (IT) -> Cost<V>,
         conflict: (IT, IT) -> Boolean
     ): Ret<List<IT>> {
         val unduplicatedTasks = aggregation.addColumns(newTasks)
@@ -542,7 +543,7 @@ open class IterativeTaskCompilation<
 
         taskCost.flush()
         for (task in unduplicatedTasks) {
-            (taskCost as LinearExpressionSymbol<Flt64>).asMutable() += (cost(task).sum ?: Flt64.infinity) * LinearPolynomial(xi[task])
+            (taskCost as LinearExpressionSymbol<Flt64>).asMutable() += (cost(task).sum?.toFlt64() ?: Flt64.infinity) * LinearPolynomial(xi[task])
         }
 
         for (originTask in originTasks) {

@@ -82,8 +82,8 @@ class BranchAndPriceAlgorithm<
             E : Executor,
             A : AssignmentPolicy<E>
             >(
-        val contextBuilder: () -> IterativeTaskCompilationContext<Args, IT, T, E, A>,
-        val extractContextBuilder: List<(IterativeTaskCompilationContext<Args, IT, T, E, A>) -> List<ExtractIterativeTaskCompilationContext<Args, IT, T, E, A>>>,
+        val contextBuilder: () -> IterativeTaskCompilationContext<Args, Flt64, IT, T, E, A>,
+        val extractContextBuilder: List<(IterativeTaskCompilationContext<Args, Flt64, IT, T, E, A>) -> List<ExtractIterativeTaskCompilationContext<Args, Flt64, IT, T, E, A>>>,
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, IT) -> Flt64,
         val taskGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<IT>>,

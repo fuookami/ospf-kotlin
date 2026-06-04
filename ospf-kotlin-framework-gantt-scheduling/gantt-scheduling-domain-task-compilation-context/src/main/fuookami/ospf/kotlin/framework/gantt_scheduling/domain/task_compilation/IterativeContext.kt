@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.SolutionAnalyzer
 import fuookami.ospf.kotlin.framework.model.invoke
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -23,12 +24,13 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
  */
 interface IterativeTaskCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         > {
-    val aggregation: IterativeTaskCompilationAggregation<IT, T, E, A>
+    val aggregation: IterativeTaskCompilationAggregation<V, IT, T, E, A>
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
     val columnAmount get() = UInt64(aggregation.tasks.size)
@@ -318,12 +320,13 @@ interface IterativeTaskCompilationContext<
  */
 interface ExtractIterativeTaskCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         > {
-    val baseContext: IterativeTaskCompilationContext<Args, IT, T, E, A>
+    val baseContext: IterativeTaskCompilationContext<Args, V, IT, T, E, A>
 
     fun register(model: MetaModel<Flt64>): Try
 

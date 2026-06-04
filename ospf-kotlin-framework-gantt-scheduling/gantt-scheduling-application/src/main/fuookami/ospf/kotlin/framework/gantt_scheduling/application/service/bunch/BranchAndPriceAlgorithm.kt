@@ -82,8 +82,8 @@ class BranchAndPriceAlgorithm<
             E : Executor,
             A : AssignmentPolicy<E>
             >(
-        val contextBuilder: () -> BunchCompilationContext<Args, B, T, E, A>,
-        val extractContextBuilder: List<(BunchCompilationContext<Args, B, T, E, A>) -> List<ExtractBunchCompilationContext<Args, B, T, E, A>>>,
+        val contextBuilder: () -> BunchCompilationContext<Args, B, Flt64, T, E, A>,
+        val extractContextBuilder: List<(BunchCompilationContext<Args, B, Flt64, T, E, A>) -> List<ExtractBunchCompilationContext<Args, B, Flt64, T, E, A>>>,
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, AbstractTaskBunch<T, E, A, Flt64>) -> Flt64,
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
@@ -144,12 +144,12 @@ class BranchAndPriceAlgorithm<
     suspend operator fun invoke(
         id: String,
         heartBeatCallBack: ((kotlinx.datetime.Instant, Duration, Flt64) -> Try)? = null
-    ): Ret<BunchSolution<B, T, E, A>> {
+    ): Ret<BunchSolution<B, Flt64, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
-        lateinit var bestSolution: BunchSolution<B, T, E, A>
+        lateinit var bestSolution: BunchSolution<B, Flt64, T, E, A>
         return LinearMetaModel<Flt64>(id, converter = SchedulingSolverValueAdapter.Flt64).use { model ->
             try {
 
@@ -965,7 +965,7 @@ class BranchAndPriceAlgorithm<
     private fun analyzeSolution(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<BunchSolution<B, T, E, A>> {
+    ): Ret<BunchSolution<B, Flt64, T, E, A>> {
         return when (val result = context.analyzeBunchSolution(iteration, tasks, model)) {
             is Ok -> {
                 Ok(result.value)

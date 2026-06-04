@@ -22,6 +22,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -76,14 +77,15 @@ private fun slackSymbol(
  * @param redundancyRange 冗余范围 / Redundancy range
  */
 open class BunchSchedulingTaskTime<
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
     timeWindow: TimeWindow<Flt64>,
     tasks: List<T>,
-    override val compilation: BunchCompilation<B, T, E, A>,
+    override val compilation: BunchCompilation<B, V, T, E, A>,
     private val redundancyRange: Duration? = null,
 ) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
     override val delayEnabled: Boolean = true

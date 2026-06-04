@@ -39,7 +39,7 @@ open class SlotBasedBunchCompilation<
     private val slots: List<TimeSlot>,
     private val lockCancelTasks: Set<T> = emptySet(),
     override val withExecutorLeisure: Boolean = true
-) : BunchCompilation<B, T, E, A>(
+) : BunchCompilation<B, Flt64, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockCancelTasks = lockCancelTasks,

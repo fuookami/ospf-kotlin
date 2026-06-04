@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,8 @@ import kotlinx.coroutines.coroutineScope
  * @param _removedBunches 已移除任务束集合 / Removed bunches set
  */
 open class BunchAggregation<
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>

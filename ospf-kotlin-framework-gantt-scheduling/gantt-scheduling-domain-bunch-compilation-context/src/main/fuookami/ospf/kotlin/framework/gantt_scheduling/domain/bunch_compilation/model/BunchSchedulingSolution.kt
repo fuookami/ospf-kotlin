@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
 /**
  * 任务束调度解 / Bunch scheduling solution
@@ -21,7 +21,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * @param canceledTasks 已取消任务列表 / List of canceled tasks
  */
 data class BunchSolution<
-        out B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>
@@ -41,12 +42,13 @@ data class BunchSolution<
  * @return 任务解 / Task solution
  */
 fun <
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
         > TaskSolution.Companion.invoke(
-    bunchSolution: BunchSolution<B, T, E, A>
+    bunchSolution: BunchSolution<B, V, T, E, A>
 ): TaskSolution<T, E, A> {
     val assignedTasks = ArrayList<T>()
     for (bunch in bunchSolution.bunches) {

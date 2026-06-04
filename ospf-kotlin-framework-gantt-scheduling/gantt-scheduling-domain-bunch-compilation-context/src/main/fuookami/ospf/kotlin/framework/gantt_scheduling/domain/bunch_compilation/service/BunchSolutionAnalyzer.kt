@@ -13,13 +13,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.utils.concept.findOrGet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /** 任务束解分析器 / Bunch solution analyzer */
 data object BunchSolutionAnalyzer {
     operator fun <
-            B : AbstractTaskBunch<T, E, A, Flt64>,
+            B : AbstractTaskBunch<T, E, A, V>,
+            V : RealNumber<V>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
@@ -27,10 +29,10 @@ data object BunchSolutionAnalyzer {
         iteration: UInt64,
         tasks: List<T>,
         bunches: List<List<B>>,
-        compilation: BunchCompilation<B, T, E, A>,
+        compilation: BunchCompilation<B, V, T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>? = null
-    ): Ret<BunchSolution<B, T, E, A>> {
+    ): Ret<BunchSolution<B, V, T, E, A>> {
         val assignedBunches = ArrayList<B>()
         val canceledTasks = ArrayList<T>()
 

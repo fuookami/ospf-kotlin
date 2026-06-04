@@ -13,7 +13,7 @@ open class SlotBasedBunchAggregation<
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
-        > : BunchAggregation<B, T, E, A>()
+        > : BunchAggregation<B, Flt64, T, E, A>()
         where B : AbstractTaskBunch<T, E, A, Flt64>, B : SlotBasedBunch<T, E, A> {
     protected override infix fun B.sameColumnAs(other: B): Boolean {
         return !(this neq other)

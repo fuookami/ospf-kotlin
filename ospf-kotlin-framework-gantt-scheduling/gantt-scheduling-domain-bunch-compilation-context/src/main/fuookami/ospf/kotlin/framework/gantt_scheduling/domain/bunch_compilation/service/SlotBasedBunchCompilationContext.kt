@@ -35,7 +35,7 @@ interface SlotBasedBunchCompilationContext<
         Action : ProductionAction,
         M,
         R
-        > : BunchCompilationContext<Args, B, T, E, A>
+        > : BunchCompilationContext<Args, B, Flt64, T, E, A>
         where B : AbstractTaskBunch<T, E, A, Flt64>, B : SlotBasedBunch<T, E, A> {
 
     /**

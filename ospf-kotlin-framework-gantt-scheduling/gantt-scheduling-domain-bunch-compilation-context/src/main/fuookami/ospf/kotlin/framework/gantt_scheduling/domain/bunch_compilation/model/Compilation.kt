@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -37,7 +38,8 @@ import fuookami.ospf.kotlin.multiarray.Shape2
  * @param bunchAggregation 任务束聚合 / Bunch aggregation
  */
 open class BunchCompilation<
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>
@@ -46,7 +48,7 @@ open class BunchCompilation<
     private val executors: List<E>,
     private val lockCancelTasks: Set<T> = emptySet(),
     override val withExecutorLeisure: Boolean = true,
-    bunchAggregation: BunchAggregation<B, T, E, A> = BunchAggregation()
+    bunchAggregation: BunchAggregation<B, V, T, E, A> = BunchAggregation()
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -65,7 +67,7 @@ open class BunchCompilation<
 
     override val taskCancelEnabled: Boolean = true
 
-    internal val aggregation: BunchAggregation<B, T, E, A> = bunchAggregation
+    internal val aggregation: BunchAggregation<B, V, T, E, A> = bunchAggregation
     val bunchesIteration: List<List<B>> by aggregation::bunchesIteration
     val bunches: List<B> by aggregation::bunches
     val removedBunches: Set<B> by aggregation::removedBunches
@@ -259,7 +261,7 @@ open class BunchCompilation<
         for (bunch in unduplicatedBunches) {
             (bunchCost as LinearExpressionSymbol<Flt64>).flush()
             (bunchCost as LinearExpressionSymbol<Flt64>).asMutable() += LinearMonomial(
-                bunch.cost.sum ?: Flt64.infinity,
+                bunch.cost.sum?.toFlt64() ?: Flt64.infinity,
                 xi[bunch]
             )
         }
