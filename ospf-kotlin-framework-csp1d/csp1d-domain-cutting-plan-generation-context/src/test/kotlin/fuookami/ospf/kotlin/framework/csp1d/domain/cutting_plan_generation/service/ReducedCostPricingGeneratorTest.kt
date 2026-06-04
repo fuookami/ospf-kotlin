@@ -14,12 +14,14 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Reduc
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 
@@ -268,5 +270,95 @@ class ReducedCostPricingGeneratorTest {
             resultWithMaterialSp.size >= resultWithoutMaterialSp.size,
             "Material shadow price should make reduced cost more negative, not fewer candidates"
         )
+    }
+
+    /**
+     * 验证 ProductDemandShadowPriceKey 按 product + unit 口径区分不同需求单位
+     * Verify ProductDemandShadowPriceKey distinguishes different demand units by product + unit
+     */
+    @Test
+    fun shadowPriceKeyDistinguishesDifferentUnits() {
+        val p = product("p1")
+        val rollKey = ProductDemandShadowPriceKey(
+            productId = "p1",
+            unitSymbol = unitSymbol(RollCountUnit)
+        )
+        val sheetKey = ProductDemandShadowPriceKey(
+            productId = "p1",
+            unitSymbol = unitSymbol(SheetCountUnit)
+        )
+
+        // roll 和 sheet 需求的 key 应不同 / Roll and sheet demand keys should differ
+        assertTrue(rollKey != sheetKey, "Roll and sheet keys for same product should be different")
+        assertEquals("product-demand:p1:${unitSymbol(RollCountUnit)}", rollKey.name)
+        assertEquals("product-demand:p1:${unitSymbol(SheetCountUnit)}", sheetKey.name)
+
+        // ShadowPriceMap 应能分别存储和查询 / ShadowPriceMap should store and query separately
+        val shadowPrices = ShadowPriceMap<Flt64>(
+            values = mapOf(
+                rollKey to Flt64(3.0),
+                sheetKey to Flt64(5.0)
+            )
+        )
+        assertEquals(Flt64(3.0), shadowPrices[rollKey])
+        assertEquals(Flt64(5.0), shadowPrices[sheetKey])
+    }
+
+    /**
+     * 验证 id 含下划线时 shadow price key 映射正确
+     * Verify shadow price key mapping works correctly when ids contain underscores
+     */
+    @Test
+    fun shadowPriceKeyWorksWithUnderscoreInIds() {
+        val rollKey = ProductDemandShadowPriceKey(
+            productId = "p_underscore_test",
+            unitSymbol = unitSymbol(RollCountUnit)
+        )
+        val materialKey = MaterialUsageShadowPriceKey("m_underscore_test")
+        val machineKey = MachineCapacityShadowPriceKey("machine_test_1")
+
+        // 含下划线的 id 不影响 key 的生成和查询 / Underscores in ids don't affect key generation and lookup
+        assertTrue(rollKey.name.contains("p_underscore_test"), "Product demand key should contain underscore id")
+        assertTrue(materialKey.name.contains("m_underscore_test"), "Material key should contain underscore id")
+        assertTrue(machineKey.name.contains("machine_test_1"), "Machine key should contain underscore id")
+
+        // ShadowPriceMap 应能正确存储和查询 / ShadowPriceMap should store and query correctly
+        val shadowPrices = ShadowPriceMap<Flt64>(
+            values = mapOf(
+                rollKey to Flt64(2.0),
+                materialKey to Flt64(1.0),
+                machineKey to Flt64(0.5)
+            )
+        )
+        assertEquals(Flt64(2.0), shadowPrices[rollKey])
+        assertEquals(Flt64(1.0), shadowPrices[materialKey])
+        assertEquals(Flt64(0.5), shadowPrices[machineKey])
+    }
+
+    /**
+     * 验证不同产品相同单位的 key 不混淆
+     * Verify keys for different products with same unit are not confused
+     */
+    @Test
+    fun shadowPriceKeyDistinguishesDifferentProductsWithSameUnit() {
+        val key1 = ProductDemandShadowPriceKey(
+            productId = "p1",
+            unitSymbol = unitSymbol(RollCountUnit)
+        )
+        val key2 = ProductDemandShadowPriceKey(
+            productId = "p2",
+            unitSymbol = unitSymbol(RollCountUnit)
+        )
+
+        assertTrue(key1 != key2, "Different products with same unit should have different keys")
+
+        val shadowPrices = ShadowPriceMap<Flt64>(
+            values = mapOf(
+                key1 to Flt64(3.0),
+                key2 to Flt64(7.0)
+            )
+        )
+        assertEquals(Flt64(3.0), shadowPrices[key1])
+        assertEquals(Flt64(7.0), shadowPrices[key2])
     }
 }
