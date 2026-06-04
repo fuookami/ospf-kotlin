@@ -682,7 +682,7 @@ class Csp1dMilpSolver(
     }
 
     /**
-     * 为动态长度产品创建超长松弛变量 / Create over-length slack variables for dynamic-length products
+     * 为动态长度产品创建卷长和超长变量 / Create assigned-length and over-length variables for dynamic-length products
      */
     private fun <V : RealNumber<V>> addLengthAssignmentSlackVariables(
         demands: List<ProductDemand<V>>,

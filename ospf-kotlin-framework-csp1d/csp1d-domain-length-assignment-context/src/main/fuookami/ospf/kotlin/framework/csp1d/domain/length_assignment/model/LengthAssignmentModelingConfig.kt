@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 /**
  * 长度分配建模配置，供 application 层消费 / Length assignment modeling configuration for application layer
  *
- * 当提供此配置时，Csp1dMilpSolver 为动态长度产品注册超长松弛变量、超长上限约束和超长惩罚目标。
+ * 当提供此配置时，Csp1dMilpSolver 为动态长度产品注册卷长变量、超长松弛变量、边界约束和惩罚目标。
  * 所有权重为无量纲归一化系数，由调用方负责单位换算。
  *
  * @param V 数值类型 / Numeric value type

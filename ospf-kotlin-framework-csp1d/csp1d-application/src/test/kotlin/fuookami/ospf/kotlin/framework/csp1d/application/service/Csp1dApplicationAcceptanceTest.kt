@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
@@ -300,14 +301,17 @@ class Csp1dApplicationAcceptanceTest {
 
     private fun dynamicProduct(
         id: String,
-        width: Double
+        width: Double,
+        maxOverProduceLength: Double? = null
     ): Product<Flt64> {
-        return Product.dynamicLengthOf(
+        return Product(
             id = id,
             name = "product-$id",
             width = listOf(
                 Quantity(Flt64(width), Meter)
-            )
+            ),
+            maxOverProduceLength = maxOverProduceLength?.let { Quantity(Flt64(it), Meter) },
+            dynamicLength = true
         )
     }
 
@@ -587,6 +591,68 @@ class Csp1dApplicationAcceptanceTest {
         assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.lengthResult, "Length result should not be null when lengthConfig is provided")
         assertEquals(Flt64.one, milpResult.lengthResult!!.overLengths.first().overLength)
+    }
+
+    /**
+     * 验证已分配卷长变量、边界与超长联动约束会被注册并回填 / Verify assigned-length variable, bounds, and over-length link are registered and extracted
+     */
+    @Test
+    fun milpWithAssignedLengthBoundsShouldProduceAssignedLengthResult(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-assigned-length",
+            width = 0.8,
+            maxOverProduceLength = 0.5
+        )
+        val material = material(
+            id = "m-assigned-length",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id),
+            assignedLengthLowerBound = mapOf(product.id to Flt64(0.5)),
+            assignedLengthUpperBound = mapOf(product.id to Flt64(2.0)),
+            overLengthUpperBound = mapOf(product.id to Flt64(2.0)),
+            totalLengthPenalty = Flt64(0.1)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val lengthResult = milpResult.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null when assigned length is modeled")
+        assertEquals(product.id, lengthResult.assignedLengths.first().productId)
+        assertEquals(Flt64.one, lengthResult.assignedLengths.first().assignedLength)
+        assertEquals(Flt64.one, lengthResult.overLengths.first().overLength)
+
+        @Suppress("UNCHECKED_CAST")
+        val constraintNames = milpResult.model.constraints.mapNotNull { constraint ->
+            (constraint as? LinearInequalityConstraint<Flt64>)?.name
+        }.toSet()
+        assertTrue("assigned_length_lower_bound_0" in constraintNames)
+        assertTrue("assigned_length_upper_bound_0" in constraintNames)
+        assertTrue("over_length_bound_0" in constraintNames)
+        assertTrue("assigned_over_length_link_0" in constraintNames)
     }
 
     /**
