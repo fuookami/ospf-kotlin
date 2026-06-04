@@ -160,7 +160,7 @@ data class FlowControl(
     val scene: FlowControlScene,
     val capacity: FlowControlCapacity,
     override val name: String = "${airport.icao}_${scene}_${capacity}_${time.start.toShortString()}_${time.end.toShortString()}"
-) : AbstractResourceCapacity {
+) : AbstractResourceCapacity<Flt64> {
     val closed by capacity::closed
 
     override val quantity = ValueRange(Flt64.zero, capacity.amount.toFlt64()).value!!
@@ -193,7 +193,7 @@ class Flow(
     val airport: Airport,
     val scene: FlowControlScene,
     capacities: List<FlowControl>,
-) : ConnectionResource<FlowControl>(
+) : ConnectionResource<FlowControl, Flt64>(
     id = id,
     name = "${airport}_flow",
     capacities = capacities,
@@ -219,4 +219,3 @@ class Flow(
         })
     }
 }
-

@@ -29,7 +29,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
     }
 
 class PassengerFlightChangeConstraint(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     private val passengers: List<FlightPassenger>,
     private val time: TaskTime,
     private val change: PassengerChange,
@@ -162,7 +162,6 @@ class PassengerFlightChangeConstraint(
         return ok
     }
 }
-
 
 
 

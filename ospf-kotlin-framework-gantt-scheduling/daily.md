@@ -14,6 +14,7 @@
 4. `Cost<V>`、`ShadowPriceMap<V>`、`CapacityColumn<V>`、`SlotBasedCapacityResult<V>` 等领域结果模型支持 `Flt64` 与 `FltX`。
 5. 保留 `Flt64` typealias、wrapper 和旧入口，确保现有应用可按阶段迁移。
 6. 裸 `V` 只用于无量纲量，例如相对改善率、利用率、折扣、权重、归一化 reduced cost、排序评分。
+7. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4` 作为 gantt-scheduling 示例使用方，必须随框架 API 泛型化同步更新，持续验证旧 `Flt64` 应用路径可编译。
 
 物理量化原则：
 
@@ -24,6 +25,8 @@
 | 资源用量 | `resourceUsage`, `quantity`, `overQuantity`, `lessQuantity` | `Quantity<V>` |
 | 产出/消耗 | `produce`, `consumption`, `demand` | `Quantity<V>` |
 | 成本 | `cost`, `objective`, `penalty` | `Quantity<V>` 或明确的成本数值边界 |
+
+同步更新原则：每次调整 gantt-scheduling 对外领域 API、application API、资源/产能/产出上下文签名或 `Flt64` 兼容入口时，都要同步检查并更新 `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4`；若 demo4 仍使用旧路径，应显式固定到 `Flt64` wrapper 或 typealias，并通过包含 example 的 reactor 编译验证。
 
 ## 2. 已完成事项
 
@@ -67,6 +70,7 @@
 > - ✅ 目标函数系数进入模型前统一转换为 `Flt64`
 > - ✅ shadow price 写回不绕过统一 adapter
 > - ✅ `Flt64` 兼容路径编译验收通过
+> - ✅ demo4 示例已同步更新并通过 example reactor 编译
 > - ⏳ 至少一个 `FltX` 或非默认 `V` 的领域构造测试通过（待 3.6 补齐）
 >
 > 已执行验收：
@@ -75,6 +79,7 @@
 > - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am -DskipTests compile`
 > - 显式列出 gantt-scheduling 全部子模块的 `-pl ... -am -DskipTests compile`
 > - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am test`
+> - `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile`
 > - `git diff --check -- ospf-kotlin-framework-gantt-scheduling`
 >
 > 下一步：
@@ -113,6 +118,7 @@
 - [x] 目标函数系数进入模型前统一转换为 `Flt64`。
 - [x] shadow price 写回不绕过统一 adapter。
 - [x] `Flt64` 兼容路径编译验收通过。
+- [x] `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4` 已随本阶段 API 改动同步更新，并通过 `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile`。
 - [ ] 至少一个 `FltX` 或非默认 `V` 的领域构造测试通过（待 3.6 补齐）。
 
 ### 3.4 Application 算法泛型化
@@ -145,6 +151,7 @@
 - [ ] reduced cost、shadow price、objective 全链路类型一致。
 - [ ] application 层不直接向领域 API 泄漏 solver model 类型。
 - [ ] APS/LSP/MPS 至少保留现有 `Flt64` 回归测试。
+- [ ] demo4 中 application、branch-and-price、column generation 相关调用随本阶段 API 同步更新，并通过 example reactor 编译。
 
 ### 3.5 ShadowPriceMap 与 framework 固定 Flt64 边界处理
 
@@ -172,6 +179,7 @@
 - [ ] framework 其他模块不因 shadow price 调整产生行为回归。
 - [ ] 旧 `Flt64` shadow price 入口保留。
 - [ ] shadow price 与 reduced cost 的数值类型在同一条业务链路中一致。
+- [ ] demo4 中 shadow price、reduced cost 使用点随本阶段 API 同步更新，并通过 example reactor 编译。
 
 ### 3.6 测试、扫描门禁与最终收敛
 
@@ -203,6 +211,7 @@
 - [ ] `MetaModel<Flt64>`、`AbstractLinearMetaModel<Flt64>` 不出现在领域 API。
 - [ ] `Quantity<V>` 单位检查覆盖产能、资源、产出/消耗、产量日历关键路径。
 - [ ] `mvn -pl ospf-kotlin-framework-gantt-scheduling test` 通过。
+- [ ] `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4` 纳入最终兼容验收，并通过 `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile`。
 - [ ] 必要时执行包含依赖模块的 reactor 测试并通过。
 
 ## 4. 向后兼容要求

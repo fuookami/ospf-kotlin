@@ -20,13 +20,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
 
 class Aggregation(
-    timeWindow: TimeWindow,
+    timeWindow: TimeWindow<Flt64>,
     val recoveryNeededAircrafts: List<Aircraft>,
     val recoveryNeededFlightTasks: List<FlightTask>,
     val originBunches: List<FlightTaskBunch>,
     val flows: List<Flow>,
     val links: LinkMap
-): BunchCompilationAggregation<FlightTaskBunch, FlightTask, Aircraft, FlightTaskAssignment>(
+): BunchCompilationAggregation<FlightTaskBunch, Flt64, FlightTask, Aircraft, FlightTaskAssignment>(
     tasks = recoveryNeededFlightTasks,
     executors = recoveryNeededAircrafts
 ) {
@@ -220,7 +220,6 @@ class Aggregation(
         return Ok(unduplicatedBunches)
     }
 }
-
 
 
 

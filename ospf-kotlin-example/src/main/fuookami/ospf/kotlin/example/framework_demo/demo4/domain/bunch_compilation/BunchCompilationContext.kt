@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilatio
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext<
-    ShadowPriceArguments, FlightTaskBunch, FlightTask, Aircraft, FlightTaskAssignment
+    ShadowPriceArguments, FlightTaskBunch, Flt64, FlightTask, Aircraft, FlightTaskAssignment
 > {
     override lateinit var aggregation: Aggregation
     override lateinit var pipelineList: CGPipelineList
@@ -45,7 +45,6 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
         TODO("Not yet implemented")
     }
 }
-
 
 
 
