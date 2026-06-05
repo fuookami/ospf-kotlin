@@ -300,7 +300,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
     }
 
     private fun placedLayer(layer: BinLayer, z: Double): BinLayerPlacement {
-        return layer.toLayerPlacementWithoutAxisGuard(
+        return layer.toKnownCoordinateLayerPlacement(
             z = infraScalar(z) * Meter
         )
     }

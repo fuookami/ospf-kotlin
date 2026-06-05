@@ -9,14 +9,14 @@ This repository currently focuses on:
 
 1. Cuboid packing baseline.
 2. Vertical cylinder MVP (`Axis3.Y`) with shape-aware geometry.
-3. Guarded horizontal cylinder final packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
+3. Guarded horizontal cylinder known-coordinate packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
 
 ## Cylinder Geometry Semantics
 
 For the current MVP:
 
 1. Candidate generation, block loading, stacking, and hanging support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
-2. Final packing conversion/rendering can accept `Axis3.X` / `Axis3.Z` horizontal cylinders only when coordinates are already fixed and `PackingGeometryGuard` validates real axis-aligned cylinder geometry.
+2. Final packing conversion/rendering and generic known-coordinate analysis can accept `Axis3.X` / `Axis3.Z` horizontal cylinders only when coordinates are already fixed and `PackingGeometryGuard` validates real axis-aligned cylinder geometry.
 3. Horizontal cylinders must be on the bin floor or have full-length cuboid support underneath; unsupported or partially supported horizontal cylinders are rejected.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
@@ -35,8 +35,8 @@ See detailed progress in [refactor.md](./refactor.md).
 | Axis | Meaning | Current status |
 | --- | --- | --- |
 | `Axis3.Y` | Vertical cylinder; circular footprint on the loading plane. | Supported in guarded vertical-cylinder paths with real footprint checks. |
-| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported only in final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
-| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported only in final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
+| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported only in known-coordinate final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
+| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported only in known-coordinate final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
 
 ## CSV Input Protocol (Gurobi Dataset)
 
@@ -55,7 +55,7 @@ Optional shape metadata columns:
 4. `diameter_min` / `diameter_min_meter`, `diameter_max` / `diameter_max_meter`, `diameter_step` / `diameter_step_meter`: dynamic diameter interval.
 5. `axis`: optional for cylinder, default `Y`, accepted values: `Y`, `AXIS3.Y`, `X`, `AXIS3.X`, `Z`, `AXIS3.Z`.
 
-For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` can be parsed for metadata and policy validation; final packing/rendering accepts them only after real 3D geometry validation, while candidate generation/support/stacking paths remain guarded.
+For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` can be parsed for metadata and policy validation; known-coordinate final packing/rendering accepts them only after real 3D geometry validation, while candidate generation/support/stacking paths remain guarded.
 
 Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. Continuous radius optimization is not a production capability yet; keep it as a design/prototype topic outside the default solving path.
 

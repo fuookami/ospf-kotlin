@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -498,7 +499,7 @@ private object PackingProgramCountUnit : PhysicalUnit() {
     override val name = "count"
     override val symbol = "cnt"
     override val quantity = QuantityUnit(name = "count", symbol = "cnt").quantity
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 private fun resolvePackingProgramDomain(unit: PhysicalUnit): PackingProgramMaterialDomain {

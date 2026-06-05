@@ -23,6 +23,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -38,7 +39,7 @@ class UnifiedDemandEntriesTest {
         override val name = "count"
         override val symbol = "cnt"
         override val quantity = QuantityUnit(name = "count", symbol = "cnt").quantity
-        override val scale = Scale()
+        override val conversionRule = UnitConversionRule.Linear(Scale())
     }
 
     private fun packageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {

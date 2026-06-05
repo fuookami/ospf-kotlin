@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
@@ -58,7 +59,7 @@ private object DemandCountUnit : PhysicalUnit() {
     override val name = "count"
     override val symbol = "cnt"
     override val quantity = QuantityUnit(name = "count", symbol = "cnt").quantity
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 private fun parseDemandDomain(raw: Any?): Bpp3dDemandDomain? {

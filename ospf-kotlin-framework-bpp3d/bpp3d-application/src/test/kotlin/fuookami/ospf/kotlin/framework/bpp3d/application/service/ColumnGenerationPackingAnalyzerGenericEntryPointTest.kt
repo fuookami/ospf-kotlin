@@ -1,5 +1,23 @@
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -16,23 +34,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertNotNull
 
 class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     private object Cargo : AbstractCargoAttribute
@@ -132,124 +133,99 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
-    fun analyzerShouldRejectNonVerticalCylinderLayerPlacement() = runBlocking {
-        val material = GenericMaterial(
-            no = MaterialNo("M-ANALYZER-CYLINDER"),
-            type = MaterialType.RawMaterial,
-            cargo = Cargo,
-            name = "M-ANALYZER-CYLINDER",
-            weight = FltX(0.2) * Kilogram
-        )
-        val shape = GenericPackageShape(
-            width = FltX(1.0) * Meter,
-            height = FltX(1.0) * Meter,
-            depth = FltX(1.0) * Meter,
-            weight = FltX(0.2) * Kilogram,
-            packageType = PackageType.CartonContainer,
-            shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
-                radius = FltX(0.4) * Meter,
-                axis = Axis3.X
-            )
-        )
-        val item = GenericItem(
-            id = "item-analyzer-cylinder",
-            name = "item-analyzer-cylinder",
-            pack = GenericPackage.innerPackage(
-                shape = shape,
-                materials = mapOf(material to UInt64.one)
-            ),
-            enabledOrientations = listOf(Orientation.Upright),
-            batchNo = BatchNo("B-ANALYZER-CYLINDER"),
-            packageAttribute = packageAttribute()
-        )
-        val layer = GenericBinLayer(
-            iteration = Int64.zero,
-            from = ColumnGenerationPackingAnalyzerGenericEntryPointTest::class,
-            width = FltX(2.0) * Meter,
-            height = FltX(2.0) * Meter,
-            depth = FltX(2.0) * Meter,
-            units = listOf(
-                GenericItemPlacement(
-                    item = item,
-                    x = FltX(0.0) * Meter,
-                    y = FltX(0.0) * Meter,
-                    z = FltX(0.0) * Meter
-                )
-            )
-        )
+    fun analyzerShouldAcceptKnownCoordinateHorizontalCylinderLayerPlacement() = runBlocking {
+        val layer = horizontalCylinderLayer(Axis3.X)
         val analyzer = ColumnGenerationPackingAnalyzer()
-        val modelLayer = layer.toModel()
-        val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
-            longitudinalBalance = null,
-            lateralBalance = null,
-            typeCode = "BIN-ANALYZER-CYLINDER"
-        )
-        val explicitBin = layerBinOf(
-            shape = bin,
-            units = listOf(
-                modelLayer.toLayerPlacementWithoutAxisGuard()
-            )
+
+        analyzer.analyzeFromGeneric(
+            iteration = 6,
+            columns = listOf(layer)
         )
 
-        val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
+        val latest = analyzer.latest
+        assertNotNull(latest)
+        val item = latest.schema.loadingPlans.single().items.single()
+        assertEquals("HorizontalCylinderX", item.algorithmShapeType.name)
+        assertEquals("X", item.axis?.name)
+        assertEquals("6", latest.schema.kpi["cg_iteration"])
+    }
+
+    @Test
+    fun analyzerShouldRejectKnownCoordinateMixedCylinderAxesWithinSameLayer() = runBlocking {
+        val layer = horizontalCylinderLayer(
+            axes = listOf(Axis3.X, Axis3.Z),
+            positions = listOf(Pair(0.0, 0.0), Pair(1.0, 1.0))
+        )
+        val analyzer = ColumnGenerationPackingAnalyzer()
+
+        val exception = assertFailsWith<IllegalArgumentException> {
             analyzer.analyzeFromGeneric(
-                iteration = 6,
-                columns = listOf(layer),
-                bins = listOf(explicitBin)
+                iteration = 7,
+                columns = listOf(layer)
             )
         }
 
-        assertTrue(exception.message?.contains("Axis3.Y") == true)
+        assertTrue(exception.message?.contains("mixes cylinder axes") == true)
     }
 
     private fun horizontalCylinderLayer(axis: Axis3): GenericBinLayer<FltX> {
+        return horizontalCylinderLayer(
+            axes = listOf(axis),
+            positions = listOf(Pair(0.0, 0.0))
+        )
+    }
+
+    private fun horizontalCylinderLayer(
+        axes: List<Axis3>,
+        positions: List<Pair<Double, Double>>
+    ): GenericBinLayer<FltX> {
+        require(axes.size == positions.size)
         val material = GenericMaterial(
-            no = MaterialNo("M-ADAPTER-CYLINDER-$axis"),
+            no = MaterialNo("M-ADAPTER-CYLINDER-${axes.joinToString("-")}"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
-            name = "M-ADAPTER-CYLINDER-$axis",
+            name = "M-ADAPTER-CYLINDER-${axes.joinToString("-")}",
             weight = FltX(0.2) * Kilogram
         )
-        val shape = GenericPackageShape(
-            width = FltX(1.0) * Meter,
-            height = FltX(1.0) * Meter,
-            depth = FltX(1.0) * Meter,
-            weight = FltX(0.2) * Kilogram,
-            packageType = PackageType.CartonContainer,
-            shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
-                radius = FltX(0.4) * Meter,
-                axis = axis
+        val items = axes.map { axis ->
+            val shape = GenericPackageShape(
+                width = FltX(1.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter,
+                weight = FltX(0.2) * Kilogram,
+                packageType = PackageType.CartonContainer,
+                shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                    radius = FltX(0.4) * Meter,
+                    axis = axis
+                )
             )
-        )
-        val item = GenericItem(
-            id = "item-adapter-cylinder-$axis",
-            name = "item-adapter-cylinder-$axis",
-            pack = GenericPackage.innerPackage(
-                shape = shape,
-                materials = mapOf(material to UInt64.one)
-            ),
-            enabledOrientations = listOf(Orientation.Upright),
-            batchNo = BatchNo("B-ADAPTER-CYLINDER-$axis"),
-            packageAttribute = packageAttribute()
-        )
+            GenericItem(
+                id = "item-adapter-cylinder-$axis",
+                name = "item-adapter-cylinder-$axis",
+                pack = GenericPackage.innerPackage(
+                    shape = shape,
+                    materials = mapOf(material to UInt64.one)
+                ),
+                enabledOrientations = listOf(Orientation.Upright),
+                batchNo = BatchNo("B-ADAPTER-CYLINDER-$axis"),
+                packageAttribute = packageAttribute()
+            )
+        }
         return GenericBinLayer(
             iteration = Int64.zero,
             from = ColumnGenerationPackingAnalyzerGenericEntryPointTest::class,
             width = FltX(2.0) * Meter,
             height = FltX(2.0) * Meter,
             depth = FltX(2.0) * Meter,
-            units = listOf(
+            units = items.zip(positions).map { (item, position) ->
+                val (x, z) = position
                 GenericItemPlacement(
                     item = item,
-                    x = FltX(0.0) * Meter,
+                    x = FltX(x) * Meter,
                     y = FltX(0.0) * Meter,
-                    z = FltX(0.0) * Meter
+                    z = FltX(z) * Meter
                 )
-            )
+            }
         )
     }
 }

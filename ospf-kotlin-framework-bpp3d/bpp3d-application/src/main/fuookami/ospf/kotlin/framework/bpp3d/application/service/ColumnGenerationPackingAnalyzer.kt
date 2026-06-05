@@ -4,7 +4,15 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
@@ -17,9 +25,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.Packer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
  * 列生成装箱快照。
@@ -55,6 +60,26 @@ private fun demandModeTag(mode: Bpp3dDemandMode): String {
 }
 
 /**
+ * 为泛型已知坐标层构造分析用箱型。
+ * Build an analysis bin type for generic known-coordinate layers.
+ *
+ * @param layer 泛型层转换后的模型层 / model layer converted from a generic layer
+ * @param index 层序号 / layer index
+ * @return 分析用箱型 / analysis bin type
+ */
+private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType {
+    return BinType(
+        width = layer.shape.width,
+        height = layer.shape.height,
+        depth = layer.shape.depth,
+        capacity = infraInfinity() * Kilogram,
+        longitudinalBalance = null,
+        lateralBalance = null,
+        typeCode = "GENERIC-KNOWN-COORDINATE-${index + 1}"
+    )
+}
+
+/**
  * 列生成装箱分析器，在每次迭代后执行装箱分析。
  * Column generation packing analyzer, performs packing analysis after each iteration.
  *
@@ -83,14 +108,6 @@ class ColumnGenerationPackingAnalyzer(
      * @param state 列生成状态 / column generation state
      */
     override suspend fun analyze(state: ColumnGenerationState<InfraNumber>) {
-        for (bin in state.bins) {
-            for (unit in bin.units) {
-                ensureVerticalCylinderAxis(
-                    layer = unit.unit,
-                    source = "ColumnGenerationPackingAnalyzer.analyze"
-                )
-            }
-        }
         val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
@@ -151,11 +168,25 @@ suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromG
     materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
     itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
 ) {
+    val modelColumns = columns.map { layer -> layer.toModel(materialCache, itemCache) }
     analyze(
         state = ColumnGenerationState(
             iteration = iteration,
-            columns = columns.map { it.toModel(materialCache, itemCache) },
-            bins = bins,
+            columns = modelColumns,
+            bins = if (bins.isNotEmpty()) {
+                bins
+            } else {
+                modelColumns.mapIndexed { index, modelLayer ->
+                    val bin = modelLayer.bin ?: knownCoordinateBinType(
+                        layer = modelLayer,
+                        index = index
+                    )
+                    layerBinOf(
+                        shape = bin,
+                        units = listOf(modelLayer.toKnownCoordinateLayerPlacement())
+                    )
+                }
+            },
             shadowPrices = shadowPrices
         )
     )

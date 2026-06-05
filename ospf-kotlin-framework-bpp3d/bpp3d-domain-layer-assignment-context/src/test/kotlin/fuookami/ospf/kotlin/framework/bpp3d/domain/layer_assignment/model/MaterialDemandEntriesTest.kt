@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -26,7 +27,7 @@ class MaterialDemandEntriesTest {
         override val name: String = "domain-aware-mass"
         override val symbol: String = "dam"
         override val quantity = Kilogram.quantity
-        override val scale = Kilogram.scale
+        override val conversionRule = Kilogram.conversionRule
     }
 
     private val cargo = object : AbstractCargoAttribute {}

@@ -6,6 +6,10 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
@@ -16,10 +20,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementO
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 
 /**
  * 统一创建 BinLayer 的放置对象。
@@ -30,14 +30,17 @@ internal fun BinLayer.toLayerPlacement(z: Quantity<InfraNumber>? = null): BinLay
         layer = this,
         source = "LayerPlacementAdapter.toLayerPlacement"
     )
-    return toLayerPlacementWithoutAxisGuard(z)
+    return toKnownCoordinateLayerPlacement(z)
 }
 
 /**
- * 不执行圆柱轴向门禁的层放置构造，仅用于测试绕过路径。
- * Build layer placement without axis guard, for bypass-path tests only.
+ * 已知坐标层放置构造，不执行默认候选路径的圆柱轴向门禁。
+ * Known-coordinate layer placement builder, without the default candidate-path cylinder-axis guard.
+ *
+ * @param z 层深度坐标 / layer depth coordinate
+ * @return 层放置 / layer placement
  */
-internal fun BinLayer.toLayerPlacementWithoutAxisGuard(z: Quantity<InfraNumber>? = null): BinLayerPlacement {
+internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<InfraNumber>? = null): BinLayerPlacement {
     val position = if (z == null) {
         point3()
     } else {
