@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.apache.logging.log4j.kotlin.logger
 import kotlin.time.Clock
@@ -34,6 +35,7 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
  * @param Map 影子价格映射类型 / Shadow price map type
  * @param Args 影子价格参数类型 / Shadow price arguments type
  * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Value type
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
@@ -47,7 +49,8 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 class BranchAndPriceAlgorithm<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-        B : AbstractTaskBunch<T, E, A, Flt64>,
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -56,7 +59,7 @@ class BranchAndPriceAlgorithm<
     private val tasks: List<T>,
     private val initialBunches: List<B>,
     private val solver: ColumnGenerationSolver,
-    private val policy: Policy<Map, Args, B, T, E, A>,
+    private val policy: Policy<Map, Args, B, V, T, E, A>,
     private val configuration: Configuration
 ) {
     /**
@@ -77,15 +80,16 @@ class BranchAndPriceAlgorithm<
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
             Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-            B : AbstractTaskBunch<T, E, A, Flt64>,
+            B : AbstractTaskBunch<T, E, A, V>,
+            V : RealNumber<V>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
             >(
-        val contextBuilder: () -> BunchCompilationContext<Args, B, Flt64, T, E, A>,
-        val extractContextBuilder: List<(BunchCompilationContext<Args, B, Flt64, T, E, A>) -> List<ExtractBunchCompilationContext<Args, B, Flt64, T, E, A>>>,
+        val contextBuilder: () -> BunchCompilationContext<Args, B, V, T, E, A>,
+        val extractContextBuilder: List<(BunchCompilationContext<Args, B, V, T, E, A>) -> List<ExtractBunchCompilationContext<Args, B, V, T, E, A>>>,
         val shadowPriceMap: () -> Map,
-        val reducedCost: (Map, AbstractTaskBunch<T, E, A, Flt64>) -> Flt64,
+        val reducedCost: (Map, AbstractTaskBunch<T, E, A, V>) -> Flt64,
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
     )
 
@@ -144,16 +148,16 @@ class BranchAndPriceAlgorithm<
     suspend operator fun invoke(
         id: String,
         heartBeatCallBack: ((kotlinx.datetime.Instant, Duration, Flt64) -> Try)? = null
-    ): Ret<BunchSolution<B, Flt64, T, E, A>> {
+    ): Ret<BunchSolution<B, V, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
         var maximumReducedCost2 = Flt64(3000.0)
 
         val beginTime = Clock.System.now()
-        lateinit var bestSolution: BunchSolution<B, Flt64, T, E, A>
+        lateinit var bestSolution: BunchSolution<B, V, T, E, A>
         return LinearMetaModel<Flt64>(id, converter = SchedulingSolverValueAdapter.Flt64).use { model ->
             try {
 
-                var iteration = Iteration<T, E, A>()
+                var iteration = Iteration<T, E, A, V>()
                 when (val result = register(model)) {
                     is Ok -> {}
 
@@ -606,7 +610,7 @@ class BranchAndPriceAlgorithm<
 
     private suspend fun solveRMP(
         id: String,
-        iteration: Iteration<T, E, A>,
+        iteration: Iteration<T, E, A, V>,
         model: LinearMetaModel<Flt64>,
         withKeeping: Boolean
     ): Ret<Map> {
@@ -659,7 +663,7 @@ class BranchAndPriceAlgorithm<
 
     private suspend fun solveSP(
         id: String,
-        iteration: Iteration<T, E, A>,
+        iteration: Iteration<T, E, A, V>,
         executors: List<E>,
         shadowPriceMap: Map
     ): Ret<List<B>> {
@@ -773,7 +777,7 @@ class BranchAndPriceAlgorithm<
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
             maximumColumnAmount,
-            { bunch: AbstractTaskBunch<T, E, A, Flt64> -> policy.reducedCost(shadowPriceMap, bunch) },
+            { bunch: AbstractTaskBunch<T, E, A, V> -> policy.reducedCost(shadowPriceMap, bunch) },
             fixedBunches,
             keptBunches,
             model
@@ -965,7 +969,7 @@ class BranchAndPriceAlgorithm<
     private fun analyzeSolution(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<BunchSolution<B, Flt64, T, E, A>> {
+    ): Ret<BunchSolution<B, V, T, E, A>> {
         return when (val result = context.analyzeBunchSolution(iteration, tasks, model)) {
             is Ok -> {
                 Ok(result.value)

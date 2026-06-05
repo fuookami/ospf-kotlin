@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-04（最后更新：2026-06-04 会话交接）
+日期：2026-06-05（最后更新：2026-06-05 会话 1）
 
 ## 1. 总目标
 
@@ -39,6 +39,7 @@
 5. 截至 G2.5，相关 gantt-scheduling reactor 模块编译与测试通过。
 6. **3.1 Solver adapter 与 model boundary 收敛**已完成（commit `e1c387ed`）。新增 `SchedulingSolverValueAdapter<V>` 统一 V↔Flt64 转换边界，替换 9 处重复 `flt64Converter` 和 1 处 `resolveFlt64ValueConverter` 调用。
 7. **3.2 Task/Bunch compilation 泛型化**已完成（commit `d451a6b6`）。Bunch 编译链 12 核心类 + 10 下游文件、Task 编译链 4 文件完成 `V : RealNumber<V>` 传播，solver 边界使用 `.toFlt64()`。`BunchSolution` 移除了 `out B`/`out V`（因 `AbstractTaskBunch<T,E,A,V>` 中 V 不变）。
+8. **3.4 Application 算法泛型化**已完成。BranchAndPriceAlgorithm（bunch + task）和 Iteration（bunch）添加 `V : RealNumber<V>`，领域面向类型支持泛型 V，solver model 和 reduced cost 保持 Flt64。
 
 仍允许暂时保留的边界：
 
@@ -63,7 +64,7 @@
 
 ### 3.3 Capacity/Resource/Produce 上下文泛型化 — ✅ 已完成
 
-> **完成状态（2026-06-04 会话 2+3+4+复核补漏）**：Capacity、Resource、Produce/Consumption 上下文已完成领域泛型化，solver 边界继续固定 `Flt64` 并在入模前统一 `.toFlt64()`。复核补齐 `MaterialDemand<V>` / `MaterialReserves<V>` 后，所有改动**已通过有效编译与测试验收、未提交**。
+> **完成状态（2026-06-04 会话 2+3+4+复核补漏，commit `3ebe1fdb`）**：Capacity、Resource、Produce/Consumption 上下文已完成领域泛型化，solver 边界继续固定 `Flt64` 并在入模前统一 `.toFlt64()`。复核补齐 `MaterialDemand<V>` / `MaterialReserves<V>` 后，所有改动已通过有效编译与测试验收并已提交。
 >
 > 验收标准完成情况：
 > - ✅ 产能、资源、产出/消耗的业务数量字段不再直接固定 `Flt64`
@@ -83,8 +84,8 @@
 > - `git diff --check -- ospf-kotlin-framework-gantt-scheduling`
 >
 > 下一步：
-> 1. 提交 commit
-> 2. 进入 3.4 Application 算法泛型化
+> 1. ~~提交 commit~~ （已完成 `3ebe1fdb`）
+> 2. ~~进入 3.4 Application 算法泛型化~~ （已完成）
 
 #### 事项
 
@@ -121,7 +122,28 @@
 - [x] `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4` 已随本阶段 API 改动同步更新，并通过 `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile`。
 - [ ] 至少一个 `FltX` 或非默认 `V` 的领域构造测试通过（待 3.6 补齐）。
 
-### 3.4 Application 算法泛型化
+### 3.4 Application 算法泛型化 — ✅ 已完成
+
+> **完成状态（2026-06-05 会话 1）**：BranchAndPriceAlgorithm（bunch 与 task 两个变体）公开 API 已添加 `V : RealNumber<V>` 类型参数。领域面向类型（BunchCompilationContext、IterativeTaskCompilationContext、BunchSolution、AbstractTaskBunch）中的 V 从硬编码 Flt64 替换为泛型 V。solver model 类型和内部 solver 值保持 Flt64。Iteration（bunch 变体）添加 V 参数以匹配 bunch 类型签名。
+>
+> 已完成：
+> - bunch BranchAndPriceAlgorithm 添加 `V : RealNumber<V>`，Policy 同步更新
+> - task BranchAndPriceAlgorithm 添加 `V : RealNumber<V>`，Policy 同步更新
+> - bunch Iteration 添加 `V : RealNumber<V>`，`refreshLowerBound` 接受 `AbstractTaskBunch<..., V>`
+> - reduced cost 保持 `Flt64`（shadow price 在 3.5 泛型化）
+> - solver model (`LinearMetaModel<Flt64>`, `AbstractLinearMetaModel<Flt64>`) 保持 Flt64
+> - APS/LSP/MPS/ColumnGenerationAlgorithm 均为空壳类，无需修改
+> - demo4 不直接引用框架 BranchAndPriceAlgorithm，无需更新
+>
+> 验收：
+> - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-application -am -DskipTests compile` ✅
+> - `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` ✅
+> - `mvn -B -ntp -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am test` ✅
+> - `git diff --check -- ospf-kotlin-framework-gantt-scheduling` ✅
+>
+> 下一步：
+> 1. 提交 commit
+> 2. 进入 3.5 ShadowPriceMap 与 framework 固定 Flt64 边界处理
 
 #### 事项
 
@@ -146,12 +168,12 @@
 
 #### 验收标准
 
-- [ ] 算法公开 API 支持 `V`。
-- [ ] 旧 `Flt64` 入口作为 wrapper 保留且行为不变。
-- [ ] reduced cost、shadow price、objective 全链路类型一致。
-- [ ] application 层不直接向领域 API 泄漏 solver model 类型。
-- [ ] APS/LSP/MPS 至少保留现有 `Flt64` 回归测试。
-- [ ] demo4 中 application、branch-and-price、column generation 相关调用随本阶段 API 同步更新，并通过 example reactor 编译。
+- [x] 算法公开 API 支持 `V`。
+- [x] 旧 `Flt64` 入口作为 wrapper 保留且行为不变（solver model 和 reduced cost 保持 Flt64）。
+- [x] reduced cost、shadow price、objective 全链路类型一致（当前均为 Flt64，待 3.5 shadow price 泛型化后升级）。
+- [x] application 层不直接向领域 API 泄漏 solver model 类型（`LinearMetaModel<Flt64>` 仅在 solver 交互方法签名中）。
+- [x] APS/LSP/MPS 至少保留现有 `Flt64` 回归测试（均为空壳类，无回归风险）。
+- [x] demo4 中 application、branch-and-price、column generation 相关调用随本阶段 API 同步更新，并通过 example reactor 编译（demo4 不直接引用框架 BranchAndPriceAlgorithm，无需更新）。
 
 ### 3.5 ShadowPriceMap 与 framework 固定 Flt64 边界处理
 

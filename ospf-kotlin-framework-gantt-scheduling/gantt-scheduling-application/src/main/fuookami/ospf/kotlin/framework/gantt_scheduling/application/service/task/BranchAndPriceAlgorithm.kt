@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.apache.logging.log4j.kotlin.logger
 import kotlin.time.Clock
@@ -33,6 +34,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
  *
  * @param Map 影子价格映射类型 / Shadow price map type
  * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param V 数值类型 / Value type
  * @param IT 迭代任务类型 / Iterative task type
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
@@ -47,6 +49,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 class BranchAndPriceAlgorithm<
         Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
         T : AbstractTask<E, A>,
         E : Executor,
@@ -56,7 +59,7 @@ class BranchAndPriceAlgorithm<
     private val tasks: List<T>,
     private val initialTasks: List<IT>,
     private val solver: ColumnGenerationSolver,
-    private val policy: Policy<Map, Args, IT, T, E, A>,
+    private val policy: Policy<Map, Args, V, IT, T, E, A>,
     private val configuration: Configuration
 ) {
     /**
@@ -77,13 +80,14 @@ class BranchAndPriceAlgorithm<
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
             Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+            V : RealNumber<V>,
             IT : IterativeAbstractTask<E, A>,
             T : AbstractTask<E, A>,
             E : Executor,
             A : AssignmentPolicy<E>
             >(
-        val contextBuilder: () -> IterativeTaskCompilationContext<Args, Flt64, IT, T, E, A>,
-        val extractContextBuilder: List<(IterativeTaskCompilationContext<Args, Flt64, IT, T, E, A>) -> List<ExtractIterativeTaskCompilationContext<Args, Flt64, IT, T, E, A>>>,
+        val contextBuilder: () -> IterativeTaskCompilationContext<Args, V, IT, T, E, A>,
+        val extractContextBuilder: List<(IterativeTaskCompilationContext<Args, V, IT, T, E, A>) -> List<ExtractIterativeTaskCompilationContext<Args, V, IT, T, E, A>>>,
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, IT) -> Flt64,
         val taskGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<IT>>,

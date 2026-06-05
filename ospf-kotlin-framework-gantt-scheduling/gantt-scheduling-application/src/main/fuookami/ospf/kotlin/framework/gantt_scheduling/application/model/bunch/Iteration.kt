@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.sum
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
@@ -28,7 +29,7 @@ import kotlin.time.Clock
  * @param relativeImprovementStep 相对改进步长 / Relative improvement step
  * @param improvementSlowCount 改进缓慢计数 / Improvement slow count
  */
-class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
+class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V : RealNumber<V>>(
     val initialSlowLpImprovementStep: Flt64 = Flt64(100.0),
     val relativeImprovementStep: Flt64 = Flt64(0.01),
     val improvementSlowCount: UInt64 = UInt64(5UL)
@@ -66,8 +67,8 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
      * @param reducedCost 约简成本函数 / Reduced cost function
      */
     fun refreshLowerBound(
-        newBunches: List<AbstractTaskBunch<T, E, A, Flt64>>,
-        reducedCost: (AbstractTaskBunch<T, E, A, Flt64>) -> Flt64
+        newBunches: List<AbstractTaskBunch<T, E, A, V>>,
+        reducedCost: (AbstractTaskBunch<T, E, A, V>) -> Flt64
     ) {
         val bestReducedCost = HashMap<E, Flt64>()
         for (bunch in newBunches) {
@@ -157,12 +158,12 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
         slowLpImprovementStep /= Flt64.Companion.two
     }
 
-    operator fun inc(): Iteration<T, E, A> {
+    operator fun inc(): Iteration<T, E, A, V> {
         ++_iteration
         return this
     }
 
-    operator fun dec(): Iteration<T, E, A> {
+    operator fun dec(): Iteration<T, E, A, V> {
         --_iteration
         return this
     }
