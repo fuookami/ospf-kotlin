@@ -89,9 +89,14 @@ class Csp1dMilpSolver(
             model = model
         )
 
+        val resolvedLengthConfig = resolveDefaultLengthBounds(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
         val lengthSlackVars = addLengthAssignmentSlackVariables(
             demands = input.demands,
-            lengthConfig = lengthConfig,
+            lengthConfig = resolvedLengthConfig,
             model = model
         )
 
@@ -120,7 +125,7 @@ class Csp1dMilpSolver(
         )
         addLengthAssignmentConstraints(
             demands = input.demands,
-            lengthConfig = lengthConfig,
+            lengthConfig = resolvedLengthConfig,
             lengthSlackVars = lengthSlackVars,
             model = model
         )
@@ -128,7 +133,7 @@ class Csp1dMilpSolver(
             assignment = assignment,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig,
-            lengthConfig = lengthConfig,
+            lengthConfig = resolvedLengthConfig,
             demands = input.demands,
             cuttingPlans = input.cuttingPlans,
             yieldSlackVars = yieldSlackVars,
@@ -167,7 +172,7 @@ class Csp1dMilpSolver(
         )
         val lengthResult = extractLengthResult(
             demands = input.demands,
-            lengthConfig = lengthConfig,
+            lengthConfig = resolvedLengthConfig,
             lengthSlackVars = lengthSlackVars,
             model = model
         )
@@ -579,8 +584,15 @@ class Csp1dMilpSolver(
         val monomials = ArrayList<LinearMonomial<Flt64>>()
 
         // 基础目标: 最小化批次 / Base objective: minimize batches
+        // 当 lengthConfig.batchMinPenalty 非空时，对 Σx_j 施加额外加权 / Apply extra weight to Σx_j when batchMinPenalty is present
+        val batchMinPenalty = lengthConfig?.batchMinPenalty
+        val batchCoefficient = if (batchMinPenalty != null) {
+            Flt64.one + batchMinPenalty.toFlt64()
+        } else {
+            Flt64.one
+        }
         for (index in 0 until assignment.planCount) {
-            monomials.add(LinearMonomial(Flt64.one, assignment[index]))
+            monomials.add(LinearMonomial(batchCoefficient, assignment[index]))
         }
 
         // yield 惩罚目标 / Yield penalty objectives
@@ -678,6 +690,64 @@ class Csp1dMilpSolver(
                 name = "batch_yield_waste_length_minimization"
             ),
             "build objective"
+        )
+    }
+
+    /**
+     * 为缺省的 assignedLengthLowerBound/UpperBound 提供默认推导 / Provide default derivation for missing assignedLengthLowerBound/UpperBound
+     *
+     * 推导规则：
+     * - lowerBound: 0（由需求约束间接控制最小值）/ 0 (minimum controlled by demand constraints)
+     * - upperBound: maxOverProduceLength（若产品配置了该字段）/ maxOverProduceLength if product has it
+     *
+     * 当调用方仅配置 dynamicProductIds 而不配置边界时，此方法确保 assignedLength 变量能被注册。
+     */
+    private fun <V : RealNumber<V>> resolveDefaultLengthBounds(
+        input: ProduceInput<V>,
+        lengthConfig: LengthAssignmentModelingConfig<V>?
+    ): LengthAssignmentModelingConfig<V>? {
+        if (lengthConfig == null) return null
+        if (lengthConfig.dynamicProductIds.isEmpty()) return lengthConfig
+
+        val needsDerivation = lengthConfig.dynamicProductIds.any { pid ->
+            pid !in lengthConfig.assignedLengthLowerBound.keys ||
+            pid !in lengthConfig.assignedLengthUpperBound.keys
+        }
+        if (!needsDerivation) return lengthConfig
+
+        val derivedLowerBounds = lengthConfig.assignedLengthLowerBound.toMutableMap()
+        val derivedUpperBounds = lengthConfig.assignedLengthUpperBound.toMutableMap()
+
+        for (productId in lengthConfig.dynamicProductIds) {
+            // 查找对应产品的需求 / Find demand for this product
+            val demand = input.demands.find { it.product.id == productId }
+            val contribution = input.cuttingPlans
+                .firstOrNull { plan -> plan.demandContributions.any { it.product.id == productId } }
+                ?.demandContributions?.firstOrNull { it.product.id == productId }
+            val product = demand?.product ?: contribution?.product
+            val zero = demand?.quantity?.value?.constants?.zero
+                ?: contribution?.quantity?.value?.constants?.zero
+                ?: lengthConfig.overLengthPenalty.values.firstOrNull()?.constants?.zero
+                ?: lengthConfig.totalLengthPenalty?.constants?.zero
+                ?: lengthConfig.batchMinPenalty?.constants?.zero
+
+            // 推导下界：0（由需求约束间接控制）/ Derive lower bound: 0 (controlled by demand constraints)
+            if (productId !in derivedLowerBounds && zero != null) {
+                derivedLowerBounds[productId] = zero
+            }
+
+            // 推导上界：maxOverProduceLength / Derive upper bound: maxOverProduceLength
+            if (productId !in derivedUpperBounds) {
+                val maxOverLength = product?.maxOverProduceLength
+                if (maxOverLength != null) {
+                    derivedUpperBounds[productId] = maxOverLength.value
+                }
+            }
+        }
+
+        return lengthConfig.copy(
+            assignedLengthLowerBound = derivedLowerBounds,
+            assignedLengthUpperBound = derivedUpperBounds
         )
     }
 

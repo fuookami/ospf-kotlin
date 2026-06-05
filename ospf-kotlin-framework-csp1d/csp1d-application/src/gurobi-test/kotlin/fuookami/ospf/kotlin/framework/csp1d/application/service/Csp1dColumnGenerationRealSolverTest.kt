@@ -6,23 +6,29 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 
@@ -84,6 +90,9 @@ class Csp1dColumnGenerationRealSolverTest {
         assertTrue(solution.generatedPlans.isNotEmpty(), "Should generate cutting plans")
         assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans")
 
+        // 验证需求满足 / Verify demand satisfaction
+        assertTrue(solution.produce.unmetDemands.isEmpty(), "Should meet all demands with real solver")
+
         // 验证 trace 结构 / Verify trace structure
         assertTrue(trace.initialPlanCount > UInt64.zero, "Should have initial plans")
         assertTrue(trace.finalPlanCount >= trace.initialPlanCount, "Final plan count should not decrease")
@@ -104,6 +113,11 @@ class Csp1dColumnGenerationRealSolverTest {
             for (record in trace.iterations) {
                 assertTrue(record.planCountBefore > 0, "Plan count before should be positive")
                 assertTrue(record.planCountAfter >= record.planCountBefore, "Plan count should not decrease")
+                // LP 目标值应 ≥ 0（最小化批次） / LP objective should be >= 0 (minimizing batches)
+                assertTrue(
+                    record.lpObjective >= Flt64.zero,
+                    "LP objective should be non-negative: ${record.lpObjective}"
+                )
             }
         }
 
@@ -113,6 +127,12 @@ class Csp1dColumnGenerationRealSolverTest {
             trace.iterations.size,
             "pricedPlanCount size should match iterations size"
         )
+
+        // 验证 MILP 解总批次数 ≥ 需求量 / Verify MILP total batches >= demand
+        val totalBatches = solution.produce.cuttingPlans.fold(UInt64.zero) { acc, usage ->
+            acc + usage.amount
+        }
+        assertTrue(totalBatches >= UInt64(10UL), "Total batches should be >= demand (10 rolls)")
     }
 
     /**
@@ -179,6 +199,24 @@ class Csp1dColumnGenerationRealSolverTest {
             acc + usage.amount
         }
         assertTrue(totalBatches > UInt64.zero, "Should have non-zero total batches")
+
+        // 验证 LP 目标值非负且迭代记录结构完整 / Verify LP objectives are non-negative and iteration records are complete
+        for (record in trace.iterations) {
+            assertTrue(
+                record.lpObjective >= Flt64.zero,
+                "LP objective should be non-negative in iteration ${record.iteration}: ${record.lpObjective}"
+            )
+            assertTrue(record.iteration >= 0, "Iteration number should be non-negative")
+        }
+
+        // 验证 pricing 轮次中 pricedPlanCount 与 iteration records 对应 / Verify pricedPlanCount matches iteration records
+        for (i in trace.pricedPlanCount.indices) {
+            assertEquals(
+                trace.pricedPlanCount[i],
+                trace.iterations[i].pricedPlanCount,
+                "pricedPlanCount[$i] should match iteration record"
+            )
+        }
     }
 
     /**
@@ -385,7 +423,230 @@ class Csp1dColumnGenerationRealSolverTest {
         }
     }
 
+    /**
+     * 验证 LP 目标值单调性和收敛性 / Verify LP objective monotonicity and convergence
+     *
+     * LP 松弛目标值应非递增（每轮加入新列后 LP 目标值不应上升）。
+     * LP relaxation objective should be non-increasing (adding columns should not increase LP objective).
+     * 若终止原因是 PricingConverged，最后一轮应无新列。
+     * If termination reason is PricingConverged, last iteration should have zero priced plans.
+     */
+    @Test
+    fun columnGenerationLpObjectiveIsNonIncreasing() = runBlocking {
+        val p1 = product(id = "p_obj_1", width = 0.3)
+        val p2 = product(id = "p_obj_2", width = 0.4)
+        val material = material(
+            id = "m_obj",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(p1, p2),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(product = p1, rollAmount = Flt64(7.0)),
+                ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(5.0))
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 64,
+                maxPricingPlans = 16,
+                iterationLimit = 10
+            )
+        )
+
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(solver = solver)
+        val (solution, trace) = columnGeneration.solveWithTrace(problem)
+
+        // 验证 LP 目标值非递增 / Verify LP objectives are non-increasing
+        if (trace.iterations.size >= 2) {
+            val objectives = trace.iterations.map { it.lpObjective }
+            for (i in 1 until objectives.size) {
+                assertTrue(
+                    objectives[i] <= objectives[i - 1] + Flt64(1e-4),
+                    "LP objective should not increase: iter ${i - 1}=${objectives[i - 1]}, iter $i=${objectives[i]}"
+                )
+            }
+        }
+
+        // 验证收敛性：如果 PricingConverged，最后一轮应无新列 / Verify convergence
+        if (trace.terminationReason == Csp1dTerminationReason.PricingConverged && trace.iterations.isNotEmpty()) {
+            val lastRecord = trace.iterations.last()
+            assertEquals(
+                UInt64.zero,
+                lastRecord.pricedPlanCount,
+                "Last iteration should have zero priced plans when PricingConverged"
+            )
+        }
+
+        // 验证解正确 / Verify solution correctness
+        assertTrue(solution.produce.cuttingPlans.isNotEmpty())
+        assertTrue(solution.produce.unmetDemands.isEmpty(), "All demands should be met")
+    }
+
+    /**
+     * 验证 shadow price key 按 product + unit 口径区分不同需求
+     * Verify shadow price keys distinguish demands by product + unit
+     *
+     * ProductDemandShadowPriceKey(productId, unitSymbol) 应区分 roll 和 sheet 需求。
+     * ProductDemandShadowPriceKey should distinguish roll and sheet demands.
+     */
+    @Test
+    fun shadowPriceKeyDistinguishesDifferentUnits() {
+        val rollKey = ProductDemandShadowPriceKey(
+            productId = "p_multi_unit",
+            unitSymbol = RollCountUnit.symbol ?: RollCountUnit.name ?: RollCountUnit.toString()
+        )
+        val sheetKey = ProductDemandShadowPriceKey(
+            productId = "p_multi_unit",
+            unitSymbol = SheetCountUnit.symbol ?: SheetCountUnit.name ?: SheetCountUnit.toString()
+        )
+
+        // 不同单位的 key 应不相等 / Keys with different units should not be equal
+        assertTrue(rollKey != sheetKey, "Roll and sheet shadow price keys should differ for same product")
+        assertTrue(rollKey.name != sheetKey.name, "Roll and sheet key names should differ")
+    }
+
+    /**
+     * 验证含 _ 的 product/material id 不影响 shadow price 映射
+     * Verify underscored product/material ids don't affect shadow price mapping
+     */
+    @Test
+    fun columnGenerationWithUnderscoreIdsMeetsAllDemands() = runBlocking {
+        val p1 = product(id = "prod_item_01", width = 0.2)
+        val p2 = product(id = "prod_item_02", width = 0.35)
+        val material = material(
+            id = "mat_type_A",
+            lowerWidth = 0.5,
+            upperWidth = 1.0
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(p1, p2),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(product = p1, rollAmount = Flt64(6.0)),
+                ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(4.0))
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 32,
+                maxPricingPlans = 8,
+                iterationLimit = 4
+            )
+        )
+
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(solver = solver)
+        val (solution, trace) = columnGeneration.solveWithTrace(problem)
+
+        assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans with underscored ids")
+        assertTrue(solution.produce.unmetDemands.isEmpty(), "Should meet all demands with underscored ids")
+        assertNotNull(trace.terminationReason)
+    }
+
+    /**
+     * 验证动态长度产品与固定长度产品混合建模时，两种需求均满足且 lengthResult 仅含动态产品
+     * Verify mixed dynamic-length and fixed-length products: both demands satisfied, lengthResult only contains dynamic products
+     */
+    @Test
+    fun milpWithMixedDynamicAndFixedLengthShouldSatisfyAllDemands() = runBlocking {
+        val dynamicProduct = Product(
+            id = "p-dynamic",
+            name = "product-p-dynamic",
+            width = listOf(Quantity(Flt64(0.8), Meter)),
+            maxOverProduceLength = Quantity(Flt64(2.0), Meter),
+            dynamicLength = true
+        )
+        val fixedProduct = product(id = "p-fixed", width = 0.6)
+        val mat = material(
+            id = "m-mixed",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val dynamicDemand = ProductDemand.legacyRoll(
+            product = dynamicProduct,
+            rollAmount = Flt64(3.0)
+        )
+        val fixedDemand = ProductDemand.legacyRoll(
+            product = fixedProduct,
+            rollAmount = Flt64(5.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(dynamicProduct.id),
+            assignedLengthLowerBound = mapOf(dynamicProduct.id to Flt64(0.0)),
+            assignedLengthUpperBound = mapOf(dynamicProduct.id to Flt64(3.0)),
+            overLengthPenalty = mapOf(dynamicProduct.id to Flt64(5.0)),
+            totalLengthPenalty = Flt64(0.01)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(
+                    id = "plan-dynamic",
+                    product = dynamicProduct,
+                    material = mat,
+                    rollContribution = Flt64(2.0)
+                ),
+                cuttingPlan(
+                    id = "plan-fixed",
+                    product = fixedProduct,
+                    material = mat,
+                    rollContribution = Flt64(3.0)
+                )
+            ),
+            demands = listOf(dynamicDemand, fixedDemand),
+            materials = listOf(mat),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertTrue(
+            milpResult.produce.cuttingPlans.isNotEmpty(),
+            "Should have cutting plan usage"
+        )
+        // 验证 lengthResult 仅包含动态长度产品 / Verify lengthResult only contains dynamic-length product
+        val lengthResult = milpResult.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null when lengthConfig is provided")
+        val assignedProductIds = lengthResult.assignedLengths.map { it.productId }.toSet()
+        assertTrue(
+            dynamicProduct.id in assignedProductIds,
+            "Dynamic product should have assigned length"
+        )
+        assertTrue(
+            fixedProduct.id !in assignedProductIds,
+            "Fixed product should NOT have assigned length"
+        )
+    }
+
     // --- helper functions ---
+
+    private fun cuttingPlan(
+        id: String,
+        product: Product<Flt64>,
+        material: Material<Flt64>,
+        rollContribution: Flt64
+    ): CuttingPlan<Flt64> {
+        return CuttingPlan(
+            id = id,
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = product,
+                    width = product.width.first(),
+                    amount = UInt64.one
+                )
+            ),
+            demandContributions = listOf(
+                CuttingPlanDemandContribution(
+                    product = product,
+                    quantity = Quantity(rollContribution, RollCountUnit)
+                )
+            )
+        )
+    }
 
     private fun product(
         id: String,

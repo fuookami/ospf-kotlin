@@ -948,6 +948,154 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Flt64(0.8), milpResult.wasteResult!!.overProductionArea)
     }
 
+    /**
+     * 验证 batchMinPenalty 接入目标函数后求解正常完成 / Verify batchMinPenalty is accepted and solve completes normally
+     */
+    @Test
+    fun milpWithBatchMinPenaltyShouldCompleteSuccessfully(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-batch-min",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-batch-min",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id),
+            batchMinPenalty = Flt64(2.0)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertTrue(milpResult.produce.cuttingPlans.isNotEmpty(), "Should have cutting plan usage")
+    }
+
+    /**
+     * 验证 batchMinPenalty 可与 totalLengthPenalty 和 overLengthPenalty 联合使用 / Verify batchMinPenalty works together with totalLengthPenalty and overLengthPenalty
+     */
+    @Test
+    fun milpWithBatchMinPenaltyAndOtherLengthConfigShouldComplete(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-batch-full",
+            width = 0.8,
+            maxOverProduceLength = 0.5
+        )
+        val material = material(
+            id = "m-batch-full",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id),
+            assignedLengthLowerBound = mapOf(product.id to Flt64(0.5)),
+            assignedLengthUpperBound = mapOf(product.id to Flt64(2.0)),
+            overLengthPenalty = mapOf(product.id to Flt64(4.0)),
+            totalLengthPenalty = Flt64(0.1),
+            batchMinPenalty = Flt64(1.5)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val lengthResult = milpResult.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null when full lengthConfig is provided")
+        assertEquals(product.id, lengthResult.assignedLengths.first().productId)
+        assertEquals(Flt64.one, lengthResult.assignedLengths.first().assignedLength)
+        assertEquals(Flt64.one, lengthResult.overLengths.first().overLength)
+    }
+
+    /**
+     * 验证仅配置 dynamicProductIds 不配置 assignedLengthLowerBound/UpperBound 时自动推导并注册 assignedLength 变量 / Verify assignedLength is registered when only dynamicProductIds is configured
+     */
+    @Test
+    fun milpWithOnlyDynamicProductIdsShouldDeriveDefaultLengthBounds(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-default-derive",
+            width = 0.8,
+            maxOverProduceLength = 2.0
+        )
+        val material = material(
+            id = "m-default-derive",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(product.id)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val lengthResult = milpResult.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null when dynamicProductIds is configured")
+        // assignedLength 应被注册并回填 / assignedLength should be registered and extracted
+        assertTrue(lengthResult.assignedLengths.isNotEmpty(), "Should have assigned length result")
+        assertEquals(product.id, lengthResult.assignedLengths.first().productId)
+    }
+
     private fun simpleCuttingPlan(
         product: Product<Flt64>,
         material: Material<Flt64>,

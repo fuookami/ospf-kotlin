@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 
 /**
  * 卷数离散单位 / Discrete unit for roll count
@@ -20,7 +21,7 @@ object RollCountUnit : PhysicalUnit() {
         symbol = "roll",
         domain = QuantityDomain.Discrete
     )
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**
@@ -35,7 +36,7 @@ object SheetCountUnit : PhysicalUnit() {
         symbol = "sheet",
         domain = QuantityDomain.Discrete
     )
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**

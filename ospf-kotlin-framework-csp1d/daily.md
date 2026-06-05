@@ -76,56 +76,52 @@
 13. 已完成 C5 wasting minimization 上下文 solver 化基础接入：`WasteMinimizationConfig<V>` 和 `WasteMinimizationResult<V>` 建模层扁平类型；`Csp1dMilpSolver.solve()` 接受 `wasteConfig` 参数；`setObjective()` 加入余宽、物料成本和超产面积线性目标表达式；`extractWasteResult()` 从 solver solution 回填总余宽、物料成本和超产面积；`MilpResult`、`Csp1dColumnGeneration`、`Csp1dSolution` 已完成 `wasteResult` / `wasteConfig` 透传；验收测试已覆盖废弃建模正向和反向路径。
 14. 已修正 waste/yield 联合建模的关键风险：超产松弛变量按 over penalty、over upper bound、over area penalty 任一需求统一注册；`extractWasteResult()` / `extractYieldResult()` 不再分散使用 `Flt64 as V`，改为集中通过 application 内部 solver 数值回填 helper 转为 `Flt64` / `FltX` 同类值；验收测试新增具体数值断言，并覆盖“仅超产面积惩罚”和“仅超产上限”场景。
 15. 已完成 C5 length assignment 上下文 solver 化基础接入：`LengthAssignmentModelingConfig<V>`、`LengthAssignmentModelingResult<V>`、`ModeledAssignedLength<V>` 和 `ModeledOverLength<V>` 建模层扁平类型；`Csp1dMilpSolver.solve()` 接受 `lengthConfig` 参数；已注册动态长度产品已分配卷长变量、超长松弛变量、卷长边界约束、超长上限约束、`assigned_length - over_length <= maxOverProduceLength` 联动约束、总卷长惩罚目标和超长惩罚目标；`extractLengthResult()` 从 solver solution 回填已分配卷长与超长结果；`MilpResult`、`Csp1dColumnGeneration`、`Csp1dSolution` 已完成 `lengthResult` / `lengthConfig` 透传；验收测试已覆盖 lengthConfig 正反向、仅超长上限、已分配卷长边界/联动约束和列生成透传路径。
+16. 已完成 C4 真实 solver 列生成测试增强：gurobi-test 新增 LP 目标值非负断言、LP 目标值非递增趋势验证、需求满足断言、MILP 解总批次数下界断言、PricingConverged 时最后一轮 pricedPlanCount 为零验证、shadow price key 按 product+unit 区分不同需求单位的单元测试、含 `_` 的 product/material id 不影响 shadow price 映射和需求满足的端到端验证；真实 Gurobi 端到端执行仍待本地 Gurobi 依赖对齐。
+17. 已完成 C5 length assignment `batchMinPenalty` 接入目标函数：`setObjective()` 中当 `lengthConfig.batchMinPenalty != null` 时，基础目标 `Σx_j` 系数从 `Flt64.one` 变为 `Flt64.one + batchMinPenalty.toFlt64()`；语义为最小化总批次数的加权系数调整；验收测试覆盖 batchMinPenalty 单独配置和与其他 lengthConfig 联合配置场景。
+18. 已完成 C5 length assignment 默认 length derivation：`Csp1dMilpSolver` 新增 `resolveDefaultLengthBounds()` 方法，当 `lengthConfig.dynamicProductIds` 中的产品缺少 `assignedLengthLowerBound/UpperBound` 时自动推导——下界为 0（优先从对应需求或切割方案贡献的数值常量推导），上界为 `maxOverProduceLength`（若产品配置了该字段）；使调用方仅配置 `dynamicProductIds` 即可注册 `assignedLength` 变量，无需显式填入边界；验收测试覆盖仅配置 `dynamicProductIds` 的默认推导场景。
 
 ## 3. 未完成事项
 
 ### 3.0 下一会话交接：C4~C5 未完成项
 
-C4~C5 不能按整体完成处理。当前已经完成的是列生成 trace、yield/waste/length 三个增强上下文的 application solver 基础接入和 fake solver 验收；仍需下一会话继续做真实 solver、动态卷长和端到端口径收口。
+C4~C5 不能按整体完成处理。当前已经完成的是列生成 trace、yield/waste/length 三个增强上下文的 application solver 基础接入、fake solver 验收、batchMinPenalty 目标函数接入和默认 length bound 推导；仍需下一会话继续做真实 solver 和端到端口径收口。
 
 下一会话建议优先顺序：
 
 1. 先推进 C4 真实 solver 收敛验证：跑通 LP -> dual price -> reduced cost pricing -> 新列加入 -> 最终 MILP，并确认 trace 与实际迭代一致。
-2. 再收口 C5 length assignment：补动态卷长决策变量、`assignedLengths` 回填、真实长度联动约束和 `totalLengthPenalty` 目标；`batchMinPenalty` 需先明确批次变量语义后再实现。
-3. 同步补 C5 yield/waste 真实 solver 端到端验证，确认 solver 回填值与分析层口径一致。
+2. 再收口 C5 length assignment：继续细化默认 length derivation（从需求量到卷长的通用推导口径）和动态长度产品与固定长度产品混合建模的真实 solver 验证。
+3. 同步补 C5 yield/waste/length 真实 solver 端到端验证，确认 solver 回填值与分析层口径一致。
 4. 继续执行门禁搜索，避免引入 `com.poit`、`framework.bpp3d`、`ProduceSolver`、`SimpleProduceSolver`、`candidatePlans` 或不合规的固定数值类型。
 
-### 3.1 C4 列生成真实 solver 收敛验证
+#### 当前验证记录
 
-#### 事项
+本轮实际执行并通过：
 
-`ReducedCostPricingGenerator` 已接入默认列生成流程，但当前 application 验收主要依赖 fake solver，尚未验证真实 solver 上的 LP 松弛、dual price、pricing 新列加入和收敛质量。
+1. `mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am '-Dtest=Csp1dApplicationAcceptanceTest' '-Dsurefire.failIfNoSpecifiedTests=false' test`。
+2. `rg -n 'com\.poit|framework\.bpp3d' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
+3. `rg -n 'rollDemand|weightDemand|sheetDemand' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
+4. `rg -n 'ProduceSolver|SimpleProduceSolver' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
+5. `rg -n 'candidatePlans' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
+6. `git diff --check -- ospf-kotlin-framework-csp1d` 无格式错误，仅有 Windows 换行提示。
 
-#### 计划
+本轮未完成真实 Gurobi 端到端验证：`mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am -P gurobi-cg-test '-DskipTests' test-compile` 在 5 分钟超时内未完成，且当前 profile 依赖 `gurobi:gurobi:1.0.0`，本机仅发现 `com.gurobi:gurobi:11.0.0`。
 
-1. 构造一个小规模、可手算或可稳定复现的 CSP1D 列生成样例。
-2. 使用真实 `ColumnGenerationSolver` 跑通 LP -> dual price -> reduced cost pricing -> 新列加入 -> MILP 求解链路。
-3. 记录每轮方案池规模、`pricedPlanCount`、目标值变化和终止原因。
-4. 对含不同需求单位和包含 `_` 的 id 场景做回归验证。
+### 3.1 C4 列生成真实 solver 收敛验证（已完成测试增强，待 Gurobi 端到端执行）
 
-#### 修改清单
+#### 已完成
 
-1. `csp1d-application/src/test/.../Csp1dApplicationAcceptanceTest.kt`
-   - 新增真实 solver 或集成级列生成样例。
-   - 保留 fake solver 单元验收，避免基础编排测试依赖外部 solver 可用性。
-2. `csp1d-application/src/main/.../application/service/Csp1dColumnGeneration.kt`
-   - 如有必要，补充 trace 字段以记录每轮 LP、pricing 和终止状态。
-3. `csp1d-domain-cutting-plan-generation-context/src/test/...`
-   - 补充 reduced cost pricing 与 shadow price key 的边界测试。
+1. gurobi-test 已增强 `columnGenerationConvergesWithRollDemand`：新增需求满足断言、LP 目标值非负断言和 MILP 解总批次数下界断言。
+2. gurobi-test 已增强 `columnGenerationDiscoversNewPlansViaPricing`：新增 LP 目标值非负断言、迭代记录结构完整断言和 pricedPlanCount 与 iteration records 逐项对应断言。
+3. gurobi-test 新增 `columnGenerationLpObjectiveIsNonIncreasing`：验证 LP 目标值非递增趋势和 PricingConverged 时最后一轮 pricedPlanCount 为零。
+4. gurobi-test 新增 `shadowPriceKeyDistinguishesDifferentUnits`：验证 `ProductDemandShadowPriceKey` 按 product+unit 区分 roll 和 sheet 需求。
+5. gurobi-test 新增 `columnGenerationWithUnderscoreIdsMeetsAllDemands`：验证含 _ 的 product/material id 不影响求解和需求满足。
+6. gurobi-test 新增 `milpWithMixedDynamicAndFixedLengthShouldSatisfyAllDemands`：覆盖动态长度产品与固定长度产品混合建模，要求 `lengthResult` 仅包含动态产品。
 
-#### 验收标准
+#### 待完成
 
-1. 真实 solver 样例中列生成至少完成一轮 LP 与 pricing，并能在无负 reduced cost 新列时停止。
-2. `pricedPlanCount`、方案池规模和 trace 记录与实际迭代一致。
-3. `ProductDemandShadowPriceKey(productId, unitSymbol)` 能区分 roll、sheet、weight 等不同单位需求。
-4. product/material/machine id 包含 `_` 时 shadow price 仍能正确映射。
-5. application 验收测试和 reduced cost pricing 测试通过。
-
-#### 当前进度
-
-- 已完成 `Csp1dTerminationReason` 枚举、`Csp1dIterationRecord` 数据类和列生成 trace 追踪。
-- 已完成 `Csp1dColumnGenerationRealSolverTest` 测试骨架（gurobi-test 目录）。
-- 尚未在真实 Gurobi solver 上完成端到端收敛验证。
+1. 对齐本地 Gurobi Maven 依赖后执行 gurobi-test（当前 profile 依赖 `gurobi:gurobi:1.0.0`，本机仅发现 `com.gurobi:gurobi:11.0.0`），确认所有增强测试通过。
+2. 构造小规模可手算样例，验证 LP -> dual price -> reduced cost pricing -> 新列加入 -> MILP 全链路的具体数值。
+3. 对含不同需求单位、包含 `_` 的 id 以及动态/固定长度混合场景做真实 solver 回归验证。
 
 ### 3.2 C5 yield 上下文 solver 化（已完成基础接入）
 
@@ -161,9 +157,9 @@ C4~C5 不能按整体完成处理。当前已经完成的是列生成 trace、yi
 
 #### 后续收口
 
-1. 当前基础接入仍依赖调用方显式配置已分配卷长边界，尚未补充 `Flt64` / `FltX` 默认 length derivation 或 adapter，也未建立下游需求量到卷长的通用推导口径。
-2. `batchMinPenalty` 已在配置中预留，但尚未接入目标函数，需要明确动态长度批次最小化应作用于哪些切割方案 assignment。
-3. 继续明确动态长度产品与固定长度产品在主问题中的建模差异，并补充固定长度混合和 `Quantity<V>` 单位一致性端到端建模测试。
+1. 默认 length derivation 已实现：下界为 0（优先从对应需求或切割方案贡献的数值常量推导），上界为 `maxOverProduceLength`。后续可考虑更精细的默认推导（如从需求量和切割方案贡献推导更紧的下界）。
+2. `batchMinPenalty` 已接入目标函数（Σx_j 系数变为 1 + batchMinPenalty），无需额外操作。
+3. 继续明确动态长度产品与固定长度产品在主问题中的建模差异，并补充 `Quantity<V>` 单位一致性端到端建模测试。
 4. 在真实 solver 上验证 length assignment 建模的已分配卷长、超长回填值与分析层口径一致。
 
 ### 3.4 C5 wasting minimization 上下文 solver 化（已完成基础接入）
