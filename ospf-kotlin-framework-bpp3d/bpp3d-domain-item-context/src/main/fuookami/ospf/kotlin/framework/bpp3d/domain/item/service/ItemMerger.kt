@@ -30,20 +30,6 @@ private typealias MergeNumber = InfraNumber
 private fun scalar(value: Number): MergeNumber = MergeNumber(value.toDouble())
 private fun scalar(value: ULong): MergeNumber = MergeNumber(value.toDouble())
 
-private fun requireNoCylinderItemsForMerge(
-    items: Iterable<Item>,
-    source: String
-) {
-    val unsupportedCylinder = items.firstOrNull { item ->
-        item.packingShape is CylinderPackingShape3
-    }
-    if (unsupportedCylinder != null) {
-        throw IllegalArgumentException(
-            "Unsupported cylinder in $source: item merge paths are cuboid-only and do not provide verified cylinder geometry yet."
-        )
-    }
-}
-
 data object ItemMerger {
     data class Config(
         val mergeFillerWhenOnlyFiller: Boolean = true,
@@ -134,9 +120,10 @@ data object ItemMerger {
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
     ): List<ItemCuboid> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
-            source = "ItemMerger.merge"
+            source = "ItemMerger.merge",
+            pathPredicate = "item merge paths are"
         )
         return merge(
             items = items,
@@ -158,9 +145,10 @@ data object ItemMerger {
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
     ): List<ItemCuboid> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
-            source = "ItemMerger.merge"
+            source = "ItemMerger.merge",
+            pathPredicate = "item merge paths are"
         )
         val withFillerMerging = config.mergeFillerWhenOnlyFiller && items.any { item -> fillerPredicate?.invoke(item) == false }
 
@@ -226,9 +214,10 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: MergeNumber = infraInfinity()
     ): Pair<List<Pile>, List<Item>> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
-            source = "ItemMerger.mergePiles"
+            source = "ItemMerger.mergePiles",
+            pathPredicate = "item merge paths are"
         )
         val averagePileBottomArea = items.fold(MergeNumber.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
@@ -305,9 +294,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
-            source = "ItemMerger.mergeBlocks"
+            source = "ItemMerger.mergeBlocks",
+            pathPredicate = "item merge paths are"
         )
         val mergedItems = ArrayList<SimpleBlock>()
         val restItems = items.groupBy { it }.map { Pair(it.key, it.value.toMutableList()) }.toMap()
@@ -380,7 +370,7 @@ data object ItemMerger {
                             for (k in UInt64.zero until zAmount) {
                                 val z = scalar(k.toULong()) * view.depth
                                 placements.add(
-                                    placement3Of(
+                                    itemPlacement3Of(
                                         view = view,
                                         position = point3(
                                             x = x,
@@ -415,9 +405,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
-            source = "ItemMerger.mergePatternBlocks"
+            source = "ItemMerger.mergePatternBlocks",
+            pathPredicate = "item merge paths are"
         )
         val mergedItems = ArrayList<CommonBlock>()
         var restItems = items.toList()
@@ -486,9 +477,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
-            source = "ItemMerger.mergeHollowSquareBlocks"
+            source = "ItemMerger.mergeHollowSquareBlocks",
+            pathPredicate = "item merge paths are"
         )
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
         return mergeHollowSquareBlocks(
@@ -505,9 +497,10 @@ data object ItemMerger {
         restWeight: MergeNumber = infraInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
-        requireNoCylinderItemsForMerge(
+        requireNoCylinderItemsForCuboidOnlyPath(
             items = items.keys,
-            source = "ItemMerger.mergeHollowSquareBlocks"
+            source = "ItemMerger.mergeHollowSquareBlocks",
+            pathPredicate = "item merge paths are"
         )
         val restItems = items.toMutableMap()
         val mergedItems = ArrayList<HollowSquareBlock>()
@@ -602,7 +595,7 @@ data object ItemMerger {
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
                                 .map { j ->
-                                    placement3Of(
+                                    itemPlacement3Of(
                                         view = item.view(orientation).copy(),
                                         position = point3(
                                             x = scalar(i.toULong()) * width,
@@ -617,7 +610,7 @@ data object ItemMerger {
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
                                 .map { j ->
-                                    placement3Of(
+                                    itemPlacement3Of(
                                         view = item.view(orientation.rotation).copy(),
                                         position = point3(
                                             x = scalar(amount.toULong()) * width,
@@ -633,7 +626,7 @@ data object ItemMerger {
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
                                 .map { j ->
-                                    placement3Of(
+                                    itemPlacement3Of(
                                         view = item.view(orientation.rotation).copy(),
                                         position = point3(
                                             y = scalar(j.toULong()) * height,
@@ -648,7 +641,7 @@ data object ItemMerger {
                         .flatMap { i ->
                             (UInt64.zero until heightAmount)
                                 .map { j ->
-                                    placement3Of(
+                                    itemPlacement3Of(
                                         view = item.view(orientation).copy(),
                                         position = point3(
                                             x = depth + scalar(i.toULong()) * width,
@@ -698,8 +691,8 @@ data object ItemMerger {
                 is Item -> {
                     it.toItemPlacementOrNull()?.let { itemPlacement ->
                         listOf(
-                            placement3Of(
-                                view = itemPlacement.view,
+                            itemPlacement3Of(
+                                view = itemPlacement.view as ItemView,
                                 position = itemPlacement.position + offset
                             )
                         )

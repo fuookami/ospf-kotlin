@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -25,6 +24,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer as QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem as QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement as QuantityItemPlacement
@@ -145,7 +145,7 @@ class ColumnGenerationAlgorithmTest {
             shape = Container3Shape(binType),
             units = placements
         )
-        return Bin(
+        return layerBinOf(
             shape = binType,
             units = listOf(
                 layer.toLayerPlacement()
@@ -435,7 +435,7 @@ class ColumnGenerationAlgorithmTest {
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val finalBin: LayerBin = Bin(
+        val finalBin: LayerBin = layerBinOf(
             shape = seedBin.shape,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
@@ -852,7 +852,7 @@ class ColumnGenerationAlgorithmTest {
         val actualItem = item("item-3", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val finalBin: LayerBin = Bin(
+        val finalBin: LayerBin = layerBinOf(
             shape = seedBin.shape,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
@@ -967,7 +967,7 @@ class ColumnGenerationAlgorithmTest {
         val actualItem = item("item-4", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val finalBin: LayerBin = Bin(
+        val finalBin: LayerBin = layerBinOf(
             shape = seedBin.shape,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
@@ -1084,12 +1084,12 @@ class ColumnGenerationAlgorithmTest {
         val seedLayerA = seedBinA.units.first().unit
         val seedLayerB = seedBinB.units.first().unit
         val finalBins = listOf(
-            Bin(
+            layerBinOf(
                 shape = seedBinA.shape,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBinA.batchNo
             ),
-            Bin(
+            layerBinOf(
                 shape = seedBinB.shape,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBinB.batchNo
@@ -1232,7 +1232,7 @@ class ColumnGenerationAlgorithmTest {
             seedBin.units.first().unit
         }
         val finalBins = seedBins.map { seedBin ->
-            Bin(
+            layerBinOf(
                 shape = seedBin.shape,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBin.batchNo

@@ -70,7 +70,7 @@ class MaterialDemandReducedCostTest {
         y: Double = 0.0,
         z: Double = 0.0
     ): QuantityPlacement3<Item> {
-        return placement3Of(
+        return itemPlacement3Of(
             view = item.view(Orientation.Upright),
             position = point3(
                 x = infraScalar(x) * Meter,

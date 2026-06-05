@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.topPlacements
 fun AnyPlacement3.toItemPlacementOrNull(): ItemPlacement3? {
     val item = unit as? Item ?: return null
     val itemView = view as? ItemView ?: ItemView(item, orientation)
-    return placement3Of(
+    return itemPlacement3Of(
         view = itemView,
         position = absolutePosition
     )

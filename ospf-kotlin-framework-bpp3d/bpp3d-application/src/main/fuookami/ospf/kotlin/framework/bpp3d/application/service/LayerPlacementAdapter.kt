@@ -12,13 +12,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
-import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
  * 统一创建 BinLayer 的放置对象。
@@ -42,7 +43,7 @@ internal fun BinLayer.toLayerPlacementWithoutAxisGuard(z: Quantity<InfraNumber>?
     } else {
         point3(z = z)
     }
-    return placement3Of(
+    return binLayerPlacementOf(
         view = BinLayerView(copy()),
         position = position
     )
@@ -53,7 +54,7 @@ internal fun BinLayer.toLayerPlacementWithoutAxisGuard(z: Quantity<InfraNumber>?
  * Build a bin with one placed layer via adapter.
  */
 internal fun LayerBin.withPlacedLayer(layer: BinLayer, z: Quantity<InfraNumber>? = null): LayerBin {
-    return fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin(
+    return layerBinOf(
         shape = shape,
         units = listOf(layer.toLayerPlacement(z)),
         batchNo = batchNo
@@ -76,24 +77,23 @@ internal fun Item.toItemPlacement(
         y = y ?: origin.y,
         z = z ?: origin.z
     )
-    return placement3Of(
-        view = view(orientation),
-        position = position
+    return itemPlacement3Of(
+        item = this,
+        position = position,
+        orientation = orientation
     )
 }
 
 /**
- * 应用层圆柱门禁：仅允许 Axis3.Y。
- * Application-level cylinder guard: only Axis3.Y is allowed.
+ * 应用层使用共享圆柱契约校验默认候选能力。
+ * Application layer uses the shared cylinder contract to validate default candidate capability.
  */
 internal fun ensureVerticalCylinderAxis(layer: BinLayer, source: String) {
     for (placement in layer.units) {
         val item = placement.unit as? Item ?: continue
-        val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder ?: continue
-        if (spec.axis != Axis3.Y) {
-            throw IllegalArgumentException(
-                "Unsupported cylinder axis in $source: only Axis3.Y is allowed, but got ${spec.axis}."
-            )
-        }
+        requireVerticalCylinderAxis(
+            shape = item.packingShape,
+            source = source
+        )
     }
 }

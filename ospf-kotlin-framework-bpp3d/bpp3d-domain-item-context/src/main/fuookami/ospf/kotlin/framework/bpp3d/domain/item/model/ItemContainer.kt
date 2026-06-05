@@ -77,50 +77,14 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
     }
 }
 
-/** 货物容器二维放置。2D placement of item container. */
+/** 货物容器二维放置别名，用于容器结构性兼容边界。Item-container 2D placement alias for container structural compatibility boundaries. */
 typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, P>
-/** 货物容器侧视二维放置。Side-plane 2D placement of item container. */
+/** 货物容器侧视二维放置别名，用于容器堆叠检查边界。Item-container side-plane 2D placement alias for container stacking check boundaries. */
 typealias ItemContainerSidePlacement2<S> = ItemContainerPlacement2<S, Side>
-/** 货物容器前视二维放置。Front-plane 2D placement of item container. */
+/** 货物容器前视二维放置别名，用于容器堆叠检查边界。Item-container front-plane 2D placement alias for container stacking check boundaries. */
 typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
-/** 货物容器三维放置。3D placement of item container. */
+/** 货物容器三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item-container 3D placement alias that hides the underlying QuantityPlacement3 generic. */
 typealias ItemContainerPlacement3<S> = QuantityPlacement3<S>
-
-@get:JvmName("itemContainerPackageType")
-/** 货物容器视图包装类型属性（CuboidView-only compat）。CuboidView-only compat extension for container package type. */
-val <S : ItemContainer<S>> CuboidView<S>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("itemContainerPackageCategory")
-/** 货物容器视图包装类别属性（CuboidView-only compat）。CuboidView-only compat extension for container package category. */
-val <S : ItemContainer<S>> CuboidView<S>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("itemContainerBottomOnly")
-/** 货物容器视图仅底面放置属性（CuboidView-only compat）。CuboidView-only compat extension for container bottom-only placement. */
-val <S : ItemContainer<S>> CuboidView<S>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("itemContainerTopFlat")
-/** 货物容器视图顶面平整属性（CuboidView-only compat）。CuboidView-only compat extension for container top-flat constraint. */
-val <S : ItemContainer<S>> CuboidView<S>.topFlat: Boolean
-    get() {
-        return unit.topFlat
-    }
-
-fun <S : ItemContainer<S>> CuboidView<S>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
-    return unit.dump(offset)
-}
-
-fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
-    return unit.dumpAbsolutely(offset)
-}
 
 @get:JvmName("itemContainerPlacementPackageType")
 val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageType: PackageType

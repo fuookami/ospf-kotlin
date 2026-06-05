@@ -185,11 +185,11 @@ class DemandStatisticsTest {
         assertTrue(patterned.materialWeights[materialB.key]!! eq (infraScalar(9.0) * Kilogram))
 
         val placements = listOf(
-            placement3Of(item1.view(), point3(x = infraScalar(0.0) * Meter)),
-            placement3Of(item1.view(), point3(x = infraScalar(1.0) * Meter)),
-            placement3Of(item1.view(), point3(x = infraScalar(2.0) * Meter)),
-            placement3Of(item2.view(), point3(x = infraScalar(3.0) * Meter)),
-            placement3Of(item2.view(), point3(x = infraScalar(4.0) * Meter))
+            itemPlacement3Of(item1.view(), point3(x = infraScalar(0.0) * Meter)),
+            itemPlacement3Of(item1.view(), point3(x = infraScalar(1.0) * Meter)),
+            itemPlacement3Of(item1.view(), point3(x = infraScalar(2.0) * Meter)),
+            itemPlacement3Of(item2.view(), point3(x = infraScalar(3.0) * Meter)),
+            itemPlacement3Of(item2.view(), point3(x = infraScalar(4.0) * Meter))
         )
         val layer = BinLayer(
             iteration = Int64(0),
@@ -281,11 +281,11 @@ class DemandStatisticsTest {
         )
 
         val placements = listOf(
-            placement3Of(
+            itemPlacement3Of(
                 view = cylinderItem.view(),
                 position = point3(x = infraScalar(0.0) * Meter)
             ),
-            placement3Of(
+            itemPlacement3Of(
                 view = cylinderItem.view(),
                 position = point3(x = infraScalar(1.2) * Meter)
             )

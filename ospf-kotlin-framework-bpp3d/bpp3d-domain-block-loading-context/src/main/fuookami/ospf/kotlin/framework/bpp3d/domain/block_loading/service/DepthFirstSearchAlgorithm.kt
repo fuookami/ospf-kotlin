@@ -151,10 +151,10 @@ class DepthFirstSearchAlgorithm(
                         break
                     }
 
-                    val bin = Bin(
-                        binType,
-                        spaces.map { space ->
-                            placement3Of(
+                    val bin = blockBinOf(
+                        shape = binType,
+                        units = spaces.map { space ->
+                            blockPlacement3Of(
                                 view = space.block!!.view()!!,
                                 position = point3(space.position)
                             )

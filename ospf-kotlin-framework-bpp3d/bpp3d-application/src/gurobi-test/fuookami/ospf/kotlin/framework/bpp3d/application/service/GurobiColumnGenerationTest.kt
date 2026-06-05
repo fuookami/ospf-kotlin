@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -20,6 +19,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
@@ -123,7 +123,7 @@ class GurobiColumnGenerationTest {
             shape = Container3Shape(resolvedBinType),
             units = placements
         )
-        return Bin(
+        return layerBinOf(
             shape = resolvedBinType,
             units = listOf(
                 layer.toLayerPlacement()
@@ -608,7 +608,7 @@ class GurobiColumnGenerationTest {
                 typeCode = "BIN-GUROBI-CSV-$groupIndex"
             )
             finalBins.add(
-                Bin(
+                layerBinOf(
                     shape = binType,
                     units = emptyList(),
                     batchNo = BatchNo("B-GUROBI-CSV-$groupIndex")
@@ -1321,7 +1321,7 @@ class GurobiColumnGenerationTest {
             typeCode = "BIN-GUROBI-MATERIAL-WIDTH"
         )
         val finalBins: List<LayerBin> = listOf(
-            Bin(
+            layerBinOf(
                 shape = binType,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = BatchNo("B-GUROBI-MATERIAL-WIDTH")
@@ -1657,7 +1657,7 @@ class GurobiColumnGenerationTest {
             itemDemands = listOf(Pair(actualItem, UInt64.one)),
             demandEntries = demandEntries,
             finalBins = listOf(
-                Bin(
+                layerBinOf(
                     shape = seedBin.shape,
                     units = emptyList<BinLayerPlacement>(),
                     batchNo = seedBin.batchNo
@@ -1730,7 +1730,7 @@ class GurobiColumnGenerationTest {
                 demandEntries = demandEntries,
                 initialColumns = listOf(seedLayer),
                 finalBins = listOf(
-                    Bin(
+                    layerBinOf(
                         shape = seedBin.shape,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = seedBin.batchNo
@@ -1795,7 +1795,7 @@ class GurobiColumnGenerationTest {
                 demandEntries = demandEntries,
                 initialColumns = listOf(seedLayer),
                 finalBins = listOf(
-                    Bin(
+                    layerBinOf(
                         shape = seedBin.shape,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = seedBin.batchNo
@@ -1895,7 +1895,7 @@ class GurobiColumnGenerationTest {
                 demandEntries = demandEntries,
                 initialColumns = layers,
                 finalBins = (0 until finalBinCount).map { index ->
-                    Bin(
+                    layerBinOf(
                         shape = sharedBinType,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = BatchNo("B-GUROBI-MEDIUM-$index")
@@ -2004,7 +2004,7 @@ class GurobiColumnGenerationTest {
                 demandEntries = demandEntries,
                 initialColumns = layers,
                 finalBins = (0 until finalBinCount).map { index ->
-                    Bin(
+                    layerBinOf(
                         shape = sharedBinType,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = BatchNo("B-GUROBI-LARGE-$index")
@@ -2136,7 +2136,7 @@ class GurobiColumnGenerationTest {
                 demandEntries = demandEntries,
                 initialColumns = layers,
                 finalBins = binTypes.mapIndexed { index, binType ->
-                    Bin(
+                    layerBinOf(
                         shape = binType,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = BatchNo("B-GUROBI-MIXED-$index")
@@ -2583,7 +2583,7 @@ class GurobiColumnGenerationTest {
                 demandEntries = demandEntries,
                 initialColumns = layers,
                 finalBins = binTypes.mapIndexed { index, binType ->
-                    Bin(
+                    layerBinOf(
                         shape = binType,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = BatchNo("B-GUROBI-MIXED-WEIGHT-$index")

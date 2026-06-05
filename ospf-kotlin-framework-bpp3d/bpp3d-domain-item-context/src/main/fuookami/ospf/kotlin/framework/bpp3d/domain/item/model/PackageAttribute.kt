@@ -15,7 +15,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
@@ -31,7 +30,7 @@ import kotlinx.coroutines.coroutineScope
 
 
 private typealias PackageNumber = InfraNumber
-private typealias PackageCuboid = AbstractCuboid<PackageNumber>
+private typealias PackageCuboid = ItemCuboid
 private typealias PackageQuantity = Quantity<PackageNumber>
 private typealias PackageVector3 = Vector<Dim3, PackageNumber>
 
@@ -47,9 +46,11 @@ private fun PackageCuboid.supportPackingShape(): PackingShape3<InfraNumber> {
         } else {
             Orientation.Upright
         }
-        require(itemShape.axis == Axis3.Y && itemOrientation == Orientation.Upright) {
-            "Cylinder stacking and hanging support only accepts upright Axis3.Y items."
-        }
+        requireUprightVerticalCylinderSupport(
+            shape = itemShape,
+            orientation = itemOrientation,
+            source = "PackageAttribute.supportPackingShape"
+        )
         return itemShape
     }
     return asPackingShape3()

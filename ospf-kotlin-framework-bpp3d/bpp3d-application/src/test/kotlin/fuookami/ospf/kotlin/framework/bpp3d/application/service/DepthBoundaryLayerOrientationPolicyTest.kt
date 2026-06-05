@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -26,6 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationA
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 
 class DepthBoundaryLayerOrientationPolicyTest {
     private val binType = BinType(
@@ -306,7 +306,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
     }
 
     private fun binOf(vararg placements: BinLayerPlacement): LayerBin {
-        return Bin(
+        return layerBinOf(
             shape = binType,
             units = placements.toList()
         )

@@ -18,7 +18,6 @@ import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
@@ -26,6 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseLoad
@@ -510,7 +510,7 @@ class ColumnGenerationStandardExecutors(
             }
             if (placements.isNotEmpty()) {
                 selected.add(
-                    Bin(
+                    layerBinOf(
                         shape = baseBin.shape,
                         units = placements,
                         batchNo = baseBin.batchNo
@@ -524,7 +524,7 @@ class ColumnGenerationStandardExecutors(
     private fun fallbackFinalBins(columns: List<BinLayer>): List<LayerBin> {
         return columns.mapNotNull { layer ->
             val binShape = layer.bin ?: return@mapNotNull null
-            Bin(
+            layerBinOf(
                 shape = binShape,
                 units = emptyList()
             )

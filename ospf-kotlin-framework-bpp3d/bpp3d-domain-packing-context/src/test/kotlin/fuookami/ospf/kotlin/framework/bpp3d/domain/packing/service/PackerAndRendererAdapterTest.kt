@@ -1,8 +1,7 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
+package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
@@ -15,8 +14,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
@@ -168,7 +169,7 @@ class PackerAndRendererAdapterTest {
         val binType = binType()
         val placements = items.mapIndexed { index, item ->
             val (x, z) = positions[index]
-            placement3Of(
+            itemPlacement3Of(
                 view = item.view(Orientation.Upright),
                 position = point3(
                     x = infraScalar(x) * Meter,
@@ -184,10 +185,10 @@ class PackerAndRendererAdapterTest {
             shape = Container3Shape(binType),
             units = placements
         )
-        return Bin(
+        return layerBinOf(
             shape = binType,
             units = listOf(
-                placement3Of(
+                binLayerPlacementOf(
                     view = layer.view(Orientation.Upright)!!,
                     position = point3()
                 )
@@ -204,18 +205,18 @@ class PackerAndRendererAdapterTest {
                 bin = binType,
                 shape = Container3Shape(binType),
                 units = items.map { item ->
-                    placement3Of(
+                    itemPlacement3Of(
                         view = item.view(Orientation.Upright),
                         position = point3()
                     )
                 }
             )
-            placement3Of(
+            binLayerPlacementOf(
                 view = layer.view(Orientation.Upright)!!,
                 position = point3(z = infraScalar(z) * Meter)
             )
         }
-        return Bin(
+        return layerBinOf(
             shape = binType,
             units = layerPlacements
         )
@@ -263,7 +264,7 @@ class PackerAndRendererAdapterTest {
             bin = binType,
             shape = Container3Shape(binType),
             units = listOf(
-                placement3Of(
+                itemPlacement3Of(
                     view = item("item-offset-1", material).view(Orientation.Upright),
                     position = point3()
                 )
@@ -275,20 +276,20 @@ class PackerAndRendererAdapterTest {
             bin = binType,
             shape = Container3Shape(binType),
             units = listOf(
-                placement3Of(
+                itemPlacement3Of(
                     view = item("item-offset-2", material).view(Orientation.Upright),
                     position = point3()
                 )
             )
         )
-        val bin = Bin(
+        val bin = layerBinOf(
             shape = binType,
             units = listOf(
-                placement3Of(
+                binLayerPlacementOf(
                     view = firstLayer.view(Orientation.Upright)!!,
                     position = point3()
                 ),
-                placement3Of(
+                binLayerPlacementOf(
                     view = secondLayer.view(Orientation.Upright)!!,
                     position = point3(z = infraScalar(1.0) * Meter)
                 )
@@ -591,16 +592,16 @@ class PackerAndRendererAdapterTest {
             bin = binType,
             shape = Container3Shape(binType),
             units = listOf(
-                placement3Of(
+                itemPlacement3Of(
                     view = cylinderItem("cyl-x-suspended", material, Axis3.X).view(Orientation.Upright),
                     position = point3(y = infraScalar(0.2) * Meter)
                 )
             )
         )
-        val bin = Bin(
+        val bin = layerBinOf(
             shape = binType,
             units = listOf(
-                placement3Of(
+                binLayerPlacementOf(
                     view = layer.view(Orientation.Upright)!!,
                     position = point3()
                 )
@@ -634,14 +635,14 @@ class PackerAndRendererAdapterTest {
                         type = binType(),
                         items = listOf(
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = item("support-full", material).view(Orientation.Upright),
                                     position = point3()
                                 ),
                                 loadingOrder = UInt64.one
                             ),
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = cylinderItem(
                                         id = "cyl-x-supported",
                                         material = material,
@@ -681,14 +682,14 @@ class PackerAndRendererAdapterTest {
                         type = binType(),
                         items = listOf(
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = item("support-partial", material).view(Orientation.Upright),
                                     position = point3()
                                 ),
                                 loadingOrder = UInt64.one
                             ),
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = cylinderItem(
                                         id = "cyl-x-partial-support",
                                         material = material,
@@ -729,14 +730,14 @@ class PackerAndRendererAdapterTest {
                         type = binType(),
                         items = listOf(
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-tangent-1", material, radiusValue = 0.4).view(Orientation.Upright),
                                     position = point3(z = infraScalar(0.2) * Meter)
                                 ),
                                 loadingOrder = UInt64.one
                             ),
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-tangent-2", material, radiusValue = 0.6, lengthValue = 1.8).view(Orientation.Upright),
                                     position = point3(x = infraScalar(0.8) * Meter)
                                 ),
@@ -759,14 +760,14 @@ class PackerAndRendererAdapterTest {
                         type = binType(),
                         items = listOf(
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-overlap-1", material, radiusValue = 0.4).view(Orientation.Upright),
                                     position = point3(z = infraScalar(0.2) * Meter)
                                 ),
                                 loadingOrder = UInt64.one
                             ),
                             PackedItem(
-                                placement = placement3Of(
+                                placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-overlap-2", material, radiusValue = 0.6, lengthValue = 1.8).view(Orientation.Upright),
                                     position = point3(x = infraScalar(0.799) * Meter)
                                 ),

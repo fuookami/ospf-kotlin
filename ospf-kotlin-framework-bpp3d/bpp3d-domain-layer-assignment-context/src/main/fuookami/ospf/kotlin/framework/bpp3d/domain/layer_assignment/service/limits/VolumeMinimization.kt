@@ -4,19 +4,17 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 
 /**
  * 体积最小化目标，最小化总体积使用。
@@ -31,29 +29,11 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 open class VolumeMinimization<
         Args : AbstractBPP3DShadowPriceArguments<T>,
         T : Cuboid<T>
-        >(
+        > protected constructor(
     private val assignment: ImpreciseAssignment,
     private val coefficient: InfraNumber,
     override val name: String = "volume_minimization",
 ) : CGPipeline<Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>> {
-    companion object {
-        /**
-         * 创建 Item 专用体积最小化目标，不暴露 `T : Cuboid<T>` 泛型约束。
-         * Build item-only volume minimization objective without exposing `T : Cuboid<T>` generic constraint.
-         */
-        fun forItem(
-            assignment: ImpreciseAssignment,
-            coefficient: InfraNumber,
-            name: String = "volume_minimization"
-        ): ItemVolumeMinimization {
-            return itemVolumeMinimization(
-                assignment = assignment,
-                coefficient = coefficient,
-                name = name
-            )
-        }
-    }
-
     /**
      * 将目标添加到模型。
      * Add objective to model.
@@ -103,8 +83,8 @@ fun itemVolumeMinimization(
 }
 
 /**
- * Item 专用体积最小化目标，不暴露 `T : Cuboid<T>` 泛型约束。
- * Item-only volume minimization objective, does not expose `T : Cuboid<T>` generic constraint.
+ * Item 专用体积最小化目标，不暴露底层泛型 cuboid 约束。
+ * Item-only volume minimization objective, does not expose the underlying generic cuboid constraint.
  *
  * @property assignment 不精确赋值 / imprecise assignment
  * @property coefficient 体积系数 / volume coefficient

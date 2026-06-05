@@ -35,7 +35,7 @@ private fun <P : ProjectivePlane> AnyPlacement2<P>.asFrontPlacementOrNull(): Any
 private fun AnySidePlacement2.asItemSidePlacementOrNull(): ItemPlacement2<Side>? {
     val item = unit as? Item ?: return null
     val itemView = item.view(orientation) ?: return null
-    return placement2Of(
+    return itemPlacement2Of(
         projection = PlaneProjection(
             view = itemView,
             plane = Side
@@ -47,7 +47,7 @@ private fun AnySidePlacement2.asItemSidePlacementOrNull(): ItemPlacement2<Side>?
 private fun AnyFrontPlacement2.asItemFrontPlacementOrNull(): ItemPlacement2<Front>? {
     val item = unit as? Item ?: return null
     val itemView = item.view(orientation) ?: return null
-    return placement2Of(
+    return itemPlacement2Of(
         projection = PlaneProjection(
             view = itemView,
             plane = Front
@@ -59,7 +59,7 @@ private fun AnyFrontPlacement2.asItemFrontPlacementOrNull(): ItemPlacement2<Fron
 private fun AnySidePlacement2.asBlockSidePlacementOrNull(): BlockPlacement2<Side>? {
     val block = unit as? Block ?: return null
     val blockView = block.view(orientation) ?: return null
-    return placement2Of(
+    return blockPlacement2Of(
         projection = PlaneProjection(
             view = blockView,
             plane = Side
@@ -71,7 +71,7 @@ private fun AnySidePlacement2.asBlockSidePlacementOrNull(): BlockPlacement2<Side
 private fun AnyFrontPlacement2.asBlockFrontPlacementOrNull(): BlockPlacement2<Front>? {
     val block = unit as? Block ?: return null
     val blockView = block.view(orientation) ?: return null
-    return placement2Of(
+    return blockPlacement2Of(
         projection = PlaneProjection(
             view = blockView,
             plane = Front

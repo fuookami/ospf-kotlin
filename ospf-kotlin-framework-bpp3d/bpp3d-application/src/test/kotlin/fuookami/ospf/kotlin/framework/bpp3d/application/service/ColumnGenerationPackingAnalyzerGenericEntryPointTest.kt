@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
@@ -16,6 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationA
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
@@ -104,7 +104,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             iteration = 5,
             columns = listOf(layer),
             bins = listOf(
-                Bin(
+                layerBinOf(
                     shape = bin,
                     units = emptyList()
                 )
@@ -115,6 +115,20 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         assertNotNull(latest)
         assertEquals(1, latest.bins.size)
         assertEquals("5", latest.schema.kpi["cg_iteration"])
+    }
+
+    @Test
+    fun layerPlacementAdapterShouldRejectHorizontalCylinderAxes() {
+        for (axis in listOf(Axis3.X, Axis3.Z)) {
+            val layer = horizontalCylinderLayer(axis)
+
+            val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
+                layer.toModel().toLayerPlacement()
+            }
+
+            assertTrue(exception.message?.contains("only Axis3.Y is allowed") == true)
+            assertTrue(exception.message?.contains("got $axis") == true)
+        }
     }
 
     @Test
@@ -174,7 +188,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             lateralBalance = null,
             typeCode = "BIN-ANALYZER-CYLINDER"
         )
-        val explicitBin = Bin(
+        val explicitBin = layerBinOf(
             shape = bin,
             units = listOf(
                 modelLayer.toLayerPlacementWithoutAxisGuard()
@@ -190,5 +204,52 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         }
 
         assertTrue(exception.message?.contains("Axis3.Y") == true)
+    }
+
+    private fun horizontalCylinderLayer(axis: Axis3): GenericBinLayer<FltX> {
+        val material = GenericMaterial(
+            no = MaterialNo("M-ADAPTER-CYLINDER-$axis"),
+            type = MaterialType.RawMaterial,
+            cargo = Cargo,
+            name = "M-ADAPTER-CYLINDER-$axis",
+            weight = FltX(0.2) * Kilogram
+        )
+        val shape = GenericPackageShape(
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(0.2) * Kilogram,
+            packageType = PackageType.CartonContainer,
+            shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                radius = FltX(0.4) * Meter,
+                axis = axis
+            )
+        )
+        val item = GenericItem(
+            id = "item-adapter-cylinder-$axis",
+            name = "item-adapter-cylinder-$axis",
+            pack = GenericPackage.innerPackage(
+                shape = shape,
+                materials = mapOf(material to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-$axis"),
+            packageAttribute = packageAttribute()
+        )
+        return GenericBinLayer(
+            iteration = Int64.zero,
+            from = ColumnGenerationPackingAnalyzerGenericEntryPointTest::class,
+            width = FltX(2.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            units = listOf(
+                GenericItemPlacement(
+                    item = item,
+                    x = FltX(0.0) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(0.0) * Meter
+                )
+            )
+        )
     }
 }

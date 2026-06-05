@@ -172,7 +172,7 @@ class BinType(
                 for (thisLayers in layersPromise) {
                     var z = infraZero() * depth.unit
                     val thisPlacements = thisLayers.map {
-                        val ret = placement3Of(
+                        val ret = binLayerPlacementOf(
                             view = BinLayerView(it.copy()),
                             position = point3(z = z)
                         )
@@ -199,7 +199,7 @@ class BinType(
     override fun toString() = "$typeCode-$width*$height*$depth"
 }
 
-class Bin<T : Cuboid<T>>(
+class Bin<T : Cuboid<T>> internal constructor(
     // inherited from Container3<Bin<T>>
     override val shape: BinType,
     override val units: List<ItemContainerPlacement3<T>>,
@@ -209,6 +209,69 @@ class Bin<T : Cuboid<T>>(
 
     override fun copy() = Bin(shape, units.map { it.copy() }, batchNo)
     fun copy(newBatchNo: BatchNo) = Bin(shape, units.map { it.copy() }, newBatchNo)
+}
+
+/**
+ * 创建箱层装箱，隐藏底层 Bin 泛型构造。
+ * Create a layer bin while hiding the underlying generic Bin constructor.
+ *
+ * @param shape 箱型 / bin type
+ * @param units 箱层放置列表 / bin-layer placements
+ * @param batchNo 批次号 / batch number
+ * @return 箱层装箱 / layer bin
+ */
+fun layerBinOf(
+    shape: BinType,
+    units: List<BinLayerPlacement>,
+    batchNo: BatchNo? = null
+): LayerBin {
+    return Bin(
+        shape = shape,
+        units = units,
+        batchNo = batchNo
+    )
+}
+
+/**
+ * 创建货物装箱，隐藏底层 Bin 泛型构造。
+ * Create an item bin while hiding the underlying generic Bin constructor.
+ *
+ * @param shape 箱型 / bin type
+ * @param units 货物放置列表 / item placements
+ * @param batchNo 批次号 / batch number
+ * @return 货物装箱 / item bin
+ */
+fun itemBinOf(
+    shape: BinType,
+    units: List<ItemPlacement3>,
+    batchNo: BatchNo? = null
+): ItemBin {
+    return Bin(
+        shape = shape,
+        units = units,
+        batchNo = batchNo
+    )
+}
+
+/**
+ * 创建组合块装箱，隐藏底层 Bin 泛型构造。
+ * Create a block bin while hiding the underlying generic Bin constructor.
+ *
+ * @param shape 箱型 / bin type
+ * @param units 组合块放置列表 / block placements
+ * @param batchNo 批次号 / batch number
+ * @return 组合块装箱 / block bin
+ */
+fun blockBinOf(
+    shape: BinType,
+    units: List<BlockPlacement3>,
+    batchNo: BatchNo? = null
+): BlockBin {
+    return Bin(
+        shape = shape,
+        units = units,
+        batchNo = batchNo
+    )
 }
 
 fun List<Bin<*>>.group(): Map<BinType, UInt64> {
@@ -256,12 +319,18 @@ infix fun Collection<Bin<*>>.ord(rhs: Collection<Bin<*>>): Order {
     }
 }
 
+/** 箱层装箱别名。Bin alias for bin-layer units. */
 typealias LayerBin = Bin<BinLayer>
+/** 货物装箱别名。Bin alias for item units. */
 typealias ItemBin = Bin<Item>
+/** 组合块装箱别名。Bin alias for block units. */
 typealias BlockBin = Bin<Block>
 
 fun LayerBin.dump(): ItemBin {
-    return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
+    return itemBinOf(
+        shape = this.shape,
+        units = this.units.flatMap { it.unit.dumpAbsolutely() }
+    )
 }
 
 

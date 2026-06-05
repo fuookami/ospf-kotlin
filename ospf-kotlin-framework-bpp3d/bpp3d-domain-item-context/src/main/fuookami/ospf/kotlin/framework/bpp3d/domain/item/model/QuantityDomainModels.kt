@@ -277,13 +277,14 @@ data class GenericItemPlacement<V : FloatingNumber<V>>(
         itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
     ): ItemPlacement3 {
         val modelItem = item.toModel(materialCache, itemCache)
-        return placement3Of(
-            view = modelItem.view(orientation),
+        return itemPlacement3Of(
+            item = modelItem,
             position = point3(
                 x = x.toInfraQuantity().value,
                 y = y.toInfraQuantity().value,
                 z = z.toInfraQuantity().value
-            )
+            ),
+            orientation = orientation
         )
     }
 }

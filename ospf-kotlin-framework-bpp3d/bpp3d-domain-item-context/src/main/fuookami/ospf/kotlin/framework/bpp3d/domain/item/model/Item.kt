@@ -517,7 +517,9 @@ open class ItemView(
     }
 }
 
+/** 货物投影别名，用于 item-domain 的二维装载语义。Item projection alias for item-domain 2D loading semantics. */
 typealias ItemProjection<P> = Projection<Item, P>
+/** 多层货物投影别名，用于 item-domain 的堆叠投影语义。Multi-pile item projection alias for item-domain stacking projection semantics. */
 typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
 /** 任意二维放置。Generic 2D placement. */
 typealias AnyPlacement2<P> = QuantityPlacement2<*, P>
@@ -527,7 +529,9 @@ typealias AnySidePlacement2 = AnyPlacement2<Side>
 typealias AnyFrontPlacement2 = AnyPlacement2<Front>
 /** 任意三维放置。Generic 3D placement. */
 typealias AnyPlacement3 = QuantityPlacement3<*>
+/** 货物二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Item 2D placement alias that hides the underlying QuantityPlacement2 generic. */
 typealias ItemPlacement2<P> = QuantityPlacement2<Item, P>
+/** 货物三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item 3D placement alias that hides the underlying QuantityPlacement3 generic. */
 typealias ItemPlacement3 = QuantityPlacement3<Item>
 
 /**
@@ -852,7 +856,7 @@ fun List<AnyPlacement3>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacem
 
             is Item -> {
                 items.add(
-                    placement3Of(
+                    itemPlacement3Of(
                         view = placement.view as ItemView,
                         position = placement.position + offsetVector
                     )
@@ -880,7 +884,7 @@ fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<
 
             is Item -> {
                 items.add(
-                    placement3Of(
+                    itemPlacement3Of(
                         view = placement.view as ItemView,
                         position = placement.absolutePosition + offsetVector
                     )

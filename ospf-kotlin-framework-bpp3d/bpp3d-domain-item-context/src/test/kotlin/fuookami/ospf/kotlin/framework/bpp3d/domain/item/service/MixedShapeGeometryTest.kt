@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.placement3Of
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
 
 /** 混装长方体+竖直圆柱几何回归测试。Mixed cuboid + vertical cylinder geometry regression test. */
 class MixedShapeGeometryTest {
@@ -101,7 +101,7 @@ class MixedShapeGeometryTest {
         x: Double = 0.0,
         y: Double = 0.0,
         z: Double = 0.0
-    ) = placement3Of(
+    ) = itemPlacement3Of(
         view = item.view(Orientation.Upright),
         position = point3(
             x = infraScalar(x) * Meter,

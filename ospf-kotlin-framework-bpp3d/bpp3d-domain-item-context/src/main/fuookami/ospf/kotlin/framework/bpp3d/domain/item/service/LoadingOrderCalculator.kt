@@ -175,10 +175,10 @@ class LoadingOrderCalculator(
      * 判断两个单元是否同类型。
      * Determine whether two units are the same type.
      *
-     * 使用 Any 参数代替 AbstractCuboid<*>：when-dispatch 本身即为运行时类型检查，
-     * Any 等价且更通用，减少 domain 层对基础设施层 Cuboid 类型体系的绑定。
-     * Uses Any parameter instead of AbstractCuboid<*>: when-dispatch is runtime type checking,
-     * Any is equivalent and more general, reducing domain-layer binding to infrastructure Cuboid type hierarchy.
+     * 使用 Any 参数代替基础设施层通配 cuboid 类型：when-dispatch 本身即为运行时类型检查，
+     * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型体系的绑定。
+     * Uses Any parameter instead of the infrastructure wildcard cuboid type: when-dispatch is runtime type checking,
+     * Any is equivalent and more general, reducing domain-layer binding to infrastructure geometry compatibility type hierarchy.
      */
     private fun isSameType(lhs: Any, rhs: Any): Boolean {
         return if (lhs is Item && rhs is Item) {
@@ -241,7 +241,7 @@ class LoadingOrderCalculator(
             } else {
                 val block = mergeToBlock(oldPlacements[i], thisPlacements)
                 newPlacements.add(
-                    placement3Of(
+                    blockPlacement3Of(
                         view = block.view()!!,
                         position = oldPlacements[i].absolutePosition
                     )
@@ -265,7 +265,7 @@ class LoadingOrderCalculator(
                 is Item -> {
                     val offset = placement.absolutePosition - origin
                     items.add(
-                        placement3Of(
+                        itemPlacement3Of(
                             view = placement.view as ItemView,
                             position = point3(offset.x, offset.y, offset.z)
                         )
@@ -276,8 +276,8 @@ class LoadingOrderCalculator(
                     for (item in unit.items) {
                         val offset = item.absolutePosition - origin
                         items.add(
-                            placement3Of(
-                                view = item.view,
+                            itemPlacement3Of(
+                                view = item.view as ItemView,
                                 position = point3(offset.x, offset.y, offset.z)
                             )
                         )
@@ -338,8 +338,8 @@ class LoadingOrderCalculator(
                     for (item in unit.units) {
                         ret.add(
                             Pair(
-                                placement3Of(
-                                    view = item.view,
+                                itemPlacement3Of(
+                                    view = item.view as ItemView,
                                     position = item.absolutePosition
                                 ),
                                 sequence

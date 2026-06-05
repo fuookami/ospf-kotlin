@@ -66,12 +66,11 @@ foreach ($legacyFile in $legacyFiles) {
 
 $bridgePattern = "(Cuboid3|Cuboid3View|Cylinder3|Box3|Placement2|Placement3|Rectangle2|PlanePoint2|PlanePoint3|PlaneVector3)\s*<\s*InfraScalar\s*>"
 $bridgeLines = rg -n --no-heading --color never $bridgePattern $infrastructureRoot -g "**/*.kt" -S
-$bridgeAllowRules = @(
-    ".*\/Cuboid\.kt$",
-    ".*\/Cylinder\.kt$",
-    ".*\/Placement\.kt$",
-    ".*\/ProjectivePlaneGeometryBridge\.kt$"
-)
+$bridgeAllowRules = @()
+$bridgeAllowRuleHits = @{}
+foreach ($rule in $bridgeAllowRules) {
+    $bridgeAllowRuleHits[$rule] = $false
+}
 
 foreach ($line in $bridgeLines) {
     $match = [regex]::Match($line, "^([A-Za-z]:.*?):([0-9]+):(.*)$")
@@ -84,6 +83,7 @@ foreach ($line in $bridgeLines) {
     foreach ($rule in $bridgeAllowRules) {
         if ($filePath -match $rule) {
             $isAllowed = $true
+            $bridgeAllowRuleHits[$rule] = $true
             break
         }
     }
@@ -94,6 +94,17 @@ foreach ($line in $bridgeLines) {
             File = $filePath
             Line = $match.Groups[2].Value
             Text = $match.Groups[3].Value
+        }
+    }
+}
+
+foreach ($rule in $bridgeAllowRules) {
+    if (-not $bridgeAllowRuleHits[$rule]) {
+        $script:violations += [PSCustomObject]@{
+            Check = "StaleInfraScalarBridgeAllowRule"
+            File = $rule
+            Line = "1"
+            Text = "bridge allow rule has no current match"
         }
     }
 }

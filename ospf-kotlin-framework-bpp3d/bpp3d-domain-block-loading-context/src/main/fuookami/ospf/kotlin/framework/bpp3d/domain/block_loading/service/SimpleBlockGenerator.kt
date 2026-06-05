@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.ordinary.min
 
 class SimpleBlockGenerator(
@@ -87,7 +86,10 @@ class SimpleBlockGenerator(
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
-            requireSupportedCylinderItemForSimpleBlock(item)
+            requireSupportedCylinderItemForSimpleBlock(
+                item = item,
+                source = "SimpleBlockGenerator"
+            )
 
             if (config.mergeAsPatternBlock) {
                 for (pattern in patterns) {
@@ -215,29 +217,6 @@ class SimpleBlockGenerator(
         return blocks
     }
 
-    private fun requireSupportedCylinderItemForSimpleBlock(item: Item) {
-        val shape = item.packingShape
-        if (shape !is CylinderPackingShape3) {
-            return
-        }
-        if (shape.axis != Axis3.Y) {
-            throw IllegalArgumentException(
-                "Unsupported cylinder axis in SimpleBlockGenerator: only Axis3.Y is allowed, but got ${shape.axis}."
-            )
-        }
-        val unsupportedOrientations = item.enabledOrientations.filter { it.category != OrientationCategory.Upright }
-        if (unsupportedOrientations.isNotEmpty()) {
-            throw IllegalArgumentException(
-                "Unsupported cylinder orientation in SimpleBlockGenerator: only upright orientations are allowed."
-            )
-        }
-        if (item.enabledSideOnTop || item.enabledLieOnTop) {
-            throw IllegalArgumentException(
-                "Unsupported cylinder top-layer policy in SimpleBlockGenerator: side/lie stacking is not allowed."
-            )
-        }
-    }
-
     private fun simpleBlocks(
         item: Item,
         amount: UInt64,
@@ -263,7 +242,7 @@ class SimpleBlockGenerator(
                             for (m in UInt64.zero until k) {
                                 val z = orientation.depth(item) * m.toInfraNumberScalar()
                                 placements.add(
-                                    placement3Of(
+                                    itemPlacement3Of(
                                         view = item.view(orientation),
                                         position = point3(x, y, z)
                                     )
@@ -297,7 +276,7 @@ class SimpleBlockGenerator(
                         for (j in UInt64.zero until remainderMaxYAmount) {
                             val y = orientation.height(item) * j.toInfraNumberScalar()
                             placements.add(
-                                placement3Of(
+                                itemPlacement3Of(
                                     view = item.view(orientation),
                                     position = point3(x = x, y = y)
                                 )
@@ -310,7 +289,7 @@ class SimpleBlockGenerator(
                     for (i in UInt64.zero until (remainder % maxXAmount)) {
                         val x = orientation.width(item) * i.toInfraNumberScalar()
                         remainderPlacements.add(
-                            placement3Of(
+                            itemPlacement3Of(
                                 view = item.view(orientation),
                                 position = point3(x = x)
                             )
@@ -325,8 +304,8 @@ class SimpleBlockGenerator(
                     blocks.add(
                         ComplexBlock(
                             listOf(
-                                placement3Of(view = SimpleBlock(placements).view()!!, position = point3()),
-                                placement3Of(
+                                blockPlacement3Of(view = SimpleBlock(placements).view()!!, position = point3()),
+                                blockPlacement3Of(
                                     view = SimpleBlock(remainderPlacements).view()!!,
                                     position = point3(y = orientation.height(item) * remainderMaxYAmount.toInfraNumberScalar())
                                 )
@@ -345,7 +324,7 @@ class SimpleBlockGenerator(
                         for (k in UInt64.zero until remainderMaxZAmount) {
                             val z = orientation.depth(item) * k.toInfraNumberScalar()
                             placements.add(
-                                placement3Of(
+                                itemPlacement3Of(
                                     view = item.view(orientation),
                                     position = point3(x = x, y = y, z = z)
                                 )
@@ -360,7 +339,7 @@ class SimpleBlockGenerator(
                         for (j in UInt64.zero until remainderMaxYAmount) {
                             val y = orientation.height(item) * j.toInfraNumberScalar()
                             remainderPlacements.add(
-                                placement3Of(
+                                itemPlacement3Of(
                                     view = item.view(orientation),
                                     position = point3(x = x, y = y)
                                 )
@@ -373,7 +352,7 @@ class SimpleBlockGenerator(
                     for (i in UInt64.zero until ((remainder % (maxXAmount * maxYAmount)) % maxXAmount)) {
                         val x = orientation.width(item) * i.toInfraNumberScalar()
                         remainderRemainderPlacements.add(
-                            placement3Of(
+                            itemPlacement3Of(
                                 view = item.view(orientation),
                                 position = point3(x = x)
                             )
@@ -381,10 +360,10 @@ class SimpleBlockGenerator(
                     }
                 }
                 val remainderBlocks = ArrayList<BlockPlacement3>()
-                remainderBlocks.add(placement3Of(view = SimpleBlock(placements).view()!!, position = point3()))
+                remainderBlocks.add(blockPlacement3Of(view = SimpleBlock(placements).view()!!, position = point3()))
                 if (remainderPlacements.isEmpty()) {
                     remainderBlocks.add(
-                        placement3Of(
+                        blockPlacement3Of(
                             view = SimpleBlock(remainderPlacements).view()!!,
                             position = point3(z = orientation.depth(item) * remainderMaxZAmount.toInfraNumberScalar())
                         )
@@ -392,7 +371,7 @@ class SimpleBlockGenerator(
                 }
                 if (remainderRemainderPlacements.isEmpty()) {
                     remainderBlocks.add(
-                        placement3Of(
+                        blockPlacement3Of(
                             view = SimpleBlock(remainderRemainderPlacements).view()!!,
                             position = point3(
                                 y = orientation.height(item) * remainderMaxYAmount.toInfraNumberScalar(),

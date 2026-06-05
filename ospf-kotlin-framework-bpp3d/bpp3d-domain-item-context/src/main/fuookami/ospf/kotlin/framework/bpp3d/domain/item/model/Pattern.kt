@@ -66,7 +66,7 @@ abstract class Pattern {
             } else {
                 nextPointExtractor!!(projection, placements)
             }
-            return placement2Of(
+            return itemPlacement2Of(
                 projection = projection,
                 position = point
             )
@@ -265,14 +265,14 @@ abstract class Pattern {
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
     ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
-        val unsupportedCylinder = originItems.keys.firstOrNull { item ->
-            item.packingShape is CylinderPackingShape3
-        }
-        if (unsupportedCylinder != null) {
+        if (hasCylinderItem(originItems.keys)) {
             return Failed(
                 Err(
                     ErrorCode.ApplicationError,
-                    "Unsupported cylinder in Pattern: pattern placement paths are cuboid-only and do not provide verified cylinder geometry yet."
+                    unsupportedCylinderCuboidOnlyPathMessage(
+                        source = "Pattern",
+                        pathPredicate = "pattern placement paths are"
+                    )
                 )
             )
         }

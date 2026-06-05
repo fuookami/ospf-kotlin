@@ -26,6 +26,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
@@ -802,18 +803,6 @@ private fun circlePackingLayerIsGeometryValid(
     return true
 }
 
-private fun requireVerticalCylinderAxisForCirclePacking(
-    item: Item,
-    source: String
-) {
-    val shape = item.packingShape
-    if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
-        throw IllegalArgumentException(
-            "Unsupported cylinder axis in $source: only Axis3.Y is allowed, but got ${shape.axis}."
-        )
-    }
-}
-
 /**
  * Fallback generator reading pre-built layers from request.
  * 从请求中读取已有层作为兜底生成器。
@@ -990,8 +979,8 @@ class CirclePackingLayerGenerator<V>(
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
             for (item in it.items) {
-                requireVerticalCylinderAxisForCirclePacking(
-                    item = item,
+                requireVerticalCylinderAxis(
+                    shape = item.packingShape,
                     source = "CirclePackingLayerGenerator"
                 )
             }

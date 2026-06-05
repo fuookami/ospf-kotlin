@@ -6,6 +6,18 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.lim
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
+import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeline
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceExtractor
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
@@ -15,25 +27,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandDomain
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItemRanges
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeline
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceExtractor
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
-import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -107,10 +103,10 @@ private fun domainTag(domain: Bpp3dDemandDomain): String {
  * 获取需求统计。
  * Get demand statistics.
  *
- * 使用 Any 参数代替 Cuboid<*>：when-dispatch 本身即为运行时类型检查，
- * Any 等价且更通用，减少 domain 层对基础设施层 Cuboid 类型的绑定。
- * Uses Any parameter instead of Cuboid<*>: when-dispatch is runtime type checking,
- * Any is equivalent and more general, reducing domain-layer binding to infrastructure Cuboid type.
+ * 使用 Any 参数代替基础设施层通配 Cuboid 类型：when-dispatch 本身即为运行时类型检查，
+ * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型的绑定。
+ * Uses Any parameter instead of the infrastructure wildcard Cuboid type: when-dispatch is runtime type checking,
+ * Any is equivalent and more general, reducing domain-layer binding to infrastructure geometry compatibility types.
  */
 private fun demandStatistics(
     cuboid: Any,
@@ -138,66 +134,12 @@ private fun demandStatistics(
 open class DemandConstraint<
         Args : AbstractBPP3DShadowPriceArguments<T>,
         T : Cuboid<T>
-        >(
+        > protected constructor(
     private val load: Load<InfraNumber>,
     private val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
     private val shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
     override val name: String = "demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
-    companion object {
-        fun <
-                Args : AbstractBPP3DShadowPriceArguments<T>,
-                T : Cuboid<T>
-                > fromItems(
-            load: Load<InfraNumber>,
-            items: List<Pair<Item, UInt64>>,
-            shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
-            name: String = "demand"
-        ): DemandConstraint<Args, T> {
-            val demands = if (load.demandEntries.isNotEmpty()) {
-                load.demandEntries
-            } else {
-                demandEntriesFromItems(items, load.demandValueAdapter)
-            }
-            return DemandConstraint(load, demands, shadowPriceExtractor, name)
-        }
-
-        fun <
-                Args : AbstractBPP3DShadowPriceArguments<T>,
-                T : Cuboid<T>
-                > fromItemRanges(
-            load: Load<InfraNumber>,
-            items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
-            shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
-            name: String = "demand"
-        ): DemandConstraint<Args, T> {
-            val demands = if (load.demandEntries.isNotEmpty()) {
-                load.demandEntries
-            } else {
-                demandEntriesFromItemRanges(items, load.demandValueAdapter)
-            }
-            return DemandConstraint(load, demands, shadowPriceExtractor, name)
-        }
-
-        /**
-         * 创建 Item 专用需求约束，不暴露 `T : Cuboid<T>` 泛型约束。
-         * Build item-only demand constraint without exposing `T : Cuboid<T>` generic constraint.
-         */
-        fun forItem(
-            load: Load<InfraNumber>,
-            demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
-            shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
-            name: String = "demand"
-        ): ItemDemandConstraint {
-            return itemDemandConstraint(
-                load = load,
-                demandEntries = demandEntries,
-                shadowPriceExtractor = shadowPriceExtractor,
-                name = name
-            )
-        }
-    }
-
     private fun symbolAt(index: Int): Symbol {
         return (runCatching { load.load[index] as Symbol }.getOrNull()
             ?: throw IllegalStateException("Missing load symbol at index $index"))
@@ -398,8 +340,8 @@ fun itemDemandConstraint(
 }
 
 /**
- * Item 专用需求约束，不暴露 `T : Cuboid<T>` 泛型约束。
- * Item-only demand constraint, does not expose `T : Cuboid<T>` generic constraint.
+ * Item 专用需求约束，不暴露底层泛型 cuboid 约束。
+ * Item-only demand constraint, does not expose the underlying generic cuboid constraint.
  *
  * @property load 负载符号 / load symbols
  * @property demandEntries 需求条目列表 / demand entry list
