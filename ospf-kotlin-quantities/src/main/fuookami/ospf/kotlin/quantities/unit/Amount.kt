@@ -28,5 +28,5 @@ object Mole : PhysicalUnit() {
     override val symbol = "mol"
 
     override val quantity = AmountOfSubstance
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }

@@ -29,6 +29,74 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.dimension.*
 
 /**
+ * 单位转换规则
+ * Unit conversion rule
+ *
+ * 描述单位到标准单位的转换方式。
+ * Describes how a unit converts to its standard unit.
+ *
+ * - [Linear]: 普通线性转换，standard = value * scale
+ * - [Affine]: 仿射转换（绝对温标），standard = value * scale + offset
+ *
+ * 仿射单位参与加减乘除的语义不同于线性单位：
+ * Affine units have different arithmetic semantics than linear units:
+ * - 仿射单位不允许乘除幂运算
+ *   Affine units cannot participate in multiplication, division, or power operations
+ * - 仿射 + 仿射 不应作为普通加法
+ *   Affine + Affine should not be valid as regular addition
+ * - 仿射 - 仿射 得到线性温差
+ *   Affine - Affine yields a linear temperature difference
+ * - 仿射 ± 线性温差 得到新的仿射值
+ *   Affine ± LinearDifference yields a new affine value
+ */
+sealed interface UnitConversionRule {
+    /**
+     * 转换规则中的线性比例因子
+     * The linear scale factor within the conversion rule
+     */
+    val scale: Scale
+
+    /**
+     * 是否为仿射转换
+     * Whether this is an affine conversion
+     */
+    val isAffine: Boolean get() = this is Affine
+
+    /**
+     * 线性转换规则
+     * Linear conversion rule
+     *
+     * standard = value * scale
+     * 目标值 = (标准值) / targetScale
+     * Target value = (standard value) / targetScale
+     *
+     * @param scale 相对于标准单位的线性比例 / Linear scale relative to standard unit
+     */
+    data class Linear(
+        override val scale: Scale
+    ) : UnitConversionRule
+
+    /**
+     * 仿射转换规则
+     * Affine conversion rule
+     *
+     * standard = value * scale + offset
+     * 目标值 = (standard - targetOffset) / targetScale
+     * Target value = (standard - targetOffset) / targetScale
+     *
+     * 用于摄氏度、华氏度等绝对温标。
+     * Used for absolute temperature scales like Celsius, Fahrenheit.
+     *
+     * @param scale 相对于标准单位的线性比例 / Linear scale relative to standard unit
+     * @param offset 转换到标准单位时的偏移量 / Offset when converting to standard unit
+     */
+    data class Affine(
+        override val scale: Scale,
+        val offset: FltX
+    ) : UnitConversionRule
+}
+
+/**
  * 物理单位抽象类
  * Physical unit abstract class
  *
@@ -64,10 +132,30 @@ abstract class PhysicalUnit {
     open val domain: QuantityDomain get() = quantity.domain
 
     /**
+     * 单位转换规则
+     * Unit conversion rule
+     *
+     * 描述此单位到标准单位的转换方式。默认为线性转换。
+     * Describes how this unit converts to the standard unit. Defaults to linear conversion.
+     */
+    abstract val conversionRule: UnitConversionRule
+
+    /**
      * 单位比例（相对于标准单位）
      * Unit scale (relative to standard unit)
+     *
+     * 兼容属性，从转换规则中读取线性比例因子。
+     * Compatibility property that reads the linear scale factor from the conversion rule.
      */
-    abstract val scale: Scale
+    val scale: Scale
+        get() = conversionRule.scale
+
+    /**
+     * 是否为仿射单位
+     * Whether this is an affine unit
+     */
+    val isAffine: Boolean
+        get() = conversionRule.isAffine
 
     /**
      * 检查量纲是否相同
@@ -81,18 +169,23 @@ abstract class PhysicalUnit {
     }
 
     /**
-     * 转换到另一个单位
-     * Convert to another unit
+     * 转换到另一个单位（线性比例因子）
+     * Convert to another unit (linear scale factor)
+     *
+     * 仅当两端均为线性单位时返回纯比例因子；
+     * 仿射单位间的转换不适用于纯比例因子，请使用 [convertValue]。
+     * Returns a pure scale factor only when both units are linear;
+     * for affine unit conversion, use [convertValue] instead.
      *
      * @param unit 目标单位 / Target unit
      * @return 转换因子，如果量纲不同返回 null / Conversion factor, or null if dimensions differ
      */
     fun to(unit: PhysicalUnit): Scale? {
-        return if (quantity == unit.quantity) {
-            scale / unit.scale
-        } else {
-            null
-        }
+        if (quantity != unit.quantity) return null
+        // 如果任一端为仿射单位，纯比例因子不足以表达转换
+        // If either end is affine, a pure scale factor is insufficient
+        if (this.isAffine || unit.isAffine) return null
+        return scale / unit.scale
     }
 
     /**
@@ -104,6 +197,57 @@ abstract class PhysicalUnit {
      */
     fun from(unit: PhysicalUnit): Scale? {
         return unit.to(this)
+    }
+
+    /**
+     * 将值从此单位转换到目标单位
+     * Convert a value from this unit to the target unit
+     *
+     * 支持线性和仿射转换：
+     * Supports both linear and affine conversions:
+     * - 线性: target = value * (thisScale / targetScale)
+     * - 仿射: standard = value * thisScale + thisOffset;
+     *         target = (standard - targetOffset) / targetScale
+     *
+     * @param value 此单位的值 / Value in this unit
+     * @param unit 目标单位 / Target unit
+     * @return 转换后的值，如果量纲不同返回 null / Converted value, or null if dimensions differ
+     */
+    fun convertValue(value: FltX, unit: PhysicalUnit): FltX? {
+        if (quantity != unit.quantity) return null
+
+        val thisRule = conversionRule
+        val targetRule = unit.conversionRule
+
+        return when (thisRule) {
+            is UnitConversionRule.Linear if targetRule is UnitConversionRule.Linear -> {
+                // 线性 → 线性: target = value * thisScale / targetScale
+                val factor = thisRule.scale / targetRule.scale
+                value * factor.value
+            }
+
+            is UnitConversionRule.Linear if targetRule is UnitConversionRule.Affine -> {
+                // 线性 → 仿射: 先转到标准，再从标准转到仿射目标
+                // standard = value * thisScale; target = (standard - targetOffset) / targetScale
+                val standard = value * thisRule.scale.value
+                (standard - targetRule.offset) / targetRule.scale.value
+            }
+
+            is UnitConversionRule.Affine if targetRule is UnitConversionRule.Linear -> {
+                // 仿射 → 线性: standard = value * thisScale + thisOffset; target = standard / targetScale
+                val standard = value * thisRule.scale.value + thisRule.offset
+                standard / targetRule.scale.value
+            }
+
+            is UnitConversionRule.Affine if targetRule is UnitConversionRule.Affine -> {
+                // 仿射 → 仿射: 通过标准单位中转
+                // standard = value * thisScale + thisOffset; target = (standard - targetOffset) / targetScale
+                val standard = value * thisRule.scale.value + thisRule.offset
+                (standard - targetRule.offset) / targetRule.scale.value
+            }
+
+            else -> null
+        }
     }
 
     /**
@@ -122,7 +266,7 @@ abstract class PhysicalUnit {
         if (other !is PhysicalUnit) return false
 
         if (quantity != other.quantity) return false
-        if (scale != other.scale) return false
+        if (conversionRule != other.conversionRule) return false
         if (domain != other.domain) return false
 
         return true
@@ -130,7 +274,7 @@ abstract class PhysicalUnit {
 
     override fun hashCode(): Int {
         var result = quantity.hashCode()
-        result = 31 * result + scale.hashCode()
+        result = 31 * result + conversionRule.hashCode()
         result = 31 * result + domain.hashCode()
         return result
     }
@@ -154,7 +298,7 @@ abstract class DerivedPhysicalUnit(
 ) : PhysicalUnit() {
     override val quantity by unit::quantity
     override val domain by unit::domain
-    override val scale by unit::scale
+    override val conversionRule by unit::conversionRule
 }
 
 /**
@@ -165,13 +309,13 @@ abstract class DerivedPhysicalUnit(
  * Used for dynamically created unit instances.
  *
  * @param quantity 单位量纲 / Unit quantity (dimension)
- * @param scale 单位比例 / Unit scale
+ * @param conversionRule 单位转换规则 / Unit conversion rule
  * @param name 单位名称（可选）/ Unit name (optional)
  * @param symbol 单位符号（可选）/ Unit symbol (optional)
  */
 data class AnonymousPhysicalUnit(
     override val quantity: DerivedQuantity,
-    override val scale: Scale,
+    override val conversionRule: UnitConversionRule,
     override val name: String? = null,
     override val symbol: String? = null,
     override val domain: QuantityDomain = quantity.domain
@@ -181,7 +325,7 @@ data class AnonymousPhysicalUnit(
         if (other !is PhysicalUnit) return false
 
         if (quantity != other.quantity) return false
-        if (scale != other.scale) return false
+        if (conversionRule != other.conversionRule) return false
         if (domain != other.domain) return false
 
         return true
@@ -189,7 +333,7 @@ data class AnonymousPhysicalUnit(
 
     override fun hashCode(): Int {
         var result = quantity.hashCode()
-        result = 31 * result + scale.hashCode()
+        result = 31 * result + conversionRule.hashCode()
         result = 31 * result + domain.hashCode()
         return result
     }
@@ -208,7 +352,7 @@ data class AnonymousPhysicalUnit(
  */
 object NoneUnit : PhysicalUnit() {
     override val quantity = DerivedQuantity(emptyList())
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
     override val name: String? = null
     override val symbol: String? = null
 }
@@ -228,12 +372,18 @@ data class QuantityUnit(
     override val symbol: String? = null
 ) : PhysicalUnit() {
     override val quantity = DerivedQuantity(emptyList())
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 // ============================================================================
 // 单位运算符 / Unit Operators
 // ============================================================================
+
+private fun PhysicalUnit.requireLinearForUnitOperation(operation: String) {
+    require(!isAffine) {
+        "Cannot $operation affine unit '$this'. Use a linear difference unit instead."
+    }
+}
 
 /**
  * 单位与整数比例相乘
@@ -243,9 +393,10 @@ data class QuantityUnit(
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale * Scale(scale)),
         domain = this.domain
     )
 }
@@ -258,9 +409,10 @@ operator fun PhysicalUnit.times(scale: Int): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale / Scale(scale)),
         domain = this.domain
     )
 }
@@ -273,9 +425,10 @@ operator fun PhysicalUnit.div(scale: Int): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale * Scale(scale)),
         domain = this.domain
     )
 }
@@ -288,9 +441,10 @@ operator fun PhysicalUnit.times(scale: Double): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale / Scale(scale)),
         domain = this.domain
     )
 }
@@ -303,9 +457,10 @@ operator fun PhysicalUnit.div(scale: Double): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale * Scale(scale)),
         domain = this.domain
     )
 }
@@ -318,9 +473,10 @@ operator fun PhysicalUnit.times(scale: FltX): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale / Scale(scale)),
         domain = this.domain
     )
 }
@@ -333,9 +489,10 @@ operator fun PhysicalUnit.div(scale: FltX): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale * Scale(scale)),
         domain = this.domain
     )
 }
@@ -348,9 +505,10 @@ operator fun PhysicalUnit.times(scale: RtnX): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: RtnX): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / Scale(scale),
+        conversionRule = UnitConversionRule.Linear(this.scale / Scale(scale)),
         domain = this.domain
     )
 }
@@ -363,9 +521,10 @@ operator fun PhysicalUnit.div(scale: RtnX): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.times(scale: Scale): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale * scale,
+        conversionRule = UnitConversionRule.Linear(this.scale * scale),
         domain = this.domain
     )
 }
@@ -378,9 +537,10 @@ operator fun PhysicalUnit.times(scale: Scale): PhysicalUnit {
  * @return 缩放后的新单位 / New scaled unit
  */
 operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
+    requireLinearForUnitOperation("scale")
     return AnonymousPhysicalUnit(
         quantity = this.quantity,
-        scale = this.scale / scale,
+        conversionRule = UnitConversionRule.Linear(this.scale / scale),
         domain = this.domain
     )
 }
@@ -393,9 +553,11 @@ operator fun PhysicalUnit.div(scale: Scale): PhysicalUnit {
  * @return 相乘后的新单位 / New unit resulting from multiplication
  */
 operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
+    requireLinearForUnitOperation("multiply")
+    other.requireLinearForUnitOperation("multiply")
     return AnonymousPhysicalUnit(
         quantity = this.quantity * other.quantity,
-        scale = this.scale * other.scale
+        conversionRule = UnitConversionRule.Linear(this.scale * other.scale)
     )
 }
 
@@ -407,9 +569,11 @@ operator fun PhysicalUnit.times(other: PhysicalUnit): PhysicalUnit {
  * @return 相除后的新单位 / New unit resulting from division
  */
 operator fun PhysicalUnit.div(other: PhysicalUnit): PhysicalUnit {
+    requireLinearForUnitOperation("divide")
+    other.requireLinearForUnitOperation("divide")
     return AnonymousPhysicalUnit(
         quantity = this.quantity / other.quantity,
-        scale = this.scale / other.scale
+        conversionRule = UnitConversionRule.Linear(this.scale / other.scale)
     )
 }
 
@@ -421,6 +585,7 @@ operator fun PhysicalUnit.div(other: PhysicalUnit): PhysicalUnit {
  * @return 单位的幂次结果 / Result of unit power operation
  */
 fun PhysicalUnit.pow(index: Int): PhysicalUnit {
+    requireLinearForUnitOperation("raise")
     return if (index > 0) {
         pow(index - 1) * this
     } else if (index < 0) {

@@ -207,7 +207,7 @@ interface UnitSystem {
 
         return AnonymousPhysicalUnit(
             quantity = quantity,
-            scale = resultScale,
+            conversionRule = UnitConversionRule.Linear(resultScale),
             name = name,
             symbol = symbol
         )

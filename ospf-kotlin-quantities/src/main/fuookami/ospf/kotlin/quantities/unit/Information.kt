@@ -33,7 +33,7 @@ object Bit : PhysicalUnit() {
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
     /** 比例因子：1（基本单位） / Scale factor: 1 (base unit) */
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**
@@ -56,7 +56,7 @@ object Kilobit : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10³ / Scale factor: 10³ */
-    override val scale = Scale.kilo
+    override val conversionRule = UnitConversionRule.Linear(Scale.kilo)
 }
 
 /**
@@ -79,7 +79,7 @@ object Megabit : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁶ / Scale factor: 10⁶ */
-    override val scale = Scale.mega
+    override val conversionRule = UnitConversionRule.Linear(Scale.mega)
 }
 
 /**
@@ -102,7 +102,7 @@ object Gigabit : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁹ / Scale factor: 10⁹ */
-    override val scale = Scale.giga
+    override val conversionRule = UnitConversionRule.Linear(Scale.giga)
 }
 
 /**
@@ -125,7 +125,7 @@ object Terabit : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹² / Scale factor: 10¹² */
-    override val scale = Scale.tera
+    override val conversionRule = UnitConversionRule.Linear(Scale.tera)
 }
 
 /**
@@ -148,7 +148,7 @@ object Petabit : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁵ / Scale factor: 10¹⁵ */
-    override val scale = Scale.peta
+    override val conversionRule = UnitConversionRule.Linear(Scale.peta)
 }
 
 /**
@@ -171,7 +171,7 @@ object Exabit : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁸ / Scale factor: 10¹⁸ */
-    override val scale = Scale.exa
+    override val conversionRule = UnitConversionRule.Linear(Scale.exa)
 }
 
 /**
@@ -192,7 +192,7 @@ object Byte : PhysicalUnit() {
     /** 对应物理量：信息 / Corresponding quantity: Information */
     override val quantity = Information
     /** 比例因子：8 / Scale factor: 8 */
-    override val scale = Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale(8))
 }
 
 /**
@@ -215,7 +215,7 @@ object Kilobyte : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10³ × 8 = 8000 / Scale factor: 10³ × 8 = 8000 */
-    override val scale = Scale.kilo * Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale.kilo * Scale(8))
 }
 
 /**
@@ -238,7 +238,7 @@ object Megabyte : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁶ × 8 / Scale factor: 10⁶ × 8 */
-    override val scale = Scale.mega * Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale.mega * Scale(8))
 }
 
 /**
@@ -261,7 +261,7 @@ object Gigabyte : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10⁹ × 8 / Scale factor: 10⁹ × 8 */
-    override val scale = Scale.giga * Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale.giga * Scale(8))
 }
 
 /**
@@ -284,7 +284,7 @@ object Terabyte : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹² × 8 / Scale factor: 10¹² × 8 */
-    override val scale = Scale.tera * Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale.tera * Scale(8))
 }
 
 /**
@@ -307,7 +307,7 @@ object Petabyte : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁵ × 8 / Scale factor: 10¹⁵ × 8 */
-    override val scale = Scale.peta * Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale.peta * Scale(8))
 }
 
 /**
@@ -330,5 +330,5 @@ object Exabyte : PhysicalUnit() {
     /** 取值域：连续 / Value domain: continuous */
     override val domain = QuantityDomain.Continuous
     /** 比例因子：10¹⁸ × 8 / Scale factor: 10¹⁸ × 8 */
-    override val scale = Scale.exa * Scale(8)
+    override val conversionRule = UnitConversionRule.Linear(Scale.exa * Scale(8))
 }

@@ -34,7 +34,7 @@ object Radian : PhysicalUnit() {
     /** 对应物理量：平面角 / Corresponding quantity: PlaneAngle */
     override val quantity = PlaneAngle
     /** 比例因子：1（基本单位）/ Scale factor: 1 (base unit) */
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**

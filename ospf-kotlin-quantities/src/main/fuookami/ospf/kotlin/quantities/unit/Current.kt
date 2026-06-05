@@ -29,7 +29,7 @@ object Ampere : PhysicalUnit() {
     override val symbol = "A"
 
     override val quantity = Current
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**

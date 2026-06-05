@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.unit.Byte as ByteUnit
 import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 
 class QuantityDomainTest {
     @Test
@@ -62,13 +63,13 @@ class QuantityDomainTest {
 
         val unitA = AnonymousPhysicalUnit(
             quantity = discreteA,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "unit A",
             symbol = "UA"
         )
         val unitB = AnonymousPhysicalUnit(
             quantity = discreteB,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "unit B",
             symbol = "UB"
         )

@@ -34,7 +34,7 @@ object Kilogram : PhysicalUnit() {
     /** 对应物理量：质量 / Corresponding quantity: Mass */
     override val quantity = Mass
     /** 比例因子：1（基本单位）/ Scale factor: 1 (base unit) */
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**

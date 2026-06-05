@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
 
 class QuantityTest {
     @Test
@@ -90,7 +91,7 @@ class QuantityTest {
             override val name = "tome"
             override val symbol = "T"
             override val quantity = tome
-            override val scale = Scale()
+            override val conversionRule = UnitConversionRule.Linear(Scale())
         }
 
         // 验证单位
@@ -102,7 +103,7 @@ class QuantityTest {
             override val name = "tome per kilogram"
             override val symbol = "T/kg"
             override val quantity = tome / Mass
-            override val scale = Scale()
+            override val conversionRule = UnitConversionRule.Linear(Scale())
         }
 
         // 验证卷每千克的量纲符号（应该�?T·M^-1�?
@@ -151,7 +152,7 @@ class QuantityTest {
         // Define "Tome" unit (standard unit for tome dimension)
         val tomeUnit = AnonymousPhysicalUnit(
             quantity = tomeQuantity,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "tome",
             symbol = "T"
         )
@@ -160,7 +161,7 @@ class QuantityTest {
         // Define "Kilogram per Tome" unit (mass/tome)
         val kilogramPerTome = AnonymousPhysicalUnit(
             quantity = Mass / tomeQuantity,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "kilogram per tome",
             symbol = "kg/T"
         )
@@ -252,7 +253,7 @@ class QuantityTest {
         // Define "Zhang" unit (standard unit for zhang dimension)
         val zhangUnit = AnonymousPhysicalUnit(
             quantity = zhangQuantity,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "zhang",
             symbol = "Z"
         )
@@ -261,7 +262,7 @@ class QuantityTest {
         // Define "Ling" unit (standard unit for ling dimension)
         val lingUnit = AnonymousPhysicalUnit(
             quantity = lingQuantity,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "ling",
             symbol = "L"
         )
@@ -270,7 +271,7 @@ class QuantityTest {
         // Define "Zhang per Ling" unit (zhang/ling)
         val zhangPerLing = AnonymousPhysicalUnit(
             quantity = zhangQuantity / lingQuantity,
-            scale = Scale(),
+            conversionRule = UnitConversionRule.Linear(Scale()),
             name = "zhang per ling",
             symbol = "Z/L"
         )
@@ -339,7 +340,7 @@ class QuantityTest {
             override val name = "tome"
             override val symbol = "T"
             override val quantity = tome
-            override val scale = Scale()
+            override val conversionRule = UnitConversionRule.Linear(Scale())
         }
 
         // 3. 定义"卷每千克"单位（卷/质量�?
@@ -347,7 +348,7 @@ class QuantityTest {
             override val name = "tome per kilogram"
             override val symbol = "T/kg"
             override val quantity = tome / Mass
-            override val scale = Scale()
+            override val conversionRule = UnitConversionRule.Linear(Scale())
         }
 
         // 4. 测试乘法�? 千克 × 3 卷每千克 = 9 �?

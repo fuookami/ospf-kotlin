@@ -41,7 +41,7 @@ object Second : PhysicalUnit() {
     override val symbol: String = "s"
 
     override val quantity = Time
-    override val scale: Scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**

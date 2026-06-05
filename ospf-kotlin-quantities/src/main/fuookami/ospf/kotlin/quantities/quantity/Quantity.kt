@@ -145,6 +145,157 @@ private fun throwDimensionMismatch(lhs: PhysicalUnit, rhs: PhysicalUnit, operati
     )
 }
 
+private val affineFlt64Tolerance = Flt64(1e-10)
+private val affineFltXTolerance = FltX("1e-12")
+
+private fun PhysicalUnit.toStandardValue(value: FltX): FltX {
+    return when (val rule = conversionRule) {
+        is UnitConversionRule.Linear -> value * rule.scale.value
+        is UnitConversionRule.Affine -> value * rule.scale.value + rule.offset
+    }
+}
+
+private fun PhysicalUnit.convertLinearDifferenceValue(value: FltX, unit: PhysicalUnit): FltX? {
+    if (quantity != unit.quantity) return null
+    return value * scale.value / unit.scale.value
+}
+
+private fun PhysicalUnit.linearDifferenceUnit(): PhysicalUnit {
+    if (!isAffine) return this
+    return AnonymousPhysicalUnit(
+        quantity = quantity,
+        conversionRule = UnitConversionRule.Linear(scale),
+        name = name?.let { "$it difference" },
+        symbol = symbol?.let { "delta($it)" },
+        domain = domain
+    )
+}
+
+private fun affineOrder(lhs: Flt64, rhs: Flt64): Order {
+    val diff = lhs - rhs
+    return if (diff.abs() <= affineFlt64Tolerance) {
+        Order.Equal
+    } else if (diff < Flt64.zero) {
+        Order.Less()
+    } else {
+        Order.Greater()
+    }
+}
+
+private fun affineOrder(lhs: FltX, rhs: FltX): Order {
+    val diff = lhs - rhs
+    return if (diff.abs() <= affineFltXTolerance) {
+        Order.Equal
+    } else if (diff < FltX.zero) {
+        Order.Less()
+    } else {
+        Order.Greater()
+    }
+}
+
+private fun affineOrderOf(lhs: Quantity<*>, rhs: Quantity<*>): Order? {
+    if (lhs.unit.quantity != rhs.unit.quantity) return null
+    if (!lhs.unit.isAffine && !rhs.unit.isAffine) return null
+
+    val lhsValue = lhs.value
+    val rhsValue = rhs.value
+    return when {
+        lhsValue is Flt64 && rhsValue is Flt64 -> {
+            val converted = rhs.unit.convertValue(rhsValue.toFltX(), lhs.unit)?.toFlt64() ?: return null
+            affineOrder(lhsValue, converted)
+        }
+
+        lhsValue is FltX && rhsValue is FltX -> {
+            val converted = rhs.unit.convertValue(rhsValue, lhs.unit) ?: return null
+            affineOrder(lhsValue, converted)
+        }
+
+        else -> null
+    }
+}
+
+private fun requireNonAffineAddition(lhs: PhysicalUnit, rhs: PhysicalUnit) {
+    require(!lhs.isAffine && !rhs.isAffine) {
+        "Cannot add quantities with affine units as ordinary sums. Add a linear difference instead."
+    }
+}
+
+private fun requireNonAffineScalarOperation(unit: PhysicalUnit, operation: String) {
+    require(!unit.isAffine) {
+        "Cannot $operation quantity with affine unit '$unit'. Use a linear difference unit instead."
+    }
+}
+
+private fun Quantity<Flt64>.plusAffineAwareFlt64(other: Quantity<Flt64>): Quantity<Flt64>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (!this.unit.isAffine && !other.unit.isAffine) return null
+    require(!(this.unit.isAffine && other.unit.isAffine)) {
+        "Cannot add two affine temperature points. Add a linear temperature difference instead."
+    }
+
+    return if (this.unit.isAffine) {
+        val delta = other.unit.convertLinearDifferenceValue(other.value.toFltX(), this.unit) ?: return null
+        Quantity(this.value + delta.toFlt64(), this.unit)
+    } else {
+        val delta = this.unit.convertLinearDifferenceValue(this.value.toFltX(), other.unit) ?: return null
+        Quantity(other.value + delta.toFlt64(), other.unit)
+    }
+}
+
+private fun Quantity<FltX>.plusAffineAwareFltX(other: Quantity<FltX>): Quantity<FltX>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (!this.unit.isAffine && !other.unit.isAffine) return null
+    require(!(this.unit.isAffine && other.unit.isAffine)) {
+        "Cannot add two affine temperature points. Add a linear temperature difference instead."
+    }
+
+    return if (this.unit.isAffine) {
+        val delta = other.unit.convertLinearDifferenceValue(other.value, this.unit) ?: return null
+        Quantity(this.value + delta, this.unit)
+    } else {
+        val delta = this.unit.convertLinearDifferenceValue(this.value, other.unit) ?: return null
+        Quantity(other.value + delta, other.unit)
+    }
+}
+
+private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quantity<Flt64>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (!this.unit.isAffine && !other.unit.isAffine) return null
+
+    return if (this.unit.isAffine && other.unit.isAffine) {
+        val difference = this.unit.toStandardValue(this.value.toFltX()) -
+                other.unit.toStandardValue(other.value.toFltX())
+        val differenceUnit = this.unit.linearDifferenceUnit()
+        Quantity((difference / differenceUnit.scale.value).toFlt64(), differenceUnit)
+    } else if (this.unit.isAffine) {
+        val delta = other.unit.convertLinearDifferenceValue(other.value.toFltX(), this.unit) ?: return null
+        Quantity(this.value - delta.toFlt64(), this.unit)
+    } else {
+        throw IllegalArgumentException(
+            "Cannot subtract an affine temperature point from a linear difference."
+        )
+    }
+}
+
+private fun Quantity<FltX>.minusAffineAwareFltX(other: Quantity<FltX>): Quantity<FltX>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (!this.unit.isAffine && !other.unit.isAffine) return null
+
+    return if (this.unit.isAffine && other.unit.isAffine) {
+        val difference = this.unit.toStandardValue(this.value) -
+                other.unit.toStandardValue(other.value)
+        val differenceUnit = this.unit.linearDifferenceUnit()
+        Quantity(difference / differenceUnit.scale.value, differenceUnit)
+    } else if (this.unit.isAffine) {
+        val delta = other.unit.convertLinearDifferenceValue(other.value, this.unit) ?: return null
+        Quantity(this.value - delta, this.unit)
+    } else {
+        throw IllegalArgumentException(
+            "Cannot subtract an affine temperature point from a linear difference."
+        )
+    }
+}
+
 /**
  * 用指定值创建物理量
  * Create quantity with specified value
@@ -293,6 +444,7 @@ infix fun <V> Quantity<V>.eq(other: Quantity<V>): Boolean where V : Eq<V> {
     return if (this.unit == other.unit) {
         this.value eq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it is Order.Equal }
         val converted = other.tryConvertByValueType(this.unit) ?: return false
         this.value eq converted.value
     } else {
@@ -311,6 +463,7 @@ infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Eq<V> {
     return if (this.unit == other.unit) {
         this.value neq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it !is Order.Equal }
         val converted = other.tryConvertByValueType(this.unit) ?: return true
         this.value neq converted.value
     } else {
@@ -332,6 +485,7 @@ infix fun <V> Quantity<V>.partialOrd(other: Quantity<V>): Order? where V : Parti
     return if (this.unit == other.unit) {
         this.value partialOrd other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it }
         val converted = other.tryConvertByValueType(this.unit) ?: return null
         this.value partialOrd converted.value
     } else {
@@ -350,6 +504,7 @@ infix fun <V> Quantity<V>.ls(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value ls other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it is Order.Less }
         val converted = other.tryConvertByValueType(this.unit) ?: return null
         this.value ls converted.value
     } else {
@@ -368,6 +523,7 @@ infix fun <V> Quantity<V>.leq(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value leq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it is Order.Less || it is Order.Equal }
         val converted = other.tryConvertByValueType(this.unit) ?: return null
         this.value leq converted.value
     } else {
@@ -386,6 +542,7 @@ infix fun <V> Quantity<V>.gr(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value gr other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it is Order.Greater }
         val converted = other.tryConvertByValueType(this.unit) ?: return null
         this.value gr converted.value
     } else {
@@ -404,6 +561,7 @@ infix fun <V> Quantity<V>.geq(other: Quantity<V>): Boolean? where V : Ord<V> {
     return if (this.unit == other.unit) {
         this.value geq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
+        affineOrderOf(this, other)?.let { return it is Order.Greater || it is Order.Equal }
         val converted = other.tryConvertByValueType(this.unit) ?: return null
         this.value geq converted.value
     } else {
@@ -526,6 +684,10 @@ fun <F : FloatingImpl<F>> Quantity<F>.round(): Quantity<F> {
 fun Quantity<Int64>.to(unit: PhysicalUnit): Quantity<Int64>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
+    } else if (this.unit.isAffine || unit.isAffine) {
+        // 仿射单位转换不适用于整数类型（存在偏移量）
+        // Affine unit conversion is not applicable to integer types (has offset)
+        null
     } else {
         this.unit.to(unit)?.value?.let { factor ->
             // 检查转换因子是否为整数 / Check if conversion factor is an integer
@@ -555,6 +717,10 @@ fun Quantity<Int64>.to(unit: PhysicalUnit): Quantity<Int64>? {
 fun Quantity<UInt64>.to(unit: PhysicalUnit): Quantity<UInt64>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
+    } else if (this.unit.isAffine || unit.isAffine) {
+        // 仿射单位转换不适用于整数类型（存在偏移量）
+        // Affine unit conversion is not applicable to integer types (has offset)
+        null
     } else {
         this.unit.to(unit)?.value?.let { factor ->
             // 检查转换因子是否为整数 / Check if conversion factor is an integer
@@ -583,6 +749,10 @@ fun Quantity<UInt64>.to(unit: PhysicalUnit): Quantity<UInt64>? {
 fun Quantity<IntX>.to(unit: PhysicalUnit): Quantity<IntX>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
+    } else if (this.unit.isAffine || unit.isAffine) {
+        // 仿射单位转换不适用于整数类型（存在偏移量）
+        // Affine unit conversion is not applicable to integer types (has offset)
+        null
     } else {
         this.unit.to(unit)?.value?.let { factor ->
             // 检查转换因子是否为整数 / Check if conversion factor is an integer
@@ -615,6 +785,12 @@ fun Quantity<IntX>.to(unit: PhysicalUnit): Quantity<IntX>? {
 fun Quantity<Flt64>.to(unit: PhysicalUnit): Quantity<Flt64>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
+    } else if (this.unit.isAffine || unit.isAffine) {
+        // 仿射转换需要完整的值转换，不能只用比例因子
+        // Affine conversion requires full value conversion, not just a scale factor
+        this.unit.convertValue(this.value.toFltX(), unit)?.let {
+            Quantity(it.toFlt64(), unit)
+        }
     } else {
         this.unit.to(unit)?.value?.let {
             Quantity(it.toFlt64() * this.value, unit)
@@ -633,6 +809,12 @@ fun Quantity<Flt64>.to(unit: PhysicalUnit): Quantity<Flt64>? {
 fun Quantity<FltX>.to(unit: PhysicalUnit): Quantity<FltX>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
+    } else if (this.unit.isAffine || unit.isAffine) {
+        // 仿射转换需要完整的值转换，不能只用比例因子
+        // Affine conversion requires full value conversion, not just a scale factor
+        this.unit.convertValue(this.value, unit)?.let {
+            Quantity(it, unit)
+        }
     } else {
         this.unit.to(unit)?.value?.let {
             Quantity(it.toFltX() * this.value, unit)
@@ -742,6 +924,7 @@ operator fun BigDecimal.times(unit: PhysicalUnit): Quantity<FltX> {
  */
 @JvmName("plusQuantityInt64")
 operator fun Quantity<Int64>.plus(other: Quantity<Int64>): Quantity<Int64> {
+    requireNonAffineAddition(this.unit, other.unit)
     return if (this.unit == other.unit) {
         Quantity(this.value + other.value, this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -765,6 +948,7 @@ operator fun Quantity<Int64>.plus(other: Quantity<Int64>): Quantity<Int64> {
  */
 @JvmName("plusQuantityUInt64")
 operator fun Quantity<UInt64>.plus(other: Quantity<UInt64>): Quantity<UInt64> {
+    requireNonAffineAddition(this.unit, other.unit)
     return if (this.unit == other.unit) {
         Quantity(this.value + other.value, this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -788,6 +972,7 @@ operator fun Quantity<UInt64>.plus(other: Quantity<UInt64>): Quantity<UInt64> {
  */
 @JvmName("plusQuantityIntX")
 operator fun Quantity<IntX>.plus(other: Quantity<IntX>): Quantity<IntX> {
+    requireNonAffineAddition(this.unit, other.unit)
     return if (this.unit == other.unit) {
         Quantity(this.value + other.value, this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -811,16 +996,18 @@ operator fun Quantity<IntX>.plus(other: Quantity<IntX>): Quantity<IntX> {
  */
 @JvmName("plusQuantityFlt64")
 operator fun Quantity<Flt64>.plus(other: Quantity<Flt64>): Quantity<Flt64> {
+    if (this.unit.quantity != other.unit.quantity) {
+        throwDimensionMismatch(this.unit, other.unit, "addition")
+    }
+    this.plusAffineAwareFlt64(other)?.let { return it }
     return if (this.unit == other.unit) {
         Quantity(this.value + other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
+    } else {
         if (this.unit.scale.value leq other.unit.scale.value) {
             Quantity(this.value + other.to(this.unit)!!.value, this.unit)
         } else {
             Quantity(this.to(other.unit)!!.value + other.value, other.unit)
         }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
     }
 }
 
@@ -834,16 +1021,18 @@ operator fun Quantity<Flt64>.plus(other: Quantity<Flt64>): Quantity<Flt64> {
  */
 @JvmName("plusQuantityFltX")
 operator fun Quantity<FltX>.plus(other: Quantity<FltX>): Quantity<FltX> {
+    if (this.unit.quantity != other.unit.quantity) {
+        throwDimensionMismatch(this.unit, other.unit, "addition")
+    }
+    this.plusAffineAwareFltX(other)?.let { return it }
     return if (this.unit == other.unit) {
         Quantity(this.value + other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
+    } else {
         if (this.unit.scale.value leq other.unit.scale.value) {
             Quantity(this.value + other.to(this.unit)!!.value, this.unit)
         } else {
             Quantity(this.to(other.unit)!!.value + other.value, other.unit)
         }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
     }
 }
 
@@ -861,6 +1050,9 @@ operator fun Quantity<FltX>.plus(other: Quantity<FltX>): Quantity<FltX> {
  */
 @JvmName("minusQuantityInt64")
 operator fun Quantity<Int64>.minus(other: Quantity<Int64>): Quantity<Int64> {
+    require(!this.unit.isAffine && !other.unit.isAffine) {
+        "Cannot subtract integer quantities with affine units."
+    }
     return if (this.unit == other.unit) {
         Quantity(this.value - other.value, this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -884,6 +1076,9 @@ operator fun Quantity<Int64>.minus(other: Quantity<Int64>): Quantity<Int64> {
  */
 @JvmName("minusQuantityUInt64")
 operator fun Quantity<UInt64>.minus(other: Quantity<UInt64>): Quantity<UInt64> {
+    require(!this.unit.isAffine && !other.unit.isAffine) {
+        "Cannot subtract integer quantities with affine units."
+    }
     return if (this.unit == other.unit) {
         Quantity(this.value - other.value, this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -907,6 +1102,9 @@ operator fun Quantity<UInt64>.minus(other: Quantity<UInt64>): Quantity<UInt64> {
  */
 @JvmName("minusQuantityIntX")
 operator fun Quantity<IntX>.minus(other: Quantity<IntX>): Quantity<IntX> {
+    require(!this.unit.isAffine && !other.unit.isAffine) {
+        "Cannot subtract integer quantities with affine units."
+    }
     return if (this.unit == other.unit) {
         Quantity(this.value - other.value, this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
@@ -930,16 +1128,18 @@ operator fun Quantity<IntX>.minus(other: Quantity<IntX>): Quantity<IntX> {
  */
 @JvmName("minusQuantityFlt64")
 operator fun Quantity<Flt64>.minus(other: Quantity<Flt64>): Quantity<Flt64> {
+    if (this.unit.quantity != other.unit.quantity) {
+        throwDimensionMismatch(this.unit, other.unit, "subtraction")
+    }
+    this.minusAffineAwareFlt64(other)?.let { return it }
     return if (this.unit == other.unit) {
         Quantity(this.value - other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
+    } else {
         if (this.unit.scale.value leq other.unit.scale.value) {
             Quantity(this.value - other.to(this.unit)!!.value, this.unit)
         } else {
             Quantity(this.to(other.unit)!!.value - other.value, other.unit)
         }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
     }
 }
 
@@ -953,16 +1153,18 @@ operator fun Quantity<Flt64>.minus(other: Quantity<Flt64>): Quantity<Flt64> {
  */
 @JvmName("minusQuantityFltX")
 operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX> {
+    if (this.unit.quantity != other.unit.quantity) {
+        throwDimensionMismatch(this.unit, other.unit, "subtraction")
+    }
+    this.minusAffineAwareFltX(other)?.let { return it }
     return if (this.unit == other.unit) {
         Quantity(this.value - other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
+    } else {
         if (this.unit.scale.value leq other.unit.scale.value) {
             Quantity(this.value - other.to(this.unit)!!.value, this.unit)
         } else {
             Quantity(this.to(other.unit)!!.value - other.value, other.unit)
         }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
     }
 }
 
@@ -990,6 +1192,12 @@ operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX> {
  * @return 相乘后的物理量 / Product quantity
  */
 operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
+    // 仿射单位不允许参与乘法运算
+    // Affine units cannot participate in multiplication
+    require(!this.unit.isAffine && !other.unit.isAffine) {
+        "Cannot multiply quantities with affine units (e.g., absolute temperature). " +
+        "Use temperature differences for multiplication."
+    }
     // 不同量纲相乘，产生新的量纲 / Different dimensions multiply to produce new dimension
     val newUnit = this.unit * other.unit
     return Quantity(this.value * other.value, newUnit)
@@ -1003,6 +1211,7 @@ operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V> where V : Ar
  * @return 相乘后的物理量 / Product quantity
  */
 operator fun <V> Quantity<V>.times(other: V): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
+    requireNonAffineScalarOperation(this.unit, "multiply")
     return Quantity(this.value * other, this.unit)
 }
 
@@ -1014,6 +1223,7 @@ operator fun <V> Quantity<V>.times(other: V): Quantity<V> where V : Arithmetic<V
  * @return 相乘后的物理量 / Product quantity
  */
 operator fun <V> V.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
+    requireNonAffineScalarOperation(other.unit, "multiply")
     return Quantity(this * other.value, other.unit)
 }
 
@@ -1041,6 +1251,12 @@ operator fun <V> V.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V
  * @return 相除后的物理量 / Quotient quantity
  */
 operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
+    // 仿射单位不允许参与除法运算
+    // Affine units cannot participate in division
+    require(!this.unit.isAffine && !other.unit.isAffine) {
+        "Cannot divide quantities with affine units (e.g., absolute temperature). " +
+        "Use temperature differences for division."
+    }
     // 不同量纲相除，产生新的量纲 / Different dimensions divide to produce new dimension
     val newUnit = this.unit / other.unit
     return Quantity(this.value / other.value, newUnit)
@@ -1054,6 +1270,7 @@ operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arit
  * @return 相除后的物理量 / Quotient quantity
  */
 operator fun <V> Quantity<V>.div(other: V): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
+    requireNonAffineScalarOperation(this.unit, "divide")
     return Quantity(this.value / other, this.unit)
 }
 
@@ -1068,6 +1285,7 @@ operator fun <V> Quantity<V>.div(other: V): Quantity<V> where V : Arithmetic<V>,
  * @return 相除后的物理量 / Quotient quantity
  */
 operator fun <V> V.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
+    requireNonAffineScalarOperation(other.unit, "divide")
     return Quantity(this / other.value, other.unit.reciprocal())
 }
 
@@ -1082,6 +1300,7 @@ operator fun <V> V.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>,
  * @return 负值物理量 / Negated quantity
  */
 operator fun <V> Quantity<V>.unaryMinus(): Quantity<V> where V : Arithmetic<V>, V : Neg<V> {
+    requireNonAffineScalarOperation(this.unit, "negate")
     return Quantity(-this.value, this.unit)
 }
 

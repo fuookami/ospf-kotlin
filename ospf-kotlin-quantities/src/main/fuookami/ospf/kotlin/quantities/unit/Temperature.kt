@@ -7,14 +7,18 @@
  * 来源：SI 基本单位及常用温度单位定义
  * Source: SI base unit and common temperature unit definitions
  * - Kelvin: SI base unit for thermodynamic temperature
- * - Celsius: °C = K - 273.15
- * - Fahrenheit: °F = °C × 9/5 + 32
- * - Rankine: °R = K × 9/5
+ * - Celsius: °C = K - 273.15 (仿射单位 / Affine unit)
+ * - Fahrenheit: °F = °C × 9/5 + 32 (仿射单位 / Affine unit)
+ * - Rankine: °R = K × 9/5 (线性单位 / Linear unit)
  */
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.dimension.Temperature
+
+private val fahrenheitLinearScale = Scale(RtnX(5, 9))
+private val fahrenheitAffineOffset = FltX(273.15) - FltX(32L) * fahrenheitLinearScale.value
 
 /**
  * 开尔文（SI 基本单位）
@@ -38,12 +42,12 @@ object Kelvin : PhysicalUnit() {
     override val symbol: String = "K"
 
     override val quantity = Temperature
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**
- * 摄氏度
- * Celsius
+ * 摄氏度（仿射单位）
+ * Celsius (Affine unit)
  *
  * 名称：摄氏度
  * Name: celsius
@@ -54,6 +58,9 @@ object Kelvin : PhysicalUnit() {
  * 定义：t/°C = T/K - 273.15
  * Definition: t/°C = T/K - 273.15
  *
+ * 转换规则：仿射转换，offset = 273.15
+ * Conversion rule: Affine conversion, offset = 273.15
+ *
  * 来源：常用温度单位，基于水的冰点（0°C）和沸点（100°C）
  * Source: Common temperature unit, based on water's freezing point (0°C) and boiling point (100°C)
  */
@@ -62,12 +69,15 @@ object Celsius : PhysicalUnit() {
     override val symbol: String = "°C"
 
     override val quantity = Temperature
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Affine(
+        scale = Scale(),
+        offset = FltX(273.15)
+    )
 }
 
 /**
- * 华氏度
- * Fahrenheit
+ * 华氏度（仿射单位）
+ * Fahrenheit (Affine unit)
  *
  * 名称：华氏度
  * Name: fahrenheit
@@ -78,8 +88,10 @@ object Celsius : PhysicalUnit() {
  * 定义：t/°F = t/°C × 9/5 + 32
  * Definition: t/°F = t/°C × 9/5 + 32
  *
- * 换算因子：相对于开尔文的缩放比例为 5/9
- * Conversion factor: Scale factor relative to kelvin is 5/9
+ * 转换规则：仿射转换，scale = 5/9（相对于 K），offset = 255.372222...
+ * (标准单位值 = °F × 5/9 + 255.372222...，即 °F × 5/9 + (273.15 - 32 × 5/9))
+ * Conversion rule: Affine conversion, scale = 5/9 (relative to K), offset = 255.372222...
+ * (standard = °F × 5/9 + 255.372222..., i.e., °F × 5/9 + (273.15 - 32 × 5/9))
  *
  * 来源：常用温度单位，主要使用于美国
  * Source: Common temperature unit, primarily used in the United States
@@ -89,12 +101,15 @@ object Fahrenheit : PhysicalUnit() {
     override val symbol: String = "°F"
 
     override val quantity = Temperature
-    override val scale = Scale(5.0 / 9.0)
+    override val conversionRule = UnitConversionRule.Affine(
+        scale = fahrenheitLinearScale,
+        offset = fahrenheitAffineOffset
+    )
 }
 
 /**
- * 兰氏度
- * Rankine
+ * 兰氏度（线性单位）
+ * Rankine (Linear unit)
  *
  * 名称：兰氏度
  * Name: rankine
@@ -105,8 +120,8 @@ object Fahrenheit : PhysicalUnit() {
  * 定义：T/°R = T/K × 9/5
  * Definition: T/°R = T/K × 9/5
  *
- * 换算因子：相对于开尔文的缩放比例为 5/9
- * Conversion factor: Scale factor relative to kelvin is 5/9
+ * 转换规则：线性转换，scale = 5/9（相对于 K）
+ * Conversion rule: Linear conversion, scale = 5/9 (relative to K)
  *
  * 来源：热力学温度单位，华氏温标的绝对温标
  * Source: Thermodynamic temperature unit, absolute scale of Fahrenheit
@@ -116,5 +131,7 @@ object Rankine : PhysicalUnit() {
     override val symbol: String = "°R"
 
     override val quantity = Temperature
-    override val scale = Scale(5.0 / 9.0)
+    override val conversionRule = UnitConversionRule.Linear(
+        scale = fahrenheitLinearScale
+    )
 }

@@ -36,7 +36,7 @@ object Meter : PhysicalUnit() {
     /** 对应物理量：长度 / Corresponding quantity: Length */
     override val quantity = Length
     /** 比例因子：1（基本单位）/ Scale factor: 1 (base unit) */
-    override val scale = Scale()
+    override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
 /**
