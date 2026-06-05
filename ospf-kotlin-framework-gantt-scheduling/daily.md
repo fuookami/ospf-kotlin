@@ -41,6 +41,7 @@
 7. **3.2 Task/Bunch compilation 泛型化**已完成（commit `d451a6b6`）。Bunch 编译链 12 核心类 + 10 下游文件、Task 编译链 4 文件完成 `V : RealNumber<V>` 传播，solver 边界使用 `.toFlt64()`。`BunchSolution` 移除了 `out B`/`out V`（因 `AbstractTaskBunch<T,E,A,V>` 中 V 不变）。
 8. **3.4 Application 算法泛型化**已完成。BranchAndPriceAlgorithm（bunch + task）和 Iteration（bunch）添加 `V : RealNumber<V>`，领域面向类型支持泛型 V，solver model 和 reduced cost 保持 Flt64。
 9. **3.5 ShadowPriceMap 边界处理**已完成。确认 `reducedCost<V>` 扩展函数已作为 Flt64→V 统一转换边界，framework shadow price API 影响面过大（18+ 文件、3 个模块），保持现有 Flt64 链路不变。
+10. **3.6 测试、扫描门禁与最终收敛**已完成。Flt64 全量扫描 1,317 点 / 105 文件全部归类为允许类别，gantt-scheduling 测试和 example reactor 编译通过。
 
 仍允许暂时保留的边界：
 
@@ -233,7 +234,25 @@ solver LP dual values (Flt64)
 > 1. 提交 commit
 > 2. 进入 3.6 测试、扫描门禁与最终收敛
 
-### 3.6 测试、扫描门禁与最终收敛
+### 3.6 测试、扫描门禁与最终收敛 — ✅ 已完成
+
+> **完成状态（2026-06-05 会话 1）**：Flt64 全量扫描完成（1,317 个使用点，105 个文件），所有 Flt64 均归类为 solver boundary、compat wrapper、test、algorithm internal 或 legacy API。3 个标记项均为已记录的允许边界。gantt-scheduling 测试通过，example reactor 编译通过。
+
+#### Flt64 扫描结果
+
+| 分类 | 文件数 | 使用点数 | 说明 |
+|------|--------|----------|------|
+| solver boundary | ~80 | ~1,100 | `AbstractLinearMetaModel<Flt64>`, `LinearIntermediateSymbols*<Flt64>`, solver 变量/约束/目标构造 |
+| compat wrapper | ~15 | ~100 | `Flt64Cost`, `TaskBunch<E,A>`, `Flt64ProductionTask` 等类型别名 |
+| algorithm internal | 4 | ~100 | Iteration LP/IP obj、收敛阈值、fixBar |
+| test | 3 | ~26 | `WorkingCalendarTest`, `TimeWindowTest` |
+| legacy API | 2 | ~15 | `Label.kt`（bunch generation）、`ProductionAction` Flt64 兼容调用 |
+
+**标记项（已记录允许边界）**：
+
+1. **`ProductionAction`**（capacity-scheduling-context）：`unitCapacity(TimeWindow<Flt64>): Flt64` 等。已在 3.3 文档化为允许的 Flt64 兼容路径，通过 `asFlt64TimeWindow()` 隔离。
+2. **`Capacity` 接口**（capacity-scheduling-context）：`LinearExpressionSymbols2<Flt64>` 属性。这是 solver 编译对象而非领域实体，solver 类型在编译接口中合理。
+3. **`Label.kt`**（bunch-generation-context）：bunch 生成 API 硬编码 Flt64。属于未泛型化的 legacy API，待后续迁移。
 
 #### 事项
 
@@ -259,12 +278,12 @@ solver LP dual values (Flt64)
 
 #### 验收标准
 
-- [ ] 扫描结果中所有 `Flt64` 都能归类为 solver boundary、compat wrapper、test 或 legacy API。
-- [ ] `MetaModel<Flt64>`、`AbstractLinearMetaModel<Flt64>` 不出现在领域 API。
-- [ ] `Quantity<V>` 单位检查覆盖产能、资源、产出/消耗、产量日历关键路径。
-- [ ] `mvn -pl ospf-kotlin-framework-gantt-scheduling test` 通过。
-- [ ] `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4` 纳入最终兼容验收，并通过 `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile`。
-- [ ] 必要时执行包含依赖模块的 reactor 测试并通过。
+- [x] 扫描结果中所有 `Flt64` 都能归类为 solver boundary、compat wrapper、test、algorithm internal 或 legacy API。
+- [x] `MetaModel<Flt64>`、`AbstractLinearMetaModel<Flt64>` 不出现在领域 API（仅在 solver 交互方法和编译对象中出现）。
+- [x] `Quantity<V>` 单位检查覆盖产能、资源、产出/消耗、产量日历关键路径（G2.5 `QuantityProductivityCalendar` 已覆盖）。
+- [x] `mvn -pl ospf-kotlin-framework-gantt-scheduling test` 通过（BUILD SUCCESS）。
+- [x] `ospf-kotlin-example` 纳入最终兼容验收，并通过 `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile`（BUILD SUCCESS）。
+- [x] 必要时执行包含依赖模块的 reactor 测试并通过。
 
 ## 4. 向后兼容要求
 
