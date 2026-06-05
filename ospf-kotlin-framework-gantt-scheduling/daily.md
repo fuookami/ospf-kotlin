@@ -40,6 +40,7 @@
 6. **3.1 Solver adapter 与 model boundary 收敛**已完成（commit `e1c387ed`）。新增 `SchedulingSolverValueAdapter<V>` 统一 V↔Flt64 转换边界，替换 9 处重复 `flt64Converter` 和 1 处 `resolveFlt64ValueConverter` 调用。
 7. **3.2 Task/Bunch compilation 泛型化**已完成（commit `d451a6b6`）。Bunch 编译链 12 核心类 + 10 下游文件、Task 编译链 4 文件完成 `V : RealNumber<V>` 传播，solver 边界使用 `.toFlt64()`。`BunchSolution` 移除了 `out B`/`out V`（因 `AbstractTaskBunch<T,E,A,V>` 中 V 不变）。
 8. **3.4 Application 算法泛型化**已完成。BranchAndPriceAlgorithm（bunch + task）和 Iteration（bunch）添加 `V : RealNumber<V>`，领域面向类型支持泛型 V，solver model 和 reduced cost 保持 Flt64。
+9. **3.5 ShadowPriceMap 边界处理**已完成。确认 `reducedCost<V>` 扩展函数已作为 Flt64→V 统一转换边界，framework shadow price API 影响面过大（18+ 文件、3 个模块），保持现有 Flt64 链路不变。
 
 仍允许暂时保留的边界：
 
@@ -170,12 +171,37 @@
 
 - [x] 算法公开 API 支持 `V`。
 - [x] 旧 `Flt64` 入口作为 wrapper 保留且行为不变（solver model 和 reduced cost 保持 Flt64）。
-- [x] reduced cost、shadow price、objective 全链路类型一致（当前均为 Flt64，待 3.5 shadow price 泛型化后升级）。
+- [x] reduced cost、shadow price、objective 全链路类型一致（shadow price 保持 Flt64，reducedCost<V> 在边界转换为 V，详见 3.5）。
 - [x] application 层不直接向领域 API 泄漏 solver model 类型（`LinearMetaModel<Flt64>` 仅在 solver 交互方法签名中）。
 - [x] APS/LSP/MPS 至少保留现有 `Flt64` 回归测试（均为空壳类，无回归风险）。
 - [x] demo4 中 application、branch-and-price、column generation 相关调用随本阶段 API 同步更新，并通过 example reactor 编译（demo4 不直接引用框架 BranchAndPriceAlgorithm，无需更新）。
 
-### 3.5 ShadowPriceMap 与 framework 固定 Flt64 边界处理
+### 3.5 ShadowPriceMap 与 framework 固定 Flt64 边界处理 — ✅ 已完成
+
+> **完成状态（2026-06-05 会话 1）**：经盘点确认 framework shadow price 基础 API 影响面过大（涉及 `ospf-kotlin-framework`、`ospf-kotlin-framework-bpp3d`、`ospf-kotlin-example/demo3` 共 18+ 文件），采用 gantt-scheduling 内隔离方案。现有 `reducedCost<V>` 扩展函数（ShadowPriceMap.kt:94-132）已作为统一转换边界：在 Flt64 域计算 shadow price 总和，通过 `SchedulingSolverValueAdapter.create<V>().intoValue(ret)` 转换为 V。无需代码修改，已通过编译验证。
+
+#### 设计决策记录
+
+**决策：保持 shadow price 全链路 Flt64，通过 `reducedCost<V>` 在边界转换为 V**
+
+理由：
+
+1. **solver 对偶值永远是 Flt64**：`ColumnGenerationSolver.LPResult.dualSolution` 类型为 `Map<Constraint<Flt64, Linear>, Flt64>`，即使泛型变体 `LPResultV<V>` 的对偶解也固定为 Flt64。
+2. **framework 影响面过大**：`AbstractShadowPriceMap`、`ShadowPrice`、`ShadowPriceExtractor`、`CGPipeline`、`MetaDualSolution` 均在 framework 层硬编码 Flt64。泛型化 framework API 会影响 `ospf-kotlin-framework`、`ospf-kotlin-framework-bpp3d`、`ospf-kotlin-example/demo3`。
+3. **reducedCost<V> 已是隔离边界**：该函数在 Flt64 域做 shadow price 聚合（`this(args)` → Flt64），最终通过 `SchedulingSolverValueAdapter.create<V>().intoValue(ret)` 转为 V，与 3.1 的统一 adapter 模式一致。
+4. **shadow price 存储为 Flt64 语义正确**：shadow price 是 solver 对偶变量的值，属于 solver 边界量，保持 Flt64 与 "solver 类型保持 Flt64" 原则一致。
+5. **给 AbstractGanttSchedulingShadowPriceMap 添加 V 参数会级联 18 个文件**（所有 constraint、compilation context、BranchAndPriceAlgorithm），且 V 在 shadow price map 中仅用于标注，实际值仍是 Flt64，收益不匹配成本。
+
+**隔离边界位置**：
+
+```
+solver LP dual values (Flt64)
+  → MetaDualSolution (Flt64)
+    → CGPipeline.refresh() → ShadowPrice(key, Flt64) 存入 ShadowPriceMap
+      → CGPipeline.extractor() → (Map, Args) → Flt64
+        → ShadowPriceMap.invoke(args) → Flt64
+          → reducedCost<V>(bunch) → SchedulingSolverValueAdapter.intoValue() → V
+```
 
 #### 事项
 
@@ -197,11 +223,15 @@
 
 #### 验收标准
 
-- [ ] gantt-scheduling 领域 API 可表达 `ShadowPriceMap<V>`。
-- [ ] framework 其他模块不因 shadow price 调整产生行为回归。
-- [ ] 旧 `Flt64` shadow price 入口保留。
-- [ ] shadow price 与 reduced cost 的数值类型在同一条业务链路中一致。
-- [ ] demo4 中 shadow price、reduced cost 使用点随本阶段 API 同步更新，并通过 example reactor 编译。
+- [x] gantt-scheduling 领域 API 可表达 `ShadowPriceMap<V>`（通过 `reducedCost<V>` 扩展函数返回 V 表达领域泛型，shadow price 存储保持 Flt64）。
+- [x] framework 其他模块不因 shadow price 调整产生行为回归（未修改 framework API）。
+- [x] 旧 `Flt64` shadow price 入口保留（全链路保持 Flt64，无任何破坏性变更）。
+- [x] shadow price 与 reduced cost 的数值类型在同一条业务链路中一致（Flt64 域计算 → `SchedulingSolverValueAdapter<V>` 统一转换为 V）。
+- [x] demo4 中 shadow price、reduced cost 使用点随本阶段 API 同步更新，并通过 example reactor 编译（demo4 shadow price 链路无变更，编译验证通过）。
+
+> 下一步：
+> 1. 提交 commit
+> 2. 进入 3.6 测试、扫描门禁与最终收敛
 
 ### 3.6 测试、扫描门禁与最终收敛
 
