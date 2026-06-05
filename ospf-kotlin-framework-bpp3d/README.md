@@ -38,6 +38,20 @@ See detailed progress in [refactor.md](./refactor.md).
 | `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported only in known-coordinate final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
 | `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported only in known-coordinate final packing/rendering paths guarded by real 3D geometry and floor/full-length cuboid support checks; generation/stacking/hanging paths remain unsupported. |
 
+## Shape Path Support Matrix
+
+| Path | Cuboid | `Axis3.Y` cylinder | `Axis3.X` / `Axis3.Z` cylinder |
+| --- | --- | --- | --- |
+| Explicit final bins / known-coordinate packing | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or full-length cuboid support required |
+| Generic known-coordinate analysis | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or full-length cuboid support required |
+| Default layer placement adapter for generated candidates | Supported | Supported | Unsupported; rejected before candidate placement |
+| Layer generation / circle packing | Supported | Supported as vertical cylinder candidates | Unsupported; cannot reuse the `Axis3.Y` circle-packing plane assumption |
+| BLA placement | Supported for current generated layers | Supported only through verified vertical-cylinder generated layers | Not a generation path; use known-coordinate final validation instead |
+| Simple block generation | Supported | Supported only for upright `Axis3.Y` cylinders | Unsupported |
+| DFS / MLHS space splitting | Supported cuboid-only path | Unsupported | Unsupported |
+| Stacking / hanging support semantics | Supported cuboid semantics | Limited to upright `Axis3.Y` support checks where explicitly guarded | Unsupported |
+| Depth boundary policy | Application-level final validation | Application-level final validation | Application-level final validation only after known coordinates exist |
+
 ## CSV Input Protocol (Gurobi Dataset)
 
 `GurobiColumnGenerationTest` currently supports two CSV shapes:

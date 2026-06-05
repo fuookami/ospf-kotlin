@@ -151,6 +151,60 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
+    fun analyzerShouldAcceptExplicitKnownCoordinateHorizontalCylinderBins() = runBlocking {
+        val layer = horizontalCylinderLayer(Axis3.Z)
+        val modelLayer = layer.toModel()
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-ANALYZER-CYLINDER-Z"
+        )
+        val explicitBin = layerBinOf(
+            shape = bin,
+            units = listOf(modelLayer.toKnownCoordinateLayerPlacement())
+        )
+        val analyzer = ColumnGenerationPackingAnalyzer()
+
+        analyzer.analyzeFromGeneric(
+            iteration = 7,
+            columns = listOf(layer),
+            bins = listOf(explicitBin)
+        )
+
+        val latest = analyzer.latest
+        assertNotNull(latest)
+        val item = latest.schema.loadingPlans.single().items.single()
+        assertEquals("HorizontalCylinderZ", item.algorithmShapeType.name)
+        assertEquals("Z", item.axis?.name)
+        assertEquals("7", latest.schema.kpi["cg_iteration"])
+    }
+
+    @Test
+    fun analyzerShouldBuildKnownCoordinateBinsForMultipleHorizontalCylinderAxes() = runBlocking {
+        val analyzer = ColumnGenerationPackingAnalyzer()
+
+        analyzer.analyzeFromGeneric(
+            iteration = 8,
+            columns = listOf(
+                horizontalCylinderLayer(Axis3.X),
+                horizontalCylinderLayer(Axis3.Z)
+            )
+        )
+
+        val latest = analyzer.latest
+        assertNotNull(latest)
+        val items = latest.schema.loadingPlans.flatMap { it.items }
+        assertEquals(2, latest.schema.loadingPlans.size)
+        assertTrue(items.any { it.algorithmShapeType.name == "HorizontalCylinderX" && it.axis?.name == "X" })
+        assertTrue(items.any { it.algorithmShapeType.name == "HorizontalCylinderZ" && it.axis?.name == "Z" })
+        assertEquals("8", latest.schema.kpi["cg_iteration"])
+    }
+
+    @Test
     fun analyzerShouldRejectKnownCoordinateMixedCylinderAxesWithinSameLayer() = runBlocking {
         val layer = horizontalCylinderLayer(
             axes = listOf(Axis3.X, Axis3.Z),
@@ -160,7 +214,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
 
         val exception = assertFailsWith<IllegalArgumentException> {
             analyzer.analyzeFromGeneric(
-                iteration = 7,
+                iteration = 9,
                 columns = listOf(layer)
             )
         }

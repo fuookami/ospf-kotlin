@@ -38,6 +38,20 @@
 | `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 仅在已知坐标最终装箱/渲染路径中由真实 3D 几何和贴地/全长长方体支撑 guard 保护后支持；候选生成、stacking 和 hanging 路径仍为 unsupported。 |
 | `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 仅在已知坐标最终装箱/渲染路径中由真实 3D 几何和贴地/全长长方体支撑 guard 保护后支持；候选生成、stacking 和 hanging 路径仍为 unsupported。 |
 
+## Shape 路径支持矩阵
+
+| 路径 | 长方体 | `Axis3.Y` 圆柱 | `Axis3.X` / `Axis3.Z` 圆柱 |
+| --- | --- | --- | --- |
+| 显式 final bins / 已知坐标装箱 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑 |
+| 泛型已知坐标分析 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑 |
+| 默认生成候选的 layer placement adapter | 支持 | 支持 | 不支持；进入候选放置前拒绝 |
+| layer generation / circle packing | 支持 | 支持竖直圆柱候选 | 不支持；不能复用 `Axis3.Y` circle-packing 平面假设 |
+| BLA placement | 支持当前已生成 layer | 仅通过已验证的竖直圆柱生成层支持 | 不是生成路径；应改走已知坐标终态校验 |
+| simple block generation | 支持 | 仅支持直立 `Axis3.Y` 圆柱 | 不支持 |
+| DFS / MLHS space splitting | 支持 cuboid-only 路径 | 不支持 | 不支持 |
+| stacking / hanging 支撑语义 | 支持长方体语义 | 仅在明确 guard 的直立 `Axis3.Y` 支撑检查中受限支持 | 不支持 |
+| depth boundary policy | application 层最终校验 | application 层最终校验 | 仅在已知坐标存在后做 application 层最终校验 |
+
 ## CSV 输入协议（Gurobi 数据集）
 
 当前 `GurobiColumnGenerationTest` 支持两类 CSV 形态：

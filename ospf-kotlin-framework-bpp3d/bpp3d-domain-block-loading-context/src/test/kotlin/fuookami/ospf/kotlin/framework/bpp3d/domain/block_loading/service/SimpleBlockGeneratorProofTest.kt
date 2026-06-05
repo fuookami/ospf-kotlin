@@ -101,7 +101,7 @@ class SimpleBlockGeneratorProofTest {
     }
 
     @Test
-    fun simpleBlockGeneratorShouldRejectCylinderWithAxisX() = runBlocking {
+    fun simpleBlockGeneratorShouldRejectHorizontalCylinderAxes() = runBlocking {
         val generator = SimpleBlockGenerator(
             config = SimpleBlockGenerator.Config(
                 mergeAsPatternBlock = false,
@@ -109,26 +109,29 @@ class SimpleBlockGeneratorProofTest {
                 withRemainder = false
             )
         )
-        val error = assertFailsWith<IllegalArgumentException> {
-            generator(
-                items = mapOf(
-                    cylinderItem(
-                        id = "cylinder-axis-x",
-                        axis = Axis3.X,
-                        enabledOrientations = listOf(Orientation.Upright)
-                    ) to UInt64(8)
-                ),
-                space = Container3Shape(
-                    width = infraScalar(2.0) * Meter,
-                    height = infraScalar(2.0) * Meter,
-                    depth = infraScalar(2.0) * Meter
-                ),
-                patterns = emptyList(),
-                restWeight = InfraNumber.maximum
-            )
-        }
+        for (axis in listOf(Axis3.X, Axis3.Z)) {
+            val error = assertFailsWith<IllegalArgumentException> {
+                generator(
+                    items = mapOf(
+                        cylinderItem(
+                            id = "cylinder-axis-$axis",
+                            axis = axis,
+                            enabledOrientations = listOf(Orientation.Upright)
+                        ) to UInt64(8)
+                    ),
+                    space = Container3Shape(
+                        width = infraScalar(2.0) * Meter,
+                        height = infraScalar(2.0) * Meter,
+                        depth = infraScalar(2.0) * Meter
+                    ),
+                    patterns = emptyList(),
+                    restWeight = InfraNumber.maximum
+                )
+            }
 
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+            assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+            assertTrue(error.message?.contains("got $axis") == true)
+        }
     }
 
     @Test

@@ -489,6 +489,36 @@ class PackerAndRendererAdapterTest {
     }
 
     @Test
+    fun packerAndRendererShouldAcceptKnownCoordinateHorizontalCylindersAcrossBins() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-MULTI-BIN"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-MULTI-BIN",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val binX = layerBin(
+            items = listOf(cylinderItem("cyl-x-bin", material, Axis3.X)),
+            positions = listOf(Pair(0.0, 0.0))
+        )
+        val binZ = layerBin(
+            items = listOf(cylinderItem("cyl-z-bin", material, Axis3.Z)),
+            positions = listOf(Pair(0.0, 0.0))
+        )
+
+        val result = Packer().invoke(
+            bins = listOf(binX, binZ),
+            context = PackingContext()
+        )
+        val schema = PackingRendererAdapter().toSchema(result)
+        val items = schema.loadingPlans.flatMap { it.items }
+
+        assertEquals(2, schema.loadingPlans.size)
+        assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
+        assertTrue(items.any { it.axis?.name == "Z" && it.algorithmShapeType.name == "HorizontalCylinderZ" })
+    }
+
+    @Test
     fun packerShouldRejectMixedCylinderAxesWithinSameLayer() = runBlocking {
         val material = Material(
             no = MaterialNo("M-CYL-MIXED-AXIS"),
@@ -663,6 +693,53 @@ class PackerAndRendererAdapterTest {
 
         assertEquals(2, items.size)
         assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
+    }
+
+    @Test
+    fun rendererAdapterShouldAcceptZAxisHorizontalCylinderWithFullLengthCuboidSupport() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-Z-SUPPORTED"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-Z-SUPPORTED",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val result = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = item("support-z-full", material).view(Orientation.Upright),
+                                    position = point3()
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = cylinderItem(
+                                        id = "cyl-z-supported",
+                                        material = material,
+                                        axis = Axis3.Z,
+                                        lengthValue = 1.0
+                                    ).view(Orientation.Upright),
+                                    position = point3(y = infraScalar(1.0) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+
+        assertEquals(2, items.size)
+        assertTrue(items.any { it.axis?.name == "Z" && it.algorithmShapeType.name == "HorizontalCylinderZ" })
     }
 
     @Test

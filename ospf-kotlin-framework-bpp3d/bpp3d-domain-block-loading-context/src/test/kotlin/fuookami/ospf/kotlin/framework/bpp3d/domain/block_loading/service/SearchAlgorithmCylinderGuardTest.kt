@@ -1,5 +1,14 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
@@ -13,15 +22,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
-import org.junit.jupiter.api.Test
 
 class SearchAlgorithmCylinderGuardTest {
     private fun packageAttribute(): PackageAttribute {
@@ -37,7 +37,7 @@ class SearchAlgorithmCylinderGuardTest {
         )
     }
 
-    private fun cylinderItem(id: String): ActualItem {
+    private fun cylinderItem(id: String, axis: Axis3 = Axis3.Y): ActualItem {
         val radius = infraScalar(0.5) * Meter
         return ActualItem(
             id = id,
@@ -51,7 +51,7 @@ class SearchAlgorithmCylinderGuardTest {
             packageAttribute = packageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
-                axis = Axis3.Y
+                axis = axis
             )
         )
     }
@@ -70,15 +70,17 @@ class SearchAlgorithmCylinderGuardTest {
             config = DepthFirstSearchAlgorithm.Config()
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            algorithm(
-                items = mapOf(cylinderItem("dfs-cylinder") to UInt64.one),
-                shape = shape(),
-                blockTable = emptyList()
-            )
-        }
+        for (axis in listOf(Axis3.X, Axis3.Y, Axis3.Z)) {
+            val error = assertFailsWith<IllegalArgumentException> {
+                algorithm(
+                    items = mapOf(cylinderItem(id = "dfs-cylinder-$axis", axis = axis) to UInt64.one),
+                    shape = shape(),
+                    blockTable = emptyList()
+                )
+            }
 
-        assertTrue(error.message?.contains("DFS/MLHS space-splitting path is cuboid-only") == true)
+            assertTrue(error.message?.contains("DFS/MLHS space-splitting path is cuboid-only") == true)
+        }
     }
 
     @Test
@@ -87,14 +89,16 @@ class SearchAlgorithmCylinderGuardTest {
             config = MultiLayerHeuristicSearchAlgorithm.Config()
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            algorithm(
-                items = mapOf(cylinderItem("mlhs-cylinder") to UInt64.one),
-                shape = shape(),
-                blockTable = emptyList()
-            )
-        }
+        for (axis in listOf(Axis3.X, Axis3.Y, Axis3.Z)) {
+            val error = assertFailsWith<IllegalArgumentException> {
+                algorithm(
+                    items = mapOf(cylinderItem(id = "mlhs-cylinder-$axis", axis = axis) to UInt64.one),
+                    shape = shape(),
+                    blockTable = emptyList()
+                )
+            }
 
-        assertTrue(error.message?.contains("DFS/MLHS space-splitting path is cuboid-only") == true)
+            assertTrue(error.message?.contains("DFS/MLHS space-splitting path is cuboid-only") == true)
+        }
     }
 }
