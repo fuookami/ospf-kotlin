@@ -1,56 +1,101 @@
-# ospf-kotlin-quantities 单位转换规则升级计划
+# ospf-kotlin-quantities 后续改进清单
 
 ## 目标
 
-将 Kotlin quantities 的单位转换从单一比例 `Scale` 升级为支持更一般的转换规则，覆盖普通线性单位和带 offset 的仿射单位。
+根据 `ospf-rust-quantities` 当前比 `ospf-kotlin-quantities` 多出的公开单位，补齐 Kotlin 版本的单位覆盖与兼容命名。
 
 ## 原则
 
-1. 本计划由其它会话执行；当前 Rust 会话不修改 Kotlin 代码。
-2. offset 是单位转换规则的一部分，但会改变普通物理量代数语义。
-3. 普通单位继续使用线性转换。
-4. 摄氏度、华氏度、兰氏度等绝对温标使用仿射转换。
-5. 仿射单位不能被普通乘除幂误用。
+1. 优先补齐真实缺失的单位。
+2. 实际相同但命名不同的单位，作为兼容别名处理，不新增重复量纲语义。
+3. Rust 侧明显疑似拼写错误的名称，不直接照搬到 Kotlin。
+4. 新增单位应补齐符号、比例、domain 和转换测试。
+5. 信息单位应保持当前 domain 语义：`Bit`、`Byte` 为 `Discrete`，聚合信息单位为 `Continuous`。
 
-## 事项
+## 建议新增实际单位
 
-### 1. 新增转换规则模型
+### 信息量
 
-- 新增类似结构：
-  - `Linear(scale: Scale)`
-  - `Affine(scale: Scale, offset: FltX)`
-- 普通单位迁移为 `Linear(scale)`。
-- `PhysicalUnit.scale` 可保留为线性兼容入口，或改为从 conversion rule 读取线性 scale。
+- `Kibibyte`
+- `Mebibyte`
+- `Gibibyte`
+- `Tebibyte`
 
-### 2. 改造单位转换
+说明：二进制前缀单位，比例分别为 `1024 B`、`1024 KiB`、`1024 MiB`、`1024 GiB`，domain 建议为 `QuantityDomain.Continuous`。
 
-- 将 `PhysicalUnit.to(unit)` 从仅返回比例因子升级为值转换能力。
-- 保留线性比例因子接口用于普通单位。
-- 绝对温标使用：
-  - `standard = value * scale + offset`
-  - `target = (standard - targetOffset) / targetScale`
+### 带宽
 
-### 3. 温度语义
+- `BytePerSecond`
+- `KilobytePerSecond`
+- `MegabytePerSecond`
 
-- 明确区分绝对温度点和温差。
-- 至少补充测试：
-  - `0 °C -> 273.15 K`
-  - `32 °F -> 273.15 K`
-  - `100 °C -> 212 °F`
-  - 普通温差转换仍按线性比例处理。
+说明：可由对应信息单位除以 `Second` 派生。
 
-### 4. 运算规则
+### 长度和体积
 
-- `Affine` 单位禁止普通乘除幂。
-- `Affine + Affine` 不应作为普通物理量加法成立。
-- `Affine - Affine` 应得到线性温差。
-- `Affine ± LinearDifference` 可得到新的绝对温度。
+- `Decameter`
+- `CubicDecameter`
+- `CubicHectometer`
+- `CubicKilometer`
 
-### 5. 验收标准
+### 流量
 
-1. 所有普通单位转换结果保持兼容。
-2. 绝对温标转换正确。
-3. 仿射单位不会参与错误的普通代数运算。
-4. 现有单位制和自定义单位仍可工作。
-5. Kotlin quantities 测试通过。
+- `LiterPerMinute`
 
+### 力
+
+- `KiloNewton`
+- `MegaNewton`
+
+### 应力
+
+- `PascalStress`
+- `KilopascalStress`
+- `MegapascalStress`
+
+说明：若 Kotlin 已将 pressure 和 stress 共享相同量纲，可作为 stress 命名下的单位对象或兼容别名实现。
+
+### 电阻
+
+- `Megaohm`
+
+### 质量
+
+- `Hectogram`
+
+## 建议新增兼容别名
+
+### 平面角
+
+- `ArcMinute` -> `MinuteAngle`
+- `ArcSecond` -> `SecondAngle`
+
+### 加速度
+
+- `MeterPerSecondSquared` -> `MeterPerSquareSecond`
+- `CentimeterPerSecondSquared` -> `CentimeterPerSquareSecond`
+- `KilometerPerSecondSquared` -> `KilometerPerSquareSecond`
+- `InchPerSecondSquared` -> `InchPerSquareSecond`
+- `FootPerSecondSquared` -> `FootPerSquareSecond`
+
+### 速度
+
+- `KilometerPerSecond` -> `KilometersPerSecond`
+
+### 质量
+
+- `Tonne` -> `Ton`
+
+## 暂不建议直接添加
+
+- `Cetimeter`
+
+原因：该名称疑似 Rust 侧 `Centimeter` 拼写错误。Kotlin 已有 `Centimeter`，不应新增错误拼写别名，除非后续明确需要兼容 Rust 现有 typo。
+
+## 验收标准
+
+1. 上述真实缺失单位可在 Kotlin 中直接引用。
+2. 兼容别名与既有 Kotlin 单位换算结果一致。
+3. 新增信息聚合单位 domain 为 `QuantityDomain.Continuous`。
+4. 新增单位参与 `to(...)`、加减乘除和单位制推导时行为正确。
+5. `ospf-kotlin-quantities` 测试通过。
