@@ -155,7 +155,12 @@ private fun requireHorizontalCylinderSupport(
         )
     ) {
         throw IllegalArgumentException(
-            "Unsupported placement geometry in $source: type=horizontal_support, bin=$binName, item[$index] ${geometry.diagnostic} must be placed on bin floor or full-length support."
+            unsupportedHorizontalCylinderSupportMessage(
+                source = source,
+                binName = binName,
+                itemIndex = index,
+                diagnostic = geometry.diagnostic
+            )
         )
     }
 }
@@ -262,7 +267,12 @@ internal fun requirePackedBinShapeGeometry(
                 position = placement.absolutePosition
             )
             throw IllegalArgumentException(
-                "Unsupported placement geometry in $source: type=outside_bin, bin=${bin.name}, item[$index] ${geometry.diagnostic} is outside bin."
+                unsupportedOutsideBinGeometryMessage(
+                    source = source,
+                    binName = bin.name,
+                    itemIndex = index,
+                    diagnostic = geometry.diagnostic
+                )
             )
         }
         PackingGeometry(
@@ -285,7 +295,14 @@ internal fun requirePackedBinShapeGeometry(
         for (rhsIndex in (lhsIndex + 1) until geometries.size) {
             if (geometries[lhsIndex].overlaps(geometries[rhsIndex])) {
                 throw IllegalArgumentException(
-                    "Unsupported placement geometry in $source: type=overlap, bin=${bin.name}, item[$lhsIndex] ${geometries[lhsIndex].diagnostic} overlaps item[$rhsIndex] ${geometries[rhsIndex].diagnostic}."
+                    unsupportedPlacementOverlapMessage(
+                        source = source,
+                        binName = bin.name,
+                        lhsIndex = lhsIndex,
+                        lhsDiagnostic = geometries[lhsIndex].diagnostic,
+                        rhsIndex = rhsIndex,
+                        rhsDiagnostic = geometries[rhsIndex].diagnostic
+                    )
                 )
             }
         }

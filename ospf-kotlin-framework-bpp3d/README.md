@@ -99,7 +99,9 @@ Schema guard rules:
 2. If `shape_type` is empty, the row is treated as `cuboid`.
 3. Invalid `axis` value for cylinder is rejected explicitly.
 4. Invalid depth boundary cylinder-axis or cuboid-orientation policy values are rejected explicitly.
-5. In dataset suite mode, file name can declare scenario kind:
+5. Duplicate CSV columns are rejected explicitly.
+6. Unsupported CSV columns outside the declared grouped-layer or material-width-amount schema are rejected explicitly.
+7. In dataset suite mode, file name can declare scenario kind:
    `grouped-layer` / `grouped_layer` => grouped layer CSV,
    `material-width-amount` / `material_width_amount` => material-width-amount CSV.
    Declared kind mismatch with header detection is rejected explicitly.

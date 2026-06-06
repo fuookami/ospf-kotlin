@@ -462,6 +462,29 @@ class PackerAndRendererAdapterTest {
     }
 
     @Test
+    fun rendererAdapterShouldRejectManuallyBuiltOutsideBinHorizontalCylinder() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-RENDER-OUTSIDE-HORIZONTAL"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-RENDER-OUTSIDE-HORIZONTAL",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val bin = layerBin(
+            items = listOf(cylinderItem("cyl-x-render-outside", material, Axis3.X)),
+            positions = listOf(Pair(2.2, 0.0))
+        )
+        val result = toPackingResult(bin)
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(result)
+        }
+        assertTrue(error.message?.contains("type=outside_bin") == true)
+        assertTrue(error.message?.contains("HorizontalCylinderX") == true)
+        assertTrue(error.message?.contains("PackingRendererAdapter.toSchema") == true)
+    }
+
+    @Test
     fun packerAndRendererShouldAcceptHorizontalCylinderFinalGeometry() = runBlocking {
         val material = Material(
             no = MaterialNo("M-CYL-X"),

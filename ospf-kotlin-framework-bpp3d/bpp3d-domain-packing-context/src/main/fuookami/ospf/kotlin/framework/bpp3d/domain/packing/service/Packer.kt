@@ -37,7 +37,11 @@ class Packer(
             }.toSet()
             if (axes.size > 1) {
                 throw IllegalArgumentException(
-                    "Unsupported placement geometry in $source: layer[$layerIndex] mixes cylinder axes $axes."
+                    unsupportedMixedCylinderAxesInLayerMessage(
+                        source = source,
+                        layerIndex = layerIndex,
+                        axes = axes
+                    )
                 )
             }
         }

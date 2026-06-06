@@ -39,9 +39,12 @@ $fixHints = @{
     DirectBinConstructorOutOfFactory = "Create bins through layerBinOf, itemBinOf, or blockBinOf; do not call the generic Bin constructor from business code."
     ApplicationDirectItemLimitFactory = "Use item-specific limit factories that hide Cuboid generic constraints from application code."
     DuplicatedCylinderUnsupportedContract = "Keep cylinder unsupported messages in CylinderShapeContract; application and domain services should call the shared item-domain contract instead of duplicating message text."
+    DuplicatedPackingGeometryUnsupportedContract = "Keep final packing geometry unsupported messages in PackingGeometryContract; packer, renderer, and analyzer paths should call the shared packing-domain contract instead of duplicating message text."
     KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the generic known-coordinate validation path."
     HorizontalCylinderAxisInGenerationOutOfAllowList = "Do not introduce Axis3.X or Axis3.Z in layer-generation production code until horizontal-cylinder generation has a proven footprint, support, and solver contract."
     HorizontalCylinderGenerationGuardMissing = "CirclePackingLayerGenerator must keep requireVerticalCylinderAxis so X/Z cylinders cannot reuse the Axis3.Y circle-packing plane assumption."
+    FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
+    FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
 
 function Get-AllowListKey {
@@ -264,6 +267,10 @@ Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsu
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
 )
 
+Add-TokenViolation -Check "DuplicatedPackingGeometryUnsupportedContract" -Pattern "type=horizontal_support|type=outside_bin|type=overlap|must be placed on bin floor or full-length support|is outside bin|overlaps item|mixes cylinder axes" -AllowSuffixes @(
+    "/bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingGeometryContract.kt"
+)
+
 Add-TokenViolation -Check "KnownCoordinatePlacementBypassOutOfAllowList" -Pattern "\.toKnownCoordinateLayerPlacement\s*\(" -AllowSuffixes @(
     "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/LayerPlacementAdapter.kt",
     "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationPackingAnalyzer.kt"
@@ -290,6 +297,54 @@ if (Test-Path $layerGenerationContextPath) {
         File = $layerGenerationContextPath.Replace("\", "/")
         Line = 1
         Text = "LayerGenerationContext.kt was not found, so CirclePackingLayerGenerator guard cannot be verified."
+    }
+}
+
+$packerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/Packer.kt"
+if (Test-Path $packerPath) {
+    $packer = Get-Content -Path $packerPath -Raw
+    if (-not [regex]::IsMatch($packer, "requireSingleCylinderAxisPerLayer\s*\([\s\S]*?source\s*=\s*""Packer\.invoke""[\s\S]*?\)")) {
+        $violations += [PSCustomObject]@{
+            Check = "FinalPackingLayerAxisGuardMissing"
+            File = $packerPath.Replace("\", "/")
+            Line = 1
+            Text = "Packer.invoke must call requireSingleCylinderAxisPerLayer before building final packed bins."
+        }
+    }
+    if (-not [regex]::IsMatch($packer, "requirePackedBinShapeGeometry\s*\([\s\S]*?source\s*=\s*""Packer\.invoke""[\s\S]*?\)")) {
+        $violations += [PSCustomObject]@{
+            Check = "FinalPackingGeometryGuardMissing"
+            File = $packerPath.Replace("\", "/")
+            Line = 1
+            Text = "Packer.invoke must call requirePackedBinShapeGeometry before returning final packed bins."
+        }
+    }
+} else {
+    $violations += [PSCustomObject]@{
+        Check = "FinalPackingGeometryGuardMissing"
+        File = $packerPath.Replace("\", "/")
+        Line = 1
+        Text = "Packer.kt was not found, so final packing geometry guard cannot be verified."
+    }
+}
+
+$rendererAdapterPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingRendererAdapter.kt"
+if (Test-Path $rendererAdapterPath) {
+    $rendererAdapter = Get-Content -Path $rendererAdapterPath -Raw
+    if (-not [regex]::IsMatch($rendererAdapter, "requirePackedBinShapeGeometry\s*\([\s\S]*?source\s*=\s*""PackingRendererAdapter\.toSchema""[\s\S]*?\)")) {
+        $violations += [PSCustomObject]@{
+            Check = "FinalPackingGeometryGuardMissing"
+            File = $rendererAdapterPath.Replace("\", "/")
+            Line = 1
+            Text = "PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry before emitting renderer DTO."
+        }
+    }
+} else {
+    $violations += [PSCustomObject]@{
+        Check = "FinalPackingGeometryGuardMissing"
+        File = $rendererAdapterPath.Replace("\", "/")
+        Line = 1
+        Text = "PackingRendererAdapter.kt was not found, so renderer geometry guard cannot be verified."
     }
 }
 

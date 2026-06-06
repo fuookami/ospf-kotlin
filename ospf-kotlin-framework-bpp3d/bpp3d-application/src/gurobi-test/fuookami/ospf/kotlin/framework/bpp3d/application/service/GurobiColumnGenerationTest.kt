@@ -404,6 +404,16 @@ class GurobiColumnGenerationTest {
         val normalizedHeaderColumns = headerColumns.map { column ->
             column.lowercase(Locale.getDefault())
         }
+        val duplicatedColumns = normalizedHeaderColumns
+            .groupingBy { it }
+            .eachCount()
+            .filter { (_, count) -> count > 1 }
+            .keys
+        if (duplicatedColumns.isNotEmpty()) {
+            throw IllegalStateException(
+                "duplicated csv columns: ${duplicatedColumns.joinToString()}, header=$headerLine"
+            )
+        }
         val hasShapeType = normalizedHeaderColumns.contains("shape_type")
         val shapeMetadataColumns = listOf(
             "radius_meter",
@@ -421,6 +431,30 @@ class GurobiColumnGenerationTest {
             "diameter_step_meter",
             "axis"
         )
+        val depthBoundaryColumns = listOf(
+            "first_layer_allowed_cylinder_axes",
+            "last_layer_allowed_cylinder_axes",
+            "first_layer_allowed_cuboid_orientations",
+            "last_layer_allowed_cuboid_orientations"
+        )
+        val optionalColumns = when (scenarioKind) {
+            CsvScenarioKind.GroupedLayer -> listOf("shape_type") + shapeMetadataColumns + depthBoundaryColumns
+            CsvScenarioKind.MaterialWidthAmount -> listOf(
+                "material_no",
+                "material_name",
+                "material_weight_kg",
+                "shape_type"
+            ) + shapeMetadataColumns + depthBoundaryColumns
+        }
+        val allowedColumns = (requiredColumns + optionalColumns).toSet()
+        val unknownColumns = normalizedHeaderColumns.filter { column ->
+            !allowedColumns.contains(column)
+        }
+        if (unknownColumns.isNotEmpty()) {
+            throw IllegalStateException(
+                "unsupported csv columns: ${unknownColumns.joinToString()}, header=$headerLine"
+            )
+        }
         val hasShapeMetadata = shapeMetadataColumns.any { column ->
             normalizedHeaderColumns.contains(column)
         }
@@ -1072,6 +1106,36 @@ class GurobiColumnGenerationTest {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
         assertTrue(exception.message?.contains("shape_type is required") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectUnsupportedSchemaColumns() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,unexpected_shape_hint
+            0,0,item-a,MAT-A,Material-A,1.0,legacy
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("unsupported csv columns") == true)
+        assertTrue(exception.message?.contains("unexpected_shape_hint") == true)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectDuplicatedSchemaColumns() {
+        val csv = """
+            material,width,amount,width
+            MAT-A,1000,1,1200
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("duplicated csv columns") == true)
+        assertTrue(exception.message?.contains("width") == true)
     }
 
     @Test
