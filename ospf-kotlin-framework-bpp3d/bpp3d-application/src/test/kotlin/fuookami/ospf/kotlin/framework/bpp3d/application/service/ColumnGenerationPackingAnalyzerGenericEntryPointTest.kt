@@ -222,6 +222,70 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         assertTrue(exception.message?.contains("mixes cylinder axes") == true)
     }
 
+    @Test
+    fun analyzerShouldApplyDepthBoundaryPolicyToKnownCoordinateGenericBins() = runBlocking {
+        val analyzer = ColumnGenerationPackingAnalyzer()
+
+        analyzer.analyzeFromGeneric(
+            iteration = 10,
+            columns = listOf(horizontalCylinderLayer(Axis3.X)),
+            depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCylinderAxes = setOf(Axis3.X),
+                lastLayerAllowedCylinderAxes = setOf(Axis3.X)
+            )
+        )
+
+        val latest = analyzer.latest
+        assertNotNull(latest)
+        assertEquals("10", latest.schema.kpi["cg_iteration"])
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            analyzer.analyzeFromGeneric(
+                iteration = 11,
+                columns = listOf(horizontalCylinderLayer(Axis3.X)),
+                depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                    firstLayerAllowedCylinderAxes = setOf(Axis3.Z)
+                )
+            )
+        }
+
+        assertTrue(exception.message?.contains("boundary=first") == true)
+        assertTrue(exception.message?.contains("cylinder_axis=X") == true)
+    }
+
+    @Test
+    fun analyzerShouldApplyDepthBoundaryPolicyToExplicitGenericBins() = runBlocking {
+        val layer = horizontalCylinderLayer(Axis3.Z)
+        val modelLayer = layer.toModel()
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-ANALYZER-CYLINDER-Z-POLICY"
+        )
+        val explicitBin = layerBinOf(
+            shape = bin,
+            units = listOf(modelLayer.toKnownCoordinateLayerPlacement())
+        )
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ColumnGenerationPackingAnalyzer().analyzeFromGeneric(
+                iteration = 12,
+                columns = listOf(layer),
+                bins = listOf(explicitBin),
+                depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                    lastLayerAllowedCylinderAxes = setOf(Axis3.X)
+                )
+            )
+        }
+
+        assertTrue(exception.message?.contains("boundary=last") == true)
+        assertTrue(exception.message?.contains("cylinder_axis=Z") == true)
+    }
+
     private fun horizontalCylinderLayer(axis: Axis3): GenericBinLayer<FltX> {
         return horizontalCylinderLayer(
             axes = listOf(axis),

@@ -156,6 +156,7 @@ class ColumnGenerationPackingAnalyzer(
  * @param iteration 迭代序号 / iteration number
  * @param columns 泛型层列表 / generic layer list
  * @param bins 最终箱子（可选） / final bins (optional)
+ * @param depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @param shadowPrices 影子价格（可选） / shadow prices (optional)
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
@@ -164,29 +165,32 @@ suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromG
     iteration: Int,
     columns: List<GenericBinLayer<T>>,
     bins: List<LayerBin> = emptyList(),
+    depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     shadowPrices: Map<DemandModeKey, InfraNumber> = emptyMap(),
     materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
     itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
 ) {
     val modelColumns = columns.map { layer -> layer.toModel(materialCache, itemCache) }
+    val resolvedBins = if (bins.isNotEmpty()) {
+        bins
+    } else {
+        modelColumns.mapIndexed { index, modelLayer ->
+            val bin = modelLayer.bin ?: knownCoordinateBinType(
+                layer = modelLayer,
+                index = index
+            )
+            layerBinOf(
+                shape = bin,
+                units = listOf(modelLayer.toKnownCoordinateLayerPlacement())
+            )
+        }
+    }
+    depthBoundaryLayerOrientationPolicy?.ensureSatisfied(resolvedBins)
     analyze(
         state = ColumnGenerationState(
             iteration = iteration,
             columns = modelColumns,
-            bins = if (bins.isNotEmpty()) {
-                bins
-            } else {
-                modelColumns.mapIndexed { index, modelLayer ->
-                    val bin = modelLayer.bin ?: knownCoordinateBinType(
-                        layer = modelLayer,
-                        index = index
-                    )
-                    layerBinOf(
-                        shape = bin,
-                        units = listOf(modelLayer.toKnownCoordinateLayerPlacement())
-                    )
-                }
-            },
+            bins = resolvedBins,
             shadowPrices = shadowPrices
         )
     )

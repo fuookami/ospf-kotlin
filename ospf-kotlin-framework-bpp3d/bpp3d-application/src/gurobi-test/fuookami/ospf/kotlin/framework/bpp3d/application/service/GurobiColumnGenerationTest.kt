@@ -1138,6 +1138,34 @@ class GurobiColumnGenerationTest {
         assertTrue(scenario.packedLayerCount >= scenario.totalLayerCount)
     }
 
+    @Test
+    fun groupedLayerDepthBoundarySampleFileShouldBeParsable() {
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-depth-boundary-sample.csv")
+        val policy = scenario.depthBoundaryLayerOrientationPolicy
+
+        assertEquals(2, scenario.groupCount)
+        assertEquals(4, scenario.totalItemCount)
+        assertNotNull(policy)
+        assertEquals(setOf(Axis3.Y), policy.firstLayerAllowedCylinderAxes)
+        assertEquals(setOf(Axis3.Y), policy.lastLayerAllowedCylinderAxes)
+        assertEquals(setOf(Orientation.Upright), policy.firstLayerAllowedCuboidOrientations)
+        assertEquals(setOf(Orientation.Upright), policy.lastLayerAllowedCuboidOrientations)
+    }
+
+    @Test
+    fun materialWidthAmountDynamicDiameterSampleFileShouldBeParsable() {
+        val scenario = loadCsvDrivenScenario("gurobi/material-width-amount-dynamic-diameter-sample.csv")
+        val cylinderSpecs = scenario.itemDemands.mapNotNull { (item, _) ->
+            item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+        }
+
+        assertEquals(1, scenario.groupCount)
+        assertEquals(2, cylinderSpecs.size)
+        assertTrue(cylinderSpecs.all { spec -> spec.axis == Axis3.Y })
+        assertTrue(cylinderSpecs.all { spec -> spec.diameterMin != null && spec.diameterMax != null })
+        assertTrue(cylinderSpecs.all { spec -> spec.resolvedRadiusCandidates.size >= 3 })
+    }
+
     private fun loadMaterialWidthAmountCsvScenario(lines: List<String>): CsvDrivenScenario {
         val headerColumns = lines.first().split(",").map { it.trim() }
         val headerIndex = headerColumns.withIndex().associate { (index, column) ->

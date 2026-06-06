@@ -43,7 +43,7 @@
 | 路径 | 长方体 | `Axis3.Y` 圆柱 | `Axis3.X` / `Axis3.Z` 圆柱 |
 | --- | --- | --- | --- |
 | 显式 final bins / 已知坐标装箱 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑 |
-| 泛型已知坐标分析 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑 |
+| 泛型已知坐标分析 | 支持，可选 depth boundary 最终校验 | 支持，并使用真实几何 guard 与可选 depth boundary 最终校验 | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑，可选 depth boundary 最终校验 |
 | 默认生成候选的 layer placement adapter | 支持 | 支持 | 不支持；进入候选放置前拒绝 |
 | layer generation / circle packing | 支持 | 支持竖直圆柱候选 | 不支持；不能复用 `Axis3.Y` circle-packing 平面假设 |
 | BLA placement | 支持当前已生成 layer | 仅通过已验证的竖直圆柱生成层支持 | 不是生成路径；应改走已知坐标终态校验 |
@@ -82,7 +82,7 @@
 3. `first_layer_allowed_cuboid_orientations`
 4. `last_layer_allowed_cuboid_orientations`
 
-这些字段只约束最终收集出的 depth 方向第一个和最后一个 layer。它们是最终 MILP 求解后的 application 层硬校验，不是 MILP 原生约束，也不会在候选生成阶段提前过滤候选。
+这些字段只约束最终收集出的 depth 方向第一个和最后一个 layer。它们是最终 MILP 求解后，或泛型已知坐标终态 bin 构造后的 application 层硬校验，不是 MILP 原生约束，也不会在候选生成阶段提前过滤候选。
 
 字段语义：
 
@@ -118,6 +118,7 @@ schema 门禁规则：
 
 1. `bpp3d-application/src/test/resources/gurobi/production-like-dataset.csv`
 2. `bpp3d-application/src/test/resources/gurobi/grouped-layer-cylinder-mixed-sample.csv`
+3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
 
 ### 物料宽度数量 CSV
 
@@ -137,6 +138,7 @@ schema 门禁规则：
 样例文件：
 
 1. `bpp3d-application/src/test/resources/gurobi/material-width-amount-cylinder-sample.csv`
+2. `bpp3d-application/src/test/resources/gurobi/material-width-amount-dynamic-diameter-sample.csv`
 
 ## 示例：固定半径竖直圆柱输入
 

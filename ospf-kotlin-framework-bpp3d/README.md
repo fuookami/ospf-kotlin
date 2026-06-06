@@ -43,7 +43,7 @@ See detailed progress in [refactor.md](./refactor.md).
 | Path | Cuboid | `Axis3.Y` cylinder | `Axis3.X` / `Axis3.Z` cylinder |
 | --- | --- | --- | --- |
 | Explicit final bins / known-coordinate packing | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or full-length cuboid support required |
-| Generic known-coordinate analysis | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or full-length cuboid support required |
+| Generic known-coordinate analysis | Supported; optional depth boundary final validation | Supported with real geometry guard and optional depth boundary final validation | Supported with real geometry guard, floor or full-length cuboid support required, and optional depth boundary final validation |
 | Default layer placement adapter for generated candidates | Supported | Supported | Unsupported; rejected before candidate placement |
 | Layer generation / circle packing | Supported | Supported as vertical cylinder candidates | Unsupported; cannot reuse the `Axis3.Y` circle-packing plane assumption |
 | BLA placement | Supported for current generated layers | Supported only through verified vertical-cylinder generated layers | Not a generation path; use known-coordinate final validation instead |
@@ -82,7 +82,7 @@ Optional scenario-level policy columns:
 3. `first_layer_allowed_cuboid_orientations`
 4. `last_layer_allowed_cuboid_orientations`
 
-These fields constrain only the first and last depth layers after final placement collection. They are application-level hard validation after final MILP solving, not native MILP constraints and not candidate-generation filters.
+These fields constrain only the first and last depth layers after final placement collection. They are application-level hard validation after final MILP solving, or after generic known-coordinate final bins have been built; they are not native MILP constraints and not candidate-generation filters.
 
 Column semantics:
 
@@ -118,6 +118,7 @@ Sample files:
 
 1. `bpp3d-application/src/test/resources/gurobi/production-like-dataset.csv`
 2. `bpp3d-application/src/test/resources/gurobi/grouped-layer-cylinder-mixed-sample.csv`
+3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
 
 ### Material-Width-Amount CSV
 
@@ -137,6 +138,7 @@ Optional columns:
 Sample file:
 
 1. `bpp3d-application/src/test/resources/gurobi/material-width-amount-cylinder-sample.csv`
+2. `bpp3d-application/src/test/resources/gurobi/material-width-amount-dynamic-diameter-sample.csv`
 
 ## Example: Fixed-Radius Vertical Cylinder Input
 

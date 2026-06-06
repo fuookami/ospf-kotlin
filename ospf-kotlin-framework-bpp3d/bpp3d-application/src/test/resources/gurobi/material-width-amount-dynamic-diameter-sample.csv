@@ -1,0 +1,4 @@
+material,width,amount,material_no,material_name,material_weight_kg,shape_type,diameter_min,diameter_max,diameter_step,axis
+MAT-DD-A,1200,2,MAT-DD-A,Material-DD-A,1.0,vertical_cylinder,0.70,0.80,0.05,Y
+MAT-DD-B,1000,1,MAT-DD-B,Material-DD-B,1.5,cuboid,,,,
+MAT-DD-C,900,1,MAT-DD-C,Material-DD-C,1.2,vertical_cylinder,0.60,0.70,0.05,AXIS3.Y

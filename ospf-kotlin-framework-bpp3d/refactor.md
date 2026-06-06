@@ -7,26 +7,22 @@
 
 ## 1. 本轮已完成事项摘要
 
-1. 已把 `refactor.md` 从上一轮执行记录整理为可继续审核的阶段计划，并保留总目标、能力边界、触发式验证和提交隔离要求。
-2. 已强化 `shape-boundary-check.ps1`，新增 known-coordinate placement 旁路白名单、layer generation 横向圆柱轴向门禁，以及 `CirclePackingLayerGenerator` 竖直圆柱 guard 存在性检查。
-3. 已补齐 depth boundary 回归测试，覆盖 multi-bin 独立校验，以及 `Axis3.X` / `Axis3.Z` 横向圆柱在 first/last depth boundary 上的 positive/negative 行为。
-4. 已确认本轮不开放 X/Z 横向圆柱自动候选生成；X/Z 仍只允许在已知坐标终态 packing/rendering 路径中由真实几何和支撑 guard 验收。
-5. 已确认 depth boundary 仍是 application 层后验硬校验，尚未下沉为 MILP 原生约束；下一轮必须继续评估并做出实现或保留决策。
+1. 已完成 BPP3D shape-aware / generic shape 关键路径审计，本轮继续保持 X/Z 横向圆柱自动候选生成关闭。
+2. 已把泛型 known-coordinate 终态分析入口纳入 depth boundary 后验硬校验，覆盖自动构造 final bins 和显式 final bins 两种入口。
+3. 已扩展泛型 known-coordinate 回归，覆盖 X/Z 横向圆柱、multi-bin、混合轴向拒绝和 depth boundary positive/negative 行为。
+4. 已扩展 Gurobi CSV 数据集样例，覆盖 depth boundary policy 和动态直径 metadata，并保持旧 CSV、旧长方体链路和竖直圆柱链路兼容。
+5. 已同步 README / README_ch，明确 depth boundary 是最终 MILP 后或泛型 known-coordinate final bins 构造后的 application 层硬校验，不是 MILP 原生约束或候选过滤器。
 6. 本轮未触发 renderer DTO、fixture、adapter 或显示语义变化；外部 renderer 验收未触发。
 
 ## 2. 本轮验证记录
 
-1. `generic-boundary-check.ps1`：通过。
-2. `shape-boundary-check.ps1`：通过。
-3. `geometry-boundary-check.ps1`：通过。
-4. `geometry-module-dry-run.ps1`：通过，保留 8 个已知 internal baseline warning。
-5. `git diff --check -- ospf-kotlin-framework-bpp3d`：通过，仅有 CRLF 行尾提示。
-6. `DepthBoundaryLayerOrientationPolicyTest` focused reactor：通过，11 个测试全部通过。
-7. BPP3D reactor 全量测试：通过。
-8. Gurobi 插件 install：通过；Dokka 阶段保留 Kotlin metadata 版本提示，但 Maven 最终为 BUILD SUCCESS。
-9. Gurobi 普通回归：通过，`GurobiColumnGenerationTest` 26 个测试中 25 个执行、1 个跳过。
-10. Gurobi CSV dataset suite：通过，`GurobiColumnGenerationTest` 26 个测试全部执行通过。
-11. 外部 renderer 自动和人工视觉验收：本轮未触发。
+1. `ColumnGenerationPackingAnalyzerGenericEntryPointTest` focused reactor：通过，8 个测试全部通过。
+2. `GurobiColumnGenerationTest` CSV focused reactor：通过，新增 2 个 CSV 样例解析测试全部通过。
+3. BPP3D 必跑门禁：通过；四个边界/几何脚本通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 通过，BPP3D 全量 reactor `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true` 通过。
+4. Gurobi 插件 install：通过；`ospf-kotlin-core-plugin-gurobi` install 成功，Dokka 阶段存在 Kotlin metadata 版本提示但未阻断构建。
+5. Gurobi 普通回归：通过；`GurobiColumnGenerationTest` 在 Gurobi enabled 条件下 28 个测试运行，0 失败，0 错误，1 个按条件跳过。
+6. Gurobi CSV dataset suite：通过；5 个 CSV 样例完成预检查和求解，`GurobiColumnGenerationTest` 28 个测试运行，0 失败，0 错误，0 跳过。
+7. 外部 renderer 自动和人工视觉验收：本轮未触发。
 
 ## 3. 总目标与当前能力边界
 
@@ -41,16 +37,17 @@
 3. 默认自动候选生成、layer generation、circle packing、BLA、block loading、DFS/MLHS、stacking、hanging 尚未开放 X/Z 横向圆柱。
 4. X/Z 横向圆柱不得复用 Y 轴 circle packing 平面假设作为候选生成或最终可行性证明。
 5. known-coordinate placement 是 final validation path，不是 generated candidate path；新增调用必须通过脚本白名单审计。
-6. 连续半径优化不进入默认生产链路，除非先完成数据契约、建模契约和 Gurobi 回归。
-7. renderer 源码在外部工程，BPP3D 仓内只维护 DTO、fixture、adapter 和文档契约。
+6. depth boundary 是 application 层后验硬校验；目前覆盖最终 MILP selected bins 和泛型 known-coordinate final bins，尚未下沉为 MILP 原生约束。
+7. 连续半径优化不进入默认生产链路，除非先完成数据契约、建模契约和 Gurobi 回归。
+8. renderer 源码在外部工程，BPP3D 仓内只维护 DTO、fixture、adapter 和文档契约。
 
 ## 4. 下一轮目标
 
-1. 一次性完成 BPP3D 业务层 shape contract 审计，把可迁移 API 从 cuboid/placement/projection 泄漏收敛到 shape spec、packing shape、item view、domain placement alias 或更窄接口。
-2. 对横向圆柱自动候选生成、block loading、DFS/MLHS、stacking 和 hanging 做统一决策：能完整证明的最小子路径开放，不能完整证明的路径统一拒绝。
-3. 把已知坐标终态路径升级为完整生产验收路径，覆盖真实几何、支撑、multi-bin、mixed shape、depth boundary、renderer 输出和错误信息。
-4. 统一 application、layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata 和 depth boundary policy 的 shape-aware 解释。
-5. 评估并尽量实现 depth boundary MILP 原生下沉；若不下沉，必须写清不可下沉原因，并增加防误用门禁和回归测试。
+1. 一次性完成剩余业务层 shape contract 收口，把可迁移 API 从 cuboid/placement/projection 泄漏收敛到 shape spec、packing shape、item view、domain placement alias 或更窄接口。
+2. 对横向圆柱自动候选生成、block loading、DFS/MLHS、stacking 和 hanging 做最终决策：能完整证明的最小子路径开放，不能完整证明的路径统一拒绝。
+3. 继续扩大已知坐标终态生产验收路径，覆盖更多支撑、碰撞、multi-bin、mixed shape、depth boundary、renderer 输出和错误信息场景。
+4. 统一 application、layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata 和 depth boundary policy 的 shape-aware 解释，并补齐非法字段/非法策略负例。
+5. 评估并尽量实现 depth boundary MILP 原生下沉；若不下沉，必须写清不可下沉原因，并保留后验硬校验、门禁和回归测试。
 6. 若触发 renderer DTO、fixture、adapter 或显示语义变化，同步仓内和外部 renderer，并完成自动与人工视觉验收。
 7. 下一轮结束时形成清晰提交边界：BPP3D、本仓其他模块和外部 renderer 分开提交，不混入无关改动。
 
