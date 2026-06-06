@@ -45,7 +45,7 @@
 | 显式 final bins / 已知坐标装箱 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑 |
 | 泛型已知坐标分析 | 支持，可选 depth boundary 最终校验 | 支持，并使用真实几何 guard 与可选 depth boundary 最终校验 | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑，可选 depth boundary 最终校验 |
 | 默认生成候选的 layer placement adapter | 支持 | 支持 | 不支持；进入候选放置前拒绝 |
-| layer generation / circle packing | 支持 | 支持竖直圆柱候选 | 不支持；不能复用 `Axis3.Y` circle-packing 平面假设 |
+| layer generation fallback / circle packing / pile | 支持 | 支持竖直圆柱候选；pile 支撑仅限直立 `Axis3.Y` 圆柱 | 不支持；shared guard 会在 fallback、circle-packing 或 pile 候选输出前拒绝 X/Z |
 | BLA placement | 支持当前已生成 layer | 仅通过已验证的竖直圆柱生成层支持 | 不是生成路径；应改走已知坐标终态校验 |
 | simple block generation | 支持 | 仅支持直立 `Axis3.Y` 圆柱 | 不支持 |
 | DFS / MLHS space splitting | 支持 cuboid-only 路径 | 不支持 | 不支持 |
@@ -98,7 +98,8 @@ schema 门禁规则：
 1. 如果存在形状元数据列，必须同时存在 `shape_type` 列。
 2. 若 `shape_type` 为空，按 `cuboid` 处理。
 3. 圆柱 `axis` 非法值会被显式拒绝。
-4. 在 dataset suite 模式下，文件名可声明场景类型：
+4. depth boundary 的圆柱轴向或长方体朝向策略非法值会被显式拒绝。
+5. 在 dataset suite 模式下，文件名可声明场景类型：
    `grouped-layer` / `grouped_layer` => 分组分层 CSV，
    `material-width-amount` / `material_width_amount` => 物料宽度数量 CSV。
    文件名声明类型与表头识别类型不一致时会被显式拒绝。

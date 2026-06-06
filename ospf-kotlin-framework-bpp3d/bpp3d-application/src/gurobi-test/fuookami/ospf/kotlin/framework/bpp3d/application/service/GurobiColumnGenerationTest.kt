@@ -1106,6 +1106,36 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerCsvShouldRejectInvalidDepthBoundaryCylinderAxis() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,first_layer_allowed_cylinder_axes
+            0,0,item-a,MAT-A,Material-A,1.0,Q
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("invalid axis in first_layer_allowed_cylinder_axes") == true)
+        assertTrue(exception.message?.contains("Q") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectInvalidDepthBoundaryCuboidOrientation() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,last_layer_allowed_cuboid_orientations
+            0,0,item-a,MAT-A,Material-A,1.0,Diagonal
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("invalid orientation in last_layer_allowed_cuboid_orientations") == true)
+        assertTrue(exception.message?.contains("Diagonal") == true)
+    }
+
+    @Test
     fun declaredGroupedLayerScenarioKindShouldRejectMaterialWidthAmountHeader() {
         val csv = """
             material,width,amount

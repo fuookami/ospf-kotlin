@@ -7,21 +7,21 @@
 
 ## 1. 本轮已完成事项摘要
 
-1. 已完成 BPP3D shape-aware / generic shape 关键路径审计，本轮继续保持 X/Z 横向圆柱自动候选生成关闭。
-2. 已把泛型 known-coordinate 终态分析入口纳入 depth boundary 后验硬校验，覆盖自动构造 final bins 和显式 final bins 两种入口。
-3. 已扩展泛型 known-coordinate 回归，覆盖 X/Z 横向圆柱、multi-bin、混合轴向拒绝和 depth boundary positive/negative 行为。
-4. 已扩展 Gurobi CSV 数据集样例，覆盖 depth boundary policy 和动态直径 metadata，并保持旧 CSV、旧长方体链路和竖直圆柱链路兼容。
-5. 已同步 README / README_ch，明确 depth boundary 是最终 MILP 后或泛型 known-coordinate final bins 构造后的 application 层硬校验，不是 MILP 原生约束或候选过滤器。
+1. 已完成 layer generation fallback、circle packing 和 pile 候选路径的横向圆柱边界收口，继续保持 X/Z 横向圆柱自动候选生成关闭。
+2. 已把 pile 支撑候选生成接入 shared cylinder support contract，X/Z 横向圆柱在 fallback 或 pile 路径输出候选前被拒绝。
+3. 已补齐 layer generation 负例回归，覆盖无 bin fallback、多 generator fallback 和 pile 横向圆柱拒绝。
+4. 已补齐 Gurobi CSV depth boundary policy 非法轴向与非法朝向负例，增强 CSV policy contract。
+5. 已同步 README / README_ch，明确 layer generation fallback / circle packing / pile 的能力边界和 CSV policy 非法值拒绝语义。
 6. 本轮未触发 renderer DTO、fixture、adapter 或显示语义变化；外部 renderer 验收未触发。
 
 ## 2. 本轮验证记录
 
-1. `ColumnGenerationPackingAnalyzerGenericEntryPointTest` focused reactor：通过，8 个测试全部通过。
-2. `GurobiColumnGenerationTest` CSV focused reactor：通过，新增 2 个 CSV 样例解析测试全部通过。
+1. `LayerGenerationFltXProofTest` focused reactor：通过，21 个测试全部通过。
+2. `GurobiColumnGenerationTest` CSV policy focused reactor：通过，4 个 depth boundary policy 测试全部通过。
 3. BPP3D 必跑门禁：通过；四个边界/几何脚本通过，`git diff --check -- ospf-kotlin-framework-bpp3d` 通过，BPP3D 全量 reactor `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true` 通过。
 4. Gurobi 插件 install：通过；`ospf-kotlin-core-plugin-gurobi` install 成功，Dokka 阶段存在 Kotlin metadata 版本提示但未阻断构建。
-5. Gurobi 普通回归：通过；`GurobiColumnGenerationTest` 在 Gurobi enabled 条件下 28 个测试运行，0 失败，0 错误，1 个按条件跳过。
-6. Gurobi CSV dataset suite：通过；5 个 CSV 样例完成预检查和求解，`GurobiColumnGenerationTest` 28 个测试运行，0 失败，0 错误，0 跳过。
+5. Gurobi 普通回归：通过；`GurobiColumnGenerationTest` 在 Gurobi enabled 条件下 30 个测试运行，0 失败，0 错误，1 个按条件跳过。
+6. Gurobi CSV dataset suite：通过；5 个 CSV 样例完成预检查和求解，`GurobiColumnGenerationTest` 30 个测试运行，0 失败，0 错误，0 跳过。
 7. 外部 renderer 自动和人工视觉验收：本轮未触发。
 
 ## 3. 总目标与当前能力边界
@@ -43,10 +43,10 @@
 
 ## 4. 下一轮目标
 
-1. 一次性完成剩余业务层 shape contract 收口，把可迁移 API 从 cuboid/placement/projection 泄漏收敛到 shape spec、packing shape、item view、domain placement alias 或更窄接口。
-2. 对横向圆柱自动候选生成、block loading、DFS/MLHS、stacking 和 hanging 做最终决策：能完整证明的最小子路径开放，不能完整证明的路径统一拒绝。
-3. 继续扩大已知坐标终态生产验收路径，覆盖更多支撑、碰撞、multi-bin、mixed shape、depth boundary、renderer 输出和错误信息场景。
-4. 统一 application、layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata 和 depth boundary policy 的 shape-aware 解释，并补齐非法字段/非法策略负例。
+1. 一次性完成剩余 item-domain、packing-domain、layer-assignment 和 application 的 shape contract 收口，减少业务层 cuboid/projection/placement 泄漏。
+2. 对 BLA、block loading、DFS/MLHS、stacking、hanging、pattern 和 item-merger 的圆柱支持矩阵做最终总决策，未证明路径统一走 shared unsupported contract。
+3. 继续扩大已知坐标终态生产验收路径，覆盖支撑、碰撞、multi-bin、mixed shape、depth boundary、renderer 输出和错误信息场景。
+4. 统一 application、layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata 和 depth boundary policy 的 shape-aware 解释，并补齐剩余非法字段/非法策略负例。
 5. 评估并尽量实现 depth boundary MILP 原生下沉；若不下沉，必须写清不可下沉原因，并保留后验硬校验、门禁和回归测试。
 6. 若触发 renderer DTO、fixture、adapter 或显示语义变化，同步仓内和外部 renderer，并完成自动与人工视觉验收。
 7. 下一轮结束时形成清晰提交边界：BPP3D、本仓其他模块和外部 renderer 分开提交，不混入无关改动。

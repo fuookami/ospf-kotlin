@@ -669,6 +669,74 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun pileLayerGeneratorShouldRejectHorizontalCylinderAxes() = runBlocking {
+        val bin = BinType(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(3.0) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-PILE-HORIZONTAL-CYLINDER"
+        )
+
+        for (axis in listOf(Axis3.X, Axis3.Z)) {
+            val item = cylinderItem(
+                id = "item-pile-horizontal-$axis",
+                axis = axis
+            )
+
+            val error = assertFailsWith<IllegalArgumentException> {
+                PileLayerGenerator<InfraNumber>().generate(
+                    Bpp3dLayerGenerationRequest(
+                        iteration = 0,
+                        bin = bin,
+                        items = listOf(item),
+                        maxCandidates = 4
+                    )
+                )
+            }
+
+            assertTrue(error.message?.contains("PileLayerGenerator") == true)
+            assertTrue(error.message?.contains("only upright Axis3.Y items are allowed") == true)
+        }
+    }
+
+    @Test
+    fun fallbackLayerGeneratorsShouldRejectHorizontalCylinderAxesWithoutBin() = runBlocking {
+        val generators: List<Pair<String, Bpp3dLayerGenerator<InfraNumber>>> = listOf(
+            "block" to BlockLayerGenerator<InfraNumber>(),
+            "bl-local" to BLLocalLayerGenerator<InfraNumber>(),
+            "bl-global" to BLGlobalLayerGenerator<InfraNumber>(),
+            "pattern" to PatternLayerGenerator<InfraNumber>(),
+            "pile" to PileLayerGenerator<InfraNumber>(),
+            "circle-packing" to CirclePackingLayerGenerator<InfraNumber>()
+        )
+
+        for ((source, generator) in generators) {
+            for (axis in listOf(Axis3.X, Axis3.Z)) {
+                val item = cylinderItem(
+                    id = "item-$source-fallback-$axis",
+                    axis = axis
+                )
+
+                val error = assertFailsWith<IllegalArgumentException> {
+                    generator.generate(
+                        Bpp3dLayerGenerationRequest(
+                            iteration = 0,
+                            items = listOf(item),
+                            maxCandidates = 4
+                        )
+                    )
+                }
+
+                assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+                assertTrue(error.message?.contains("$axis") == true)
+            }
+        }
+    }
+
+    @Test
     fun circlePackingLayerGeneratorShouldGeneratePackedLayersWhenBinProvided() = runBlocking {
         val material = GenericMaterial(
             no = MaterialNo("M-CIRCLE"),

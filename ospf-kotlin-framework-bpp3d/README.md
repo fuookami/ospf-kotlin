@@ -45,7 +45,7 @@ See detailed progress in [refactor.md](./refactor.md).
 | Explicit final bins / known-coordinate packing | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or full-length cuboid support required |
 | Generic known-coordinate analysis | Supported; optional depth boundary final validation | Supported with real geometry guard and optional depth boundary final validation | Supported with real geometry guard, floor or full-length cuboid support required, and optional depth boundary final validation |
 | Default layer placement adapter for generated candidates | Supported | Supported | Unsupported; rejected before candidate placement |
-| Layer generation / circle packing | Supported | Supported as vertical cylinder candidates | Unsupported; cannot reuse the `Axis3.Y` circle-packing plane assumption |
+| Layer generation fallback / circle packing / pile | Supported | Supported as vertical-cylinder candidates; pile support is limited to upright `Axis3.Y` cylinders | Unsupported; shared guards reject X/Z before fallback, circle-packing, or pile candidates can be emitted |
 | BLA placement | Supported for current generated layers | Supported only through verified vertical-cylinder generated layers | Not a generation path; use known-coordinate final validation instead |
 | Simple block generation | Supported | Supported only for upright `Axis3.Y` cylinders | Unsupported |
 | DFS / MLHS space splitting | Supported cuboid-only path | Unsupported | Unsupported |
@@ -98,7 +98,8 @@ Schema guard rules:
 1. If shape metadata columns exist, `shape_type` column must exist.
 2. If `shape_type` is empty, the row is treated as `cuboid`.
 3. Invalid `axis` value for cylinder is rejected explicitly.
-4. In dataset suite mode, file name can declare scenario kind:
+4. Invalid depth boundary cylinder-axis or cuboid-orientation policy values are rejected explicitly.
+5. In dataset suite mode, file name can declare scenario kind:
    `grouped-layer` / `grouped_layer` => grouped layer CSV,
    `material-width-amount` / `material_width_amount` => material-width-amount CSV.
    Declared kind mismatch with header detection is rejected explicitly.

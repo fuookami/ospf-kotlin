@@ -26,6 +26,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireUprightVerticalCylinderSupport
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
@@ -368,6 +369,12 @@ private fun <V> mapItemsToLayers(
     sourceClass: Class<*>,
     orderedItems: List<Item>
 ): List<Bpp3dLayerGenerationResult<V>> {
+    for (item in orderedItems) {
+        requireVerticalCylinderAxis(
+            shape = item.packingShape,
+            source = source
+        )
+    }
     return rankByShadowScore(
         request = request,
         generated = orderedItems.asSequence()
@@ -482,6 +489,11 @@ private suspend fun <V> mapItemsToPileLayers(
     val layers = LinkedHashSet<BinLayer>()
     for (item in request.items) {
         val orientation = pickOrientation(item, request.bin) ?: continue
+        requireUprightVerticalCylinderSupport(
+            shape = item.packingShape,
+            orientation = orientation,
+            source = "PileLayerGenerator"
+        )
         val itemView = item.view(orientation)
         val maxByBinHeight = (bin.height.value / itemView.height.value).floor().toUInt64()
         if (maxByBinHeight <= UInt64.one) {
