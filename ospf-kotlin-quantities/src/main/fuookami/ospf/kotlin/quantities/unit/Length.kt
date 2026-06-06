@@ -154,6 +154,25 @@ object Decimeter : DerivedPhysicalUnit(Meter * Scale.deci) {
 }
 
 /**
+ * 十米 / Decameter
+ *
+ * 十米。
+ * Ten meters.
+ *
+ * 符号 / Symbol: dam
+ * 换算关系 / Conversion: 1 dam = 10¹ m = 10 m
+ */
+object Decameter : DerivedPhysicalUnit(Meter * Scale.deca) {
+    /** 单位名称：decameter / Unit name: decameter */
+    override val name = "decameter"
+    /** 单位符号：dam / Unit symbol: dam */
+    override val symbol = "dam"
+
+    /** 对应物理量：长度 / Corresponding quantity: Length */
+    override val quantity = Length
+}
+
+/**
  * 百米 / Hectometer
  *
  * 一百米。

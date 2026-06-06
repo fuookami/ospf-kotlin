@@ -10,6 +10,7 @@
  */
 package fuookami.ospf.kotlin.quantities.unit
 
+import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.Stress
 
 /**
@@ -100,6 +101,75 @@ object KilogramForcePerSquareCentimeter : DerivedPhysicalUnit(KilogramForce / Sq
 object KilogramForcePerSquareMeter : DerivedPhysicalUnit(KilogramForce / SquareMeter) {
     override val name = "kilogram force per square meter"
     override val symbol = "kgf/m2"
+
+    override val quantity = Stress
+}
+
+/**
+ * 帕斯卡（应力）
+ * Pascal (stress)
+ *
+ * 名称：帕斯卡（应力）
+ * Name: pascal (stress)
+ *
+ * 符号：Pa
+ * Symbol: Pa
+ *
+ * 定义：1 Pa = 1 N/m²
+ * Definition: 1 Pa = 1 N/m²
+ *
+ * 来源：SI 导出应力单位，与压力帕斯卡量纲相同
+ * Source: SI derived stress unit, same dimension as pressure pascal
+ */
+object PascalStress : DerivedPhysicalUnit(Newton / SquareMeter) {
+    override val name = "pascal"
+    override val symbol = "Pa"
+
+    override val quantity = Stress
+}
+
+/**
+ * 千帕（应力）
+ * Kilopascal (stress)
+ *
+ * 名称：千帕（应力）
+ * Name: kilopascal (stress)
+ *
+ * 符号：kPa
+ * Symbol: kPa
+ *
+ * 定义：1 kPa = 10³ Pa
+ * Definition: 1 kPa = 10³ Pa
+ *
+ * 来源：SI 导出应力单位，常用于材料力学
+ * Source: SI derived stress unit, commonly used in mechanics of materials
+ */
+object KilopascalStress : DerivedPhysicalUnit(PascalStress * Scale.kilo) {
+    override val name = "kilopascal"
+    override val symbol = "kPa"
+
+    override val quantity = Stress
+}
+
+/**
+ * 兆帕（应力）
+ * Megapascal (stress)
+ *
+ * 名称：兆帕（应力）
+ * Name: megapascal (stress)
+ *
+ * 符号：MPa
+ * Symbol: MPa
+ *
+ * 定义：1 MPa = 10⁶ Pa
+ * Definition: 1 MPa = 10⁶ Pa
+ *
+ * 来源：SI 导出应力单位，常用于结构工程和材料科学
+ * Source: SI derived stress unit, commonly used in structural engineering and materials science
+ */
+object MegapascalStress : DerivedPhysicalUnit(PascalStress * Scale.mega) {
+    override val name = "megapascal"
+    override val symbol = "MPa"
 
     override val quantity = Stress
 }

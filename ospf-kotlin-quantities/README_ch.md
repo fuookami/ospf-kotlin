@@ -89,7 +89,7 @@ val mass = Flt64(10.0) * Kilogram
 val length = Flt64(5.0) * Meter
 
 // 编译和运行都正确（力 = 质量 × 加速度）
-val acceleration = Flt64(9.81) * MeterPerSquareSecond
+val acceleration = Flt64(9.81) * MeterPerSecondSquared
 val force = mass * acceleration  // 98.1 N
 
 // 运行时会失败（量纲不匹配）

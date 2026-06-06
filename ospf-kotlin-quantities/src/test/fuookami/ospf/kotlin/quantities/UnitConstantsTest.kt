@@ -106,9 +106,9 @@ class UnitConstantsTest {
     }
 
     @Test
-    fun `unitAcceleration_standardGravityShouldEqual9_80665MeterPerSquareSecond`() {
+    fun `unitAcceleration_standardGravityShouldEqual9_80665MeterPerSecondSquared`() {
         val oneG = Flt64.one * StandardGravity
-        val inMps2 = oneG.to(MeterPerSquareSecond)
+        val inMps2 = oneG.to(MeterPerSecondSquared)
         assertNotNull(inMps2)
         assertEquals(9.80665, inMps2.value.toDouble(), 1e-10)
     }

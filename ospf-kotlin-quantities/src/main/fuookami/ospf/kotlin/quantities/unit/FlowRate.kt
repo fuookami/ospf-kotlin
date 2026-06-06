@@ -39,3 +39,17 @@ object LiterPerSecond : DerivedPhysicalUnit(Liter / Second) {
 
     override val quantity = FlowRate
 }
+
+/**
+ * 升每分
+ * Liter per minute
+ *
+ * 定义：1 L/min = 1 L / 1 min = 1/60 L/s
+ * Definition: 1 L/min = 1 L / 1 min = 1/60 L/s
+ */
+object LiterPerMinute : DerivedPhysicalUnit(Liter / Minute) {
+    override val name = "liter per minute"
+    override val symbol = "Lpm"
+
+    override val quantity = FlowRate
+}

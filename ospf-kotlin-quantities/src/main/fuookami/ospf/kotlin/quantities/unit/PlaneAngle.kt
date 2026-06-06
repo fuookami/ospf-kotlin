@@ -114,7 +114,7 @@ object Degree : DerivedPhysicalUnit(RoundAngle / FltX(360.0)) {
 }
 
 /**
- * 角分 / Minute of arc
+ * 角分 / Arc minute
  *
  * 度的六十分之一。
  * One sixtieth of a degree.
@@ -122,9 +122,9 @@ object Degree : DerivedPhysicalUnit(RoundAngle / FltX(360.0)) {
  * 符号 / Symbol: '
  * 换算关系 / Conversion: 1' = 1/60° = π/10800 rad
  */
-object MinuteAngle : DerivedPhysicalUnit(Degree / FltX(60.0)) {
-    /** 单位名称：minute angle / Unit name: minute angle */
-    override val name = "minute angle"
+object ArcMinute : DerivedPhysicalUnit(Degree / FltX(60.0)) {
+    /** 单位名称：arc minute / Unit name: arc minute */
+    override val name = "arc minute"
     /** 单位符号：' / Unit symbol: ' */
     override val symbol = "'"
 
@@ -133,17 +133,17 @@ object MinuteAngle : DerivedPhysicalUnit(Degree / FltX(60.0)) {
 }
 
 /**
- * 角秒 / Second of arc
+ * 角秒 / Arc second
  *
  * 角分的六十分之一。
- * One sixtieth of a minute of arc.
+ * One sixtieth of an arc minute.
  *
  * 符号 / Symbol: ''
  * 换算关系 / Conversion: 1'' = 1/60' = 1/3600° = π/648000 rad
  */
-object SecondAngle : DerivedPhysicalUnit(MinuteAngle / FltX(60.0)) {
-    /** 单位名称：second angle / Unit name: second angle */
-    override val name = "second angle"
+object ArcSecond : DerivedPhysicalUnit(ArcMinute / FltX(60.0)) {
+    /** 单位名称：arc second / Unit name: arc second */
+    override val name = "arc second"
     /** 单位符号：'' / Unit symbol: '' */
     override val symbol = "''"
 
@@ -169,3 +169,9 @@ object Gradian : DerivedPhysicalUnit(RightAngle / FltX(100.0)) {
     /** 对应物理量：平面角 / Corresponding quantity: PlaneAngle */
     override val quantity = PlaneAngle
 }
+
+/** 兼容别名：角分（旧命名）/ Compatibility alias: minute angle */
+typealias MinuteAngle = ArcMinute
+
+/** 兼容别名：角秒（旧命名）/ Compatibility alias: second angle */
+typealias SecondAngle = ArcSecond

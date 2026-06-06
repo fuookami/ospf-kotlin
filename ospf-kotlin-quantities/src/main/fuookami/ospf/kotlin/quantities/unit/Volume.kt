@@ -113,6 +113,75 @@ object CubicMeter : DerivedPhysicalUnit(SquareMeter * Meter) {
 }
 
 /**
+ * 立方十米
+ * Cubic decameter
+ *
+ * 名称：立方十米
+ * Name: cubic decameter
+ *
+ * 符号：dam³
+ * Symbol: dam³
+ *
+ * 定义：1 dam³ = (1 dam)³ = 10³ m³
+ * Definition: 1 dam³ = (1 dam)³ = 10³ m³
+ *
+ * 来源：SI 导出体积单位，常用于水资源计量
+ * Source: SI derived volume unit, commonly used for water resource measurement
+ */
+object CubicDecameter : DerivedPhysicalUnit(Decameter * Decameter * Decameter) {
+    override val name = "cubic decameter"
+    override val symbol = "dam3"
+
+    override val quantity = Volume
+}
+
+/**
+ * 立方百米
+ * Cubic hectometer
+ *
+ * 名称：立方百米
+ * Name: cubic hectometer
+ *
+ * 符号：hm³
+ * Symbol: hm³
+ *
+ * 定义：1 hm³ = (1 hm)³ = 10⁶ m³
+ * Definition: 1 hm³ = (1 hm)³ = 10⁶ m³
+ *
+ * 来源：SI 导出体积单位，常用于水库库容计量
+ * Source: SI derived volume unit, commonly used for reservoir capacity measurement
+ */
+object CubicHectometer : DerivedPhysicalUnit(Hectometer * Hectometer * Hectometer) {
+    override val name = "cubic hectometer"
+    override val symbol = "hm3"
+
+    override val quantity = Volume
+}
+
+/**
+ * 立方千米
+ * Cubic kilometer
+ *
+ * 名称：立方千米
+ * Name: cubic kilometer
+ *
+ * 符号：km³
+ * Symbol: km³
+ *
+ * 定义：1 km³ = (1 km)³ = 10⁹ m³
+ * Definition: 1 km³ = (1 km)³ = 10⁹ m³
+ *
+ * 来源：SI 导出体积单位，常用于地质和海洋体积计量
+ * Source: SI derived volume unit, commonly used for geological and oceanic volume measurement
+ */
+object CubicKilometer : DerivedPhysicalUnit(Kilometer * Kilometer * Kilometer) {
+    override val name = "cubic kilometer"
+    override val symbol = "km3"
+
+    override val quantity = Volume
+}
+
+/**
  * 升
  * Liter
  *

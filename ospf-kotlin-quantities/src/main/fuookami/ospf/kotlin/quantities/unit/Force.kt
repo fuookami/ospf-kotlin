@@ -25,9 +25,43 @@ import fuookami.ospf.kotlin.quantities.dimension.Force
  * 定义：1 N = 1 kg × 1 m/s²
  * Definition: 1 N = 1 kg × 1 m/s²
  */
-object Newton : DerivedPhysicalUnit(Kilogram * MeterPerSquareSecond) {
+object Newton : DerivedPhysicalUnit(Kilogram * MeterPerSecondSquared) {
     override val name = "newton"
     override val symbol = "N"
+
+    override val quantity = Force
+}
+
+/**
+ * 千牛
+ * Kilonewton
+ *
+ * 一千牛顿，常用于结构工程。
+ * One thousand newtons, commonly used in structural engineering.
+ *
+ * 定义：1 kN = 10³ N
+ * Definition: 1 kN = 10³ N
+ */
+object Kilonewton : DerivedPhysicalUnit(Newton * Scale.kilo) {
+    override val name = "kilonewton"
+    override val symbol = "kN"
+
+    override val quantity = Force
+}
+
+/**
+ * 兆牛
+ * Meganewton
+ *
+ * 一百万牛顿，常用于大型结构工程。
+ * One million newtons, commonly used in large structural engineering.
+ *
+ * 定义：1 MN = 10⁶ N
+ * Definition: 1 MN = 10⁶ N
+ */
+object Meganewton : DerivedPhysicalUnit(Newton * Scale.mega) {
+    override val name = "meganewton"
+    override val symbol = "MN"
 
     override val quantity = Force
 }
@@ -73,7 +107,7 @@ object GramForce : DerivedPhysicalUnit(KilogramForce / Scale.kilo) {
  * 定义：1 dyn = 1 g × 1 cm/s² = 10⁻⁵ N
  * Definition: 1 dyn = 1 g × 1 cm/s² = 10⁻⁵ N
  */
-object Dyne : DerivedPhysicalUnit(Gram * CentimeterPerSquareSecond) {
+object Dyne : DerivedPhysicalUnit(Gram * CentimeterPerSecondSquared) {
     override val name = "dyne"
     override val symbol = "dyn"
 

@@ -28,9 +28,8 @@ class UnitSymbolTest {
     }
 
     @Test
-    fun `unitSymbol_accelerationLegacySymbolsShouldBeKept`() {
-        // Keep legacy symbol for compatibility
-        assertEquals("mps2", MeterPerSquareSecond.symbol)
-        assertEquals("cmps2", CentimeterPerSquareSecond.symbol)
+    fun `unitSymbol_accelerationSymbolsShouldBeCorrect`() {
+        assertEquals("mps2", MeterPerSecondSquared.symbol)
+        assertEquals("cmps2", CentimeterPerSecondSquared.symbol)
     }
 }

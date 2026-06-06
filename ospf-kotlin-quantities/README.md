@@ -89,7 +89,7 @@ val mass = Flt64(10.0) * Kilogram
 val length = Flt64(5.0) * Meter
 
 // This compiles and works (Force = Mass × Acceleration)
-val acceleration = Flt64(9.81) * MeterPerSquareSecond
+val acceleration = Flt64(9.81) * MeterPerSecondSquared
 val force = mass * acceleration  // 98.1 N
 
 // This would fail at runtime (dimension mismatch)

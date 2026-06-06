@@ -109,3 +109,45 @@ object ExabitPerSecond : DerivedPhysicalUnit(Exabit / Second) {
 
     override val quantity = Bandwidth
 }
+
+/**
+ * 字节每秒
+ * Byte per second
+ *
+ * 定义：1 B/s = 8 bit/s
+ * Definition: 1 B/s = 8 bit/s
+ */
+object BytePerSecond : DerivedPhysicalUnit(Byte / Second) {
+    override val name = "byte per second"
+    override val symbol = "B/s"
+
+    override val quantity = Bandwidth
+}
+
+/**
+ * 千字节每秒
+ * Kilobyte per second
+ *
+ * 定义：1 KB/s = 10³ B/s = 8000 bit/s
+ * Definition: 1 KB/s = 10³ B/s = 8000 bit/s
+ */
+object KilobytePerSecond : DerivedPhysicalUnit(Kilobyte / Second) {
+    override val name = "kilobyte per second"
+    override val symbol = "KB/s"
+
+    override val quantity = Bandwidth
+}
+
+/**
+ * 兆字节每秒
+ * Megabyte per second
+ *
+ * 定义：1 MB/s = 10⁶ B/s
+ * Definition: 1 MB/s = 10⁶ B/s
+ */
+object MegabytePerSecond : DerivedPhysicalUnit(Megabyte / Second) {
+    override val name = "megabyte per second"
+    override val symbol = "MB/s"
+
+    override val quantity = Bandwidth
+}

@@ -49,3 +49,22 @@ object Kiloohm : DerivedPhysicalUnit(Ohm * Scale.kilo) {
     /** 对应物理量：电阻 / Corresponding quantity: Resistance */
     override val quantity = Resistance
 }
+
+/**
+ * 兆欧 / Megaohm
+ *
+ * 一百万欧姆。
+ * One million ohms.
+ *
+ * 符号 / Symbol: MΩ
+ * 换算关系 / Conversion: 1 MΩ = 10⁶ Ω = 1000000 Ω
+ */
+object Megaohm : DerivedPhysicalUnit(Ohm * Scale.mega) {
+    /** 单位名称：megaohm / Unit name: megaohm */
+    override val name = "megaohm"
+    /** 单位符号：MΩ / Unit symbol: MΩ */
+    override val symbol = "MΩ"
+
+    /** 对应物理量：电阻 / Corresponding quantity: Resistance */
+    override val quantity = Resistance
+}

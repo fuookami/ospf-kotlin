@@ -133,6 +133,25 @@ object Gram : DerivedPhysicalUnit(Kilogram / Scale.kilo) {
 }
 
 /**
+ * 百克 / Hectogram
+ *
+ * 一百克。
+ * One hundred grams.
+ *
+ * 符号 / Symbol: hg
+ * 换算关系 / Conversion: 1 hg = 100 g = 0.1 kg
+ */
+object Hectogram : DerivedPhysicalUnit(Gram * Scale.hecto) {
+    /** 单位名称：hectogram / Unit name: hectogram */
+    override val name: String = "hectogram"
+    /** 单位符号：hg / Unit symbol: hg */
+    override val symbol: String = "hg"
+
+    /** 对应物理量：质量 / Corresponding quantity: Mass */
+    override val quantity = Mass
+}
+
+/**
  * 公担 / Kintal
  *
  * 一百千克。
@@ -169,6 +188,9 @@ object Ton : DerivedPhysicalUnit(Kilogram * Scale.kilo) {
     /** 对应物理量：质量 / Corresponding quantity: Mass */
     override val quantity = Mass
 }
+
+/** 兼容别名：公吨 / Compatibility alias: tonne */
+typealias Tonne = Ton
 
 /**
  * 磅 / Pound

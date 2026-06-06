@@ -332,3 +332,95 @@ object Exabyte : PhysicalUnit() {
     /** 比例因子：10¹⁸ × 8 / Scale factor: 10¹⁸ × 8 */
     override val conversionRule = UnitConversionRule.Linear(Scale.exa * Scale(8))
 }
+
+/**
+ * 千字节（二进制前缀）/ Kibibyte
+ *
+ * 1024字节，使用IEC二进制前缀。
+ * 1024 bytes, using IEC binary prefix.
+ *
+ * 符号 / Symbol: KiB
+ * 换算关系 / Conversion: 1 KiB = 1024 B = 8192 bit
+ */
+object Kibibyte : PhysicalUnit() {
+    /** 单位名称：kibibyte / Unit name: kibibyte */
+    override val name = "kibibyte"
+    /** 单位符号：KiB / Unit symbol: KiB */
+    override val symbol = "KiB"
+
+    /** 对应物理量：信息 / Corresponding quantity: Information */
+    override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
+    /** 比例因子：1024 × 8 = 8192 / Scale factor: 1024 × 8 = 8192 */
+    override val conversionRule = UnitConversionRule.Linear(Scale(1024) * Scale(8))
+}
+
+/**
+ * 兆字节（二进制前缀）/ Mebibyte
+ *
+ * 1024千字节（二进制），使用IEC二进制前缀。
+ * 1024 kibibytes, using IEC binary prefix.
+ *
+ * 符号 / Symbol: MiB
+ * 换算关系 / Conversion: 1 MiB = 1024 KiB = 1048576 B
+ */
+object Mebibyte : PhysicalUnit() {
+    /** 单位名称：mebibyte / Unit name: mebibyte */
+    override val name = "mebibyte"
+    /** 单位符号：MiB / Unit symbol: MiB */
+    override val symbol = "MiB"
+
+    /** 对应物理量：信息 / Corresponding quantity: Information */
+    override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
+    /** 比例因子：1024² × 8 / Scale factor: 1024² × 8 */
+    override val conversionRule = UnitConversionRule.Linear(Scale(1024) * Scale(1024) * Scale(8))
+}
+
+/**
+ * 吉字节（二进制前缀）/ Gibibyte
+ *
+ * 1024兆字节（二进制），使用IEC二进制前缀。
+ * 1024 mebibytes, using IEC binary prefix.
+ *
+ * 符号 / Symbol: GiB
+ * 换算关系 / Conversion: 1 GiB = 1024 MiB = 1073741824 B
+ */
+object Gibibyte : PhysicalUnit() {
+    /** 单位名称：gibibyte / Unit name: gibibyte */
+    override val name = "gibibyte"
+    /** 单位符号：GiB / Unit symbol: GiB */
+    override val symbol = "GiB"
+
+    /** 对应物理量：信息 / Corresponding quantity: Information */
+    override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
+    /** 比例因子：1024³ × 8 / Scale factor: 1024³ × 8 */
+    override val conversionRule = UnitConversionRule.Linear(Scale(1024) * Scale(1024) * Scale(1024) * Scale(8))
+}
+
+/**
+ * 太字节（二进制前缀）/ Tebibyte
+ *
+ * 1024吉字节（二进制），使用IEC二进制前缀。
+ * 1024 gibibytes, using IEC binary prefix.
+ *
+ * 符号 / Symbol: TiB
+ * 换算关系 / Conversion: 1 TiB = 1024 GiB = 1099511627776 B
+ */
+object Tebibyte : PhysicalUnit() {
+    /** 单位名称：tebibyte / Unit name: tebibyte */
+    override val name = "tebibyte"
+    /** 单位符号：TiB / Unit symbol: TiB */
+    override val symbol = "TiB"
+
+    /** 对应物理量：信息 / Corresponding quantity: Information */
+    override val quantity = Information
+    /** 取值域：连续 / Value domain: continuous */
+    override val domain = QuantityDomain.Continuous
+    /** 比例因子：1024⁴ × 8 / Scale factor: 1024⁴ × 8 */
+    override val conversionRule = UnitConversionRule.Linear(Scale(1024) * Scale(1024) * Scale(1024) * Scale(1024) * Scale(8))
+}

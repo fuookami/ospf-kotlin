@@ -79,8 +79,8 @@ object MeterPerSecond : DerivedPhysicalUnit(Meter / Second) {
  * 来源：SI 导出速度单位，常用于航天和天文学
  * Source: SI derived velocity unit, commonly used in aerospace and astronomy
  */
-object KilometersPerSecond : DerivedPhysicalUnit(Kilometer / Second) {
-    override val name = "kilometers per second"
+object KilometerPerSecond : DerivedPhysicalUnit(Kilometer / Second) {
+    override val name = "kilometer per second"
     override val symbol = "kmps"
 
     override val quantity = Velocity
@@ -338,3 +338,6 @@ object MilePerHour : DerivedPhysicalUnit(Mile / Hour) {
 
     override val quantity = Velocity
 }
+
+/** 兼容别名：千米每秒（复数形式）/ Compatibility alias: kilometers per second (plural form) */
+typealias KilometersPerSecond = KilometerPerSecond
