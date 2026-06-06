@@ -39,6 +39,9 @@ $fixHints = @{
     DirectBinConstructorOutOfFactory = "Create bins through layerBinOf, itemBinOf, or blockBinOf; do not call the generic Bin constructor from business code."
     ApplicationDirectItemLimitFactory = "Use item-specific limit factories that hide Cuboid generic constraints from application code."
     DuplicatedCylinderUnsupportedContract = "Keep cylinder unsupported messages in CylinderShapeContract; application and domain services should call the shared item-domain contract instead of duplicating message text."
+    KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the generic known-coordinate validation path."
+    HorizontalCylinderAxisInGenerationOutOfAllowList = "Do not introduce Axis3.X or Axis3.Z in layer-generation production code until horizontal-cylinder generation has a proven footprint, support, and solver contract."
+    HorizontalCylinderGenerationGuardMissing = "CirclePackingLayerGenerator must keep requireVerticalCylinderAxis so X/Z cylinders cannot reuse the Axis3.Y circle-packing plane assumption."
 }
 
 function Get-AllowListKey {
@@ -260,6 +263,35 @@ Add-TokenViolation -Check "ApplicationDirectItemLimitFactory" -Pattern "\b(Deman
 Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsupported cylinder axis|Unsupported cylinder orientation|Unsupported cylinder top-layer|Unsupported cylinder stacking and hanging|Unsupported cylinder in|only Axis3\.Y is allowed|only upright orientations are allowed|side/lie stacking is not allowed|only upright Axis3\.Y items are allowed|cuboid-only and does not provide verified cylinder geometry yet" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
 )
+
+Add-TokenViolation -Check "KnownCoordinatePlacementBypassOutOfAllowList" -Pattern "\.toKnownCoordinateLayerPlacement\s*\(" -AllowSuffixes @(
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/LayerPlacementAdapter.kt",
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationPackingAnalyzer.kt"
+)
+
+Add-TokenViolation -Check "HorizontalCylinderAxisInGenerationOutOfAllowList" -Pattern "Axis3\.(X|Z)" -AllowSuffixes @() -ScanGlob @(
+    "bpp3d-domain-layer-generation-context/src/main/**/*.kt"
+)
+
+$layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
+if (Test-Path $layerGenerationContextPath) {
+    $layerGenerationContext = Get-Content -Path $layerGenerationContextPath -Raw
+    if (-not [regex]::IsMatch($layerGenerationContext, "class\s+CirclePackingLayerGenerator[\s\S]*?requireVerticalCylinderAxis\s*\(")) {
+        $violations += [PSCustomObject]@{
+            Check = "HorizontalCylinderGenerationGuardMissing"
+            File = $layerGenerationContextPath.Replace("\", "/")
+            Line = 1
+            Text = "CirclePackingLayerGenerator must call requireVerticalCylinderAxis before generating candidates."
+        }
+    }
+} else {
+    $violations += [PSCustomObject]@{
+        Check = "HorizontalCylinderGenerationGuardMissing"
+        File = $layerGenerationContextPath.Replace("\", "/")
+        Line = 1
+        Text = "LayerGenerationContext.kt was not found, so CirclePackingLayerGenerator guard cannot be verified."
+    }
+}
 
 foreach ($entry in $allowlistEntries.Values) {
     if (-not $entry.Hit) {

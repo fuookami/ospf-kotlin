@@ -154,6 +154,40 @@ class DepthBoundaryLayerOrientationPolicyTest {
     }
 
     @Test
+    fun depthBoundaryPolicyShouldApplyPerBin() {
+        val validBin = binOf(
+            placedLayer(
+                layer = layer("bin-0-first-valid", Orientation.Side),
+                z = 0.0
+            ),
+            placedLayer(
+                layer = layer("bin-0-last-free", Orientation.Upright),
+                z = 2.0
+            )
+        )
+        val invalidBin = binOf(
+            placedLayer(
+                layer = layer("bin-1-first-invalid", Orientation.Upright),
+                z = 0.0
+            ),
+            placedLayer(
+                layer = layer("bin-1-last-free", Orientation.Side),
+                z = 2.0
+            )
+        )
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
+            ).ensureSatisfied(listOf(validBin, invalidBin))
+        }
+
+        assertTrue(exception.message?.contains("bin=1") == true)
+        assertTrue(exception.message?.contains("boundary=first") == true)
+        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+    }
+
+    @Test
     fun depthBoundaryPolicyShouldRejectEmptyConfiguredSets() {
         val exception = assertFailsWith<IllegalArgumentException> {
             DepthBoundaryLayerOrientationPolicy(
@@ -188,6 +222,51 @@ class DepthBoundaryLayerOrientationPolicyTest {
 
         assertTrue(exception.message?.contains("boundary=first") == true)
         assertTrue(exception.message?.contains("cylinder_axis=Y") == true)
+    }
+
+    @Test
+    fun depthBoundaryPolicyShouldCheckHorizontalCylinderAxesOnDepthBoundaries() {
+        val bin = binOf(
+            placedLayer(
+                layer = layer(
+                    id = "cylinder-x-first",
+                    orientation = Orientation.Upright,
+                    shapeSpec = cylinder(Axis3.X)
+                ),
+                z = 0.0
+            ),
+            placedLayer(
+                layer = layer(
+                    id = "cylinder-z-last",
+                    orientation = Orientation.Upright,
+                    shapeSpec = cylinder(Axis3.Z)
+                ),
+                z = 2.0
+            )
+        )
+
+        DepthBoundaryLayerOrientationPolicy(
+            firstLayerAllowedCylinderAxes = setOf(Axis3.X),
+            lastLayerAllowedCylinderAxes = setOf(Axis3.Z)
+        ).ensureSatisfied(listOf(bin))
+
+        val firstException = assertFailsWith<IllegalArgumentException> {
+            DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
+                lastLayerAllowedCylinderAxes = setOf(Axis3.Z)
+            ).ensureSatisfied(listOf(bin))
+        }
+        assertTrue(firstException.message?.contains("boundary=first") == true)
+        assertTrue(firstException.message?.contains("cylinder_axis=X") == true)
+
+        val lastException = assertFailsWith<IllegalArgumentException> {
+            DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCylinderAxes = setOf(Axis3.X),
+                lastLayerAllowedCylinderAxes = setOf(Axis3.Y)
+            ).ensureSatisfied(listOf(bin))
+        }
+        assertTrue(lastException.message?.contains("boundary=last") == true)
+        assertTrue(lastException.message?.contains("cylinder_axis=Z") == true)
     }
 
     @Test

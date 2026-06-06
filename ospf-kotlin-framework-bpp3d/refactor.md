@@ -1,60 +1,74 @@
 # BPP3D 形状泛型化与圆柱支持重构计划
 
 日期：2026-05-31
-最近更新：2026-06-05
+最近更新：2026-06-06
 
-本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的下一轮计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，继续推进 BPP3D 从 cuboid-only 业务模型收敛到 shape-aware / generic shape 模型。
+本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的已完成状态与下一轮执行计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，继续推进 BPP3D 从 cuboid-only 业务模型收敛到 shape-aware / generic shape 模型。
 
-## 1. 已完成事项摘要
+## 1. 本轮已完成事项摘要
 
-1. BPP3D 主链已从长方体基线推进到 shape-aware 主链，支持长方体、竖直圆柱和已知坐标终态路径下的 X/Z 横向圆柱。
-2. packing 终态几何、renderer 输出、README、测试夹具和人工视觉确认已形成阶段性闭环。
-3. application/generic 已知坐标输入路径已允许 X/Z 横向圆柱进入真实几何校验，默认候选生成路径仍保持竖直圆柱门禁。
-4. 业务层主要 shape-aware 入口、圆柱轴向契约、unsupported contract、边界脚本基线和支持矩阵已完成阶段性收敛。
-5. 旧长方体路径、旧 DTO、旧 CSV、Gurobi 普通回归和 CSV dataset suite 已保持兼容。
-6. 横向圆柱已知坐标生产验收、multi-bin、支撑、未开放路径防误用和 BPP3D 提交隔离已完成。
+1. 已把 `refactor.md` 从上一轮执行记录整理为可继续审核的阶段计划，并保留总目标、能力边界、触发式验证和提交隔离要求。
+2. 已强化 `shape-boundary-check.ps1`，新增 known-coordinate placement 旁路白名单、layer generation 横向圆柱轴向门禁，以及 `CirclePackingLayerGenerator` 竖直圆柱 guard 存在性检查。
+3. 已补齐 depth boundary 回归测试，覆盖 multi-bin 独立校验，以及 `Axis3.X` / `Axis3.Z` 横向圆柱在 first/last depth boundary 上的 positive/negative 行为。
+4. 已确认本轮不开放 X/Z 横向圆柱自动候选生成；X/Z 仍只允许在已知坐标终态 packing/rendering 路径中由真实几何和支撑 guard 验收。
+5. 已确认 depth boundary 仍是 application 层后验硬校验，尚未下沉为 MILP 原生约束；下一轮必须继续评估并做出实现或保留决策。
+6. 本轮未触发 renderer DTO、fixture、adapter 或显示语义变化；外部 renderer 验收未触发。
 
-## 2. 总目标与当前边界
+## 2. 本轮验证记录
 
-### 2.1 总目标
+1. `generic-boundary-check.ps1`：通过。
+2. `shape-boundary-check.ps1`：通过。
+3. `geometry-boundary-check.ps1`：通过。
+4. `geometry-module-dry-run.ps1`：通过，保留 8 个已知 internal baseline warning。
+5. `git diff --check -- ospf-kotlin-framework-bpp3d`：通过，仅有 CRLF 行尾提示。
+6. `DepthBoundaryLayerOrientationPolicyTest` focused reactor：通过，11 个测试全部通过。
+7. BPP3D reactor 全量测试：通过。
+8. Gurobi 插件 install：通过；Dokka 阶段保留 Kotlin metadata 版本提示，但 Maven 最终为 BUILD SUCCESS。
+9. Gurobi 普通回归：通过，`GurobiColumnGenerationTest` 26 个测试中 25 个执行、1 个跳过。
+10. Gurobi CSV dataset suite：通过，`GurobiColumnGenerationTest` 26 个测试全部执行通过。
+11. 外部 renderer 自动和人工视觉验收：本轮未触发。
+
+## 3. 总目标与当前能力边界
+
+### 3.1 总目标
 
 下一轮目标是在一次迭代内尽可能完成 BPP3D shape-aware / generic shape 生产契约的跨层收口。凡是新增开放的能力，必须同时具备几何、支撑、solver、renderer、文档和测试闭环；无法闭环的能力必须收敛为明确 unsupported contract，不能保留半开放状态。
 
-### 2.2 当前保留边界
+### 3.2 当前保留边界
 
-1. BPP3D 完全泛型化尚未完成；底层 placement/projection 体系仍允许保留必要 cuboid 结构性绑定。
-2. X/Z 横向圆柱目前只允许在已知坐标终态 packing/rendering 路径表达和校验。
+1. BPP3D 尚未完全泛型化；底层 placement/projection 体系允许保留必要 cuboid 结构性绑定，但业务层不能继续扩散新的 cuboid-only API。
+2. X/Z 横向圆柱当前只允许在已知坐标终态 packing/rendering 路径表达和校验。
 3. 默认自动候选生成、layer generation、circle packing、BLA、block loading、DFS/MLHS、stacking、hanging 尚未开放 X/Z 横向圆柱。
 4. X/Z 横向圆柱不得复用 Y 轴 circle packing 平面假设作为候选生成或最终可行性证明。
-5. depth boundary 仍是 application 后验硬校验，尚未下沉为 MILP 原生约束。
+5. known-coordinate placement 是 final validation path，不是 generated candidate path；新增调用必须通过脚本白名单审计。
 6. 连续半径优化不进入默认生产链路，除非先完成数据契约、建模契约和 Gurobi 回归。
+7. renderer 源码在外部工程，BPP3D 仓内只维护 DTO、fixture、adapter 和文档契约。
 
-## 3. 下一轮目标
+## 4. 下一轮目标
 
-1. 将 item-domain、shape-domain、application、layer generation、BLA、block loading、packing、layer assignment、CSV/Gurobi、renderer 和脚本门禁的 shape contract 做一次跨层收口。
-2. 尽量把业务层公开 API 从底层 cuboid/placement/projection 依赖迁移到 `PackageShapeSpec`、`PackingShape3`、`ItemView`、domain placement alias、shape capability 或更窄接口。
-3. 对 X/Z 横向圆柱自动候选生成做完整决策：能证明的最小子路径实现并验收；不能证明的路径统一拒绝，且不能影响已知坐标终态路径。
-4. 对 block loading、DFS/MLHS、stacking、hanging 做完整决策，消除重复 guard，并把所有保留 unsupported 的路径纳入 negative tests。
-5. 统一 layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata、depth boundary policy 和 request/fixture 解析口径。
-6. 评估并尽量实现 depth boundary MILP 原生下沉；若不下沉，必须记录不可下沉原因并增加防误用门禁。
-7. 若触发 renderer DTO、fixture、adapter 或显示语义变化，同步仓内和外部 renderer，并完成自动与人工视觉验收。
-8. 下一轮结束时形成 BPP3D 独立提交；非 BPP3D、quantities、CSP1D 和外部 renderer 改动不得混入。
+1. 一次性完成 BPP3D 业务层 shape contract 审计，把可迁移 API 从 cuboid/placement/projection 泄漏收敛到 shape spec、packing shape、item view、domain placement alias 或更窄接口。
+2. 对横向圆柱自动候选生成、block loading、DFS/MLHS、stacking 和 hanging 做统一决策：能完整证明的最小子路径开放，不能完整证明的路径统一拒绝。
+3. 把已知坐标终态路径升级为完整生产验收路径，覆盖真实几何、支撑、multi-bin、mixed shape、depth boundary、renderer 输出和错误信息。
+4. 统一 application、layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata 和 depth boundary policy 的 shape-aware 解释。
+5. 评估并尽量实现 depth boundary MILP 原生下沉；若不下沉，必须写清不可下沉原因，并增加防误用门禁和回归测试。
+6. 若触发 renderer DTO、fixture、adapter 或显示语义变化，同步仓内和外部 renderer，并完成自动与人工视觉验收。
+7. 下一轮结束时形成清晰提交边界：BPP3D、本仓其他模块和外部 renderer 分开提交，不混入无关改动。
 
-## 4. 下一轮事项、计划、修改清单与验收标准
+## 5. 下一轮事项、计划、修改清单与验收标准
 
-### 4.1 Shape Contract 审计与门禁升级
+### 5.1 Shape Contract 与公开 API 收口
 
 **事项**
 
-建立下一轮 shape contract 审计矩阵，覆盖 shape、axis、placement、projection、renderer DTO、CSV metadata、unsupported message 和 stale allowlist，并让脚本可以定位新增违规类别。
+统一审计 item-domain、shape-domain、application、layer generation、BLA、block loading、packing、layer assignment 和 renderer adapter 的 shape contract，减少业务层对底层 cuboid/projection/placement 类型的直接暴露。
 
 **计划**
 
-1. 扫描 BPP3D 中所有 shape、axis、cuboid、placement、projection、renderer DTO、CSV metadata 和 unsupported 文案命中。
-2. 将命中分类为基础设施保留、domain typed factory、已知坐标终态路径、候选生成路径、search path、renderer 契约、测试夹具和过期命中。
-3. 清理 stale allowlist；仍需保留的 allowlist 必须有归属、用途和迁移条件。
-4. 升级脚本失败输出，使新增违规能直接指向违规类别和建议迁移方向。
-5. 将脚本结果作为本轮必跑门禁，不沿用历史结果。
+1. 扫描所有 `shape`、`axis`、`cuboid`、`placement`、`projection`、`renderer DTO`、`CSV metadata`、`known-coordinate` 和 `unsupported` 命中，重新分类为保留、迁移、拒绝或测试专用。
+2. 清理 stale allowlist；保留项必须写明归属、用途和迁移条件。
+3. 把 shape-sensitive 行为集中到 `PackageShapeSpec`、`PackingShape3`、`ItemView`、`ItemPlacement2/3`、domain alias、shape capability 或新的窄接口。
+4. 为无法迁移的兼容入口补齐中英双语 KDoc，说明保留原因、调用边界和迁移条件。
+5. 升级边界脚本，使新增业务层 cuboid 泄漏、known-coordinate 旁路误用、重复 unsupported 文案、renderer DTO 漂移和过期字段命中可以直接定位。
 
 **修改清单**
 
@@ -62,31 +76,36 @@
 2. `scripts/shape-boundary-check.ps1`
 3. `scripts/geometry-boundary-check.ps1`
 4. `scripts/geometry-module-dry-run.ps1`
-5. `bpp3d-*/src/test/**/*Boundary*Test.kt`
-6. `README.md`
-7. `README_ch.md`
-8. `refactor.md`
+5. `bpp3d-domain-item-context/src/main/**/*`
+6. `bpp3d-domain-layer-generation-context/src/main/**/*`
+7. `bpp3d-domain-bla-context/src/main/**/*`
+8. `bpp3d-domain-block-loading-context/src/main/**/*`
+9. `bpp3d-domain-packing-context/src/main/**/*`
+10. `bpp3d-domain-layer-assignment-context/src/main/**/*`
+11. `bpp3d-application/src/main/**/*`
+12. `bpp3d-infrastructure/src/main/**/*`
+13. `bpp3d-*/src/test/**/*Boundary*Test.kt`
 
 **验收标准**
 
-1. 四个边界/几何脚本全部通过。
-2. allowlist 无 stale 命中，保留项均有分类和迁移条件。
-3. 新增业务层 cuboid 泄漏、重复 unsupported message、renderer DTO 漂移和过期字段命中可被脚本定位。
-4. `git diff --check -- ospf-kotlin-framework-bpp3d` 通过。
+1. 新增业务代码不直接暴露底层 cuboid/projection 作为 shape 语义。
+2. 保留的 cuboid/projection/placement 绑定均有 allowlist 分类和迁移条件。
+3. unsupported message 由共享契约统一输出，禁止模块内重复硬编码。
+4. 四个边界/几何脚本全部通过，且失败输出能给出违规类别和建议迁移方向。
 
-### 4.2 Item-Domain 与公开 API 泛型化收口
+### 5.2 Item-Domain、支撑语义与业务对象泛型化
 
 **事项**
 
-继续把尺寸、体积、投影、支撑、top/bottom、stacking、hanging、placement 构造和 shape capability 收敛到 item-domain / shape-domain API，减少业务层直接依赖底层几何类型。
+把尺寸、体积、footprint、top/bottom、支撑、stacking、hanging、placement 构造和 shape capability 收敛到 item-domain / shape-domain API，统一终态对象和候选对象的 shape 解释。
 
 **计划**
 
-1. 复核 `Item`、`Package`、`PackageAttribute`、`ItemContainer`、`Bin`、`Layer`、`Block`、`PlacementFactory` 的公开属性、typealias 和构造入口。
-2. 把 shape-sensitive 行为集中到 `PackageShapeSpec`、`PackingShape3`、`ItemView`、`ItemPlacement2/3`、shape capability 或新的窄接口。
-3. 检查 `ItemMerger`、`LoadingOrderCalculator`、`DemandStatistics`、`MaterialDemandReducedCost`、`Pattern` 是否仍存在隐式长方体假设。
-4. 对无法迁移的兼容入口补中英双语 KDoc，说明保留原因、调用边界和迁移条件。
-5. 补齐 cuboid、竖直圆柱、X/Z 横向圆柱终态对象的 domain tests。
+1. 复核 `Item`、`Package`、`PackageAttribute`、`ItemContainer`、`Bin`、`Layer`、`Block`、`Pattern`、`PlacementFactory` 的公开属性、typealias 和构造入口。
+2. 明确 cuboid、竖直圆柱、横向圆柱在 item-domain 中的能力矩阵和支撑前置条件。
+3. 检查 `ItemMerger`、`LoadingOrderCalculator`、`DemandStatistics`、`MaterialDemandReducedCost` 是否仍有隐式长方体假设。
+4. 统一 stacking/hanging/top-layer 的圆柱错误信息和 guard 调用入口。
+5. 补齐 cuboid、竖直圆柱、横向圆柱终态对象的 domain tests。
 
 **修改清单**
 
@@ -97,160 +116,136 @@
 5. `bpp3d-domain-item-context/src/main/.../model/Bin.kt`
 6. `bpp3d-domain-item-context/src/main/.../model/Layer.kt`
 7. `bpp3d-domain-item-context/src/main/.../model/Block.kt`
-8. `bpp3d-domain-item-context/src/main/.../model/PlacementFactory.kt`
-9. `bpp3d-domain-item-context/src/main/.../service/*`
-10. `bpp3d-domain-item-context/src/test/**/*`
+8. `bpp3d-domain-item-context/src/main/.../model/Pattern.kt`
+9. `bpp3d-domain-item-context/src/main/.../model/PlacementFactory.kt`
+10. `bpp3d-domain-item-context/src/main/.../model/CylinderShapeContract.kt`
+11. `bpp3d-domain-item-context/src/main/.../service/*`
+12. `bpp3d-domain-item-context/src/test/**/*`
 
 **验收标准**
 
-1. 新增业务代码不直接暴露底层 cuboid/projection 作为 shape 语义。
-2. shape-sensitive 行为均有 cuboid、竖直圆柱和横向圆柱终态测试覆盖。
-3. item-context focused tests 通过。
-4. 旧长方体构造、旧测试夹具和旧业务链路继续兼容。
+1. shape-sensitive 行为均由 item-domain / shape-domain API 表达。
+2. cuboid、竖直圆柱和横向圆柱终态对象均有 positive/negative tests。
+3. stacking/hanging/top-layer 的 unsupported contract 可断言且不重复。
+4. item-context focused tests 通过，旧长方体构造和旧测试夹具继续兼容。
 
-### 4.3 横向圆柱候选生成开放评估与收口
+### 5.3 候选生成、BLA、Block Loading 与 Search 路径决策
 
 **事项**
 
-对 layer generation、circle packing 和 BLA 做横向圆柱候选开放评估。能证明的最小子路径可以开放；不能证明的路径必须保持 unsupported，并通过测试和脚本防止误开放。
+对 layer generation、circle packing、BLA、simple block、complex block、DFS、MLHS、stacking 和 hanging 做一次总决策，消除半开放状态。
 
 **计划**
 
-1. 拆分 shape-neutral 逻辑、Y 轴 circle packing 假设、cuboid-only 假设和 BLA 依赖假设。
+1. 拆分 shape-neutral 逻辑、Y 轴 circle packing 假设、cuboid-only 假设、block 空间拆分假设和 BLA 依赖假设。
 2. 为 X/Z 横向圆柱建立 footprint、可放置平面、半径/直径、轴向长度、边界、同层轴向、支撑前置条件和候选去重决策表。
-3. 评估是否只开放外部已知坐标层输入绕过自动候选生成，还是开放受限自动候选子路径。
-4. 若开放横向圆柱自动候选，必须实现真实 footprint packing、候选去重、同层轴向限制、支撑前置条件和 negative tests。
-5. 若不开放横向圆柱自动候选，统一拒绝入口、错误信息、README 支持矩阵和 tests。
+3. 评估是否开放受限自动候选子路径；若开放，必须实现真实 footprint packing、候选去重、同层轴向限制、支撑前置条件和完整 tests。
+4. 若不开放横向圆柱自动候选，统一拒绝入口、错误信息、README 支持矩阵、negative tests 和脚本门禁。
+5. 评估竖直圆柱是否可以进入更宽的 block loading 或 stacking/hanging 子路径；无法证明的路径保持 shared unsupported。
+6. 清理重复 guard，确保 block loading、DFS/MLHS、stacking、hanging 的支持矩阵只有一个来源。
 
 **修改清单**
 
 1. `bpp3d-domain-layer-generation-context/src/main/.../LayerGenerationContext.kt`
 2. `bpp3d-domain-layer-generation-context/src/main/**/*`
-3. `bpp3d-domain-layer-generation-context/src/test/**/*`
-4. `bpp3d-domain-bla-context/src/main/**/*`
-5. `bpp3d-domain-bla-context/src/test/**/*`
-6. `bpp3d-application/src/main/.../service/LayerPlacementAdapter.kt`
-7. `bpp3d-application/src/test/**/*`
-8. `README.md`
-9. `README_ch.md`
+3. `bpp3d-domain-bla-context/src/main/**/*`
+4. `bpp3d-domain-block-loading-context/src/main/**/*`
+5. `bpp3d-application/src/main/.../service/LayerPlacementAdapter.kt`
+6. `bpp3d-domain-layer-generation-context/src/test/**/*`
+7. `bpp3d-domain-bla-context/src/test/**/*`
+8. `bpp3d-domain-block-loading-context/src/test/**/*`
+9. `bpp3d-application/src/test/**/*`
 
 **验收标准**
 
-1. 每个候选生成入口都有明确支持矩阵。
+1. 每个候选生成、BLA、block loading 和 search 入口都有明确支持矩阵。
 2. Y 轴 circle packing 假设不会被 X/Z 横向圆柱误复用。
-3. 已开放路径有候选、边界、碰撞、支撑和同层轴向测试。
-4. 未开放路径有统一 unsupported message、negative tests 和脚本保护。
+3. 新开放路径具备候选、边界、碰撞、支撑、同层轴向、去重和搜索正确性测试。
+4. 未开放路径具备统一 unsupported message、negative tests 和脚本保护。
+5. layer-generation、BLA、block-loading focused tests 通过。
 
-### 4.4 Block Loading、DFS/MLHS、Stacking 与 Hanging 决策闭环
-
-**事项**
-
-对 block loading、DFS/MLHS、stacking 和 hanging 做完整收口：能实现的最小 shape-aware 子路径实现，不能证明的路径保持明确 unsupported，并消除重复 guard。
-
-**计划**
-
-1. 复核 simple block、complex block、pattern placement、DFS、MLHS、stacking、hanging 对空间拆分、支撑面、投影和层策略的几何假设。
-2. 评估竖直圆柱是否能进入更宽的 block loading 或 stacking/hanging 子路径。
-3. 评估 X/Z 横向圆柱是否仅允许已知坐标终态，还是可以进入受限 block loading 子路径。
-4. 将不能证明的路径统一复用 item-domain 契约，清理模块内重复 message。
-5. 补齐 positive/negative tests，覆盖 cuboid、竖直圆柱、横向圆柱、混装和错误信息。
-
-**修改清单**
-
-1. `bpp3d-domain-block-loading-context/src/main/.../SimpleBlockGenerator.kt`
-2. `bpp3d-domain-block-loading-context/src/main/.../ComplexBlockGenerator.kt`
-3. `bpp3d-domain-block-loading-context/src/main/.../CylinderUnsupportedGuard.kt`
-4. `bpp3d-domain-block-loading-context/src/main/.../DepthFirstSearchAlgorithm.kt`
-5. `bpp3d-domain-block-loading-context/src/main/.../MultiLayerHeuristicSearchAlgorithm.kt`
-6. `bpp3d-domain-block-loading-context/src/test/**/*`
-7. `bpp3d-domain-item-context/src/main/.../model/CylinderShapeContract.kt`
-8. `bpp3d-domain-item-context/src/test/**/*`
-
-**验收标准**
-
-1. block loading、DFS/MLHS、stacking、hanging 的支持矩阵明确。
-2. 任何新增开放路径都有真实几何、支撑和搜索正确性测试。
-3. 任何保留 unsupported 的路径都有统一错误信息和 negative tests。
-4. block-loading focused tests 与 BPP3D reactor 通过。
-
-### 4.5 Packing Final Guard、Depth Boundary 与 Known-Coordinate 强化
+### 5.4 Packing Final Guard、Known-Coordinate 与 Depth Boundary
 
 **事项**
 
-继续强化已知坐标终态路径，把横向圆柱、混装、multi-bin、depth boundary、支撑和 renderer 输出作为完整生产验收路径，而不是测试绕过路径。
+把已知坐标终态路径作为完整生产验收路径，而不是测试绕过路径；同时评估并尽量下沉 depth boundary 到 MILP。
 
 **计划**
 
 1. 统一 `axis`、orientation、footprint、height/depth/width、bounding box、material identity、layer identity 和 loading order 的解释。
 2. 强化 packing final guard 对 X/Z 横向圆柱的 boundary、collision、support、axis mixing、same-layer policy、multi-bin 和 depth boundary 场景校验。
 3. 补齐贴地支撑、全长支撑、局部支撑拒绝、跨层 depth boundary、跨 bin mixed shape 和 renderer 输出测试。
-4. 保持默认自动候选生成关闭，直到 4.3 和 4.4 的证明同时完成。
-5. 同步 README、README_ch 和 fixture 文档中的 allowed path / unsupported path 表述。
+4. 设计 depth boundary MILP 原生约束方案，覆盖 first/last layer、multi-bin、mixed shape、横向圆柱和旧数据兼容。
+5. 若方案成立，实现建模和 Gurobi 回归；若方案不成立，保留 application 后验硬校验，并记录不可下沉原因和防误用门禁。
 
 **修改清单**
 
 1. `bpp3d-application/src/main/.../service/ColumnGenerationPackingAnalyzer.kt`
-2. `bpp3d-application/src/main/.../service/LayerPlacementAdapter.kt`
-3. `bpp3d-application/src/main/.../service/DepthBoundaryLayerOrientationPolicy.kt`
-4. `bpp3d-domain-packing-context/src/main/.../service/Packer.kt`
-5. `bpp3d-domain-packing-context/src/main/.../service/MaterialPacker.kt`
-6. `bpp3d-domain-packing-context/src/main/.../service/PackingGeometryGuard.kt`
-7. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`
-8. `bpp3d-application/src/test/**/*`
-9. `bpp3d-domain-packing-context/src/test/**/*`
-10. `bpp3d-infrastructure/src/test/resources/renderer/*`
+2. `bpp3d-application/src/main/.../service/ColumnGenerationApplicationService.kt`
+3. `bpp3d-application/src/main/.../service/ColumnGenerationAlgorithm.kt`
+4. `bpp3d-application/src/main/.../service/DepthBoundaryLayerOrientationPolicy.kt`
+5. `bpp3d-application/src/main/.../service/LayerPlacementAdapter.kt`
+6. `bpp3d-domain-packing-context/src/main/.../service/Packer.kt`
+7. `bpp3d-domain-packing-context/src/main/.../service/MaterialPacker.kt`
+8. `bpp3d-domain-packing-context/src/main/.../service/PackingGeometryGuard.kt`
+9. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`
+10. `bpp3d-domain-layer-assignment-context/src/main/**/*`
+11. `bpp3d-application/src/test/**/*`
+12. `bpp3d-domain-packing-context/src/test/**/*`
+13. `bpp3d-domain-layer-assignment-context/src/test/**/*`
 
 **验收标准**
 
 1. 已知坐标 X/Z 横向圆柱使用真实几何判定，不以外接盒作为最终可行性证明。
 2. explicit bins、generic known-coordinate layers、multi-bin、mixed shape、depth boundary 均有 positive/negative tests。
-3. unsupported 与 allowed path 错误信息可断言且不互相冲突。
-4. application focused tests、packing focused tests 和 renderer DTO tests 通过。
+3. depth boundary 若下沉到 MILP，必须有普通回归和 CSV dataset suite 覆盖。
+4. depth boundary 若不下沉，文档、错误信息和测试明确说明仍是后验硬校验。
+5. application focused tests、packing focused tests 和 layer-assignment focused tests 通过。
 
-### 4.6 Layer Assignment、CSV/Gurobi 与 Shape Metadata 收敛
+### 5.5 CSV/Gurobi、Dynamic Radius 与 Shape Metadata
 
 **事项**
 
-统一 layer assignment、CSV/Gurobi、dynamic radius/diameter、axis metadata 和 depth boundary policy 的 shape-aware 解释，并评估 depth boundary 是否可以下沉到 MILP 原生约束。
+统一 CSV/Gurobi、application request、layer assignment 和 solver adapter 对 shape identity、axis、radius/diameter、volume、layer key 和 depth boundary policy 的解释。
 
 **计划**
 
-1. 复核 `DemandConstraint`、`VolumeMinimization`、`LayerAggregation`、`MaterialPacker`、Gurobi adapter 对 shape identity、axis、volume 和 layer key 的解释。
+1. 复核 `DemandConstraint`、`VolumeMinimization`、`LayerAggregation`、`MaterialPacker`、Gurobi adapter 对 shape metadata 的使用。
 2. 确认 radius/diameter、dynamic radius/diameter、axis、depth boundary policy 在 request、CSV、Gurobi dataset suite 中共用同一解析契约。
-3. 设计 depth boundary MILP 原生约束方案，覆盖 first/last layer、multi-bin、mixed shape、横向圆柱和旧数据兼容。
-4. 如果方案成立，实现建模和 Gurobi 回归；如果方案不成立，保留 application 后验硬校验并记录不可下沉原因。
-5. 扩展 CSV dataset suite，覆盖旧格式、混装、竖直圆柱、横向圆柱 metadata、depth boundary 和非法字段。
+3. 扩展 CSV dataset suite，覆盖旧格式、混装、竖直圆柱、横向圆柱 metadata、dynamic radius/diameter、depth boundary 和非法字段。
+4. 保持旧 CSV、旧 DTO 和旧长方体 Gurobi 链路兼容。
+5. 如果引入连续半径优化，必须先完成数据契约、建模契约、求解契约和 Gurobi 回归；否则继续明确不进入生产链路。
 
 **修改清单**
 
 1. `bpp3d-domain-layer-assignment-context/src/main/.../model/LayerAggregation.kt`
 2. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/DemandConstraint.kt`
 3. `bpp3d-domain-layer-assignment-context/src/main/.../service/limits/VolumeMinimization.kt`
-4. `bpp3d-domain-layer-assignment-context/src/test/**/*`
-5. `bpp3d-application/src/main/.../service/ColumnGenerationApplicationService.kt`
-6. `bpp3d-application/src/main/.../service/ColumnGenerationAlgorithm.kt`
-7. `bpp3d-application/src/main/.../service/DepthBoundaryLayerOrientationPolicy.kt`
-8. `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt`
-9. `bpp3d-application/src/test/resources/gurobi/*`
+4. `bpp3d-application/src/main/.../service/ColumnGenerationApplicationService.kt`
+5. `bpp3d-application/src/main/.../service/ColumnGenerationAlgorithm.kt`
+6. `bpp3d-application/src/gurobi-test/.../GurobiColumnGenerationTest.kt`
+7. `bpp3d-application/src/test/resources/gurobi/*`
+8. `bpp3d-domain-layer-assignment-context/src/test/**/*`
+9. `bpp3d-application/src/test/**/*`
 
 **验收标准**
 
 1. layer assignment、application、CSV 和 Gurobi 对 shape metadata 的解释一致。
-2. depth boundary 原生下沉若实现，必须有 Gurobi 普通回归和 CSV dataset suite 覆盖。
-3. depth boundary 若不下沉，文档、错误信息和测试明确说明仍是后验硬校验。
-4. 旧 CSV、旧 DTO 和旧长方体 Gurobi 链路继续兼容。
+2. CSV dataset suite 覆盖旧格式、混装、竖直圆柱、横向圆柱 metadata、dynamic radius/diameter、depth boundary 和非法字段。
+3. Gurobi 普通回归和 CSV dataset suite 通过。
+4. 未开放的连续半径优化具备明确文档和防误用测试。
 
-### 4.7 Renderer、DTO、Fixture 与人工视觉确认
+### 5.6 Renderer、DTO、Fixture 与外部验收
 
 **事项**
 
-如果下一轮触发 shape metadata、axis、renderer adapter、fixture 或终态几何显示语义变化，同步仓内 DTO/fixture 与外部 renderer，并执行自动与人工可视化验收。
+在触发 renderer 语义变化时，同步仓内 DTO/fixture 与外部 Rust/TS renderer，并执行自动与人工视觉验收。
 
 **计划**
 
-1. 对齐仓内 renderer DTO 与外部 Rust/TS DTO 的 `algorithmShapeType`、`renderShapeType`、`axis`、`bounding*` 和 shape metadata 字段。
-2. 补齐混装、X/Y/Z 三轴、横向圆柱贴地、depth boundary、multi-bin、非法支撑和实际求解输出 fixture。
-3. 更新 `RendererDTOTest`、外部 renderer DTO 反序列化测试、README 和人工确认样例说明。
+1. 对齐仓内 renderer DTO 与外部 renderer DTO 的 `algorithmShapeType`、`renderShapeType`、`axis`、`bounding*`、`actualVolume` 和 shape metadata 字段。
+2. 补齐混装、X/Y/Z 三轴、横向圆柱贴地、全长支撑、depth boundary、multi-bin、非法支撑和实际求解输出 fixture。
+3. 更新仓内 `RendererDTOTest`、packing renderer adapter tests、外部 renderer DTO 反序列化测试和 README 样例。
 4. 执行外部 renderer 自动检查和人工视觉确认；人工确认必须区分通过、失败、未执行和未触发。
 
 **修改清单**
@@ -259,18 +254,19 @@
 2. `bpp3d-infrastructure/src/test/.../RendererDTOTest.kt`
 3. `bpp3d-infrastructure/src/test/resources/renderer/*`
 4. `bpp3d-domain-packing-context/src/main/.../service/PackingRendererAdapter.kt`
-5. `README.md`
-6. `README_ch.md`
-7. 外部工程：`E:\workspace\ospf\framework\bpp3d-interface-renderer`
+5. `bpp3d-domain-packing-context/src/test/**/*`
+6. `README.md`
+7. `README_ch.md`
+8. 外部工程：`E:\workspace\ospf\framework\bpp3d-interface-renderer`
 
 **验收标准**
 
 1. 仓内 renderer DTO 契约测试通过。
 2. 外部 renderer `npm run build`、`npx vue-tsc --noEmit`、`cargo check`、`cargo test` 通过。
-3. 人工视觉确认覆盖混装、X/Y/Z 三轴、横向圆柱贴地、外接盒语义、depth boundary 和实际求解输出。
+3. 人工视觉确认覆盖混装、X/Y/Z 三轴、横向圆柱贴地、全长支撑、外接盒语义、depth boundary 和实际求解输出。
 4. 未实际执行的人工项不得写成通过。
 
-### 4.8 文档、验证与提交隔离
+### 5.7 文档、验证与提交隔离
 
 **事项**
 
@@ -302,7 +298,7 @@
 4. BPP3D 提交不包含非 BPP3D 改动。
 5. 提交信息具体说明重构目标、关键边界、开放能力、保留 unsupported 能力和验证结果。
 
-## 5. 必跑门禁
+## 6. 必跑门禁
 
 ```powershell
 pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
@@ -313,7 +309,7 @@ git diff --check -- ospf-kotlin-framework-bpp3d
 mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true
 ```
 
-## 6. 触发式完整验收
+## 7. 触发式完整验收
 
 修改 application、CSV、shape spec、depth boundary 或 solver 相关代码时执行：
 
@@ -333,51 +329,12 @@ cargo check
 cargo test
 ```
 
-## 7. 下一轮完成定义
+## 8. 下一轮完成定义
 
-1. 第 4 节所有事项均完成、明确延后或明确阻断，没有未分类状态。
+1. 第 5 节所有事项均完成、明确延后或明确阻断，没有未分类状态。
 2. 新增开放能力具备真实几何、支撑、solver、renderer、文档和测试闭环。
 3. 保留 unsupported 的能力具备统一错误信息、negative tests 和门禁保护。
 4. BPP3D 必跑门禁全部通过。
 5. 被实际改动触发的完整验收全部执行并记录。
 6. README、README_ch、refactor.md 与代码能力口径一致。
 7. BPP3D 改动独立提交，非 BPP3D 改动和外部 renderer 改动不混入。
-
-## 8. 本轮执行记录
-
-本轮按计划先执行边界脚本、代码审计和 BPP3D reactor 测试，未新增开放能力，也未修改 application、CSV、shape spec、depth boundary、solver、renderer DTO、renderer fixture、packing renderer adapter 或显示语义。
-
-### 8.1 已执行并通过
-
-1. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d`
-   - 结果：`STRICT_GENERIC_BOUNDARY_PASS`
-2. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d`
-   - 结果：`SHAPE_BOUNDARY_PASS`
-3. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1 -ProjectRoot .`
-   - 结果：`GEOMETRY_BOUNDARY_PASS`
-4. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1 -ProjectRoot .`
-   - 结果：`GEOMETRY_MODULE_DRY_RUN_PASS`
-   - 备注：`GEOMETRY_MODULE_DRY_RUN_WARNINGS=8`，均为已接受的 internal baseline。
-5. `git diff --check -- ospf-kotlin-framework-bpp3d`
-   - 结果：通过。
-6. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`
-   - 结果：通过。
-   - 备注：首次执行时因本地 Maven 仓库中的 `ospf-kotlin-quantities:1.1.0` 仍是旧 `PhysicalUnit` API 而在 `bpp3d-domain-item-context` 编译失败；执行 `mvn --% -f ospf-kotlin-quantities/pom.xml install -DskipTests -Dgpg.skip=true` 安装当前源码版本后，BPP3D reactor 测试通过。
-
-### 8.2 代码审计结论
-
-1. 边界脚本当前已覆盖 generic boundary、shape boundary、geometry boundary 和 geometry module dry-run，没有新增 stale allowlist 或未分类违规。
-2. 圆柱 unsupported message 已集中在 `CylinderShapeContract.kt`，layer generation、application adapter、block loading、DFS/MLHS 等路径复用共享契约。
-3. X/Z 横向圆柱仍只在已知坐标终态 packing/rendering 路径开放；默认候选生成、circle packing、stacking、hanging、DFS/MLHS 保持 unsupported，与 README / README_ch 支持矩阵一致。
-4. depth boundary policy 仍是 application 层后验硬校验，不是 MILP 原生约束；README / README_ch 已明确该口径。
-
-### 8.3 未触发或未执行
-
-1. Gurobi 插件 install、Gurobi 普通回归和 CSV dataset suite：未触发。本轮未修改 application、CSV、shape spec、depth boundary 或 solver 相关代码。
-2. 外部 renderer 自动验收：未触发。本轮未修改 renderer DTO、renderer fixture、packing renderer adapter 或显示语义。
-3. 人工视觉确认：未触发。本轮未修改 renderer 语义或 fixture。
-
-### 8.4 提交边界
-
-1. BPP3D 当前只记录本轮执行状态，不混入非 BPP3D 源码改动。
-2. 工作区存在 `ospf-kotlin-quantities` 未提交改动；这些文件不属于 BPP3D 本轮提交边界，应单独处理。
