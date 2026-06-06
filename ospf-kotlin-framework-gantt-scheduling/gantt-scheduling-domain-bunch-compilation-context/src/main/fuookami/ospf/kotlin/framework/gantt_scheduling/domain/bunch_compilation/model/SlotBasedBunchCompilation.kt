@@ -1,35 +1,41 @@
 @file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.variable.BinVariable1
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.variable.BinVariable1
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 
 /**
- * 分时隙任务束编译�?
+ * 分时隙任务束编译类
  * Slot-based bunch compilation class
  *
- * 继承 BunchCompilation，增加时隙相关功能�?
+ * 继承 BunchCompilation，增加时隙相关功能。
  * Extends BunchCompilation with slot-related functionality.
  *
- * 每个 bunch 只能属于一个时隙，时隙对应关系�?bunch 生成器保证�?
+ * 每个 bunch 只能属于一个时隙，时隙对应关系由 bunch 生成器保证。
  * Each bunch can only belong to one time slot, ensured by the bunch generator.
+ *
+ * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Numeric type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
  */
-open class SlotBasedBunchCompilation<
+open class SlotBasedBunchCompilationV<
         B,
+        V : RealNumber<V>,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
@@ -39,14 +45,14 @@ open class SlotBasedBunchCompilation<
     private val slots: List<TimeSlot>,
     private val lockCancelTasks: Set<T> = emptySet(),
     override val withExecutorLeisure: Boolean = true
-) : BunchCompilation<B, Flt64, T, E, A>(
+) : BunchCompilation<B, V, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockCancelTasks = lockCancelTasks,
     withExecutorLeisure = withExecutorLeisure,
-    bunchAggregation = SlotBasedBunchAggregation()
+    bunchAggregation = SlotBasedBunchAggregationV()
 )
-        where B : AbstractTaskBunch<T, E, A, Flt64>, B : SlotBasedBunch<T, E, A> {
+        where B : AbstractTaskBunch<T, E, A, V>, B : SlotBasedBunch<T, E, A> {
 
     /**
      * 按时隙分组的 bunches
@@ -67,10 +73,10 @@ open class SlotBasedBunchCompilation<
      * 按时隙添加列
      * Add columns by slot
      *
-     * @param iteration Current iteration number / 当前迭代�?
-     * @param newBunches New bunches to add / 要添加的�?bunch
-     * @param model Linear meta model / 线性元模型
-     * @return Added bunches grouped by slot / 按时隙分组的已添�?bunch
+     * @param iteration Current iteration number / 当前迭代号
+     * @param newBunches New bunches to add / 要添加的新 bunch
+     * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
+     * @return Added bunches grouped by slot / 按时隙分组的已添加 bunch
      */
     open suspend fun addColumnsBySlot(
         iteration: UInt64,
@@ -78,7 +84,6 @@ open class SlotBasedBunchCompilation<
         model: AbstractLinearMetaModel<Flt64>
     ): Ret<Map<TimeSlot, List<B>>> {
         // First add columns using parent method
-        // 首先使用父类方法添加�?
         val unduplicatedBunches = when (val result = addColumns(iteration, newBunches, model)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
@@ -86,7 +91,6 @@ open class SlotBasedBunchCompilation<
         }
 
         // Group by slot and track variables
-        // 按时隙分组并跟踪变量
         val bunchesBySlot = HashMap<TimeSlot, MutableList<B>>()
         for (bunch in unduplicatedBunches) {
             bunchesBySlot.getOrPut(bunch.slot) { mutableListOf() }.add(bunch)
@@ -96,7 +100,6 @@ open class SlotBasedBunchCompilation<
         }
 
         // Update xBySlot tracking
-        // 更新 xBySlot 跟踪
         val currentX = x.lastOrNull()
         for ((slot, _) in bunchesBySlot) {
             val slotVariables = _xBySlot.getOrPut(slot) { ArrayList() }
@@ -108,7 +111,7 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 获取指定时隙的所�?bunch
+     * 获取指定时隙的所有 bunch
      * Get all bunches for specified slot
      *
      * @param slot The time slot / 时隙
@@ -119,11 +122,11 @@ open class SlotBasedBunchCompilation<
     }
 
     /**
-     * 获取指定时隙和执行器的所�?bunch
+     * 获取指定时隙和执行器的所有 bunch
      * Get all bunches for specified slot and executor
      *
      * @param slot The time slot / 时隙
-     * @param executor The executor / 执行�?
+     * @param executor The executor / 执行器
      * @return List of bunches in this slot for this executor / 该时隙该执行器的 bunch 列表
      */
     fun bunchesInSlot(slot: TimeSlot, executor: E): List<B> {
@@ -131,4 +134,8 @@ open class SlotBasedBunchCompilation<
     }
 }
 
+/** 向后兼容 typealias — Flt64 slot-based bunch compilation / Backward compat typealias */
+typealias SlotBasedBunchCompilation<B, T, E, A> = SlotBasedBunchCompilationV<B, Flt64, T, E, A>
 
+/** 向后兼容 typealias — Flt64 slot-based bunch compilation / Backward compat typealias */
+typealias Flt64SlotBasedBunchCompilation<B, T, E, A> = SlotBasedBunchCompilationV<B, Flt64, T, E, A>

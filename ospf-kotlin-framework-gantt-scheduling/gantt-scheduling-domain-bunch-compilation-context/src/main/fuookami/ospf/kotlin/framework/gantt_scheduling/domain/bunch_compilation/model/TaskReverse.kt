@@ -1,24 +1,24 @@
 @file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/** 任务反转构建器 / Task reverse builder */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 任务反转构建器 / Task reverse builder
  *
  * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Numeric type
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  */
-open class TaskReverseBuilder<
-        out B : AbstractTaskBunch<T, E, A, Flt64>,
+open class TaskReverseBuilderV<
+        out B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
         out T : AbstractPlannedTask<*, E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>
@@ -258,3 +258,9 @@ class TaskReverse<
         return rightMapper[flightTask.key] ?: emptyList()
     }
 }
+
+/** 向后兼容 typealias — Flt64 task reverse builder / Backward compat typealias */
+typealias TaskReverseBuilder<B, T, E, A> = TaskReverseBuilderV<B, Flt64, T, E, A>
+
+/** 向后兼容 typealias — Flt64 task reverse builder / Backward compat typealias */
+typealias Flt64TaskReverseBuilder<B, T, E, A> = TaskReverseBuilderV<B, Flt64, T, E, A>

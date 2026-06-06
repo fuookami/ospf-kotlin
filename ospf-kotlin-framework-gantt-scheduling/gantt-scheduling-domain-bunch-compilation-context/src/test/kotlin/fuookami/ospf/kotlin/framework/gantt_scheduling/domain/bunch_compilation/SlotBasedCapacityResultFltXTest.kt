@@ -1,0 +1,204 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
+
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
+import kotlinx.datetime.Instant
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.TaskReverseBuilderV
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractPlannedTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+
+private val stubTimeRange = TimeRange(
+    start = Instant.parse("2024-01-01T08:00:00Z"),
+    end = Instant.parse("2024-01-01T10:00:00Z")
+)
+
+private object StubAction : ProductionAction {
+    override val id = "stub"
+    override val name = "stub"
+    override val executor = Executor("e1", "executor-1")
+    override val discrete = false
+    override fun unitCapacity(timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+        throw UnsupportedOperationException("stub")
+    override fun unitCost(time: Instant) =
+        throw UnsupportedOperationException("stub")
+    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+        throw UnsupportedOperationException("stub")
+}
+
+class SlotBasedCapacityResultFltXTest {
+    private val slot = stubTimeRange
+    private val productA = "product-A"
+    private val materialB = "material-B"
+    private val resourceC = "resource-C"
+
+    @Test
+    fun slotBasedCapacityResultShouldSupportFltX() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = listOf(
+                ActionAllocation(
+                    action = StubAction,
+                    slot = slot,
+                    slotIndex = 0,
+                    amount = UInt64(3),
+                    duration = 2.hours
+                )
+            ),
+            totalCost = FltX("12.50"),
+            produceByProduct = mapOf(productA to FltX("100.0")),
+            consumptionByMaterial = mapOf(materialB to FltX("50.0")),
+            resourceUsageByResource = mapOf(resourceC to FltX("75.5"))
+        )
+
+        assertTrue(result.totalCost eq FltX("12.50"))
+        assertTrue(result.produceByProduct[productA]!! eq FltX("100.0"))
+        assertTrue(result.consumptionByMaterial[materialB]!! eq FltX("50.0"))
+        assertTrue(result.resourceUsageByResource[resourceC]!! eq FltX("75.5"))
+        assertEquals(1, result.actionAllocations.size)
+        assertEquals(0, result.slotIndex)
+    }
+
+    @Test
+    fun capacityIntermediateValuesShouldSupportFltX() {
+        val slotResult = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCost = FltX("5.0"),
+            produceByProduct = mapOf(productA to FltX("20.0")),
+            consumptionByMaterial = mapOf(materialB to FltX("10.0")),
+            resourceUsageByResource = mapOf(resourceC to FltX("15.0"))
+        )
+
+        val intermediate = CapacityIntermediateValues<ProductionAction, String, String, FltX>(
+            slots = listOf(slot),
+            results = mapOf(slot to slotResult)
+        )
+
+        assertTrue(intermediate.produce(slot, productA)!! eq FltX("20.0"))
+        assertTrue(intermediate.consumption(slot, materialB)!! eq FltX("10.0"))
+        assertTrue(intermediate.resourceUsage(slot, resourceC)!! eq FltX("15.0"))
+    }
+
+    @Test
+    fun slotConstraintsFromShouldWorkWithFltX() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCost = FltX("0"),
+            produceByProduct = mapOf(productA to FltX("5.0")),
+            consumptionByMaterial = mapOf(materialB to FltX("3.0")),
+            resourceUsageByResource = mapOf(resourceC to FltX("7.0"))
+        )
+
+        val constraints = SlotConstraints.from(result)
+
+        assertTrue(constraints.maxProduce[productA]!! eq FltX("5.0"))
+        assertTrue(constraints.minProduce[productA]!! eq FltX("5.0"))
+        assertTrue(constraints.maxConsumption[materialB]!! eq FltX("3.0"))
+        assertTrue(constraints.minConsumption[materialB]!! eq FltX("3.0"))
+        assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("7.0"))
+        assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("7.0"))
+        assertEquals(0, constraints.slotIndex)
+    }
+
+    @Test
+    fun slotConstraintsFromWithToleranceShouldWorkWithFltX() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCost = FltX("0"),
+            produceByProduct = mapOf(productA to FltX("5.0")),
+            consumptionByMaterial = mapOf(materialB to FltX("3.0")),
+            resourceUsageByResource = mapOf(resourceC to FltX("7.0"))
+        )
+
+        val tolerance = FltX("1.5")
+        val constraints = SlotConstraints.from(result, tolerance)
+
+        // max = value + tolerance
+        assertTrue(constraints.maxProduce[productA]!! eq FltX("6.5"))
+        assertTrue(constraints.maxConsumption[materialB]!! eq FltX("4.5"))
+        assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("8.5"))
+
+        // min = max(value - tolerance, zero) -- all positive here
+        assertTrue(constraints.minProduce[productA]!! eq FltX("3.5"))
+        assertTrue(constraints.minConsumption[materialB]!! eq FltX("1.5"))
+        assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("5.5"))
+    }
+
+    @Test
+    fun slotConstraintsFromWithToleranceClampsAtZero() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCost = FltX("0"),
+            produceByProduct = mapOf(productA to FltX("1.0")),
+            consumptionByMaterial = emptyMap(),
+            resourceUsageByResource = emptyMap()
+        )
+
+        // tolerance > value, so min should clamp at zero
+        val tolerance = FltX("5.0")
+        val constraints = SlotConstraints.from(result, tolerance)
+
+        assertTrue(constraints.maxProduce[productA]!! eq FltX("6.0"))
+        assertTrue(constraints.minProduce[productA]!! eq FltX("0"))
+    }
+
+    @Test
+    fun capacityIntermediateValuesSlotConstraintsShouldWorkWithFltX() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCost = FltX("0"),
+            produceByProduct = mapOf(productA to FltX("10.0")),
+            consumptionByMaterial = emptyMap(),
+            resourceUsageByResource = emptyMap()
+        )
+
+        val intermediate = CapacityIntermediateValues<ProductionAction, String, String, FltX>(
+            slots = listOf(slot),
+            results = mapOf(slot to result)
+        )
+
+        val constraints = intermediate.slotConstraints(slot)
+        assertNotNull(constraints)
+        assertTrue(constraints!!.maxProduce[productA]!! eq FltX("10.0"))
+    }
+
+    @Test
+    fun taskReverseBuilderCanBeInstantiatedWithFltX() {
+        // 校验泛型实现接受 FltX 数值类型 / Verifies generic implementation accepts FltX as its V type.
+        class FltXTaskReverseBuilder : TaskReverseBuilderV<
+                AbstractTaskBunch<AbstractPlannedTask<*, Executor, AssignmentPolicy<Executor>>, Executor, AssignmentPolicy<Executor>, FltX>,
+                FltX,
+                AbstractPlannedTask<*, Executor, AssignmentPolicy<Executor>>,
+                Executor,
+                AssignmentPolicy<Executor>>()
+        val builder = FltXTaskReverseBuilder()
+        assertNotNull(builder)
+    }
+}

@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-05（最后更新：2026-06-05 会话 3）
+日期：2026-06-05（最后更新：2026-06-06 G5 规划）
 
 ## 1. 总目标
 
@@ -32,117 +32,146 @@
 
 已完成：
 
-1. G0 基线、扫描门禁和允许保留边界初版已建立。
-2. G1 基础领域类型已完成泛型化，并保留 `Flt64` 兼容路径。
-3. G2 `TimeWindow<V>` 已完成泛型化，旧 `Flt64` 时间窗口入口保留。
-4. G2.5 `ProductivityCalendar` 已补齐 `Quantity<V>` 产量路径与单位一致性校验。
-5. 3.1 solver adapter 与 model boundary 已收敛到 `SchedulingSolverValueAdapter<V>`。
-6. 3.2 Task/Bunch compilation 主链路已完成 `V : RealNumber<V>` 传播。
-7. 3.3 Capacity/Resource/Produce 上下文已完成领域泛型化，solver 入模前统一转 `Flt64`。
-8. 3.4 Application 层 branch-and-price 主入口已支持领域泛型 V，solver model 继续固定 `Flt64`。
-9. 3.5 ShadowPriceMap 已确认以 `reducedCost<V>` 作为 Flt64 到 V 的隔离边界，framework shadow price 基础 API 暂不泛型化。
-10. 3.6 测试与扫描收敛已完成，`Flt64` 扫描为 1,317 点 / 105 文件，新增 `GenericFltXPathTest` 覆盖 `Cost<FltX>` 与 `TimeWindow<FltX>`。
+1. G0-G2.5 已建立泛型化基线、扫描基线、基础领域类型、`TimeWindow<V>` 与 `ProductivityCalendar` 的泛型/物理量路径。
+2. G3 已完成 solver adapter、Task/Bunch compilation 主链路、Capacity/Resource/Produce 上下文、Application branch-and-price 入口与 `ShadowPriceMap` 隔离边界。
+3. G4 已完成 slot-based bunch、bunch generation label、task reverse 与 `ProductionAction` 的 legacy 边界收敛。
+4. G4 已补充 capacity、resource、produce、bunch compilation 的 FltX 覆盖，共 24 个新增测试用例。
+5. G4 已将 `Flt64` 扫描门禁切换为 PowerShell 脚本，适配当前 Windows 工作区；当前 main 扫描为 1,321 行 / 103 文件。
+6. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 已通过，11 模块 BUILD SUCCESS。
+7. `git diff --check -- ospf-kotlin-framework-gantt-scheduling` 已通过，仅存在 LF/CRLF 工作区提示。
+8. demo4 当前未直接引用本轮调整的 SlotBased/Label/TaskReverseBuilder/ProductionAction API，暂未修改。
 
 当前允许保留的边界：
 
-1. solver 建模对象和 solver 内部结果继续固定 `Flt64`。
-2. framework shadow price 基础 API 继续固定 `Flt64`。
+1. solver 建模对象、solver 内部结果、pre-solve 模型继续固定 `Flt64`。
+2. framework shadow price 基础 API 继续固定 `Flt64`，通过 `reducedCost<V>` 与 adapter 隔离。
 3. 旧 wrapper、typealias、legacy API 和兼容测试可继续使用 `Flt64`。
-4. `ProductionAction`、`Label.kt`、slot-based bunch 专用路径、`TaskReverseBuilder` 当前归类为待收敛 legacy 边界。
+4. `ProductionAction.unitCost` 暂保留 `Flt64` 签名；下一轮统一评估成本物理量化和 adapter 转换路径。
 
-## 3. 下一轮目标：G4 Legacy 边界收敛、广域 FltX 覆盖与门禁工程化
+## 3. 下一轮目标：G5 全域 API 兼容、物理量化与门禁收口
 
-下一轮目标是在不改动 solver 数值内核的前提下，一次性拓展收敛范围，尽量减少后续迭代：
+G5 目标是在不改动 solver 数值内核的前提下，尽可能一次性完成 gantt-scheduling 领域 API 的泛型兼容、物理量表达、扫描归类和 example 验证，减少后续小步迭代。
 
-1. 收敛或显式 wrapper 化剩余 legacy `Flt64` 入口，优先处理 slot-based bunch、bunch generation、task reverse 与 `ProductionAction`。
-2. 将 `Flt64` 允许清单从文档说明升级为可复现扫描门禁，区分 solver boundary、compat wrapper、legacy API、test 和待清理项。
-3. 扩大非默认 V 覆盖到 capacity、resource、produce、bunch compilation 与 application API 构造层。
-4. 继续保证 demo4 和旧 `Flt64` 应用路径可编译。
-5. 对无法在本轮低风险泛型化的入口，补齐命名、注释和文档，明确其 legacy 语义和迁移路径。
+### 3.1 目标
 
-### 3.1 事项
+1. 形成稳定的 public API 迁移模式：泛型实现使用显式 `V` 名称或新入口，旧 `Flt64` 源码调用保留可编译路径。
+2. 将剩余领域层 `Flt64` 使用点压缩到明确边界，并让扫描门禁输出可审计的未归类清单。
+3. 将 capacity、resource、produce、task、cost、time 相关有量纲字段推进到 `Quantity<V>` 或明确的时间/成本边界类型。
+4. 拓展 FltX/Quantity<FltX> 测试到 application 构造层、legacy wrapper 层和 demo4/example 编译层。
+5. 整理文档、README 或 migration note，明确旧 API 到泛型 API 的迁移路径。
 
-1. **slot-based bunch legacy 收敛**
-   处理 `SlotBasedBunchCompilationContext`、`SlotBasedBunchCompilation`、`SlotBasedBunchAggregation` 及其 capacity pre-solver 相关类型，判断并实施泛型化或 `Flt64` wrapper 分离。
+### 3.2 事项
 
-2. **bunch generation 与 task reverse 收敛**
-   处理 `Label.kt`、`TaskReverseBuilder` 中固定 `AbstractTaskBunch<..., Flt64>` 的公开入口，优先改为泛型 V；若影响范围过大，则保留 `Flt64` wrapper 并新增泛型入口。
+1. **Public API 源码兼容收口**
+   检查 `Label`、`TaskReverseBuilder`、`SlotBasedBunchCompilation`、`SlotBasedBunchAggregation`、`SlotBasedBunchCompilationContext` 等新增泛型参数的源码兼容性；必要时采用 `*V` 泛型实现 + 原名 `Flt64` typealias 的模式。
 
-3. **ProductionAction 兼容边界收窄**
-   评估 `unitCapacity(TimeWindow<Flt64>)`、`unitCost`、`upperBound` 等 API 是否能引入泛型补充入口；旧方法保留为 wrapper，并继续通过 `asFlt64TimeWindow()` 隔离。
+2. **Flt64 边界归类收口**
+   扩展 `flt64-scan-gate.ps1`，把保留项细分为 solver boundary、adapter conversion、compat wrapper、legacy API、algorithm internal、test、documented pending，并输出未归类项数量。
 
-4. **非默认 V 测试扩展**
-   在 capacity、resource、produce、bunch compilation、application API 构造层补充 `FltX` 或 `Quantity<FltX>` 测试，覆盖更多领域对象和边界转换。
+3. **容量与动作物理量化**
+   推进 `ProductionAction`、`CapacityColumn`、capacity pre-solver、中间值和 slot constraints 的 `Quantity<V>` 表达；评估 `unitCost` 的成本边界类型和默认转换策略。
 
-5. **扫描门禁工程化**
-   新增脚本或报告文件，自动扫描 gantt-scheduling 的 `Flt64` 使用点，并按允许类别输出统计与未归类项。
+4. **资源与产出消耗物理量化**
+   推进 `ResourceCapacity`、resource slack、`MaterialDemand`、`MaterialReserves`、produce/consumption limit 与对应 minimization/maximization service 的 `Quantity<V>` 路径。
 
-6. **example/demo4 同步验证**
-   每次 public API 变化后检查 demo4；旧路径继续固定到 `Flt64` wrapper，并通过 example reactor 编译。
+5. **任务与成本结果物理量化**
+   检查 `TaskPlan`、`TaskBunch`、`Cost<V>`、`TaskSchedulingSolution`、`BunchSchedulingSolution`、iteration result 和 summary DTO，避免成本/时长/数量混用裸 `V`。
 
-### 3.2 计划
+6. **Application 与 solver adapter 扩展**
+   收敛 branch-and-price task/bunch application API，确保领域对象只持有 `V` 或 `Quantity<V>`，solver 入模和求解结果回填只通过 adapter 边界完成。
 
-1. 先新增 `Flt64` 扫描脚本与允许清单，锁定当前基线，避免改造过程中新增未归类使用点。
-2. 处理 slot-based bunch 路径，将能泛型化的类型改为 `<V>`，暂不能泛型化的类型改名或文档化为 `Flt64` legacy wrapper。
-3. 处理 `Label.kt` 和 `TaskReverseBuilder`，优先新增泛型入口，再让旧入口委托到泛型实现或明确保留为 wrapper。
-4. 处理 `ProductionAction`，将 `TimeWindow<Flt64>` 依赖限制在兼容层，新增泛型辅助或 adapter。
-5. 分模块补充 `FltX` / `Quantity<FltX>` 测试，先测领域构造和边界转换，不引入真实求解器。
-6. 跑 gantt-scheduling reactor 测试、example reactor 编译和扫描门禁，最后更新 `daily.md` 的完成状态。
+7. **example/demo4 同步**
+   将 demo4 纳入每次 API 调整后的编译检查；如果旧路径继续保留，显式固定到 `Flt64` wrapper；如果迁移到泛型路径，补齐示例说明。
 
-### 3.3 修改清单
+8. **测试矩阵扩展**
+   补齐 Flt64 legacy、FltX generic、Quantity<FltX>、adapter conversion、application construction、demo4 compile 的测试或编译验证。
+
+9. **文档与迁移说明**
+   更新 `daily.md`、必要 README/migration note 和扫描门禁说明，记录保留边界、迁移条件和下一步删除条件。
+
+### 3.3 计划
+
+1. 先跑 `flt64-scan-gate.ps1` 生成当前清单，锁定 G5 起点，补齐未归类规则和失败条件。
+2. 做 public API 兼容审计，优先恢复旧源码调用可编译，再推进泛型命名规范。
+3. 按 capacity -> resource -> produce -> task/cost -> application 的依赖顺序推进 `Quantity<V>`，每个阶段同步 adapter 边界。
+4. 每收敛一组 API 就补一组 FltX/Quantity<FltX>/legacy wrapper 测试，避免最后集中修编译。
+5. 更新 demo4/example，验证旧应用路径和泛型路径至少各有一个可编译样例。
+6. 最后跑扫描门禁、gantt-scheduling reactor、example reactor、`git diff --check`，再压缩文档完成状态。
+
+### 3.4 修改清单
 
 预计涉及：
 
-1. `gantt-scheduling-domain-bunch-compilation-context`
-   - `SlotBasedBunchCompilationContext`
-   - `SlotBasedBunchCompilation`
-   - `SlotBasedBunchAggregation`
-   - `SlotBasedCapacityResult`
-   - slot constraints / capacity pre-solver 相关类型
+1. `gantt-scheduling-infrastructure`
+   - `TimeWindow`
+   - `TimeRange` / DTO 边界
 
-2. `gantt-scheduling-domain-bunch-generation-context`
-   - `Label.kt`
-   - bunch generation service 中固定 `Flt64` 的入口和类型约束
+2. `gantt-scheduling-domain-task-context`
+   - `TaskPlan`
+   - `Task`
+   - `TaskBunch`
+   - `Cost`
+   - `ShadowPriceMap`
+   - `SchedulingSolverValueAdapter`
 
-3. `gantt-scheduling-domain-task-context`
+3. `gantt-scheduling-domain-task-compilation-context`
+   - aggregation / compilation / solution / limits
+   - task time / makespan / switch 等时间与成本边界
+
+4. `gantt-scheduling-domain-bunch-compilation-context`
+   - `SlotBasedBunchCompilation*`
    - `TaskReverseBuilder`
-   - `TaskBunch` legacy typealias / wrapper
-   - shadow price reduced-cost 泛型边界测试
+   - `SlotBasedCapacityResult`
+   - capacity pre-solver / slot constraints
 
-4. `gantt-scheduling-domain-capacity-scheduling-context`
+5. `gantt-scheduling-domain-bunch-generation-context`
+   - `Label`
+   - total cost calculator
+   - bunch generator service
+
+6. `gantt-scheduling-domain-capacity-scheduling-context`
    - `ProductionAction`
-   - capacity column / action / pre-solve 兼容入口
+   - `CapacityColumn`
+   - `CapacityCompilation`
+   - order / limit service
 
-5. `gantt-scheduling-domain-resource-context`
-   - resource quantity 构造与 slack/limit 边界测试
+7. `gantt-scheduling-domain-resource-context`
+   - resource model
+   - resource usage
+   - capacity/resource constraints and objectives
 
-6. `gantt-scheduling-domain-produce-context`
-   - `ProductionTask`
-   - `MaterialDemand<V>`
-   - `MaterialReserves<V>`
-   - produce/consumption quantity limit 测试
+8. `gantt-scheduling-domain-produce-context`
+   - material demand/reserves
+   - produce/consumption model
+   - produce/consumption constraints and objectives
 
-7. `gantt-scheduling-application`
-   - branch-and-price policy 构造兼容测试
-   - legacy `Flt64` wrapper 编译验证
+9. `gantt-scheduling-application`
+   - branch-and-price task/bunch API
+   - iteration result / policy construction
+   - solver adapter use sites
 
-8. 文档与门禁
-   - `daily.md`
-   - 新增或更新 `Flt64` 扫描脚本 / 报告
-   - 必要的 README 或 migration note
+10. `ospf-kotlin-example`
+    - `framework_demo/demo4`
+    - example reactor compile support
 
-### 3.4 验收标准
+11. 文档与门禁
+    - `daily.md`
+    - `flt64-scan-gate.ps1`
+    - README 或 migration note（如需要）
 
-1. `Flt64` 扫描脚本可复现当前使用点统计，并能输出所有未归类项。
-2. 扫描结果中不再存在未说明的 `Flt64` 领域 API 泄漏；保留项必须归类为 solver boundary、compat wrapper、legacy API、algorithm internal 或 test。
-3. slot-based bunch、bunch generation、task reverse、ProductionAction 的 `Flt64` 固定入口完成泛型化或明确 wrapper 化。
-4. capacity、resource、produce、bunch compilation、application 构造层至少各有一个非默认 V 或 `Quantity<FltX>` 测试。
-5. `GenericFltXPathTest` 继续通过，且新增测试不依赖真实 solver。
-6. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过。
-7. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过。
-8. `git diff --check -- ospf-kotlin-framework-gantt-scheduling` 通过。
-9. demo4 若受 API 影响，必须同步更新；若未受影响，需在 `daily.md` 记录原因。
-10. 对仍无法迁移的 legacy API，必须记录原因、影响面和后续迁移条件。
+### 3.5 验收标准
+
+1. `pwsh.exe -NoLogo -NoProfile -File ospf-kotlin-framework-gantt-scheduling/flt64-scan-gate.ps1` 可运行，并输出 main/test 统计、分类统计、未归类清单和基线值。
+2. 未归类 main `Flt64` 使用点为 0；保留项全部归类为 solver boundary、adapter conversion、compat wrapper、legacy API、algorithm internal、test 或 documented pending。
+3. 旧 `Flt64` public API 源码调用具备明确兼容路径；新增泛型 public API 命名和类型参数语义一致。
+4. capacity、resource、produce、task、cost、time 相关有量纲字段完成 `Quantity<V>` 迁移或记录清晰的待迁移原因。
+5. `ProductionAction.unitCost`、capacity pre-solver、shadow price 基础 API 等保留边界均有 adapter 或文档化迁移条件。
+6. Flt64 legacy、FltX generic、Quantity<FltX>、adapter conversion、application construction 至少各有一组测试或编译验证。
+7. demo4 与旧 `Flt64` 应用路径通过包含 example 的 reactor 编译验证。
+8. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过。
+9. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过；若因基础设施失败，需记录具体错误和可复现命令。
+10. `git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example` 通过。
+11. `daily.md` 只保留阶段性完成概要、当前边界和下一轮计划，不累积冗长执行细节。
 
 ## 4. 向后兼容要求
 
@@ -162,6 +191,6 @@ typealias Flt64SlotBasedCapacityResult<M, R> = SlotBasedCapacityResult<M, R, Flt
 |------|------|------|
 | solver 只接受 `Flt64` | 领域 `V` 无法直接入模 | adapter/model boundary 集中转换 |
 | shadow price 基础 API 固定 `Flt64` | framework 层泛型化影响面大 | 本阶段继续使用 `reducedCost<V>` 隔离 |
-| slot-based API 旧路径复杂 | 可能与 capacity pre-solver 强绑定 | 优先 wrapper 化，避免破坏旧路径 |
-| 非默认 V 测试成本扩大 | 全求解测试成本高且不稳定 | 先覆盖领域构造和边界转换 |
-| demo4 受 API 调整影响 | 示例编译可能破坏 | 每次 public API 变化后跑 example reactor |
+| public API 泛型参数变更 | 旧源码调用可能不再按原名原参数数编译 | G5 优先审计并补原名 typealias 或 wrapper |
+| 物理量化范围扩大 | `Quantity<V>` 会触发跨模块签名传播 | 按依赖顺序推进并保持每阶段测试可运行 |
+| example 编译依赖外部仓库 | 基础设施失败可能掩盖 API 问题 | 记录具体错误，并保留 gantt-scheduling reactor 作为最低门槛 |
