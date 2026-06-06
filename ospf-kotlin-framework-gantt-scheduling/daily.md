@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-05（最后更新：2026-06-06 G5 规划）
+日期：2026-06-05（最后更新：2026-06-06 G5 阶段进展）
 
 ## 1. 总目标
 
@@ -40,6 +40,11 @@
 6. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 已通过，11 模块 BUILD SUCCESS。
 7. `git diff --check -- ospf-kotlin-framework-gantt-scheduling` 已通过，仅存在 LF/CRLF 工作区提示。
 8. demo4 当前未直接引用本轮调整的 SlotBased/Label/TaskReverseBuilder/ProductionAction API，暂未修改。
+9. G5 已将 `flt64-scan-gate.ps1` 扩展为逐行分类门禁，输出 solver boundary、adapter conversion、compat wrapper、legacy API、algorithm internal、documented pending、test、import/comment 和 unclassified 分类；未归类项非 0 时脚本失败。
+10. G5 当前扫描基线：main 1,321 行 / test 50 行 / total 1,371 行，未归类 main `Flt64` 使用点为 0。
+11. G5 public API 第一轮审计确认 `Label`、`TaskReverseBuilder`、`SlotBasedBunchCompilation`、`SlotBasedBunchAggregation`、`SlotBasedBunchCompilationContext` 已采用 `*V` 泛型实现 + `Flt64` typealias 兼容模式。
+12. G5 已修复 `LabelV.generateBunch` 回溯任务链时重复加入终点 label 的问题，新增 `LabelGenerateBunchTest` 覆盖 `Flt64Label` legacy 路径与 `LabelV<FltX>` 泛型路径。
+13. 本轮 demo4 未直接引用 `Label.generateBunch` / `TotalCostCalculator` API，未修改；`mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 已通过，37 模块 BUILD SUCCESS。
 
 当前允许保留的边界：
 
@@ -48,7 +53,7 @@
 3. 旧 wrapper、typealias、legacy API 和兼容测试可继续使用 `Flt64`。
 4. `ProductionAction.unitCost` 暂保留 `Flt64` 签名；下一轮统一评估成本物理量化和 adapter 转换路径。
 
-## 3. 下一轮目标：G5 全域 API 兼容、物理量化与门禁收口
+## 3. 当前目标：G5 全域 API 兼容、物理量化与门禁收口
 
 G5 目标是在不改动 solver 数值内核的前提下，尽可能一次性完成 gantt-scheduling 领域 API 的泛型兼容、物理量表达、扫描归类和 example 验证，减少后续小步迭代。
 
@@ -91,12 +96,12 @@ G5 目标是在不改动 solver 数值内核的前提下，尽可能一次性完
 
 ### 3.3 计划
 
-1. 先跑 `flt64-scan-gate.ps1` 生成当前清单，锁定 G5 起点，补齐未归类规则和失败条件。
-2. 做 public API 兼容审计，优先恢复旧源码调用可编译，再推进泛型命名规范。
-3. 按 capacity -> resource -> produce -> task/cost -> application 的依赖顺序推进 `Quantity<V>`，每个阶段同步 adapter 边界。
+1. 已跑 `flt64-scan-gate.ps1` 锁定 G5 起点，并补齐未归类规则和失败条件。
+2. 已完成 public API 兼容第一轮审计，并补齐 `LabelV.generateBunch` 的 legacy/generic 回归测试。
+3. 下一步继续按 capacity -> resource -> produce -> task/cost -> application 的依赖顺序推进 `Quantity<V>`，每个阶段同步 adapter 边界。
 4. 每收敛一组 API 就补一组 FltX/Quantity<FltX>/legacy wrapper 测试，避免最后集中修编译。
-5. 更新 demo4/example，验证旧应用路径和泛型路径至少各有一个可编译样例。
-6. 最后跑扫描门禁、gantt-scheduling reactor、example reactor、`git diff --check`，再压缩文档完成状态。
+5. demo4/example 已纳入验证；后续涉及对外 API 时继续同步检查。
+6. 每轮收口继续跑扫描门禁、gantt-scheduling reactor、example reactor、`git diff --check`，再压缩文档完成状态。
 
 ### 3.4 修改清单
 
@@ -172,6 +177,19 @@ G5 目标是在不改动 solver 数值内核的前提下，尽可能一次性完
 9. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过；若因基础设施失败，需记录具体错误和可复现命令。
 10. `git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example` 通过。
 11. `daily.md` 只保留阶段性完成概要、当前边界和下一轮计划，不累积冗长执行细节。
+
+### 3.6 当前完成度与剩余工作
+
+G5 当前完成度约 25% 到 35%。已完成扫描门禁、第一轮 public API 兼容审计、`LabelV.generateBunch` 行为修复、legacy/generic 回归测试、gantt-scheduling reactor 测试和 example reactor 编译验证。
+
+距离 G5 总目标仍需完成：
+
+1. capacity / `ProductionAction` / capacity pre-solver 的 `Quantity<V>` 迁移与成本边界评估。
+2. resource、produce/consumption 相关容量、需求、库存、松弛量和目标函数的物理量化。
+3. task/cost/result/summary DTO 的裸 `V` 与 `Quantity<V>` 边界审计。
+4. application / branch-and-price API 的 adapter 收敛，确保 solver 建模类型不向领域对象继续扩散。
+5. application construction、adapter conversion、Quantity<FltX> 和 demo4 泛型样例的测试矩阵扩展。
+6. README 或 migration note 级别的旧 API 到泛型 API 迁移说明。
 
 ## 4. 向后兼容要求
 

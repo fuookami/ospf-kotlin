@@ -49,7 +49,7 @@ private fun <V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> g
     val labels = ArrayList<LabelV<T, E, A, V>>()
     var currLabel = label.prevLabel
     while (currLabel!!.node !is RootNode) {
-        labels.add(label)
+        labels.add(currLabel)
         currLabel = currLabel.prevLabel
     }
 
@@ -102,7 +102,7 @@ private fun <B : AbstractTaskBunch<T, E, A, V>, V, T : AbstractTask<E, A>, E : E
     val labels = ArrayList<LabelV<T, E, A, V>>()
     var currLabel = label.prevLabel
     while (currLabel!!.node !is RootNode) {
-        labels.add(label)
+        labels.add(currLabel)
         currLabel = currLabel.prevLabel
     }
 

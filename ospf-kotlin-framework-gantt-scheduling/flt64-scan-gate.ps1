@@ -59,10 +59,113 @@ function Format-RelativePath {
     return $Path.Substring($ganttSchedulingDir.Length + 1).Replace("\", "/")
 }
 
+function Test-NonCodeFlt64Match {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Match
+    )
+
+    $line = $Match.Line.Trim()
+    if ($line -match "^import\s+") {
+        return $true
+    }
+    if ($line -match "^//") {
+        return $true
+    }
+    if ($line -match "^/\*") {
+        return $true
+    }
+    if ($line -match "^\*") {
+        return $true
+    }
+    if ($line -match "^\*/") {
+        return $true
+    }
+    return $false
+}
+
+function Get-Flt64Category {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Match,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("main", "test")]
+        [string]$Scope
+    )
+
+    if ($Scope -eq "test") {
+        return "Test"
+    }
+
+    $line = $Match.Line.Trim()
+    $relativePath = Format-RelativePath -Path $Match.Path
+
+    if (Test-NonCodeFlt64Match -Match $Match) {
+        return "Import/Comment"
+    }
+
+    if ($line -match "^typealias\s+.*Flt64") {
+        return "Compat Wrapper"
+    }
+
+    if ($line -match "SchedulingSolverValueAdapter|\.toFlt64\(\)") {
+        return "Adapter Conversion"
+    }
+
+    if ($line -match "AbstractLinearMetaModel<Flt64>|LinearMetaModel<Flt64>|MetaModel<Flt64>|AbstractMetaModel<Flt64>") {
+        return "Solver Boundary"
+    }
+
+    if ($line -match "FeasibleSolverOutput<Flt64>|SolverOutput<Flt64>|SolverInput<Flt64>") {
+        return "Solver Boundary"
+    }
+
+    if ($line -match "LinearIntermediateSymbol[s]?[0-9]?<Flt64>|LinearExpressionSymbol[s]?[0-9]?<Flt64>|LinearFunctionSymbolAdapter<Flt64>|LinearPolynomial<Flt64>") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-application/src/main/.*/application/(model|service)/(task|bunch)/(Iteration|BranchAndPriceAlgorithm)\.kt$") {
+        return "Algorithm Internal"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-(task|bunch)-compilation-context/src/main/.*/domain/(task|bunch)_compilation/(IterativeAggregation|IterativeContext|Aggregation)\.kt$") {
+        return "Algorithm Internal"
+    }
+
+    if ($line -match "Flt64\.(zero|one|two|maximum|minimum|infinity)|Flt64\.Companion\.(zero|one|two|maximum|minimum|infinity)|Flt64\([0-9.+-]") {
+        return "Algorithm Internal"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-(infrastructure|domain-capacity-scheduling-context|domain-resource-context|domain-produce-context|domain-task-context|domain-task-compilation-context|domain-bunch-compilation-context|domain-bunch-generation-context)/") {
+        return "Documented Pending"
+    }
+
+    return "Unclassified"
+}
+
+function New-ClassifiedMatch {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Match,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("main", "test")]
+        [string]$Scope
+    )
+
+    return [PSCustomObject]@{
+        Match = $Match
+        Scope = $Scope
+        Category = Get-Flt64Category -Match $Match -Scope $Scope
+    }
+}
+
 $mainFiles = @(Get-KotlinFiles -Scope "main")
 $testFiles = @(Get-KotlinFiles -Scope "test")
 $mainMatches = @(Get-Flt64Matches -Files $mainFiles)
 $testMatches = @(Get-Flt64Matches -Files $testFiles)
+$classifiedMainMatches = @($mainMatches | ForEach-Object { New-ClassifiedMatch -Match $_ -Scope "main" })
+$classifiedTestMatches = @($testMatches | ForEach-Object { New-ClassifiedMatch -Match $_ -Scope "test" })
+$classifiedMatches = @($classifiedMainMatches + $classifiedTestMatches)
 $mainFilesWithFlt64 = @($mainMatches | Select-Object -ExpandProperty Path -Unique)
 $testFilesWithFlt64 = @($testMatches | Select-Object -ExpandProperty Path -Unique)
 
@@ -110,22 +213,24 @@ Write-Output ""
 
 Write-Output "## 3. 按类别统计 / By Category"
 Write-Output ""
-$wrapperCount = Count-Pattern -Files $mainFiles -Pattern "^typealias.*Flt64"
-$solverBoundary = Count-Pattern -Files $mainFiles -Pattern "SchedulingSolverValueAdapter\.Flt64|SchedulingSolverValueAdapter\.create|LinearMetaModel<Flt64>\("
-$solverModel = Count-Pattern -Files $mainFiles -Pattern "AbstractLinearMetaModel<Flt64>|LinearMetaModel<Flt64>|MetaModel<Flt64>|AbstractMetaModel<Flt64>"
-$solverSymbols = Count-Pattern -Files $mainFiles -Pattern "LinearIntermediateSymbol[s]?[0-9]?<Flt64>|LinearExpressionSymbol[s]?[0-9]?<Flt64>|LinearFunctionSymbolAdapter<Flt64>|LinearPolynomial<Flt64>"
-$flt64Constants = Count-Pattern -Files $mainFiles -Pattern "Flt64\.zero|Flt64\.one|Flt64\([0-9]"
-$toFlt64 = Count-Pattern -Files $mainFiles -Pattern "\.toFlt64\(\)"
-
 Write-Output "| 类别 / Category | 使用行 / Lines | 说明 / Description |"
 Write-Output "|------|--------|------|"
-Write-Output "| Compat Wrapper (typealias) | $wrapperCount | 向后兼容 typealias 声明 / backward-compatible typealiases |"
-Write-Output "| Solver Boundary (adapter/model) | $solverBoundary | solver adapter / model 构造 / construction |"
-Write-Output "| Solver Model Types | $solverModel | MetaModel/LinearMetaModel<Flt64> |"
-Write-Output "| Solver Symbols | $solverSymbols | LinearIntermediate/Expression symbols |"
-Write-Output "| Flt64 Constants | $flt64Constants | Flt64.zero/one/Flt64(number) |"
-Write-Output "| .toFlt64() Conversion | $toFlt64 | V 到 Flt64 边界转换 / V to Flt64 boundary conversion |"
-Write-Output "| Test | $($testMatches.Count) | 测试文件中的 Flt64 / Flt64 in tests |"
+$categoryDescriptions = [ordered]@{
+    "Compat Wrapper" = "向后兼容 typealias 声明 / backward-compatible typealiases"
+    "Solver Boundary" = "solver 模型、符号、求解结果边界 / solver model, symbol, and output boundary"
+    "Adapter Conversion" = "V 与 Flt64 的适配转换 / V and Flt64 adapter conversion"
+    "Legacy API" = "保留的旧 Flt64 入口 / retained legacy Flt64 API"
+    "Algorithm Internal" = "算法内部无量纲值、目标值与阈值 / algorithm-local dimensionless values, objectives, and thresholds"
+    "Documented Pending" = "已记录待迁移领域边界 / documented pending domain boundary"
+    "Test" = "测试文件中的 Flt64 / Flt64 in tests"
+    "Import/Comment" = "import 或注释中的 Flt64 / Flt64 in imports or comments"
+    "Unclassified" = "未归类使用点 / unclassified usages"
+}
+
+foreach ($category in $categoryDescriptions.Keys) {
+    $count = @($classifiedMatches | Where-Object { $_.Category -eq $category }).Count
+    Write-Output "| $category | $count | $($categoryDescriptions[$category]) |"
+}
 Write-Output ""
 
 Write-Output "## 4. 含 Flt64 的 main 文件清单 / main Files with Flt64"
@@ -145,19 +250,12 @@ Write-Output ""
 Write-Output "以下行在 main 代码中使用 Flt64，且未匹配常见边界模式 / Lines below use Flt64 in main code and do not match common boundary patterns:"
 Write-Output ""
 
-$unclassified = $mainMatches |
-    Where-Object { $_.Line -notmatch "import " } |
-    Where-Object { $_.Line -notmatch "//.*Flt64" } |
-    Where-Object { $_.Line -notmatch "\*.*Flt64" } |
-    Where-Object { $_.Line -notmatch "typealias.*=.*Flt64" } |
-    Where-Object { $_.Line -notmatch "MetaModel<Flt64>|AbstractLinearMetaModel<Flt64>|LinearMetaModel<Flt64>|AbstractMetaModel<Flt64>" } |
-    Where-Object { $_.Line -notmatch "LinearIntermediateSymbol|LinearExpressionSymbol|LinearFunctionSymbolAdapter|LinearPolynomial<Flt64>" } |
-    Where-Object { $_.Line -notmatch "Flt64\.zero|Flt64\.one|Flt64\([0-9]" } |
-    Where-Object { $_.Line -notmatch "\.toFlt64\(\)" } |
-    Where-Object { $_.Line -notmatch "SchedulingSolverValueAdapter" } |
-    Select-Object -First 50
+$unclassified = @($classifiedMainMatches | Where-Object { $_.Category -eq "Unclassified" })
+Write-Output "未归类项数量 / Unclassified count: $($unclassified.Count)"
+Write-Output ""
 
-foreach ($match in $unclassified) {
+foreach ($classifiedMatch in ($unclassified | Select-Object -First 50)) {
+    $match = $classifiedMatch.Match
     Write-Output "$(Format-RelativePath -Path $match.Path):$($match.LineNumber):$($match.Line.Trim())"
 }
 
@@ -165,4 +263,9 @@ Write-Output ""
 Write-Output "============================================="
 Write-Output " 扫描完成 / Scan complete."
 Write-Output " 基线值 / Baseline: main=$($mainMatches.Count), test=$($testMatches.Count), total=$($mainMatches.Count + $testMatches.Count)"
+Write-Output " 未归类项 / Unclassified: $($unclassified.Count)"
 Write-Output "============================================="
+
+if ($unclassified.Count -gt 0) {
+    exit 1
+}
