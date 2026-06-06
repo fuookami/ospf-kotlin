@@ -40,6 +40,9 @@
 
 ## Shape 路径支持矩阵
 
+生产路径标签和 unsupported 文案集中在 `CylinderCapabilityPath` / `CylinderShapeContract`。
+候选生成、cuboid-only search/merge、支撑检查、已知坐标终态校验、renderer 终态校验和 depth boundary 终态校验必须使用共享契约，不允许散落维护路径字符串。
+
 | 路径 | 长方体 | `Axis3.Y` 圆柱 | `Axis3.X` / `Axis3.Z` 圆柱 |
 | --- | --- | --- | --- |
 | 显式 final bins / 已知坐标装箱 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或全长长方体支撑 |

@@ -270,8 +270,8 @@ abstract class Pattern {
                 Err(
                     ErrorCode.ApplicationError,
                     unsupportedCylinderCuboidOnlyPathMessage(
-                        source = "Pattern",
-                        pathPredicate = "pattern placement paths are"
+                        source = CylinderCapabilityPath.PatternPlacement.source,
+                        pathPredicate = CylinderCapabilityPath.PatternPlacement.pathPredicate!!
                     )
                 )
             )

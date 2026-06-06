@@ -49,7 +49,7 @@ private fun PackageCuboid.supportPackingShape(): PackingShape3<InfraNumber> {
         requireUprightVerticalCylinderSupport(
             shape = itemShape,
             orientation = itemOrientation,
-            source = "PackageAttribute.supportPackingShape"
+            path = CylinderCapabilityPath.PackageAttributeSupport
         )
         return itemShape
     }

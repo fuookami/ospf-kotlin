@@ -39,6 +39,7 @@ $fixHints = @{
     DirectBinConstructorOutOfFactory = "Create bins through layerBinOf, itemBinOf, or blockBinOf; do not call the generic Bin constructor from business code."
     ApplicationDirectItemLimitFactory = "Use item-specific limit factories that hide Cuboid generic constraints from application code."
     DuplicatedCylinderUnsupportedContract = "Keep cylinder unsupported messages in CylinderShapeContract; application and domain services should call the shared item-domain contract instead of duplicating message text."
+    CylinderCapabilityPathSourceOutOfContract = "Keep cylinder capability path source and cuboid-only predicate strings in CylinderShapeContract; production callers should pass CylinderCapabilityPath instead of duplicating path metadata."
     DuplicatedPackingGeometryUnsupportedContract = "Keep final packing geometry unsupported messages in PackingGeometryContract; packer, renderer, and analyzer paths should call the shared packing-domain contract instead of duplicating message text."
     KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the generic known-coordinate validation path."
     HorizontalCylinderAxisInGenerationOutOfAllowList = "Do not introduce Axis3.X or Axis3.Z in layer-generation production code until horizontal-cylinder generation has a proven footprint, support, and solver contract."
@@ -264,6 +265,10 @@ Add-TokenViolation -Check "DirectBinConstructorOutOfFactory" -Pattern "\bBin\s*\
 Add-TokenViolation -Check "ApplicationDirectItemLimitFactory" -Pattern "\b(DemandConstraint|VolumeMinimization)\.forItem\s*\(" -AllowSuffixes @()
 
 Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsupported cylinder axis|Unsupported cylinder orientation|Unsupported cylinder top-layer|Unsupported cylinder stacking and hanging|Unsupported cylinder in|only Axis3\.Y is allowed|only upright orientations are allowed|side/lie stacking is not allowed|only upright Axis3\.Y items are allowed|cuboid-only and does not provide verified cylinder geometry yet" -AllowSuffixes @(
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
+)
+
+Add-TokenViolation -Check "CylinderCapabilityPathSourceOutOfContract" -Pattern "source\s*=\s*""(LayerPlacementAdapter\.toLayerPlacement|CirclePackingLayerGenerator|PileLayerGenerator|PackageAttribute\.supportPackingShape|SimpleBlockGenerator|DFS/MLHS|ItemMerger\.merge|ItemMerger\.mergePiles|ItemMerger\.mergeBlocks|ItemMerger\.mergePatternBlocks|ItemMerger\.mergeHollowSquareBlocks|Pattern|known-coordinate final packing|renderer final packing|DepthBoundaryLayerOrientationPolicy)""|pathPredicate\s*=\s*""(DFS/MLHS space-splitting path is|item merge paths are|pattern placement paths are)""" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
 )
 

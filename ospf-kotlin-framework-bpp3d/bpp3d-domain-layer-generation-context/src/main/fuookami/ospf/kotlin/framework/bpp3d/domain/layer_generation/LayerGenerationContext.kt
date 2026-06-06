@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
@@ -372,7 +373,7 @@ private fun <V> mapItemsToLayers(
     for (item in orderedItems) {
         requireVerticalCylinderAxis(
             shape = item.packingShape,
-            source = source
+            path = CylinderCapabilityPath.DefaultLayerCandidate
         )
     }
     return rankByShadowScore(
@@ -492,7 +493,7 @@ private suspend fun <V> mapItemsToPileLayers(
         requireUprightVerticalCylinderSupport(
             shape = item.packingShape,
             orientation = orientation,
-            source = "PileLayerGenerator"
+            path = CylinderCapabilityPath.PileSupportCandidate
         )
         val itemView = item.view(orientation)
         val maxByBinHeight = (bin.height.value / itemView.height.value).floor().toUInt64()
@@ -993,7 +994,7 @@ class CirclePackingLayerGenerator<V>(
             for (item in it.items) {
                 requireVerticalCylinderAxis(
                     shape = item.packingShape,
-                    source = "CirclePackingLayerGenerator"
+                    path = CylinderCapabilityPath.CirclePackingCandidate
                 )
             }
             val packed = if (it.bin != null) {

@@ -88,7 +88,7 @@ class SimpleBlockGenerator(
         for ((item, amount) in items) {
             requireSupportedCylinderItemForSimpleBlock(
                 item = item,
-                source = "SimpleBlockGenerator"
+                path = CylinderCapabilityPath.SimpleBlockCandidate
             )
 
             if (config.mergeAsPatternBlock) {

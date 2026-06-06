@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
@@ -27,8 +28,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCyl
  */
 internal fun BinLayer.toLayerPlacement(z: Quantity<InfraNumber>? = null): BinLayerPlacement {
     ensureVerticalCylinderAxis(
-        layer = this,
-        source = "LayerPlacementAdapter.toLayerPlacement"
+        layer = this
     )
     return toKnownCoordinateLayerPlacement(z)
 }
@@ -91,12 +91,12 @@ internal fun Item.toItemPlacement(
  * 应用层使用共享圆柱契约校验默认候选能力。
  * Application layer uses the shared cylinder contract to validate default candidate capability.
  */
-internal fun ensureVerticalCylinderAxis(layer: BinLayer, source: String) {
+internal fun ensureVerticalCylinderAxis(layer: BinLayer) {
     for (placement in layer.units) {
         val item = placement.unit as? Item ?: continue
         requireVerticalCylinderAxis(
             shape = item.packingShape,
-            source = source
+            path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
         )
     }
 }
