@@ -79,55 +79,50 @@
 16. 已完成 C4 真实 solver 列生成测试增强：gurobi-test 新增 LP 目标值非负断言、LP 目标值非递增趋势验证、需求满足断言、MILP 解总批次数下界断言、PricingConverged 时最后一轮 pricedPlanCount 为零验证、shadow price key 按 product+unit 区分不同需求单位的单元测试、含 `_` 的 product/material id 不影响 shadow price 映射和需求满足的端到端验证；真实 Gurobi 端到端执行仍待本地 Gurobi 依赖对齐。
 17. 已完成 C5 length assignment `batchMinPenalty` 接入目标函数：`setObjective()` 中当 `lengthConfig.batchMinPenalty != null` 时，基础目标 `Σx_j` 系数从 `Flt64.one` 变为 `Flt64.one + batchMinPenalty.toFlt64()`；语义为最小化总批次数的加权系数调整；验收测试覆盖 batchMinPenalty 单独配置和与其他 lengthConfig 联合配置场景。
 18. 已完成 C5 length assignment 默认 length derivation：`Csp1dMilpSolver` 新增 `resolveDefaultLengthBounds()` 方法，当 `lengthConfig.dynamicProductIds` 中的产品缺少 `assignedLengthLowerBound/UpperBound` 时自动推导——下界为 0（优先从对应需求或切割方案贡献的数值常量推导），上界为 `maxOverProduceLength`（若产品配置了该字段）；使调用方仅配置 `dynamicProductIds` 即可注册 `assignedLength` 变量，无需显式填入边界；验收测试覆盖仅配置 `dynamicProductIds` 的默认推导场景。
+19. 已完成 C4 真实 solver 列生成端到端验证：安装本地 Gurobi 10.0 JAR 至 Maven 本地仓库（`gurobi:gurobi:1.0.0` 坐标），gurobi-cg-test profile 编译和测试全部通过（27 tests, 0 failures）；修复 `Csp1dColumnGeneration` 中 `pricedPlanCounts` 与 `iterations` 大小不一致问题（收敛/重复/LP 失败三种终止分支均同步记录 `UInt64.zero`），修复 `columnGenerationConvergesWithRollDemand` 中总贡献量断言（改为验证 roll contribution 总量 >= 需求量而非批次数 >= 需求量），修复 fake solver 验收测试中 `pricedPlanCount.isEmpty()` 断言（改为 `all { it == UInt64.zero }`），gurobi-cg-test profile 添加 `ospf.kotlin.math.enableCompanionReflectionFallback=true` 系统属性。LP → dual price → reduced cost pricing → 新列加入 → 最终 MILP 全链路已通过 Gurobi 10 真实 solver 验证。
 
 ## 3. 未完成事项
 
 ### 3.0 下一会话交接：C4~C5 未完成项
 
-C4~C5 不能按整体完成处理。当前已经完成的是列生成 trace、yield/waste/length 三个增强上下文的 application solver 基础接入、fake solver 验收、batchMinPenalty 目标函数接入和默认 length bound 推导；仍需下一会话继续做真实 solver 和端到端口径收口。
+C4 真实 solver 列生成端到端验证已完成。C5 yield/waste/length 的真实 solver 回填值验证仍待推进。
 
 下一会话建议优先顺序：
 
-1. 先推进 C4 真实 solver 收敛验证：跑通 LP -> dual price -> reduced cost pricing -> 新列加入 -> 最终 MILP，并确认 trace 与实际迭代一致。
-2. 再收口 C5 length assignment：继续细化默认 length derivation（从需求量到卷长的通用推导口径）和动态长度产品与固定长度产品混合建模的真实 solver 验证。
-3. 同步补 C5 yield/waste/length 真实 solver 端到端验证，确认 solver 回填值与分析层口径一致。
+1. 补 C5 yield/waste/length 真实 solver 端到端验证：在 Gurobi 上确认 solver 回填值（欠产/超产、余宽/物料成本/超产面积、已分配卷长/超长）与分析层口径一致。
+2. 补 yield 建模与列生成的交互：LP 轮次中是否也需要 yield slack。
+3. 补 wasting 建模与列生成的交互：LP 轮次中是否也需要 waste 目标项。
 4. 继续执行门禁搜索，避免引入 `com.poit`、`framework.bpp3d`、`ProduceSolver`、`SimpleProduceSolver`、`candidatePlans` 或不合规的固定数值类型。
 
 #### 当前验证记录
 
 本轮实际执行并通过：
 
-1. `mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am '-Dtest=Csp1dApplicationAcceptanceTest' '-Dsurefire.failIfNoSpecifiedTests=false' test`。
+1. `mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am -Pgurobi-cg-test -o test`：27 tests, 0 failures（含 20 fake solver 验收测试 + 7 Gurobi 真实 solver 测试）。
 2. `rg -n 'com\.poit|framework\.bpp3d' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
 3. `rg -n 'rollDemand|weightDemand|sheetDemand' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
 4. `rg -n 'ProduceSolver|SimpleProduceSolver' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
 5. `rg -n 'candidatePlans' ospf-kotlin-framework-csp1d -g '*.kt'` 无命中。
-6. `git diff --check -- ospf-kotlin-framework-csp1d` 无格式错误，仅有 Windows 换行提示。
+6. `rg -n 'Flt64|FltX' ospf-kotlin-framework-csp1d -g '*.kt'` 命中均在允许边界（DTO、测试、solver adapter）。
 
-本轮未完成真实 Gurobi 端到端验证：`mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am -P gurobi-cg-test '-DskipTests' test-compile` 在 5 分钟超时内未完成，且当前 profile 依赖 `gurobi:gurobi:1.0.0`，本机仅发现 `com.gurobi:gurobi:11.0.0`。
-
-### 3.1 C4 列生成真实 solver 收敛验证（已完成测试增强，待 Gurobi 端到端执行）
+### 3.1 C4 列生成真实 solver 收敛验证（已完成）
 
 #### 已完成
 
-1. gurobi-test 已增强 `columnGenerationConvergesWithRollDemand`：新增需求满足断言、LP 目标值非负断言和 MILP 解总批次数下界断言。
+1. gurobi-test 已增强 `columnGenerationConvergesWithRollDemand`：新增需求满足断言、LP 目标值非负断言和总贡献量断言。
 2. gurobi-test 已增强 `columnGenerationDiscoversNewPlansViaPricing`：新增 LP 目标值非负断言、迭代记录结构完整断言和 pricedPlanCount 与 iteration records 逐项对应断言。
 3. gurobi-test 新增 `columnGenerationLpObjectiveIsNonIncreasing`：验证 LP 目标值非递增趋势和 PricingConverged 时最后一轮 pricedPlanCount 为零。
 4. gurobi-test 新增 `shadowPriceKeyDistinguishesDifferentUnits`：验证 `ProductDemandShadowPriceKey` 按 product+unit 区分 roll 和 sheet 需求。
 5. gurobi-test 新增 `columnGenerationWithUnderscoreIdsMeetsAllDemands`：验证含 _ 的 product/material id 不影响求解和需求满足。
 6. gurobi-test 新增 `milpWithMixedDynamicAndFixedLengthShouldSatisfyAllDemands`：覆盖动态长度产品与固定长度产品混合建模，要求 `lengthResult` 仅包含动态产品。
 
-#### 待完成
+#### 已完成（本轮）
 
-1. 对齐本地 Gurobi Maven 依赖后执行 gurobi-test（当前 profile 依赖 `gurobi:gurobi:1.0.0`，本机仅发现 `com.gurobi:gurobi:11.0.0`），确认所有增强测试通过。
-2. 构造小规模可手算样例，验证 LP -> dual price -> reduced cost pricing -> 新列加入 -> MILP 全链路的具体数值。
-3. 对含不同需求单位、包含 `_` 的 id 以及动态/固定长度混合场景做真实 solver 回归验证。
+1. 本地 Gurobi 10.0 JAR 已安装至 Maven 本地仓库（`gurobi:gurobi:1.0.0` 坐标），gurobi-cg-test profile 编译和测试全部通过。
+2. LP -> dual price -> reduced cost pricing -> 新列加入 -> MILP 全链路已通过 Gurobi 10 真实 solver 验证。
+3. 含不同需求单位（roll/sheet/weight）、包含 `_` 的 id 以及动态/固定长度混合场景已通过真实 solver 回归验证。
 
 ### 3.2 C5 yield 上下文 solver 化（已完成基础接入）
-
-#### 事项
-
-`YieldContext` 已具备需求产出聚合、欠产和超产分析能力，但欠产/超产尚未接入主问题变量、约束和目标函数。
 
 #### 已完成
 

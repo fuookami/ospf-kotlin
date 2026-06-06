@@ -128,11 +128,15 @@ class Csp1dColumnGenerationRealSolverTest {
             "pricedPlanCount size should match iterations size"
         )
 
-        // 验证 MILP 解总批次数 ≥ 需求量 / Verify MILP total batches >= demand
-        val totalBatches = solution.produce.cuttingPlans.fold(UInt64.zero) { acc, usage ->
-            acc + usage.amount
+        // 验证 MILP 解总贡献量 ≥ 需求量 / Verify MILP total contribution >= demand
+        val totalContribution = solution.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+            val rollContrib = usage.plan.demandContributions.firstOrNull()?.quantity?.value ?: Flt64.zero
+            acc + rollContrib * usage.amount.toFlt64()
         }
-        assertTrue(totalBatches >= UInt64(10UL), "Total batches should be >= demand (10 rolls)")
+        assertTrue(
+            totalContribution >= Flt64(10.0) - Flt64(1e-6),
+            "Total roll contribution should be >= demand (10 rolls), got $totalContribution"
+        )
     }
 
     /**

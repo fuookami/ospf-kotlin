@@ -122,6 +122,16 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 )
             )
             if (lpResult == null) {
+                pricedPlanCounts.add(UInt64.zero)
+                iterationRecords.add(
+                    Csp1dIterationRecord(
+                        iteration = iteration,
+                        lpObjective = Flt64.zero,
+                        planCountBefore = planCountBefore,
+                        pricedPlanCount = UInt64.zero,
+                        planCountAfter = planCountBefore
+                    )
+                )
                 terminationReason = Csp1dTerminationReason.LpSolveFailed
                 break
             }
@@ -144,6 +154,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             val newPlans = pricingGenerator.generate(pricingInput)
 
             if (newPlans.isEmpty()) {
+                pricedPlanCounts.add(UInt64.zero)
                 iterationRecords.add(
                     Csp1dIterationRecord(
                         iteration = iteration,
@@ -159,6 +170,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
 
             val addedPlans = deduplicatePlans(currentPlans, newPlans)
             if (addedPlans.isEmpty()) {
+                pricedPlanCounts.add(UInt64.zero)
                 iterationRecords.add(
                     Csp1dIterationRecord(
                         iteration = iteration,

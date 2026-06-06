@@ -232,7 +232,8 @@ class Csp1dApplicationAcceptanceTest {
 
         // C3 仅求解初始方案池，C4 再接入 shadow price/pricing / C3 only solves initial plans; C4 adds shadow price/pricing
         assertEquals(UInt64(trace.initialPlanCount.toULong()), trace.finalPlanCount)
-        assertTrue(trace.pricedPlanCount.isEmpty())
+        // pricedPlanCount 与 iterations 一一对应，收敛轮次记录 0 / pricedPlanCount maps 1:1 to iterations; convergence iteration records 0
+        assertTrue(trace.pricedPlanCount.all { it == UInt64.zero })
         assertTrue(solution.generatedPlans.isNotEmpty())
         // 验证 trace 新字段 / Verify new trace fields
         assertNotNull(trace.terminationReason)

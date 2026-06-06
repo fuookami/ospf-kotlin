@@ -111,6 +111,7 @@
                             <excludes combine.self="override" />
                             <systemPropertyVariables>
                                 <csp1d.gurobi.cg.test.enabled>true</csp1d.gurobi.cg.test.enabled>
+                                <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
