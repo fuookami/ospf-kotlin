@@ -342,3 +342,42 @@ cargo test
 5. 被实际改动触发的完整验收全部执行并记录。
 6. README、README_ch、refactor.md 与代码能力口径一致。
 7. BPP3D 改动独立提交，非 BPP3D 改动和外部 renderer 改动不混入。
+
+## 8. 本轮执行记录
+
+本轮按计划先执行边界脚本、代码审计和 BPP3D reactor 测试，未新增开放能力，也未修改 application、CSV、shape spec、depth boundary、solver、renderer DTO、renderer fixture、packing renderer adapter 或显示语义。
+
+### 8.1 已执行并通过
+
+1. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d`
+   - 结果：`STRICT_GENERIC_BOUNDARY_PASS`
+2. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/shape-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d`
+   - 结果：`SHAPE_BOUNDARY_PASS`
+3. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-boundary-check.ps1 -ProjectRoot .`
+   - 结果：`GEOMETRY_BOUNDARY_PASS`
+4. `pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/geometry-module-dry-run.ps1 -ProjectRoot .`
+   - 结果：`GEOMETRY_MODULE_DRY_RUN_PASS`
+   - 备注：`GEOMETRY_MODULE_DRY_RUN_WARNINGS=8`，均为已接受的 internal baseline。
+5. `git diff --check -- ospf-kotlin-framework-bpp3d`
+   - 结果：通过。
+6. `mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`
+   - 结果：通过。
+   - 备注：首次执行时因本地 Maven 仓库中的 `ospf-kotlin-quantities:1.1.0` 仍是旧 `PhysicalUnit` API 而在 `bpp3d-domain-item-context` 编译失败；执行 `mvn --% -f ospf-kotlin-quantities/pom.xml install -DskipTests -Dgpg.skip=true` 安装当前源码版本后，BPP3D reactor 测试通过。
+
+### 8.2 代码审计结论
+
+1. 边界脚本当前已覆盖 generic boundary、shape boundary、geometry boundary 和 geometry module dry-run，没有新增 stale allowlist 或未分类违规。
+2. 圆柱 unsupported message 已集中在 `CylinderShapeContract.kt`，layer generation、application adapter、block loading、DFS/MLHS 等路径复用共享契约。
+3. X/Z 横向圆柱仍只在已知坐标终态 packing/rendering 路径开放；默认候选生成、circle packing、stacking、hanging、DFS/MLHS 保持 unsupported，与 README / README_ch 支持矩阵一致。
+4. depth boundary policy 仍是 application 层后验硬校验，不是 MILP 原生约束；README / README_ch 已明确该口径。
+
+### 8.3 未触发或未执行
+
+1. Gurobi 插件 install、Gurobi 普通回归和 CSV dataset suite：未触发。本轮未修改 application、CSV、shape spec、depth boundary 或 solver 相关代码。
+2. 外部 renderer 自动验收：未触发。本轮未修改 renderer DTO、renderer fixture、packing renderer adapter 或显示语义。
+3. 人工视觉确认：未触发。本轮未修改 renderer 语义或 fixture。
+
+### 8.4 提交边界
+
+1. BPP3D 当前只记录本轮执行状态，不混入非 BPP3D 源码改动。
+2. 工作区存在 `ospf-kotlin-quantities` 未提交改动；这些文件不属于 BPP3D 本轮提交边界，应单独处理。
