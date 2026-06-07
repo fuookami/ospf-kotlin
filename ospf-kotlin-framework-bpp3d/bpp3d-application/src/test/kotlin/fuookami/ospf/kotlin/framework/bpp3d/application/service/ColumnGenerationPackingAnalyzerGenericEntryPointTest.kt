@@ -34,6 +34,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 
 class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     private object Cargo : AbstractCargoAttribute
@@ -119,7 +123,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
-    fun layerPlacementAdapterShouldRejectHorizontalCylinderAxes() {
+    fun layerPlacementAdapterShouldRejectManualHorizontalCylinderGeneratedPlacement() {
         for (axis in listOf(Axis3.X, Axis3.Z)) {
             val layer = horizontalCylinderLayer(axis)
 
@@ -127,9 +131,43 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
                 layer.toModel().toLayerPlacement()
             }
 
-            assertTrue(exception.message?.contains("only Axis3.Y is allowed") == true)
-            assertTrue(exception.message?.contains("got $axis") == true)
+            assertTrue(exception.message?.contains("only verified axis-aware generated candidates are allowed") == true)
         }
+    }
+
+    @Test
+    fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderCandidate() = runBlocking {
+        val item = horizontalCylinderLayer(Axis3.X).units.single().item.toModel()
+        val bin = BinType(
+            width = infraScalar(3.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-X"
+        )
+
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
+            )
+        )
+        val layer = generated.first { result ->
+            result.source == "circle-packing-horizontal-grid-single-axis=x"
+        }.layer
+        val placement = layer.toLayerPlacement()
+
+        assertEquals(layer.units.size, placement.unit.units.size)
+        assertTrue(
+            placement.unit.units.all { unitPlacement ->
+                val shape = unitPlacement.resolvedPackingShape()
+                shape is CylinderPackingShape3 && shape.axis == Axis3.X
+            }
+        )
     }
 
     @Test

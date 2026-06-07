@@ -42,8 +42,8 @@ $fixHints = @{
     CylinderCapabilityPathSourceOutOfContract = "Keep cylinder capability path source and cuboid-only predicate strings in CylinderShapeContract; production callers should pass CylinderCapabilityPath instead of duplicating path metadata."
     DuplicatedPackingGeometryUnsupportedContract = "Keep final packing geometry unsupported messages in PackingGeometryContract; packer, renderer, and analyzer paths should call the shared packing-domain contract instead of duplicating message text."
     KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the generic known-coordinate validation path."
-    HorizontalCylinderAxisInGenerationOutOfAllowList = "Do not introduce Axis3.X or Axis3.Z in layer-generation production code until horizontal-cylinder generation has a proven footprint, support, and solver contract."
-    HorizontalCylinderGenerationGuardMissing = "CirclePackingLayerGenerator must keep requireVerticalCylinderAxis so X/Z cylinders cannot reuse the Axis3.Y circle-packing plane assumption."
+    HorizontalCylinderAxisInGenerationOutOfAllowList = "Keep Axis3.X/Z in layer-generation production code limited to the axis-aware CirclePackingLayerGenerator path with verified footprint, support, and solver coverage."
+    HorizontalCylinderGenerationGuardMissing = "CirclePackingLayerGenerator must call requireAxisAwareCylinderCandidate so X/Z cylinders can only enter the verified axis-aware candidate path."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
@@ -288,12 +288,12 @@ Add-TokenViolation -Check "HorizontalCylinderAxisInGenerationOutOfAllowList" -Pa
 $layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
 if (Test-Path $layerGenerationContextPath) {
     $layerGenerationContext = Get-Content -Path $layerGenerationContextPath -Raw
-    if (-not [regex]::IsMatch($layerGenerationContext, "class\s+CirclePackingLayerGenerator[\s\S]*?requireVerticalCylinderAxis\s*\(")) {
+    if (-not [regex]::IsMatch($layerGenerationContext, "class\s+CirclePackingLayerGenerator[\s\S]*?requireAxisAwareCylinderCandidate\s*\(")) {
         $violations += [PSCustomObject]@{
             Check = "HorizontalCylinderGenerationGuardMissing"
             File = $layerGenerationContextPath.Replace("\", "/")
             Line = 1
-            Text = "CirclePackingLayerGenerator must call requireVerticalCylinderAxis before generating candidates."
+            Text = "CirclePackingLayerGenerator must call requireAxisAwareCylinderCandidate before generating candidates."
         }
     }
 } else {

@@ -81,15 +81,34 @@ class LayerGenerationFltXProofTest {
         radiusValue: Double = 0.5
     ): ActualItem {
         val radius = infraScalar(radiusValue) * Meter
-        val height = infraScalar(1.0) * Meter
+        val diameter = radius + radius
+        val length = infraScalar(1.0) * Meter
         val weight = infraScalar(0.2) * Kilogram
-        val shape = PackageShape(
-            width = radius + radius,
-            height = height,
-            depth = radius + radius,
-            weight = weight,
-            packageType = PackageType.CartonContainer
-        )
+        val shape = when (axis) {
+            Axis3.X -> PackageShape(
+                width = length,
+                height = diameter,
+                depth = diameter,
+                weight = weight,
+                packageType = PackageType.CartonContainer
+            )
+
+            Axis3.Y -> PackageShape(
+                width = diameter,
+                height = length,
+                depth = diameter,
+                weight = weight,
+                packageType = PackageType.CartonContainer
+            )
+
+            Axis3.Z -> PackageShape(
+                width = diameter,
+                height = diameter,
+                depth = length,
+                weight = weight,
+                packageType = PackageType.CartonContainer
+            )
+        }
         val pack = PackingProgram.innerPackage(
             shape = shape,
             materials = emptyMap()
@@ -833,7 +852,7 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
-    fun circlePackingLayerGeneratorShouldRejectCylinderAxisX() = runBlocking {
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderAxisX() = runBlocking {
         val item = cylinderItem(
             id = "item-circle-axis-x",
             axis = Axis3.X
@@ -848,21 +867,51 @@ class LayerGenerationFltXProofTest {
             typeCode = "BIN-LG-CIRCLE-AXIS-X"
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            CirclePackingLayerGenerator<InfraNumber>().generate(
-                Bpp3dLayerGenerationRequest(
-                    iteration = 0,
-                    bin = bin,
-                    items = listOf(item),
-                    maxCandidates = 4
-                )
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
             )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { result -> result.source == "circle-packing-horizontal-grid-axis=x" })
+        assertTrue(generated.any { result -> result.source == "circle-packing-horizontal-grid-single-axis=x" })
+        generated.forEach { result ->
+            assertTrue(result.layer.units.isNotEmpty())
+            assertTrue(
+                result.layer.units.all { placement ->
+                    val shape = placement.resolvedPackingShape()
+                    shape is CylinderPackingShape3 && shape.axis == Axis3.X
+                }
+            )
+            assertCirclePackingLayerGeometry(result.layer)
         }
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+
+        val grid = generated.first { result -> result.source == "circle-packing-horizontal-grid-axis=x" }
+        val packedBin = PackedBin(
+            name = "bin-horizontal-x",
+            type = bin,
+            items = grid.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItem = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.first().items.first()
+        assertEquals("HorizontalCylinderX", renderedItem.algorithmShapeType.name)
+        assertEquals("X", renderedItem.axis?.name)
     }
 
     @Test
-    fun circlePackingLayerGeneratorShouldRejectCylinderAxisZ() = runBlocking {
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderAxisZ() = runBlocking {
         val item = cylinderItem(
             id = "item-circle-axis-z",
             axis = Axis3.Z
@@ -877,17 +926,47 @@ class LayerGenerationFltXProofTest {
             typeCode = "BIN-LG-CIRCLE-AXIS-Z"
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            CirclePackingLayerGenerator<InfraNumber>().generate(
-                Bpp3dLayerGenerationRequest(
-                    iteration = 0,
-                    bin = bin,
-                    items = listOf(item),
-                    maxCandidates = 4
-                )
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
             )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { result -> result.source == "circle-packing-horizontal-grid-axis=z" })
+        assertTrue(generated.any { result -> result.source == "circle-packing-horizontal-grid-single-axis=z" })
+        generated.forEach { result ->
+            assertTrue(result.layer.units.isNotEmpty())
+            assertTrue(
+                result.layer.units.all { placement ->
+                    val shape = placement.resolvedPackingShape()
+                    shape is CylinderPackingShape3 && shape.axis == Axis3.Z
+                }
+            )
+            assertCirclePackingLayerGeometry(result.layer)
         }
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+
+        val grid = generated.first { result -> result.source == "circle-packing-horizontal-grid-axis=z" }
+        val packedBin = PackedBin(
+            name = "bin-horizontal-z",
+            type = bin,
+            items = grid.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItem = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.first().items.first()
+        assertEquals("HorizontalCylinderZ", renderedItem.algorithmShapeType.name)
+        assertEquals("Z", renderedItem.axis?.name)
     }
 
     @Test
@@ -1121,6 +1200,96 @@ class LayerGenerationFltXProofTest {
         assertEquals(sourcePlacement.absoluteY.toDouble(), renderedItem.y.toDouble(), 1e-9)
         assertEquals(sourcePlacement.absoluteZ.toDouble(), renderedItem.z.toDouble(), 1e-9)
         assertEquals(PI * 0.18 * 0.18 * 1.0, renderedItem.actualVolume!!.toDouble(), 1e-9)
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldExpandDynamicRadiusHorizontalCandidates() = runBlocking {
+        val radius = infraScalar(0.15) * Meter
+        val diameter = radius + radius
+        val length = infraScalar(1.0) * Meter
+        val weight = infraScalar(0.2) * Kilogram
+        val shape = PackageShape(
+            width = length,
+            height = diameter,
+            depth = diameter,
+            weight = weight,
+            packageType = PackageType.CartonContainer
+        )
+        val pack = PackingProgram.innerPackage(
+            shape = shape,
+            materials = emptyMap()
+        )
+        val item = ActualItem(
+            id = "item-circle-horizontal-dynamic-radius",
+            name = "item-circle-horizontal-dynamic-radius",
+            width = pack.width,
+            height = pack.height,
+            depth = pack.depth,
+            weight = pack.weight,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-CIRCLE-HORIZONTAL-DYNAMIC-RADIUS"),
+            packageAttribute = defaultPackageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = radius,
+                axis = Axis3.X,
+                diameterMin = infraScalar(0.30) * Meter,
+                diameterMax = infraScalar(0.36) * Meter,
+                diameterStep = infraScalar(0.01) * Meter
+            )
+        )
+        val bin = BinType(
+            width = infraScalar(2.2) * Meter,
+            height = infraScalar(0.4) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-DYNAMIC-RADIUS"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 20
+            )
+        )
+
+        assertTrue(generated.isNotEmpty())
+        assertTrue(generated.any { result -> result.source.contains("circle-packing-horizontal-grid-r=0.15-axis=x") })
+        assertTrue(generated.any { result -> result.source.contains("circle-packing-horizontal-grid-r=0.18-axis=x") })
+        generated.forEach { result -> assertCirclePackingLayerGeometry(result.layer) }
+
+        val candidatesByRadius = generated
+            .filter { result -> result.source.startsWith("circle-packing-horizontal-grid-r=") }
+            .map { result ->
+                val shape = result.layer.units.first().resolvedPackingShape() as CylinderPackingShape3
+                Pair(result, shape.radius.toDouble())
+            }
+        val smallRadius = candidatesByRadius.first { (_, radiusValue) -> abs(radiusValue - 0.15) < 1e-9 }.first
+        val largeRadius = candidatesByRadius.first { (_, radiusValue) -> abs(radiusValue - 0.18) < 1e-9 }.first
+        assertTrue(smallRadius.layer.units.size > largeRadius.layer.units.size)
+
+        val packedBin = PackedBin(
+            name = "bin-horizontal-dynamic-radius",
+            type = bin,
+            items = largeRadius.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItem = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.first().items.first()
+        assertEquals("HorizontalCylinderX", renderedItem.algorithmShapeType.name)
+        assertEquals("X", renderedItem.axis?.name)
+        assertEquals(0.18, renderedItem.radius!!.toDouble(), 1e-9)
+        assertEquals(0.36, renderedItem.diameter!!.toDouble(), 1e-9)
     }
 
     @Test

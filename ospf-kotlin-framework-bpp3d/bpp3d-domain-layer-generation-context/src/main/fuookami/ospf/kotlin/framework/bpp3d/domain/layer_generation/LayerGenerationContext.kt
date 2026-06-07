@@ -27,6 +27,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireAxisAwareCylinderCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireUprightVerticalCylinderSupport
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
@@ -598,15 +599,30 @@ private data class CirclePackingLayerCandidate(
     val volume: Double
 )
 
-private fun verticalCylinderCandidateShape(
+private fun cylinderAxisLength(
     source: CylinderPackingShape3,
-    radius: Quantity<InfraNumber>
+    axis: Axis3
+): Quantity<InfraNumber> {
+    return when (axis) {
+        Axis3.X -> source.boundingWidth
+        Axis3.Y -> source.boundingHeight
+        Axis3.Z -> source.boundingDepth
+    }
+}
+
+private fun cylinderCandidateShape(
+    source: CylinderPackingShape3,
+    radius: Quantity<InfraNumber>,
+    axis: Axis3
 ): CylinderPackingShape3 {
     return CylinderPackingShape3(
         cylinder = object : AbstractCylinder<InfraNumber> {
             override val radius = radius
-            override val height = source.boundingHeight
-            override val axis = Axis3.Y
+            override val height = cylinderAxisLength(
+                source = source,
+                axis = axis
+            )
+            override val axis = axis
             override val weight = source.weight
         }
     )
@@ -621,16 +637,17 @@ private fun circlePackingItemCandidates(
     }
     return when (val shape = item.packingShape) {
         is CylinderPackingShape3 -> {
-            if (shape.axis != Axis3.Y || !item.enabledOrientations.contains(Orientation.Upright)) {
+            if (!item.enabledOrientations.contains(Orientation.Upright)) {
                 return emptyList()
             }
             val spec = item.packingShapeSpec as? PackageShapeSpec.VerticalCylinder
             val radii = spec?.resolvedRadiusCandidates ?: listOf(shape.radius)
             val dynamic = radii.size > 1
             radii.map { radius ->
-                val candidateShape = verticalCylinderCandidateShape(
+                val candidateShape = cylinderCandidateShape(
                     source = shape,
-                    radius = radius
+                    radius = radius,
+                    axis = shape.axis
                 )
                 CirclePackingItemCandidate(
                     view = CirclePackingCandidateItemView(
@@ -656,6 +673,15 @@ private fun circlePackingSource(
 ): String {
     val radius = candidate.sourceRadius ?: return pattern
     return "$pattern-r=${radius.value.toDouble()}"
+}
+
+private fun circlePackingSource(
+    pattern: String,
+    candidate: CirclePackingItemCandidate,
+    axis: Axis3?
+): String {
+    val axisSuffix = axis?.let { "-axis=${it.name.lowercase()}" } ?: ""
+    return circlePackingSource(pattern, candidate) + axisSuffix
 }
 
 private fun circlePackingVolume(placements: List<ItemPlacement3>): Double {
@@ -684,6 +710,84 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
     for (item in items) {
         for (candidate in circlePackingItemCandidates(item, request.bin)) {
             val itemView = candidate.view
+            val candidateShape = itemView.placementPackingShape as? CylinderPackingShape3
+            if (candidateShape != null && candidateShape.axis != Axis3.Y) {
+                val cellWidth = itemView.width
+                val cellDepth = itemView.depth
+                val cellWidthValue = cellWidth.value.toDouble()
+                val cellDepthValue = cellDepth.value.toDouble()
+                if (cellWidthValue <= 0.0
+                    || cellDepthValue <= 0.0
+                    || cellWidthValue > binWidth
+                    || cellDepthValue > binDepth
+                ) {
+                    continue
+                }
+
+                val cols = floor(binWidth / cellWidthValue).toInt()
+                val rows = floor(binDepth / cellDepthValue).toInt()
+                if (cols <= 0 || rows <= 0) {
+                    continue
+                }
+                val placements = ArrayList<ItemPlacement3>(cols * rows)
+                for (row in 0 until rows) {
+                    val z = cellDepth * infraScalar(row.toDouble())
+                    for (col in 0 until cols) {
+                        val x = cellWidth * infraScalar(col.toDouble())
+                        placements.add(
+                            ItemPlacement3(
+                                view = itemView,
+                                position = point3(x = x, z = z)
+                            )
+                        )
+                    }
+                }
+                if (placements.size > 1 && circlePackingLayerIsGeometryValid(binShape, placements)) {
+                    candidates.add(
+                        CirclePackingLayerCandidate(
+                            layer = BinLayer(
+                                iteration = iteration,
+                                from = sourceClass.kotlin,
+                                bin = bin,
+                                shape = binShape,
+                                units = placements
+                            ),
+                            source = circlePackingSource(
+                                pattern = "circle-packing-horizontal-grid",
+                                candidate = candidate,
+                                axis = candidateShape.axis
+                            ),
+                            packed = placements.size,
+                            volume = circlePackingVolume(placements)
+                        )
+                    )
+                }
+                if (placements.isNotEmpty()) {
+                    val singlePlacement = listOf(placements.first())
+                    if (circlePackingLayerIsGeometryValid(binShape, singlePlacement)) {
+                        candidates.add(
+                            CirclePackingLayerCandidate(
+                                layer = BinLayer(
+                                    iteration = iteration,
+                                    from = sourceClass.kotlin,
+                                    bin = bin,
+                                    shape = binShape,
+                                    units = singlePlacement
+                                ),
+                                source = circlePackingSource(
+                                    pattern = "circle-packing-horizontal-grid-single",
+                                    candidate = candidate,
+                                    axis = candidateShape.axis
+                                ),
+                                packed = singlePlacement.size,
+                                volume = circlePackingVolume(singlePlacement)
+                            )
+                        )
+                    }
+                }
+                continue
+            }
+
             val diameter = if (itemView.width.value.toDouble() >= itemView.depth.value.toDouble()) {
                 itemView.width
             } else {
@@ -992,7 +1096,7 @@ class CirclePackingLayerGenerator<V>(
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
             for (item in it.items) {
-                requireVerticalCylinderAxis(
+                requireAxisAwareCylinderCandidate(
                     shape = item.packingShape,
                     path = CylinderCapabilityPath.CirclePackingCandidate
                 )
@@ -1029,8 +1133,19 @@ class LayerGenerationContext<V>(
         if (generators.isEmpty()) {
             return emptyList()
         }
+        val selectedGenerators = if (request.items.any { item ->
+                val shape = item.packingShape
+                shape is CylinderPackingShape3 && shape.axis != Axis3.Y
+            }
+        ) {
+            generators.filter { generator ->
+                generator is CirclePackingLayerGenerator<*> || generator is HistoricalLayerGenerator<*>
+            }
+        } else {
+            generators
+        }
         val all = ArrayList<Bpp3dLayerGenerationResult<V>>()
-        for (generator in generators) {
+        for (generator in selectedGenerators) {
             all += generator.generate(request)
             if (all.size >= request.maxCandidates) {
                 break

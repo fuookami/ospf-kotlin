@@ -72,6 +72,9 @@ class CylinderShapeContractTest {
         val generated = CylinderCapabilityPath.entries.filter { path ->
             path.status == CylinderCapabilityStatus.VerticalCandidateOnly
         }
+        val axisAware = CylinderCapabilityPath.entries.filter { path ->
+            path.status == CylinderCapabilityStatus.AxisAwareCandidate
+        }
         val support = CylinderCapabilityPath.entries.filter { path ->
             path.status == CylinderCapabilityStatus.UprightVerticalSupportOnly
         }
@@ -81,7 +84,8 @@ class CylinderShapeContractTest {
 
         assertTrue(cuboidOnly.isNotEmpty())
         assertTrue(cuboidOnly.all { path -> path.pathPredicate != null })
-        assertTrue(generated.any { path -> path == CylinderCapabilityPath.CirclePackingCandidate })
+        assertTrue(generated.any { path -> path == CylinderCapabilityPath.DefaultLayerCandidate })
+        assertTrue(axisAware.any { path -> path == CylinderCapabilityPath.CirclePackingCandidate })
         assertTrue(support.any { path -> path == CylinderCapabilityPath.PackageAttributeSupport })
         assertEquals(
             expected = setOf(
@@ -96,18 +100,30 @@ class CylinderShapeContractTest {
     fun verticalCandidatePathShouldRejectHorizontalCylinderAxis() {
         requireVerticalCylinderAxis(
             shape = cylinderShape(Axis3.Y),
-            path = CylinderCapabilityPath.CirclePackingCandidate
+            path = CylinderCapabilityPath.DefaultLayerCandidate
         )
 
         val error = assertFailsWith<IllegalArgumentException> {
             requireVerticalCylinderAxis(
                 shape = cylinderShape(Axis3.X),
-                path = CylinderCapabilityPath.CirclePackingCandidate
+                path = CylinderCapabilityPath.DefaultLayerCandidate
             )
         }
 
-        assertTrue(error.message?.contains("CirclePackingLayerGenerator") == true)
+        assertTrue(error.message?.contains("LayerGeneration.defaultCandidate") == true)
         assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+    }
+
+    @Test
+    fun axisAwareCandidatePathShouldAcceptHorizontalCylinderAxis() {
+        requireAxisAwareCylinderCandidate(
+            shape = cylinderShape(Axis3.X),
+            path = CylinderCapabilityPath.CirclePackingCandidate
+        )
+        requireAxisAwareCylinderCandidate(
+            shape = cylinderShape(Axis3.Z),
+            path = CylinderCapabilityPath.CirclePackingCandidate
+        )
     }
 
     @Test

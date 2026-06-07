@@ -20,14 +20,19 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.unsupportedGeneratedHorizontalCylinderSourceMessage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
+import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
  * 统一创建 BinLayer 的放置对象。
  * Create BinLayer placement via a unified adapter.
  */
 internal fun BinLayer.toLayerPlacement(z: Quantity<InfraNumber>? = null): BinLayerPlacement {
-    ensureVerticalCylinderAxis(
+    ensureGeneratedCylinderCandidatePath(
         layer = this
     )
     return toKnownCoordinateLayerPlacement(z)
@@ -88,15 +93,26 @@ internal fun Item.toItemPlacement(
 }
 
 /**
- * 应用层使用共享圆柱契约校验默认候选能力。
- * Application layer uses the shared cylinder contract to validate default candidate capability.
+ * 应用层使用共享圆柱契约校验生成候选能力。
+ * Application layer uses the shared cylinder contract to validate generated candidate capability.
  */
-internal fun ensureVerticalCylinderAxis(layer: BinLayer) {
+internal fun ensureGeneratedCylinderCandidatePath(layer: BinLayer) {
     for (placement in layer.units) {
         val item = placement.unit as? Item ?: continue
-        requireVerticalCylinderAxis(
-            shape = item.packingShape,
-            path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
-        )
+        val shape = placement.resolvedPackingShape()
+        if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
+            if (layer.from != CirclePackingLayerGenerator::class) {
+                throw IllegalArgumentException(
+                    unsupportedGeneratedHorizontalCylinderSourceMessage(
+                        source = CylinderCapabilityPath.ApplicationLayerPlacementCandidate.source
+                    )
+                )
+            }
+        } else {
+            requireVerticalCylinderAxis(
+                shape = item.packingShape,
+                path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
+            )
+        }
     }
 }

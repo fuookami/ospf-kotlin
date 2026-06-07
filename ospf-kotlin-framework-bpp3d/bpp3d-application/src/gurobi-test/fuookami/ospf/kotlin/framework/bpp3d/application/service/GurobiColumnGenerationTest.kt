@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
@@ -27,11 +28,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demand
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAlgorithmShapeTypeDTO
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAxis3DTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber as Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64 as SolverFlt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -93,6 +98,129 @@ class GurobiColumnGenerationTest {
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute()
         )
+    }
+
+    private fun horizontalCylinderItem(
+        id: String,
+        material: Material<Flt64>,
+        axis: Axis3,
+        radiusInMeter: Flt64 = Flt64(0.4),
+        lengthInMeter: Flt64 = Flt64.one,
+        shapeSpec: PackageShapeSpec.VerticalCylinder = PackageShapeSpec.VerticalCylinder(
+            radius = radiusInMeter * Meter,
+            axis = axis
+        )
+    ): ActualItem {
+        val diameter = radiusInMeter * Flt64(2.0)
+        val shape = when (axis) {
+            Axis3.X -> PackageShape(
+                width = lengthInMeter * Meter,
+                height = diameter * Meter,
+                depth = diameter * Meter,
+                weight = Flt64.one * Kilogram,
+                packageType = PackageType.CartonContainer,
+                shapeSpec = shapeSpec
+            )
+
+            Axis3.Y -> PackageShape(
+                width = diameter * Meter,
+                height = lengthInMeter * Meter,
+                depth = diameter * Meter,
+                weight = Flt64.one * Kilogram,
+                packageType = PackageType.CartonContainer,
+                shapeSpec = shapeSpec
+            )
+
+            Axis3.Z -> PackageShape(
+                width = diameter * Meter,
+                height = diameter * Meter,
+                depth = lengthInMeter * Meter,
+                weight = Flt64.one * Kilogram,
+                packageType = PackageType.CartonContainer,
+                shapeSpec = shapeSpec
+            )
+        }
+        val pack = Package.innerPackage(
+            shape = shape,
+            materials = mapOf(material to UInt64.one)
+        )
+        return ActualItem(
+            id = id,
+            name = id,
+            pack = pack,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-$id"),
+            packageAttribute = packageAttribute()
+        )
+    }
+
+    private fun itemFromCsvWidth(
+        id: String,
+        material: Material<Flt64>,
+        widthInMeter: Flt64,
+        shapeSpec: PackageShapeSpec
+    ): ActualItem {
+        val cylinderSpec = shapeSpec as? PackageShapeSpec.VerticalCylinder
+        return if (cylinderSpec != null && cylinderSpec.axis != Axis3.Y) {
+            horizontalCylinderItem(
+                id = id,
+                material = material,
+                axis = cylinderSpec.axis,
+                radiusInMeter = cylinderSpec.radius.value,
+                lengthInMeter = widthInMeter,
+                shapeSpec = cylinderSpec
+            )
+        } else {
+            item(
+                id = id,
+                material = material,
+                widthInMeter = widthInMeter,
+                shapeSpec = shapeSpec
+            )
+        }
+    }
+
+    private fun horizontalAxisOf(item: Item): Axis3? {
+        val shape = item.packingShape as? CylinderPackingShape3 ?: return null
+        return shape.axis.takeIf { axis -> axis != Axis3.Y }
+    }
+
+    private fun generatedHorizontalSeedLayer(
+        item: ActualItem,
+        binType: BinType
+    ): BinLayer? {
+        val axis = horizontalAxisOf(item) ?: return null
+        val source = "circle-packing-horizontal-grid-single-axis=${axis.name.lowercase()}"
+        return runBlocking {
+            CirclePackingLayerGenerator<Flt64>().generate(
+                Bpp3dLayerGenerationRequest(
+                    iteration = 0,
+                    bin = binType,
+                    items = listOf(item),
+                    maxCandidates = 16
+                )
+            ).firstOrNull { result -> result.source == source }?.layer
+        }
+    }
+
+    private fun generatedHorizontalGridLayer(
+        item: ActualItem,
+        binType: BinType
+    ): BinLayer {
+        val axis = horizontalAxisOf(item)
+            ?: throw IllegalArgumentException("item must be a horizontal cylinder")
+        val source = "circle-packing-horizontal-grid-axis=${axis.name.lowercase()}"
+        return runBlocking {
+            CirclePackingLayerGenerator<Flt64>().generate(
+                Bpp3dLayerGenerationRequest(
+                    iteration = 0,
+                    bin = binType,
+                    items = listOf(item),
+                    maxCandidates = 16
+                )
+            ).firstOrNull { result -> result.source == source }?.layer
+                ?: throw IllegalStateException("missing generated horizontal grid layer: $source")
+        }
     }
 
     private fun layerBin(
@@ -653,23 +781,30 @@ class GurobiColumnGenerationTest {
                     itemsById[row.itemId]
                         ?: throw IllegalStateException("missing item: ${row.itemId}")
                 }
-                val bin = layerBin(
-                    items = layerItems,
-                    typeCode = binType.typeCode,
-                    depthInMeter = Flt64(layerCount.toLong()),
-                    binType = binType,
-                    widthInMeter = Flt64(maxItemsPerLayer.toLong())
-                )
-                val rawLayer = bin.units.first().unit
-                initialColumns.add(
-                    BinLayer(
-                        iteration = rawLayer.iteration,
-                        from = rawLayer.from,
-                        bin = binType,
-                        shape = rawLayer.shape,
-                        units = rawLayer.units
+                val generatedHorizontalLayer = layerItems
+                    .singleOrNull()
+                    ?.let { item -> generatedHorizontalSeedLayer(item, binType) }
+                if (generatedHorizontalLayer != null) {
+                    initialColumns.add(generatedHorizontalLayer)
+                } else {
+                    val bin = layerBin(
+                        items = layerItems,
+                        typeCode = binType.typeCode,
+                        depthInMeter = Flt64(layerCount.toLong()),
+                        binType = binType,
+                        widthInMeter = Flt64(maxItemsPerLayer.toLong())
                     )
-                )
+                    val rawLayer = bin.units.first().unit
+                    initialColumns.add(
+                        BinLayer(
+                            iteration = rawLayer.iteration,
+                            from = rawLayer.from,
+                            bin = binType,
+                            shape = rawLayer.shape,
+                            units = rawLayer.units
+                        )
+                    )
+                }
             }
         }
 
@@ -1227,9 +1362,23 @@ class GurobiColumnGenerationTest {
     @Test
     fun materialWidthAmountMixedShapeSampleFileShouldBeParsable() {
         val scenario = loadCsvDrivenScenario("gurobi/material-width-amount-cylinder-sample.csv")
+        val horizontalAxes = scenario.itemDemands.mapNotNull { (item, _) ->
+            horizontalAxisOf(item)
+        }
+
         assertEquals(1, scenario.groupCount)
         assertTrue(scenario.totalItemCount > 0)
         assertTrue(scenario.packedLayerCount >= scenario.totalLayerCount)
+        assertTrue(horizontalAxes.contains(Axis3.X))
+        assertTrue(
+            scenario.initialColumns.any { layer ->
+                layer.from == CirclePackingLayerGenerator::class
+                        && layer.units.any { placement ->
+                            val shape = placement.resolvedPackingShape() as? CylinderPackingShape3
+                            shape?.axis == Axis3.X
+                        }
+            }
+        )
     }
 
     @Test
@@ -1415,7 +1564,7 @@ class GurobiColumnGenerationTest {
                 axis = row.axis,
                 rowDescription = "material=${row.material},row_index=${index + 2}"
             )
-            val actualItem = item(
+            val actualItem = itemFromCsvWidth(
                 id = "item-material-width-$index",
                 material = material,
                 widthInMeter = widthInMeter,
@@ -1450,21 +1599,23 @@ class GurobiColumnGenerationTest {
             )
         )
         val initialColumns = itemDemands.map { (actualItem, _) ->
-            val bin = layerBin(
-                items = listOf(actualItem),
-                typeCode = binType.typeCode,
-                depthInMeter = totalDepthInMeter,
-                binType = binType,
-                widthInMeter = maxWidthInMeter
-            )
-            val rawLayer = bin.units.first().unit
-            BinLayer(
-                iteration = rawLayer.iteration,
-                from = rawLayer.from,
-                bin = binType,
-                shape = rawLayer.shape,
-                units = rawLayer.units
-            )
+            generatedHorizontalSeedLayer(actualItem, binType) ?: run {
+                val bin = layerBin(
+                    items = listOf(actualItem),
+                    typeCode = binType.typeCode,
+                    depthInMeter = totalDepthInMeter,
+                    binType = binType,
+                    widthInMeter = maxWidthInMeter
+                )
+                val rawLayer = bin.units.first().unit
+                BinLayer(
+                    iteration = rawLayer.iteration,
+                    from = rawLayer.from,
+                    bin = binType,
+                    shape = rawLayer.shape,
+                    units = rawLayer.units
+                )
+            }
         }
 
         val materialsByNoView = materialsByNo.mapValues { (_, material) -> material }
@@ -1875,6 +2026,119 @@ class GurobiColumnGenerationTest {
         assertNotNull(response.packingSnapshot)
         assertTrue(response.packingSnapshot!!.bins.isNotEmpty())
         assertEquals(response.packingSnapshot!!.bins.size.toString(), response.packingSnapshot!!.schema.kpi["bin_count"])
+    }
+
+    @Test
+    fun applicationServiceShouldSelectGeneratedHorizontalCylinderCandidatesWithGurobi() = runBlocking {
+        val materialX = Material(
+            no = MaterialNo("M-GUROBI-HORIZONTAL-X"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-GUROBI-HORIZONTAL-X",
+            weight = Flt64.one * Kilogram
+        )
+        val materialZ = Material(
+            no = MaterialNo("M-GUROBI-HORIZONTAL-Z"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-GUROBI-HORIZONTAL-Z",
+            weight = Flt64.one * Kilogram
+        )
+        val itemX = horizontalCylinderItem(
+            id = "item-gurobi-horizontal-x",
+            material = materialX,
+            axis = Axis3.X,
+            radiusInMeter = Flt64(0.25),
+            lengthInMeter = Flt64(0.8)
+        )
+        val itemZ = horizontalCylinderItem(
+            id = "item-gurobi-horizontal-z",
+            material = materialZ,
+            axis = Axis3.Z,
+            radiusInMeter = Flt64(0.25),
+            lengthInMeter = Flt64(0.8)
+        )
+        val binType = BinType(
+            width = Flt64(1.6) * Meter,
+            height = Flt64(0.6) * Meter,
+            depth = Flt64(1.0) * Meter,
+            capacity = Flt64(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-GUROBI-HORIZONTAL"
+        )
+        val itemDemands = listOf(
+            Pair(itemX, UInt64.one),
+            Pair(itemZ, UInt64.one)
+        )
+        val initialColumns = listOf(
+            generatedHorizontalGridLayer(itemX, binType),
+            generatedHorizontalGridLayer(itemZ, binType)
+        )
+        val finalBins = listOf(
+            layerBinOf(
+                shape = binType,
+                units = emptyList<BinLayerPlacement>(),
+                batchNo = BatchNo("B-GUROBI-HORIZONTAL-X")
+            ),
+            layerBinOf(
+                shape = binType,
+                units = emptyList<BinLayerPlacement>(),
+                batchNo = BatchNo("B-GUROBI-HORIZONTAL-Z")
+            )
+        )
+
+        val solver = GurobiDelegatingColumnGenerationSolver(
+            config = SolverConfig(time = 10.seconds)
+        )
+        val service = ColumnGenerationApplicationService(solver)
+        val response = service.solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = itemDemands,
+                demandEntries = demandEntriesFromItems(items = itemDemands),
+                initialColumns = initialColumns,
+                finalBins = finalBins,
+                cgConfig = ColumnGenerationConfig(
+                    iterationLimit = 1,
+                    maxColumnsPerIteration = 16
+                ),
+                generators = listOf(CirclePackingLayerGenerator())
+            ),
+            packingAnalyzer = ColumnGenerationPackingAnalyzer()
+        )
+
+        assertTrue(response.result.finalSolved)
+        assertEquals(1, response.result.lpSolvedTimes)
+        assertEquals("2", response.result.finalInfo["selected_layer_count"])
+        val selectedAxes = response.result.columns.mapNotNull { layer ->
+            layer.units.singleOrNull()?.resolvedPackingShape() as? CylinderPackingShape3
+        }.filter { shape -> shape.axis != Axis3.Y }
+            .map { shape -> shape.axis }
+            .toSet()
+        assertEquals(setOf(Axis3.X, Axis3.Z), selectedAxes)
+        assertTrue(
+            response.result.columns.all { layer ->
+                layer.from == CirclePackingLayerGenerator::class && layer.units.size == 1
+            }
+        )
+
+        val snapshot = response.packingSnapshot
+        assertNotNull(snapshot)
+        assertEquals(2, snapshot.bins.size)
+        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        val renderedItems = snapshot.schema.loadingPlans.flatMap { plan -> plan.items }
+        assertTrue(
+            renderedItems.any { item ->
+                item.algorithmShapeType == RenderAlgorithmShapeTypeDTO.HorizontalCylinderX
+                        && item.axis == RenderAxis3DTO.X
+            }
+        )
+        assertTrue(
+            renderedItems.any { item ->
+                item.algorithmShapeType == RenderAlgorithmShapeTypeDTO.HorizontalCylinderZ
+                        && item.axis == RenderAxis3DTO.Z
+            }
+        )
     }
 
     @Test

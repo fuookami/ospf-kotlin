@@ -1,4 +1,4 @@
 material,width,amount,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis
 MAT-A,1200,2,MAT-A,Material-A,1.0,vertical_cylinder,0.4,Y
 MAT-B,1000,3,MAT-B,Material-B,1.5,cuboid,,
-MAT-C,900,1,MAT-C,Material-C,2.0,vertical_cylinder,0.35,AXIS3.Y
+MAT-C,900,1,MAT-C,Material-C,2.0,vertical_cylinder,0.35,AXIS3.X

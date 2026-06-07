@@ -24,6 +24,9 @@ enum class CylinderCapabilityStatus {
     /** 默认候选生成路径，仅支持竖直圆柱。 / Default candidate path, vertical-cylinder-only. */
     VerticalCandidateOnly,
 
+    /** 轴向感知候选生成路径。 / Axis-aware candidate path. */
+    AxisAwareCandidate,
+
     /** 支撑语义路径，仅支持直立竖直圆柱。 / Support semantics path, upright vertical-cylinder-only. */
     UprightVerticalSupportOnly,
 
@@ -53,7 +56,7 @@ enum class CylinderCapabilityPath(
     ),
     CirclePackingCandidate(
         source = "CirclePackingLayerGenerator",
-        status = CylinderCapabilityStatus.VerticalCandidateOnly
+        status = CylinderCapabilityStatus.AxisAwareCandidate
     ),
     ApplicationLayerPlacementCandidate(
         source = "LayerPlacementAdapter.toLayerPlacement",
@@ -130,6 +133,17 @@ enum class CylinderCapabilityPath(
  */
 fun unsupportedCylinderAxisMessage(source: String, axis: Axis3): String {
     return "Unsupported cylinder axis in $source: only Axis3.Y is allowed, but got $axis."
+}
+
+/**
+ * 横向圆柱候选来源未开放错误信息。
+ * Unsupported generated horizontal cylinder source message.
+ *
+ * @param source 调用来源 / call source
+ * @return 错误信息 / error message
+ */
+fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String {
+    return "Unsupported horizontal cylinder in $source: only verified axis-aware generated candidates are allowed."
 }
 
 /**
@@ -224,6 +238,26 @@ fun requireVerticalCylinderAxis(
         shape = shape,
         source = path.source
     )
+}
+
+/**
+ * 要求圆柱为轴向感知候选路径支持的轴向。
+ * Require the cylinder axis supported by axis-aware candidate paths.
+ *
+ * @param shape 装箱形状 / packing shape
+ * @param path 能力路径 / capability path
+ */
+fun requireAxisAwareCylinderCandidate(
+    shape: PackingShape3<InfraNumber>,
+    path: CylinderCapabilityPath
+) {
+    require(path.status == CylinderCapabilityStatus.AxisAwareCandidate) {
+        "Cylinder capability path ${path.name} is not an axis-aware candidate path."
+    }
+    if (shape is CylinderPackingShape3) {
+        Axis3.entries.firstOrNull { axis -> axis == shape.axis }
+            ?: throw IllegalArgumentException("Unsupported cylinder axis in ${path.source}: got ${shape.axis}.")
+    }
 }
 
 /**

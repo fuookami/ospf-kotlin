@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMa
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
@@ -385,9 +386,11 @@ class ColumnGenerationStandardExecutors(
         val requestDemandEntries = demandEntries.map {
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
         }
+        val candidateBin = layerGenerationCandidateBin()
         return ColumnGenerationLayerRequestBuilder { state, items, cgConfig ->
             bpp3dLayerGenerationRequest(
                 iteration = state.iteration,
+                bin = candidateBin,
                 items = items,
                 existingLayers = state.columns,
                 demandEntries = requestDemandEntries,
@@ -400,6 +403,10 @@ class ColumnGenerationStandardExecutors(
                 maxCandidates = cgConfig.maxColumnsPerIteration
             )
         }
+    }
+
+    private fun layerGenerationCandidateBin(): BinType? {
+        return finalBins.firstOrNull()?.shape
     }
 
     private data class RmpArtifacts(
