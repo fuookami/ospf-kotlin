@@ -4,17 +4,18 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.DurationUnit
+import kotlin.time.Duration.Companion.hours
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import kotlin.time.Duration.Companion.hours
 
 private val fltXTestExecutor = Executor("e-fltx", "FltX-Machine")
 
@@ -141,6 +142,20 @@ class AggregationFltXTest {
         assertTrue(total is Flt64)
         assertEquals(Flt64(3.0), total)
     }
+
+    @Test
+    fun totalCapacityQuantityShouldSupportFltX() {
+        val tw = fltXTimeWindow()
+        val aggregation = CapacitySchedulingAggregation<FltX, ProductionAction>(
+            actions = listOf(FltXTestAction, FltXTestAction2),
+            slots = listOf(slot1),
+            timeWindow = tw
+        )
+
+        val total = aggregation.totalCapacityQuantity()
+        assertEquals(NoneUnit, total.unit)
+        assertTrue(total.value eq FltX(11.0))
+    }
 }
 
 class ProductionActionUnitCostVTest {
@@ -174,5 +189,21 @@ class ProductionActionUnitCostVTest {
         val tw = fltXTimeWindow()
         val result = FltXTestAction.upperBoundV<FltX>(slot1, tw)
         assertEquals(UInt64(3), result)
+    }
+
+    @Test
+    fun unitCapacityQuantityShouldSupportFltX() {
+        val tw = fltXTimeWindow()
+        val result = FltXTestAction.unitCapacityQuantity(tw)
+        assertEquals(NoneUnit, result.unit)
+        assertTrue(result.value eq FltX(1.0))
+    }
+
+    @Test
+    fun unitCostQuantityShouldSupportFltX() {
+        val time = Instant.parse("2026-06-07T00:00:00Z")
+        val result = FltXTestAction.unitCostQuantity<FltX>(time, fromDouble = { FltX(it) })
+        assertEquals(NoneUnit, result.unit)
+        assertTrue(result.value eq FltX(10.5))
     }
 }

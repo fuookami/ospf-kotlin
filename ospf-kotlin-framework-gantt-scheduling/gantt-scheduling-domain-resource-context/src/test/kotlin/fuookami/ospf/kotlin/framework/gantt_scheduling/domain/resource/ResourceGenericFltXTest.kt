@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResourceTimeSlot
@@ -73,6 +74,64 @@ class ResourceGenericFltXTest {
         val cap = ResourceCapacity<Flt64>(time = timeRange, quantity = range)
         val zero = resourceQuantityZero(listOf(cap))
         assertTrue(zero eq Flt64.zero)
+    }
+
+    @Test
+    fun resourceCapacityQuantityShouldSupportFltX() {
+        val range = ValueRange(
+            lb = FltX("0"),
+            ub = FltX("100"),
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = FltX
+        ).value!!
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantity = range,
+            lessQuantity = FltX("2.5"),
+            overQuantity = FltX("7.5")
+        )
+
+        val quantityRange = cap.quantityRange()
+        val lessQuantity = cap.lessQuantity()
+        val overQuantity = cap.overQuantity()
+
+        assertEquals(NoneUnit, quantityRange.unit)
+        assertTrue(quantityRange.value.lowerBound.value eq FltX("0"))
+        assertTrue(quantityRange.value.upperBound.value eq FltX("100"))
+        assertEquals(NoneUnit, lessQuantity!!.unit)
+        assertTrue(lessQuantity.value eq FltX("2.5"))
+        assertEquals(NoneUnit, overQuantity!!.unit)
+        assertTrue(overQuantity.value eq FltX("7.5"))
+    }
+
+    @Test
+    fun resourceInitialQuantityShouldSupportFltXQuantity() {
+        val range = ValueRange(
+            lb = FltX("0"),
+            ub = FltX("50"),
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = FltX
+        ).value!!
+        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range)
+        val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
+            id = "quantity-exec",
+            name = "Quantity Exec",
+            capacities = listOf(cap),
+            initialQuantity = FltX("12.5")
+        ) {
+            override fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
+                task: AbstractTask<E, A>,
+                time: TimeRange
+            ): FltX {
+                return FltX("3.5")
+            }
+        }
+
+        val initialQuantity = resource.initialQuantity()
+        assertEquals(NoneUnit, initialQuantity.unit)
+        assertTrue(initialQuantity.value eq FltX("12.5"))
     }
 
     // ---- StorageResourceTimeSlot FltX ----

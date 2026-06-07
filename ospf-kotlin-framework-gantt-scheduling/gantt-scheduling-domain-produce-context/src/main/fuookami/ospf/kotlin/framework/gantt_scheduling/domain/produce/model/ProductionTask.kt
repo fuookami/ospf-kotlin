@@ -13,6 +13,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 
 /** 材料接口 / Material interface */
 interface Material : AbstractMaterial {
@@ -49,6 +52,36 @@ data class MaterialDemand<V>(
 ) where V : RealNumber<V>, V : NumberField<V> {
     val lessEnabled: Boolean get() = lessQuantity != null
     val overEnabled: Boolean get() = overQuantity != null
+
+    /**
+     * 数量范围物理量 / Quantity range as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 数量范围物理量 / Quantity range quantity
+     */
+    fun quantityRange(unit: PhysicalUnit = NoneUnit): MaterialQuantityRange<V> {
+        return Quantity(quantity, unit)
+    }
+
+    /**
+     * 不足数量物理量 / Less quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 不足数量物理量 / Less quantity
+     */
+    fun lessQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
+        return lessQuantity?.let { Quantity(it, unit) }
+    }
+
+    /**
+     * 超量数量物理量 / Over quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 超量数量物理量 / Over quantity
+     */
+    fun overQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
+        return overQuantity?.let { Quantity(it, unit) }
+    }
 }
 
 /** Flt64 材料需求类型别名 / Flt64 material demand type alias */
@@ -68,6 +101,36 @@ open class MaterialReserves<V>(
 ) where V : RealNumber<V>, V : NumberField<V> {
     val lessEnabled: Boolean get() = lessQuantity != null
     val overEnabled: Boolean get() = overQuantity != null
+
+    /**
+     * 数量范围物理量 / Quantity range as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 数量范围物理量 / Quantity range quantity
+     */
+    fun quantityRange(unit: PhysicalUnit = NoneUnit): MaterialQuantityRange<V> {
+        return Quantity(quantity, unit)
+    }
+
+    /**
+     * 不足数量物理量 / Less quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 不足数量物理量 / Less quantity
+     */
+    fun lessQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
+        return lessQuantity?.let { Quantity(it, unit) }
+    }
+
+    /**
+     * 超量数量物理量 / Over quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 超量数量物理量 / Over quantity
+     */
+    fun overQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
+        return overQuantity?.let { Quantity(it, unit) }
+    }
 }
 
 /** Flt64 材料储备类型别名 / Flt64 material reserves type alias */
@@ -92,6 +155,28 @@ interface ProductionTask<
         > : AbstractTask<E, A> {
     val produce: Map<P, V>
     val consumption: Map<C, V>
+
+    /**
+     * 生产量物理量 / Produce quantity as a physical quantity
+     *
+     * @param product 产品 / Product
+     * @param unit 数量单位 / Quantity unit
+     * @return 生产量物理量 / Produce quantity
+     */
+    fun produceQuantity(product: P, unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
+        return produce[product]?.let { Quantity(it, unit) }
+    }
+
+    /**
+     * 消耗量物理量 / Consumption quantity as a physical quantity
+     *
+     * @param material 材料 / Material
+     * @param unit 数量单位 / Quantity unit
+     * @return 消耗量物理量 / Consumption quantity
+     */
+    fun consumptionQuantity(material: C, unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
+        return consumption[material]?.let { Quantity(it, unit) }
+    }
 }
 
 /** Flt64 生产任务类型别名 / Flt64 production task type alias */
@@ -271,6 +356,31 @@ fun <
 }
 
 /**
+ * 计算任务束的生产量物理量 / Calculate bunch produce quantity as a physical quantity
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param V 值类型 / Value type
+ * @param product 产品 / Product
+ * @param unit 数量单位 / Quantity unit
+ * @return 生产量物理量 / Produce quantity
+ */
+fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        P : AbstractMaterial,
+        V : RealNumber<V>
+        > AbstractTaskBunch<T, E, A, V>.produceQuantityV(
+    product: P,
+    unit: PhysicalUnit = NoneUnit
+): MaterialQuantity<V> {
+    return Quantity(produceV(product), unit)
+}
+
+/**
  * 计算任务束的消耗量 / Calculate bunch consumption quantity
  *
  * @param T 任务类型 / Task type
@@ -326,4 +436,29 @@ fun <
         }
     }
     return quantities.sumOrZero(quantities.firstOrNull()?.constants?.zero ?: quantityZero())
+}
+
+/**
+ * 计算任务束的消耗量物理量 / Calculate bunch consumption quantity as a physical quantity
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
+ * @param material 材料 / Material
+ * @param unit 数量单位 / Quantity unit
+ * @return 消耗量物理量 / Consumption quantity
+ */
+fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        C : AbstractMaterial,
+        V : RealNumber<V>
+        > AbstractTaskBunch<T, E, A, V>.consumptionQuantityV(
+    material: C,
+    unit: PhysicalUnit = NoneUnit
+): MaterialQuantity<V> {
+    return Quantity(consumptionV(material), unit)
 }

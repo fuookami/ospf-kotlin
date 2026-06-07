@@ -1,14 +1,16 @@
 @file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling
 
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityQuantity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 产能调度聚合类
@@ -100,6 +102,16 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
             }
         }
         return total
+    }
+
+    /**
+     * 计算总产能物理量 / Calculate total capacity quantity
+     *
+     * @param unit 产能单位 / Capacity unit
+     * @return Total capacity as Quantity<V> / 总产能物理量
+     */
+    fun totalCapacityQuantity(unit: PhysicalUnit = NoneUnit): CapacityQuantity<V> {
+        return Quantity(totalCapacity(), unit)
     }
 
     /**

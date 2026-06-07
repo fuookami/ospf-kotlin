@@ -25,6 +25,9 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
@@ -73,6 +76,36 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
     val name: String? get() = null
     val lessEnabled: Boolean get() = lessQuantity != null
     val overEnabled: Boolean get() = overQuantity != null
+
+    /**
+     * 数量范围物理量 / Quantity range as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 数量范围物理量 / Quantity range quantity
+     */
+    fun quantityRange(unit: PhysicalUnit = NoneUnit): ResourceQuantityRange<V> {
+        return Quantity(quantity, unit)
+    }
+
+    /**
+     * 不足数量物理量 / Less quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 不足数量物理量 / Less quantity
+     */
+    fun lessQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V>? {
+        return lessQuantity?.let { Quantity(it, unit) }
+    }
+
+    /**
+     * 超量数量物理量 / Over quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 超量数量物理量 / Over quantity
+     */
+    fun overQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V>? {
+        return overQuantity?.let { Quantity(it, unit) }
+    }
 }
 
 /**
@@ -125,6 +158,35 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
     ): V
+
+    /**
+     * 初始数量物理量 / Initial quantity as a physical quantity
+     *
+     * @param unit 数量单位 / Quantity unit
+     * @return 初始数量物理量 / Initial quantity
+     */
+    fun initialQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V> {
+        return Quantity(initialQuantity, unit)
+    }
+
+    /**
+     * 使用量物理量 / Used quantity as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param bunch 任务束 / Task bunch
+     * @param time 时间范围 / Time range
+     * @param unit 数量单位 / Quantity unit
+     * @return 使用量物理量 / Used quantity
+     */
+    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
+        bunch: AbstractTaskBunch<T, E, A, V>,
+        time: TimeRange,
+        unit: PhysicalUnit = NoneUnit
+    ): ResourceQuantity<V> {
+        return Quantity(usedQuantity(bunch, time), unit)
+    }
 }
 
 /**

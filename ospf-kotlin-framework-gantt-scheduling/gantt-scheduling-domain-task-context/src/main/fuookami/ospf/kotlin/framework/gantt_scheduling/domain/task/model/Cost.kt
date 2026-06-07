@@ -11,6 +11,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.ArithmeticConstants
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+
+/** 成本物理量 / Cost quantity */
+typealias CostQuantity<V> = Quantity<V>
+
+/** Flt64 成本物理量兼容类型 / Flt64 cost quantity compatibility type */
+typealias Flt64CostQuantity = CostQuantity<Flt64>
 
 /**
  * 成本项，包含标签、值和消息 / Cost item containing tag, value, and message
@@ -26,6 +35,16 @@ data class CostItem<V : RealNumber<V>>(
     val message: String? = null
 ) : Copyable<CostItem<V>> {
     val valid get() = value != null
+
+    /**
+     * 成本项物理量 / Cost item as a physical quantity
+     *
+     * @param unit 成本单位 / Cost unit
+     * @return 成本项物理量 / Cost item quantity
+     */
+    fun quantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
+        return value?.let { Quantity(it, unit) }
+    }
 
     override fun copy() = CostItem(tag, value, message)
 }
@@ -68,6 +87,16 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
     val items: List<CostItem<V>>
     val sum: V?
     val valid: Boolean get() = sum != null
+
+    /**
+     * 总成本物理量 / Sum cost as a physical quantity
+     *
+     * @param unit 成本单位 / Cost unit
+     * @return 总成本物理量 / Sum cost quantity
+     */
+    fun sumQuantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
+        return sum?.let { Quantity(it, unit) }
+    }
 
     fun asMutable(): MutableCost<V>? {
         return when (this) {

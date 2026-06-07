@@ -2,10 +2,13 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 
 /**
  * 产能列
@@ -71,6 +74,16 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
      */
     val isEmpty: Boolean
         get() = allocations.isEmpty() || allocations.values.all { it == UInt64.zero }
+
+    /**
+     * 将列成本包装为物理量 / Wrap column cost as quantity
+     *
+     * @param unit 成本单位 / Cost unit
+     * @return 列成本物理量 / Column cost quantity
+     */
+    fun costQuantity(unit: PhysicalUnit = NoneUnit): CapacityCostQuantity<V> {
+        return Quantity(cost, unit)
+    }
 }
 
 // ── Flt64 向后兼容 typealias ──

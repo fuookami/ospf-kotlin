@@ -7,6 +7,9 @@ import kotlinx.datetime.Instant
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
@@ -142,6 +145,38 @@ interface ProductionAction {
      */
     fun <V : RealNumber<V>> unitCostV(time: Instant, fromDouble: (Double) -> V): V {
         return fromDouble(unitCost(time).toDouble())
+    }
+
+    /**
+     * 泛型单位产能物理量 / Generic unit capacity quantity
+     *
+     * @param V 数值类型 / Numeric type
+     * @param timeWindow Time window / 时间窗口
+     * @param unit 产能单位 / Capacity unit
+     * @return Unit capacity as Quantity<V> / 单位产能物理量
+     */
+    fun <V : RealNumber<V>> unitCapacityQuantity(
+        timeWindow: TimeWindow<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): CapacityQuantity<V> {
+        return Quantity(unitCapacityV(timeWindow), unit)
+    }
+
+    /**
+     * 泛型单位成本物理量 / Generic unit cost quantity
+     *
+     * @param V 数值类型 / Numeric type
+     * @param time Time instant / 时间点
+     * @param fromDouble Double 到 V 的转换函数 / Double to V converter
+     * @param unit 成本单位 / Cost unit
+     * @return Unit cost as Quantity<V> / 单位成本物理量
+     */
+    fun <V : RealNumber<V>> unitCostQuantity(
+        time: Instant,
+        fromDouble: (Double) -> V,
+        unit: PhysicalUnit = NoneUnit
+    ): CapacityCostQuantity<V> {
+        return Quantity(unitCostV(time, fromDouble), unit)
     }
 
     /**

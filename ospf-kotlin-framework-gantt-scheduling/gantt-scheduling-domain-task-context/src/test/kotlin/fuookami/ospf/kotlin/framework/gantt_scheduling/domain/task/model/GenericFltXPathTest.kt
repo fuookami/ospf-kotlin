@@ -8,6 +8,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
@@ -30,6 +31,26 @@ class GenericFltXPathTest {
 
         assertTrue(cost.valid)
         assertTrue(cost.sum!! eq FltX("4.00"))
+    }
+
+    @Test
+    fun costQuantityShouldSupportFltX() {
+        val item = CostItem(
+            tag = "processing",
+            value = FltX("2.75")
+        )
+        val cost = Cost(
+            items = listOf(item),
+            constants = FltX
+        )
+
+        val itemQuantity = item.quantity()
+        val sumQuantity = cost.sumQuantity()
+
+        assertEquals(NoneUnit, itemQuantity!!.unit)
+        assertTrue(itemQuantity.value eq FltX("2.75"))
+        assertEquals(NoneUnit, sumQuantity!!.unit)
+        assertTrue(sumQuantity.value eq FltX("2.75"))
     }
 
     @Test

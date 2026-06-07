@@ -5,8 +5,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -20,11 +22,11 @@ private object TestAction : ProductionAction {
     override val name = "Drilling"
     override val executor = testExecutor
     override val discrete = true
-    override fun unitCapacity(timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+    override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
         throw UnsupportedOperationException("stub")
     override fun unitCost(time: Instant) =
         throw UnsupportedOperationException("stub")
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
         throw UnsupportedOperationException("stub")
 }
 
@@ -33,11 +35,11 @@ private object TestAction2 : ProductionAction {
     override val name = "Milling"
     override val executor = testExecutor
     override val discrete = false
-    override fun unitCapacity(timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+    override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
         throw UnsupportedOperationException("stub")
     override fun unitCost(time: Instant) =
         throw UnsupportedOperationException("stub")
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
         throw UnsupportedOperationException("stub")
 }
 
@@ -119,5 +121,20 @@ class CapacityColumnFltXTest {
             cost = FltX("0")
         )
         assertTrue(column.isEmpty)
+    }
+
+    @Test
+    fun capacityColumnCostQuantityShouldSupportFltX() {
+        val column = CapacityColumn<Executor, ProductionAction, FltX>(
+            executor = testExecutor,
+            slotIndex = 0,
+            order = 0,
+            allocations = mapOf(TestAction to UInt64(2)),
+            cost = FltX("88.25")
+        )
+
+        val cost = column.costQuantity()
+        assertEquals(NoneUnit, cost.unit)
+        assertTrue(cost.value eq FltX("88.25"))
     }
 }
