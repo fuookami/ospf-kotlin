@@ -1,9 +1,12 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
+import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
@@ -21,17 +24,33 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * N-Sum 方案生成器，深度受限 DFS 枚举多产品组合方案 / N-Sum generator: depth-limited DFS for multi-product combination plans
  *
  * @param V 数值类型 / Numeric value type
- * @property constraints 生成约束 / Generation constraints
+ * @property constraints 约束列表 / Constraint list
  * @property arithmetic 物理量算术策略 / Quantity arithmetic strategy
  * @property maxDepth 最大深度（最大切片总数）/ Max depth (max total slices)
  * @property maxPlans 最大方案数（提前终止）/ Max plans (early termination)
+ * @property timeout 超时限制 / Timeout limit
  */
 class NSumGenerator<V : RealNumber<V>>(
-    private val constraints: GenerationConstraints<V> = GenerationConstraints.unconstrained(),
+    private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
     private val maxDepth: UInt64 = UInt64(7UL),
-    private val maxPlans: Int = 1000
+    private val maxPlans: Int = 1000,
+    private val timeout: Duration? = null
 ) : Csp1dInitialCuttingPlanGenerator<V> {
+
+    constructor(
+        constraints: GenerationConstraints<V>,
+        arithmetic: QuantityArithmetic<V>,
+        maxDepth: UInt64 = UInt64(7UL),
+        maxPlans: Int = 1000,
+        timeout: Duration? = null
+    ) : this(
+        constraints = constraints.toConstraints(),
+        arithmetic = arithmetic,
+        maxDepth = maxDepth,
+        maxPlans = maxPlans,
+        timeout = timeout
+    )
 
     private data class ProductWidthEntry<V : RealNumber<V>>(
         val product: Product<V>,
@@ -39,9 +58,13 @@ class NSumGenerator<V : RealNumber<V>>(
         val demandUnit: PhysicalUnit
     )
 
+    private val pruningConstraints = constraints.filter { it.isPruning }
+    private val leafConstraints = constraints.filter { !it.isPruning }
+
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
         val plans = ArrayList<CuttingPlan<V>>()
         val planIndex = java.util.concurrent.atomic.AtomicInteger(0)
+        val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
 
         val entries = buildProductWidthEntries(input.demands)
         if (entries.isEmpty()) return emptyList()
@@ -54,10 +77,12 @@ class NSumGenerator<V : RealNumber<V>>(
                 material = material,
                 entries = materialEntries,
                 planIndex = planIndex,
-                plans = plans
+                plans = plans,
+                deadline = deadline
             )
 
             if (plans.size >= maxPlans) break
+            if (deadline != null && System.nanoTime() > deadline) break
         }
 
         return plans.take(maxPlans)
@@ -67,7 +92,8 @@ class NSumGenerator<V : RealNumber<V>>(
         material: Material<V>,
         entries: List<ProductWidthEntry<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
-        plans: MutableList<CuttingPlan<V>>
+        plans: MutableList<CuttingPlan<V>>,
+        deadline: Long?
     ) {
         val upperBound = material.widthRange.upperBound
         val stack = ArrayDeque<MutableList<CuttingPlanSlice<V>>>()
@@ -81,13 +107,15 @@ class NSumGenerator<V : RealNumber<V>>(
         indexStack.addLast(0)
 
         while (stack.isNotEmpty() && plans.size < maxPlans) {
+            if (deadline != null && System.nanoTime() > deadline) break
+
             val currentSlices = stack.removeLast()
             val currentWidth = widthStack.removeLast()
             val currentCuts = cutStack.removeLast()
             val currentIndex = indexStack.removeLast()
 
             if (currentIndex >= entries.size) {
-                if (currentSlices.isNotEmpty()) {
+                if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
                     val plan = buildPlan(
                         material = material,
                         slices = currentSlices,
@@ -102,11 +130,10 @@ class NSumGenerator<V : RealNumber<V>>(
             val entry = entries[currentIndex]
             val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
 
-            // 深度约束：最大数量受剩余深度限制 / Depth constraint: max amount is limited by remaining depth
+            // 深度约束：最大数量受剩余深度限制 / Depth constraint
             val remainingDepth = maxDepth - currentCuts
             if (remainingDepth == UInt64.zero) {
-                // 无剩余深度，按叶节点处理 / No more depth, treat as leaf
-                if (currentSlices.isNotEmpty()) {
+                if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
                     val plan = buildPlan(
                         material = material,
                         slices = currentSlices,
@@ -118,14 +145,10 @@ class NSumGenerator<V : RealNumber<V>>(
                 continue
             }
 
-            // 当前产品宽度的最大数量 / Max amount for this product-width
             val maxByWidth = computeMaxByWidth(entry.width, remainingWidth)
-            val maxByKnife = constraints.maxKnifeCount?.let { maxKnife ->
-                if (currentCuts >= maxKnife) UInt64.zero else maxKnife - currentCuts
-            } ?: remainingDepth
-            val maxAmount = minOf(maxByWidth, remainingDepth, maxByKnife)
+            val maxAmount = minOf(maxByWidth, remainingDepth)
 
-            // 尝试数量 0，即跳过当前产品 / Try amount 0, skipping this product
+            // 尝试数量 0 / Try amount 0
             stack.addLast(ArrayList(currentSlices))
             widthStack.addLast(currentWidth)
             cutStack.addLast(currentCuts)
@@ -138,11 +161,6 @@ class NSumGenerator<V : RealNumber<V>>(
                 val newWidth = arithmetic.add(currentWidth, addedWidth)
                 val newCuts = currentCuts + amount
 
-                if ((newWidth.value partialOrd upperBound.value) is Order.Greater) {
-                    amount += UInt64.one
-                    continue
-                }
-
                 val newSlices = ArrayList(currentSlices)
                 newSlices.add(
                     CuttingPlanSlice(
@@ -152,6 +170,12 @@ class NSumGenerator<V : RealNumber<V>>(
                     )
                 )
 
+                // 剪枝约束检查 / Pruning constraint check
+                if (!satisfiesPruningConstraints(newSlices, newWidth, upperBound, material)) {
+                    amount += UInt64.one
+                    continue
+                }
+
                 stack.addLast(newSlices)
                 widthStack.addLast(newWidth)
                 cutStack.addLast(newCuts)
@@ -159,6 +183,28 @@ class NSumGenerator<V : RealNumber<V>>(
                 amount += UInt64.one
             }
         }
+    }
+
+    private fun satisfiesPruningConstraints(
+        slices: List<CuttingPlanSlice<V>>,
+        totalWidth: Quantity<V>,
+        upperBound: Quantity<V>,
+        material: Material<V>
+    ): Boolean {
+        if (pruningConstraints.isEmpty()) return true
+        val context = CuttingPlanConstraintContext(slices, totalWidth, upperBound, material)
+        return pruningConstraints.all { it.isSatisfied(context) }
+    }
+
+    private fun satisfiesLeafConstraints(
+        slices: List<CuttingPlanSlice<V>>,
+        totalWidth: Quantity<V>,
+        upperBound: Quantity<V>,
+        material: Material<V>
+    ): Boolean {
+        if (leafConstraints.isEmpty()) return true
+        val context = CuttingPlanConstraintContext(slices, totalWidth, upperBound, material)
+        return leafConstraints.all { it.isSatisfied(context) }
     }
 
     private fun computeMaxByWidth(productWidth: Quantity<V>, remainingWidth: Quantity<V>): UInt64 {

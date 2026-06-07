@@ -1,11 +1,14 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
  * 切割方案生成约束配置 / Cutting plan generation constraint configuration
+ *
+ * 同时作为便捷工厂：[toConstraints] 将此 data class 的字段转换为
+ * [CuttingPlanConstraint] 列表，供生成器统一使用。
  *
  * @param V 数值类型 / Numeric value type
  * @property maxKnifeCount 最大刀数（切片总数上限）/ Max knife count (upper bound on total slices)
@@ -19,5 +22,23 @@ data class GenerationConstraints<V : RealNumber<V>>(
 ) {
     companion object {
         fun <V : RealNumber<V>> unconstrained(): GenerationConstraints<V> = GenerationConstraints()
+    }
+
+    /**
+     * 转换为约束 predicate 列表 / Convert to constraint predicate list
+     *
+     * 包含：
+     * - [MaxKnifeCountConstraint]（当 maxKnifeCount 非空时）
+     * - [MinKnifeCountConstraint]（当 minKnifeCount 非空时）
+     * - [MaxOverProduceLengthConstraint]（当 maxOverProduceLength 非空时）
+     * - [WidthUpperBoundConstraint]（始终包含，由生成器根据物料上界传入 context）
+     */
+    fun toConstraints(): List<CuttingPlanConstraint<V>> {
+        val constraints = mutableListOf<CuttingPlanConstraint<V>>()
+        maxKnifeCount?.let { constraints.add(MaxKnifeCountConstraint(it)) }
+        minKnifeCount?.let { constraints.add(MinKnifeCountConstraint(it)) }
+        maxOverProduceLength?.let { constraints.add(MaxOverProduceLengthConstraint(it)) }
+        constraints.add(WidthUpperBoundConstraint())
+        return constraints
     }
 }

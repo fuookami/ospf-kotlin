@@ -1,15 +1,19 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
+import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxKnifeCountConstraint
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxOverProduceLengthConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
@@ -20,20 +24,44 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * N-Same 方案生成器，为每个产品-宽度组合生成单产品方案 / N-Same generator producing single-product plans per product-width combination
  *
  * @param V 数值类型 / Numeric value type
- * @property constraints 生成约束 / Generation constraints
+ * @property constraints 约束列表 / Constraint list
  * @property arithmetic 物理量算术策略 / Quantity arithmetic strategy
  * @property allAmount 是否生成所有可行数量（1 到 max），默认只生成 max / Whether to generate all amounts (1 to max)
+ * @property timeout 超时限制 / Timeout limit
  */
 class NSameGenerator<V : RealNumber<V>>(
-    private val constraints: GenerationConstraints<V> = GenerationConstraints.unconstrained(),
+    private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
-    private val allAmount: Boolean = false
+    private val allAmount: Boolean = false,
+    private val timeout: Duration? = null
 ) : Csp1dInitialCuttingPlanGenerator<V> {
+
+    constructor(
+        constraints: GenerationConstraints<V>,
+        arithmetic: QuantityArithmetic<V>,
+        allAmount: Boolean = false,
+        timeout: Duration? = null
+    ) : this(
+        constraints = constraints.toConstraints(),
+        arithmetic = arithmetic,
+        allAmount = allAmount,
+        timeout = timeout
+    )
+
+    /** 从约束中提取 maxKnifeCount，用于枚举范围限制 */
+    private val maxKnifeCount: UInt64? = constraints.filterIsInstance<MaxKnifeCountConstraint<V>>().firstOrNull()?.value
+
+    /** 从约束中提取 maxOverProduceLength，用于枚举范围限制 */
+    private val maxOverProduceLength: Quantity<V>? = constraints.filterIsInstance<MaxOverProduceLengthConstraint<V>>().firstOrNull()?.value
+
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
         val plans = ArrayList<CuttingPlan<V>>()
         val planIndex = java.util.concurrent.atomic.AtomicInteger(0)
+        val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
 
         for (material in input.materials) {
+            if (deadline != null && System.nanoTime() > deadline) break
+
             for (demand in input.demands) {
                 for (productWidth in demand.product.width) {
                     if (!material.widthRange.canCut(productWidth)) continue
@@ -41,8 +69,7 @@ class NSameGenerator<V : RealNumber<V>>(
                     val maxAmount = computeMaxAmount(
                         productWidth = productWidth,
                         material = material,
-                        product = demand.product,
-                        demandQuantity = demand.quantity
+                        product = demand.product
                     )
                     if (maxAmount == UInt64.zero) continue
 
@@ -59,6 +86,8 @@ class NSameGenerator<V : RealNumber<V>>(
                     }
 
                     for (amount in amounts) {
+                        if (deadline != null && System.nanoTime() > deadline) break
+
                         val slices = listOf(
                             CuttingPlanSlice(
                                 production = demand.product,
@@ -66,6 +95,13 @@ class NSameGenerator<V : RealNumber<V>>(
                                 amount = amount
                             )
                         )
+                        val usedWidth = repeatWidth(productWidth, amount)
+
+                        // 约束检查 / Constraint check
+                        if (!satisfiesConstraints(slices, usedWidth, material.widthRange.upperBound, material)) {
+                            continue
+                        }
+
                         val contribution = CuttingPlanDemandContribution(
                             product = demand.product,
                             quantity = computeContributionQuantity(
@@ -94,26 +130,23 @@ class NSameGenerator<V : RealNumber<V>>(
     private fun computeMaxAmount(
         productWidth: Quantity<V>,
         material: Material<V>,
-        product: Product<V>,
-        demandQuantity: Quantity<V>
+        product: fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product<V>
     ): UInt64 {
         var maxAmount = UInt64.maximum
 
-        // 宽度约束：productWidth * amount <= material upper bound / Width constraint: productWidth * amount <= material upper bound
+        // 宽度约束 / Width constraint
         val upperBound = material.widthRange.upperBound
         if ((productWidth.value partialOrd upperBound.value) is Order.Greater) return UInt64.zero
         val maxWidthAmount = computeMaxByWidth(productWidth, upperBound)
         if (maxWidthAmount < maxAmount) maxAmount = maxWidthAmount
 
         // 刀数约束 / Knife count constraint
-        constraints.maxKnifeCount?.let { maxKnife ->
-            if (maxKnife < maxAmount) maxAmount = maxKnife
-        }
+        maxKnifeCount?.let { if (it < maxAmount) maxAmount = it }
 
         // 超产长度约束 / Over-produce length constraint
-        constraints.maxOverProduceLength?.let { maxOverLength ->
+        maxOverProduceLength?.let { maxLen ->
             product.length?.let { productLength ->
-                if ((productLength.value partialOrd maxOverLength.value) is Order.Greater) {
+                if ((productLength.value partialOrd maxLen.value) is Order.Greater) {
                     return UInt64.zero
                 }
             }
@@ -127,7 +160,6 @@ class NSameGenerator<V : RealNumber<V>>(
         if (comparison is Order.Less) return UInt64.zero
         if (comparison is Order.Equal) return UInt64.one
 
-        // 整数除法：upperBound / productWidth / Integer division: upperBound / productWidth
         var remaining = upperBound
         var count = UInt64.zero
         while ((remaining.value partialOrd productWidth.value) !is Order.Less) {
@@ -137,8 +169,19 @@ class NSameGenerator<V : RealNumber<V>>(
         return count
     }
 
+    private fun satisfiesConstraints(
+        slices: List<CuttingPlanSlice<V>>,
+        totalWidth: Quantity<V>,
+        upperBound: Quantity<V>,
+        material: Material<V>
+    ): Boolean {
+        if (constraints.isEmpty()) return true
+        val context = CuttingPlanConstraintContext(slices, totalWidth, upperBound, material)
+        return constraints.all { it.isSatisfied(context) }
+    }
+
     private fun computeContributionQuantity(
-        product: Product<V>,
+        product: fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product<V>,
         width: Quantity<V>,
         amount: UInt64,
         demandUnit: PhysicalUnit
@@ -155,6 +198,14 @@ class NSameGenerator<V : RealNumber<V>>(
         }
         val onePerPiece = Quantity(width.value.constants.one, demandUnit)
         return repeatQuantity(onePerPiece, amount)
+    }
+
+    private fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
+        var result = arithmetic.zero(width.unit)
+        repeat(times.toInt()) {
+            result = arithmetic.add(result, width)
+        }
+        return result
     }
 
     private fun repeatQuantity(q: Quantity<V>, times: UInt64): Quantity<V> {
