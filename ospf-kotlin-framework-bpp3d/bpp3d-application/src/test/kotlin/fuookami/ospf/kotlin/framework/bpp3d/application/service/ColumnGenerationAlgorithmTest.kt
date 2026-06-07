@@ -64,6 +64,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import kotlin.time.Duration
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -838,6 +839,154 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(1, response.result.columns.size)
         assertEquals(1, response.result.columns.first().units.size)
         assertTrue(!response.result.finalSolved)
+    }
+
+    @Test
+    fun applicationServiceShouldRejectFinalMilpSelectedBinsByDepthBoundaryPolicy() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-DEPTH-FINAL"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-DEPTH-FINAL",
+            weight = InfraNumber.one * Kilogram
+        )
+        val actualItem = item("item-depth-final", material)
+        val seedBin = layerBin(listOf(actualItem))
+        val seedLayer = seedBin.units.first().unit
+        val finalBin = layerBinOf(
+            shape = seedBin.shape,
+            units = emptyList<BinLayerPlacement>(),
+            batchNo = seedBin.batchNo
+        )
+        val demandEntries = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(actualItem),
+                demand = InfraNumber.one
+            )
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-depth-boundary-final-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                val output = FeasibleSolverOutput(
+                    obj = Flt64(5.0),
+                    solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one },
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(5.0),
+                    gap = Flt64.zero
+                )
+                return Ok(output)
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
+                val output = FeasibleSolverOutput(
+                    obj = Flt64(3.0),
+                    solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                    time = Duration.ZERO,
+                    possibleBestObj = Flt64(3.0),
+                    gap = Flt64.zero
+                )
+                return Ok(
+                    lpResultOf(
+                        result = output,
+                        dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
+                    )
+                )
+            }
+        }
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ColumnGenerationApplicationService(solver).solve(
+                request = ColumnGenerationApplicationRequest(
+                    itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                    demandEntries = demandEntries,
+                    initialColumns = listOf(seedLayer),
+                    finalBins = listOf(finalBin),
+                    generators = listOf(
+                        object : Bpp3dLayerGenerator<InfraNumber> {
+                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                                return emptyList()
+                            }
+                        }
+                    ),
+                    depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                        firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
+                    )
+                )
+            )
+        }
+
+        assertTrue(exception.message?.contains("boundary=first") == true)
+        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+    }
+
+    @Test
+    fun applicationServiceShouldRejectConflictingDepthBoundaryPolicySources() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-DEPTH-CONFLICT"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-DEPTH-CONFLICT",
+            weight = InfraNumber.one * Kilogram
+        )
+        val actualItem = item("item-depth-conflict", material)
+        val requestPolicy = DepthBoundaryLayerOrientationPolicy(
+            firstLayerAllowedCuboidOrientations = setOf(Orientation.Upright)
+        )
+        val executorPolicy = DepthBoundaryLayerOrientationPolicy(
+            firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
+        )
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-depth-boundary-conflict-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                error("not used in this test")
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                error("not used in this test")
+            }
+        }
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ColumnGenerationApplicationService(solver).solve(
+                request = ColumnGenerationApplicationRequest(
+                    itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                    depthBoundaryLayerOrientationPolicy = requestPolicy,
+                    executorConfig = ColumnGenerationStandardExecutorConfig(
+                        depthBoundaryLayerOrientationPolicy = executorPolicy
+                    )
+                )
+            )
+        }
+
+        assertTrue(exception.message?.contains("conflicts with executorConfig") == true)
     }
 
     @Test

@@ -1,9 +1,9 @@
 # BPP3D 形状泛型化与圆柱支持重构计划
 
 日期：2026-05-31
-最近更新：2026-06-06
+最近更新：2026-06-07
 
-本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的已完成状态与下一轮执行计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，继续推进 BPP3D 从 cuboid-only 业务模型收敛到 shape-aware / generic shape 模型。
+本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的已完成状态与终局闭环执行结论。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，继续推进 BPP3D 从 cuboid-only 业务模型收敛到 shape-aware / generic shape 模型。
 
 ## 1. 已完成事项摘要
 
@@ -14,6 +14,7 @@
 5. 已完成 CSV/Gurobi shape metadata、dynamic radius/diameter、depth boundary policy 和 dataset suite 的基础契约收口。
 6. 已完成 README、README_ch、focused tests、BPP3D 必跑门禁和触发式 Gurobi 验收的同步验证。
 7. 外部 renderer 本轮未触发 DTO、fixture、adapter 或显示语义变化，因此未执行外部验收。
+8. 已完成 depth boundary MILP 终局决策：不下沉为 MILP 原生约束，继续作为 application 层最终后验硬校验，并补充 final MILP selected bins 的入口回归。
 
 ## 2. 总目标与当前能力边界
 
@@ -28,31 +29,31 @@
 3. 默认自动候选生成、layer generation、circle packing、BLA、block loading、DFS/MLHS、stacking、hanging 尚未开放 X/Z 横向圆柱。
 4. X/Z 横向圆柱不得复用 Y 轴 circle packing 平面假设作为候选生成或最终可行性证明。
 5. known-coordinate placement 是 final validation path，不是 generated candidate path；新增调用必须通过脚本白名单审计。
-6. depth boundary 是 application 层后验硬校验；目前覆盖最终 MILP selected bins 和泛型 known-coordinate final bins，尚未下沉为 MILP 原生约束。
+6. depth boundary 是 application 层后验硬校验；目前覆盖最终 MILP selected bins 和泛型 known-coordinate final bins，不下沉为 MILP 原生约束。
 7. Gurobi CSV dataset 只接受 grouped-layer 与 material-width-amount 两类显式 schema；重复列和未知列会被拒绝。
 8. 连续半径优化不进入默认生产链路，除非先完成数据契约、建模契约和 Gurobi 回归。
 9. renderer 源码在外部工程，BPP3D 仓内只维护 DTO、fixture、adapter 和文档契约。
 
-## 3. 下一轮目标
+## 3. 终局执行结论
 
-下一轮按“终局闭环轮”执行，默认一次性覆盖第 4 节全部事项。范围要尽量压缩剩余迭代次数，只有真实技术阻断、外部 renderer 环境阻断或用户明确收窄范围时才拆分。
+本轮按“终局闭环轮”执行，覆盖第 4 节事项并形成以下结论。
 
-1. 完成 depth boundary MILP 原生下沉的最终决策与实现；若不下沉，形成不可下沉结论、硬校验门禁和完整回归。
-2. 完成 CSV/Gurobi、layer assignment、application request、axis metadata、dynamic radius/diameter、volume 和 layer key 的生产级一致性闭环。
-3. 完成 known-coordinate final path 的剩余生产验收扩展，覆盖 mixed shape、multi-bin、depth boundary、横向圆柱支撑和旧数据兼容。
-4. 完成 renderer 仓内契约和外部 renderer 的最终触发式审计；若触发显示语义变化，完成外部 build/typecheck/Rust/视觉验收。
-5. 完成全链路脚本门禁的最终收口，使新增 shape-sensitive 行为必须先进入共享 contract 或明确 allowlist。
-6. 下一轮结束时形成清晰提交边界：BPP3D、本仓其他模块和外部 renderer 分开提交，不混入无关改动。
+1. depth boundary 明确不下沉为 MILP 原生约束，原因是 first/last depth layer 由最终选中列和堆叠顺序共同决定，MILP 原生化需要把每个箱子的层序、首尾位置和 mixed shape 轴向/朝向选择全部提升为原生变量，当前会显著扩大模型并与横向圆柱 known-coordinate final path 的边界不一致。
+2. depth boundary 保留为 application 层最终硬校验，覆盖 final MILP selected bins 和 generic known-coordinate final bins；它不是候选生成过滤器，也不是 RMP 或部分 MILP 约束。
+3. CSV/Gurobi、layer assignment、application request、axis metadata、dynamic radius/diameter、volume 和 layer key 的生产口径保持一致；连续半径优化继续保持非生产能力。
+4. Known-coordinate final path 已覆盖 mixed shape、multi-bin、depth boundary、横向圆柱支撑、axis mixing、same-layer policy 和旧数据兼容边界。
+5. 本轮没有修改 renderer DTO、fixture、packing renderer adapter 或显示语义，因此未触发外部 renderer build/typecheck/Rust/视觉验收。
+6. 四个边界/几何脚本用于防止新增 shape-sensitive 行为绕过共享 contract 或 allowlist。
 
-## 4. 下一轮事项、计划、修改清单与验收标准
+## 4. 事项、修改清单与验收标准
 
 ### 4.1 Depth Boundary 与 MILP 终局决策
 
 **事项**
 
-1. 审计 `DepthBoundaryLayerOrientationPolicy`、`ColumnGenerationApplicationService`、`ColumnGenerationPackingAnalyzer`、`LayerAggregation`、`DemandConstraint`、`VolumeMinimization` 和 Gurobi adapter。
-2. 判断 depth boundary 是否能下沉为 MILP 原生约束，覆盖 first/last layer、multi-bin、mixed shape、横向圆柱和旧数据兼容。
-3. 可行则实现 MILP 约束、回归和 dataset suite；不可行则固化后验硬校验原因、错误信息、门禁和测试。
+1. 已审计 `DepthBoundaryLayerOrientationPolicy`、`ColumnGenerationApplicationService`、`ColumnGenerationPackingAnalyzer`、`LayerAggregation`、`DemandConstraint`、`VolumeMinimization` 和 Gurobi adapter。
+2. 已判断 depth boundary 不适合下沉为 MILP 原生约束；first/last layer、multi-bin、mixed shape、横向圆柱和旧数据兼容由后验硬校验闭环。
+3. 已固化不下沉结论、后验硬校验原因、错误信息、门禁和测试。
 4. 防止 depth boundary 被误当作候选生成过滤器或部分求解约束。
 
 **修改清单**
@@ -68,10 +69,10 @@
 
 **验收标准**
 
-1. depth boundary 下沉或不下沉的结论明确、可测试、可文档化。
-2. 若下沉到 MILP，普通 Gurobi 回归和 CSV dataset suite 覆盖成功。
-3. 若不下沉，后验硬校验覆盖 final MILP selected bins 和 generic known-coordinate bins。
-4. 文档明确 depth boundary 不是候选生成过滤器，除非 MILP 原生约束已完整闭环。
+1. depth boundary 不下沉的结论明确、可测试、可文档化。
+2. 后验硬校验覆盖 final MILP selected bins 和 generic known-coordinate bins。
+3. 文档明确 depth boundary 不是候选生成过滤器，也不是 MILP 原生约束。
+4. request 级 policy 与 executor config policy 冲突会被显式拒绝。
 
 ### 4.2 CSV/Gurobi 与 Layer Assignment 生产闭环
 
@@ -185,7 +186,7 @@ cargo check
 cargo test
 ```
 
-## 7. 下一轮完成定义
+## 7. 完成定义
 
 1. 第 4 节所有事项均完成、明确延后或明确阻断，没有未分类状态。
 2. 新增开放能力具备真实几何、支撑、solver、renderer、文档和测试闭环。
