@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
@@ -29,6 +30,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
+import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 
@@ -622,6 +626,503 @@ class Csp1dColumnGenerationRealSolverTest {
         assertTrue(
             fixedProduct.id !in assignedProductIds,
             "Fixed product should NOT have assigned length"
+        )
+    }
+
+    // --- C5 yield/waste/length 真实 solver 端到端验证 ---
+    // --- C5 yield/waste/length real solver end-to-end verification ---
+
+    /**
+     * 验证 yield 建模在 Gurobi 真实 solver 上欠产/超产回填值与分析层口径一致
+     * Verify yield modeling under/over production backfill values match analysis layer on Gurobi
+     *
+     * 场景：1 产品 + 1 原料 + roll 需求 10 卷，方案贡献不足以完全满足需求，应产生欠产；
+     *       方案贡献超过需求时，应产生超产。
+     * Scenario: 1 product + 1 material + roll demand 10, plan contribution insufficient => under-production;
+     *           plan contribution exceeds demand => over-production.
+     */
+    @Test
+    fun milpWithYieldConfigShouldProduceCorrectYieldResultOnRealSolver() = runBlocking {
+        val product = product(id = "p-yield-real", width = 0.5)
+        val material = material(id = "m-yield-real", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacyRoll(product = product, rollAmount = Flt64(10.0))
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0)),
+            overProductionPenalty = mapOf(demandKey to Flt64(10.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-yield-real", product = product, material = material, rollContribution = Flt64(3.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val yieldResult = milpResult.yieldResult
+        assertNotNull(yieldResult, "Yield result should not be null when yieldConfig is provided")
+
+        // 验证需求满足：等式约束 sum(contrib * x) - over + under = demand
+        // 方案贡献 3.0 * x - over + under = 10.0
+        // 在真实 solver 下，x 应为整数，over/under 应为非负实数
+        val totalContribution = milpResult.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+            val rollContrib = usage.plan.demandContributions.firstOrNull()?.quantity?.value ?: Flt64.zero
+            acc + rollContrib * usage.amount.toFlt64()
+        }
+        val underAmount = yieldResult.underProductions.firstOrNull()?.amount ?: Flt64.zero
+        val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
+
+        // 验证等式约束: totalContribution - overAmount + underAmount ≈ demand (10.0)
+        val balance = totalContribution - overAmount + underAmount
+        assertTrue(
+            (balance - Flt64(10.0)).abs() < Flt64(1e-4),
+            "Yield constraint balance should equal demand: contrib($totalContribution) - over($overAmount) + under($underAmount) = $balance, expected 10.0"
+        )
+    }
+
+    /**
+     * 验证 yield 建模带超产上限约束在 Gurobi 真实 solver 上正确回填超产值
+     * Verify yield modeling with over-production upper bound constraint backfills correctly on Gurobi
+     */
+    @Test
+    fun milpWithYieldOverProductionUpperBoundShouldRespectBoundOnRealSolver() = runBlocking {
+        val product = product(id = "p-yield-bound", width = 0.5)
+        val material = material(id = "m-yield-bound", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacyRoll(product = product, rollAmount = Flt64(5.0))
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0)),
+            overProductionPenalty = mapOf(demandKey to Flt64(10.0)),
+            overProductionUpperBound = mapOf(demandKey to Flt64(2.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-yield-bound", product = product, material = material, rollContribution = Flt64(3.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val yieldResult = milpResult.yieldResult
+        assertNotNull(yieldResult, "Yield result should not be null")
+
+        // 验证超产不超过上限
+        val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
+        assertTrue(
+            overAmount <= Flt64(2.0) + Flt64(1e-6),
+            "Over-production should not exceed upper bound 2.0, got $overAmount"
+        )
+    }
+
+    /**
+     * 验证 wasting 建模在 Gurobi 真实 solver 上余宽/物料成本回填值正确
+     * Verify waste modeling trim width and material cost backfill values are correct on Gurobi
+     */
+    @Test
+    fun milpWithWasteConfigShouldProduceCorrectWasteResultOnRealSolver() = runBlocking {
+        val product = product(id = "p-waste-real", width = 0.8)
+        val material = material(id = "m-waste-real", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacyRoll(product = product, rollAmount = Flt64(5.0))
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            trimWidthPenalty = Flt64(2.0),
+            materialCostPenalty = mapOf("m-waste-real" to Flt64(5.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-waste-real", product = product, material = material, rollContribution = Flt64(1.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val wasteResult = milpResult.wasteResult
+        assertNotNull(wasteResult, "Waste result should not be null when wasteConfig is provided")
+
+        // 验证余宽非负
+        val totalTrimWidth = wasteResult.totalTrimWidth
+        if (totalTrimWidth != null) {
+            assertTrue(
+                totalTrimWidth >= Flt64.zero,
+                "Total trim width should be non-negative, got $totalTrimWidth"
+            )
+        }
+
+        // 验证物料成本非负
+        for (cost in wasteResult.materialCosts) {
+            assertTrue(
+                cost.cost >= Flt64.zero,
+                "Material cost should be non-negative for ${cost.materialId}, got ${cost.cost}"
+            )
+        }
+
+        // 验证余宽计算口径: restWidth * batchCount 与回填值一致
+        if (totalTrimWidth != null) {
+            val expectedTrimWidth = milpResult.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+                val restWidthValue = usage.plan.restWidth?.value ?: Flt64.zero
+                acc + restWidthValue * usage.amount.toFlt64()
+            }
+            assertTrue(
+                (totalTrimWidth - expectedTrimWidth).abs() < Flt64(1e-4),
+                "Total trim width ($totalTrimWidth) should match expected ($expectedTrimWidth)"
+            )
+        }
+
+        // 验证物料成本计算口径: costPenalty * batchCount 与回填值一致
+        val costByMaterial = milpResult.produce.cuttingPlans.groupBy { it.plan.material.id }
+        for (mc in wasteResult.materialCosts) {
+            val expectedCost = costByMaterial[mc.materialId]?.fold(Flt64.zero) { acc, usage ->
+                acc + wasteConfig.materialCostPenalty[mc.materialId]!! * usage.amount.toFlt64()
+            } ?: Flt64.zero
+            assertTrue(
+                (mc.cost - expectedCost).abs() < Flt64(1e-4),
+                "Material cost for ${mc.materialId} (${mc.cost}) should match expected ($expectedCost)"
+            )
+        }
+    }
+
+    /**
+     * 验证 yield + waste 联合建模在 Gurobi 真实 solver 上超产面积回填值正确
+     * Verify yield + waste combined modeling over-production area backfill is correct on Gurobi
+     */
+    @Test
+    fun milpWithYieldAndWasteConfigShouldProduceCorrectOverProductionAreaOnRealSolver() = runBlocking {
+        val product = product(id = "p-yield-waste-real", width = 0.5)
+        val material = material(id = "m-yield-waste-real", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacyRoll(product = product, rollAmount = Flt64(5.0))
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0)),
+            overProductionPenalty = mapOf(demandKey to Flt64(10.0))
+        )
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            trimWidthPenalty = Flt64(2.0),
+            overProductionAreaPenalty = Flt64(5.0)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-yield-waste-real", product = product, material = material, rollContribution = Flt64(3.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val yieldResult = milpResult.yieldResult
+        val wasteResult = milpResult.wasteResult
+        assertNotNull(yieldResult, "Yield result should not be null")
+        assertNotNull(wasteResult, "Waste result should not be null")
+
+        // 验证超产面积 = overProduction * productWidth 与回填值一致
+        val overArea = wasteResult.overProductionArea
+        if (overArea != null) {
+            val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
+            val productWidth = product.width.first().value
+            val expectedArea = overAmount * productWidth
+            assertTrue(
+                (overArea - expectedArea).abs() < Flt64(1e-4),
+                "Over-production area ($overArea) should match expected ($expectedArea = over($overAmount) * width($productWidth))"
+            )
+        }
+    }
+
+    /**
+     * 验证 length assignment 建模在 Gurobi 真实 solver 上已分配卷长和超长回填值正确
+     * Verify length assignment modeling assigned-length and over-length backfill values are correct on Gurobi
+     */
+    @Test
+    fun milpWithLengthConfigShouldProduceCorrectLengthResultOnRealSolver() = runBlocking {
+        val dynamicProduct = Product(
+            id = "p-length-real",
+            name = "product-p-length-real",
+            width = listOf(Quantity(Flt64(0.8), Meter)),
+            maxOverProduceLength = Quantity(Flt64(2.0), Meter),
+            dynamicLength = true
+        )
+        val material = material(id = "m-length-real", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacyRoll(product = dynamicProduct, rollAmount = Flt64(3.0))
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(dynamicProduct.id),
+            assignedLengthLowerBound = mapOf(dynamicProduct.id to Flt64(0.0)),
+            assignedLengthUpperBound = mapOf(dynamicProduct.id to Flt64(3.0)),
+            overLengthPenalty = mapOf(dynamicProduct.id to Flt64(10.0)),
+            totalLengthPenalty = Flt64(0.5)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-length-real", product = dynamicProduct, material = material, rollContribution = Flt64(1.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val lengthResult = milpResult.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null when lengthConfig is provided")
+
+        // 验证已分配卷长在下界和上界之间
+        val assignedLength = lengthResult.assignedLengths.find { it.productId == dynamicProduct.id }
+        assertNotNull(assignedLength, "Should have assigned length for dynamic product")
+        assertTrue(
+            assignedLength.assignedLength >= Flt64(0.0) - Flt64(1e-6),
+            "Assigned length should be >= lower bound 0.0, got ${assignedLength.assignedLength}"
+        )
+        assertTrue(
+            assignedLength.assignedLength <= Flt64(3.0) + Flt64(1e-6),
+            "Assigned length should be <= upper bound 3.0, got ${assignedLength.assignedLength}"
+        )
+
+        // 验证超长在合理范围
+        val overLength = lengthResult.overLengths.find { it.productId == dynamicProduct.id }
+        if (overLength != null) {
+            assertTrue(
+                overLength.overLength >= Flt64.zero,
+                "Over-length should be non-negative, got ${overLength.overLength}"
+            )
+            // assigned - over <= maxOverProduceLength (2.0)
+            assertTrue(
+                assignedLength.assignedLength - overLength.overLength <= Flt64(2.0) + Flt64(1e-6),
+                "assigned(${assignedLength.assignedLength}) - over(${overLength.overLength}) should be <= maxOverProduceLength(2.0)"
+            )
+        }
+    }
+
+    /**
+     * 验证列生成 + yield 建模在 Gurobi 真实 solver 上端到端运行并回填正确
+     * Verify column generation + yield modeling end-to-end on Gurobi and backfill is correct
+     */
+    @Test
+    fun columnGenerationWithYieldConfigShouldProduceCorrectYieldResultOnRealSolver() = runBlocking {
+        val product = product(id = "p-cg-yield", width = 0.5)
+        val material = material(id = "m-cg-yield", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacyRoll(product = product, rollAmount = Flt64(10.0))
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0)),
+            overProductionPenalty = mapOf(demandKey to Flt64(10.0))
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 32,
+                maxPricingPlans = 16,
+                iterationLimit = 8
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(
+            solver = solver,
+            yieldConfig = yieldConfig
+        )
+        val (solution, trace) = columnGeneration.solveWithTrace(problem)
+
+        // 验证基本产出 / Verify basic output
+        assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans")
+        assertNotNull(trace.terminationReason)
+
+        // 验证 yield 结果存在 / Verify yield result exists
+        val yieldResult = solution.yieldResult
+        assertNotNull(yieldResult, "Yield result should not be null when yieldConfig is provided")
+
+        // 验证等式约束平衡: totalContribution - over + under = demand
+        val totalContribution = solution.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+            val rollContrib = usage.plan.demandContributions.firstOrNull()?.quantity?.value ?: Flt64.zero
+            acc + rollContrib * usage.amount.toFlt64()
+        }
+        val underAmount = yieldResult.underProductions.firstOrNull()?.amount ?: Flt64.zero
+        val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
+        val balance = totalContribution - overAmount + underAmount
+        assertTrue(
+            (balance - Flt64(10.0)).abs() < Flt64(1e-4),
+            "Yield constraint balance should equal demand: contrib($totalContribution) - over($overAmount) + under($underAmount) = $balance, expected 10.0"
+        )
+    }
+
+    /**
+     * 验证列生成 + waste 建模在 Gurobi 真实 solver 上端到端运行并回填正确
+     * Verify column generation + waste modeling end-to-end on Gurobi and backfill is correct
+     */
+    @Test
+    fun columnGenerationWithWasteConfigShouldProduceCorrectWasteResultOnRealSolver() = runBlocking {
+        val p1 = product(id = "p-cg-waste-1", width = 0.3)
+        val p2 = product(id = "p-cg-waste-2", width = 0.4)
+        val material = material(id = "m-cg-waste", lowerWidth = 0.5, upperWidth = 1.5)
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            trimWidthPenalty = Flt64(2.0),
+            materialCostPenalty = mapOf("m-cg-waste" to Flt64(5.0))
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(p1, p2),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(product = p1, rollAmount = Flt64(7.0)),
+                ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(5.0))
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 64,
+                maxPricingPlans = 16,
+                iterationLimit = 8
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(
+            solver = solver,
+            wasteConfig = wasteConfig
+        )
+        val (solution, trace) = columnGeneration.solveWithTrace(problem)
+
+        // 验证基本产出 / Verify basic output
+        assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans")
+        assertNotNull(trace.terminationReason)
+
+        // 验证 waste 结果存在 / Verify waste result exists
+        val wasteResult = solution.wasteResult
+        assertNotNull(wasteResult, "Waste result should not be null when wasteConfig is provided")
+
+        // 验证余宽计算口径一致 / Verify trim width calculation consistency
+        val totalTrimWidth = wasteResult.totalTrimWidth
+        if (totalTrimWidth != null) {
+            val expectedTrimWidth = solution.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+                val restWidthValue = usage.plan.restWidth?.value ?: Flt64.zero
+                acc + restWidthValue * usage.amount.toFlt64()
+            }
+            assertTrue(
+                (totalTrimWidth - expectedTrimWidth).abs() < Flt64(1e-4),
+                "Total trim width ($totalTrimWidth) should match expected ($expectedTrimWidth)"
+            )
+        }
+
+        // 验证物料成本计算口径一致 / Verify material cost calculation consistency
+        val costByMaterial = solution.produce.cuttingPlans.groupBy { it.plan.material.id }
+        for (mc in wasteResult.materialCosts) {
+            val expectedCost = costByMaterial[mc.materialId]?.fold(Flt64.zero) { acc, usage ->
+                acc + wasteConfig.materialCostPenalty[mc.materialId]!! * usage.amount.toFlt64()
+            } ?: Flt64.zero
+            assertTrue(
+                (mc.cost - expectedCost).abs() < Flt64(1e-4),
+                "Material cost for ${mc.materialId} (${mc.cost}) should match expected ($expectedCost)"
+            )
+        }
+    }
+
+    /**
+     * 验证列生成 + length 建模在 Gurobi 真实 solver 上端到端运行并回填正确
+     * Verify column generation + length modeling end-to-end on Gurobi and backfill is correct
+     */
+    @Test
+    fun columnGenerationWithLengthConfigShouldProduceCorrectLengthResultOnRealSolver() = runBlocking {
+        val dynamicProduct = Product(
+            id = "p-cg-length-dynamic",
+            name = "product-p-cg-length-dynamic",
+            width = listOf(Quantity(Flt64(0.5), Meter)),
+            maxOverProduceLength = Quantity(Flt64(3.0), Meter),
+            dynamicLength = true
+        )
+        val fixedProduct = product(id = "p-cg-length-fixed", width = 0.4)
+        val material = material(id = "m-cg-length", lowerWidth = 0.5, upperWidth = 1.5)
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(dynamicProduct.id),
+            assignedLengthLowerBound = mapOf(dynamicProduct.id to Flt64(0.0)),
+            assignedLengthUpperBound = mapOf(dynamicProduct.id to Flt64(5.0)),
+            overLengthPenalty = mapOf(dynamicProduct.id to Flt64(10.0)),
+            totalLengthPenalty = Flt64(0.5)
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(dynamicProduct, fixedProduct),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(product = dynamicProduct, rollAmount = Flt64(5.0)),
+                ProductDemand.legacyRoll(product = fixedProduct, rollAmount = Flt64(3.0))
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 64,
+                maxPricingPlans = 16,
+                iterationLimit = 8
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(
+            solver = solver,
+            lengthConfig = lengthConfig
+        )
+        val (solution, trace) = columnGeneration.solveWithTrace(problem)
+
+        // 验证基本产出 / Verify basic output
+        assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans")
+        assertNotNull(trace.terminationReason)
+
+        // 验证 length 结果存在 / Verify length result exists
+        val lengthResult = solution.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null when lengthConfig is provided")
+
+        // 验证 lengthResult 仅包含动态产品 / Verify lengthResult only contains dynamic products
+        val assignedProductIds = lengthResult.assignedLengths.map { it.productId }.toSet()
+        assertTrue(
+            dynamicProduct.id in assignedProductIds,
+            "Dynamic product should have assigned length"
+        )
+        assertTrue(
+            fixedProduct.id !in assignedProductIds,
+            "Fixed product should NOT have assigned length"
+        )
+
+        // 验证已分配卷长在下界和上界之间 / Verify assigned length within bounds
+        val assignedLength = lengthResult.assignedLengths.find { it.productId == dynamicProduct.id }
+        assertNotNull(assignedLength, "Should have assigned length for dynamic product")
+        assertTrue(
+            assignedLength.assignedLength >= Flt64(0.0) - Flt64(1e-6),
+            "Assigned length should be >= lower bound 0.0, got ${assignedLength.assignedLength}"
+        )
+        assertTrue(
+            assignedLength.assignedLength <= Flt64(5.0) + Flt64(1e-6),
+            "Assigned length should be <= upper bound 5.0, got ${assignedLength.assignedLength}"
         )
     }
 
