@@ -112,6 +112,10 @@ function Get-Flt64Category {
         return "Adapter Conversion"
     }
 
+    if ($relativePath -match "^gantt-scheduling-domain-task-context/src/main/.*/domain/task/model/SchedulingSolverValueAdapter\.kt$") {
+        return "Adapter Conversion"
+    }
+
     if ($line -match "AbstractLinearMetaModel<Flt64>|LinearMetaModel<Flt64>|MetaModel<Flt64>|AbstractMetaModel<Flt64>") {
         return "Solver Boundary"
     }
@@ -124,20 +128,39 @@ function Get-Flt64Category {
         return "Solver Boundary"
     }
 
-    if ($relativePath -match "^gantt-scheduling-application/src/main/.*/application/(model|service)/(task|bunch)/(Iteration|BranchAndPriceAlgorithm)\.kt$") {
-        return "Algorithm Internal"
+    if ($relativePath -match "^gantt-scheduling-application/src/main/.*/application/model/(task|bunch)/Iteration\.kt$") {
+        if ($line -match "snapshot|quantity\(|value:\s+Flt64") {
+            return "Application Result Boundary"
+        }
+        return "Application Algorithm Internal"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-application/src/main/.*/application/service/(task|bunch)/BranchAndPriceAlgorithm\.kt$") {
+        return "Application Algorithm Internal"
     }
 
     if ($relativePath -match "^gantt-scheduling-domain-(task|bunch)-compilation-context/src/main/.*/domain/(task|bunch)_compilation/(IterativeAggregation|IterativeContext|Aggregation)\.kt$") {
-        return "Algorithm Internal"
+        return "Compilation Algorithm Internal"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-context/src/main/.*/domain/task/model/ShadowPriceMap\.kt$") {
+        return "Shadow Price Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-(infrastructure|domain-task-compilation-context)/src/main/") {
+        return "Time/Calendar Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-(capacity-scheduling|resource|produce|bunch-compilation)-context/src/main/") {
+        return "Domain DTO Pending"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-(task|bunch)-generation-context/src/main/") {
+        return "Generation Boundary"
     }
 
     if ($line -match "Flt64\.(zero|one|two|maximum|minimum|infinity)|Flt64\.Companion\.(zero|one|two|maximum|minimum|infinity)|Flt64\([0-9.+-]") {
-        return "Algorithm Internal"
-    }
-
-    if ($relativePath -match "^gantt-scheduling-(infrastructure|domain-capacity-scheduling-context|domain-resource-context|domain-produce-context|domain-task-context|domain-task-compilation-context|domain-bunch-compilation-context|domain-bunch-generation-context)/") {
-        return "Documented Pending"
+        return "Numeric Constant/Internal"
     }
 
     return "Unclassified"
@@ -219,9 +242,14 @@ $categoryDescriptions = [ordered]@{
     "Compat Wrapper" = "向后兼容 typealias 声明 / backward-compatible typealiases"
     "Solver Boundary" = "solver 模型、符号、求解结果边界 / solver model, symbol, and output boundary"
     "Adapter Conversion" = "V 与 Flt64 的适配转换 / V and Flt64 adapter conversion"
-    "Legacy API" = "保留的旧 Flt64 入口 / retained legacy Flt64 API"
-    "Algorithm Internal" = "算法内部无量纲值、目标值与阈值 / algorithm-local dimensionless values, objectives, and thresholds"
-    "Documented Pending" = "已记录待迁移领域边界 / documented pending domain boundary"
+    "Application Algorithm Internal" = "application 分支定价算法内部目标值、阈值与心跳 / application branch-and-price internal objectives, thresholds, and heartbeat"
+    "Application Result Boundary" = "application 结果快照与泛型物理量适配边界 / application result snapshot and generic quantity adapter boundary"
+    "Compilation Algorithm Internal" = "task/bunch compilation 迭代与聚合算法内部值 / task/bunch compilation iterative and aggregation internals"
+    "Time/Calendar Boundary" = "时间窗口、日历与 task time solver 边界 / time window, calendar, and task-time solver boundary"
+    "Domain DTO Pending" = "capacity/resource/produce/bunch 领域 DTO 待迁移边界 / capacity/resource/produce/bunch domain DTO pending boundary"
+    "Generation Boundary" = "生成器标签与路径评估边界 / generator label and path-evaluation boundary"
+    "Shadow Price Boundary" = "shadow price 基础 API 边界 / shadow-price base API boundary"
+    "Numeric Constant/Internal" = "无量纲常量、默认值与内部阈值 / dimensionless constants, defaults, and internal thresholds"
     "Test" = "测试文件中的 Flt64 / Flt64 in tests"
     "Import/Comment" = "import 或注释中的 Flt64 / Flt64 in imports or comments"
     "Unclassified" = "未归类使用点 / unclassified usages"

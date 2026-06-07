@@ -10,12 +10,32 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 
 /**
  * Unit tests for TimeWindow class.
  * TimeWindow 类的单元测试。
  */
 class TimeWindowTest {
+    @Test
+    fun quantityOfShouldReturnGenericTimeWindowValueQuantity() {
+        val timeWindow = TimeWindow(
+            window = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T12:00:00Z")
+            ),
+            durationUnit = DurationUnit.HOURS,
+            interval = 1.toDuration(DurationUnit.HOURS),
+            fromDouble = { FltX(it.toString()) },
+            toDouble = { it.toDouble() }
+        )
+
+        val durationQuantity = timeWindow.quantityOf(2.toDuration(DurationUnit.HOURS))
+        val instantQuantity = timeWindow.quantityOf(Instant.parse("2020-08-30T11:00:00Z"))
+
+        assert(durationQuantity.value eq FltX("2.0"))
+        assert(instantQuantity.value eq FltX("3.0"))
+    }
 
     /**
      * Test basic time slot generation without excluded times.

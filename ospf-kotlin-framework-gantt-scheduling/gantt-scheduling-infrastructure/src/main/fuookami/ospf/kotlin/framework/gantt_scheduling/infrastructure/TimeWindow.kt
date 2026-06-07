@@ -7,15 +7,6 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.toDuration
-import fuookami.ospf.kotlin.utils.max
-import fuookami.ospf.kotlin.utils.min
-import fuookami.ospf.kotlin.utils.truncatedTo
-import kotlinx.datetime.*
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -23,6 +14,21 @@ import kotlin.math.round
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import kotlinx.datetime.*
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import fuookami.ospf.kotlin.utils.truncatedTo
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.toDuration
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+
+/** 时间窗口数值物理量 / Time-window value quantity */
+typealias TimeWindowValueQuantity<V> = Quantity<V>
 
 /**
  * 泛型时间窗口，提供时间离散化和舍入功能 / Generic time window providing time discretization and rounding capabilities
@@ -124,6 +130,20 @@ data class TimeWindow<V : RealNumber<V>>(
     fun valueOf(duration: Duration): V = duration.value
 
     /**
+     * 获取持续时间的物理量数值 / Get the quantity value of a duration
+     *
+     * @param duration 持续时间 / Duration
+     * @param unit 时间数值单位 / Time value unit
+     * @return 持续时间物理量数值 / Duration quantity value
+     */
+    fun quantityOf(
+        duration: Duration,
+        unit: PhysicalUnit = NoneUnit
+    ): TimeWindowValueQuantity<V> {
+        return Quantity(valueOf(duration), unit)
+    }
+
+    /**
      * 舍入持续时间 / Round a duration
      */
     fun round(duration: Duration) = duration.round
@@ -148,6 +168,20 @@ data class TimeWindow<V : RealNumber<V>>(
      * 获取时间点的 V 数值 / Get the V numeric value of an instant
      */
     fun valueOf(instant: Instant): V = instant.value
+
+    /**
+     * 获取时间点相对窗口起点的物理量数值 / Get the quantity value of an instant relative to window start
+     *
+     * @param instant 时间点 / Instant
+     * @param unit 时间数值单位 / Time value unit
+     * @return 时间点物理量数值 / Instant quantity value
+     */
+    fun quantityOf(
+        instant: Instant,
+        unit: PhysicalUnit = NoneUnit
+    ): TimeWindowValueQuantity<V> {
+        return Quantity(valueOf(instant), unit)
+    }
 
     /**
      * 舍入时间点 / Round an instant

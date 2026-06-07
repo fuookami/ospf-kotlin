@@ -5,17 +5,23 @@
 /** 任务迭代器 / Task iterator */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import kotlin.time.Clock
+import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.functional.sum
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.operator.abs
-import org.apache.logging.log4j.kotlin.logger
-import kotlin.time.Clock
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.IterationSnapshot
 
 /**
  * 任务迭代器 / Task iterator
@@ -156,6 +162,36 @@ class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPol
         slowLpImprovementStep /= Flt64.Companion.two
     }
 
+    /**
+     * 生成泛型迭代快照 / Build a generic iteration snapshot
+     *
+     * @param V 目标数值类型 / Target numeric type
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 目标值单位 / Objective unit
+     * @return 泛型迭代快照 / Generic iteration snapshot
+     */
+    fun <V : RealNumber<V>> snapshot(
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): IterationSnapshot<V> {
+        return IterationSnapshot(
+            iteration = iteration,
+            runTime = runTime,
+            bestObjective = quantity(bestObj, adapter, unit),
+            bestLpObjective = quantity(bestLpObj, adapter, unit),
+            bestDualObjective = quantity(bestDualObj, adapter, unit),
+            lowerBound = quantity(lowerBound, adapter, unit),
+            upperBound = upperBound?.let { quantity(it, adapter, unit) },
+            slowLpImprovementStep = if (slowLpImprovementStep.isInfinity()) {
+                null
+            } else {
+                quantity(slowLpImprovementStep, adapter, unit)
+            },
+            optimalRate = adapter.intoValue(optimalRate),
+            isImprovementSlow = isImprovementSlow
+        )
+    }
+
     operator fun inc(): Iteration<T, E, A> {
         ++_iteration
         return this
@@ -169,5 +205,12 @@ class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPol
     override fun toString(): String {
         return "$iteration"
     }
-}
 
+    private fun <V : RealNumber<V>> quantity(
+        value: Flt64,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit
+    ): Quantity<V> {
+        return Quantity(adapter.intoValue(value), unit)
+    }
+}
