@@ -224,3 +224,51 @@ typealias Flt64SlotBasedCapacityResult<M, R> = SlotBasedCapacityResult<M, R, Flt
 | public API 泛型参数变更 | 旧源码调用可能不再按原名原参数数编译 | G5 优先审计并补原名 typealias 或 wrapper |
 | 物理量化范围扩大 | `Quantity<V>` 会触发跨模块签名传播 | 按依赖顺序推进并保持每阶段测试可运行 |
 | example 编译依赖外部仓库 | 基础设施失败可能掩盖 API 问题 | 记录具体错误，并保留 gantt-scheduling reactor 作为最低门槛 |
+
+## 6. 下一轮交接（2026-06-07 G5 第三轮完成后）
+
+### 本轮已完成
+
+本轮（两个 commit）完成了 G5 的 capacity 泛型化 + 全域 V 泛型审计：
+
+- **commit `5937bb6d`**：capacity 模块 `Aggregation`/`ExecutorCapacityConstraint`/`CapacityCostMinimization` 提升为 `<V, A>` 泛型，`ProductionAction.unitCostV` 新增泛型入口，`AggregationFltXTest`（8 cases）。
+- **commit `30cddd24`**：resource/produce/task/cost/result/application 全域审计确认 V 泛型已到位，新增 `ResourceGenericFltXTest`（9 cases）和 `ProduceGenericFltXTest`（5 cases），scan gate unclassified=0。
+
+### 当前 V 泛型状态一览
+
+| 模块 | 核心类型 V 泛型 | Flt64 使用归类 | FltX 测试 |
+|------|----------------|----------------|-----------|
+| capacity | `Aggregation<V,A>`, `Constraint<V,A>`, `Minimization<V,A>`, `ProductionAction.unitCostV` | solver boundary + compat typealias | 8 cases |
+| resource | `ResourceCapacity<V>`, `Resource<C,V>`, `ResourceTimeSlot<R,C,V>`, `Constraint<...,V>` | solver boundary (129 lines) | 15 cases |
+| produce | `MaterialDemand<V>`, `MaterialReserves<V>`, `ProductionTask<...,V>`, `produceV`/`consumptionV` | solver boundary (199 lines) | 11 cases |
+| task/cost | `Cost<V>`, `TaskBunch<...,V>`, `SolverValueAdapter<V>`, `ShadowPriceMap` reducedCost | solver boundary + adapter | 已有 |
+| bunch-compilation | `SlotBasedBunchCompilationV<V>`, `SlotBasedCapacityResult<V>`, `BunchCompilation<V>` | solver boundary + pre-solver | 已有 |
+| bunch-generation | `LabelV<T,E,A,V>`, `TotalCostCalculatorV<V>` | 无 Flt64 泄漏 | 已有 |
+| application | `BranchAndPriceAlgorithm<V>` 签名泛型 | `Iteration` 全 Flt64，`Policy.reducedCost -> Flt64` | 无 |
+
+### 下一轮推荐优先级
+
+1. **`Quantity<V>` 物理量化**（高优先）：添加 `ospf-kotlin-quantities` 为 gantt-scheduling 依赖，从 capacity 模块的 `unitCapacity`/`unitCost` 开始引入 `Quantity<V>` 包装有量纲字段，保持 V 泛型实现 + `Quantity<Flt64>` typealias 兼容。
+2. **application `Iteration` 泛型化**（中优先）：task/bunch `Iteration` 类的 `bestObj`/`lowerBound`/`optimalRate` 等字段从 Flt64 提升为 V，`Policy.reducedCost` 回调返回 V。
+3. **demo4 泛型样例**（中优先）：在 example 中构造一个 FltX 路径的 demo4 变体，验证端到端泛型构造。
+4. **migration note**（低优先）：写一份旧 Flt64 API → 泛型 API 的迁移说明。
+
+### 验证命令
+
+```bash
+# 全量 reactor 测试（11 模块）
+mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test
+
+# example reactor 编译（含 demo4）
+mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile
+
+# 扫描门禁（unclassified 必须为 0）
+pwsh.exe -NoLogo -NoProfile -File ospf-kotlin-framework-gantt-scheduling/flt64-scan-gate.ps1
+
+# 空白检查
+git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example
+```
+
+### 当前 scan gate 基线
+
+main=1,328 / test=125 / total=1,453 / unclassified=0
