@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Cost
@@ -39,10 +40,28 @@ object Demo4GenericQuantitySample {
         constants = FltX
     )
 
+    val quantityFieldCost = Cost(
+        items = listOf(
+            CostItem(
+                tag = "generic-quantity-demo",
+                costQuantity = Quantity(FltX("2.50"), NoneUnit)
+            )
+        ),
+        costSum = Quantity(FltX("2.50"), NoneUnit)
+    )
+
     val costQuantity = cost.sumQuantity()
-    val materialDemandQuantity = MaterialDemand(quantity = quantityRange).quantityRange()
-    val resourceCapacityQuantity = ResourceCapacity(time = time, quantity = quantityRange).quantityRange()
+    val materialDemandQuantity = MaterialDemand(
+        quantityRangeValue = Quantity(quantityRange, NoneUnit)
+    ).quantityRange()
+    val resourceCapacityQuantity = ResourceCapacity(
+        time = time,
+        quantityRangeValue = Quantity(quantityRange, NoneUnit)
+    ).quantityRange()
 
     @Suppress("unused")
     val rawQuantity = Quantity(FltX("3.5"), costQuantity!!.unit)
+
+    @Suppress("unused")
+    val quantityFieldSum = quantityFieldCost.costSum
 }

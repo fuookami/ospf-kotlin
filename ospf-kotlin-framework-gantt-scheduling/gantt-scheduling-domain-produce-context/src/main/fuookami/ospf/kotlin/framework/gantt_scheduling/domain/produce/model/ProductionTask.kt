@@ -41,15 +41,28 @@ interface RawMaterial : Material
 /**
  * 材料需求 / Material demand
  *
- * @property quantity 数量范围 / Quantity range
- * @property lessQuantity 不足数量 / Less quantity
- * @property overQuantity 超量数量 / Over quantity
+ * @property quantityRangeValue 数量范围物理量 / Quantity range value
+ * @property lessQuantityValue 不足数量物理量 / Less quantity value
+ * @property overQuantityValue 超量数量物理量 / Over quantity value
  */
 data class MaterialDemand<V>(
-    val quantity: ValueRange<V>,
-    val lessQuantity: V? = null,
-    val overQuantity: V? = null
+    val quantityRangeValue: MaterialQuantityRange<V>,
+    val lessQuantityValue: MaterialQuantity<V>? = null,
+    val overQuantityValue: MaterialQuantity<V>? = null
 ) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(
+        quantity: ValueRange<V>,
+        lessQuantity: V? = null,
+        overQuantity: V? = null
+    ) : this(
+        quantityRangeValue = Quantity(quantity, NoneUnit),
+        lessQuantityValue = lessQuantity?.let { Quantity(it, NoneUnit) },
+        overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) }
+    )
+
+    val quantity: ValueRange<V> get() = quantityRangeValue.value
+    val lessQuantity: V? get() = lessQuantityValue?.value
+    val overQuantity: V? get() = overQuantityValue?.value
     val lessEnabled: Boolean get() = lessQuantity != null
     val overEnabled: Boolean get() = overQuantity != null
 
@@ -60,7 +73,7 @@ data class MaterialDemand<V>(
      * @return 数量范围物理量 / Quantity range quantity
      */
     fun quantityRange(unit: PhysicalUnit = NoneUnit): MaterialQuantityRange<V> {
-        return Quantity(quantity, unit)
+        return Quantity(quantityRangeValue.value, unit)
     }
 
     /**
@@ -70,7 +83,7 @@ data class MaterialDemand<V>(
      * @return 不足数量物理量 / Less quantity
      */
     fun lessQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
-        return lessQuantity?.let { Quantity(it, unit) }
+        return lessQuantityValue?.let { Quantity(it.value, unit) }
     }
 
     /**
@@ -80,7 +93,7 @@ data class MaterialDemand<V>(
      * @return 超量数量物理量 / Over quantity
      */
     fun overQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
-        return overQuantity?.let { Quantity(it, unit) }
+        return overQuantityValue?.let { Quantity(it.value, unit) }
     }
 }
 
@@ -90,15 +103,28 @@ typealias Flt64MaterialDemand = MaterialDemand<Flt64>
 /**
  * 材料储备 / Material reserves
  *
- * @property quantity 数量范围 / Quantity range
- * @property lessQuantity 不足数量 / Less quantity
- * @property overQuantity 超量数量 / Over quantity
+ * @property quantityRangeValue 数量范围物理量 / Quantity range value
+ * @property lessQuantityValue 不足数量物理量 / Less quantity value
+ * @property overQuantityValue 超量数量物理量 / Over quantity value
  */
 open class MaterialReserves<V>(
-    val quantity: ValueRange<V>,
-    val lessQuantity: V? = null,
-    val overQuantity: V? = null,
+    val quantityRangeValue: MaterialQuantityRange<V>,
+    val lessQuantityValue: MaterialQuantity<V>? = null,
+    val overQuantityValue: MaterialQuantity<V>? = null,
 ) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(
+        quantity: ValueRange<V>,
+        lessQuantity: V? = null,
+        overQuantity: V? = null
+    ) : this(
+        quantityRangeValue = Quantity(quantity, NoneUnit),
+        lessQuantityValue = lessQuantity?.let { Quantity(it, NoneUnit) },
+        overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) }
+    )
+
+    val quantity: ValueRange<V> get() = quantityRangeValue.value
+    val lessQuantity: V? get() = lessQuantityValue?.value
+    val overQuantity: V? get() = overQuantityValue?.value
     val lessEnabled: Boolean get() = lessQuantity != null
     val overEnabled: Boolean get() = overQuantity != null
 
@@ -109,7 +135,7 @@ open class MaterialReserves<V>(
      * @return 数量范围物理量 / Quantity range quantity
      */
     fun quantityRange(unit: PhysicalUnit = NoneUnit): MaterialQuantityRange<V> {
-        return Quantity(quantity, unit)
+        return Quantity(quantityRangeValue.value, unit)
     }
 
     /**
@@ -119,7 +145,7 @@ open class MaterialReserves<V>(
      * @return 不足数量物理量 / Less quantity
      */
     fun lessQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
-        return lessQuantity?.let { Quantity(it, unit) }
+        return lessQuantityValue?.let { Quantity(it.value, unit) }
     }
 
     /**
@@ -129,7 +155,7 @@ open class MaterialReserves<V>(
      * @return 超量数量物理量 / Over quantity
      */
     fun overQuantity(unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
-        return overQuantity?.let { Quantity(it, unit) }
+        return overQuantityValue?.let { Quantity(it.value, unit) }
     }
 }
 
@@ -145,6 +171,8 @@ typealias Flt64MaterialReserves = MaterialReserves<Flt64>
  * @param C 消耗材料类型 / Consumption material type
  * @property produce 生产量映射 / Produce quantity map
  * @property consumption 消耗量映射 / Consumption quantity map
+ * @property produceQuantityByProduct 生产量物理量映射 / Produce quantity map with units
+ * @property consumptionQuantityByMaterial 消耗量物理量映射 / Consumption quantity map with units
  */
 interface ProductionTask<
         out E : Executor,
@@ -156,6 +184,14 @@ interface ProductionTask<
     val produce: Map<P, V>
     val consumption: Map<C, V>
 
+    /** 生产量物理量映射 / Produce quantity map with units */
+    val produceQuantityByProduct: Map<P, MaterialQuantity<V>>
+        get() = produce.mapValues { (_, value) -> Quantity(value, NoneUnit) }
+
+    /** 消耗量物理量映射 / Consumption quantity map with units */
+    val consumptionQuantityByMaterial: Map<C, MaterialQuantity<V>>
+        get() = consumption.mapValues { (_, value) -> Quantity(value, NoneUnit) }
+
     /**
      * 生产量物理量 / Produce quantity as a physical quantity
      *
@@ -164,7 +200,7 @@ interface ProductionTask<
      * @return 生产量物理量 / Produce quantity
      */
     fun produceQuantity(product: P, unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
-        return produce[product]?.let { Quantity(it, unit) }
+        return produceQuantityByProduct[product]?.let { Quantity(it.value, unit) }
     }
 
     /**
@@ -175,7 +211,7 @@ interface ProductionTask<
      * @return 消耗量物理量 / Consumption quantity
      */
     fun consumptionQuantity(material: C, unit: PhysicalUnit = NoneUnit): MaterialQuantity<V>? {
-        return consumption[material]?.let { Quantity(it, unit) }
+        return consumptionQuantityByMaterial[material]?.let { Quantity(it.value, unit) }
     }
 }
 

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResource
@@ -103,6 +104,30 @@ class ResourceGenericFltXTest {
         assertTrue(lessQuantity.value eq FltX("2.5"))
         assertEquals(NoneUnit, overQuantity!!.unit)
         assertTrue(overQuantity.value eq FltX("7.5"))
+    }
+
+    @Test
+    fun resourceCapacityShouldSupportFltXQuantityFields() {
+        val range = ValueRange(
+            lb = FltX("0"),
+            ub = FltX("100"),
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = FltX
+        ).value!!
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit),
+            lessQuantityValue = Quantity(FltX("2.5"), NoneUnit),
+            overQuantityValue = Quantity(FltX("7.5"), NoneUnit)
+        )
+
+        assertTrue(cap.quantity.lowerBound.value eq FltX("0"))
+        assertTrue(cap.lessQuantity!! eq FltX("2.5"))
+        assertTrue(cap.overQuantity!! eq FltX("7.5"))
+        assertEquals(NoneUnit, cap.quantityRangeValue.unit)
+        assertEquals(NoneUnit, cap.lessQuantityValue!!.unit)
+        assertEquals(NoneUnit, cap.overQuantityValue!!.unit)
     }
 
     @Test

@@ -2,12 +2,13 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import java.util.*
 import kotlin.time.*
 import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -163,7 +164,10 @@ data class FlowControl(
 ) : AbstractResourceCapacity<Flt64> {
     val closed by capacity::closed
 
-    override val quantity = ValueRange(Flt64.zero, capacity.amount.toFlt64()).value!!
+    override val quantityRangeValue = Quantity(
+        ValueRange(Flt64.zero, capacity.amount.toFlt64()).value!!,
+        NoneUnit
+    )
     override val interval by capacity::interval
     override val lessEnabled = true
     override val overEnabled = true

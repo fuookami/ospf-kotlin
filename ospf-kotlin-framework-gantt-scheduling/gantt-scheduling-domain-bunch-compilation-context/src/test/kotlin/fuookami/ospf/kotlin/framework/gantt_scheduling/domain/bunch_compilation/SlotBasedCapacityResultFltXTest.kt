@@ -9,6 +9,8 @@ import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
@@ -77,6 +79,29 @@ class SlotBasedCapacityResultFltXTest {
     }
 
     @Test
+    fun slotBasedCapacityResultShouldSupportFltXQuantityFields() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCostQuantityValue = Quantity(FltX("12.50"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("100.0"), NoneUnit)),
+            consumptionQuantityByMaterial = mapOf(materialB to Quantity(FltX("50.0"), NoneUnit)),
+            resourceUsageQuantityByResource = mapOf(resourceC to Quantity(FltX("75.5"), NoneUnit))
+        )
+
+        assertTrue(result.totalCost eq FltX("12.50"))
+        assertEquals(NoneUnit, result.totalCostQuantityValue.unit)
+        assertEquals(NoneUnit, result.totalCostQuantity().unit)
+        assertTrue(result.produceByProduct[productA]!! eq FltX("100.0"))
+        assertEquals(NoneUnit, result.produceQuantityByProduct[productA]!!.unit)
+        assertTrue(result.consumptionByMaterial[materialB]!! eq FltX("50.0"))
+        assertEquals(NoneUnit, result.consumptionQuantityByMaterial[materialB]!!.unit)
+        assertTrue(result.resourceUsageByResource[resourceC]!! eq FltX("75.5"))
+        assertEquals(NoneUnit, result.resourceUsageQuantityByResource[resourceC]!!.unit)
+    }
+
+    @Test
     fun capacityIntermediateValuesShouldSupportFltX() {
         val slotResult = SlotBasedCapacityResult<ProductionAction, String, String, FltX>(
             slot = slot,
@@ -119,6 +144,33 @@ class SlotBasedCapacityResultFltXTest {
         assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("7.0"))
         assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("7.0"))
         assertEquals(0, constraints.slotIndex)
+    }
+
+    @Test
+    fun slotConstraintsShouldSupportFltXQuantityFields() {
+        val constraints = SlotConstraints<String, String, FltX>(
+            slot = slot,
+            slotIndex = 0,
+            maxProduceQuantity = mapOf(productA to Quantity(FltX("5.0"), NoneUnit)),
+            minProduceQuantity = mapOf(productA to Quantity(FltX("4.0"), NoneUnit)),
+            maxConsumptionQuantity = mapOf(materialB to Quantity(FltX("3.0"), NoneUnit)),
+            minConsumptionQuantity = mapOf(materialB to Quantity(FltX("2.0"), NoneUnit)),
+            maxResourceUsageQuantity = mapOf(resourceC to Quantity(FltX("7.0"), NoneUnit)),
+            minResourceUsageQuantity = mapOf(resourceC to Quantity(FltX("6.0"), NoneUnit))
+        )
+
+        assertTrue(constraints.maxProduce[productA]!! eq FltX("5.0"))
+        assertEquals(NoneUnit, constraints.maxProduceQuantity[productA]!!.unit)
+        assertTrue(constraints.minProduce[productA]!! eq FltX("4.0"))
+        assertEquals(NoneUnit, constraints.minProduceQuantity[productA]!!.unit)
+        assertTrue(constraints.maxConsumption[materialB]!! eq FltX("3.0"))
+        assertEquals(NoneUnit, constraints.maxConsumptionQuantity[materialB]!!.unit)
+        assertTrue(constraints.minConsumption[materialB]!! eq FltX("2.0"))
+        assertEquals(NoneUnit, constraints.minConsumptionQuantity[materialB]!!.unit)
+        assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("7.0"))
+        assertEquals(NoneUnit, constraints.maxResourceUsageQuantity[resourceC]!!.unit)
+        assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("6.0"))
+        assertEquals(NoneUnit, constraints.minResourceUsageQuantity[resourceC]!!.unit)
     }
 
     @Test

@@ -26,14 +26,25 @@ typealias Flt64CostQuantity = CostQuantity<Flt64>
  *
  * @param V 数值类型 / The numeric type
  * @property tag 标签 / The tag
- * @property value 值 / The value
+ * @property costQuantity 成本物理量 / The cost quantity
  * @property message 消息 / The message
  */
 data class CostItem<V : RealNumber<V>>(
     val tag: String,
-    val value: V? = null,
+    val costQuantity: CostQuantity<V>? = null,
     val message: String? = null
 ) : Copyable<CostItem<V>> {
+    constructor(
+        tag: String,
+        value: V?,
+        message: String? = null
+    ) : this(
+        tag = tag,
+        costQuantity = value?.let { Quantity(it, NoneUnit) },
+        message = message
+    )
+
+    val value: V? get() = costQuantity?.value
     val valid get() = value != null
 
     /**
@@ -43,10 +54,10 @@ data class CostItem<V : RealNumber<V>>(
      * @return 成本项物理量 / Cost item quantity
      */
     fun quantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
-        return value?.let { Quantity(it, unit) }
+        return costQuantity?.let { Quantity(it.value, unit) }
     }
 
-    override fun copy() = CostItem(tag, value, message)
+    override fun copy() = CostItem(tag, costQuantity, message)
 }
 
 /**
@@ -59,7 +70,10 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
         operator fun <V : RealNumber<V>> invoke(
             cost: MutableCost<V>
         ): ImmutableCost<V> {
-            return ImmutableCost(cost.items.map { it.copy() }, cost.sum)
+            return ImmutableCost(
+                items = cost.items.map { it.copy() },
+                costSum = cost.costSum
+            )
         }
 
         operator fun <V : RealNumber<V>> invoke(
@@ -71,7 +85,28 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
                 null
             }
         ): ImmutableCost<V> {
-            return ImmutableCost(items, sums)
+            return ImmutableCost(
+                items = items,
+                costSum = sums?.let { Quantity(it, NoneUnit) }
+            )
+        }
+
+        /**
+         * 通过成本物理量创建不可变成本 / Create immutable cost from cost quantities
+         *
+         * @param V 数值类型 / The numeric type
+         * @param items 成本项列表 / The list of cost items
+         * @param costSum 成本总和物理量 / The sum cost quantity
+         * @return 不可变成本 / Immutable cost
+         */
+        operator fun <V : RealNumber<V>> invoke(
+            items: List<CostItem<V>>,
+            costSum: CostQuantity<V>?
+        ): ImmutableCost<V> {
+            return ImmutableCost(
+                items = items,
+                costSum = costSum
+            )
         }
 
         /**
@@ -80,12 +115,16 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
         operator fun <V : RealNumber<V>> invoke(
             constants: RealNumberConstants<V>
         ): ImmutableCost<V> {
-            return ImmutableCost(emptyList(), null)
+            return ImmutableCost(
+                items = emptyList(),
+                costSum = null
+            )
         }
     }
 
     val items: List<CostItem<V>>
-    val sum: V?
+    val costSum: CostQuantity<V>?
+    val sum: V? get() = costSum?.value
     val valid: Boolean get() = sum != null
 
     /**
@@ -95,7 +134,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
      * @return 总成本物理量 / Sum cost quantity
      */
     fun sumQuantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
-        return sum?.let { Quantity(it, unit) }
+        return costSum?.let { Quantity(it.value, unit) }
     }
 
     fun asMutable(): MutableCost<V>? {
@@ -125,40 +164,59 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
  * 可变成本，支持动态添加成本项 / Mutable cost supporting dynamic addition of cost items
  *
  * @param V 数值类型 / The numeric type
+ * @property constants 数值常量 / The numeric constants
  * @property items 成本项列表 / The list of cost items
- * @property sum 成本总和 / The sum of costs
+ * @property costSum 成本总和物理量 / The sum cost quantity
  */
 class MutableCost<V : RealNumber<V>>(
     val constants: RealNumberConstants<V>,
     override val items: MutableList<CostItem<V>> = ArrayList(),
-    override var sum: V? = if (items.isNotEmpty() && items.all { it.value != null }) {
+    override var costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.value != null }) {
         items.sumOf(constants) { it.value!! }
+            .let { Quantity(it, NoneUnit) }
     } else {
         null
     }
 ) : Cost<V> {
+    constructor(
+        constants: RealNumberConstants<V>,
+        items: MutableList<CostItem<V>> = ArrayList(),
+        sum: V?
+    ) : this(
+        constants = constants,
+        items = items,
+        costSum = sum?.let { Quantity(it, NoneUnit) }
+    )
+
     operator fun plusAssign(rhs: CostItem<V>) {
         if (!rhs.valid || rhs.value!! neq constants.zero) {
             items.add(rhs)
         }
 
         if (rhs.valid) {
-            sum = sum?.plus(rhs.value!!)
+            costSum = sum?.plus(rhs.value!!)?.let { Quantity(it, costSum?.unit ?: rhs.costQuantity?.unit ?: NoneUnit) }
         }
     }
 
     operator fun plusAssign(rhs: Cost<V>) {
         items.addAll(rhs.items.filter { !it.valid || it.value!! neq constants.zero })
 
-        sum = if (this.valid && rhs.valid) {
-            sum!! + rhs.sum!!
+        costSum = if (this.valid && rhs.valid) {
+            Quantity(
+                value = sum!! + rhs.sum!!,
+                unit = costSum?.unit ?: rhs.costSum?.unit ?: NoneUnit
+            )
         } else {
             null
         }
     }
 
     override fun copy(): MutableCost<V> {
-        return MutableCost(constants, items.map { it.copy() }.toMutableList(), sum)
+        return MutableCost(
+            constants = constants,
+            items = items.map { it.copy() }.toMutableList(),
+            costSum = costSum
+        )
     }
 }
 
@@ -167,20 +225,32 @@ class MutableCost<V : RealNumber<V>>(
  *
  * @param V 数值类型 / The numeric type
  * @property items 成本项列表 / The list of cost items
- * @property sum 成本总和 / The sum of costs
+ * @property costSum 成本总和物理量 / The sum cost quantity
  */
 data class ImmutableCost<V : RealNumber<V>>(
     override val items: List<CostItem<V>>,
-    override val sum: V? = if (items.isNotEmpty() && items.all { it.value != null }) {
+    override val costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.value != null }) {
         items.first().value!!.constants.let { constants ->
             items.sumOf(constants) { it.value!! }
+                .let { Quantity(it, items.first().costQuantity?.unit ?: NoneUnit) }
         }
     } else {
         null
     }
 ) : Cost<V> {
+    constructor(
+        items: List<CostItem<V>>,
+        sum: V?
+    ) : this(
+        items = items,
+        costSum = sum?.let { Quantity(it, NoneUnit) }
+    )
+
     override fun copy(): ImmutableCost<V> {
-        return ImmutableCost(items.map { it.copy() }, sum)
+        return ImmutableCost(
+            items = items.map { it.copy() },
+            costSum = costSum
+        )
     }
 }
 

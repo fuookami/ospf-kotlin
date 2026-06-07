@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
@@ -136,5 +137,20 @@ class CapacityColumnFltXTest {
         val cost = column.costQuantity()
         assertEquals(NoneUnit, cost.unit)
         assertTrue(cost.value eq FltX("88.25"))
+    }
+
+    @Test
+    fun capacityColumnShouldSupportFltXQuantityField() {
+        val column = CapacityColumn<Executor, ProductionAction, FltX>(
+            executor = testExecutor,
+            slotIndex = 0,
+            order = 0,
+            allocations = mapOf(TestAction to UInt64(2)),
+            columnCost = Quantity(FltX("91.25"), NoneUnit)
+        )
+
+        assertTrue(column.cost eq FltX("91.25"))
+        assertEquals(NoneUnit, column.columnCost.unit)
+        assertTrue(column.costQuantity().value eq FltX("91.25"))
     }
 }

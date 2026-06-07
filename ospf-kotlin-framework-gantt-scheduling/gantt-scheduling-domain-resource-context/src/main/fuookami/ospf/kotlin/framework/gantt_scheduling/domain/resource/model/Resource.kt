@@ -61,17 +61,20 @@ internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<
  * 抽象资源容量接口 / Abstract resource capacity interface
  *
  * @property time 时间范围 / Time range
- * @property quantity 数量范围 / Quantity range
- * @property lessQuantity 不足数量 / Less quantity
- * @property overQuantity 超量数量 / Over quantity
+ * @property quantityRangeValue 数量范围物理量 / Quantity range value
+ * @property lessQuantityValue 不足数量物理量 / Less quantity value
+ * @property overQuantityValue 超量数量物理量 / Over quantity value
  * @property interval 时间间隔 / Time interval
  * @property name 名称 / Name
  */
 interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
     val time: TimeRange
-    val quantity: ValueRange<V>
-    val lessQuantity: V? get() = null
-    val overQuantity: V? get() = null
+    val quantityRangeValue: ResourceQuantityRange<V>
+    val lessQuantityValue: ResourceQuantity<V>? get() = null
+    val overQuantityValue: ResourceQuantity<V>? get() = null
+    val quantity: ValueRange<V> get() = quantityRangeValue.value
+    val lessQuantity: V? get() = lessQuantityValue?.value
+    val overQuantity: V? get() = overQuantityValue?.value
     val interval: Duration
     val name: String? get() = null
     val lessEnabled: Boolean get() = lessQuantity != null
@@ -84,7 +87,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
      * @return 数量范围物理量 / Quantity range quantity
      */
     fun quantityRange(unit: PhysicalUnit = NoneUnit): ResourceQuantityRange<V> {
-        return Quantity(quantity, unit)
+        return Quantity(quantityRangeValue.value, unit)
     }
 
     /**
@@ -94,7 +97,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
      * @return 不足数量物理量 / Less quantity
      */
     fun lessQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V>? {
-        return lessQuantity?.let { Quantity(it, unit) }
+        return lessQuantityValue?.let { Quantity(it.value, unit) }
     }
 
     /**
@@ -104,7 +107,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
      * @return 超量数量物理量 / Over quantity
      */
     fun overQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V>? {
-        return overQuantity?.let { Quantity(it, unit) }
+        return overQuantityValue?.let { Quantity(it.value, unit) }
     }
 }
 
@@ -112,20 +115,36 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
  * 资源容量 / Resource capacity
  *
  * @property time 时间范围 / Time range
- * @property quantity 数量范围 / Quantity range
- * @property lessQuantity 不足数量 / Less quantity
- * @property overQuantity 超量数量 / Over quantity
+ * @property quantityRangeValue 数量范围物理量 / Quantity range value
+ * @property lessQuantityValue 不足数量物理量 / Less quantity value
+ * @property overQuantityValue 超量数量物理量 / Over quantity value
  * @property interval 时间间隔 / Time interval
  * @property name 名称 / Name
  */
 open class ResourceCapacity<V>(
     override val time: TimeRange,
-    override val quantity: ValueRange<V>,
-    override val lessQuantity: V? = null,
-    override val overQuantity: V? = null,
+    override val quantityRangeValue: ResourceQuantityRange<V>,
+    override val lessQuantityValue: ResourceQuantity<V>? = null,
+    override val overQuantityValue: ResourceQuantity<V>? = null,
     override val interval: Duration = Duration.INFINITE,
     override val name: String? = null
 ) : AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
+    constructor(
+        time: TimeRange,
+        quantity: ValueRange<V>,
+        lessQuantity: V? = null,
+        overQuantity: V? = null,
+        interval: Duration = Duration.INFINITE,
+        name: String? = null
+    ) : this(
+        time = time,
+        quantityRangeValue = Quantity(quantity, NoneUnit),
+        lessQuantityValue = lessQuantity?.let { Quantity(it, NoneUnit) },
+        overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) },
+        interval = interval,
+        name = name
+    )
+
     override fun toString() = name ?: "${quantity}_${interval}"
 }
 

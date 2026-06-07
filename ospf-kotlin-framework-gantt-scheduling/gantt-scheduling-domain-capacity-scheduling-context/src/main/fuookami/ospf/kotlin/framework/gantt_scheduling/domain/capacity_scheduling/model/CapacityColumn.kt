@@ -20,39 +20,36 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
  * @param E 执行者类型 / Executor type
  * @param A 生产动作类型 / Production action type
  * @param V 数值类型 / Numeric type for cost
+ * @property executor 执行该列的设备 / Executor that performs this column
+ * @property slotIndex 时隙索引 / Slot index
+ * @property order 顺序位置 / Order position
+ * @property allocations 动作分配 / Action allocations
+ * @property columnCost 列成本物理量 / Column cost quantity
  */
 data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>(
-    /**
-     * 执行该列的设备
-     * Executor that performs this column
-     */
     val executor: E,
-
-    /**
-     * 时隙索引
-     * Slot index
-     */
     val slotIndex: Int,
-
-    /**
-     * 顺序位置
-     * Order position
-     */
     val order: Int,
-
-    /**
-     * 动作分配
-     * Action allocations
-     * Map of action to amount
-     */
     val allocations: Map<A, UInt64>,
-
-    /**
-     * 列成本
-     * Column cost
-     */
-    val cost: V
+    val columnCost: CapacityCostQuantity<V>
 ) {
+    constructor(
+        executor: E,
+        slotIndex: Int,
+        order: Int,
+        allocations: Map<A, UInt64>,
+        cost: V
+    ) : this(
+        executor = executor,
+        slotIndex = slotIndex,
+        order = order,
+        allocations = allocations,
+        columnCost = Quantity(cost, NoneUnit)
+    )
+
+    /** 列成本裸值兼容属性 / Raw column cost compatibility property */
+    val cost: V get() = columnCost.value
+
     /**
      * 获取指定动作的分配数量
      * Get allocation amount for a specific action
@@ -82,7 +79,7 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
      * @return 列成本物理量 / Column cost quantity
      */
     fun costQuantity(unit: PhysicalUnit = NoneUnit): CapacityCostQuantity<V> {
-        return Quantity(cost, unit)
+        return Quantity(columnCost.value, unit)
     }
 }
 

@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Flt64MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Flt64MaterialReserves
@@ -136,6 +137,29 @@ class ProduceGenericFltXTest {
     }
 
     @Test
+    fun materialDemandShouldSupportFltXQuantityFields() {
+        val range = ValueRange(
+            lb = FltX("0"),
+            ub = FltX("100"),
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = FltX
+        ).value!!
+        val demand = MaterialDemand<FltX>(
+            quantityRangeValue = Quantity(range, NoneUnit),
+            lessQuantityValue = Quantity(FltX("1.5"), NoneUnit),
+            overQuantityValue = Quantity(FltX("2.5"), NoneUnit)
+        )
+
+        assertTrue(demand.quantity.upperBound.value eq FltX("100"))
+        assertTrue(demand.lessQuantity!! eq FltX("1.5"))
+        assertTrue(demand.overQuantity!! eq FltX("2.5"))
+        assertEquals(NoneUnit, demand.quantityRangeValue.unit)
+        assertEquals(NoneUnit, demand.lessQuantityValue!!.unit)
+        assertEquals(NoneUnit, demand.overQuantityValue!!.unit)
+    }
+
+    @Test
     fun materialReservesQuantityShouldSupportFltX() {
         val range = ValueRange(
             lb = FltX("10"),
@@ -154,6 +178,29 @@ class ProduceGenericFltXTest {
         assertTrue(reserves.quantityRange().value.lowerBound.value eq FltX("10"))
         assertTrue(reserves.lessQuantity()!!.value eq FltX("3.5"))
         assertTrue(reserves.overQuantity()!!.value eq FltX("4.5"))
+    }
+
+    @Test
+    fun materialReservesShouldSupportFltXQuantityFields() {
+        val range = ValueRange(
+            lb = FltX("10"),
+            ub = FltX("200"),
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = FltX
+        ).value!!
+        val reserves = MaterialReserves<FltX>(
+            quantityRangeValue = Quantity(range, NoneUnit),
+            lessQuantityValue = Quantity(FltX("3.5"), NoneUnit),
+            overQuantityValue = Quantity(FltX("4.5"), NoneUnit)
+        )
+
+        assertTrue(reserves.quantity.lowerBound.value eq FltX("10"))
+        assertTrue(reserves.lessQuantity!! eq FltX("3.5"))
+        assertTrue(reserves.overQuantity!! eq FltX("4.5"))
+        assertEquals(NoneUnit, reserves.quantityRangeValue.unit)
+        assertEquals(NoneUnit, reserves.lessQuantityValue!!.unit)
+        assertEquals(NoneUnit, reserves.overQuantityValue!!.unit)
     }
 
     @Test
@@ -177,5 +224,28 @@ class ProduceGenericFltXTest {
         assertTrue(produceQuantity.value eq FltX("6.25"))
         assertEquals(NoneUnit, consumptionQuantity!!.unit)
         assertTrue(consumptionQuantity.value eq FltX("2.75"))
+    }
+
+    @Test
+    fun productionTaskQuantityMapsShouldSupportFltX() {
+        val task = object : ProductionTask<Executor, AssignmentPolicy<Executor>, Material, Material, FltX> {
+            override val index = 1
+            override val id = "produce-quantity-map-task"
+            override val name = "Produce Quantity Map Task"
+            override val produce = mapOf<Material, FltX>(productA to FltX("8.25"))
+            override val consumption = mapOf<Material, FltX>(productB to FltX("4.75"))
+
+            override fun partialEq(rhs: AbstractTask<Executor, AssignmentPolicy<Executor>>): Boolean? {
+                return this === rhs
+            }
+        }
+
+        val produceQuantity = task.produceQuantityByProduct[productA]
+        val consumptionQuantity = task.consumptionQuantityByMaterial[productB]
+
+        assertEquals(NoneUnit, produceQuantity!!.unit)
+        assertTrue(produceQuantity.value eq FltX("8.25"))
+        assertEquals(NoneUnit, consumptionQuantity!!.unit)
+        assertTrue(consumptionQuantity.value eq FltX("4.75"))
     }
 }
