@@ -4,10 +4,12 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -271,6 +273,88 @@ interface ResourceUsage<
     val lessEnabled: Boolean
 
     fun register(model: MetaModel<Flt64>): Try
+
+    /**
+     * 读取已求解资源使用量物理量 / Read solved resource usage quantity
+     *
+     * @param W 目标数值类型 / Target numeric type
+     * @param slot 资源时间槽 / Resource time slot
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 数量单位 / Quantity unit
+     * @return 资源使用量物理量 / Resource usage quantity
+     */
+    fun <W : RealNumber<W>> solvedQuantity(
+        slot: S,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<W>,
+        unit: PhysicalUnit = NoneUnit
+    ): ResourceQuantity<W>? {
+        return quantity[slot].resourceQuantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取已求解资源超量物理量 / Read solved resource over-quantity
+     *
+     * @param W 目标数值类型 / Target numeric type
+     * @param slot 资源时间槽 / Resource time slot
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 数量单位 / Quantity unit
+     * @return 资源超量物理量 / Resource over-quantity
+     */
+    fun <W : RealNumber<W>> solvedOverQuantity(
+        slot: S,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<W>,
+        unit: PhysicalUnit = NoneUnit
+    ): ResourceQuantity<W>? {
+        return overQuantity[slot].resourceQuantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取已求解资源不足量物理量 / Read solved resource less-quantity
+     *
+     * @param W 目标数值类型 / Target numeric type
+     * @param slot 资源时间槽 / Resource time slot
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 数量单位 / Quantity unit
+     * @return 资源不足量物理量 / Resource less-quantity
+     */
+    fun <W : RealNumber<W>> solvedLessQuantity(
+        slot: S,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<W>,
+        unit: PhysicalUnit = NoneUnit
+    ): ResourceQuantity<W>? {
+        return lessQuantity[slot].resourceQuantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+}
+
+private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantityOf(
+    model: MetaModel<Flt64>,
+    adapter: SchedulingSolverValueAdapter<V>,
+    unit: PhysicalUnit
+): ResourceQuantity<V>? {
+    val value = (this as IntermediateSymbol<Flt64>).evaluate(
+        tokenTable = model.tokens,
+        converter = SchedulingSolverValueAdapter.Flt64,
+        zeroIfNone = true
+    ) ?: toLinearPolynomial().constant
+    return Quantity(adapter.intoValue(value), unit)
 }
 
 /**

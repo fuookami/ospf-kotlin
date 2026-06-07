@@ -7,6 +7,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -15,6 +16,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.TaskReverseBuilderV
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.toGeneric
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractPlannedTask
@@ -22,6 +24,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
@@ -49,6 +52,32 @@ class SlotBasedCapacityResultFltXTest {
     private val productA = "product-A"
     private val materialB = "material-B"
     private val resourceC = "resource-C"
+    private val adapter = GenericSolverValueAdapter(FltX)
+
+    @Test
+    fun flt64CapacityIntermediateValuesShouldConvertToGenericQuantityValues() {
+        val result = SlotBasedCapacityResult<ProductionAction, String, String, Flt64>(
+            slot = slot,
+            slotIndex = 0,
+            actionAllocations = emptyList(),
+            totalCostQuantityValue = Quantity(Flt64(12.5), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(Flt64(100.0), NoneUnit)),
+            consumptionQuantityByMaterial = mapOf(materialB to Quantity(Flt64(50.0), NoneUnit)),
+            resourceUsageQuantityByResource = mapOf(resourceC to Quantity(Flt64(75.5), NoneUnit))
+        )
+        val intermediate = CapacityIntermediateValues<ProductionAction, String, String, Flt64>(
+            slots = listOf(slot),
+            results = mapOf(slot to result)
+        )
+
+        val generic = intermediate.toGeneric(adapter)
+
+        assertTrue(generic.results[slot]!!.totalCost eq FltX("12.5"))
+        assertTrue(generic.produceQuantity(slot, productA)!!.value eq FltX("100.0"))
+        assertTrue(generic.consumptionQuantity(slot, materialB)!!.value eq FltX("50.0"))
+        assertTrue(generic.resourceUsageQuantity(slot, resourceC)!!.value eq FltX("75.5"))
+        assertEquals(NoneUnit, generic.results[slot]!!.totalCostQuantityValue.unit)
+    }
 
     @Test
     fun slotBasedCapacityResultShouldSupportFltX() {

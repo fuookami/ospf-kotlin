@@ -6,8 +6,10 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64SlotBasedCapacityResult
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.toGeneric
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
@@ -15,6 +17,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -22,6 +25,8 @@ import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -250,6 +255,41 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
+     * 执行预求解并转换为泛型物理量结果 / Execute pre-solving and convert to generic quantity results
+     *
+     * @param V 目标数值类型 / Target numeric type
+     * @param model 线性元模型 / Linear meta model
+     * @param solver 求解器 / Solver
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param initialColumnsByIteration 按迭代分组的初始列 / Initial columns grouped by iteration
+     * @return 泛型产能中间值 / Generic capacity intermediate values
+     */
+    suspend fun <V> solveGeneric(
+        model: AbstractLinearMetaModel<Flt64>,
+        solver: CapacityPreSolveSolver,
+        adapter: SchedulingSolverValueAdapter<V>,
+        initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A, Flt64>>> = emptyMap()
+    ): Ret<CapacityIntermediateValues<A, M, R, V>> where V : RealNumber<V>, V : PlusGroup<V> {
+        return when (val result = solve(
+            model = model,
+            solver = solver,
+            initialColumnsByIteration = initialColumnsByIteration
+        )) {
+            is Ok -> {
+                Ok(result.value.toGeneric(adapter))
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
+        }
+    }
+
+    /**
      * 提取中间�?
      * Extract intermediate values
      *
@@ -340,6 +380,33 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         }
 
         return Ok(Flt64CapacityIntermediateValues(slots, results))
+    }
+
+    /**
+     * 提取中间值并转换为泛型物理量结果 / Extract intermediate values and convert to generic quantity results
+     *
+     * @param V 目标数值类型 / Target numeric type
+     * @param model 已求解的线性元模型 / Solved linear meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @return 泛型产能中间值 / Generic capacity intermediate values
+     */
+    fun <V> extractIntermediateValuesGeneric(
+        model: AbstractLinearMetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>
+    ): Ret<CapacityIntermediateValues<A, M, R, V>> where V : RealNumber<V>, V : PlusGroup<V> {
+        return when (val result = extractIntermediateValues(model)) {
+            is Ok -> {
+                Ok(result.value.toGeneric(adapter))
+            }
+
+            is Failed -> {
+                Failed(result.error)
+            }
+
+            is Fatal -> {
+                Fatal(result.errors)
+            }
+        }
     }
 }
 

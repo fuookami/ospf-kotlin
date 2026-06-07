@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -130,6 +131,30 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R, V>(
 }
 
 /**
+ * 将 Flt64 时隙产能结果转换为泛型物理量结果 / Convert a Flt64 slot capacity result to a generic quantity result
+ *
+ * @param A 生产动作类型 / Production action type
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
+ * @param V 目标数值类型 / Target numeric type
+ * @param adapter solver 数值适配器 / Solver value adapter
+ * @return 泛型时隙产能结果 / Generic slot capacity result
+ */
+fun <A : ProductionAction, M, R, V> SlotBasedCapacityResult<A, M, R, Flt64>.toGeneric(
+    adapter: SchedulingSolverValueAdapter<V>
+): SlotBasedCapacityResult<A, M, R, V> where V : RealNumber<V>, V : PlusGroup<V> {
+    return SlotBasedCapacityResult(
+        slot = slot,
+        slotIndex = slotIndex,
+        actionAllocations = actionAllocations,
+        totalCostQuantityValue = totalCostQuantityValue.toGeneric(adapter),
+        produceQuantityByProduct = produceQuantityByProduct.mapValues { (_, quantity) -> quantity.toGeneric(adapter) },
+        consumptionQuantityByMaterial = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.toGeneric(adapter) },
+        resourceUsageQuantityByResource = resourceUsageQuantityByResource.mapValues { (_, quantity) -> quantity.toGeneric(adapter) }
+    )
+}
+
+/**
  * 产能中间值集合
  * Capacity intermediate values collection
  *
@@ -167,6 +192,18 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
     }
 
     /**
+     * 获取指定时隙的产品产量物理量
+     * Get product production quantity for specified slot
+     *
+     * @param slot The time slot / 时隙
+     * @param product The product / 产品
+     * @return Production quantity / 产量物理量
+     */
+    fun produceQuantity(slot: TimeSlot, product: M): SlotQuantity<V>? {
+        return results[slot]?.produceQuantityByProduct?.get(product)
+    }
+
+    /**
      * 获取指定时隙的原料消耗
      * Get material consumption for specified slot
      *
@@ -176,6 +213,18 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
      */
     fun consumption(slot: TimeSlot, material: M): V? {
         return results[slot]?.consumptionByMaterial?.get(material)
+    }
+
+    /**
+     * 获取指定时隙的原料消耗物理量
+     * Get material consumption quantity for specified slot
+     *
+     * @param slot The time slot / 时隙
+     * @param material The material / 原料
+     * @return Consumption quantity / 消耗物理量
+     */
+    fun consumptionQuantity(slot: TimeSlot, material: M): SlotQuantity<V>? {
+        return results[slot]?.consumptionQuantityByMaterial?.get(material)
     }
 
     /**
@@ -191,6 +240,18 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
     }
 
     /**
+     * 获取指定时隙的资源使用量物理量
+     * Get resource usage quantity for specified slot
+     *
+     * @param slot The time slot / 时隙
+     * @param resource The resource capacity / 资源容量
+     * @return Resource usage quantity / 资源使用量物理量
+     */
+    fun resourceUsageQuantity(slot: TimeSlot, resource: R): SlotQuantity<V>? {
+        return results[slot]?.resourceUsageQuantityByResource?.get(resource)
+    }
+
+    /**
      * 获取指定时隙的所有约束
      * Get all constraints for specified slot
      *
@@ -202,6 +263,25 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
         val result = results[slot] ?: return null
         return SlotConstraints.from(result, tolerance)
     }
+}
+
+/**
+ * 将 Flt64 产能中间值集合转换为泛型物理量集合 / Convert Flt64 capacity intermediate values to generic quantity values
+ *
+ * @param A 生产动作类型 / Production action type
+ * @param M 物料类型 / Material type
+ * @param R 资源容量类型 / Resource capacity type
+ * @param V 目标数值类型 / Target numeric type
+ * @param adapter solver 数值适配器 / Solver value adapter
+ * @return 泛型产能中间值集合 / Generic capacity intermediate values
+ */
+fun <A : ProductionAction, M, R, V> CapacityIntermediateValues<A, M, R, Flt64>.toGeneric(
+    adapter: SchedulingSolverValueAdapter<V>
+): CapacityIntermediateValues<A, M, R, V> where V : RealNumber<V>, V : PlusGroup<V> {
+    return CapacityIntermediateValues(
+        slots = slots,
+        results = results.mapValues { (_, result) -> result.toGeneric(adapter) }
+    )
 }
 
 /**
@@ -402,3 +482,9 @@ data class SlotConstraints<M, R, V>(
 typealias Flt64SlotBasedCapacityResult<A, M, R> = SlotBasedCapacityResult<A, M, R, Flt64>
 typealias Flt64CapacityIntermediateValues<A, M, R> = CapacityIntermediateValues<A, M, R, Flt64>
 typealias Flt64SlotConstraints<M, R> = SlotConstraints<M, R, Flt64>
+
+private fun <V : RealNumber<V>> Quantity<Flt64>.toGeneric(
+    adapter: SchedulingSolverValueAdapter<V>
+): Quantity<V> {
+    return Quantity(adapter.intoValue(value), unit)
+}

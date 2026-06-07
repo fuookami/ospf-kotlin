@@ -11,6 +11,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ExecutorCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
@@ -82,6 +84,28 @@ private val slot2 = TimeRange(
 )
 
 class AggregationFltXTest {
+    @Test
+    fun capacitySchedulingResultShouldExposeDurationQuantities() {
+        val timeWindow = fltXTimeWindow()
+        val allocation = ActionAllocation(
+            action = FltXTestAction,
+            slot = slot1,
+            slotIndex = 0,
+            amount = UInt64(2),
+            duration = 2.hours
+        )
+        val capacity = ExecutorCapacityResult(
+            executor = fltXTestExecutor,
+            slot = slot1,
+            slotIndex = 0,
+            totalDuration = 3.hours
+        )
+
+        assertTrue(allocation.durationQuantity(timeWindow).value eq FltX("2.0"))
+        assertEquals(NoneUnit, allocation.durationQuantity(timeWindow).unit)
+        assertTrue(capacity.totalDurationQuantity(timeWindow).value eq FltX("3.0"))
+        assertEquals(NoneUnit, capacity.totalDurationQuantity(timeWindow).unit)
+    }
 
     @Test
     fun aggregationShouldSupportFltXTimeWindow() {

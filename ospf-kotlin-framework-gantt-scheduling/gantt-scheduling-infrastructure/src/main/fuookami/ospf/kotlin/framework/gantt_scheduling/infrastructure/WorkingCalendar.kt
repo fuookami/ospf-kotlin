@@ -22,6 +22,9 @@ import kotlinx.datetime.Instant
 import kotlin.math.ceil
 import kotlin.time.Duration
 
+/** 日历时长物理量 / Calendar duration quantity */
+typealias CalendarDurationQuantity<V> = Quantity<V>
+
 /**
  * 工作日历，管理不可用时间和实际时间计算 / Working calendar managing unavailable times and actual time calculations
  *
@@ -47,7 +50,73 @@ open class WorkingCalendar(
         val connectionTimes: List<TimeRange>
     ) {
         val duration: Duration get() = time.duration
+        /** 工作时长 / Working duration */
+        val workingDuration: Duration get() = workingTimes.fold(Duration.ZERO) { acc, time -> acc + time.duration }
+        /** 休息时长 / Break duration */
+        val breakDuration: Duration get() = breakTimes.fold(Duration.ZERO) { acc, time -> acc + time.duration }
+        /** 连接时长 / Connection duration */
+        val connectionDuration: Duration get() = connectionTimes.fold(Duration.ZERO) { acc, time -> acc + time.duration }
         val finishEnabled: Boolean get() = time.start != Instant.DISTANT_PAST && time.end != Instant.DISTANT_FUTURE
+
+        /**
+         * 实际总时长物理量 / Actual total duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 实际总时长物理量 / Actual total duration quantity
+         */
+        fun <V : RealNumber<V>> durationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(duration, unit)
+        }
+
+        /**
+         * 工作时长物理量 / Working duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 工作时长物理量 / Working duration quantity
+         */
+        fun <V : RealNumber<V>> workingDurationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(workingDuration, unit)
+        }
+
+        /**
+         * 休息时长物理量 / Break duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 休息时长物理量 / Break duration quantity
+         */
+        fun <V : RealNumber<V>> breakDurationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(breakDuration, unit)
+        }
+
+        /**
+         * 连接时长物理量 / Connection duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 连接时长物理量 / Connection duration quantity
+         */
+        fun <V : RealNumber<V>> connectionDurationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(connectionDuration, unit)
+        }
 
         infix fun eq(time: TimeRange): Boolean {
             return this.time == time
@@ -85,7 +154,59 @@ open class WorkingCalendar(
         val times: List<TimeRange>,
         val breakTimes: List<TimeRange>,
         val connectionTimes: List<TimeRange>
-    )
+    ) {
+        /** 有效总时长 / Total valid duration */
+        val duration: Duration get() = times.fold(Duration.ZERO) { acc, time -> acc + time.duration }
+        /** 休息总时长 / Total break duration */
+        val breakDuration: Duration get() = breakTimes.fold(Duration.ZERO) { acc, time -> acc + time.duration }
+        /** 连接总时长 / Total connection duration */
+        val connectionDuration: Duration get() = connectionTimes.fold(Duration.ZERO) { acc, time -> acc + time.duration }
+
+        /**
+         * 有效总时长物理量 / Total valid duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 有效总时长物理量 / Total valid duration quantity
+         */
+        fun <V : RealNumber<V>> durationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(duration, unit)
+        }
+
+        /**
+         * 休息总时长物理量 / Total break duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 休息总时长物理量 / Total break duration quantity
+         */
+        fun <V : RealNumber<V>> breakDurationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(breakDuration, unit)
+        }
+
+        /**
+         * 连接总时长物理量 / Total connection duration quantity
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间窗口 / Time window
+         * @param unit 时长单位 / Duration unit
+         * @return 连接总时长物理量 / Total connection duration quantity
+         */
+        fun <V : RealNumber<V>> connectionDurationQuantity(
+            timeWindow: TimeWindow<V>,
+            unit: PhysicalUnit = NoneUnit
+        ): CalendarDurationQuantity<V> {
+            return timeWindow.quantityOf(connectionDuration, unit)
+        }
+    }
 
     companion object {
         /**

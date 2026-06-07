@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
@@ -14,6 +15,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -27,6 +29,9 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
@@ -40,6 +45,91 @@ interface Consumption {
     val lessEnabled: Boolean
 
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
+
+    /**
+     * 读取已求解消耗量物理量 / Read solved consumption quantity
+     *
+     * @param C 原料类型 / Material type
+     * @param V 目标数值类型 / Target numeric type
+     * @param material 原料 / Material
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 数量单位 / Quantity unit
+     * @return 消耗量物理量 / Consumption quantity
+     */
+    fun <C : AbstractMaterial, V : RealNumber<V>> solvedQuantity(
+        material: C,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): MaterialQuantity<V>? {
+        return quantity[material].materialQuantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取已求解消耗超量物理量 / Read solved consumption over-quantity
+     *
+     * @param C 原料类型 / Material type
+     * @param V 目标数值类型 / Target numeric type
+     * @param material 原料 / Material
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 数量单位 / Quantity unit
+     * @return 消耗超量物理量 / Consumption over-quantity
+     */
+    fun <C : AbstractMaterial, V : RealNumber<V>> solvedOverQuantity(
+        material: C,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): MaterialQuantity<V>? {
+        return overQuantity[material].materialQuantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取已求解消耗不足量物理量 / Read solved consumption less-quantity
+     *
+     * @param C 原料类型 / Material type
+     * @param V 目标数值类型 / Target numeric type
+     * @param material 原料 / Material
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 数量单位 / Quantity unit
+     * @return 消耗不足量物理量 / Consumption less-quantity
+     */
+    fun <C : AbstractMaterial, V : RealNumber<V>> solvedLessQuantity(
+        material: C,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): MaterialQuantity<V>? {
+        return lessQuantity[material].materialQuantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+}
+
+private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.materialQuantityOf(
+    model: MetaModel<Flt64>,
+    adapter: SchedulingSolverValueAdapter<V>,
+    unit: PhysicalUnit
+): MaterialQuantity<V>? {
+    val value = (this as IntermediateSymbol<Flt64>).evaluate(
+        tokenTable = model.tokens,
+        converter = SchedulingSolverValueAdapter.Flt64,
+        zeroIfNone = true
+    ) ?: toLinearPolynomial().constant
+    return Quantity(adapter.intoValue(value), unit)
 }
 
 /**

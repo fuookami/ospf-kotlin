@@ -16,11 +16,18 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray.Shape3
 import fuookami.ospf.kotlin.multiarray._a
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+
+/** 切换时间物理量 / Switch time quantity */
+typealias SwitchTimeQuantity<V> = Quantity<V>
 
 /** 切换接口 / Switch interface */
 interface Switch {
@@ -34,6 +41,40 @@ interface Switch {
      * @return 操作结果 / Operation result
      */
     fun register(model: MetaModel<Flt64>): Try
+
+    /**
+     * 读取任务间切换时间物理量 / Read switch time between tasks as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param from 前序任务 / Previous task
+     * @param to 后序任务 / Next task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 切换时间物理量 / Switch time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > switchTimeQuantity(
+        from: T,
+        to: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): SwitchTimeQuantity<V>? {
+        val value = (switchTime[from, to] as IntermediateSymbol<Flt64>).evaluate(
+            tokenTable = model.tokens,
+            converter = SchedulingSolverValueAdapter.Flt64,
+            zeroIfNone = true
+        ) ?: switchTime[from, to].toLinearPolynomial().constant
+        return Quantity(adapter.intoValue(value), unit)
+    }
 }
 
 /**

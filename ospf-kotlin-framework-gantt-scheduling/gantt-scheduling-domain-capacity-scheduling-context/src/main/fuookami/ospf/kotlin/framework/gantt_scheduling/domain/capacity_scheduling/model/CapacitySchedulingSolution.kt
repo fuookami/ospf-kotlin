@@ -6,8 +6,16 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlin.time.Duration
+
+/** 产能时长物理量 / Capacity duration quantity */
+typealias CapacityDurationQuantity<V> = Quantity<V>
 
 /**
  * 动作分配结果
@@ -54,7 +62,22 @@ data class ActionAllocation<A : ProductionAction>(
      * Order (optional)
      */
     val order: Int = 0
-)
+) {
+    /**
+     * 分配时长物理量 / Allocation duration quantity
+     *
+     * @param V 数值类型 / Numeric type
+     * @param timeWindow 时间窗口 / Time window
+     * @param unit 时长单位 / Duration unit
+     * @return 分配时长物理量 / Allocation duration quantity
+     */
+    fun <V : RealNumber<V>> durationQuantity(
+        timeWindow: TimeWindow<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): CapacityDurationQuantity<V> {
+        return timeWindow.quantityOf(duration, unit)
+    }
+}
 
 /**
  * 执行器产能结�?
@@ -87,7 +110,22 @@ data class ExecutorCapacityResult(
      * Total used duration
      */
     val totalDuration: Duration
-)
+) {
+    /**
+     * 总使用时长物理量 / Total used duration quantity
+     *
+     * @param V 数值类型 / Numeric type
+     * @param timeWindow 时间窗口 / Time window
+     * @param unit 时长单位 / Duration unit
+     * @return 总使用时长物理量 / Total used duration quantity
+     */
+    fun <V : RealNumber<V>> totalDurationQuantity(
+        timeWindow: TimeWindow<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): CapacityDurationQuantity<V> {
+        return timeWindow.quantityOf(totalDuration, unit)
+    }
+}
 
 /**
  * 产能调度�?

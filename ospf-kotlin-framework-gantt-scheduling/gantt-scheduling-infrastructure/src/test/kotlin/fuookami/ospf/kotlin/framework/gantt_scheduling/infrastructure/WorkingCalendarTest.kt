@@ -6,16 +6,61 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Gram
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
+import kotlin.time.DurationUnit
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 class WorkingCalendarTest {
+    @Test
+    fun actualTimeShouldExposeGenericDurationQuantities() {
+        val timeWindow = TimeWindow(
+            window = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T16:00:00Z")
+            ),
+            durationUnit = DurationUnit.HOURS,
+            interval = 1.hours,
+            fromDouble = { FltX(it) },
+            toDouble = { it.toDouble() }
+        )
+        val actualTime = WorkingCalendar.ActualTime(
+            time = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T12:00:00Z")
+            ),
+            workingTimes = listOf(
+                TimeRange(
+                    start = Instant.parse("2020-08-30T08:00:00Z"),
+                    end = Instant.parse("2020-08-30T10:00:00Z")
+                )
+            ),
+            breakTimes = listOf(
+                TimeRange(
+                    start = Instant.parse("2020-08-30T10:00:00Z"),
+                    end = Instant.parse("2020-08-30T10:30:00Z")
+                )
+            ),
+            connectionTimes = listOf(
+                TimeRange(
+                    start = Instant.parse("2020-08-30T10:30:00Z"),
+                    end = Instant.parse("2020-08-30T11:00:00Z")
+                )
+            )
+        )
+
+        assert(actualTime.durationQuantity(timeWindow).value eq FltX("4.0"))
+        assert(actualTime.workingDurationQuantity(timeWindow).value eq FltX("2.0"))
+        assert(actualTime.breakDurationQuantity(timeWindow).value eq FltX("0.5"))
+        assert(actualTime.connectionDurationQuantity(timeWindow).value eq FltX("0.5"))
+    }
+
     @Test
     fun testWorkingCalendarActualTime() {
         val calendar1 = WorkingCalendar(

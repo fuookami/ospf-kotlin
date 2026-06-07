@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
@@ -26,14 +27,21 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
+
+/** 任务时间物理量 / Task time quantity */
+typealias TaskTimeQuantity<V> = Quantity<V>
 
 /**
  * 松弛符号构建 / Slack symbol construction
@@ -98,6 +106,205 @@ interface TaskTime {
      * @return 操作结果 / Operation result
      */
     fun register(model: MetaModel<Flt64>): Try
+
+    /**
+     * 读取预估开始时间物理量 / Read estimate start time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 预估开始时间物理量 / Estimate start time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > estimateStartTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return estimateStartTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取预估结束时间物理量 / Read estimate end time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 预估结束时间物理量 / Estimate end time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > estimateEndTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return estimateEndTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取延迟时间物理量 / Read delay time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 延迟时间物理量 / Delay time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > delayTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return delayTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取提前时间物理量 / Read advance time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 提前时间物理量 / Advance time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > advanceTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return advanceTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取延迟最晚结束时间物理量 / Read delay last-end-time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 延迟最晚结束时间物理量 / Delay last-end-time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > delayLastEndTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return delayLastEndTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取提前最早结束时间物理量 / Read advance earliest-end-time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 提前最早结束时间物理量 / Advance earliest-end-time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > advanceEarliestEndTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return advanceEarliestEndTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+}
+
+private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.quantityOf(
+    model: MetaModel<Flt64>,
+    adapter: SchedulingSolverValueAdapter<V>,
+    unit: PhysicalUnit
+): TaskTimeQuantity<V>? {
+    val value = (this as IntermediateSymbol<Flt64>).evaluate(
+        tokenTable = model.tokens,
+        converter = SchedulingSolverValueAdapter.Flt64,
+        zeroIfNone = true
+    ) ?: toLinearPolynomial().constant
+    return Quantity(adapter.intoValue(value), unit)
 }
 
 /**
