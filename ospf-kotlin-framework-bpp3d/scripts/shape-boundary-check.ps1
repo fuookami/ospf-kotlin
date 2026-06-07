@@ -44,6 +44,14 @@ $fixHints = @{
     KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the generic known-coordinate validation path."
     HorizontalCylinderAxisInGenerationOutOfAllowList = "Keep Axis3.X/Z in layer-generation production code limited to the axis-aware CirclePackingLayerGenerator path with verified footprint, support, and solver coverage."
     HorizontalCylinderGenerationGuardMissing = "CirclePackingLayerGenerator must call requireAxisAwareCylinderCandidate so X/Z cylinders can only enter the verified axis-aware candidate path."
+    GeneratedPlacementAdapterGuardMissing = "LayerPlacementAdapter must call requireVerifiedGeneratedCylinderCandidate with ApplicationLayerPlacementCandidate so generated placements cannot bypass axis-aware provenance."
+    DfsMlhsCylinderGuardMissing = "DFS/MLHS cuboid-only search entry points must call the shared requireNoCylinderItemsForCuboidOnlyPath contract through the block-loading guard."
+    SimpleBlockCylinderGuardMissing = "SimpleBlockGenerator must call requireSupportedCylinderItemForSimpleBlock with SimpleBlockCandidate before generating blocks."
+    PackageAttributeSupportGuardMissing = "PackageAttribute.supportPackingShape must call requireUprightVerticalCylinderSupport with PackageAttributeSupport before accepting stacking or hanging support."
+    ItemMergeCylinderGuardMissing = "ItemMerger merge variants must call requireNoCylinderItemsForCuboidOnlyPath with their dedicated CylinderCapabilityPath."
+    PatternPlacementCylinderGuardMissing = "Pattern placement must reject cylinders through the shared cuboid-only unsupported contract."
+    ProgramCandidateShapeSpecGuardMissing = "Layer generation program-demand adapters must preserve PackingProgram.shape.shapeSpec when creating ActualItem instances."
+    MaterialPackerShapeSpecGuardMissing = "MaterialPacker must preserve the selected PackingProgram shapeSpec when it emits packaged ActualItem instances."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
@@ -143,6 +151,34 @@ function Add-TokenViolation {
             }
         } else {
             Mark-AllowSuffixHit -Check $Check -Suffix $matchedSuffix
+        }
+    }
+}
+
+function Add-RequiredPatternViolation {
+    param(
+        [string]$Check,
+        [string]$FilePath,
+        [string]$Pattern,
+        [string]$MissingText
+    )
+
+    if (Test-Path $FilePath) {
+        $content = Get-Content -Path $FilePath -Raw
+        if (-not [regex]::IsMatch($content, $Pattern)) {
+            $script:violations += [PSCustomObject]@{
+                Check = $Check
+                File = $FilePath.Replace("\", "/")
+                Line = 1
+                Text = $MissingText
+            }
+        }
+    } else {
+        $script:violations += [PSCustomObject]@{
+            Check = $Check
+            File = $FilePath.Replace("\", "/")
+            Line = 1
+            Text = "Required file was not found, so guard cannot be verified."
         }
     }
 }
@@ -304,6 +340,70 @@ if (Test-Path $layerGenerationContextPath) {
         Text = "LayerGenerationContext.kt was not found, so CirclePackingLayerGenerator guard cannot be verified."
     }
 }
+
+$layerPlacementAdapterPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/LayerPlacementAdapter.kt"
+Add-RequiredPatternViolation `
+    -Check "GeneratedPlacementAdapterGuardMissing" `
+    -FilePath $layerPlacementAdapterPath `
+    -Pattern "requireVerifiedGeneratedCylinderCandidate\s*\([\s\S]*?CylinderCapabilityPath\.ApplicationLayerPlacementCandidate" `
+    -MissingText "LayerPlacementAdapter.toLayerPlacement must use the shared verified generated candidate guard."
+
+$cylinderUnsupportedGuardPath = Join-Path $scanRoot "bpp3d-domain-block-loading-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/block_loading/service/CylinderUnsupportedGuard.kt"
+Add-RequiredPatternViolation `
+    -Check "DfsMlhsCylinderGuardMissing" `
+    -FilePath $cylinderUnsupportedGuardPath `
+    -Pattern "requireNoCylinderItemsForCuboidOnlyPath\s*\([\s\S]*?CylinderCapabilityPath\.DfsMlhsCuboidSearch" `
+    -MissingText "CylinderUnsupportedGuard must route DFS/MLHS cylinder rejection through the shared cuboid-only contract."
+
+$simpleBlockGeneratorPath = Join-Path $scanRoot "bpp3d-domain-block-loading-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/block_loading/service/SimpleBlockGenerator.kt"
+Add-RequiredPatternViolation `
+    -Check "SimpleBlockCylinderGuardMissing" `
+    -FilePath $simpleBlockGeneratorPath `
+    -Pattern "requireSupportedCylinderItemForSimpleBlock\s*\([\s\S]*?CylinderCapabilityPath\.SimpleBlockCandidate" `
+    -MissingText "SimpleBlockGenerator must use the shared simple-block cylinder contract."
+
+$packageAttributePath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PackageAttribute.kt"
+Add-RequiredPatternViolation `
+    -Check "PackageAttributeSupportGuardMissing" `
+    -FilePath $packageAttributePath `
+    -Pattern "requireUprightVerticalCylinderSupport\s*\([\s\S]*?CylinderCapabilityPath\.PackageAttributeSupport" `
+    -MissingText "PackageAttribute.supportPackingShape must use the shared upright vertical cylinder support contract."
+
+$itemMergerPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/ItemMerger.kt"
+foreach ($mergePath in @(
+    "ItemMerge",
+    "ItemMergePiles",
+    "ItemMergeBlocks",
+    "ItemMergePatternBlocks",
+    "ItemMergeHollowSquareBlocks"
+)) {
+    Add-RequiredPatternViolation `
+        -Check "ItemMergeCylinderGuardMissing" `
+        -FilePath $itemMergerPath `
+        -Pattern "requireNoCylinderItemsForCuboidOnlyPath\s*\([\s\S]*?CylinderCapabilityPath\.$mergePath" `
+        -MissingText "ItemMerger must use the shared cuboid-only contract for CylinderCapabilityPath.$mergePath."
+}
+
+$patternPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Pattern.kt"
+Add-RequiredPatternViolation `
+    -Check "PatternPlacementCylinderGuardMissing" `
+    -FilePath $patternPath `
+    -Pattern "unsupportedCylinderCuboidOnlyPathMessage\s*\([\s\S]*?CylinderCapabilityPath\.PatternPlacement" `
+    -MissingText "Pattern placement must use the shared cuboid-only unsupported contract."
+
+$programCandidateAdapterPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationProgramCandidateAdapters.kt"
+Add-RequiredPatternViolation `
+    -Check "ProgramCandidateShapeSpecGuardMissing" `
+    -FilePath $programCandidateAdapterPath `
+    -Pattern "shapeSpecOverride\s*=\s*program\.shape\.shapeSpec" `
+    -MissingText "LayerGenerationProgramCandidateAdapters must copy PackingProgram.shape.shapeSpec into generated ActualItem."
+
+$materialPackerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/MaterialPacker.kt"
+Add-RequiredPatternViolation `
+    -Check "MaterialPackerShapeSpecGuardMissing" `
+    -FilePath $materialPackerPath `
+    -Pattern "shapeSpecOverride\s*=\s*pack\.shape\.shapeSpec" `
+    -MissingText "MaterialPacker must copy the selected package shapeSpec into emitted ActualItem."
 
 $packerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/Packer.kt"
 if (Test-Path $packerPath) {

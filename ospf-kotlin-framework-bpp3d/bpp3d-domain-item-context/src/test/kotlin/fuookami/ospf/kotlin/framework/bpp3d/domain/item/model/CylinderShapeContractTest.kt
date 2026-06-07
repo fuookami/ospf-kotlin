@@ -75,6 +75,9 @@ class CylinderShapeContractTest {
         val axisAware = CylinderCapabilityPath.entries.filter { path ->
             path.status == CylinderCapabilityStatus.AxisAwareCandidate
         }
+        val verifiedPlacement = CylinderCapabilityPath.entries.filter { path ->
+            path.status == CylinderCapabilityStatus.VerifiedGeneratedPlacement
+        }
         val support = CylinderCapabilityPath.entries.filter { path ->
             path.status == CylinderCapabilityStatus.UprightVerticalSupportOnly
         }
@@ -86,6 +89,10 @@ class CylinderShapeContractTest {
         assertTrue(cuboidOnly.all { path -> path.pathPredicate != null })
         assertTrue(generated.any { path -> path == CylinderCapabilityPath.DefaultLayerCandidate })
         assertTrue(axisAware.any { path -> path == CylinderCapabilityPath.CirclePackingCandidate })
+        assertEquals(
+            expected = setOf(CylinderCapabilityPath.ApplicationLayerPlacementCandidate),
+            actual = verifiedPlacement.toSet()
+        )
         assertTrue(support.any { path -> path == CylinderCapabilityPath.PackageAttributeSupport })
         assertEquals(
             expected = setOf(
@@ -94,6 +101,31 @@ class CylinderShapeContractTest {
             ),
             actual = finalValidation.toSet()
         )
+    }
+
+    @Test
+    fun verifiedGeneratedPlacementShouldRejectUnverifiedHorizontalCylinderCandidate() {
+        requireVerifiedGeneratedCylinderCandidate(
+            shape = cylinderShape(Axis3.Y),
+            verifiedAxisAwareCandidate = false,
+            path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
+        )
+        requireVerifiedGeneratedCylinderCandidate(
+            shape = cylinderShape(Axis3.X),
+            verifiedAxisAwareCandidate = true,
+            path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            requireVerifiedGeneratedCylinderCandidate(
+                shape = cylinderShape(Axis3.Z),
+                verifiedAxisAwareCandidate = false,
+                path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
+            )
+        }
+
+        assertTrue(error.message?.contains("LayerPlacementAdapter.toLayerPlacement") == true)
+        assertTrue(error.message?.contains("verified axis-aware generated candidates") == true)
     }
 
     @Test

@@ -7,11 +7,10 @@
 
 ## 1. 已完成事项摘要
 
-1. 已完成竖直圆柱生产基础能力、横向圆柱已知坐标终态能力、真实几何校验、renderer metadata、depth boundary 后验硬校验和 CSV/Gurobi shape metadata 的基础闭环。
-2. 已完成圆柱 unsupported contract、known-coordinate final path、renderer final path、depth boundary final path、业务层泛型泄漏和几何模块边界的主要门禁。
-3. 已完成 dynamic radius/diameter 离散候选能力；连续半径优化明确保持非生产能力，并有防误用测试保护。
-4. 已完成固定半径/离散半径 `Axis3.X` / `Axis3.Z` 横向圆柱 axis-aware circle-packing 候选生成、application/CSV 输入、column generation/Gurobi 选择、final geometry、renderer schema、README 和脚本门禁闭环。
-5. 已完成 BPP3D 必跑门禁、focused tests 和触发式 Gurobi 验收的同步验证，且 BPP3D 改动保持独立。
+1. 已完成竖直圆柱、横向圆柱 axis-aware generated path、已知坐标终态路径、真实几何校验、renderer metadata、depth boundary 和 CSV/Gurobi shape metadata 的基础闭环。
+2. 已完成圆柱能力矩阵、unsupported contract、generated candidate provenance、cuboid-only search/merge、支撑语义、packing program/material packing shape metadata 和脚本门禁的主要收口。
+3. 已完成离散半径/直径候选能力；连续半径优化、任意 3D 旋转和无法证明支撑安全的路径继续保持非生产能力。
+4. 已完成 BPP3D focused tests、边界脚本、文档矩阵和触发式验收口径的同步维护，BPP3D 改动保持独立。
 
 ## 2. 总目标与下一轮方向
 
@@ -21,96 +20,93 @@
 
 ### 2.2 下一轮主目标
 
-下一轮选择 **剩余搜索/生成/支撑路径的 shape-aware contract 全面收口** 作为主目标。
+下一轮选择 **CSV/Gurobi/final validation/dataset 全链路收口** 作为主目标。
 
-目标是在保留本轮已开放的 X/Z 横向圆柱 axis-aware circle-packing 生产路径的前提下，一次性审计并收口 DFS/MLHS、block loading、BLA placement、pattern、pile、stacking、hanging、item merge、packing program 和 material packing 相关边界。能用现有真实几何与支撑 guard 证明安全的路径继续开放；无法证明的路径统一落到共享 unsupported contract、negative tests 和脚本门禁。
+目标是在保留当前 X/Z 横向圆柱 axis-aware generated path 和 known-coordinate final path 的前提下，一次性扩展 application 输入、CSV dataset suite、Gurobi column generation、final MILP 后验校验、renderer fixture 口径和文档矩阵。所有非法输入、非法列、非法 shape spec、混轴、缺失半径、连续半径误用、cuboid-only 路径误入和 final geometry 失败场景都必须进入可复现验收。
 
 ### 2.3 下一轮能力边界
 
-1. 已开放的固定半径/离散半径 X/Z 横向圆柱 circle-packing generated path 必须保持生产能力。
-2. 连续半径优化、任意 3D 旋转、隐式混轴同层生成、横向圆柱 stacking/hanging 自动支撑生成默认仍非生产能力，除非本轮能完成完整闭环。
-3. DFS/MLHS、block loading、pattern、pile、merge、stacking、hanging 不能绕过 `CylinderShapeContract`、`PackingGeometryContract` 或 generated candidate contract。
-4. generated candidate path、known-coordinate final path、renderer final path 和 cuboid-only search path 必须保持语义分离，不能互相复用白名单。
+1. 已开放的固定半径/离散半径 X/Z 横向圆柱 circle-packing generated path 与 known-coordinate final path 必须保持生产能力。
+2. 连续半径优化、任意 3D 旋转、隐式混轴同层生成、横向圆柱 stacking/hanging 自动支撑生成默认仍非生产能力。
+3. CSV、application DTO、program demand 和 material packing 只能传递 shape metadata，不能绕过 generated candidate provenance、known-coordinate final geometry 或 cuboid-only contract。
+4. final MILP、renderer schema、depth boundary、same-layer axis 和 real packing geometry 后验校验必须保持语义分离。
 5. 若 renderer DTO、fixture、adapter 或显示语义无变化，不触发外部 renderer 修改；若发生变化，必须同步外部 renderer 验收。
 
 ## 3. 下一轮事项
 
-### 3.1 Contract 与边界脚本
+### 3.1 CSV 与 Application 输入收口
 
-1. 梳理所有剩余路径对 `CylinderCapabilityPath`、generated candidate、known-coordinate final、cuboid-only search、support semantics 的使用。
-2. 补齐 `CylinderShapeContract` 中缺失的路径分类、统一错误信息和能力状态命名。
-3. 扩展 `shape-boundary-check.ps1`，覆盖 DFS/MLHS、block loading、BLA、pattern、pile、merge、stacking、hanging 和 application 入口的绕过风险。
-4. 保持 stale allowlist 检查有效，避免门禁只增不减。
+1. 审计 grouped-layer、material-width-amount、program demand 和 application direct input 的 shape metadata 入口。
+2. 扩展 CSV dataset suite，覆盖横向圆柱非法路径、混轴同层、缺失半径、非法半径区间、连续半径误用、未知列、重复列、文件名 schema mismatch 和 cuboid-only 路径误入。
+3. 保证 material-width-amount、packing program candidate 和 application DTO 对 `PackageShapeSpec` 的解释一致。
+4. 对所有 schema/shape 配置错误补统一错误文案和 focused negative tests。
 
-### 3.2 生成与搜索路径收口
+### 3.2 Gurobi 与 Column Generation 收口
 
-1. 审计 `BlockLayerGenerator`、`BLLocalLayerGenerator`、`BLGlobalLayerGenerator`、`PatternLayerGenerator`、`PileLayerGenerator`、`SimpleBlockGenerator` 和 DFS/MLHS 搜索路径。
-2. 对不能证明 shape-aware 几何正确性的路径统一拒绝圆柱或横向圆柱，并补 negative tests。
-3. 对可证明的单件、贴地、固定轴向 generated path，必须通过 shared contract、真实几何 guard、layer placement adapter、final MILP 和 renderer schema 后再开放。
-4. 明确 mixed shape / mixed axis / same-layer axis policy，避免隐式混用圆柱轴向。
+1. 审计 column generation 候选生成、列选择、program demand、shadow price scoring 和 final layer placement adapter 的 shape-aware 合同。
+2. 保证 X/Z 横向圆柱只从 verified axis-aware generated candidate 进入 application layer placement。
+3. 扩展触发式 Gurobi suite，覆盖合法横向圆柱、非法横向圆柱、动态半径、program demand shape metadata 和 final validation 失败场景。
+4. 若 Gurobi 不可用，必须保留 skip/trigger 语义并给出可复现的非 Gurobi fallback 验收。
 
-### 3.3 支撑、堆叠与合并路径
+### 3.3 Final Validation 与 Renderer 口径收口
 
-1. 收口 `PackageAttribute.supportPackingShape`、stacking、hanging、pile support、item merge、pattern merge、block merge 和 hollow-square merge 的圆柱边界。
-2. 横向圆柱若无全长支撑证明，不允许进入 stacking/hanging 自动生成路径。
-3. 已知坐标下的横向圆柱全长长方体支撑能力保留，并补与 generated path 不冲突的回归测试。
-4. 材料打包、packing program candidate、CSV program demand 若涉及 shape spec，必须与 item path 的圆柱能力一致。
+1. 保证 final MILP 后仍执行 same-layer axis、depth boundary 和 `PackingGeometryGuard` 后验校验。
+2. 扩展 final packing/renderer fixture，覆盖 X/Z 横向圆柱、动态半径实际体积、全长支撑、无支撑拒绝和混轴拒绝。
+3. 若 renderer schema 无变化，仅更新仓内测试与 README；若 schema 有变化，同步外部 renderer build/typecheck/Rust/视觉验收。
+4. 保持 known-coordinate final path 与 generated candidate path 的白名单分离。
 
-### 3.4 Application、Gurobi、Renderer 与文档
+### 3.4 边界脚本与文档
 
-1. 扩展 CSV/Gurobi dataset suite，覆盖横向圆柱非法路径、混轴同层、缺失半径、连续半径误用、未知列、重复列和 cuboid-only 路径误入。
-2. 保证 final MILP 后仍执行 depth boundary、same-layer axis 和 final packing geometry 后验校验。
-3. README、README_ch 与脚本门禁同步描述剩余路径的支持矩阵。
-4. 若 renderer 输出语义变化，更新仓内 fixture 并执行外部 renderer build/typecheck/Rust/视觉验收。
+1. 扩展 `shape-boundary-check.ps1`，覆盖 CSV/application/Gurobi/final validation 的绕过风险。
+2. 保持 `generic-boundary-check.ps1`、`geometry-boundary-check.ps1` 和 stale allowlist 检查有效。
+3. README、README_ch 与 `refactor.md` 同步说明支持矩阵、unsupported 矩阵和验收入口。
+4. 清理已被脚本覆盖的临时说明，避免文档与代码能力口径分叉。
 
 ## 4. 下一轮执行计划
 
-1. **全路径审计**：先列出 DFS/MLHS、block loading、BLA、pattern、pile、merge、stacking、hanging、packing program 和 material packing 的圆柱入口与现有 guard。
-2. **共享 contract 收口**：补齐缺失的 `CylinderCapabilityPath` / unsupported message / script gate，先让违规路径以统一错误失败。
-3. **可开放路径评估**：只对能完整证明 footprint、support、solver、renderer 的路径开放；否则保持 unsupported，并补 focused negative tests。
-4. **Gurobi 与 dataset 扩展**：把非法路径、混轴、动态半径和 CSV schema 场景纳入普通回归或触发式 dataset suite。
-5. **文档与验收**：更新 README、README_ch、refactor.md，跑必跑门禁、focused tests、全量 test 和被触发的 Gurobi/renderer 验收。
-6. **独立提交**：只提交 BPP3D 本轮改动，不混入非 BPP3D 或未触发的外部 renderer 改动。
+1. **入口审计**：列出 application DTO、CSV loader、dataset suite、program demand、material packing 和 Gurobi test 的 shape metadata 入口。
+2. **非法场景补齐**：先补 dataset/negative tests，确保非法 shape、非法列、混轴和 cuboid-only 误入都稳定失败。
+3. **合法场景回归**：扩展合法 X/Z generated candidate、dynamic radius、program demand 和 final renderer fixture 覆盖。
+4. **后验校验加固**：确认 final MILP 后的 same-layer axis、depth boundary 和 packing geometry guard 不可绕过。
+5. **文档与门禁同步**：更新 README、README_ch、refactor.md 和边界脚本。
+6. **独立提交**：执行必跑门禁与触发式 Gurobi/renderer 验收，只提交 BPP3D 本轮改动。
 
 ## 5. 修改清单
 
-1. `bpp3d-domain-item-context/src/main/**/*`
-2. `bpp3d-domain-item-context/src/test/**/*`
-3. `bpp3d-domain-layer-generation-context/src/main/**/*`
-4. `bpp3d-domain-layer-generation-context/src/test/**/*`
-5. `bpp3d-domain-layer-assignment-context/src/main/**/*`
-6. `bpp3d-domain-layer-assignment-context/src/test/**/*`
-7. `bpp3d-domain-block-loading-context/src/main/**/*`
-8. `bpp3d-domain-block-loading-context/src/test/**/*`
-9. `bpp3d-domain-bla-context/src/main/**/*`
-10. `bpp3d-domain-bla-context/src/test/**/*`
-11. `bpp3d-domain-packing-context/src/main/**/*`
-12. `bpp3d-domain-packing-context/src/test/**/*`
-13. `bpp3d-application/src/main/**/*`
-14. `bpp3d-application/src/test/**/*`
-15. `bpp3d-application/src/gurobi-test/**/*`
-16. `bpp3d-application/src/test/resources/gurobi/*`
-17. `bpp3d-infrastructure/src/main/**/*`
-18. `bpp3d-infrastructure/src/test/**/*`
-19. `bpp3d-infrastructure/src/test/resources/renderer/*`
-20. `scripts/*.ps1`
-21. `README.md`
-22. `README_ch.md`
-23. `refactor.md`
-24. 外部工程：`E:\workspace\ospf\framework\bpp3d-interface-renderer`，仅在 renderer DTO、fixture、adapter 或显示语义变化时修改。
+1. `bpp3d-application/src/main/**/*`
+2. `bpp3d-application/src/test/**/*`
+3. `bpp3d-application/src/gurobi-test/**/*`
+4. `bpp3d-application/src/test/resources/gurobi/*`
+5. `bpp3d-domain-layer-generation-context/src/main/**/*`
+6. `bpp3d-domain-layer-generation-context/src/test/**/*`
+7. `bpp3d-domain-layer-assignment-context/src/main/**/*`
+8. `bpp3d-domain-layer-assignment-context/src/test/**/*`
+9. `bpp3d-domain-packing-context/src/main/**/*`
+10. `bpp3d-domain-packing-context/src/test/**/*`
+11. `bpp3d-domain-item-context/src/main/**/*`
+12. `bpp3d-domain-item-context/src/test/**/*`
+13. `bpp3d-infrastructure/src/main/**/*`
+14. `bpp3d-infrastructure/src/test/**/*`
+15. `bpp3d-infrastructure/src/test/resources/renderer/*`
+16. `scripts/*.ps1`
+17. `README.md`
+18. `README_ch.md`
+19. `refactor.md`
+20. 外部工程：`E:\workspace\ospf\framework\bpp3d-interface-renderer`，仅在 renderer DTO、fixture、adapter 或显示语义变化时修改。
 
 ## 6. 验收标准
 
-1. 已开放的 X/Z 横向圆柱 generated candidate path 不回退，application/CSV/Gurobi/final geometry/renderer schema 仍全部通过。
-2. DFS/MLHS、block loading、BLA、pattern、pile、merge、stacking、hanging、packing program 和 material packing 的圆柱边界均已分类：开放、unsupported 或明确阻断。
-3. 所有 unsupported 路径使用共享 contract 文案，且有 negative tests 和脚本门禁保护。
+1. 已开放的 X/Z 横向圆柱 generated candidate path 与 known-coordinate final path 不回退。
+2. CSV/application/program/material packing 的 shape metadata 与 item path 能力一致。
+3. Gurobi dataset suite 覆盖合法路径、非法路径、schema 错误、混轴、动态半径和 final validation 失败场景。
 4. generated candidate path、known-coordinate final path、renderer final path 和 cuboid-only search path 没有白名单复用或绕过。
-5. mixed axis、same-layer axis、横向圆柱支撑、depth boundary 和 final geometry 后验校验均有回归覆盖。
-6. README、README_ch、refactor.md 与代码能力口径一致。
-7. BPP3D 必跑门禁全部通过。
-8. 修改 application、CSV、shape spec、depth boundary、solver 或 Gurobi 相关代码时，触发式 Gurobi 验收全部通过。
-9. 修改 renderer DTO、fixture、packing renderer adapter 或显示语义时，外部 renderer build/typecheck/Rust/视觉验收全部完成并记录。
-10. BPP3D 改动独立提交，不混入非 BPP3D 或未触发的外部 renderer 改动。
+5. same-layer axis、横向圆柱支撑、depth boundary、final geometry 和 renderer schema 均有回归覆盖。
+6. 所有 unsupported 路径使用共享 contract 文案，且有 negative tests 和脚本门禁保护。
+7. README、README_ch、refactor.md 与代码能力口径一致。
+8. BPP3D 必跑门禁全部通过。
+9. 触发式 Gurobi 验收全部通过或明确记录环境性 skip 条件。
+10. 修改 renderer DTO、fixture、packing renderer adapter 或显示语义时，外部 renderer build/typecheck/Rust/视觉验收全部完成并记录。
+11. BPP3D 改动独立提交，不混入非 BPP3D 或未触发的外部 renderer 改动。
 
 ## 7. 必跑门禁
 

@@ -21,11 +21,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementO
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.unsupportedGeneratedHorizontalCylinderSourceMessage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerifiedGeneratedCylinderCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
  * 统一创建 BinLayer 的放置对象。
@@ -98,21 +95,14 @@ internal fun Item.toItemPlacement(
  */
 internal fun ensureGeneratedCylinderCandidatePath(layer: BinLayer) {
     for (placement in layer.units) {
-        val item = placement.unit as? Item ?: continue
-        val shape = placement.resolvedPackingShape()
-        if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
-            if (layer.from != CirclePackingLayerGenerator::class) {
-                throw IllegalArgumentException(
-                    unsupportedGeneratedHorizontalCylinderSourceMessage(
-                        source = CylinderCapabilityPath.ApplicationLayerPlacementCandidate.source
-                    )
-                )
-            }
-        } else {
-            requireVerticalCylinderAxis(
-                shape = item.packingShape,
-                path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
-            )
+        if (placement.unit !is Item) {
+            continue
         }
+        val shape = placement.resolvedPackingShape()
+        requireVerifiedGeneratedCylinderCandidate(
+            shape = shape,
+            verifiedAxisAwareCandidate = layer.from == CirclePackingLayerGenerator::class,
+            path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
+        )
     }
 }

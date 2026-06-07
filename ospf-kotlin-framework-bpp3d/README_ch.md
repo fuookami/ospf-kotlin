@@ -54,6 +54,7 @@
 | simple block generation | 支持 | 仅支持直立 `Axis3.Y` 圆柱 | 不支持 |
 | DFS / MLHS space splitting | 支持 cuboid-only 路径 | 不支持 | 不支持 |
 | stacking / hanging 支撑语义 | 支持长方体语义 | 仅在明确 guard 的直立 `Axis3.Y` 支撑检查中受限支持 | 不支持 |
+| packing program / material packing | 支持，并在生成 item 时保留 `PackingProgram.shape.shapeSpec` | 作为 item shape metadata 保留；后续能力服从 item/generated/final-path guard | 作为 item shape metadata 保留；仅 axis-aware generated 或已知坐标终态路径可开放 |
 | depth boundary policy | application 层最终校验 | application 层最终校验 | 仅在已知坐标存在后做 application 层最终校验 |
 
 ## CSV 输入协议（Gurobi 数据集）

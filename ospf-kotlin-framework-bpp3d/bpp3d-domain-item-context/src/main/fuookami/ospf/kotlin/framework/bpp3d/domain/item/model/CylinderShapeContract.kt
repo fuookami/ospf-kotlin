@@ -27,6 +27,9 @@ enum class CylinderCapabilityStatus {
     /** 轴向感知候选生成路径。 / Axis-aware candidate path. */
     AxisAwareCandidate,
 
+    /** 已验证候选放置适配路径。 / Verified generated-candidate placement adapter path. */
+    VerifiedGeneratedPlacement,
+
     /** 支撑语义路径，仅支持直立竖直圆柱。 / Support semantics path, upright vertical-cylinder-only. */
     UprightVerticalSupportOnly,
 
@@ -60,7 +63,7 @@ enum class CylinderCapabilityPath(
     ),
     ApplicationLayerPlacementCandidate(
         source = "LayerPlacementAdapter.toLayerPlacement",
-        status = CylinderCapabilityStatus.VerticalCandidateOnly
+        status = CylinderCapabilityStatus.VerifiedGeneratedPlacement
     ),
     PileSupportCandidate(
         source = "PileLayerGenerator",
@@ -144,6 +147,27 @@ fun unsupportedCylinderAxisMessage(source: String, axis: Axis3): String {
  */
 fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String {
     return "Unsupported horizontal cylinder in $source: only verified axis-aware generated candidates are allowed."
+}
+
+/**
+ * 要求横向圆柱候选放置来自已验证的轴向感知生成路径。
+ * Require horizontal cylinder candidate placement to come from verified axis-aware generation.
+ *
+ * @param shape 装箱形状 / packing shape
+ * @param verifiedAxisAwareCandidate 是否为已验证轴向感知候选 / whether it is a verified axis-aware candidate
+ * @param path 能力路径 / capability path
+ */
+fun requireVerifiedGeneratedCylinderCandidate(
+    shape: PackingShape3<InfraNumber>,
+    verifiedAxisAwareCandidate: Boolean,
+    path: CylinderCapabilityPath
+) {
+    require(path.status == CylinderCapabilityStatus.VerifiedGeneratedPlacement) {
+        "Cylinder capability path ${path.name} is not a verified generated placement path."
+    }
+    if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y && !verifiedAxisAwareCandidate) {
+        throw IllegalArgumentException(unsupportedGeneratedHorizontalCylinderSourceMessage(source = path.source))
+    }
 }
 
 /**

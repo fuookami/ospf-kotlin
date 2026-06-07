@@ -6,16 +6,19 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -72,6 +75,51 @@ class LayerGenerationProgramCandidateAdaptersTest {
         assertEquals(Orientation.Upright, item.enabledOrientations.first())
         assertEquals(UInt64(3), item.materialAmounts[material.key])
         assertEquals(6.0, item.materialWeights[material.key]!!.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun programCandidateShouldPreserveCylinderShapeSpecForLayerGenerationItem() {
+        val material = Material(
+            no = MaterialNo("M-PROG-CYLINDER"),
+            type = MaterialType.RawMaterial,
+            cargo = cargo,
+            name = "M-PROG-CYLINDER",
+            weight = infraScalar(2.0) * Kilogram
+        )
+        val radius = infraScalar(0.5) * Meter
+        val program = PackingProgram.innerPackageWithMaterialValues(
+            shape = PackageShape(
+                width = infraScalar(1.0) * Meter,
+                height = infraScalar(1.2) * Meter,
+                depth = infraScalar(1.0) * Meter,
+                weight = infraScalar(0.2) * Kilogram,
+                packageType = PackageType.CartonContainer,
+                shapeSpec = PackageShapeSpec.VerticalCylinder(
+                    radius = radius,
+                    axis = Axis3.Y
+                )
+            ),
+            materials = mapOf(
+                material.key to PackingProgramMaterialValue(
+                    amount = UInt64(3)
+                )
+            )
+        )
+        val candidate = MaterialPackingProgramCandidate(
+            id = "candidate-cylinder",
+            program = program,
+            itemName = "candidate-cylinder-item"
+        )
+
+        val item = candidate.toLayerGenerationItem(
+            sequence = 9,
+            materialCatalog = mapOf(material.key to material)
+        )
+        val shape = item.packingShape
+
+        assertTrue(shape is CylinderPackingShape3)
+        assertEquals(Axis3.Y, shape.axis)
+        assertEquals(0.5, shape.radius.value.toDouble(), 1e-10)
     }
 
     @Test

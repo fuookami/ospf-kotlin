@@ -296,7 +296,8 @@ class MaterialPacker(
                 enabledOrientations = candidate.enabledOrientations,
                 batchNo = candidate.batchNo,
                 warehouse = candidate.warehouse,
-                packageAttribute = packageAttribute
+                packageAttribute = packageAttribute,
+                shapeSpecOverride = pack.shape.shapeSpec
             )
             packagedItems.add(
                 PackagedItem(

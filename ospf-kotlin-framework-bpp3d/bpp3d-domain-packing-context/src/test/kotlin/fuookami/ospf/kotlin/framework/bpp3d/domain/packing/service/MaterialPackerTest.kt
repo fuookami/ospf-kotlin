@@ -4,17 +4,20 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttri
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingDemand
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -159,6 +162,44 @@ class MaterialPackerTest {
         assertEquals(2, plan.packages.size)
         assertTrue(plan.packages.any { it.pending })
         assertTrue(plan.packages.any { !it.pending })
+    }
+
+    @Test
+    fun shouldPreserveCylinderShapeSpecOnPackagedItems() = runBlocking {
+        val material = material("M-CYLINDER", InfraNumber.one)
+        val radius = infraScalar(0.5) * Meter
+        val plan = MaterialPacker().plan(
+            demands = listOf(
+                MaterialPackingDemand(
+                    material = material,
+                    amount = UInt64.one
+                )
+            ),
+            candidates = listOf(
+                MaterialPackingProgramCandidate(
+                    id = "pack-cylinder",
+                    program = PackingProgram.innerPackage(
+                        shape = PackageShape(
+                            width = infraScalar(1.0) * Meter,
+                            height = infraScalar(1.2) * Meter,
+                            depth = infraScalar(1.0) * Meter,
+                            weight = infraScalar(1.0) * Kilogram,
+                            packageType = PackageType.CartonContainer,
+                            shapeSpec = PackageShapeSpec.VerticalCylinder(
+                                radius = radius,
+                                axis = Axis3.Y
+                            )
+                        ),
+                        materials = mapOf(material.key to UInt64.one)
+                    )
+                )
+            )
+        )
+        val shape = plan.packagedItems.single().item.packingShape
+
+        assertTrue(shape is CylinderPackingShape3)
+        assertEquals(Axis3.Y, shape.axis)
+        assertEquals(0.5, shape.radius.value.toDouble(), 1e-10)
     }
 
     @Test

@@ -54,6 +54,7 @@ Candidate-generation, cuboid-only search/merge, support checks, known-coordinate
 | Simple block generation | Supported | Supported only for upright `Axis3.Y` cylinders | Unsupported |
 | DFS / MLHS space splitting | Supported cuboid-only path | Unsupported | Unsupported |
 | Stacking / hanging support semantics | Supported cuboid semantics | Limited to upright `Axis3.Y` support checks where explicitly guarded | Unsupported |
+| Packing program / material packing | Supported and preserves `PackingProgram.shape.shapeSpec` when emitting items | Preserved as item shape metadata; downstream support follows item/generated/final-path guards | Preserved as item shape metadata; only axis-aware generated or known-coordinate final paths may open it |
 | Depth boundary policy | Application-level final validation | Application-level final validation | Application-level final validation only after known coordinates exist |
 
 ## CSV Input Protocol (Gurobi Dataset)

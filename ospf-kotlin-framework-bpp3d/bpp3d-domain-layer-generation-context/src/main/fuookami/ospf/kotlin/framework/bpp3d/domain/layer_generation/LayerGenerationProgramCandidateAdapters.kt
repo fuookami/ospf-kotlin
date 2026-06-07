@@ -72,6 +72,7 @@ fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
         batchNo = batchNo,
         warehouse = warehouse,
         packageAttribute = packageAttribute ?: defaultProgramPackageAttribute(program.packageType),
+        shapeSpecOverride = program.shape.shapeSpec,
         materialAmountsOverride = program.materialAmounts(),
         materialWeightsOverride = program.materialWeights(materialCatalog)
     )

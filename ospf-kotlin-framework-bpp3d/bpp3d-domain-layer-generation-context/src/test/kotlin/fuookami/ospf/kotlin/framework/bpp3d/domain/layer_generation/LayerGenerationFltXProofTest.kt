@@ -756,6 +756,49 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun blockLoadingLayerGeneratorsShouldRejectHorizontalCylinderAxesWithBin() = runBlocking {
+        val generators: List<Pair<String, Bpp3dLayerGenerator<InfraNumber>>> = listOf(
+            "block" to BlockLayerGenerator<InfraNumber>(),
+            "bl-local" to BLLocalLayerGenerator<InfraNumber>(),
+            "bl-global" to BLGlobalLayerGenerator<InfraNumber>(),
+            "pattern" to PatternLayerGenerator<InfraNumber>()
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(2.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-BLOCK-LOADING-HORIZONTAL-CYLINDER"
+        )
+
+        for ((source, generator) in generators) {
+            for (axis in listOf(Axis3.X, Axis3.Z)) {
+                val item = cylinderItem(
+                    id = "item-$source-block-loading-$axis",
+                    axis = axis
+                )
+
+                val error = assertFailsWith<IllegalArgumentException> {
+                    generator.generate(
+                        Bpp3dLayerGenerationRequest(
+                            iteration = 0,
+                            bin = bin,
+                            items = listOf(item),
+                            maxCandidates = 4
+                        )
+                    )
+                }
+
+                assertTrue(error.message?.contains("SimpleBlockGenerator") == true)
+                assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+                assertTrue(error.message?.contains("$axis") == true)
+            }
+        }
+    }
+
+    @Test
     fun circlePackingLayerGeneratorShouldGeneratePackedLayersWhenBinProvided() = runBlocking {
         val material = GenericMaterial(
             no = MaterialNo("M-CIRCLE"),
