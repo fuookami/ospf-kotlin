@@ -40,7 +40,7 @@
 
 1. depth boundary 明确不下沉为 MILP 原生约束，原因是 first/last depth layer 由最终选中列和堆叠顺序共同决定，MILP 原生化需要把每个箱子的层序、首尾位置和 mixed shape 轴向/朝向选择全部提升为原生变量，当前会显著扩大模型并与横向圆柱 known-coordinate final path 的边界不一致。
 2. depth boundary 保留为 application 层最终硬校验，覆盖 final MILP selected bins 和 generic known-coordinate final bins；它不是候选生成过滤器，也不是 RMP 或部分 MILP 约束。
-3. CSV/Gurobi、layer assignment、application request、axis metadata、dynamic radius/diameter、volume 和 layer key 的生产口径保持一致；连续半径优化继续保持非生产能力。
+3. CSV/Gurobi、layer assignment、application request、axis metadata、dynamic radius/diameter、volume 和 layer key 的生产口径保持一致；连续半径优化继续保持非生产能力，`radiusWeightFunctionKey` 仅作为 metadata 保留，不触发默认生产链路的连续候选或隐式优化。
 4. Known-coordinate final path 已覆盖 mixed shape、multi-bin、depth boundary、横向圆柱支撑、axis mixing、same-layer policy 和旧数据兼容边界。
 5. 本轮没有修改 renderer DTO、fixture、packing renderer adapter 或显示语义，因此未触发外部 renderer build/typecheck/Rust/视觉验收。
 6. 四个边界/几何脚本用于防止新增 shape-sensitive 行为绕过共享 contract 或 allowlist。
@@ -80,7 +80,7 @@
 
 1. 统一 grouped-layer、material-width-amount、旧格式、混装、竖直圆柱、横向圆柱 metadata、dynamic radius/diameter 和 shape policy 的解释。
 2. 扩展 CSV dataset suite，覆盖非法 axis、非法 orientation、非法 policy、缺失字段、重复字段、未知字段和 schema 混用。
-3. 对连续半径优化做最终生产决策；不能完整闭环则继续保持非生产能力并补防误用测试。
+3. 对连续半径优化做最终生产决策；不能完整闭环则继续保持非生产能力，并已补 `PackageShapeSpecTest.verticalCylinderRadiusWeightFunctionKeyShouldRemainMetadataOnly` 防误用测试。
 4. 对 layer assignment 的 material identity、layer identity、volume、actualVolume 和 shape metadata 做一致性回归。
 
 **修改清单**

@@ -67,6 +67,26 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    fun verticalCylinderRadiusWeightFunctionKeyShouldRemainMetadataOnly() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(0.5) * Meter,
+            axis = Axis3.Y,
+            radiusMin = infraScalar(0.4) * Meter,
+            radiusMax = infraScalar(0.6) * Meter,
+            radiusWeightFunctionKey = "continuous-radius-prototype"
+        )
+
+        assertEquals(
+            expected = "continuous-radius-prototype",
+            actual = spec.radiusWeightFunctionKey
+        )
+        assertRadiusValues(
+            actual = spec.resolvedRadiusCandidates,
+            expected = listOf(0.5)
+        )
+    }
+
+    @Test
     fun verticalCylinderShouldRejectResolvedRadiusOutsideCandidates() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
