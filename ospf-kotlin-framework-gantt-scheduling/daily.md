@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-05（最后更新：2026-06-07 G5 第二轮 capacity 泛型化）
+日期：2026-06-05（最后更新：2026-06-07 G5 第三轮 resource/produce 审计与全域 V 泛型验证）
 
 ## 1. 总目标
 
@@ -51,6 +51,12 @@
 17. 新增 3 个 Flt64 兼容 typealias：`Flt64CapacitySchedulingAggregation`、`Flt64ExecutorCapacityConstraint`、`Flt64CapacityCostMinimization`。
 18. 全量验证通过：`mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 11 模块 BUILD SUCCESS；`mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 37 模块 BUILD SUCCESS。
 19. 当前扫描基线：main 1,328 行 / test 69 行 / total 1,397 行，未归类 main `Flt64` 使用点为 0。`git diff --check` 通过（仅 LF/CRLF 工作区提示）。
+20. G5 resource 模块 V 泛型审计确认：`AbstractResourceCapacity<V>`、`Resource<C, V>`、`ResourceTimeSlot<R, C, V>`、`ResourceCapacityConstraint<..., V>`、`ResourceLessQuantityMinimization<..., V>`、`ResourceOverQuantityMinimization<..., V>` 全部已 V 泛型化；129 处 Flt64 使用全部归类为 solver boundary（`MetaModel<Flt64>`、`LinearExpressionSymbol<Flt64>`、`.toFlt64()` adapter 转换）。
+21. G5 新增 `ResourceGenericFltXTest`（9 用例），覆盖 `resourceQuantityZero` FltX/Flt64 路径、`StorageResourceTimeSlot`/`ExecutionResourceTimeSlot`/`ConnectionResourceTimeSlot` 的 FltX relationTo、V→Flt64 solver 边界转换；resource 模块共 15 用例全部通过。
+22. G5 produce 模块 V 泛型审计确认：`MaterialDemand<V>`、`MaterialReserves<V>`、`ProductionTask<E, A, P, C, V>`、`AbstractProduce<..., V>`、`AbstractConsumption<..., V>`、`produceV`/`consumptionV` 扩展函数全部已 V 泛型化；199 处 Flt64 使用全部归类为 solver boundary。
+23. G5 新增 `ProduceGenericFltXTest`（5 用例），覆盖 `Flt64MaterialDemand`/`Flt64MaterialReserves` typealias 兼容、V→Flt64 转换边界、高精度 FltX 需求；produce 模块共 11 用例全部通过。
+24. G5 task/cost/result + application 层全域审计完成：`Cost<V>`、`AbstractTaskBunch<..., V>`、`SchedulingSolverValueAdapter<V>`、`LabelV<T, E, A, V>`、`SlotBasedCapacityResult<V>`、`BunchCompilation<V>` 全部已 V 泛型化，具备 Flt64 typealias 兼容路径。application 层 `BranchAndPriceAlgorithm<V>` 签名泛型化、`Iteration` 类全 Flt64（solver 算法内部）、`Policy.reducedCost -> Flt64`（shadow price 保留边界），符合 G5 保留策略。
+25. 全量验证通过：`mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 11 模块 BUILD SUCCESS；`mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` BUILD SUCCESS；scan gate main=1,328 test=125 total=1,453 unclassified=0；`git diff --check` 通过。
 
 当前允许保留的边界：
 
@@ -186,7 +192,7 @@ G5 目标是在不改动 solver 数值内核的前提下，尽可能一次性完
 
 ### 3.6 当前完成度与剩余工作
 
-G5 当前完成度约 35% 到 45%。已完成扫描门禁、第一轮 public API 兼容审计、`LabelV.generateBunch` 行为修复、legacy/generic 回归测试、gantt-scheduling reactor 测试和 example reactor 编译验证、capacity 模块 `Aggregation`/约束/目标泛型化、`ProductionAction.unitCostV` 泛型入口和 FltX 测试扩展。
+G5 当前完成度约 45% 到 55%。已完成扫描门禁、第一轮 public API 兼容审计、`LabelV.generateBunch` 行为修复、legacy/generic 回归测试、gantt-scheduling reactor 测试和 example reactor 编译验证、capacity 模块 `Aggregation`/约束/目标泛型化、`ProductionAction.unitCostV` 泛型入口和 FltX 测试扩展、resource/produce/task/cost/result/application 全域 V 泛型审计与 FltX 测试补充。
 
 距离 G5 总目标仍需完成：
 
