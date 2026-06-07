@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -24,9 +25,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * 成本 = sum(action.unitCost * x[action, slot])
  * Cost = sum(action.unitCost * x[action, slot])
  *
+ * @param V 数值类型 / Numeric type
  * @param A 生产动作类型 / Production action type
  */
-class CapacityCostMinimization<A : ProductionAction>(
+class CapacityCostMinimization<V : RealNumber<V>, A : ProductionAction>(
     /**
      * 产能编译对象
      * Capacity compilation object
@@ -49,7 +51,7 @@ class CapacityCostMinimization<A : ProductionAction>(
      * 时间窗口
      * Time window
      */
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<V>,
 
     /**
      * 目标名称
@@ -89,3 +91,7 @@ class CapacityCostMinimization<A : ProductionAction>(
         return ok
     }
 }
+
+// ── Flt64 向后兼容 typealias ──
+
+typealias Flt64CapacityCostMinimization<A> = CapacityCostMinimization<Flt64, A>

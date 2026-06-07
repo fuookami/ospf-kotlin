@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-05（最后更新：2026-06-06 G5 阶段进展）
+日期：2026-06-05（最后更新：2026-06-07 G5 第二轮 capacity 泛型化）
 
 ## 1. 总目标
 
@@ -45,13 +45,19 @@
 11. G5 public API 第一轮审计确认 `Label`、`TaskReverseBuilder`、`SlotBasedBunchCompilation`、`SlotBasedBunchAggregation`、`SlotBasedBunchCompilationContext` 已采用 `*V` 泛型实现 + `Flt64` typealias 兼容模式。
 12. G5 已修复 `LabelV.generateBunch` 回溯任务链时重复加入终点 label 的问题，新增 `LabelGenerateBunchTest` 覆盖 `Flt64Label` legacy 路径与 `LabelV<FltX>` 泛型路径。
 13. 本轮 demo4 未直接引用 `Label.generateBunch` / `TotalCostCalculator` API，未修改；`mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 已通过，37 模块 BUILD SUCCESS。
+14. G5 capacity 模块泛型化第二轮：`CapacitySchedulingAggregation<V, A>` 从 `TimeWindow<Flt64>` 提升为 `TimeWindow<V>`，`totalCapacity()` 返回 `V`；`ExecutorCapacityConstraint<V, A>` 和 `CapacityCostMinimization<V, A>` 泛型化 `timeWindow` 字段，solver 边界 `LinearMetaModel<Flt64>` 保留不变。
+15. G5 为 `ProductionAction` 新增 `unitCostV<V>(time, fromDouble)` 泛型入口，允许调用方通过 `fromDouble` 转换器获取 `V` 类型成本值。
+16. G5 新增 `AggregationFltXTest`（4 用例）和 `ProductionActionUnitCostVTest`（4 用例），覆盖 FltX 聚合、Flt64 typealias 兼容、unitCostV/unitCapacityV/upperBoundV 泛型路径；capacity 模块测试共 13 用例全部通过。
+17. 新增 3 个 Flt64 兼容 typealias：`Flt64CapacitySchedulingAggregation`、`Flt64ExecutorCapacityConstraint`、`Flt64CapacityCostMinimization`。
+18. 全量验证通过：`mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 11 模块 BUILD SUCCESS；`mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 37 模块 BUILD SUCCESS。
+19. 当前扫描基线：main 1,328 行 / test 69 行 / total 1,397 行，未归类 main `Flt64` 使用点为 0。`git diff --check` 通过（仅 LF/CRLF 工作区提示）。
 
 当前允许保留的边界：
 
 1. solver 建模对象、solver 内部结果、pre-solve 模型继续固定 `Flt64`。
 2. framework shadow price 基础 API 继续固定 `Flt64`，通过 `reducedCost<V>` 与 adapter 隔离。
 3. 旧 wrapper、typealias、legacy API 和兼容测试可继续使用 `Flt64`。
-4. `ProductionAction.unitCost` 暂保留 `Flt64` 签名；下一轮统一评估成本物理量化和 adapter 转换路径。
+4. `ProductionAction.unitCost` 保留 `Flt64` 签名作为 solver 边界入口；新增 `unitCostV<V>(time, fromDouble)` 泛型版本，调用方通过 `fromDouble` 提供 V 转换。下一轮统一评估成本物理量化和 adapter 转换路径。
 
 ## 3. 当前目标：G5 全域 API 兼容、物理量化与门禁收口
 
@@ -180,7 +186,7 @@ G5 目标是在不改动 solver 数值内核的前提下，尽可能一次性完
 
 ### 3.6 当前完成度与剩余工作
 
-G5 当前完成度约 25% 到 35%。已完成扫描门禁、第一轮 public API 兼容审计、`LabelV.generateBunch` 行为修复、legacy/generic 回归测试、gantt-scheduling reactor 测试和 example reactor 编译验证。
+G5 当前完成度约 35% 到 45%。已完成扫描门禁、第一轮 public API 兼容审计、`LabelV.generateBunch` 行为修复、legacy/generic 回归测试、gantt-scheduling reactor 测试和 example reactor 编译验证、capacity 模块 `Aggregation`/约束/目标泛型化、`ProductionAction.unitCostV` 泛型入口和 FltX 测试扩展。
 
 距离 G5 总目标仍需完成：
 

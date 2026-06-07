@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq
@@ -7,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -15,13 +18,30 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  *
  * Total capacity per executor per slot should not exceed available duration.
  * 每台设备在每个时隙的总产能不超过可用时长。
+ *
+ * @param V 数值类型 / Numeric type
+ * @param A 生产动作类型 / Production action type
  */
-class ExecutorCapacityConstraint<A : ProductionAction>(
+class ExecutorCapacityConstraint<V : RealNumber<V>, A : ProductionAction>(
     private val capacity: Capacity<A>,
     private val slots: List<TimeSlot>,
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<V>,
     val name: String = "executor_capacity"
 ) {
+    /**
+     * solver 边界使用的 Flt64 时间窗口
+     * Flt64 time window for solver boundary
+     */
+    private val flt64TimeWindow: TimeWindow<Flt64> = TimeWindow(
+        window = timeWindow.window,
+        continues = timeWindow.continues,
+        durationUnit = timeWindow.durationUnit,
+        dateOffset = timeWindow.dateOffset,
+        interval = timeWindow.interval,
+        fromDouble = { Flt64(it) },
+        toDouble = { it.toDouble() }
+    )
+
     /**
      * 应用约束到模型
      * Apply constraint to model
@@ -31,7 +51,7 @@ class ExecutorCapacityConstraint<A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 // capacity[executor, slot] <= availableDuration
                 // capacity[executor, slot] <= 可用时长
-                val availableDuration = timeWindow.valueOf(slot.duration)
+                val availableDuration = flt64TimeWindow.valueOf(slot.duration)
                 val constraint = capacity.capacity[e, s].polynomial leq availableDuration
                 when (val result = model.addConstraint(constraint, name = "${name}_${executor.id}_$s")) {
                     is Ok -> {}
@@ -44,3 +64,7 @@ class ExecutorCapacityConstraint<A : ProductionAction>(
         return ok
     }
 }
+
+// ── Flt64 向后兼容 typealias ──
+
+typealias Flt64ExecutorCapacityConstraint<A> = ExecutorCapacityConstraint<Flt64, A>

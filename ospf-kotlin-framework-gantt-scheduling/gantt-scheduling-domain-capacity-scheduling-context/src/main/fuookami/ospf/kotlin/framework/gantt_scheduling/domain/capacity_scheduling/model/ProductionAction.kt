@@ -29,15 +29,15 @@ internal fun <V : RealNumber<V>> TimeWindow<V>.asFlt64TimeWindow(): TimeWindow<F
  * Production Action Interface
  *
  * A production action represents a way to produce capacity.
- * 生产动作表示产能的生产方式�?
+ * 生产动作表示产能的生产方式。
  *
  * It can be:
  * - **Discrete**: Has fixed batch duration, decision variable represents batch count
  * - **Continuous**: No fixed batch duration, decision variable represents duration units
  *
- * 分为�?
- * - **离散�?*：有固定批次时长，决策变量表示批次数
- * - **连续�?*：无固定批次时长，决策变量表示时长单位数
+ * 分为：
+ * - **离散型**：有固定批次时长，决策变量表示批次数
+ * - **连续型**：无固定批次时长，决策变量表示时长单位数
  */
 interface ProductionAction {
     /**
@@ -54,7 +54,7 @@ interface ProductionAction {
     val displayName: String get() = name
 
     /**
-     * 执行�?
+     * 执行者
      * The executor that performs this action
      */
     val executor: Executor
@@ -66,8 +66,8 @@ interface ProductionAction {
      * - true: discrete, x represents batch count
      * - false: continuous, x represents duration units
      *
-     * - true: 离散型，x 表示批次�?
-     * - false: 连续型，x 表示时长单位�?
+     * - true: 离散型，x 表示批次数
+     * - false: 连续型，x 表示时长单位数
      */
     val discrete: Boolean
 
@@ -78,7 +78,7 @@ interface ProductionAction {
     val batchDuration: Duration? get() = null
 
     /**
-     * 每个单位 x 对应的产�?
+     * 每个单位 x 对应的产能
      * Unit capacity per x value
      *
      * @param timeWindow Time window / 时间窗口
@@ -90,18 +90,18 @@ interface ProductionAction {
      * 单位成本
      * Unit cost
      *
-     * @param time Time instant / 时间�?
+     * @param time Time instant / 时间点
      * @return Unit cost / 单位成本
      */
     fun unitCost(time: Instant): Flt64
 
     /**
-     * x 变量的上�?
+     * x 变量的上界
      * Upper bound for x variable
      *
      * @param slot Time slot / 时隙
      * @param timeWindow Time window / 时间窗口
-     * @return Upper bound value / 上界�?
+     * @return Upper bound value / 上界值
      */
     fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>): UInt64
 
@@ -127,6 +127,24 @@ interface ProductionAction {
     }
 
     /**
+     * 泛型单位成本 / Generic unit cost
+     *
+     * 默认实现：先调用 Flt64 版本，再通过 fromDouble 转换回 V。
+     * Default: delegates to Flt64 version, converts back via fromDouble.
+     *
+     * 由于 unitCost 无 TimeWindow 上下文，需调用方提供 fromDouble 转换函数。
+     * Since unitCost has no TimeWindow context, caller must provide fromDouble converter.
+     *
+     * @param V 数值类型 / Numeric type
+     * @param time Time instant / 时间点
+     * @param fromDouble Double 到 V 的转换函数 / Double to V converter
+     * @return Unit cost as V / 单位成本 (V)
+     */
+    fun <V : RealNumber<V>> unitCostV(time: Instant, fromDouble: (Double) -> V): V {
+        return fromDouble(unitCost(time).toDouble())
+    }
+
+    /**
      * 泛型上界 / Generic upper bound
      *
      * 默认实现：委托到 Flt64 版本（UInt64 不依赖 V）。
@@ -141,8 +159,8 @@ interface ProductionAction {
         return upperBound(slot, timeWindow.asFlt64TimeWindow())
     }
 
-    // 注意: unitCost 返回 Flt64，无 TimeWindow 可用于 fromDouble 转换。
-    // 调用方应继续使用 Flt64 版本并通过 SchedulingSolverValueAdapter 或 toFlt64() 转换。
-    // Note: unitCost returns Flt64 with no TimeWindow for fromDouble conversion.
-    // Callers should continue using the Flt64 version and convert via SchedulingSolverValueAdapter or toFlt64().
+    // 注意: unitCost 的 Flt64 版本继续保留作为 solver 边界入口。
+    // 调用方可通过 unitCostV + fromDouble 获取 V 类型成本，或通过 SchedulingSolverValueAdapter 转换。
+    // Note: unitCost Flt64 version is retained as solver boundary entry.
+    // Callers can use unitCostV + fromDouble for V-typed cost, or SchedulingSolverValueAdapter for conversion.
 }
