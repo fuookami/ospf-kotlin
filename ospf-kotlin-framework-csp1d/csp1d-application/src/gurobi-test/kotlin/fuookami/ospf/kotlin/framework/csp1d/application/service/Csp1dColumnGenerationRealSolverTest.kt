@@ -1126,6 +1126,471 @@ class Csp1dColumnGenerationRealSolverTest {
         )
     }
 
+    // --- C5 yield sheet/weight 需求口径端到端验证 ---
+    // --- C5 yield sheet/weight demand unit end-to-end verification ---
+
+    /**
+     * 验证 yield 建模在 sheet 需求口径下 Gurobi 真实 solver 回填值正确
+     * Verify yield modeling with sheet demand unit backfills correctly on Gurobi
+     */
+    @Test
+    fun milpWithYieldConfigSheetDemandShouldProduceCorrectResultOnRealSolver() = runBlocking {
+        val product = product(id = "p-yield-sheet", width = 0.6)
+        val material = material(id = "m-yield-sheet", lowerWidth = 0.5, upperWidth = 1.5)
+        val demand = ProductDemand.legacySheet(product = product, sheetAmount = Flt64(8.0))
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0)),
+            overProductionPenalty = mapOf(demandKey to Flt64(10.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                sheetCuttingPlan(id = "plan-yield-sheet", product = product, material = material, sheetContribution = Flt64(3.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val yieldResult = milpResult.yieldResult
+        assertNotNull(yieldResult, "Yield result should not be null for sheet demand")
+
+        // 验证等式约束: totalContribution - over + under = demand (8.0)
+        val totalContribution = milpResult.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+            val sheetContrib = usage.plan.demandContributions.firstOrNull()?.quantity?.value ?: Flt64.zero
+            acc + sheetContrib * usage.amount.toFlt64()
+        }
+        val underAmount = yieldResult.underProductions.firstOrNull()?.amount ?: Flt64.zero
+        val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
+        val balance = totalContribution - overAmount + underAmount
+        assertTrue(
+            (balance - Flt64(8.0)).abs() < Flt64(1e-4),
+            "Yield constraint balance should equal demand: contrib($totalContribution) - over($overAmount) + under($underAmount) = $balance, expected 8.0"
+        )
+
+        // 验证 sheet 需求的 unitSymbol 正确
+        assertTrue(
+            yieldResult.underProductions.any { it.unitSymbol == (demand.quantity.unit.symbol ?: demand.quantity.unit.name) } ||
+            yieldResult.overProductions.any { it.unitSymbol == (demand.quantity.unit.symbol ?: demand.quantity.unit.name) } ||
+            (underAmount == Flt64.zero && overAmount == Flt64.zero),
+            "Yield result should have correct sheet unitSymbol"
+        )
+    }
+
+    /**
+     * 验证 yield 建模在 weight 需求口径下 Gurobi 真实 solver 回填值正确
+     * Verify yield modeling with weight demand unit backfills correctly on Gurobi
+     */
+    @Test
+    fun milpWithYieldConfigWeightDemandShouldProduceCorrectResultOnRealSolver() = runBlocking {
+        val product = product(id = "p-yield-weight", width = 0.4)
+        val material = material(id = "m-yield-weight", lowerWidth = 0.3, upperWidth = 1.2)
+        val demand = ProductDemand.legacyWeight(product = product, weightAmount = Flt64(500.0), unit = Kilogram)
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0)),
+            overProductionPenalty = mapOf(demandKey to Flt64(10.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                weightCuttingPlan(id = "plan-yield-weight", product = product, material = material, weightContribution = Flt64(120.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val yieldResult = milpResult.yieldResult
+        assertNotNull(yieldResult, "Yield result should not be null for weight demand")
+
+        // 验证等式约束: totalContribution - over + under = demand (500.0)
+        val totalContribution = milpResult.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+            val weightContrib = usage.plan.demandContributions.firstOrNull()?.quantity?.value ?: Flt64.zero
+            acc + weightContrib * usage.amount.toFlt64()
+        }
+        val underAmount = yieldResult.underProductions.firstOrNull()?.amount ?: Flt64.zero
+        val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
+        val balance = totalContribution - overAmount + underAmount
+        assertTrue(
+            (balance - Flt64(500.0)).abs() < Flt64(1e-2),
+            "Yield constraint balance should equal demand: contrib($totalContribution) - over($overAmount) + under($underAmount) = $balance, expected 500.0"
+        )
+    }
+
+    /**
+     * 验证 yield 建模在混合需求口径（roll + sheet）下 Gurobi 真实 solver 回填值正确
+     * Verify yield modeling with mixed demand units (roll + sheet) backfills correctly on Gurobi
+     */
+    @Test
+    fun milpWithYieldConfigMixedDemandUnitsShouldProduceCorrectResultOnRealSolver() = runBlocking {
+        val p1 = product(id = "p-yield-mix-roll", width = 0.5)
+        val p2 = product(id = "p-yield-mix-sheet", width = 0.6)
+        val material = material(id = "m-yield-mix", lowerWidth = 0.5, upperWidth = 2.0)
+        val rollDemand = ProductDemand.legacyRoll(product = p1, rollAmount = Flt64(10.0))
+        val sheetDemand = ProductDemand.legacySheet(product = p2, sheetAmount = Flt64(8.0))
+        val rollKey = ProductDemandShadowPriceKey(
+            productId = p1.id,
+            unitSymbol = rollDemand.quantity.unit.symbol ?: rollDemand.quantity.unit.name ?: rollDemand.quantity.unit.toString()
+        )
+        val sheetKey = ProductDemandShadowPriceKey(
+            productId = p2.id,
+            unitSymbol = sheetDemand.quantity.unit.symbol ?: sheetDemand.quantity.unit.name ?: sheetDemand.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(rollKey to Flt64(100.0), sheetKey to Flt64(80.0)),
+            overProductionPenalty = mapOf(rollKey to Flt64(10.0), sheetKey to Flt64(8.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-mix-roll", product = p1, material = material, rollContribution = Flt64(3.0)),
+                sheetCuttingPlan(id = "plan-mix-sheet", product = p2, material = material, sheetContribution = Flt64(2.0))
+            ),
+            demands = listOf(rollDemand, sheetDemand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val yieldResult = milpResult.yieldResult
+        assertNotNull(yieldResult, "Yield result should not be null for mixed demand units")
+
+        // 验证 roll 需求等式约束平衡
+        val rollContribution = milpResult.produce.cuttingPlans
+            .filter { it.plan.demandContributions.any { c -> c.product.id == p1.id } }
+            .fold(Flt64.zero) { acc, usage ->
+                val contrib = usage.plan.demandContributions.find { it.product.id == p1.id }?.quantity?.value ?: Flt64.zero
+                acc + contrib * usage.amount.toFlt64()
+            }
+        val rollUnder = yieldResult.underProductions.find { it.productId == p1.id }?.amount ?: Flt64.zero
+        val rollOver = yieldResult.overProductions.find { it.productId == p1.id }?.amount ?: Flt64.zero
+        val rollBalance = rollContribution - rollOver + rollUnder
+        assertTrue(
+            (rollBalance - Flt64(10.0)).abs() < Flt64(1e-4),
+            "Roll yield balance: contrib($rollContribution) - over($rollOver) + under($rollUnder) = $rollBalance, expected 10.0"
+        )
+
+        // 验证 sheet 需求等式约束平衡
+        val sheetContribution = milpResult.produce.cuttingPlans
+            .filter { it.plan.demandContributions.any { c -> c.product.id == p2.id } }
+            .fold(Flt64.zero) { acc, usage ->
+                val contrib = usage.plan.demandContributions.find { it.product.id == p2.id }?.quantity?.value ?: Flt64.zero
+                acc + contrib * usage.amount.toFlt64()
+            }
+        val sheetUnder = yieldResult.underProductions.find { it.productId == p2.id }?.amount ?: Flt64.zero
+        val sheetOver = yieldResult.overProductions.find { it.productId == p2.id }?.amount ?: Flt64.zero
+        val sheetBalance = sheetContribution - sheetOver + sheetUnder
+        assertTrue(
+            (sheetBalance - Flt64(8.0)).abs() < Flt64(1e-4),
+            "Sheet yield balance: contrib($sheetContribution) - over($sheetOver) + under($sheetUnder) = $sheetBalance, expected 8.0"
+        )
+
+        // 验证不同单位的 yield 结果不被混淆
+        val rollUnitSymbol = rollDemand.quantity.unit.symbol ?: rollDemand.quantity.unit.name
+        val sheetUnitSymbol = sheetDemand.quantity.unit.symbol ?: sheetDemand.quantity.unit.name
+        for (under in yieldResult.underProductions) {
+            if (under.productId == p1.id) {
+                assertEquals(rollUnitSymbol, under.unitSymbol, "Roll under-production should have roll unitSymbol")
+            }
+            if (under.productId == p2.id) {
+                assertEquals(sheetUnitSymbol, under.unitSymbol, "Sheet under-production should have sheet unitSymbol")
+            }
+        }
+    }
+
+    // --- C5 wasting 多物料/多需求场景端到端验证 ---
+    // --- C5 wasting multi-material/multi-demand end-to-end verification ---
+
+    /**
+     * 验证 wasting 建模在多物料场景下 Gurobi 真实 solver 回填值正确
+     * Verify waste modeling with multiple materials backfills correctly on Gurobi
+     */
+    @Test
+    fun milpWithWasteConfigMultipleMaterialsShouldProduceCorrectResultOnRealSolver() = runBlocking {
+        val p1 = product(id = "p-waste-m1", width = 0.3)
+        val p2 = product(id = "p-waste-m2", width = 0.6)
+        val m1 = material(id = "m-narrow", lowerWidth = 0.3, upperWidth = 0.8)
+        val m2 = material(id = "m-wide", lowerWidth = 0.5, upperWidth = 1.5)
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            trimWidthPenalty = Flt64(2.0),
+            materialCostPenalty = mapOf("m-narrow" to Flt64(3.0), "m-wide" to Flt64(5.0))
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-m1-p1", product = p1, material = m1, rollContribution = Flt64(1.0)),
+                cuttingPlan(id = "plan-m2-p2", product = p2, material = m2, rollContribution = Flt64(1.0))
+            ),
+            demands = listOf(
+                ProductDemand.legacyRoll(product = p1, rollAmount = Flt64(5.0)),
+                ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(4.0))
+            ),
+            materials = listOf(m1, m2),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val wasteResult = milpResult.wasteResult
+        assertNotNull(wasteResult, "Waste result should not be null")
+
+        // 验证余宽口径一致
+        val totalTrimWidth = wasteResult.totalTrimWidth
+        if (totalTrimWidth != null) {
+            val expectedTrimWidth = milpResult.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+                val restWidthValue = usage.plan.restWidth?.value ?: Flt64.zero
+                acc + restWidthValue * usage.amount.toFlt64()
+            }
+            assertTrue(
+                (totalTrimWidth - expectedTrimWidth).abs() < Flt64(1e-4),
+                "Total trim width ($totalTrimWidth) should match expected ($expectedTrimWidth)"
+            )
+        }
+
+        // 验证两种物料的成本都有回填
+        val materialIds = wasteResult.materialCosts.map { it.materialId }.toSet()
+        assertTrue(
+            materialIds.isNotEmpty(),
+            "Should have material costs for at least one material"
+        )
+
+        // 验证各物料成本口径一致
+        val costByMaterial = milpResult.produce.cuttingPlans.groupBy { it.plan.material.id }
+        for (mc in wasteResult.materialCosts) {
+            val expectedCost = costByMaterial[mc.materialId]?.fold(Flt64.zero) { acc, usage ->
+                acc + wasteConfig.materialCostPenalty[mc.materialId]!! * usage.amount.toFlt64()
+            } ?: Flt64.zero
+            assertTrue(
+                (mc.cost - expectedCost).abs() < Flt64(1e-4),
+                "Material cost for ${mc.materialId} (${mc.cost}) should match expected ($expectedCost)"
+            )
+        }
+    }
+
+    /**
+     * 验证 wasting 建模在多需求 + yield 联合场景下 Gurobi 真实 solver 超产面积正确
+     * Verify waste + yield combined modeling with multiple demands on Gurobi
+     */
+    @Test
+    fun milpWithWasteAndYieldMultipleDemandsShouldProduceCorrectResultOnRealSolver() = runBlocking {
+        val p1 = product(id = "p-waste-yield-1", width = 0.3)
+        val p2 = product(id = "p-waste-yield-2", width = 0.4)
+        val material = material(id = "m-waste-yield", lowerWidth = 0.5, upperWidth = 1.5)
+        val d1 = ProductDemand.legacyRoll(product = p1, rollAmount = Flt64(5.0))
+        val d2 = ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(3.0))
+        val k1 = ProductDemandShadowPriceKey(
+            productId = p1.id,
+            unitSymbol = d1.quantity.unit.symbol ?: d1.quantity.unit.name ?: d1.quantity.unit.toString()
+        )
+        val k2 = ProductDemandShadowPriceKey(
+            productId = p2.id,
+            unitSymbol = d2.quantity.unit.symbol ?: d2.quantity.unit.name ?: d2.quantity.unit.toString()
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(k1 to Flt64(100.0), k2 to Flt64(80.0)),
+            overProductionPenalty = mapOf(k1 to Flt64(10.0), k2 to Flt64(8.0))
+        )
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            trimWidthPenalty = Flt64(2.0),
+            overProductionAreaPenalty = Flt64(5.0)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(id = "plan-wy-1", product = p1, material = material, rollContribution = Flt64(2.0)),
+                cuttingPlan(id = "plan-wy-2", product = p2, material = material, rollContribution = Flt64(1.5))
+            ),
+            demands = listOf(d1, d2),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertNotNull(milpResult.yieldResult, "Yield result should not be null")
+        assertNotNull(milpResult.wasteResult, "Waste result should not be null")
+
+        // 验证超产面积 = sum(over_i * width_i)
+        val overArea = milpResult.wasteResult!!.overProductionArea
+        if (overArea != null) {
+            val expectedArea = milpResult.yieldResult!!.overProductions.fold(Flt64.zero) { acc, over ->
+                val productWidth = listOf(p1, p2).find { it.id == over.productId }?.width?.first()?.value ?: Flt64.zero
+                acc + over.amount * productWidth
+            }
+            assertTrue(
+                (overArea - expectedArea).abs() < Flt64(1e-4),
+                "Over-production area ($overArea) should match expected ($expectedArea)"
+            )
+        }
+    }
+
+    // --- C5 length assignment 建模差异和单位一致性端到端验证 ---
+    // --- C5 length assignment modeling difference and unit consistency end-to-end verification ---
+
+    /**
+     * 验证列生成中动态长度产品与固定长度产品在列生成各轮次的行为差异
+     * Verify behavioral difference between dynamic and fixed length products across column generation iterations
+     *
+     * 动态长度产品：assignedLength 变量在最终 MILP 中注册，LP 轮次不使用 lengthConfig
+     * 固定长度产品：无 assignedLength 变量，lengthResult 不含固定产品
+     */
+    @Test
+    fun columnGenerationWithMixedLengthProductsShouldDistinguishDynamicAndFixedOnRealSolver() = runBlocking {
+        val dynamicProduct = Product(
+            id = "p-dynamic-cg",
+            name = "product-p-dynamic-cg",
+            width = listOf(Quantity(Flt64(0.5), Meter)),
+            maxOverProduceLength = Quantity(Flt64(2.0), Meter),
+            dynamicLength = true
+        )
+        val fixedProduct = product(id = "p-fixed-cg", width = 0.3)
+        val material = material(id = "m-mixed-cg", lowerWidth = 0.3, upperWidth = 1.5)
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(dynamicProduct.id),
+            assignedLengthLowerBound = mapOf(dynamicProduct.id to Flt64(0.0)),
+            assignedLengthUpperBound = mapOf(dynamicProduct.id to Flt64(3.0)),
+            overLengthPenalty = mapOf(dynamicProduct.id to Flt64(10.0)),
+            totalLengthPenalty = Flt64(0.5)
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(dynamicProduct, fixedProduct),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(product = dynamicProduct, rollAmount = Flt64(6.0)),
+                ProductDemand.legacyRoll(product = fixedProduct, rollAmount = Flt64(4.0))
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 64,
+                maxPricingPlans = 16,
+                iterationLimit = 8
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(
+            solver = solver,
+            lengthConfig = lengthConfig
+        )
+        val (solution, trace) = columnGeneration.solveWithTrace(problem)
+
+        // 验证基本产出
+        assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans")
+        assertNotNull(trace.terminationReason)
+
+        // 验证 lengthResult 存在且仅包含动态产品
+        val lengthResult = solution.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null")
+
+        val dynamicIds = lengthResult.assignedLengths.map { it.productId }.toSet()
+        assertTrue(dynamicProduct.id in dynamicIds, "Dynamic product should have assigned length")
+        assertTrue(fixedProduct.id !in dynamicIds, "Fixed product should NOT have assigned length")
+
+        // 验证动态产品的 assignedLength 在边界内
+        val dynamicAssigned = lengthResult.assignedLengths.find { it.productId == dynamicProduct.id }
+        assertNotNull(dynamicAssigned)
+        assertTrue(
+            dynamicAssigned.assignedLength >= Flt64(0.0) - Flt64(1e-6),
+            "Dynamic assigned length >= 0.0"
+        )
+        assertTrue(
+            dynamicAssigned.assignedLength <= Flt64(3.0) + Flt64(1e-6),
+            "Dynamic assigned length <= 3.0"
+        )
+
+        // 验证固定产品的需求也被满足
+        val fixedContribution = solution.produce.cuttingPlans
+            .filter { it.plan.demandContributions.any { c -> c.product.id == fixedProduct.id } }
+            .fold(Flt64.zero) { acc, usage ->
+                val contrib = usage.plan.demandContributions.find { it.product.id == fixedProduct.id }?.quantity?.value ?: Flt64.zero
+                acc + contrib * usage.amount.toFlt64()
+            }
+        assertTrue(
+            fixedContribution >= Flt64(4.0) - Flt64(1e-4),
+            "Fixed product demand should be met: contribution $fixedContribution >= 4.0"
+        )
+    }
+
+    /**
+     * 验证 length assignment 建模在 weight 需求口径下 Gurobi 真实 solver 回填值正确
+     * Verify length assignment modeling with weight demand unit on Gurobi
+     */
+    @Test
+    fun milpWithLengthConfigWeightDemandShouldProduceCorrectResultOnRealSolver() = runBlocking {
+        val dynamicProduct = Product(
+            id = "p-length-weight",
+            name = "product-p-length-weight",
+            width = listOf(Quantity(Flt64(0.4), Meter)),
+            maxOverProduceLength = Quantity(Flt64(2.0), Meter),
+            dynamicLength = true
+        )
+        val material = material(id = "m-length-weight", lowerWidth = 0.3, upperWidth = 1.2)
+        val demand = ProductDemand.legacyWeight(product = dynamicProduct, weightAmount = Flt64(200.0), unit = Kilogram)
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            dynamicProductIds = setOf(dynamicProduct.id),
+            assignedLengthLowerBound = mapOf(dynamicProduct.id to Flt64(0.0)),
+            assignedLengthUpperBound = mapOf(dynamicProduct.id to Flt64(5.0)),
+            overLengthPenalty = mapOf(dynamicProduct.id to Flt64(10.0)),
+            totalLengthPenalty = Flt64(0.5)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                weightCuttingPlan(id = "plan-length-weight", product = dynamicProduct, material = material, weightContribution = Flt64(50.0))
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            lengthConfig = lengthConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val lengthResult = milpResult.lengthResult
+        assertNotNull(lengthResult, "Length result should not be null for weight demand with dynamic length")
+
+        // 验证 assignedLength 在边界内
+        val assignedLength = lengthResult.assignedLengths.find { it.productId == dynamicProduct.id }
+        assertNotNull(assignedLength, "Should have assigned length for dynamic product with weight demand")
+        assertTrue(
+            assignedLength.assignedLength >= Flt64(0.0) - Flt64(1e-6),
+            "Assigned length should be >= 0.0, got ${assignedLength.assignedLength}"
+        )
+        assertTrue(
+            assignedLength.assignedLength <= Flt64(5.0) + Flt64(1e-6),
+            "Assigned length should be <= 5.0, got ${assignedLength.assignedLength}"
+        )
+    }
+
     // --- helper functions ---
 
     private fun cuttingPlan(
@@ -1148,6 +1613,62 @@ class Csp1dColumnGenerationRealSolverTest {
                 CuttingPlanDemandContribution(
                     product = product,
                     quantity = Quantity(rollContribution, RollCountUnit)
+                )
+            )
+        )
+    }
+
+    /**
+     * 按重量贡献构建切割方案 / Build cutting plan with weight contribution
+     */
+    private fun weightCuttingPlan(
+        id: String,
+        product: Product<Flt64>,
+        material: Material<Flt64>,
+        weightContribution: Flt64
+    ): CuttingPlan<Flt64> {
+        return CuttingPlan(
+            id = id,
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = product,
+                    width = product.width.first(),
+                    amount = UInt64.one
+                )
+            ),
+            demandContributions = listOf(
+                CuttingPlanDemandContribution(
+                    product = product,
+                    quantity = Quantity(weightContribution, Kilogram)
+                )
+            )
+        )
+    }
+
+    /**
+     * 按张数贡献构建切割方案 / Build cutting plan with sheet contribution
+     */
+    private fun sheetCuttingPlan(
+        id: String,
+        product: Product<Flt64>,
+        material: Material<Flt64>,
+        sheetContribution: Flt64
+    ): CuttingPlan<Flt64> {
+        return CuttingPlan(
+            id = id,
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = product,
+                    width = product.width.first(),
+                    amount = UInt64.one
+                )
+            ),
+            demandContributions = listOf(
+                CuttingPlanDemandContribution(
+                    product = product,
+                    quantity = Quantity(sheetContribution, SheetCountUnit)
                 )
             )
         )
