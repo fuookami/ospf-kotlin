@@ -27,11 +27,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Sigmoid/阶跃函数：当 condition > 0 时 y = 1，否则为 0。
  * Sigmoid/step function: y = 1 if condition > 0, else 0.
  *
- * 使用 Big-M 线性化与非零指示变量。
- * Uses Big-M linearization with nonzero indicators.
+ * 使用 Big-M 线性化与正数指示变量。
+ * Uses Big-M linearization with positive-value indicators.
  *
  * @property condition 条件线性多项式 / condition linear polynomial
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property converter 值类型转换器 / value type converter
@@ -47,18 +47,16 @@ class SigmoidFunction<V>(
     override var name: String = "sigmoid",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val bigM: V = bigM ?: condition.defaultBigM(converter)
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
-    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_sig_ind")
-    val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_sig_side")
 
     override val resultPolynomial: LinearPolynomial<V>
         get() = LinearPolynomial(listOf(LinearMonomial(converter.one, indicatorVar)), converter.zero)
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(indicatorVar, sideVar)
+        get() = listOf(indicatorVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
@@ -76,8 +74,14 @@ class SigmoidFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicator: indicator = 1 iff condition != 0 / 非零指示约束：当且仅当条件 != 0 时指示变量 = 1
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_sig_nz")
+        // Positive indicator: indicator = 1 iff condition > 0 / 正数指示约束：当且仅当条件 > 0 时指示变量 = 1
+        allConstraints += positiveIndicatorConstraints(
+            condition,
+            indicatorVar,
+            bigM,
+            tolerance,
+            "${name}_sig"
+        )
 
         // indicator serves as the result: indicator = 1 when condition > 0 / 指示变量即为结果：条件 > 0 时指示变量 = 1
 

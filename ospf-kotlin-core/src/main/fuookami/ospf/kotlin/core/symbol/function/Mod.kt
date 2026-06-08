@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property x 输入线性多项式 / input linear polynomial
  * @property d 除数 / divisor
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM 保留参数，当前取模约束不需要 Big-M / reserved parameter, Big-M is not needed by the current modulo encoding
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -45,7 +45,9 @@ class ModFunction<V>(
     override var name: String = "mod",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    init {
+        require(d gr converter.zero) { "ModFunction divisor must be positive" }
+    }
 
     val qVar: AbstractVariableItem<*, *> = IntVar("${name}_q")
     val rVar: AbstractVariableItem<*, *> = URealVar("${name}_r")
@@ -58,7 +60,7 @@ class ModFunction<V>(
         val xVal = x.evaluateWith(values) ?: return null
         val xFlt = converter.fromValue(xVal)
         val dFlt = converter.fromValue(d)
-        return converter.intoValue(xFlt % dFlt)
+        return converter.intoValue(xFlt - (xFlt / dFlt).floor() * dFlt)
     }
 
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {

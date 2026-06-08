@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property indicatorVars 非零指示变量列表 / Nonzero indicator variable list
  * @property sideVars 辅助边变量列表 / Auxiliary side variable list
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从每个输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from each input range by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
@@ -54,7 +54,7 @@ class AndFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
@@ -97,7 +97,8 @@ class AndFunction<V>(
 
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, "${name}_and_nz_${i}")
+            val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], currentBigM, tolerance, strictBoundary, "${name}_and_nz_${i}")
         }
 
         // sum(indicators) >= n * result / 非零指示变量之和大于等于 n 倍结果
@@ -175,7 +176,7 @@ class AndFunction<V>(
  * @property indicatorVars 非零指示变量列表 / Nonzero indicator variable list
  * @property sideVars 辅助边变量列表 / Auxiliary side variable list
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从每个输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from each input range by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
@@ -191,7 +192,7 @@ class OrFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
@@ -233,7 +234,8 @@ class OrFunction<V>(
 
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, "${name}_or_nz_${i}")
+            val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], currentBigM, tolerance, strictBoundary, "${name}_or_nz_${i}")
         }
 
         // sum(indicators) >= result / 非零指示变量之和大于等于结果
@@ -285,7 +287,7 @@ class OrFunction<V>(
  * @property sideVar 辅助边变量 / Auxiliary side variable
  * @property resultVar 结果变量 / Result variable
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
@@ -301,7 +303,7 @@ class NotFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val bigM: V = bigM ?: polynomial.defaultBigM(converter)
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
@@ -377,7 +379,7 @@ class NotFunction<V>(
  * @property indicatorVars 非零指示变量列表 / Nonzero indicator variable list
  * @property sideVars 辅助边变量列表 / Auxiliary side variable list
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从每个输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from each input range by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
@@ -393,7 +395,7 @@ class XorFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
@@ -438,7 +440,8 @@ class XorFunction<V>(
 
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, "${name}_xor_nz_${i}")
+            val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], currentBigM, tolerance, strictBoundary, "${name}_xor_nz_${i}")
         }
 
         // sum(indicators) - 2*slack = result (where slack is integer)

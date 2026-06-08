@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property _polynomial 要掩码的二次多项式 / the quadratic polynomial to mask
  * @property z 二值控制变量 / the binary control variable
- * @param bigM Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+ * @param bigM Big-M 常量（默认从二次多项式范围推导，失败时回退到 1e6）/ Big-M constant (inferred from quadratic polynomial range by default, falls back to 1e6)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -47,7 +47,7 @@ class QuadraticMaskingRangeFunction<V>(
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val bigM: V = bigM ?: _polynomial.defaultBigM(converter)
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_y")
 

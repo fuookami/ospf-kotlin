@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property polynomials 要取最小值的二次多项式列表 / list of quadratic polynomials to take the min of
  * @property exact 若为 true，使用二值变量实现精确最小值；若为 false，仅强制 y <= pi / if true, uses binary variables for exact min; if false, only enforces y <= pi
- * @param bigM 精确公式的 Big-M 常量（默认 1e6）/ Big-M constant for exact formulation (default 1e6)
+ * @param bigM 精确公式的 Big-M 常量（默认从候选范围推导，失败时回退到 1e6）/ Big-M constant for exact formulation (inferred from candidate ranges by default, falls back to 1e6)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -48,7 +48,7 @@ class QuadraticMinFunction<V>(
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_min")
     val binVars: List<AbstractVariableItem<*, *>> by lazy {
@@ -278,11 +278,18 @@ class QuadraticMinFunction<V>(
      * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val m = bigM
         val one = converter.one
         val zero = converter.zero
         val resultMon = QuadraticMonomial.linear(one, resultVar)
         val constraints = mutableListOf<QuadraticInequalityOf<V>>()
+        val bounds = if (explicitBigM == null) {
+            polynomials.map { it.finiteBounds(converter) }.takeIf { it.all { bound -> bound != null } }
+        } else {
+            null
+        }
+        val minLower = bounds?.map { it!!.lower }?.reduce { acc, value ->
+            if (value ls acc) value else acc
+        }
 
         // y <= pi for each polynomial / 对每个多项式 y <= pi
         for ((i, poly) in polynomials.withIndex()) {
@@ -297,9 +304,14 @@ class QuadraticMinFunction<V>(
             for ((i, poly) in polynomials.withIndex()) {
                 val uVar = binVars[i]
                 val negatedPolyMonos = poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
-                val bigMTerm = QuadraticMonomial.linear(m, uVar)
+                val currentBigM = explicitBigM ?: if (bounds != null && minLower != null) {
+                    ensurePositiveBigM(bounds[i]!!.upper - minLower, converter)
+                } else {
+                    poly.defaultBigM(converter)
+                }
+                val bigMTerm = QuadraticMonomial.linear(-currentBigM, uVar)
                 val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon, bigMTerm), -poly.constant)
-                val rhs = QuadraticPolynomial<V>(emptyList(), m)
+                val rhs = QuadraticPolynomial<V>(emptyList(), -currentBigM)
                 constraints += QuadraticInequalityOf(lhs, rhs, Comparison.GE, "${name}_ub_$i")
             }
 

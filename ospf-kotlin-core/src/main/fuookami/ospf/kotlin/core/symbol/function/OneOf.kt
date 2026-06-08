@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Uses nonzero indicators with XOR-like linking constraints.
  *
  * @property polynomials 输入线性多项式列表 / the list of input linear polynomials
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从每个输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from each input range by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property converter 值类型转换器 / value type converter
@@ -54,7 +54,7 @@ class OneOfFunction<V>(
     override var name: String = "oneof",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
@@ -91,14 +91,22 @@ class OneOfFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mD = bigM
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial / 为每个多项式构建非零指示约束
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
+            val currentBigM = explicitBigM ?: polynomials[i].defaultBigM(converter)
+            allConstraints += nonzeroIndicatorConstraints(
+                polynomials[i],
+                indicatorVars[i],
+                sideVars[i],
+                currentBigM,
+                tolerance,
+                strictBoundary,
+                "${name}_oneof_nz_${i}"
+            )
         }
 
         // Exactly one indicator must be 1: sum(indicators) = 1 / 恰好一个指示变量为 1：sum(指示变量) = 1

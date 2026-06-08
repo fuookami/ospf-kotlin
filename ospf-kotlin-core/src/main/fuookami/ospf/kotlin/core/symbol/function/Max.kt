@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property polynomials 输入线性多项式列表 / List of input linear polynomials
  * @property resultVar 结果变量 / Result variable
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从候选范围推导，失败时回退到 1e6）/ Big-M bound (inferred from candidate ranges by default, falls back to 1e6)
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -49,7 +49,7 @@ class MaxFunction<V>(
     override var name: String = "max",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val n = polynomials.size
 
     init {
@@ -89,6 +89,14 @@ class MaxFunction<V>(
         val one = converter.one
         val resultMon = LinearMonomial(one, resultVar)
         val allConstraints = mutableListOf<LinearInequality<V>>()
+        val bounds = if (explicitBigM == null) {
+            polynomials.map { it.finiteBounds(converter) }.takeIf { it.all { bound -> bound != null } }
+        } else {
+            null
+        }
+        val maxUpper = bounds?.map { it!!.upper }?.reduce { acc, value ->
+            if (value gr acc) value else acc
+        }
 
         // result >= poly[i] for each i / 结果大于等于每个 poly[i]
         for (i in polynomials.indices) {
@@ -102,12 +110,17 @@ class MaxFunction<V>(
         // result - poly[i] + M*sel[i] <= M / 结果 - poly[i] + M*选择变量 <= M
         for (i in polynomials.indices) {
             val poly = polynomials[i]
+            val currentBigM = explicitBigM ?: if (bounds != null && maxUpper != null) {
+                ensurePositiveBigM(maxUpper - bounds[i]!!.lower, converter)
+            } else {
+                polynomials.defaultBigM(converter)
+            }
             val ubMonos = listOf(resultMon) +
                 poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(bigM, selectorVars[i])
+                LinearMonomial(currentBigM, selectorVars[i])
             allConstraints += LinearInequality(
                 LinearPolynomial(ubMonos, -poly.constant),
-                LinearPolynomial(emptyList(), bigM), Comparison.LE)
+                LinearPolynomial(emptyList(), currentBigM), Comparison.LE)
         }
 
         // sum(sel[i]) = 1 / 选择变量之和等于 1
@@ -163,7 +176,7 @@ class MaxFunction<V>(
  *
  * @property polynomials 输入线性多项式列表 / List of input linear polynomials
  * @property resultVar 结果变量 / Result variable
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从候选范围推导，失败时回退到 1e6）/ Big-M bound (inferred from candidate ranges by default, falls back to 1e6)
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -175,7 +188,7 @@ class MinFunction<V>(
     override var name: String = "min",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val n = polynomials.size
 
     init {
@@ -215,6 +228,14 @@ class MinFunction<V>(
         val one = converter.one
         val resultMon = LinearMonomial(one, resultVar)
         val allConstraints = mutableListOf<LinearInequality<V>>()
+        val bounds = if (explicitBigM == null) {
+            polynomials.map { it.finiteBounds(converter) }.takeIf { it.all { bound -> bound != null } }
+        } else {
+            null
+        }
+        val minLower = bounds?.map { it!!.lower }?.reduce { acc, value ->
+            if (value ls acc) value else acc
+        }
 
         // result <= poly[i] for each i / 结果小于等于每个 poly[i]
         for (i in polynomials.indices) {
@@ -228,9 +249,14 @@ class MinFunction<V>(
         // result - poly[i] + M*sel[i] >= 0 / 结果 - poly[i] + M*选择变量 >= 0
         for (i in polynomials.indices) {
             val poly = polynomials[i]
+            val currentBigM = explicitBigM ?: if (bounds != null && minLower != null) {
+                ensurePositiveBigM(bounds[i]!!.upper - minLower, converter)
+            } else {
+                polynomials.defaultBigM(converter)
+            }
             val lbMonos = listOf(resultMon) +
                 poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(bigM, selectorVars[i])
+                LinearMonomial(currentBigM, selectorVars[i])
             allConstraints += LinearInequality(
                 LinearPolynomial(lbMonos, -poly.constant),
                 LinearPolynomial(emptyList(), zero), Comparison.GE)

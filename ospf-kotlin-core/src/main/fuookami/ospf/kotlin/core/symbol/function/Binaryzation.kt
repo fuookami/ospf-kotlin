@@ -33,7 +33,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property polynomial 输入线性多项式 / Input linear polynomial
  * @property resultVar 结果变量 / Result variable
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
  */
@@ -45,7 +45,7 @@ class BinaryzationFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val bigM: V = bigM ?: polynomial.defaultBigM(converter)
 
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_bin")
 
@@ -66,20 +66,14 @@ class BinaryzationFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val zero = converter.zero
         val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
-        val allConstraints = mutableListOf<LinearInequality<V>>()
-
-        // x <= M*y / x 小于等于 M 倍二值变量
-        val xMonos = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-bigM, resultVar), polynomial.constant),
-            LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_bin_ub")
-
-        // x >= epsilon*y / x 大于等于 epsilon 倍二值变量
-        allConstraints += LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polynomial.constant),
-            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_bin_lb")
+        val allConstraints = positiveIndicatorConstraints(
+            polynomial,
+            resultVar,
+            bigM,
+            eps,
+            "${name}_bin"
+        )
 
         addConstraints(model, allConstraints)?.let { return it }
         return ok

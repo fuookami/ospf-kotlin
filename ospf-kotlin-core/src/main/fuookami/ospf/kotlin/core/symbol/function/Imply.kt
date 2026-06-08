@@ -27,15 +27,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 蕴含函数：若 antecedent > 0 则 consequent > 0。
  * Implication function: `if antecedent > 0 then consequent > 0`.
  *
- * 对前件和后件均使用非零指示变量，
- * Uses nonzero indicators for both antecedent and consequent,
+ * 对前件和后件均使用正数指示变量，
+ * Uses positive-value indicators for both antecedent and consequent,
  * 通过链接约束：indicator_antecedent <= indicator_consequent。
  * with a linking constraint: indicator_antecedent <= indicator_consequent.
  *
  * @property antecedent 前件（条件）线性多项式 / the antecedent (condition) linear polynomial
  * @property consequent 后件线性多项式 / the consequent linear polynomial
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从前件/后件范围推导，失败时回退到 1e6）/ Big-M bound (inferred from antecedent/consequent ranges by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
@@ -52,17 +52,14 @@ class ImplyFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
-    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val antecedentIndicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_ant_nz")
-    val antecedentSideVar: AbstractVariableItem<*, *> = BinVar("${name}_ant_side")
     val consequentIndicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_con_nz")
-    val consequentSideVar: AbstractVariableItem<*, *> = BinVar("${name}_con_side")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(antecedentIndicatorVar, antecedentSideVar, consequentIndicatorVar, consequentSideVar)
+        get() = listOf(antecedentIndicatorVar, consequentIndicatorVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val antValue = antecedent.evaluateWith(values) ?: return null
@@ -89,14 +86,25 @@ class ImplyFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mVal = bigM
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicators / 非零指示约束
-        allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
-        allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
+        // Positive indicators / 正数指示约束
+        allConstraints += positiveIndicatorConstraints(
+            antecedent,
+            antecedentIndicatorVar,
+            explicitBigM ?: antecedent.defaultBigM(converter),
+            tolerance,
+            "${name}_ant"
+        )
+        allConstraints += positiveIndicatorConstraints(
+            consequent,
+            consequentIndicatorVar,
+            explicitBigM ?: consequent.defaultBigM(converter),
+            tolerance,
+            "${name}_con"
+        )
 
         // Implication: antecedent_indicator <= consequent_indicator
         // 蕴含约束：前件指示变量 <= 后件指示变量

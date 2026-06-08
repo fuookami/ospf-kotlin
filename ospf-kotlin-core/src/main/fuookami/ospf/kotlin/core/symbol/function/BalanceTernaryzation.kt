@@ -45,6 +45,8 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
+ * @property fallbackLower 输入无有限下界时的分段回退下界 / fallback lower breakpoint when input has no finite lower bound
+ * @property fallbackUpper 输入无有限上界时的分段回退上界 / fallback upper breakpoint when input has no finite upper bound
  */
 class BalanceTernaryzationFunction<V>(
     val x: LinearPolynomial<V>,
@@ -52,16 +54,36 @@ class BalanceTernaryzationFunction<V>(
     val extract: Boolean = true,
     private val converter: IntoValue<V>,
     override var name: String = "bter",
-    override var displayName: String? = null
+    override var displayName: String? = null,
+    val fallbackLower: Flt64 = Flt64(-1e6),
+    val fallbackUpper: Flt64 = Flt64(1e6)
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    init {
+        require(fallbackLower ls fallbackUpper) {
+            "BalanceTernaryzation fallbackLower must be less than fallbackUpper"
+        }
+    }
 
     private val impl: UnivariateLinearPiecewiseFunction<V> by lazy {
-        val xLower = Flt64(-1e6)
-        val xUpper = Flt64(1e6)
         val eps = epsilon
+        val epsValue = converter.intoValue(eps)
+        val negEpsValue = converter.intoValue(-eps)
         val precision = Flt64(1e-10)
+        val precisionValue = converter.intoValue(precision)
+        val xBounds = x.finiteBounds(converter)
+        val inferredLower = xBounds?.lower ?: converter.intoValue(fallbackLower)
+        val inferredUpper = xBounds?.upper ?: converter.intoValue(fallbackUpper)
+        val xLower = if (inferredLower ls negEpsValue) inferredLower else negEpsValue - precisionValue
+        val xUpper = if (inferredUpper gr epsValue) inferredUpper else epsValue + precisionValue
         val inversePrecision = Flt64.one / precision
-        val breakpoints = listOf(xLower, -eps, -eps + precision, eps - precision, eps, xUpper).map { converter.intoValue(it) }
+        val breakpoints = listOf(
+            xLower,
+            negEpsValue,
+            negEpsValue + precisionValue,
+            epsValue - precisionValue,
+            epsValue,
+            xUpper
+        )
         val slopes = listOf(
             Flt64.zero,   // segment 0: constant -1
             inversePrecision, // segment 1: rising from -1 to 0
@@ -119,6 +141,8 @@ class BalanceTernaryzationFunction<V>(
          * @param converter 值类型转换器 / value type converter
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
+         * @param fallbackLower 输入无有限下界时的分段回退下界 / fallback lower breakpoint when input has no finite lower bound
+         * @param fallbackUpper 输入无有限上界时的分段回退上界 / fallback upper breakpoint when input has no finite upper bound
          * @return [BalanceTernaryzationFunction] 实例 / [BalanceTernaryzationFunction] instance
          */
         operator fun <V> invoke(
@@ -127,8 +151,19 @@ class BalanceTernaryzationFunction<V>(
             extract: Boolean = true,
             converter: IntoValue<V>,
             name: String,
-            displayName: String? = null
+            displayName: String? = null,
+            fallbackLower: Flt64 = Flt64(-1e6),
+            fallbackUpper: Flt64 = Flt64(1e6)
         ): BalanceTernaryzationFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            BalanceTernaryzationFunction(x = x, epsilon = epsilon, extract = extract, converter = converter, name = name, displayName = displayName)
+            BalanceTernaryzationFunction(
+                x = x,
+                epsilon = epsilon,
+                extract = extract,
+                converter = converter,
+                name = name,
+                displayName = displayName,
+                fallbackLower = fallbackLower,
+                fallbackUpper = fallbackUpper
+            )
     }
 }

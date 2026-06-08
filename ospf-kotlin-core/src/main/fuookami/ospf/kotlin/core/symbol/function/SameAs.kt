@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property inequalities 要比较的线性不等式列表 / list of linear inequalities to compare
  * @property constraint 若为 true，强制所有不等式具有相同满足状态；若为 false，仅度量 / if true, force all inequalities to have same satisfaction; if false, measure only
  * @property epsilon 松弛不等式的最小间隙（默认 1e-6）/ minimum gap for relaxed inequality (default 1e-6)
- * @property m 指示约束的 Big-M 常量（默认 1e6）/ Big-M constant for indicator constraints (default 1e6)
+ * @property m 指示约束的 Big-M 常量（默认从每条 lhs-rhs 范围推导，失败时回退到 1e6）/ Big-M constant for indicator constraints (inferred from each lhs-rhs range by default, falls back to 1e6)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -51,7 +51,7 @@ class SameAsFunction<V>(
     val inequalities: List<LinearInequality<V>>,
     val constraint: Boolean = true,
     val epsilon: V,
-    val m: V,
+    val m: V? = null,
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
@@ -74,8 +74,14 @@ class SameAsFunction<V>(
     private val diffVars: List<AbstractVariableItem<*, *>> =
         if (!constraint && n > 1) (1 until n).map { BinVar("${name}_diff${it}") } else emptyList()
 
+    // Side variables for equality violation direction / 等式违反方向辅助变量
+    private val eqSideVars: List<AbstractVariableItem<*, *>?> =
+        inequalities.mapIndexed { i, inequality ->
+            if (inequality.comparison == Comparison.EQ) BinVar("${name}_eq_side${i}") else null
+        }
+
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(resultVar) + satisfactionFlags + diffVars
+        get() = listOf(resultVar) + satisfactionFlags + diffVars + eqSideVars.filterNotNull()
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val flags = mutableListOf<Boolean>()
@@ -114,8 +120,16 @@ class SameAsFunction<V>(
         // Register each inequality with its satisfaction flag using simple indicator constraints
         // 使用简单指示约束为每个不等式注册其满足标志
         for (i in inequalities.indices) {
+            val currentBigM = m ?: inequalities[i].differencePolynomial().defaultBigM(converter)
             allConstraints += simpleIndicatorConstraints(
-                inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, "${name}_ineq_${i}")
+                ineq = inequalities[i],
+                indicator = satisfactionFlags[i],
+                bigM = currentBigM,
+                tolerance = epsilon,
+                strictBoundary = epsilon,
+                namePrefix = "${name}_ineq_${i}",
+                sideVar = eqSideVars[i]
+            )
         }
 
         // Link constraints: enforce all satisfaction flags are equal / 链接约束：强制所有满足标志相等
@@ -231,7 +245,7 @@ class SameAsFunction<V>(
             inequalities: List<LinearInequality<V>>,
             constraint: Boolean = true,
             epsilon: V,
-            m: V,
+            m: V? = null,
             converter: IntoValue<V>,
             name: String,
             displayName: String? = null

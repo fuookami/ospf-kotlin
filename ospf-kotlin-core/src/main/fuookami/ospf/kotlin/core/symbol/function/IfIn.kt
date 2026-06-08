@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property lower 下界 (a) / the lower bound (a)
  * @property upper 上界 (b) / the upper bound (b)
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从两侧差值范围推导，失败时回退到 1e6）/ Big-M bound (inferred from both side-difference ranges by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
@@ -53,18 +53,15 @@ class IfInFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
-    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_ifin")
     val geVar: AbstractVariableItem<*, *> = BinVar("${name}_ge")
-    val geSideVar: AbstractVariableItem<*, *> = BinVar("${name}_ge_side")
     val leVar: AbstractVariableItem<*, *> = BinVar("${name}_le")
-    val leSideVar: AbstractVariableItem<*, *> = BinVar("${name}_le_side")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(resultVar, geVar, geSideVar, leVar, leSideVar)
+        get() = listOf(resultVar, geVar, leVar)
 
     val result: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -84,18 +81,29 @@ class IfInFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mVal = bigM
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // x - lower >= 0 indicator (x >= lower) / x - lower >= 0 指示约束（x >= 下界）
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
-        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
+        allConstraints += nonnegativeIndicatorConstraints(
+            xMinusLower,
+            geVar,
+            explicitBigM ?: xMinusLower.defaultBigM(converter),
+            tolerance,
+            "${name}_ge"
+        )
 
         // upper - x >= 0 indicator (x <= upper) / upper - x >= 0 指示约束（x <= 上界）
         val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
-        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
+        allConstraints += nonnegativeIndicatorConstraints(
+            upperMinusX,
+            leVar,
+            explicitBigM ?: upperMinusX.defaultBigM(converter),
+            tolerance,
+            "${name}_le"
+        )
 
         // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1 / 结果 = ge AND le：result <= ge, result <= le, result >= ge + le - 1
         allConstraints += LinearInequality(

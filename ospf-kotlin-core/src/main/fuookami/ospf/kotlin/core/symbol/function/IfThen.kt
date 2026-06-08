@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property condition 条件线性多项式 / the condition linear polynomial
  * @property thenPoly "则"线性多项式（当 condition > 0 时激活）/ the "then" linear polynomial (activated when condition > 0)
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认从条件与 then 多项式范围推导，失败时回退到 1e6）/ Big-M bound (inferred from condition and then-polynomial ranges by default, falls back to 1e6)
  * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
@@ -54,16 +54,14 @@ class IfThenFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val explicitBigM: V? = bigM
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
-    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_ind")
-    val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_side")
     private val resultVar: AbstractVariableItem<*, *> by lazy { URealVar("${name}_y") }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(indicatorVar, sideVar, resultVar)
+        get() = listOf(indicatorVar, resultVar)
 
     val result: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
@@ -90,27 +88,61 @@ class IfThenFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val bigMValue = bigM
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
-        // Nonzero indicator for condition / 为条件构建非零指示约束
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
+        // Positive indicator for condition / 为条件构建正数指示约束
+        allConstraints += positiveIndicatorConstraints(
+            condition,
+            indicatorVar,
+            explicitBigM ?: condition.defaultBigM(converter),
+            tolerance,
+            "${name}_cond"
+        )
 
-        // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
-        // y - thenPoly <= M*(1 - 指示变量)，即 y - thenPoly + M*指示变量 <= M
+        val thenBigM = explicitBigM ?: thenPoly.defaultBigM(converter)
+        val thenBounds = thenPoly.finiteBounds(converter)
+        val thenLower = thenBounds?.lower ?: -thenBigM
+        val thenUpper = thenBounds?.upper ?: thenBigM
         val yMono = LinearMonomial(converter.one, resultVar)
         val negThenMonos = thenPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+
+        // y <= upper * indicator / 上界：条件不满足时 y <= 0
         allConstraints += LinearInequality(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(bigMValue, indicatorVar), -thenPoly.constant),
-            LinearPolynomial(emptyList(), bigMValue),
+            LinearPolynomial(
+                listOf(yMono, LinearMonomial(-thenUpper, indicatorVar)),
+                converter.zero
+            ),
+            LinearPolynomial(emptyList(), converter.zero),
+            Comparison.LE, "${name}_zero_ub"
+        )
+
+        // y >= lower * indicator / 下界：条件不满足时 y >= 0
+        allConstraints += LinearInequality(
+            LinearPolynomial(
+                listOf(yMono, LinearMonomial(-thenLower, indicatorVar)),
+                converter.zero
+            ),
+            LinearPolynomial(emptyList(), converter.zero),
+            Comparison.GE, "${name}_zero_lb"
+        )
+
+        // y - thenPoly <= -lower*(1 - indicator) / 条件满足时 y <= thenPoly
+        allConstraints += LinearInequality(
+            LinearPolynomial(
+                listOf(yMono) + negThenMonos + LinearMonomial(-thenLower, indicatorVar),
+                -thenPoly.constant
+            ),
+            LinearPolynomial(emptyList(), -thenLower),
             Comparison.LE, "${name}_then_ub"
         )
 
-        // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
-        // y - thenPoly >= -M*(1 - 指示变量)，即 y - thenPoly - M*指示变量 >= -M
+        // y - thenPoly >= -upper*(1 - indicator) / 条件满足时 y >= thenPoly
         allConstraints += LinearInequality(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-bigMValue, indicatorVar), -thenPoly.constant),
-            LinearPolynomial(emptyList(), -bigMValue),
+            LinearPolynomial(
+                listOf(yMono) + negThenMonos + LinearMonomial(-thenUpper, indicatorVar),
+                -thenPoly.constant
+            ),
+            LinearPolynomial(emptyList(), -thenUpper),
             Comparison.GE, "${name}_then_lb"
         )
 

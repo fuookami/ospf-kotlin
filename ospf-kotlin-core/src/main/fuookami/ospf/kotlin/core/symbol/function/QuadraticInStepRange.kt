@@ -43,7 +43,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property x 二次多项式输入 / quadratic polynomial input
  * @property lower 范围的下界 / lower bound of the range
  * @property upper 范围的上界 / upper bound of the range
- * @param bigM Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+ * @param bigM Big-M 常量（默认从二次输入范围推导，失败时回退到 1e6）/ Big-M constant (inferred from quadratic input range by default, falls back to 1e6)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -57,7 +57,7 @@ class QuadraticInStepRangeFunction<V>(
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val bigM: V = bigM ?: x.defaultBigM(converter)
 
     init {
         require(lower ls upper || lower eq upper) {

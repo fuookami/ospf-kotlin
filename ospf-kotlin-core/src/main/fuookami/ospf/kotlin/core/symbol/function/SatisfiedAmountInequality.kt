@@ -179,9 +179,8 @@ open class SatisfiedAmountInequalityFunction<V>(
                     // flag = 0 表示违反
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
                     // 使用 Big-M：flag=1 时 左侧 <= M*flag 且 左侧 >= -M*flag
-                    val minBigM = converter.intoValue(Flt64(1e6))
                     val absMax = if (lb.abs() geq ub.abs()) lb.abs() else ub.abs()
-                    val m = if (absMax geq minBigM) absMax else minBigM
+                    val m = ensurePositiveBigM(absMax, converter)
 
                     val polyMonos = input.flattenData.monomials.map { m2 ->
                         LinearMonomial(m2.coefficient, m2.symbol)

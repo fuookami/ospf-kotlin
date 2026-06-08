@@ -27,18 +27,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 向下取整函数：y = floor(x)。
  * Floor function: y = floor(x).
  *
- * 使用整数变量 k = floor(x) 和小数二值变量 b。
- * Uses integer variable k = floor(x) with fractional binary variable b.
- * k <= x < k+1, b = x - k（0 或小数）, result = k。
- * k <= x < k+1, b = x - k (0 or fractional), result = k.
+ * 使用整数变量 k = floor(x)，并用 k <= x < k+1 的线性约束近似严格上界。
+ * Uses integer variable k = floor(x), with linear constraints for k <= x < k+1.
  *
  * @property x 输入线性多项式 / Input linear polynomial
  * @property kVar 整数变量 / Integer variable
- * @property bVar 小数二值变量 / Fractional binary variable
  * @property resultVar 结果变量 / Result variable
  * @property result 结果多项式 / Result polynomial
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM 保留参数，当前取整约束不需要 Big-M / reserved parameter, Big-M is not needed by the current floor encoding
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
  */
@@ -50,10 +47,8 @@ class FloorFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
-    val bVar: AbstractVariableItem<*, *> = BinVar("${name}_b")
     val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_floor")
 
     val result: LinearPolynomial<V> by lazy {
@@ -61,7 +56,7 @@ class FloorFunction<V>(
     }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(kVar, bVar, resultVar)
+        get() = listOf(kVar, resultVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
@@ -79,6 +74,7 @@ class FloorFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val zero = converter.zero
         val one = converter.one
+        val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
         val allConstraints = mutableListOf<LinearInequality<V>>()
         val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
@@ -87,19 +83,10 @@ class FloorFunction<V>(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
             LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_floor_lb")
 
-        // k + 1 >= x => x <= k + 1 / k + 1 >= x，即 x <= k + 1
+        // x < k + 1 => x <= k + 1 - eps / x < k + 1，即 x <= k + 1 - eps
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
-            LinearPolynomial(emptyList(), one), Comparison.LE, "${name}_floor_ub")
-
-        // b = x - k => b + k - x = 0 / b = x - k，即 b + k - x = 0
-        allConstraints += LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(one, bVar),
-                LinearMonomial(one, kVar)
-            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -x.constant),
-            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_floor_decompose")
+            LinearPolynomial(emptyList(), one - eps), Comparison.LE, "${name}_floor_ub")
 
         // result = k / 结果等于 k
         allConstraints += LinearInequality(
@@ -117,7 +104,7 @@ class FloorFunction<V>(
          * 创建向下取整函数实例 / Create a floor function instance
          * @param x 输入线性多项式 / input linear polynomial
          * @param converter 值类型转换器 / value type converter
-         * @param bigM Big-M 界限 / Big-M bound
+         * @param bigM 保留参数，当前不使用 / reserved parameter, currently unused
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [FloorFunction] 实例 / [FloorFunction] instance

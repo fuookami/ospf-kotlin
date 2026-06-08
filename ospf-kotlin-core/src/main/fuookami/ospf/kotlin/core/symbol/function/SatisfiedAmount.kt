@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property inequalities 要统计的线性不等式列表 / list of linear inequalities to count
  * @property amount 可选的最小满足数量 / optional minimum satisfied count
  * @property epsilon 零容差 / zero tolerance
- * @property bigM Big-M 界限 / Big-M bound
+ * @property bigM Big-M 界限（默认从每条 lhs-rhs 范围推导）/ Big-M bound (inferred from each lhs-rhs range by default)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -46,7 +46,7 @@ class SatisfiedAmountFunction<V>(
     val inequalities: List<LinearInequality<V>>,
     val amount: UInt64? = null,
     val epsilon: V,
-    val bigM: V,
+    val bigM: V? = null,
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
@@ -59,8 +59,14 @@ class SatisfiedAmountFunction<V>(
         inequalities.mapIndexed { i, _ -> BinVar("${name}_u_$i") }
     }
 
+    private val _eqSideVars: List<BinVar?> by lazy {
+        inequalities.mapIndexed { i, inequality ->
+            if (inequality.comparison == Comparison.EQ) BinVar("${name}_eq_side_$i") else null
+        }
+    }
+
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = _uVars
+        get() = _uVars + _eqSideVars.filterNotNull()
 
     /**
      * 结果多项式：sum(u[i]) - 满足的不等式数量。
@@ -112,12 +118,12 @@ class SatisfiedAmountFunction<V>(
         val zero = converter.zero
         val one = converter.one
         val allConstraints = mutableListOf<LinearInequality<V>>()
-        val mD = bigM
         val eps = epsilon
 
         for (i in inequalities.indices) {
             val ineq = inequalities[i]
             val ui = _uVars[i]
+            val mD = bigM ?: ineq.differencePolynomial().defaultBigM(converter)
             val lhsMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
             val rhsMonos = ineq.rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
             val shiftedMonos = lhsMonos + rhsMonos
@@ -151,25 +157,14 @@ class SatisfiedAmountFunction<V>(
                     )
                 }
                 Comparison.EQ -> {
-                    val monoWithU1 = shiftedMonos + LinearMonomial(mD, ui)
-                    allConstraints += LinearInequality(
-                        LinearPolynomial(monoWithU1, shiftedConst),
-                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_eq_ub1_$i"
-                    )
-                    val monoWithU2 = shiftedMonos + LinearMonomial(-mD, ui)
-                    allConstraints += LinearInequality(
-                        LinearPolynomial(monoWithU2, shiftedConst),
-                        LinearPolynomial(emptyList(), -mD), Comparison.GE, "${name}_sat_eq_lb1_$i"
-                    )
-                    val relaxMono1 = shiftedMonos + LinearMonomial(mD, ui)
-                    allConstraints += LinearInequality(
-                        LinearPolynomial(relaxMono1, shiftedConst),
-                        LinearPolynomial(emptyList(), eps), Comparison.GE, "${name}_sat_eq_ub2_$i"
-                    )
-                    val relaxMono2 = shiftedMonos + LinearMonomial(-mD, ui)
-                    allConstraints += LinearInequality(
-                        LinearPolynomial(relaxMono2, shiftedConst),
-                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_eq_lb2_$i"
+                    allConstraints += zeroIndicatorConstraints(
+                        poly = LinearPolynomial(shiftedMonos, shiftedConst),
+                        indicator = ui,
+                        sideVar = _eqSideVars[i]!!,
+                        bigM = mD,
+                        tolerance = eps,
+                        strictBoundary = eps,
+                        namePrefix = "${name}_sat_eq_$i"
                     )
                 }
                 Comparison.LT, Comparison.GT, Comparison.NE -> {
@@ -199,7 +194,7 @@ class SatisfiedAmountFunction<V>(
             inequalities: List<LinearInequality<V>>,
             amount: UInt64? = null,
             epsilon: V,
-            bigM: V,
+            bigM: V? = null,
             converter: IntoValue<V>,
             name: String,
             displayName: String? = null

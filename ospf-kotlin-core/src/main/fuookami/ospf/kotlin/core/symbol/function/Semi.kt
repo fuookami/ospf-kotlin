@@ -33,7 +33,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * so this is a marker class that produces no additional constraints.
  *
  * @param lb 激活时的下界 / lower bound when active
- * @param ub 激活时的上界 / upper bound when active
+ * @param ub 激活时的上界（默认 1e6，或通过工厂从变量范围推导）/ upper bound when active (default 1e6, or inferred from variable range through factory)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -47,6 +47,12 @@ class SemiFunction<V>(
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     val lb: V = lb ?: converter.zero
     val ub: V = ub ?: converter.intoValue(Flt64(1e6))
+
+    init {
+        require(this.lb leq this.ub) {
+            "SemiFunction lower bound must be less than or equal to upper bound"
+        }
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = emptyList()
@@ -72,5 +78,37 @@ class SemiFunction<V>(
             displayName: String? = null
         ): SemiFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SemiFunction(lb, ub, converter, name, displayName)
+
+        /**
+         * 从变量有限边界创建 [SemiFunction] 实例。
+         * Create a [SemiFunction] instance from finite variable bounds.
+         *
+         * @param variable 用于推导边界的变量 / variable whose bounds are used for inference
+         * @param lb 显式激活下界，优先于变量下界 / explicit active lower bound, preferred over variable lower bound
+         * @param ub 显式激活上界，优先于变量上界 / explicit active upper bound, preferred over variable upper bound
+         * @param converter 值类型转换器 / value type converter
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [SemiFunction] 实例 / [SemiFunction] instance
+         */
+        fun <V> from(
+            variable: AbstractVariableItem<*, *>,
+            lb: V? = null,
+            ub: V? = null,
+            converter: IntoValue<V>,
+            name: String = "semi",
+            displayName: String? = null
+        ): SemiFunction<V> where V : RealNumber<V>, V : NumberField<V> {
+            val range = variable.range.valueRange
+            val inferredLb = range?.lowerBound?.value?.unwrapOrNull()?.let { converter.intoValue(it) }
+            val inferredUb = range?.upperBound?.value?.unwrapOrNull()?.let { converter.intoValue(it) }
+            return SemiFunction(
+                lb = lb ?: inferredLb,
+                ub = ub ?: inferredUb,
+                converter = converter,
+                name = name,
+                displayName = displayName
+            )
+        }
     }
 }

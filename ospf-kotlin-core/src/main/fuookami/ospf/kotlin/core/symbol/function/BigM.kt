@@ -3,12 +3,16 @@
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -34,6 +38,64 @@ const val NONZERO_TOLERANCE: Double = 1e-10
 val STRICT_BOUNDARY: Double = NONZERO_TOLERANCE * 16 + Math.pow(2.0, -52.0) * 16
 
 /**
+ * 线性多项式的有限上下界。
+ * Finite lower and upper bounds of a linear polynomial.
+ *
+ * @property lower 下界 / lower bound
+ * @property upper 上界 / upper bound
+ */
+data class LinearPolynomialBounds<V>(
+    val lower: V,
+    val upper: V
+) where V : RealNumber<V>, V : NumberField<V> {
+    /** 最大绝对值上界。 / Upper bound of the absolute value. */
+    val absMax: V
+        get() {
+            val lowerAbs = lower.abs()
+            val upperAbs = upper.abs()
+            return if (lowerAbs geq upperAbs) lowerAbs else upperAbs
+        }
+}
+
+private fun maxOf(values: Iterable<Flt64>): Flt64 {
+    val iterator = values.iterator()
+    require(iterator.hasNext()) { "values must not be empty" }
+    var result = iterator.next()
+    while (iterator.hasNext()) {
+        val value = iterator.next()
+        if (value gr result) {
+            result = value
+        }
+    }
+    return result
+}
+
+private fun minOf(values: Iterable<Flt64>): Flt64 {
+    val iterator = values.iterator()
+    require(iterator.hasNext()) { "values must not be empty" }
+    var result = iterator.next()
+    while (iterator.hasNext()) {
+        val value = iterator.next()
+        if (value ls result) {
+            result = value
+        }
+    }
+    return result
+}
+
+private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
+    val range = when (symbol) {
+        is AbstractVariableItem<*, *> -> symbol.range.valueRange
+        is IntermediateSymbol<*> -> SolverBoundaryCasts.rangeAsFlt64(symbol)?.valueRange
+        else -> null
+    } ?: return null
+
+    val lower = range.lowerBound.value.unwrapOrNull() ?: return null
+    val upper = range.upperBound.value.unwrapOrNull() ?: return null
+    return lower to upper
+}
+
+/**
  * 在给定 Symbol -> V 值映射下计算线性多项式的值。
  * Evaluate a linear polynomial given a map of Symbol -> V values.
  * 如果多项式中的任何符号不在映射中，则返回 null。
@@ -46,6 +108,169 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
         result += m.coefficient * sv
     }
     return result
+}
+
+/**
+ * 基于变量与中间符号的有限范围推导线性多项式上下界。
+ * Infer finite bounds of a linear polynomial from variable and intermediate-symbol ranges.
+ *
+ * 若任一依赖符号缺少有限上下界，则返回 null。
+ * Returns null if any dependency symbol lacks finite bounds.
+ *
+ * @param converter 值类型转换器 / value type converter
+ * @return 线性多项式上下界，或 null / linear polynomial bounds, or null
+ */
+fun <V> LinearPolynomial<V>.finiteBounds(
+    converter: IntoValue<V>
+): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
+    var lower = converter.fromValue(constant)
+    var upper = converter.fromValue(constant)
+
+    for (monomial in monomials) {
+        val (symbolLower, symbolUpper) = symbolFiniteBounds(monomial.symbol) ?: return null
+        val coefficient = converter.fromValue(monomial.coefficient)
+
+        if (coefficient geq Flt64.zero) {
+            lower += coefficient * symbolLower
+            upper += coefficient * symbolUpper
+        } else {
+            lower += coefficient * symbolUpper
+            upper += coefficient * symbolLower
+        }
+    }
+
+    return LinearPolynomialBounds(
+        lower = converter.intoValue(lower),
+        upper = converter.intoValue(upper)
+    )
+}
+
+/**
+ * 基于变量与中间符号的有限范围推导二次多项式上下界。
+ * Infer finite bounds of a quadratic polynomial from variable and intermediate-symbol ranges.
+ *
+ * @param converter 值类型转换器 / value type converter
+ * @return 二次多项式上下界，或 null / quadratic polynomial bounds, or null
+ */
+fun <V> QuadraticPolynomial<V>.finiteBounds(
+    converter: IntoValue<V>
+): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
+    var lower = converter.fromValue(constant)
+    var upper = converter.fromValue(constant)
+
+    for (monomial in monomials) {
+        val coefficient = converter.fromValue(monomial.coefficient)
+        val (lower1, upper1) = symbolFiniteBounds(monomial.symbol1) ?: return null
+        val termBounds = if (monomial.symbol2 == null) {
+            if (coefficient geq Flt64.zero) {
+                coefficient * lower1 to coefficient * upper1
+            } else {
+                coefficient * upper1 to coefficient * lower1
+            }
+        } else if (monomial.symbol1 == monomial.symbol2) {
+            val squareLower = if (lower1 leq Flt64.zero && upper1 geq Flt64.zero) {
+                Flt64.zero
+            } else {
+                val lowerSquare = lower1 * lower1
+                val upperSquare = upper1 * upper1
+                if (lowerSquare ls upperSquare) lowerSquare else upperSquare
+            }
+            val squareUpper = maxOf(listOf(lower1 * lower1, upper1 * upper1))
+            if (coefficient geq Flt64.zero) {
+                coefficient * squareLower to coefficient * squareUpper
+            } else {
+                coefficient * squareUpper to coefficient * squareLower
+            }
+        } else {
+            val (lower2, upper2) = symbolFiniteBounds(monomial.symbol2!!) ?: return null
+            val products = listOf(
+                coefficient * lower1 * lower2,
+                coefficient * lower1 * upper2,
+                coefficient * upper1 * lower2,
+                coefficient * upper1 * upper2
+            )
+            minOf(products) to maxOf(products)
+        }
+        lower += termBounds.first
+        upper += termBounds.second
+    }
+
+    return LinearPolynomialBounds(
+        lower = converter.intoValue(lower),
+        upper = converter.intoValue(upper)
+    )
+}
+
+/**
+ * 将一个候选 Big-M 调整为至少 [BIG_M_MIN]。
+ * Clamp a candidate Big-M to at least [BIG_M_MIN].
+ */
+fun <V> ensurePositiveBigM(
+    value: V,
+    converter: IntoValue<V>
+): V where V : RealNumber<V>, V : NumberField<V> {
+    val minimum = converter.intoValue(Flt64(BIG_M_MIN))
+    return if (value geq minimum) value else minimum
+}
+
+private fun <V> relaxBigM(
+    bigM: V,
+    margin: V
+): V where V : RealNumber<V>, V : NumberField<V> {
+    return bigM + margin.abs()
+}
+
+/**
+ * 线性多项式默认 Big-M：优先使用有限范围的最大绝对值。
+ * Default Big-M for a linear polynomial: finite-range absolute maximum first.
+ */
+fun <V> LinearPolynomial<V>.defaultBigM(
+    converter: IntoValue<V>,
+    fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
+): V where V : RealNumber<V>, V : NumberField<V> {
+    return finiteBounds(converter)?.absMax?.let { ensurePositiveBigM(it, converter) } ?: fallback
+}
+
+/**
+ * 二次多项式默认 Big-M：优先使用有限范围的最大绝对值。
+ * Default Big-M for a quadratic polynomial: finite-range absolute maximum first.
+ */
+fun <V> QuadraticPolynomial<V>.defaultBigM(
+    converter: IntoValue<V>,
+    fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
+): V where V : RealNumber<V>, V : NumberField<V> {
+    return finiteBounds(converter)?.absMax?.let { ensurePositiveBigM(it, converter) } ?: fallback
+}
+
+/**
+ * 多个线性多项式默认 Big-M：取各自有限范围最大绝对值的最大值。
+ * Default Big-M for linear polynomials: max absolute bound across all inputs.
+ */
+fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
+    converter: IntoValue<V>,
+    fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
+): V where V : RealNumber<V>, V : NumberField<V> {
+    var result: V? = null
+    for (poly in this) {
+        val candidate = poly.finiteBounds(converter)?.absMax ?: return fallback
+        result = if (result == null || candidate gr result) {
+            candidate
+        } else {
+            result
+        }
+    }
+    return result?.let { ensurePositiveBigM(it, converter) } ?: fallback
+}
+
+/**
+ * 构建线性不等式两侧差值 lhs-rhs。
+ * Build the lhs-rhs difference polynomial for a linear inequality.
+ */
+fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    return LinearPolynomial(
+        lhs.monomials + rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+        lhs.constant - rhs.constant
+    )
 }
 
 /**
@@ -125,32 +350,154 @@ fun <V> nonzeroIndicatorConstraints(
 ): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
     val constraints = mutableListOf<LinearInequality<V>>()
     val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+    val bandM = relaxBigM(bigM, tolerance)
+    val outM = relaxBigM(bigM, strictBoundary)
 
     // band_ub: poly - M*ind <= tol / 上界带：多项式 - M*指示变量 <= 容差
-    val ubMonos = polyMonos + LinearMonomial(-bigM, indVar)
+    val ubMonos = polyMonos + LinearMonomial(-bandM, indVar)
     constraints += LinearInequality(
         LinearPolynomial(ubMonos, poly.constant),
         LinearPolynomial(emptyList(), tolerance), Comparison.LE, "${namePrefix}_band_ub")
 
     // band_lb: poly + M*ind >= -tol / 下界带：多项式 + M*指示变量 >= -容差
-    val lbMonos = polyMonos + LinearMonomial(bigM, indVar)
+    val lbMonos = polyMonos + LinearMonomial(bandM, indVar)
     constraints += LinearInequality(
         LinearPolynomial(lbMonos, poly.constant),
         LinearPolynomial(emptyList(), -tolerance), Comparison.GE, "${namePrefix}_band_lb")
 
     // out_lb: poly - M*ind - M*side >= strict_boundary - 2M / 外部下界：多项式 - M*指示变量 - M*辅助变量 >= 严格边界 - 2M
-    val outLbMonos = polyMonos + LinearMonomial(-bigM, indVar) + LinearMonomial(-bigM, sideVar)
+    val outLbMonos = polyMonos + LinearMonomial(-outM, indVar) + LinearMonomial(-outM, sideVar)
     constraints += LinearInequality(
         LinearPolynomial(outLbMonos, poly.constant),
-        LinearPolynomial(emptyList(), strictBoundary - bigM - bigM),
+        LinearPolynomial(emptyList(), strictBoundary - outM - outM),
         Comparison.GE, "${namePrefix}_out_lb")
 
     // out_ub: poly + M*ind - M*side <= -strict_boundary + M / 外部上界：多项式 + M*指示变量 - M*辅助变量 <= -严格边界 + M
-    val outUbMonos = polyMonos + LinearMonomial(bigM, indVar) + LinearMonomial(-bigM, sideVar)
+    val outUbMonos = polyMonos + LinearMonomial(outM, indVar) + LinearMonomial(-outM, sideVar)
     constraints += LinearInequality(
         LinearPolynomial(outUbMonos, poly.constant),
-        LinearPolynomial(emptyList(), -strictBoundary + bigM),
+        LinearPolynomial(emptyList(), -strictBoundary + outM),
         Comparison.LE, "${namePrefix}_out_ub")
+
+    return constraints
+}
+
+/**
+ * 为零值检测构建指示约束。
+ * Build indicator constraints for detecting a zero polynomial value.
+ *
+ * 当 `indicator = 1` 时：poly 在容差范围内。
+ * When `indicator = 1`: poly is within tolerance.
+ * 当 `indicator = 0` 时：poly 至少偏离 [strictBoundary]。
+ * When `indicator = 0`: poly deviates by at least [strictBoundary].
+ */
+fun <V> zeroIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indicator: AbstractVariableItem<*, *>,
+    sideVar: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    strictBoundary: V,
+    namePrefix: String
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<V>>()
+    val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+    val bandM = relaxBigM(bigM, tolerance)
+    val outM = relaxBigM(bigM, strictBoundary)
+
+    // poly <= tolerance + M*(1-indicator) / 上界带：indicator=1 时 poly <= tolerance
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(bandM, indicator), poly.constant),
+        LinearPolynomial(emptyList(), tolerance + bandM),
+        Comparison.LE, "${namePrefix}_zero_band_ub")
+
+    // poly >= -tolerance - M*(1-indicator) / 下界带：indicator=1 时 poly >= -tolerance
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(-bandM, indicator), poly.constant),
+        LinearPolynomial(emptyList(), -tolerance - bandM),
+        Comparison.GE, "${namePrefix}_zero_band_lb")
+
+    // poly >= strictBoundary - M*indicator - M*(1-side) / 正向违反：indicator=0 且 side=1 时生效
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(outM, indicator) + LinearMonomial(-outM, sideVar), poly.constant),
+        LinearPolynomial(emptyList(), strictBoundary - outM),
+        Comparison.GE, "${namePrefix}_zero_out_lb")
+
+    // poly <= -strictBoundary + M*indicator + M*side / 负向违反：indicator=0 且 side=0 时生效
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(-outM, indicator) + LinearMonomial(-outM, sideVar), poly.constant),
+        LinearPolynomial(emptyList(), -strictBoundary),
+        Comparison.LE, "${namePrefix}_zero_out_ub")
+
+    return constraints
+}
+
+/**
+ * 为正数检测构建指示约束。
+ * Build indicator constraints for detecting a positive polynomial value.
+ *
+ * 当 `indicator = 1` 时：poly >= tolerance。
+ * When `indicator = 1`: poly >= tolerance.
+ * 当 `indicator = 0` 时：poly <= 0。
+ * When `indicator = 0`: poly <= 0.
+ */
+fun <V> positiveIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indicator: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    namePrefix: String
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<V>>()
+    val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+    val lowerRelaxM = relaxBigM(bigM, tolerance)
+
+    // poly <= M * indicator / 上界：indicator=0 时 poly <= 0
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(-bigM, indicator), poly.constant),
+        LinearPolynomial(emptyList(), poly.constant - poly.constant),
+        Comparison.LE, "${namePrefix}_positive_ub")
+
+    // poly >= tolerance - M * (1 - indicator) / 下界：indicator=1 时 poly >= tolerance
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(-lowerRelaxM, indicator), poly.constant),
+        LinearPolynomial(emptyList(), tolerance - lowerRelaxM),
+        Comparison.GE, "${namePrefix}_positive_lb")
+
+    return constraints
+}
+
+/**
+ * 为非负检测构建指示约束。
+ * Build indicator constraints for detecting a nonnegative polynomial value.
+ *
+ * 当 `indicator = 1` 时：poly >= 0。
+ * When `indicator = 1`: poly >= 0.
+ * 当 `indicator = 0` 时：poly <= -tolerance。
+ * When `indicator = 0`: poly <= -tolerance.
+ */
+fun <V> nonnegativeIndicatorConstraints(
+    poly: LinearPolynomial<V>,
+    indicator: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    namePrefix: String
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<V>>()
+    val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+    val upperRelaxM = relaxBigM(bigM, tolerance)
+
+    // poly >= -M * (1 - indicator) / 下界：indicator=1 时 poly >= 0
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(-bigM, indicator), poly.constant),
+        LinearPolynomial(emptyList(), -bigM),
+        Comparison.GE, "${namePrefix}_nonnegative_lb")
+
+    // poly <= -tolerance + M * indicator / 上界：indicator=0 时 poly <= -tolerance
+    constraints += LinearInequality(
+        LinearPolynomial(polyMonos + LinearMonomial(-upperRelaxM, indicator), poly.constant),
+        LinearPolynomial(emptyList(), -tolerance),
+        Comparison.LE, "${namePrefix}_nonnegative_ub")
 
     return constraints
 }
@@ -170,40 +517,46 @@ fun <V> simpleIndicatorConstraints(
     bigM: V,
     tolerance: V,
     strictBoundary: V,
-    namePrefix: String
+    namePrefix: String,
+    sideVar: AbstractVariableItem<*, *>? = null
 ): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
     val zero = ineq.lhs.constant - ineq.lhs.constant
     val constraints = mutableListOf<LinearInequality<V>>()
     val diffMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         ineq.rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
     val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
+    val strictRelaxM = relaxBigM(bigM, strictBoundary)
 
     when (ineq.comparison) {
         Comparison.LE -> {
-            // lb: poly - rhs + M*ind >= 0 / 下界：多项式 - 右侧 + M*指示变量 >= 0
+            // satisfied: diff <= tolerance + M*(1-indicator)
+            // 满足：indicator=1 时 diff <= tolerance
             constraints += LinearInequality(
                 LinearPolynomial(diffMonos + LinearMonomial(bigM, indicator), shiftedConst),
-                LinearPolynomial(emptyList(), zero), Comparison.GE, "${namePrefix}_lb")
-            // ub: poly - rhs <= M (always true for reasonable M) / 上界：多项式 - 右侧 <= M（对合理 M 值恒成立）
+                LinearPolynomial(emptyList(), tolerance + bigM), Comparison.LE, "${namePrefix}_sat")
+            // violated: diff >= strictBoundary - M*indicator
+            // 违反：indicator=0 时 diff >= strictBoundary
             constraints += LinearInequality(
-                LinearPolynomial(diffMonos, shiftedConst),
-                LinearPolynomial(emptyList(), bigM), Comparison.LE, "${namePrefix}_ub")
+                LinearPolynomial(diffMonos + LinearMonomial(strictRelaxM, indicator), shiftedConst),
+                LinearPolynomial(emptyList(), strictBoundary), Comparison.GE, "${namePrefix}_violated")
         }
         Comparison.GE -> {
-            // lb: poly - rhs >= -M (always possible) / 下界：多项式 - 右侧 >= -M（始终可行）
+            // satisfied: diff >= -tolerance - M*(1-indicator)
+            // 满足：indicator=1 时 diff >= -tolerance
             constraints += LinearInequality(
-                LinearPolynomial(diffMonos, shiftedConst),
-                LinearPolynomial(emptyList(), -bigM), Comparison.GE, "${namePrefix}_lb")
-            // ub: poly - rhs <= 0 (enforced when indicator=1) / 上界：多项式 - 右侧 <= 0（指示变量=1 时强制生效）
+                LinearPolynomial(diffMonos + LinearMonomial(-bigM, indicator), shiftedConst),
+                LinearPolynomial(emptyList(), -tolerance - bigM), Comparison.GE, "${namePrefix}_sat")
+            // violated: diff <= -strictBoundary + M*indicator
+            // 违反：indicator=0 时 diff <= -strictBoundary
             constraints += LinearInequality(
-                LinearPolynomial(diffMonos, shiftedConst),
-                LinearPolynomial(emptyList(), zero), Comparison.LE, "${namePrefix}_ub")
+                LinearPolynomial(diffMonos + LinearMonomial(-strictRelaxM, indicator), shiftedConst),
+                LinearPolynomial(emptyList(), -strictBoundary), Comparison.LE, "${namePrefix}_violated")
         }
         Comparison.EQ -> {
-            val sideVar = BinVar("${namePrefix}_side")
-            constraints += nonzeroIndicatorConstraints(
+            val eqSideVar = sideVar ?: BinVar("${namePrefix}_side")
+            constraints += zeroIndicatorConstraints(
                 LinearPolynomial(diffMonos, shiftedConst),
-                indicator, sideVar, bigM, tolerance, strictBoundary, namePrefix
+                indicator, eqSideVar, bigM, tolerance, strictBoundary, namePrefix
             )
         }
         Comparison.LT, Comparison.GT, Comparison.NE -> {

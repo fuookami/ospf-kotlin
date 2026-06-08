@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -34,7 +33,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 内部委托给 MaxFunction。
  *
  * @property polynomials 输入线性多项式列表 / list of input linear polynomials
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认由内部 MaxFunction 从候选范围推导）/ Big-M bound (inferred by inner MaxFunction from candidate ranges by default)
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -46,7 +45,6 @@ class MinMaxFunction<V>(
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val inner = MaxFunction(polynomials, bigM, converter, name)
 
     val resultVar: AbstractVariableItem<*, *>
@@ -117,7 +115,7 @@ class MinMaxFunction<V>(
  * 内部委托给 MinFunction。
  *
  * @property polynomials 输入线性多项式列表 / list of input linear polynomials
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM Big-M 界限（默认由内部 MinFunction 从候选范围推导）/ Big-M bound (inferred by inner MinFunction from candidate ranges by default)
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -129,7 +127,6 @@ class MaxMinFunction<V>(
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val inner = MinFunction(polynomials, bigM, converter, name)
 
     val resultVar: AbstractVariableItem<*, *>

@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -39,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * @property lb 下界线性多项式 / the lower bound linear polynomial
  * @property ub 上界线性多项式 / the upper bound linear polynomial
  * @property step 步长（必须为正，默认 1）/ the step size (must be positive, default 1)
- * @param m Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param m Big-M 界限（默认从 ub-lb 范围推导，失败时回退到 1e6）/ Big-M bound (inferred from ub-lb range by default, falls back to 1e6)
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -53,7 +52,10 @@ class InStepRangeFunction<V>(
     override var name: String = "inStepRange",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val m: V = m ?: converter.intoValue(Flt64(1e6))
+    private val m: V = m ?: LinearPolynomial(
+        ub.monomials + lb.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
+        ub.constant - lb.constant
+    ).defaultBigM(converter)
 
     private val diff: LinearPolynomial<V> by lazy {
         LinearPolynomial(ub.monomials + lb.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, ub.constant - lb.constant)

@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property breakpoints 断点值列表 / list of breakpoint values
  * @property slopes 各段斜率 / slope of each segment
  * @property intercepts 各段截距 / intercept of each segment
- * @param m Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+ * @param m Big-M 常量（默认从输入与分段输出范围推导，失败时回退到 1e6）/ Big-M constant (inferred from input and piecewise-output ranges by default, falls back to 1e6)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -50,7 +50,7 @@ class UnivariateLinearPiecewiseFunction<V>(
     override var name: String = "piecewise",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val m: V = m ?: converter.intoValue(Flt64(1e6))
+    private val explicitM: V? = m
 
     init {
         require(breakpoints.size >= 2) { "Need at least 2 breakpoints" }
@@ -60,7 +60,7 @@ class UnivariateLinearPiecewiseFunction<V>(
 
     private val numSegments = breakpoints.size - 1
     val selectorVars: List<AbstractVariableItem<*, *>> = (0 until numSegments).map { BinVar("${name}_s${it}") }
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_y")
+    val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_y")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
@@ -95,8 +95,17 @@ class UnivariateLinearPiecewiseFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val zero = converter.zero
         val one = converter.one
-        val bigMValue = m
         val allConstraints = mutableListOf<LinearInequality<V>>()
+        val fallbackM = x.defaultBigM(converter)
+        val xBounds = x.finiteBounds(converter)
+        val outputValues = (0 until numSegments).flatMap { i ->
+            listOf(
+                slopes[i] * breakpoints[i] + intercepts[i],
+                slopes[i] * breakpoints[i + 1] + intercepts[i]
+            )
+        }
+        val outputLower = outputValues.reduce { acc, value -> if (value ls acc) value else acc }
+        val outputUpper = outputValues.reduce { acc, value -> if (value gr acc) value else acc }
 
         // Exactly one segment must be active: sum(s[i]) = 1 / 恰好一个线段激活：sum(s[i]) = 1
         val sumMonos = selectorVars.map { LinearMonomial(one, it) }
@@ -110,6 +119,27 @@ class UnivariateLinearPiecewiseFunction<V>(
             val bpHigh = breakpoints[i + 1]
             val slope = slopes[i]
             val intercept = intercepts[i]
+            val bigMValue = explicitM ?: if (xBounds != null) {
+                val xLower = xBounds.lower
+                val xUpper = xBounds.upper
+                val lineAtLower = slope * xLower + intercept
+                val lineAtUpper = slope * xUpper + intercept
+                val lineLower = if (lineAtLower ls lineAtUpper) lineAtLower else lineAtUpper
+                val lineUpper = if (lineAtLower gr lineAtUpper) lineAtLower else lineAtUpper
+                val xLowerRelax = if (bpLow gr xLower) bpLow - xLower else zero
+                val xUpperRelax = if (xUpper gr bpHigh) xUpper - bpHigh else zero
+                val eqUpperRelax = (outputUpper - lineLower).abs()
+                val eqLowerRelax = (outputLower - lineUpper).abs()
+                val candidate = listOf(
+                    xLowerRelax,
+                    xUpperRelax,
+                    eqUpperRelax,
+                    eqLowerRelax
+                ).reduce { acc, value -> if (value gr acc) value else acc }
+                ensurePositiveBigM(candidate, converter)
+            } else {
+                fallbackM
+            }
 
             // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
             // 下界：x >= bpLow - M*(1 - s[i])，即 x + M - M*s >= bpLow
@@ -155,7 +185,7 @@ class UnivariateLinearPiecewiseFunction<V>(
          * @param breakpoints 断点值列表 / list of breakpoint values
          * @param slopes 各段斜率 / slope of each segment
          * @param intercepts 各段截距 / intercept of each segment
-         * @param m Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+         * @param m Big-M 常量（默认从输入与分段输出范围推导，失败时回退到 1e6）/ Big-M constant (inferred from input and piecewise-output ranges by default, falls back to 1e6)
          * @param converter 值类型转换器 / value type converter
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -182,7 +212,7 @@ class UnivariateLinearPiecewiseFunction<V>(
          *
          * @param x 输入线性多项式 / the input linear polynomial
          * @param points 采样点列表 / list of sampling points
-         * @param m Big-M 常量（默认 1e6）/ Big-M constant (default 1e6)
+         * @param m Big-M 常量（默认从输入与分段输出范围推导，失败时回退到 1e6）/ Big-M constant (inferred from input and piecewise-output ranges by default, falls back to 1e6)
          * @param converter 值类型转换器 / value type converter
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name

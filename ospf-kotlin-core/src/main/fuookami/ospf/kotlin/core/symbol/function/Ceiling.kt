@@ -27,16 +27,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 向上取整函数：y = ceil(x)。
  * Ceiling function: y = ceil(x).
  *
- * 使用整数变量 k = ceil(x) 和小数二值变量 b。
- * Uses integer variable k = ceil(x) with fractional binary variable b.
- * k - 1 < x <= k, b = x - floor(x), k = floor(x) + b.
+ * 使用整数变量 k = ceil(x)，并用 k-1 < x <= k 的线性约束近似严格下界。
+ * Uses integer variable k = ceil(x), with linear constraints for k-1 < x <= k.
  *
  * @property x 输入线性多项式 / Input linear polynomial
  * @property kVar 整数变量 / Integer variable
- * @property bVar 小数二值变量 / Fractional binary variable
  * @property resultVar 结果变量 / Result variable
  * @param converter 值类型转换器 / value type converter
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM 保留参数，当前取整约束不需要 Big-M / reserved parameter, Big-M is not needed by the current ceiling encoding
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
  */
@@ -48,14 +46,12 @@ class CeilingFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
-    val bVar: AbstractVariableItem<*, *> = BinVar("${name}_b")
     val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_ceil")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(kVar, bVar, resultVar)
+        get() = listOf(kVar, resultVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
@@ -85,20 +81,7 @@ class CeilingFunction<V>(
         // x > k - 1 => x >= k - 1 + epsilon / x 大于 k-1，即 x >= k - 1 + epsilon
         allConstraints += LinearInequality(
             LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
-            LinearPolynomial(emptyList(), one - eps), Comparison.GE, "${name}_ceil_lb")
-
-        // b = x - floor(x) => k = x + 1 - b => b - k + x = -1 + ... simplified:
-        // b = x - floor(x) => k = x + 1 - b => 化简后：
-        // k = x + b, so k - x = b
-        // k = x + b，即 k - x = b
-        // k - x - b = 0 / k - x - b = 0
-        allConstraints += LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(one, kVar),
-                LinearMonomial(-one, bVar)
-            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -x.constant),
-            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_ceil_decompose")
+            LinearPolynomial(emptyList(), -one + eps), Comparison.GE, "${name}_ceil_lb")
 
         // result = k / 结果等于 k
         allConstraints += LinearInequality(
@@ -116,7 +99,7 @@ class CeilingFunction<V>(
          * 创建向上取整函数实例 / Create a ceiling function instance
          * @param x 输入线性多项式 / input linear polynomial
          * @param converter 值类型转换器 / value type converter
-         * @param bigM Big-M 界限 / Big-M bound
+         * @param bigM 保留参数，当前不使用 / reserved parameter, currently unused
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [CeilingFunction] 实例 / [CeilingFunction] instance

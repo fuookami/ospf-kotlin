@@ -27,11 +27,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 四舍五入函数：y = round(x)。
  * Rounding function: y = round(x).
  *
- * 使用整数变量 k 和二值变量 r 处理 0.5 的情况。
- * Uses integer variable k and binary r to handle the 0.5 case.
+ * 使用整数变量 k、连续小数变量 b 和二值变量 r 处理 0.5 的情况。
+ * Uses integer variable k, continuous fractional variable b, and binary r to handle the 0.5 case.
  *
  * @property x 输入线性多项式 / the input linear polynomial
- * @param bigM Big-M 界限（默认 1e6）/ Big-M bound (default 1e6)
+ * @param bigM 小数指示 Big-M（默认 1）/ Big-M for fractional indicator (default 1)
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
@@ -43,11 +43,11 @@ class RoundingFunction<V>(
     override var name: String = "round",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val bigM: V = bigM?.let { if (it geq converter.one) it else converter.one } ?: converter.one
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
     val rVar: AbstractVariableItem<*, *> = BinVar("${name}_r")
-    val bVar: AbstractVariableItem<*, *> = BinVar("${name}_b")
+    val bVar: AbstractVariableItem<*, *> = URealVar("${name}_b")
     val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_round")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
@@ -95,6 +95,11 @@ class RoundingFunction<V>(
                 -x.constant),
             LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_round_decompose")
 
+        // b < 1 => b <= 1 - eps / 小数部分上界：b < 1，即 b <= 1 - eps
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(one, bVar)), zero),
+            LinearPolynomial(emptyList(), one - eps), Comparison.LE, "${name}_round_b_ub")
+
         // r = 1 if b >= 0.5 (round up) / b >= 0.5 时 r = 1（向上取整）
         // b >= 0.5*r / b >= 0.5*r
         allConstraints += LinearInequality(
@@ -104,30 +109,14 @@ class RoundingFunction<V>(
             ), zero),
             LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_round_r_lb")
 
-        // b <= 0.5 + 0.5*(1-r) = 1 - 0.5*r => b + 0.5*r <= 1... wait
-        // b <= 0.5 + 0.5*(1-r) = 1 - 0.5*r => b + 0.5*r <= 1... 等等
-        // b <= 0.5 + (1-r)*0.5 + r*0 = 0.5 + 0.5 - 0.5*r = 1 - 0.5*r
-        // b <= 0.5 + (1-r)*0.5 + r*0 = 0.5 + 0.5 - 0.5*r = 1 - 0.5*r
-        // Simplified: if b < 0.5 then r = 0, if b >= 0.5 then r = 1
-        // 化简：b < 0.5 时 r = 0，b >= 0.5 时 r = 1
-        // b - 0.5*r <= 1 - r ... no.
-        // b - 0.5*r <= 1 - r ... 不对。
-        // b <= 0.5 + M*(1-r) => b + M*r <= M + 0.5
-        // b <= 0.5 + M*(1-r)，即 b + M*r <= M + 0.5
-        allConstraints += LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(one, bVar),
-                LinearMonomial(bigMValue, rVar)
-            ), zero),
-            LinearPolynomial(emptyList(), bigMValue + half), Comparison.LE, "${name}_round_r_ub")
-
-        // b >= 0.5 - M*(1-r) => b - M*r >= 0.5 - M / b >= 0.5 - M*(1-r)，即 b - M*r >= 0.5 - M
+        // b <= 0.5 - eps + M*r / r=0 时 b 必须小于 0.5
+        // b <= 0.5 - eps + M*r / when r=0, b must be below 0.5
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, bVar),
                 LinearMonomial(-bigMValue, rVar)
             ), zero),
-            LinearPolynomial(emptyList(), half - bigMValue), Comparison.GE, "${name}_round_r_lb2")
+            LinearPolynomial(emptyList(), half - eps), Comparison.LE, "${name}_round_r_ub")
 
         // result = k + r / 结果 = k + r
         allConstraints += LinearInequality(
