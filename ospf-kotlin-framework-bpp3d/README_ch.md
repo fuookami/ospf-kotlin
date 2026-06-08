@@ -11,23 +11,26 @@
 2. 竖直圆柱 MVP（`Axis3.Y`）及 shape-aware 几何判定。
 3. `Axis3.X` / `Axis3.Z` 横向圆柱固定半径/离散半径可通过 axis-aware circle-packing grid 生成候选，并进入 column generation。
 4. 在最终坐标已确定的已知坐标装箱/渲染路径中，通过真实几何 guard 支持 `Axis3.X` / `Axis3.Z` 横向圆柱。
+5. 横向圆柱在贴地或全长长方体支撑下可通过保守的 3D stacking 支撑检查。
 
 ## 圆柱几何语义
 
 当前 MVP 的语义约束：
 
-1. 固定半径和离散半径的 `Axis3.X` / `Axis3.Z` 横向圆柱可进入 axis-aware circle-packing 生成候选路径。其它候选生成、block loading、stacking 和 hanging 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
+1. 固定半径和离散半径的 `Axis3.X` / `Axis3.Z` 横向圆柱可进入 axis-aware circle-packing 生成候选路径。其它候选生成、block loading、无坐标 hanging 和 pile 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
 2. 最终装箱转换/渲染路径和泛型已知坐标分析入口可以接受通过生成候选或已知坐标进入的 `Axis3.X` / `Axis3.Z` 横向圆柱，并由 `PackingGeometryGuard` 执行真实轴对齐圆柱几何校验。
-3. 横向圆柱必须贴在箱底，或由下方长方体提供全长支撑；无支撑或局部支撑的横向圆柱会被拒绝。
+3. 横向圆柱必须贴在箱底，或由下方长方体提供全长支撑；无支撑或局部支撑的横向圆柱会在最终校验和 3D stacking 支撑检查中被拒绝。
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
 5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
-6. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
+6. 连续半径优化元数据在产出生产 `PackingShape3` 前会被拒绝；固定半径和离散半径候选仍保持支持。
+7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
 
 当前仍未完成或未完全泛型化：
 
 1. 圆柱任意三维旋转。
 2. 全主链 legacy 长方体算法的 shape-generic 迁移。
-3. 外部 renderer 源码不属于本仓；本模块负责输出用于外部 renderer 验收的 shape metadata。
+3. solver 原生连续半径优化完整闭环。
+4. 外部 renderer 源码不属于本仓；本模块负责输出用于外部 renderer 验收的 shape metadata。
 
 重构进度请查看 [refactor.md](./refactor.md)。
 
@@ -36,8 +39,8 @@
 | 轴向 | 含义 | 当前状态 |
 | --- | --- | --- |
 | `Axis3.Y` | 竖直圆柱；装载平面上的 footprint 为圆。 | 已在带门禁的竖直圆柱路径支持，并使用真实 footprint 校验。 |
-| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 支持固定/离散半径的 axis-aware circle-packing 生成候选，也支持已知坐标最终装箱/渲染路径；两者都由真实 3D 几何和贴地/全长长方体支撑 guard 保护，stacking 和 hanging 路径仍为 unsupported。 |
-| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 支持固定/离散半径的 axis-aware circle-packing 生成候选，也支持已知坐标最终装箱/渲染路径；两者都由真实 3D 几何和贴地/全长长方体支撑 guard 保护，stacking 和 hanging 路径仍为 unsupported。 |
+| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 支持固定/离散半径的 axis-aware circle-packing 生成候选、已知坐标最终装箱/渲染路径，以及贴地/全长长方体支撑下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
+| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 支持固定/离散半径的 axis-aware circle-packing 生成候选、已知坐标最终装箱/渲染路径，以及贴地/全长长方体支撑下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
 
 ## Shape 路径支持矩阵
 
@@ -53,7 +56,7 @@
 | BLA placement | 支持当前已生成 layer | 仅通过已验证的竖直圆柱生成层支持 | 仅通过已验证的 axis-aware circle-packing 生成层支持 |
 | simple block generation | 支持 | 仅支持直立 `Axis3.Y` 圆柱 | 不支持 |
 | DFS / MLHS space splitting | 支持 cuboid-only 路径 | 不支持 | 不支持 |
-| stacking / hanging 支撑语义 | 支持长方体语义 | 仅在明确 guard 的直立 `Axis3.Y` 支撑检查中受限支持 | 不支持 |
+| stacking / hanging 支撑语义 | 支持长方体语义 | 仅在明确 guard 的直立 `Axis3.Y` 支撑检查中受限支持 | 3D stacking 支持贴地/全长长方体支撑；无坐标 hanging 和局部支撑仍不支持 |
 | packing program / material packing | 支持，并在生成 item 时保留 `PackingProgram.shape.shapeSpec` | 作为 item shape metadata 保留；后续能力服从 item/generated/final-path guard | 作为 item shape metadata 保留；仅 axis-aware generated 或已知坐标终态路径可开放 |
 | depth boundary policy | application 层最终校验 | application 层最终校验 | 仅在已知坐标存在后做 application 层最终校验 |
 
@@ -74,9 +77,9 @@
 4. `diameter_min` / `diameter_min_meter`、`diameter_max` / `diameter_max_meter`、`diameter_step` / `diameter_step_meter`：动态直径区间。
 5. `axis`：圆柱可选，默认 `Y`，可接受值：`Y`、`AXIS3.Y`、`X`、`AXIS3.X`、`Z`、`AXIS3.Z`。
 
-圆柱行至少需要提供 `radius_meter`、`radius_min` 或 `diameter_min` 之一。`axis = X` / `Z` 是固定/离散半径 axis-aware circle-packing 候选生成的生产输入，也可用于已知坐标最终装箱/渲染路径；两者都必须通过真实 3D 几何校验。material-width-amount CSV 中，X/Z 行的 `width` 会解释为圆柱轴向长度。支撑和 stacking 路径仍保持门禁。
+圆柱行至少需要提供 `radius_meter`、`radius_min` 或 `diameter_min` 之一。`axis = X` / `Z` 是固定/离散半径 axis-aware circle-packing 候选生成的生产输入，也可用于已知坐标最终装箱/渲染路径；两者都必须通过真实 3D 几何校验。material-width-amount CSV 中，X/Z 行的 `width` 会解释为圆柱轴向长度。除 3D 贴地/全长长方体支撑检查外，其它支撑路径仍保持门禁。
 
-动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。连续半径优化还不是生产能力，只能作为设计/原型主题保留在默认求解链路之外。
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。连续半径优化还不是生产能力；`radiusWeightFunctionKey` 元数据会在产出生产 `PackingShape3` 前被拒绝，不能静默按固定半径求解。
 
 ### 深度边界层策略列
 

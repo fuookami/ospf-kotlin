@@ -11,23 +11,26 @@ This repository currently focuses on:
 2. Vertical cylinder MVP (`Axis3.Y`) with shape-aware geometry.
 3. Guarded fixed/discrete-radius horizontal cylinder candidates (`Axis3.X` / `Axis3.Z`) through axis-aware circle-packing grids and column generation.
 4. Guarded horizontal cylinder known-coordinate packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
+5. Conservative 3D stacking support for horizontal cylinders only when they are on the floor or on full-length cuboid support.
 
 ## Cylinder Geometry Semantics
 
 For the current MVP:
 
-1. Fixed-radius and discrete-radius `Axis3.X` / `Axis3.Z` horizontal cylinders can enter the axis-aware circle-packing generated candidate path. Other candidate generation, block loading, stacking, and hanging support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
+1. Fixed-radius and discrete-radius `Axis3.X` / `Axis3.Z` horizontal cylinders can enter the axis-aware circle-packing generated candidate path. Other candidate generation, block loading, coordinate-less hanging, and pile support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
 2. Final packing conversion/rendering and generic known-coordinate analysis can accept `Axis3.X` / `Axis3.Z` horizontal cylinders when generated candidates or known coordinates pass `PackingGeometryGuard` real axis-aligned cylinder geometry validation.
-3. Horizontal cylinders must be on the bin floor or have full-length cuboid support underneath; unsupported or partially supported horizontal cylinders are rejected.
+3. Horizontal cylinders must be on the bin floor or have full-length cuboid support underneath; unsupported or partially supported horizontal cylinders are rejected in final validation and in the 3D stacking support checker.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
-6. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
+6. Continuous radius optimization metadata is rejected before producing a production `PackingShape3`; fixed and discrete radius candidates remain supported.
+7. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
 
 Unsupported or not fully generalized yet:
 
 1. Arbitrary 3D cylinder rotation.
 2. Fully shape-generic migration for all legacy cuboid algorithms.
-3. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
+3. Full solver-native continuous radius optimization.
+4. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
 
 See detailed progress in [refactor.md](./refactor.md).
 
@@ -36,8 +39,8 @@ See detailed progress in [refactor.md](./refactor.md).
 | Axis | Meaning | Current status |
 | --- | --- | --- |
 | `Axis3.Y` | Vertical cylinder; circular footprint on the loading plane. | Supported in guarded vertical-cylinder paths with real footprint checks. |
-| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported for fixed/discrete-radius axis-aware circle-packing generated candidates and known-coordinate final packing/rendering paths, all guarded by real 3D geometry and floor/full-length cuboid support checks; stacking/hanging paths remain unsupported. |
-| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported for fixed/discrete-radius axis-aware circle-packing generated candidates and known-coordinate final packing/rendering paths, all guarded by real 3D geometry and floor/full-length cuboid support checks; stacking/hanging paths remain unsupported. |
+| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported for fixed/discrete-radius axis-aware circle-packing generated candidates, known-coordinate final packing/rendering paths, and 3D stacking checks with floor/full-length cuboid support; coordinate-less hanging and cuboid-only generated paths remain unsupported. |
+| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported for fixed/discrete-radius axis-aware circle-packing generated candidates, known-coordinate final packing/rendering paths, and 3D stacking checks with floor/full-length cuboid support; coordinate-less hanging and cuboid-only generated paths remain unsupported. |
 
 ## Shape Path Support Matrix
 
@@ -53,7 +56,7 @@ Candidate-generation, cuboid-only search/merge, support checks, known-coordinate
 | BLA placement | Supported for current generated layers | Supported only through verified vertical-cylinder generated layers | Supported only through verified axis-aware circle-packing generated layers |
 | Simple block generation | Supported | Supported only for upright `Axis3.Y` cylinders | Unsupported |
 | DFS / MLHS space splitting | Supported cuboid-only path | Unsupported | Unsupported |
-| Stacking / hanging support semantics | Supported cuboid semantics | Limited to upright `Axis3.Y` support checks where explicitly guarded | Unsupported |
+| Stacking / hanging support semantics | Supported cuboid semantics | Limited to upright `Axis3.Y` support checks where explicitly guarded | 3D stacking supports floor/full-length cuboid support; coordinate-less hanging and partial support remain unsupported |
 | Packing program / material packing | Supported and preserves `PackingProgram.shape.shapeSpec` when emitting items | Preserved as item shape metadata; downstream support follows item/generated/final-path guards | Preserved as item shape metadata; only axis-aware generated or known-coordinate final paths may open it |
 | Depth boundary policy | Application-level final validation | Application-level final validation | Application-level final validation only after known coordinates exist |
 
@@ -74,9 +77,9 @@ Optional shape metadata columns:
 4. `diameter_min` / `diameter_min_meter`, `diameter_max` / `diameter_max_meter`, `diameter_step` / `diameter_step_meter`: dynamic diameter interval.
 5. `axis`: optional for cylinder, default `Y`, accepted values: `Y`, `AXIS3.Y`, `X`, `AXIS3.X`, `Z`, `AXIS3.Z`.
 
-For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` is a production input for fixed/discrete-radius axis-aware circle-packing candidate generation and for known-coordinate final packing/rendering after real 3D geometry validation. In the material-width-amount CSV, `width` is interpreted as the cylinder axis length for X/Z rows. Support/stacking paths remain guarded.
+For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` is a production input for fixed/discrete-radius axis-aware circle-packing candidate generation and for known-coordinate final packing/rendering after real 3D geometry validation. In the material-width-amount CSV, `width` is interpreted as the cylinder axis length for X/Z rows. Support paths remain guarded except for the 3D floor/full-length cuboid support checker.
 
-Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. Continuous radius optimization is not a production capability yet; keep it as a design/prototype topic outside the default solving path.
+Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. Continuous radius optimization is not a production capability yet; `radiusWeightFunctionKey` metadata is rejected before producing production `PackingShape3` so it cannot silently run as a fixed-radius solve.
 
 ### Depth Boundary Layer Policy Columns
 

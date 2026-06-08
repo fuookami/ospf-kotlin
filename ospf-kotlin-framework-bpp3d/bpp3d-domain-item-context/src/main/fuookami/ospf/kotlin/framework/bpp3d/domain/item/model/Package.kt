@@ -396,6 +396,10 @@ fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>
     return when (val spec = shapeSpec) {
         PackageShapeSpec.Cuboid -> null
         is PackageShapeSpec.VerticalCylinder -> {
+            requireDiscreteCylinderRadiusProductionMetadata(
+                spec = spec,
+                source = "PackageShape.toPackingShapeOrNull"
+            )
             val shapeHeight = cylinderAxisLength(spec.axis)
             CylinderPackingShape3(
                 cylinder = object : AbstractCylinder<InfraNumber> {

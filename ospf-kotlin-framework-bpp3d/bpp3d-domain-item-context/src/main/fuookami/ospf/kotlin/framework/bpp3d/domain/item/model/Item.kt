@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -640,6 +641,104 @@ val ItemPlacement3.topFlat: Boolean
     get() {
         return (view as ItemView).topFlat
     }
+
+private const val HorizontalCylinderStackingSupportTolerance = 1e-7
+
+private fun horizontalCylinderStackingSupportRadialAxis(axis: Axis3): Axis3 {
+    return when (axis) {
+        Axis3.X -> Axis3.Z
+        Axis3.Y -> Axis3.Y
+        Axis3.Z -> Axis3.X
+    }
+}
+
+private fun PackingShape3<InfraNumber>.boundingSpan(axis: Axis3): Double {
+    return when (axis) {
+        Axis3.X -> boundingWidth.toDouble()
+        Axis3.Y -> boundingHeight.toDouble()
+        Axis3.Z -> boundingDepth.toDouble()
+    }
+}
+
+private fun AnyPlacement3.shapeMin(axis: Axis3): Double {
+    return when (axis) {
+        Axis3.X -> absoluteX.toDouble()
+        Axis3.Y -> absoluteY.toDouble()
+        Axis3.Z -> absoluteZ.toDouble()
+    }
+}
+
+private fun AnyPlacement3.shapeMax(axis: Axis3): Double {
+    return shapeMin(axis) + resolvedPackingShape().boundingSpan(axis)
+}
+
+private fun AnyPlacement3.shapeCenter(axis: Axis3): Double {
+    return (shapeMin(axis) + shapeMax(axis)) / 2.0
+}
+
+private fun coordinateInSpan(min: Double, max: Double, coordinate: Double): Boolean {
+    return coordinate >= min - HorizontalCylinderStackingSupportTolerance
+            && coordinate <= max + HorizontalCylinderStackingSupportTolerance
+}
+
+private fun intervalsCoverSpan(targetMin: Double, targetMax: Double, intervals: List<Pair<Double, Double>>): Boolean {
+    var coveredMax = targetMin
+    val sortedIntervals = intervals.sortedWith { lhs, rhs ->
+        lhs.first.compareTo(rhs.first)
+    }
+    for ((intervalMin, intervalMax) in sortedIntervals) {
+        if (intervalMax <= coveredMax + HorizontalCylinderStackingSupportTolerance) {
+            continue
+        }
+        if (intervalMin - coveredMax > HorizontalCylinderStackingSupportTolerance) {
+            return false
+        }
+        coveredMax = kotlin.math.max(coveredMax, intervalMax)
+        if (coveredMax >= targetMax - HorizontalCylinderStackingSupportTolerance) {
+            return true
+        }
+    }
+    return coveredMax >= targetMax - HorizontalCylinderStackingSupportTolerance
+}
+
+private fun hasFullLengthHorizontalCylinderStackingSupport(
+    item: ItemPlacement3,
+    bottomItems: List<AnyPlacement3>
+): Boolean {
+    val cylinder = item.resolvedPackingShape() as? CylinderPackingShape3 ?: return true
+    val axis = cylinder.axis
+    if (axis == Axis3.Y || item.absoluteY eq infraZero()) {
+        return true
+    }
+
+    val radialAxis = horizontalCylinderStackingSupportRadialAxis(axis)
+    val bottomLineCoordinate = item.shapeCenter(radialAxis)
+    val supportIntervals = bottomItems.mapNotNull { candidate ->
+        if (candidate.resolvedPackingShape() is CylinderPackingShape3) {
+            return@mapNotNull null
+        }
+        if (kotlin.math.abs(candidate.shapeMax(Axis3.Y) - item.shapeMin(Axis3.Y)) > HorizontalCylinderStackingSupportTolerance) {
+            return@mapNotNull null
+        }
+        if (!coordinateInSpan(candidate.shapeMin(radialAxis), candidate.shapeMax(radialAxis), bottomLineCoordinate)) {
+            return@mapNotNull null
+        }
+        val intervalMin = kotlin.math.max(candidate.shapeMin(axis), item.shapeMin(axis))
+        val intervalMax = kotlin.math.min(candidate.shapeMax(axis), item.shapeMax(axis))
+        if (intervalMax - intervalMin <= HorizontalCylinderStackingSupportTolerance) {
+            null
+        } else {
+            Pair(intervalMin, intervalMax)
+        }
+    }
+
+    return intervalsCoverSpan(
+        targetMin = item.shapeMin(axis),
+        targetMax = item.shapeMax(axis),
+        intervals = supportIntervals
+    )
+}
+
 @JvmName("itemPlacement2SideEnabledStackingOn")
 suspend fun ItemPlacement2<Side>.enabledStackingOn(
     bottomItems: List<AnySidePlacement2>,
@@ -763,6 +862,39 @@ suspend fun ItemPlacement3.enabledStackingOn(
     bottomItems: List<AnyPlacement3>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
+    val shape = resolvedPackingShape()
+    if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
+        if (!hasFullLengthHorizontalCylinderStackingSupport(
+                item = this,
+                bottomItems = bottomItems
+            )
+        ) {
+            return false
+        }
+        return unit.packageAttribute.enabledStackingOn(
+            item = this,
+            bottomItems = bottomItems.filter {
+                it.maxY leq this.y && it.overlappedOnBottom(this)
+            }.flatMap {
+                when (val unit = it.unit) {
+                    is Item -> {
+                        it.toItemPlacementOrNull()?.let { itemPlacement ->
+                            listOf(itemPlacement)
+                        } ?: emptyList()
+                    }
+
+                    is ItemContainer<*> -> {
+                        unit.dump(it.position)
+                    }
+
+                    else -> {
+                        emptyList()
+                    }
+                }
+            },
+            space = space
+        )
+    }
     return if (absoluteY eq infraZero()) {
         unit.packageAttribute.enabledStackingOn(
             item = this,

@@ -51,8 +51,7 @@ class PackageShapeSpecTest {
                     infraScalar(0.6) * Meter
                 ),
                 radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter,
-                radiusWeightFunctionKey = "mass-linear-v1"
+                radiusMax = infraScalar(0.6) * Meter
             )
         )
 
@@ -84,6 +83,31 @@ class PackageShapeSpecTest {
             actual = spec.resolvedRadiusCandidates,
             expected = listOf(0.5)
         )
+    }
+
+    @Test
+    fun verticalCylinderProductionShapeShouldRejectContinuousRadiusOptimization() {
+        val shape = PackageShape(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.2) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            weight = infraScalar(3.0) * Kilogram,
+            packageType = PackageType.CartonContainer,
+            shapeSpec = PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.5) * Meter,
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter,
+                radiusWeightFunctionKey = "continuous-radius-prototype"
+            )
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            shape.toPackingShapeOrNull()
+        }
+
+        assertTrue(error.message?.contains("continuous cylinder radius optimization") == true)
+        assertTrue(error.message?.contains("PackageShape.toPackingShapeOrNull") == true)
     }
 
     @Test

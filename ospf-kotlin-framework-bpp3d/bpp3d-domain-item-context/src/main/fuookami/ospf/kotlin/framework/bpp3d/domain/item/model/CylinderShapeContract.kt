@@ -204,6 +204,17 @@ fun unsupportedCylinderStackingSupportMessage(source: String): String {
 }
 
 /**
+ * 连续半径优化未开放错误信息。
+ * Unsupported continuous radius optimization message.
+ *
+ * @param source 调用来源 / call source
+ * @return 错误信息 / error message
+ */
+fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): String {
+    return "Unsupported continuous cylinder radius optimization in $source: radiusWeightFunctionKey requires solver radius variables and final actual-radius validation."
+}
+
+/**
  * 圆柱进入仅长方体路径未开放错误信息。
  * Unsupported cylinder message for cuboid-only paths.
  *
@@ -225,6 +236,33 @@ fun unsupportedCylinderCuboidOnlyPathMessage(source: String, pathPredicate: Stri
 fun hasCylinderItem(items: Iterable<Item>): Boolean {
     return items.any { item ->
         item.packingShape is CylinderPackingShape3
+    }
+}
+
+/**
+ * 判断形状规格是否请求连续半径优化。
+ * Return whether shape spec requests continuous radius optimization.
+ *
+ * @param spec 包装形状规格 / package shape spec
+ * @return 是否请求连续半径优化 / whether continuous radius optimization is requested
+ */
+fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
+    return spec is PackageShapeSpec.VerticalCylinder && spec.radiusWeightFunctionKey != null
+}
+
+/**
+ * 要求生产装箱形状不使用尚未闭环的连续半径优化。
+ * Require production packing shape not to use unclosed continuous radius optimization.
+ *
+ * @param spec 包装形状规格 / package shape spec
+ * @param source 调用来源 / call source
+ */
+fun requireDiscreteCylinderRadiusProductionMetadata(
+    spec: PackageShapeSpec,
+    source: String
+) {
+    if (hasContinuousCylinderRadiusOptimization(spec)) {
+        throw IllegalArgumentException(unsupportedContinuousCylinderRadiusOptimizationMessage(source))
     }
 }
 

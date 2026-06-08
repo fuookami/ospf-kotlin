@@ -53,6 +53,8 @@ $fixHints = @{
     ProgramCandidateShapeSpecGuardMissing = "Layer generation program-demand adapters must preserve PackingProgram.shape.shapeSpec when creating ActualItem instances."
     MaterialPackerShapeSpecGuardMissing = "MaterialPacker must preserve the selected PackingProgram shapeSpec when it emits packaged ActualItem instances."
     GurobiCsvDiscreteRadiusGuardMissing = "Gurobi CSV shape metadata parsing must reject continuous radius/diameter intervals unless a concrete fixed radius is provided."
+    ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must reject radiusWeightFunctionKey production use until continuous radius variables and final actual-radius validation are implemented."
+    HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or full-length cuboid support."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
@@ -301,7 +303,7 @@ Add-TokenViolation -Check "DirectBinConstructorOutOfFactory" -Pattern "\bBin\s*\
 
 Add-TokenViolation -Check "ApplicationDirectItemLimitFactory" -Pattern "\b(DemandConstraint|VolumeMinimization)\.forItem\s*\(" -AllowSuffixes @()
 
-Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsupported cylinder axis|Unsupported cylinder orientation|Unsupported cylinder top-layer|Unsupported cylinder stacking and hanging|Unsupported cylinder in|only Axis3\.Y is allowed|only upright orientations are allowed|side/lie stacking is not allowed|only upright Axis3\.Y items are allowed|cuboid-only and does not provide verified cylinder geometry yet" -AllowSuffixes @(
+Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsupported cylinder axis|Unsupported cylinder orientation|Unsupported cylinder top-layer|Unsupported cylinder stacking and hanging|Unsupported continuous cylinder radius optimization|Unsupported cylinder in|only Axis3\.Y is allowed|only upright orientations are allowed|side/lie stacking is not allowed|only upright Axis3\.Y items are allowed|radiusWeightFunctionKey requires solver radius variables|cuboid-only and does not provide verified cylinder geometry yet" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
 )
 
@@ -412,6 +414,20 @@ Add-RequiredPatternViolation `
     -FilePath $gurobiColumnGenerationTestPath `
     -Pattern "requireDiscreteCsvRadiusMetadata\s*\([\s\S]*?continuous radius interval is unsupported[\s\S]*?continuous diameter interval is unsupported" `
     -MissingText "GurobiColumnGenerationTest CSV parser must reject continuous radius/diameter intervals without a discrete step or fixed radius."
+
+$packagePath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Package.kt"
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusProductionGuardMissing" `
+    -FilePath $packagePath `
+    -Pattern "requireDiscreteCylinderRadiusProductionMetadata\s*\([\s\S]*?source\s*=\s*""PackageShape\.toPackingShapeOrNull""" `
+    -MissingText "PackageShape.toPackingShapeOrNull must reject continuous radius optimization metadata before emitting production PackingShape3."
+
+$itemPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt"
+Add-RequiredPatternViolation `
+    -Check "HorizontalCylinderStackingSupportGuardMissing" `
+    -FilePath $itemPath `
+    -Pattern "hasFullLengthHorizontalCylinderStackingSupport\s*\([\s\S]*?CylinderPackingShape3[\s\S]*?axis\s*!=\s*Axis3\.Y" `
+    -MissingText "ItemPlacement3.enabledStackingOn must keep horizontal cylinder support behind the full-length support guard."
 
 $packerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/Packer.kt"
 if (Test-Path $packerPath) {

@@ -79,12 +79,23 @@ class MixedShapeGeometryTest {
         axis: Axis3 = Axis3.Y
     ): ActualItem {
         val radius = infraScalar(radiusValue) * Meter
+        val length = infraScalar(heightValue) * Meter
+        val diameter = radius + radius
         return ActualItem(
             id = id,
             name = id,
-            width = radius + radius,
-            height = infraScalar(heightValue) * Meter,
-            depth = radius + radius,
+            width = when (axis) {
+                Axis3.X -> length
+                Axis3.Y, Axis3.Z -> diameter
+            },
+            height = when (axis) {
+                Axis3.X, Axis3.Z -> diameter
+                Axis3.Y -> length
+            },
+            depth = when (axis) {
+                Axis3.Z -> length
+                Axis3.X, Axis3.Y -> diameter
+            },
             weight = infraScalar(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
@@ -289,6 +300,90 @@ class MixedShapeGeometryTest {
         )
         assertFalse(
             shiftedTopPlacement.enabledStackingOn(
+                bottomItems = listOf(bottomPlacement),
+                space = space()
+            )
+        )
+    }
+
+    @Test
+    fun `horizontal cylinder direct hanging support remains unsupported without coordinates`() {
+        val cylinder = cylinderItem(
+            id = "horizontal-cylinder-direct-support",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            axis = Axis3.X
+        )
+        val support = BottomSupport(
+            area = (infraScalar(1.0) * Meter) * (infraScalar(1.0) * Meter),
+            weight = infraScalar(10.0) * Kilogram
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            cylinder.enabledStackingOn(support)
+        }
+
+        assertTrue(error.message?.contains("upright Axis3.Y") == true)
+    }
+
+    @Test
+    fun `horizontal cylinder accepts full length cuboid support in 3d stacking`() = runBlocking {
+        val attribute = packageAttribute(withWeight = false)
+        val bottom = cuboidItem(
+            id = "bottom-full-support",
+            width = 1.0,
+            height = 1.0,
+            depth = 1.0,
+            attribute = attribute
+        )
+        val top = cylinderItem(
+            id = "top-horizontal-cylinder",
+            radiusValue = 0.5,
+            heightValue = 1.0,
+            attribute = attribute,
+            axis = Axis3.X
+        )
+
+        val bottomPlacement = placementOf(item = bottom)
+        val topPlacement = placementOf(
+            item = top,
+            y = 1.0
+        )
+
+        assertTrue(
+            topPlacement.enabledStackingOn(
+                bottomItems = listOf(bottomPlacement),
+                space = space()
+            )
+        )
+    }
+
+    @Test
+    fun `horizontal cylinder rejects partial cuboid support in 3d stacking`() = runBlocking {
+        val attribute = packageAttribute(withWeight = false)
+        val bottom = cuboidItem(
+            id = "bottom-partial-support",
+            width = 0.8,
+            height = 1.0,
+            depth = 1.0,
+            attribute = attribute
+        )
+        val top = cylinderItem(
+            id = "top-horizontal-cylinder-partial",
+            radiusValue = 0.5,
+            heightValue = 1.2,
+            attribute = attribute,
+            axis = Axis3.X
+        )
+
+        val bottomPlacement = placementOf(item = bottom)
+        val topPlacement = placementOf(
+            item = top,
+            y = 1.0
+        )
+
+        assertFalse(
+            topPlacement.enabledStackingOn(
                 bottomItems = listOf(bottomPlacement),
                 space = space()
             )
