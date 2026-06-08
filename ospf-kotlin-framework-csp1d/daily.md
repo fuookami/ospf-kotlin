@@ -94,6 +94,9 @@
 30. 已完成 application KPI 明细第一阶段：`Csp1dKpi.details` 与 render KPI 同步输出 yield、waste、length、物料使用、设备产能和列生成收敛明细。
 31. 已完成 recovery/warm start 语义第一阶段：恢复输入、warm start 输入、恢复 trace、warm start ignored/invalid/fallback 语义和验收测试已建立。
 32. 已完成生成器中等规模基线与 dominance 剪枝第一阶段：新增中等规模统计样例，支持同贡献候选 dominance 剪枝并输出 `dominatedCandidates`。
+33. 已完成 KPI key 稳定化第一阶段：`Csp1dKpiKeys` 覆盖标量、列生成、初始生成和动态明细 key，README 已形成 public 字段入口。
+34. 已完成 recovery 分类深化第一阶段：区分 ignored、adapter unsupported、invalid、fallback disabled 和 solver failure，并用带 trace 的异常表达不可恢复场景。
+35. 已完成四类生成器中等规模 baseline 第一阶段：DFS、NSum、NSame、FullSum 共用统计验收口径，覆盖候选数量、去重、dominance 和停止原因。
 
 ## 3. 需要修正的事项
 
@@ -142,14 +145,14 @@
 
 #### 事项
 
-1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、基础剪枝、按物料并行、同贡献 dominance 和中等规模基线已完成第一阶段。
+1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、基础剪枝、按物料并行、同贡献 dominance 和四算法中等规模基线已完成第一阶段。
 2. 单位长度、更细粒度长度约束、跨 material/demand unit 缓存和更强 dominance 剪枝仍待深化。
 3. 缺陷、分段、onSide/inMiddle、`unitBatch` 等 POIT 语义暂不属于当前实体边界；只有当 material model 增加通用实体后再纳入。
 
 #### 计划
 
-1. 扩展中等规模样例，区分 DFS、NSum、NSame、FullSum 的候选数量、耗时、重复过滤、基础可行性拒绝和剪枝效果。
-2. 继续扩展 width combination 的上界估计、跨 material/demand unit 缓存和更强 dominance 剪枝。
+1. 继续扩展 width combination 的上界估计、跨 material/demand unit 缓存和更强 dominance 剪枝。
+2. 将中等规模 baseline 的统计快照沉淀为更稳定的 benchmark 输出，避免只做非零断言。
 3. 将生成报告在 application KPI 与 render 边界持续固化，避免调用方只能读 trace。
 4. 将暂不建模的 POIT 语义集中放入“延后能力”清单，不在当前代码中留半成品字段。
 
@@ -178,14 +181,14 @@
 #### 事项
 
 1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出、builder、README 和 demo3 示例已完成统一入口第一阶段。
-2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构已完成第一阶段。
-3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，后续需要继续稳定 KPI key、恢复策略和更细异常分类。
+2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构、状态分类和 trace 异常已完成第一阶段。
+3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，KPI key 已有稳定 public 入口；后续需要继续收口真实 solver warm start 落点和更细结果分类。
 
 #### 计划
 
-1. 稳定 KPI detail key 命名和单位表达，避免下游依赖临时字符串。
-2. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效、fallback 禁用和局部可用解。
-3. 在不引入业务 DTO 的前提下，为真正 solver warm start adapter 预留落点。
+1. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效、fallback 禁用和局部可用解。
+2. 在不引入业务 DTO 的前提下，为真正 solver warm start adapter 预留落点。
+3. 将 KPI key 的单位表达和动态 key helper 随新增指标持续补齐，避免下游依赖临时字符串。
 4. 将 public README 与 acceptance test 随 API 变化同步维护。
 
 #### 修改清单
@@ -210,21 +213,21 @@
 
 #### 目标
 
-下一轮尽量以一次宽范围迭代完成 KPI key 稳定化、恢复策略深化、生成器多算法基线和更强剪枝，减少反复切换上下文。
+下一轮尽量以一次宽范围迭代完成更强生成剪枝、跨场景缓存、真实 warm start 落点、benchmark 输出和验证收口，减少反复切换上下文。
 
 #### 事项
 
-1. 在已打通 application 一站式配置、builder、README、KPI 明细、trace 最终 MILP 状态、部分成功结果和恢复 trace 的基础上，稳定 public key 和异常分类。
-2. 在已完成生成器数量缓存、基础剪枝、并行开关、同贡献 dominance 和中等规模 FullSum 基线的基础上，扩展多算法基线与更强剪枝。
-3. 将生成统计继续沉淀到 application KPI/render 边界，并明确哪些明细属于稳定 key。
+1. 在已完成 public key、KPI 明细、trace 最终 MILP 状态、部分成功结果和 recovery 异常分类的基础上，继续收口真实 solver warm start 预留接口。
+2. 在已完成数量缓存、基础剪枝、并行开关、同贡献 dominance 和四算法中等规模 baseline 的基础上，推进更强剪枝与缓存复用。
+3. 将生成统计继续沉淀到 application KPI/render 边界，并把 benchmark 输出做成可比较的稳定快照。
 4. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令。
 
 #### 计划
 
-1. 第一段：将中等规模 generation benchmark 扩展到 DFS、NSum、NSame、FullSum，并记录各自统计口径。
-2. 第二段：实现更细粒度 dominance 剪枝、宽度组合上界估计和 material/demand unit 缓存，保证 canonical 结果集合稳定。
-3. 第三段：深化恢复策略，区分 warm start ignored、invalid、adapter unsupported、fallback disabled 和 solver failure。
-4. 第四段：稳定 KPI/render 明细 key 与单位表达，形成 README 中的稳定字段清单。
+1. 第一段：实现 width combination 上界估计、需求单位分组缓存和更强 dominance 剪枝，保证 canonical 结果集合稳定。
+2. 第二段：将四算法中等规模 baseline 升级为可比较 benchmark 快照，并明确哪些统计只做趋势观察。
+3. 第三段：为 solver warm start adapter 预留真正消费方案池或上一轮解的接口，不把业务 DTO 带入 framework。
+4. 第四段：继续把新增生成统计、recovery 状态和 warm start 处理结果沉淀到 KPI/render 或 trace 稳定边界。
 5. 第五段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
 
 #### 修改清单
@@ -240,12 +243,13 @@
 
 #### 验收标准
 
-1. 四类生成器中等规模样例有候选数量、耗时、重复过滤、dominance 剪枝和基础可行性拒绝统计。
+1. 更强剪枝与缓存不改变四类生成器的 canonical 结果集合。
 2. fake solver 测试覆盖 generation、application API、recovery 和 demo3 入口的新增行为。
-3. Gurobi profile 至少完成 `test-compile`；环境可用时执行端到端目标测试。
-4. demo3 示例不再维护手写 RMP/SP。
-5. CSP1D 门禁搜索、`git diff --check -- ospf-kotlin-framework-csp1d` 通过。
-6. `daily.md` 继续只保留阶段摘要和下一轮计划，不恢复历史流水。
+3. benchmark 快照能比较 DFS、NSum、NSame、FullSum 的候选数量、耗时、重复过滤、dominance 剪枝和基础可行性拒绝。
+4. Gurobi profile 至少完成 `test-compile`；环境可用时执行端到端目标测试。
+5. demo3 示例不再维护手写 RMP/SP。
+6. CSP1D 门禁搜索、`git diff --check -- ospf-kotlin-framework-csp1d` 通过。
+7. `daily.md` 继续只保留阶段摘要和下一轮计划，不恢复历史流水。
 
 ### 5.2 验证基线
 

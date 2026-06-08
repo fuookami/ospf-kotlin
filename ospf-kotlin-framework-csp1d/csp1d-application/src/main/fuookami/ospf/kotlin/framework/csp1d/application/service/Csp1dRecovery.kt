@@ -14,7 +14,11 @@ enum class Csp1dRecoveryStatus {
     /** 普通恢复求解完成 / Normal recovery solve completed */
     Solved,
     /** warm start 无法使用，已退回普通求解 / Warm start was unusable and normal solve was used */
-    RetriedWithoutWarmStart
+    RetriedWithoutWarmStart,
+    /** 禁用 fallback，恢复流程未进入求解 / Fallback was disabled and solve was not attempted */
+    FallbackDisabled,
+    /** 普通求解失败 / Normal solve failed */
+    SolveFailed
 }
 
 /**
@@ -23,8 +27,10 @@ enum class Csp1dRecoveryStatus {
 enum class Csp1dWarmStartStatus {
     /** 未提供 warm start / Warm start was not provided */
     NotProvided,
-    /** 当前 solver 适配层暂未消费 warm start / Warm start is currently not consumed by solver adapter */
+    /** warm start 输入为空，未形成可复用上下文 / Warm start input is empty and has no reusable context */
     Ignored,
+    /** 当前 solver 适配层不支持消费 warm start / Current solver adapter does not support warm start */
+    AdapterUnsupported,
     /** warm start 与当前问题不匹配 / Warm start does not match the current problem */
     Invalid
 }
@@ -44,7 +50,7 @@ data class Csp1dWarmStart<V : RealNumber<V>>(
 /**
  * CSP1D 恢复选项 / CSP1D recovery options
  *
- * @property retryWithoutWarmStart warm start 无效时是否退回普通求解 / Whether to retry normal solve when warm start is invalid
+ * @property retryWithoutWarmStart warm start 不可用时是否退回普通求解 / Whether to retry normal solve when warm start is unusable
  */
 data class Csp1dRecoveryOptions(
     val retryWithoutWarmStart: Boolean = true
@@ -94,6 +100,30 @@ data class Csp1dRecoveryResult<V : RealNumber<V>>(
 )
 
 /**
+ * CSP1D recovery fallback 禁用异常 / CSP1D recovery fallback-disabled exception
+ *
+ * @param message 异常信息 / Exception message
+ * @property trace 失败时的恢复追踪 / Recovery trace at failure
+ */
+class Csp1dRecoveryFallbackDisabledException(
+    message: String,
+    val trace: Csp1dRecoveryTrace
+) : IllegalArgumentException(message)
+
+/**
+ * CSP1D recovery 求解异常 / CSP1D recovery solve exception
+ *
+ * @param message 异常信息 / Exception message
+ * @property trace 失败时的恢复追踪 / Recovery trace at failure
+ * @param cause 原始异常 / Original exception
+ */
+class Csp1dRecoverySolveException(
+    message: String,
+    val trace: Csp1dRecoveryTrace,
+    cause: Throwable
+) : IllegalStateException(message, cause)
+
+/**
  * CSP1D 恢复求解入口 / CSP1D recovery entry point
  *
  * @param V 数值类型 / Numeric value type
@@ -129,15 +159,38 @@ class Csp1dRecovery<V : RealNumber<V>>(
      */
     suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Csp1dRecoveryResult<V> {
         val warmStartStatus = warmStartStatus(input)
-        if (warmStartStatus == Csp1dWarmStartStatus.Invalid && !input.options.retryWithoutWarmStart) {
-            throw IllegalArgumentException("Warm start does not match current CSP1D problem")
+        if (requiresFallback(warmStartStatus) && !input.options.retryWithoutWarmStart) {
+            val trace = Csp1dRecoveryTrace(
+                status = Csp1dRecoveryStatus.FallbackDisabled,
+                warmStartStatus = warmStartStatus,
+                attemptCount = 0,
+                message = fallbackDisabledMessage(warmStartStatus)
+            )
+            throw Csp1dRecoveryFallbackDisabledException(
+                message = "Warm start cannot be applied and fallback is disabled: $warmStartStatus",
+                trace = trace
+            )
         }
 
-        val solution = milp.solve(
-            problem = input.problem,
-            solveConfig = input.solveConfig
-        )
-        val status = if (warmStartStatus == Csp1dWarmStartStatus.Invalid) {
+        val solution = try {
+            milp.solve(
+                problem = input.problem,
+                solveConfig = input.solveConfig
+            )
+        } catch (error: Exception) {
+            val trace = Csp1dRecoveryTrace(
+                status = Csp1dRecoveryStatus.SolveFailed,
+                warmStartStatus = warmStartStatus,
+                attemptCount = 1,
+                message = error.message ?: "Recovery solve failed"
+            )
+            throw Csp1dRecoverySolveException(
+                message = trace.message ?: "Recovery solve failed",
+                trace = trace,
+                cause = error
+            )
+        }
+        val status = if (requiresFallback(warmStartStatus)) {
             Csp1dRecoveryStatus.RetriedWithoutWarmStart
         } else {
             Csp1dRecoveryStatus.Solved
@@ -155,22 +208,23 @@ class Csp1dRecovery<V : RealNumber<V>>(
 
     private fun warmStartStatus(input: Csp1dRecoveryInput<V>): Csp1dWarmStartStatus {
         val warmStart = input.warmStart ?: return Csp1dWarmStartStatus.NotProvided
-        if (!isWarmStartCompatible(warmStart, input.problem)) {
+        val plans = warmStartPlans(warmStart)
+        if (plans.isEmpty()) {
+            return Csp1dWarmStartStatus.Ignored
+        }
+        if (!isWarmStartCompatible(plans, input.problem)) {
             return Csp1dWarmStartStatus.Invalid
         }
-        return Csp1dWarmStartStatus.Ignored
+        return Csp1dWarmStartStatus.AdapterUnsupported
     }
 
     private fun isWarmStartCompatible(
-        warmStart: Csp1dWarmStart<V>,
+        plans: List<CuttingPlan<V>>,
         problem: Csp1dProblem<V>
     ): Boolean {
         val materialIds = problem.materials.map { it.id }.toSet()
         val machineIds = problem.machines.map { it.id }.toSet()
         val productIds = problem.products.map { it.id }.toSet()
-        val plans = warmStart.cuttingPlans.ifEmpty {
-            warmStart.previousSolution?.generatedPlans.orEmpty()
-        }
         for (plan in plans) {
             if (plan.material.id !in materialIds) {
                 return false
@@ -186,11 +240,31 @@ class Csp1dRecovery<V : RealNumber<V>>(
         return true
     }
 
+    private fun warmStartPlans(warmStart: Csp1dWarmStart<V>): List<CuttingPlan<V>> {
+        return warmStart.cuttingPlans.ifEmpty {
+            warmStart.previousSolution?.generatedPlans.orEmpty()
+        }
+    }
+
+    private fun requiresFallback(status: Csp1dWarmStartStatus): Boolean {
+        return status == Csp1dWarmStartStatus.Invalid ||
+                status == Csp1dWarmStartStatus.AdapterUnsupported
+    }
+
     private fun warmStartMessage(status: Csp1dWarmStartStatus): String? {
         return when (status) {
             Csp1dWarmStartStatus.NotProvided -> null
-            Csp1dWarmStartStatus.Ignored -> "Warm start is accepted as recovery context but not consumed by current MILP adapter"
+            Csp1dWarmStartStatus.Ignored -> "Warm start was provided without reusable cutting plans; normal solve was used"
+            Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current MILP adapter does not support applying it; normal solve was used"
             Csp1dWarmStartStatus.Invalid -> "Warm start is incompatible with current problem; normal solve was used"
+        }
+    }
+
+    private fun fallbackDisabledMessage(status: Csp1dWarmStartStatus): String {
+        return when (status) {
+            Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current MILP adapter does not support applying it; fallback is disabled"
+            Csp1dWarmStartStatus.Invalid -> "Warm start is incompatible with current problem; fallback is disabled"
+            else -> "Warm start cannot be applied and fallback is disabled"
         }
     }
 }

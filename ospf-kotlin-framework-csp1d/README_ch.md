@@ -69,11 +69,15 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 `Csp1dColumnGenerationTrace` 记录终止原因、每轮 LP 目标值、新增定价方案数、初始生成统计、最终 MILP 状态、是否存在部分结果和失败信息。
 
+稳定 KPI 字段名通过 `Csp1dKpiKeys` 暴露。稳定标量 key 包括方案数量、需求数量、使用数量、`solutionStatus`、`finalMilpStatus`、`partialSolutionAvailable`、列生成迭代/定价 key 和初始生成统计 key。动态明细 key 应通过 `materialUsageBatchCount(...)`、`machineCapacityUsed(...)`、`underProduction(...)`、`overProduction(...)`、`materialCost(...)`、`assignedLength(...)`、`overLength(...)` 等 helper 构造。
+
 ## 生成语义
 
 generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告和 `GenerationConstraints.parallelism` 按物料协程并行开关。
 
 `GenerationConstraints.enableDominancePruning` 用于开启同贡献候选 dominance 剪枝。对于物料、设备、产能消耗和需求贡献向量相同的候选，生成器保留余宽更小的方案，并把过滤数量记录到 `dominatedCandidates`。
+
+中等规模 baseline 测试已覆盖 DFS、N-Sum、N-Same 和 FullSum，统一记录访问节点数、候选数量、接受方案数、不可行候选数、重复候选数、dominance 剪枝数、耗时和停止原因。
 
 `Costar` 是余宽 filler。它可以出现在切片和 render 输出中，但不会产生 demand contribution。
 
@@ -81,7 +85,7 @@ generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricin
 
 ## 恢复
 
-`Csp1dRecovery` 保留简单的 `solve(problem, solveConfig)` API，同时提供 `solveWithTrace(Csp1dRecoveryInput<V>)`。trace 会记录恢复状态、warm start 状态、尝试次数和说明。当前 MILP adapter 不直接消费 warm start，因此兼容的 warm start 会标记为 `Ignored`；不兼容的 warm start 在启用 `retryWithoutWarmStart` 时会退回普通求解。
+`Csp1dRecovery` 保留简单的 `solve(problem, solveConfig)` API，同时提供 `solveWithTrace(Csp1dRecoveryInput<V>)`。trace 会记录恢复状态、warm start 状态、尝试次数和说明。空 warm start 标记为 `Ignored`；兼容 warm start 因当前 MILP adapter 暂不直接消费而标记为 `AdapterUnsupported`；不兼容 warm start 标记为 `Invalid`。禁用 `retryWithoutWarmStart` 时抛出带 trace 的 `Csp1dRecoveryFallbackDisabledException`；solver 失败时抛出带 trace 的 `Csp1dRecoverySolveException`。
 
 ## Demo
 

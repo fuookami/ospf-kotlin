@@ -4,6 +4,9 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
@@ -15,14 +18,12 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class GeneratorMediumScaleBaselineTest {
     private val arithmetic = Flt64QuantityArithmetic
 
     @Test
-    fun fullSumShouldReportMediumScaleBaselineStatistics() {
+    fun generatorsShouldReportMediumScaleBaselineStatistics() {
         val products = listOf(
             product(id = "p-025", width = 0.25),
             product(id = "p-030", width = 0.30),
@@ -47,35 +48,84 @@ class GeneratorMediumScaleBaselineTest {
                 )
             }
         )
-        val generator = FullSumGenerator(
-            constraints = GenerationConstraints<Flt64>(
-                maxKnifeCount = UInt64(5UL),
-                parallelism = 2,
-                enableDominancePruning = true
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(5UL),
+            parallelism = 2,
+            enableDominancePruning = true
+        )
+        val generatorCases = listOf(
+            GeneratorCase(
+                name = "DFS",
+                generator = DFSGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    maxPlans = 512
+                )
             ),
-            arithmetic = arithmetic,
-            maxPlans = 512
+            GeneratorCase(
+                name = "NSum",
+                generator = NSumGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    maxDepth = UInt64(5UL),
+                    maxPlans = 512
+                )
+            ),
+            GeneratorCase(
+                name = "NSame",
+                generator = NSameGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    allAmount = true,
+                    maxPlans = 512
+                )
+            ),
+            GeneratorCase(
+                name = "FullSum",
+                generator = FullSumGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    maxPlans = 512
+                )
+            )
         )
 
-        val report = generator.generateWithReport(input)
-        val baseline = report.statistics
+        for (case in generatorCases) {
+            val report = case.generator.generateWithReport(input)
+            val baseline = report.statistics
 
-        assertMediumScaleBaseline(baseline)
-        assertTrue(report.plans.isNotEmpty())
-        assertTrue(report.plans.size <= 512)
+            assertMediumScaleBaseline(
+                name = case.name,
+                statistics = baseline
+            )
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans")
+            assertTrue(report.plans.size <= 512, "${case.name} should respect maxPlans")
+        }
     }
 
-    private fun assertMediumScaleBaseline(statistics: CuttingPlanGenerationStatistics) {
-        assertTrue(statistics.visitedNodes > 0L)
-        assertTrue(statistics.generatedCandidates > 0L)
-        assertTrue(statistics.acceptedPlans > 0)
-        assertTrue(statistics.generatedCandidates >= statistics.acceptedPlans.toLong())
-        assertTrue(statistics.duplicateCandidates >= 0L)
-        assertTrue(statistics.dominatedCandidates >= 0L)
-        assertTrue(statistics.elapsedMilliseconds >= 0L)
+    private data class GeneratorCase(
+        val name: String,
+        val generator: Csp1dInitialCuttingPlanGenerator<Flt64>
+    )
+
+    private fun assertMediumScaleBaseline(
+        name: String,
+        statistics: CuttingPlanGenerationStatistics
+    ) {
+        assertTrue(statistics.visitedNodes > 0L, "$name should visit nodes")
+        assertTrue(statistics.generatedCandidates > 0L, "$name should generate candidates")
+        assertTrue(statistics.acceptedPlans > 0, "$name should accept plans")
+        assertTrue(
+            statistics.generatedCandidates >= statistics.acceptedPlans.toLong(),
+            "$name generated candidates should cover accepted plans"
+        )
+        assertTrue(statistics.duplicateCandidates >= 0L, "$name duplicate count should be non-negative")
+        assertTrue(statistics.dominatedCandidates >= 0L, "$name dominance count should be non-negative")
+        assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||
-                    statistics.stopReason == CuttingPlanGenerationStopReason.MaxPlans
+                    statistics.stopReason == CuttingPlanGenerationStopReason.MaxPlans,
+            "$name should stop by exhaustion or max plan limit"
         )
     }
 

@@ -32,6 +32,126 @@ enum class Csp1dSolutionStatus {
 }
 
 /**
+ * CSP1D KPI 稳定字段名 / Stable CSP1D KPI keys
+ */
+object Csp1dKpiKeys {
+    const val SelectedPlanCount = "selectedPlanCount"
+    const val SelectedBatchCount = "selectedBatchCount"
+    const val SatisfiedDemandCount = "satisfiedDemandCount"
+    const val UnmetDemandCount = "unmetDemandCount"
+    const val MaterialUsageCount = "materialUsageCount"
+    const val MachineUsageCount = "machineUsageCount"
+    const val GeneratedPlanCount = "generatedPlanCount"
+    const val TopPlanCount = "topPlanCount"
+    const val YieldMetricCount = "yieldMetricCount"
+    const val WasteMetricCount = "wasteMetricCount"
+    const val LengthMetricCount = "lengthMetricCount"
+    const val SolutionStatus = "solutionStatus"
+    const val TerminationReason = "terminationReason"
+    const val FinalMilpStatus = "finalMilpStatus"
+    const val PartialSolutionAvailable = "partialSolutionAvailable"
+    const val FailureMessage = "failureMessage"
+    const val ColumnGenerationTerminationReason = "columnGeneration.terminationReason"
+    const val ColumnGenerationIterationCount = "columnGeneration.iterationCount"
+    const val ColumnGenerationPricedPlanCount = "columnGeneration.pricedPlanCount"
+    const val ColumnGenerationLastLpObjective = "columnGeneration.lastLpObjective"
+    const val ColumnGenerationLastPlanCount = "columnGeneration.lastPlanCount"
+    const val InitialGenerationVisitedNodes = "initialGeneration.visitedNodes"
+    const val InitialGenerationGeneratedCandidates = "initialGeneration.generatedCandidates"
+    const val InitialGenerationAcceptedPlans = "initialGeneration.acceptedPlans"
+    const val InitialGenerationInfeasibleCandidates = "initialGeneration.infeasibleCandidates"
+    const val InitialGenerationDuplicateCandidates = "initialGeneration.duplicateCandidates"
+    const val InitialGenerationDominatedCandidates = "initialGeneration.dominatedCandidates"
+    const val InitialGenerationElapsedMilliseconds = "initialGeneration.elapsedMilliseconds"
+    const val InitialGenerationStopReason = "initialGeneration.stopReason"
+    const val InitialVisitedNodes = "initialVisitedNodes"
+    const val InitialGeneratedCandidates = "initialGeneratedCandidates"
+    const val InitialAcceptedPlans = "initialAcceptedPlans"
+    const val InitialInfeasibleCandidates = "initialInfeasibleCandidates"
+    const val InitialDuplicateCandidates = "initialDuplicateCandidates"
+    const val InitialDominatedCandidates = "initialDominatedCandidates"
+    const val InitialGenerationElapsedMillisecondsRender = "initialGenerationElapsedMilliseconds"
+    const val InitialGenerationStopReasonRender = "initialGenerationStopReason"
+    const val TotalTrimWidth = "totalTrimWidth"
+    const val TotalRestMaterial = "totalRestMaterial"
+    const val OverProductionArea = "overProductionArea"
+    const val OverProductionAreaMeasure = "overProductionAreaMeasure"
+    const val RestMaterialMeasure = "restMaterialMeasure"
+
+    /**
+     * 物料使用批次数 key / Material usage batch-count key
+     *
+     * @param materialId 物料 ID / Material id
+     * @return KPI key / KPI key
+     */
+    fun materialUsageBatchCount(materialId: String): String {
+        return "materialUsage.$materialId.batchCount"
+    }
+
+    /**
+     * 设备产能使用 key / Machine capacity usage key
+     *
+     * @param machineId 设备 ID / Machine id
+     * @return KPI key / KPI key
+     */
+    fun machineCapacityUsed(machineId: String): String {
+        return "machineCapacityUsed.$machineId"
+    }
+
+    /**
+     * 欠产 key / Under-production key
+     *
+     * @param productId 产品 ID / Product id
+     * @param unitSymbol 需求单位符号 / Demand unit symbol
+     * @return KPI key / KPI key
+     */
+    fun underProduction(productId: String, unitSymbol: String): String {
+        return "underProduction.$productId.$unitSymbol"
+    }
+
+    /**
+     * 超产 key / Over-production key
+     *
+     * @param productId 产品 ID / Product id
+     * @param unitSymbol 需求单位符号 / Demand unit symbol
+     * @return KPI key / KPI key
+     */
+    fun overProduction(productId: String, unitSymbol: String): String {
+        return "overProduction.$productId.$unitSymbol"
+    }
+
+    /**
+     * 物料成本 key / Material cost key
+     *
+     * @param materialId 物料 ID / Material id
+     * @return KPI key / KPI key
+     */
+    fun materialCost(materialId: String): String {
+        return "materialCost.$materialId"
+    }
+
+    /**
+     * 分配长度 key / Assigned length key
+     *
+     * @param productId 产品 ID / Product id
+     * @return KPI key / KPI key
+     */
+    fun assignedLength(productId: String): String {
+        return "assignedLength.$productId"
+    }
+
+    /**
+     * 超长 key / Over-length key
+     *
+     * @param productId 产品 ID / Product id
+     * @return KPI key / KPI key
+     */
+    fun overLength(productId: String): String {
+        return "overLength.$productId"
+    }
+}
+
+/**
  * CSP1D KPI / CSP1D KPI
  *
  * @property selectedPlanCount 选中方案数量 / Selected plan count
@@ -134,17 +254,17 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
         )
         val render = RenderSchemaDTO(
             kpi = mapOf(
-                "selectedPlanCount" to kpi.selectedPlanCount.toString(),
-                "selectedBatchCount" to kpi.selectedBatchCount.toString(),
-                "satisfiedDemandCount" to kpi.satisfiedDemandCount.toString(),
-                "unmetDemandCount" to kpi.unmetDemandCount.toString(),
-                "materialUsageCount" to kpi.materialUsageCount.toString(),
-                "machineUsageCount" to kpi.machineUsageCount.toString(),
-                "generatedPlanCount" to kpi.generatedPlanCount.toString(),
-                "topPlanCount" to kpi.topPlanCount.toString(),
-                "yieldMetricCount" to kpi.yieldMetricCount.toString(),
-                "wasteMetricCount" to kpi.wasteMetricCount.toString(),
-                "lengthMetricCount" to kpi.lengthMetricCount.toString()
+                Csp1dKpiKeys.SelectedPlanCount to kpi.selectedPlanCount.toString(),
+                Csp1dKpiKeys.SelectedBatchCount to kpi.selectedBatchCount.toString(),
+                Csp1dKpiKeys.SatisfiedDemandCount to kpi.satisfiedDemandCount.toString(),
+                Csp1dKpiKeys.UnmetDemandCount to kpi.unmetDemandCount.toString(),
+                Csp1dKpiKeys.MaterialUsageCount to kpi.materialUsageCount.toString(),
+                Csp1dKpiKeys.MachineUsageCount to kpi.machineUsageCount.toString(),
+                Csp1dKpiKeys.GeneratedPlanCount to kpi.generatedPlanCount.toString(),
+                Csp1dKpiKeys.TopPlanCount to kpi.topPlanCount.toString(),
+                Csp1dKpiKeys.YieldMetricCount to kpi.yieldMetricCount.toString(),
+                Csp1dKpiKeys.WasteMetricCount to kpi.wasteMetricCount.toString(),
+                Csp1dKpiKeys.LengthMetricCount to kpi.lengthMetricCount.toString()
             ),
             cuttingPlans = produce.cuttingPlans.map { usage ->
                 renderCuttingPlan(

@@ -44,6 +44,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.Lengt
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
@@ -232,9 +233,9 @@ class Csp1dApplicationAcceptanceTest {
         assertNotNull(solution.lengthResult, "Length result should be filled from problem.solveConfig")
         assertEquals(UInt64.one, solution.kpi.topPlanCount)
         assertEquals(UInt64(2), solution.kpi.lengthMetricCount)
-        assertEquals("Feasible", solution.render.kpi["solutionStatus"])
-        assertEquals("1", solution.render.kpi["topPlanCount"])
-        assertEquals("2", solution.render.kpi["lengthMetricCount"])
+        assertEquals("Feasible", solution.render.kpi[Csp1dKpiKeys.SolutionStatus])
+        assertEquals("1", solution.render.kpi[Csp1dKpiKeys.TopPlanCount])
+        assertEquals("2", solution.render.kpi[Csp1dKpiKeys.LengthMetricCount])
     }
 
     @Test
@@ -819,16 +820,16 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
         assertEquals(1, result.solution.topPlans.size)
         assertEquals(UInt64.one, result.solution.kpi.topPlanCount)
-        assertEquals("Feasible", result.solution.render.kpi["solutionStatus"])
-        assertEquals("Solved", result.solution.render.kpi["finalMilpStatus"])
-        assertEquals("1", result.solution.render.kpi["topPlanCount"])
-        assertEquals("2", result.solution.render.kpi["initialGeneratedCandidates"])
-        assertEquals("2", result.solution.render.kpi["initialAcceptedPlans"])
-        assertEquals("Exhausted", result.solution.render.kpi["initialGenerationStopReason"])
-        assertEquals("1", result.solution.kpi.details["columnGeneration.iterationCount"])
-        assertEquals("0", result.solution.kpi.details["columnGeneration.pricedPlanCount"])
-        assertEquals("2", result.solution.kpi.details["materialUsage.m-cg-config.batchCount"])
-        assertEquals("1", result.solution.render.kpi["columnGeneration.iterationCount"])
+        assertEquals("Feasible", result.solution.render.kpi[Csp1dKpiKeys.SolutionStatus])
+        assertEquals("Solved", result.solution.render.kpi[Csp1dKpiKeys.FinalMilpStatus])
+        assertEquals("1", result.solution.render.kpi[Csp1dKpiKeys.TopPlanCount])
+        assertEquals("2", result.solution.render.kpi[Csp1dKpiKeys.InitialGeneratedCandidates])
+        assertEquals("2", result.solution.render.kpi[Csp1dKpiKeys.InitialAcceptedPlans])
+        assertEquals("Exhausted", result.solution.render.kpi[Csp1dKpiKeys.InitialGenerationStopReasonRender])
+        assertEquals("1", result.solution.kpi.details[Csp1dKpiKeys.ColumnGenerationIterationCount])
+        assertEquals("0", result.solution.kpi.details[Csp1dKpiKeys.ColumnGenerationPricedPlanCount])
+        assertEquals("2", result.solution.kpi.details[Csp1dKpiKeys.materialUsageBatchCount("m-cg-config")])
+        assertEquals("1", result.solution.render.kpi[Csp1dKpiKeys.ColumnGenerationIterationCount])
     }
 
     /**
@@ -894,9 +895,9 @@ class Csp1dApplicationAcceptanceTest {
         assertTrue(result.solution.produce.cuttingPlans.isEmpty())
         assertEquals(problem.demands, result.solution.produce.unmetDemands)
         assertEquals(UInt64.one, result.solution.kpi.topPlanCount)
-        assertEquals("Partial", result.solution.render.kpi["solutionStatus"])
-        assertEquals("Failed", result.solution.render.kpi["finalMilpStatus"])
-        assertEquals("true", result.solution.render.kpi["partialSolutionAvailable"])
+        assertEquals("Partial", result.solution.render.kpi[Csp1dKpiKeys.SolutionStatus])
+        assertEquals("Failed", result.solution.render.kpi[Csp1dKpiKeys.FinalMilpStatus])
+        assertEquals("true", result.solution.render.kpi[Csp1dKpiKeys.PartialSolutionAvailable])
     }
 
     /**
@@ -960,11 +961,11 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
-     * 验证恢复入口显式记录当前 warm start 被忽略并完成普通求解 /
-     * Verify recovery records ignored warm start and completes normal solve
+     * 验证恢复入口显式记录当前 adapter 暂不支持 warm start 并退回普通求解 /
+     * Verify recovery records adapter-unsupported warm start and falls back to normal solve
      */
     @Test
-    fun recoveryShouldTraceIgnoredWarmStart(): Unit = runBlocking {
+    fun recoveryShouldTraceAdapterUnsupportedWarmStart(): Unit = runBlocking {
         val product = product(
             id = "p-recovery-warm",
             width = 0.8
@@ -1002,6 +1003,51 @@ class Csp1dApplicationAcceptanceTest {
                 warmStart = Csp1dWarmStart(
                     cuttingPlans = listOf(warmStartPlan)
                 )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.RetriedWithoutWarmStart, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.attemptCount)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证空 warm start 输入会被记录为 ignored 并完成普通求解 /
+     * Verify empty warm start input is recorded as ignored and normal solve completes
+     */
+    @Test
+    fun recoveryShouldTraceIgnoredEmptyWarmStart(): Unit = runBlocking {
+        val product = product(
+            id = "p-recovery-empty",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-empty",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val result = Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart()
             )
         )
 
@@ -1104,7 +1150,7 @@ class Csp1dApplicationAcceptanceTest {
             )
         )
 
-        assertFailsWith<IllegalArgumentException> {
+        val error = assertFailsWith<Csp1dRecoveryFallbackDisabledException> {
             runBlocking {
                 Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
                     Csp1dRecoveryInput(
@@ -1125,6 +1171,62 @@ class Csp1dApplicationAcceptanceTest {
                 )
             }
         }
+
+        assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Invalid, error.trace.warmStartStatus)
+        assertEquals(0, error.trace.attemptCount)
+    }
+
+    /**
+     * 验证普通求解失败时 recovery 用 trace 包装异常 /
+     * Verify recovery wraps normal solve failure with trace
+     */
+    @Test
+    fun recoveryShouldTraceSolverFailure() {
+        val product = product(
+            id = "p-recovery-failure",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-failure",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val error = assertFailsWith<Csp1dRecoverySolveException> {
+            runBlocking {
+                Csp1dRecovery<Flt64>(Csp1dFailingMilpSolver()).solveWithTrace(
+                    Csp1dRecoveryInput(
+                        problem = problem,
+                        solveConfig = Csp1dSolveConfig(
+                            columnGeneration = problem.configuration,
+                            allowPartialSolution = false
+                        )
+                    )
+                )
+            }
+        }
+
+        assertEquals(Csp1dRecoveryStatus.SolveFailed, error.trace.status)
+        assertEquals(Csp1dWarmStartStatus.NotProvided, error.trace.warmStartStatus)
+        assertEquals(1, error.trace.attemptCount)
+        assertTrue(error.trace.message?.contains("forced final MILP failure") == true)
     }
 
     private fun product(

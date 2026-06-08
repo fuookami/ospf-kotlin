@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
 
@@ -48,32 +49,33 @@ internal fun <V : RealNumber<V>> enrichSolution(
     )
     val renderKpi = LinkedHashMap(solution.render.kpi)
     renderKpi.putAll(details)
-    renderKpi["topPlanCount"] = kpi.topPlanCount.toString()
-    renderKpi["yieldMetricCount"] = kpi.yieldMetricCount.toString()
-    renderKpi["wasteMetricCount"] = kpi.wasteMetricCount.toString()
-    renderKpi["lengthMetricCount"] = kpi.lengthMetricCount.toString()
-    renderKpi["solutionStatus"] = status.name
+    renderKpi[Csp1dKpiKeys.TopPlanCount] = kpi.topPlanCount.toString()
+    renderKpi[Csp1dKpiKeys.YieldMetricCount] = kpi.yieldMetricCount.toString()
+    renderKpi[Csp1dKpiKeys.WasteMetricCount] = kpi.wasteMetricCount.toString()
+    renderKpi[Csp1dKpiKeys.LengthMetricCount] = kpi.lengthMetricCount.toString()
+    renderKpi[Csp1dKpiKeys.SolutionStatus] = status.name
     if (terminationReason != null) {
-        renderKpi["terminationReason"] = terminationReason.name
+        renderKpi[Csp1dKpiKeys.TerminationReason] = terminationReason.name
     }
     if (finalMilpStatus != null) {
-        renderKpi["finalMilpStatus"] = finalMilpStatus.name
+        renderKpi[Csp1dKpiKeys.FinalMilpStatus] = finalMilpStatus.name
     }
-    renderKpi["partialSolutionAvailable"] = partialSolutionAvailable.toString()
+    renderKpi[Csp1dKpiKeys.PartialSolutionAvailable] = partialSolutionAvailable.toString()
     if (initialGenerationStatistics != null) {
-        renderKpi["initialVisitedNodes"] = initialGenerationStatistics.visitedNodes.toString()
-        renderKpi["initialGeneratedCandidates"] = initialGenerationStatistics.generatedCandidates.toString()
-        renderKpi["initialAcceptedPlans"] = initialGenerationStatistics.acceptedPlans.toString()
-        renderKpi["initialInfeasibleCandidates"] = initialGenerationStatistics.infeasibleCandidates.toString()
-        renderKpi["initialDuplicateCandidates"] = initialGenerationStatistics.duplicateCandidates.toString()
-        renderKpi["initialDominatedCandidates"] = initialGenerationStatistics.dominatedCandidates.toString()
-        renderKpi["initialGenerationElapsedMilliseconds"] = initialGenerationStatistics.elapsedMilliseconds.toString()
-        renderKpi["initialGenerationStopReason"] = initialGenerationStatistics.stopReason.name
+        renderKpi[Csp1dKpiKeys.InitialVisitedNodes] = initialGenerationStatistics.visitedNodes.toString()
+        renderKpi[Csp1dKpiKeys.InitialGeneratedCandidates] = initialGenerationStatistics.generatedCandidates.toString()
+        renderKpi[Csp1dKpiKeys.InitialAcceptedPlans] = initialGenerationStatistics.acceptedPlans.toString()
+        renderKpi[Csp1dKpiKeys.InitialInfeasibleCandidates] = initialGenerationStatistics.infeasibleCandidates.toString()
+        renderKpi[Csp1dKpiKeys.InitialDuplicateCandidates] = initialGenerationStatistics.duplicateCandidates.toString()
+        renderKpi[Csp1dKpiKeys.InitialDominatedCandidates] = initialGenerationStatistics.dominatedCandidates.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationElapsedMillisecondsRender] =
+            initialGenerationStatistics.elapsedMilliseconds.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationStopReasonRender] = initialGenerationStatistics.stopReason.name
     }
     if (failureMessage != null) {
-        renderKpi["failureMessage"] = failureMessage
+        renderKpi[Csp1dKpiKeys.FailureMessage] = failureMessage
     } else {
-        renderKpi.remove("failureMessage")
+        renderKpi.remove(Csp1dKpiKeys.FailureMessage)
     }
     return solution.copy(
         kpi = kpi,
@@ -95,67 +97,78 @@ private fun <V : RealNumber<V>> kpiDetails(
 ): Map<String, String> {
     val details = LinkedHashMap<String, String>()
 
-    details["generatedPlanCount"] = solution.generatedPlans.size.toString()
-    details["selectedPlanCount"] = solution.produce.cuttingPlans.size.toString()
-    details["selectedBatchCount"] = solution.produce.cuttingPlans.fold(UInt64.zero) { acc, usage ->
+    details[Csp1dKpiKeys.GeneratedPlanCount] = solution.generatedPlans.size.toString()
+    details[Csp1dKpiKeys.SelectedPlanCount] = solution.produce.cuttingPlans.size.toString()
+    details[Csp1dKpiKeys.SelectedBatchCount] = solution.produce.cuttingPlans.fold(UInt64.zero) { acc, usage ->
         acc + usage.amount
     }.toString()
-    details["topPlanCount"] = topPlans.size.toString()
-    details["partialSolutionAvailable"] = partialSolutionAvailable.toString()
+    details[Csp1dKpiKeys.TopPlanCount] = topPlans.size.toString()
+    details[Csp1dKpiKeys.PartialSolutionAvailable] = partialSolutionAvailable.toString()
 
-    terminationReason?.let { details["columnGeneration.terminationReason"] = it.name }
-    finalMilpStatus?.let { details["finalMilpStatus"] = it.name }
-    details["columnGeneration.iterationCount"] = iterationRecords.size.toString()
-    details["columnGeneration.pricedPlanCount"] = iterationRecords.fold(UInt64.zero) { acc, record ->
+    terminationReason?.let { details[Csp1dKpiKeys.ColumnGenerationTerminationReason] = it.name }
+    finalMilpStatus?.let { details[Csp1dKpiKeys.FinalMilpStatus] = it.name }
+    details[Csp1dKpiKeys.ColumnGenerationIterationCount] = iterationRecords.size.toString()
+    details[Csp1dKpiKeys.ColumnGenerationPricedPlanCount] = iterationRecords.fold(UInt64.zero) { acc, record ->
         acc + record.pricedPlanCount
     }.toString()
     iterationRecords.lastOrNull()?.let { record ->
-        details["columnGeneration.lastLpObjective"] = record.lpObjective.toString()
-        details["columnGeneration.lastPlanCount"] = record.planCountAfter.toString()
+        details[Csp1dKpiKeys.ColumnGenerationLastLpObjective] = record.lpObjective.toString()
+        details[Csp1dKpiKeys.ColumnGenerationLastPlanCount] = record.planCountAfter.toString()
     }
 
     if (initialGenerationStatistics != null) {
-        details["initialGeneration.visitedNodes"] = initialGenerationStatistics.visitedNodes.toString()
-        details["initialGeneration.generatedCandidates"] = initialGenerationStatistics.generatedCandidates.toString()
-        details["initialGeneration.acceptedPlans"] = initialGenerationStatistics.acceptedPlans.toString()
-        details["initialGeneration.infeasibleCandidates"] = initialGenerationStatistics.infeasibleCandidates.toString()
-        details["initialGeneration.duplicateCandidates"] = initialGenerationStatistics.duplicateCandidates.toString()
-        details["initialGeneration.dominatedCandidates"] = initialGenerationStatistics.dominatedCandidates.toString()
-        details["initialGeneration.elapsedMilliseconds"] = initialGenerationStatistics.elapsedMilliseconds.toString()
-        details["initialGeneration.stopReason"] = initialGenerationStatistics.stopReason.name
+        details[Csp1dKpiKeys.InitialGenerationVisitedNodes] = initialGenerationStatistics.visitedNodes.toString()
+        details[Csp1dKpiKeys.InitialGenerationGeneratedCandidates] =
+            initialGenerationStatistics.generatedCandidates.toString()
+        details[Csp1dKpiKeys.InitialGenerationAcceptedPlans] = initialGenerationStatistics.acceptedPlans.toString()
+        details[Csp1dKpiKeys.InitialGenerationInfeasibleCandidates] =
+            initialGenerationStatistics.infeasibleCandidates.toString()
+        details[Csp1dKpiKeys.InitialGenerationDuplicateCandidates] =
+            initialGenerationStatistics.duplicateCandidates.toString()
+        details[Csp1dKpiKeys.InitialGenerationDominatedCandidates] =
+            initialGenerationStatistics.dominatedCandidates.toString()
+        details[Csp1dKpiKeys.InitialGenerationElapsedMilliseconds] =
+            initialGenerationStatistics.elapsedMilliseconds.toString()
+        details[Csp1dKpiKeys.InitialGenerationStopReason] = initialGenerationStatistics.stopReason.name
     }
 
     for (materialUsage in solution.produce.materialUsages) {
-        details["materialUsage.${materialUsage.material.id}.batchCount"] = materialUsage.amount.toString()
+        details[Csp1dKpiKeys.materialUsageBatchCount(materialUsage.material.id)] = materialUsage.amount.toString()
     }
     for (machineUsage in solution.produce.machineUsages) {
         val used = machineUsage.used ?: continue
-        details["machineCapacityUsed.${machineUsage.machine.id}"] = used.toString()
+        details[Csp1dKpiKeys.machineCapacityUsed(machineUsage.machine.id)] = used.toString()
     }
     for (underProduction in solution.yieldResult?.underProductions.orEmpty()) {
-        details["underProduction.${underProduction.productId}.${underProduction.unitSymbol}"] = underProduction.amount.toString()
+        details[Csp1dKpiKeys.underProduction(
+            productId = underProduction.productId,
+            unitSymbol = underProduction.unitSymbol
+        )] = underProduction.amount.toString()
     }
     for (overProduction in solution.yieldResult?.overProductions.orEmpty()) {
-        details["overProduction.${overProduction.productId}.${overProduction.unitSymbol}"] = overProduction.amount.toString()
+        details[Csp1dKpiKeys.overProduction(
+            productId = overProduction.productId,
+            unitSymbol = overProduction.unitSymbol
+        )] = overProduction.amount.toString()
     }
 
     val wasteResult = solution.wasteResult
     if (wasteResult != null) {
-        wasteResult.totalTrimWidth?.let { details["totalTrimWidth"] = it.toString() }
-        wasteResult.totalRestMaterial?.let { details["totalRestMaterial"] = it.toString() }
-        wasteResult.overProductionArea?.let { details["overProductionArea"] = it.toString() }
-        details["overProductionAreaMeasure"] = wasteResult.overProductionAreaMeasure.name
-        details["restMaterialMeasure"] = wasteResult.restMaterialMeasure.name
+        wasteResult.totalTrimWidth?.let { details[Csp1dKpiKeys.TotalTrimWidth] = it.toString() }
+        wasteResult.totalRestMaterial?.let { details[Csp1dKpiKeys.TotalRestMaterial] = it.toString() }
+        wasteResult.overProductionArea?.let { details[Csp1dKpiKeys.OverProductionArea] = it.toString() }
+        details[Csp1dKpiKeys.OverProductionAreaMeasure] = wasteResult.overProductionAreaMeasure.name
+        details[Csp1dKpiKeys.RestMaterialMeasure] = wasteResult.restMaterialMeasure.name
         for (materialCost in wasteResult.materialCosts) {
-            details["materialCost.${materialCost.materialId}"] = materialCost.cost.toString()
+            details[Csp1dKpiKeys.materialCost(materialCost.materialId)] = materialCost.cost.toString()
         }
     }
 
     for (assignedLength in solution.lengthResult?.assignedLengths.orEmpty()) {
-        details["assignedLength.${assignedLength.productId}"] = assignedLength.assignedLength.toString()
+        details[Csp1dKpiKeys.assignedLength(assignedLength.productId)] = assignedLength.assignedLength.toString()
     }
     for (overLength in solution.lengthResult?.overLengths.orEmpty()) {
-        details["overLength.${overLength.productId}"] = overLength.overLength.toString()
+        details[Csp1dKpiKeys.overLength(overLength.productId)] = overLength.overLength.toString()
     }
 
     return details

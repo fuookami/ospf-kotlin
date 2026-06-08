@@ -69,11 +69,15 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 `Csp1dColumnGenerationTrace` records termination reason, LP iteration objectives, priced plan counts, initial generation statistics, final MILP status, partial solution availability, and failure message.
 
+Stable KPI field names are exposed by `Csp1dKpiKeys`. Stable scalar keys include plan counts, demand counts, usage counts, `solutionStatus`, `finalMilpStatus`, `partialSolutionAvailable`, column-generation iteration/pricing keys, and initial-generation statistics keys. Dynamic detail keys should be built through helper methods such as `materialUsageBatchCount(...)`, `machineCapacityUsed(...)`, `underProduction(...)`, `overProduction(...)`, `materialCost(...)`, `assignedLength(...)`, and `overLength(...)`.
+
 ## Generation Semantics
 
 The generation context provides DFS, N-Same, N-Sum, FullSum, and reduced-cost pricing generators. Generators share timeout, max plan, canonical deduplication, feasibility filtering, statistics reporting, and `GenerationConstraints.parallelism` for material-level coroutine parallel generation.
 
 `GenerationConstraints.enableDominancePruning` enables opt-in same-contribution dominance pruning. For candidates with the same material, machine, capacity consumption, and demand contribution vector, the generator keeps the candidate with smaller remaining width and records the filtered count in `dominatedCandidates`.
+
+The medium-scale baseline test now covers DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, elapsed milliseconds, and stop reason.
 
 `Costar` is a filler for remaining width. It can appear in slices and render output, but it does not create demand contribution.
 
@@ -81,7 +85,7 @@ For dynamic-length products, generation-stage demand contribution uses the produ
 
 ## Recovery
 
-`Csp1dRecovery` keeps the simple `solve(problem, solveConfig)` API and also provides `solveWithTrace(Csp1dRecoveryInput<V>)`. The trace records recovery status, warm start status, attempt count, and message. Current MILP adapters do not consume warm start directly, so compatible warm starts are marked as `Ignored`; incompatible warm starts can fall back to normal solve when `retryWithoutWarmStart` is enabled.
+`Csp1dRecovery` keeps the simple `solve(problem, solveConfig)` API and also provides `solveWithTrace(Csp1dRecoveryInput<V>)`. The trace records recovery status, warm start status, attempt count, and message. Empty warm starts are marked as `Ignored`; compatible warm starts are marked as `AdapterUnsupported` because current MILP adapters do not consume them directly; incompatible warm starts are marked as `Invalid`. When `retryWithoutWarmStart` is disabled, recovery throws `Csp1dRecoveryFallbackDisabledException` with trace. Solver failures are wrapped by `Csp1dRecoverySolveException` with trace.
 
 ## Demo
 
