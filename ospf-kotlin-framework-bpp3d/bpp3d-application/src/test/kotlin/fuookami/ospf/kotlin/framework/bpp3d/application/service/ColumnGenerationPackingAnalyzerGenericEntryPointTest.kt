@@ -250,6 +250,181 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
+    fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderMultiSupportStack() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-ADAPTER-CYLINDER-MULTI-STACK"),
+            type = MaterialType.RawMaterial,
+            cargo = Cargo,
+            name = "M-ADAPTER-CYLINDER-MULTI-STACK",
+            weight = FltX(0.2) * Kilogram
+        )
+        val support = GenericItem(
+            id = "item-adapter-cylinder-multi-stack-support",
+            name = "item-adapter-cylinder-multi-stack-support",
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
+                    width = FltX(0.4) * Meter,
+                    height = FltX(0.2) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(material to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-STACK-SUPPORT"),
+            packageAttribute = packageAttribute()
+        ).toModel()
+        val cylinder = GenericItem(
+            id = "item-adapter-cylinder-multi-stack-cylinder",
+            name = "item-adapter-cylinder-multi-stack-cylinder",
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
+                    packageType = PackageType.CartonContainer,
+                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                        radius = FltX(0.5) * Meter,
+                        axis = Axis3.X
+                    )
+                ),
+                materials = mapOf(material to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-STACK-CYLINDER"),
+            packageAttribute = packageAttribute()
+        ).toModel()
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 12
+            )
+        )
+        val layer = generated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-multi-axis=x"
+        }.layer
+        val placement = layer.toLayerPlacement()
+
+        assertEquals(4, placement.unit.units.size)
+        assertTrue(
+            placement.unit.units.any { unitPlacement ->
+                val shape = unitPlacement.resolvedPackingShape()
+                shape is CylinderPackingShape3 && shape.axis == Axis3.X
+            }
+        )
+    }
+
+    @Test
+    fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderHeterogeneousSupportStack() = runBlocking {
+        val material = GenericMaterial(
+            no = MaterialNo("M-ADAPTER-CYLINDER-HETEROGENEOUS-STACK"),
+            type = MaterialType.RawMaterial,
+            cargo = Cargo,
+            name = "M-ADAPTER-CYLINDER-HETEROGENEOUS-STACK",
+            weight = FltX(0.2) * Kilogram
+        )
+        val supportA = GenericItem(
+            id = "item-adapter-cylinder-heterogeneous-stack-support-a",
+            name = "item-adapter-cylinder-heterogeneous-stack-support-a",
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
+                    width = FltX(0.4) * Meter,
+                    height = FltX(0.2) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(material to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-HETEROGENEOUS-STACK-SUPPORT-A"),
+            packageAttribute = packageAttribute()
+        ).toModel()
+        val supportB = GenericItem(
+            id = "item-adapter-cylinder-heterogeneous-stack-support-b",
+            name = "item-adapter-cylinder-heterogeneous-stack-support-b",
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
+                    width = FltX(0.6) * Meter,
+                    height = FltX(0.2) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
+                    packageType = PackageType.CartonContainer
+                ),
+                materials = mapOf(material to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-HETEROGENEOUS-STACK-SUPPORT-B"),
+            packageAttribute = packageAttribute()
+        ).toModel()
+        val cylinder = GenericItem(
+            id = "item-adapter-cylinder-heterogeneous-stack-cylinder",
+            name = "item-adapter-cylinder-heterogeneous-stack-cylinder",
+            pack = GenericPackage.innerPackage(
+                shape = GenericPackageShape(
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
+                    packageType = PackageType.CartonContainer,
+                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                        radius = FltX(0.5) * Meter,
+                        axis = Axis3.X
+                    )
+                ),
+                materials = mapOf(material to UInt64.one)
+            ),
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-HETEROGENEOUS-STACK-CYLINDER"),
+            packageAttribute = packageAttribute()
+        ).toModel()
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(20.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-HETEROGENEOUS-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(supportA, supportB, cylinder),
+                maxCandidates = 16
+            )
+        )
+        val layer = generated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-heterogeneous-axis=x"
+        }.layer
+        val placement = layer.toLayerPlacement()
+
+        assertEquals(3, placement.unit.units.size)
+        assertTrue(
+            placement.unit.units.any { unitPlacement ->
+                val shape = unitPlacement.resolvedPackingShape()
+                shape is CylinderPackingShape3 && shape.axis == Axis3.X
+            }
+        )
+    }
+
+    @Test
     fun analyzerShouldAcceptKnownCoordinateHorizontalCylinderLayerPlacement() = runBlocking {
         val layer = horizontalCylinderLayer(Axis3.X)
         val analyzer = ColumnGenerationPackingAnalyzer()

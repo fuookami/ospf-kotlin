@@ -1105,12 +1105,184 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderMultiSupportStack() = runBlocking {
+        val support = cuboidItem(
+            id = "item-circle-horizontal-stack-multi-support",
+            widthValue = 0.4,
+            heightValue = 0.2,
+            depthValue = 1.0
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-stack-multi-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 12
+            )
+        )
+
+        val stack = generated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-multi-axis=x"
+        }
+        assertEquals(4, stack.layer.units.size)
+        assertStackedLayerGeometry(stack.layer)
+
+        val supportPlacements = stack.layer.units.filter { placement ->
+            placement.resolvedPackingShape() !is CylinderPackingShape3
+        }.map { placement ->
+            placement.toItemPlacementOrNull() ?: throw IllegalStateException("missing support item placement")
+        }
+        val cylinderPlacement = stack.layer.units.first { placement ->
+            val shape = placement.resolvedPackingShape()
+            shape is CylinderPackingShape3 && shape.axis == Axis3.X
+        }.toItemPlacementOrNull() ?: throw IllegalStateException("missing cylinder item placement")
+        assertEquals(3, supportPlacements.size)
+        assertEquals(0.0, cylinderPlacement.absoluteX.toDouble(), 1e-9)
+        assertEquals(supportPlacements.first().height.toDouble(), cylinderPlacement.absoluteY.toDouble(), 1e-9)
+        assertTrue(
+            cylinderPlacement.enabledStackingOn(
+                bottomItems = supportPlacements,
+                space = stack.layer.shape
+            )
+        )
+
+        val packedBin = PackedBin(
+            name = "bin-horizontal-multi-supported-stack",
+            type = bin,
+            items = stack.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItems = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.single().items
+        assertEquals(4, renderedItems.size)
+        assertTrue(
+            renderedItems.any { item ->
+                item.algorithmShapeType.name == "HorizontalCylinderX" && item.axis?.name == "X"
+            }
+        )
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderHeterogeneousSupportStack() = runBlocking {
+        val supportA = cuboidItem(
+            id = "item-circle-horizontal-stack-heterogeneous-support-a",
+            widthValue = 0.4,
+            heightValue = 0.2,
+            depthValue = 1.0
+        )
+        val supportB = cuboidItem(
+            id = "item-circle-horizontal-stack-heterogeneous-support-b",
+            widthValue = 0.6,
+            heightValue = 0.2,
+            depthValue = 1.0
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-stack-heterogeneous-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HETEROGENEOUS-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(supportA, supportB, cylinder),
+                maxCandidates = 16
+            )
+        )
+
+        val stack = generated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-heterogeneous-axis=x"
+        }
+        assertEquals(3, stack.layer.units.size)
+        assertStackedLayerGeometry(stack.layer)
+
+        val supportPlacements = stack.layer.units.filter { placement ->
+            placement.resolvedPackingShape() !is CylinderPackingShape3
+        }.map { placement ->
+            placement.toItemPlacementOrNull() ?: throw IllegalStateException("missing support item placement")
+        }
+        val cylinderPlacement = stack.layer.units.first { placement ->
+            val shape = placement.resolvedPackingShape()
+            shape is CylinderPackingShape3 && shape.axis == Axis3.X
+        }.toItemPlacementOrNull() ?: throw IllegalStateException("missing cylinder item placement")
+        val supportIds = supportPlacements.map { placement -> (placement.view.unit as ActualItem).id }.toSet()
+        assertEquals(
+            setOf(
+                "item-circle-horizontal-stack-heterogeneous-support-a",
+                "item-circle-horizontal-stack-heterogeneous-support-b"
+            ),
+            supportIds
+        )
+        assertEquals(supportPlacements.first().height.toDouble(), cylinderPlacement.absoluteY.toDouble(), 1e-9)
+        assertTrue(
+            cylinderPlacement.enabledStackingOn(
+                bottomItems = supportPlacements,
+                space = stack.layer.shape
+            )
+        )
+
+        val packedBin = PackedBin(
+            name = "bin-horizontal-heterogeneous-supported-stack",
+            type = bin,
+            items = stack.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItems = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.single().items
+        assertEquals(3, renderedItems.size)
+        assertTrue(
+            renderedItems.any { item ->
+                item.algorithmShapeType.name == "HorizontalCylinderX" && item.axis?.name == "X"
+            }
+        )
+    }
+
+    @Test
     fun circlePackingLayerGeneratorShouldRejectPartialHorizontalCylinderSupportStack() = runBlocking {
         val partialSupport = cuboidItem(
             id = "item-circle-horizontal-stack-partial-support",
             widthValue = 0.8,
             heightValue = 0.2,
-            depthValue = 1.0
+            depthValue = 0.4
         )
         val cylinder = cylinderItem(
             id = "item-circle-horizontal-stack-partial-cylinder",
@@ -1139,6 +1311,8 @@ class LayerGenerationFltXProofTest {
         assertTrue(
             generated.none { result ->
                 result.source == "circle-packing-horizontal-supported-stack-axis=x"
+                        || result.source == "circle-packing-horizontal-supported-stack-multi-axis=x"
+                        || result.source == "circle-packing-horizontal-supported-stack-heterogeneous-axis=x"
             }
         )
     }
