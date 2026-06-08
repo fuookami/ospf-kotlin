@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireAxisAwareCylinderCandidate
@@ -688,6 +689,105 @@ private fun circlePackingVolume(placements: List<ItemPlacement3>): Double {
     return placements.sumOf { placement -> placement.resolvedPackingShape().actualVolume.value.toDouble() }
 }
 
+private fun canFullySupportHorizontalCylinder(
+    supportView: ItemView,
+    cylinderView: ItemView
+): Boolean {
+    return supportView.width.value.toDouble() + 1e-7 >= cylinderView.width.value.toDouble()
+            && supportView.depth.value.toDouble() + 1e-7 >= cylinderView.depth.value.toDouble()
+}
+
+private fun circlePackingStackedLayerIsGeometryValid(
+    binShape: Container3Shape,
+    placements: List<ItemPlacement3>
+): Boolean {
+    val shapePlacements = placements.map { placement ->
+        val shape = placement.resolvedPackingShape()
+        if (!binShape.enabled(shape, placement.absolutePosition)) {
+            return false
+        }
+        placement.asShapePlacement3 { shape }
+    }
+    for (lhsIndex in shapePlacements.indices) {
+        for (rhsIndex in (lhsIndex + 1) until shapePlacements.size) {
+            if (shapePlacements[lhsIndex] overlapped shapePlacements[rhsIndex]) {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+private suspend fun horizontalCylinderSupportedStackCandidates(
+    sourceClass: Class<*>,
+    iteration: Int64,
+    bin: BinType,
+    binShape: Container3Shape,
+    items: List<Item>,
+    cylinderItem: Item,
+    cylinderCandidate: CirclePackingItemCandidate,
+    cylinderShape: CylinderPackingShape3
+): List<CirclePackingLayerCandidate> {
+    val candidates = ArrayList<CirclePackingLayerCandidate>()
+    for (supportItem in items) {
+        if (supportItem == cylinderItem || supportItem.packingShape is CylinderPackingShape3) {
+            continue
+        }
+        for (supportCandidate in circlePackingItemCandidates(supportItem, bin)) {
+            val supportView = supportCandidate.view
+            if (!canFullySupportHorizontalCylinder(
+                    supportView = supportView,
+                    cylinderView = cylinderCandidate.view
+                )
+            ) {
+                continue
+            }
+            val supportPlacement = ItemPlacement3(
+                view = supportView,
+                position = point3()
+            )
+            val cylinderPlacement = ItemPlacement3(
+                view = cylinderCandidate.view,
+                position = point3(y = supportView.height)
+            )
+            val placements = listOf(supportPlacement, cylinderPlacement)
+            if (!circlePackingStackedLayerIsGeometryValid(
+                    binShape = binShape,
+                    placements = placements
+                )
+            ) {
+                continue
+            }
+            if (!cylinderPlacement.enabledStackingOn(
+                    bottomItems = listOf(supportPlacement),
+                    space = binShape
+                )
+            ) {
+                continue
+            }
+            candidates.add(
+                CirclePackingLayerCandidate(
+                    layer = BinLayer(
+                        iteration = iteration,
+                        from = sourceClass.kotlin,
+                        bin = bin,
+                        shape = binShape,
+                        units = placements
+                    ),
+                    source = circlePackingSource(
+                        pattern = "circle-packing-horizontal-supported-stack",
+                        candidate = cylinderCandidate,
+                        axis = cylinderShape.axis
+                    ),
+                    packed = placements.size,
+                    volume = circlePackingVolume(placements)
+                )
+            )
+        }
+    }
+    return candidates
+}
+
 private suspend fun <V> mapItemsToCirclePackingLayers(
     request: Bpp3dLayerGenerationRequest<V>,
     sourceClass: Class<*>
@@ -785,6 +885,18 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                         )
                     }
                 }
+                candidates.addAll(
+                    horizontalCylinderSupportedStackCandidates(
+                        sourceClass = sourceClass,
+                        iteration = iteration,
+                        bin = bin,
+                        binShape = binShape,
+                        items = items,
+                        cylinderItem = item,
+                        cylinderCandidate = candidate,
+                        cylinderShape = candidateShape
+                    )
+                )
                 continue
             }
 

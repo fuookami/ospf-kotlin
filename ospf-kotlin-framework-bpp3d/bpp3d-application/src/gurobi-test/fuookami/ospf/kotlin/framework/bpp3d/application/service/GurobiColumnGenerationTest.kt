@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.unsupportedContinuousCylinderRadiusOptimizationMessage
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
@@ -274,6 +275,7 @@ class GurobiColumnGenerationTest {
         val diameterMinMeter: Flt64?,
         val diameterMaxMeter: Flt64?,
         val diameterStepMeter: Flt64?,
+        val radiusWeightFunctionKey: String?,
         val axis: String?
     )
 
@@ -292,6 +294,7 @@ class GurobiColumnGenerationTest {
         val diameterMinMeter: Flt64?,
         val diameterMaxMeter: Flt64?,
         val diameterStepMeter: Flt64?,
+        val radiusWeightFunctionKey: String?,
         val axis: String?
     )
 
@@ -557,6 +560,7 @@ class GurobiColumnGenerationTest {
             "diameter_max_meter",
             "diameter_step",
             "diameter_step_meter",
+            "radius_weight_function_key",
             "axis"
         )
         val depthBoundaryColumns = listOf(
@@ -636,6 +640,7 @@ class GurobiColumnGenerationTest {
         val diameterMinMeterColumn = optionalLengthColumn("diameter_min")
         val diameterMaxMeterColumn = optionalLengthColumn("diameter_max")
         val diameterStepMeterColumn = optionalLengthColumn("diameter_step")
+        val radiusWeightFunctionKeyColumn = optionalColumn("radius_weight_function_key")
         val axisColumn = optionalColumn("axis")
         val firstLayerAllowedCylinderAxesColumn = optionalColumn("first_layer_allowed_cylinder_axes")
         val lastLayerAllowedCylinderAxesColumn = optionalColumn("last_layer_allowed_cylinder_axes")
@@ -718,6 +723,9 @@ class GurobiColumnGenerationTest {
                     fieldName = "diameter_step",
                     rowIndex = rowIndex
                 ),
+                radiusWeightFunctionKey = radiusWeightFunctionKeyColumn?.let { column ->
+                    cols.getOrNull(column)
+                }?.takeIf { it.isNotEmpty() },
                 axis = axisColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() }
             )
         }
@@ -867,6 +875,7 @@ class GurobiColumnGenerationTest {
             diameterMinMeter = diameterMinMeter,
             diameterMaxMeter = diameterMaxMeter,
             diameterStepMeter = diameterStepMeter,
+            radiusWeightFunctionKey = radiusWeightFunctionKey,
             axis = axis,
             rowDescription = "item_id=$itemId, group_index=$groupIndex, layer_index=$layerIndex"
         )
@@ -1202,6 +1211,7 @@ class GurobiColumnGenerationTest {
             diameterMinMeter = null,
             diameterMaxMeter = null,
             diameterStepMeter = null,
+            radiusWeightFunctionKey = null,
             axis = "X",
             rowDescription = "axis=x metadata parser test"
         ) as? PackageShapeSpec.VerticalCylinder
@@ -1215,6 +1225,7 @@ class GurobiColumnGenerationTest {
             diameterMinMeter = null,
             diameterMaxMeter = null,
             diameterStepMeter = null,
+            radiusWeightFunctionKey = null,
             axis = "Axis3.Z",
             rowDescription = "axis=z metadata parser test"
         ) as? PackageShapeSpec.VerticalCylinder
@@ -1266,6 +1277,21 @@ class GurobiColumnGenerationTest {
 
         assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
         assertTrue(exception.message?.contains("radius_step") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectContinuousRadiusWeightFunctionKey() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,radius_weight_function_key,axis
+            0,0,item-continuous-radius-key,MAT-A,Material-A,1.0,vertical_cylinder,0.15,prefer-large-radius,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("Unsupported continuous cylinder radius optimization") == true)
+        assertTrue(exception.message?.contains("radius_weight_function_key") == true)
     }
 
     @Test
@@ -1546,6 +1572,7 @@ class GurobiColumnGenerationTest {
         val diameterMinMeterColumn = optionalLengthColumn("diameter_min")
         val diameterMaxMeterColumn = optionalLengthColumn("diameter_max")
         val diameterStepMeterColumn = optionalLengthColumn("diameter_step")
+        val radiusWeightFunctionKeyColumn = optionalColumn("radius_weight_function_key")
         val axisColumn = optionalColumn("axis")
         val firstLayerAllowedCylinderAxesColumn = optionalColumn("first_layer_allowed_cylinder_axes")
         val lastLayerAllowedCylinderAxesColumn = optionalColumn("last_layer_allowed_cylinder_axes")
@@ -1630,6 +1657,9 @@ class GurobiColumnGenerationTest {
                         fieldName = "diameter_step",
                         rowIndex = rowIndex
                     ),
+                    radiusWeightFunctionKey = radiusWeightFunctionKeyColumn?.let { column ->
+                        cols.getOrNull(column)
+                    }?.takeIf { value -> value.isNotEmpty() },
                     axis = axisColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } }
                 )
             )
@@ -1669,6 +1699,7 @@ class GurobiColumnGenerationTest {
                 diameterMinMeter = row.diameterMinMeter,
                 diameterMaxMeter = row.diameterMaxMeter,
                 diameterStepMeter = row.diameterStepMeter,
+                radiusWeightFunctionKey = row.radiusWeightFunctionKey,
                 axis = row.axis,
                 rowDescription = "material=${row.material},row_index=${index + 2}"
             )
@@ -1776,6 +1807,7 @@ class GurobiColumnGenerationTest {
         diameterMinMeter: Flt64?,
         diameterMaxMeter: Flt64?,
         diameterStepMeter: Flt64?,
+        radiusWeightFunctionKey: String?,
         axis: String?,
         rowDescription: String
     ): PackageShapeSpec {
@@ -1786,6 +1818,7 @@ class GurobiColumnGenerationTest {
                 || diameterMinMeter != null
                 || diameterMaxMeter != null
                 || diameterStepMeter != null
+                || !radiusWeightFunctionKey.isNullOrBlank()
                 || !axis.isNullOrBlank()
         if (shapeType.isNullOrBlank() && hasShapeMetadata) {
             throw IllegalStateException(
@@ -1812,6 +1845,7 @@ class GurobiColumnGenerationTest {
                 diameterMinMeter = diameterMinMeter,
                 diameterMaxMeter = diameterMaxMeter,
                 diameterStepMeter = diameterStepMeter,
+                radiusWeightFunctionKey = radiusWeightFunctionKey,
                 rowDescription = rowDescription
             )
             val resolvedRadiusMeter = radiusMeter
@@ -1848,8 +1882,15 @@ class GurobiColumnGenerationTest {
         diameterMinMeter: Flt64?,
         diameterMaxMeter: Flt64?,
         diameterStepMeter: Flt64?,
+        radiusWeightFunctionKey: String?,
         rowDescription: String
     ) {
+        if (!radiusWeightFunctionKey.isNullOrBlank()) {
+            throw IllegalStateException(
+                unsupportedContinuousCylinderRadiusOptimizationMessage("Gurobi CSV") +
+                        " field=radius_weight_function_key, $rowDescription"
+            )
+        }
         if (radiusStepMeter != null && (radiusMinMeter == null || radiusMaxMeter == null)) {
             throw IllegalStateException(
                 "radius_step requires radius_min and radius_max for cylinder row: $rowDescription"

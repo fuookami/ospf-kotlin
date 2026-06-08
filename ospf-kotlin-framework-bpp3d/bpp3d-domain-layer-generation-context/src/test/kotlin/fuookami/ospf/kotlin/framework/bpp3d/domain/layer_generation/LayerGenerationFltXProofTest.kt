@@ -24,8 +24,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toItemPlacementOrNull
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
@@ -170,6 +172,19 @@ class LayerGenerationFltXProofTest {
             for (rhsIndex in (lhsIndex + 1) until shapePlacements.size) {
                 val overlap = shapePlacements[lhsIndex].footprintOverlapArea(shapePlacements[rhsIndex])
                 assertTrue(abs(overlap.toDouble()) < 1e-7)
+            }
+        }
+    }
+
+    private fun assertStackedLayerGeometry(layer: BinLayer) {
+        val shapePlacements = layer.units.map { placement ->
+            val shape = placement.resolvedPackingShape()
+            assertTrue(layer.shape.enabled(shape, placement.absolutePosition))
+            placement.asShapePlacement3 { shape }
+        }
+        for (lhsIndex in shapePlacements.indices) {
+            for (rhsIndex in (lhsIndex + 1) until shapePlacements.size) {
+                assertTrue(!(shapePlacements[lhsIndex] overlapped shapePlacements[rhsIndex]))
             }
         }
     }
@@ -1010,6 +1025,122 @@ class LayerGenerationFltXProofTest {
         ).loadingPlans.first().items.first()
         assertEquals("HorizontalCylinderZ", renderedItem.algorithmShapeType.name)
         assertEquals("Z", renderedItem.axis?.name)
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderSupportedStack() = runBlocking {
+        val support = cuboidItem(
+            id = "item-circle-horizontal-stack-support",
+            widthValue = 1.2,
+            heightValue = 0.2,
+            depthValue = 1.0
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-stack-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 12
+            )
+        )
+
+        val stack = generated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-axis=x"
+        }
+        assertEquals(2, stack.layer.units.size)
+        assertStackedLayerGeometry(stack.layer)
+
+        val supportPlacement = stack.layer.units.first { placement ->
+            placement.resolvedPackingShape() !is CylinderPackingShape3
+        }.toItemPlacementOrNull() ?: throw IllegalStateException("missing support item placement")
+        val cylinderPlacement = stack.layer.units.first { placement ->
+            val shape = placement.resolvedPackingShape()
+            shape is CylinderPackingShape3 && shape.axis == Axis3.X
+        }.toItemPlacementOrNull() ?: throw IllegalStateException("missing cylinder item placement")
+        assertEquals(0.0, supportPlacement.absoluteY.toDouble(), 1e-9)
+        assertEquals(supportPlacement.height.toDouble(), cylinderPlacement.absoluteY.toDouble(), 1e-9)
+        assertTrue(
+            cylinderPlacement.enabledStackingOn(
+                bottomItems = listOf(supportPlacement),
+                space = stack.layer.shape
+            )
+        )
+
+        val packedBin = PackedBin(
+            name = "bin-horizontal-supported-stack",
+            type = bin,
+            items = stack.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItems = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.single().items
+        assertEquals(2, renderedItems.size)
+        assertTrue(
+            renderedItems.any { item ->
+                item.algorithmShapeType.name == "HorizontalCylinderX" && item.axis?.name == "X"
+            }
+        )
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldRejectPartialHorizontalCylinderSupportStack() = runBlocking {
+        val partialSupport = cuboidItem(
+            id = "item-circle-horizontal-stack-partial-support",
+            widthValue = 0.8,
+            heightValue = 0.2,
+            depthValue = 1.0
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-stack-partial-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-PARTIAL-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(partialSupport, cylinder),
+                maxCandidates = 12
+            )
+        )
+
+        assertTrue(
+            generated.none { result ->
+                result.source == "circle-packing-horizontal-supported-stack-axis=x"
+            }
+        )
     }
 
     @Test

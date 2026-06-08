@@ -53,7 +53,9 @@ $fixHints = @{
     ProgramCandidateShapeSpecGuardMissing = "Layer generation program-demand adapters must preserve PackingProgram.shape.shapeSpec when creating ActualItem instances."
     MaterialPackerShapeSpecGuardMissing = "MaterialPacker must preserve the selected PackingProgram shapeSpec when it emits packaged ActualItem instances."
     GurobiCsvDiscreteRadiusGuardMissing = "Gurobi CSV shape metadata parsing must reject continuous radius/diameter intervals unless a concrete fixed radius is provided."
+    GurobiCsvContinuousRadiusKeyGuardMissing = "Gurobi CSV shape metadata parsing must reject radius_weight_function_key until continuous radius variables and final actual-radius validation are implemented."
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must reject radiusWeightFunctionKey production use until continuous radius variables and final actual-radius validation are implemented."
+    HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking limited to verified full-length cuboid support candidates."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or full-length cuboid support."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
@@ -415,12 +417,25 @@ Add-RequiredPatternViolation `
     -Pattern "requireDiscreteCsvRadiusMetadata\s*\([\s\S]*?continuous radius interval is unsupported[\s\S]*?continuous diameter interval is unsupported" `
     -MissingText "GurobiColumnGenerationTest CSV parser must reject continuous radius/diameter intervals without a discrete step or fixed radius."
 
+Add-RequiredPatternViolation `
+    -Check "GurobiCsvContinuousRadiusKeyGuardMissing" `
+    -FilePath $gurobiColumnGenerationTestPath `
+    -Pattern "radius_weight_function_key[\s\S]*?unsupportedContinuousCylinderRadiusOptimizationMessage\s*\(\s*""Gurobi CSV""" `
+    -MissingText "GurobiColumnGenerationTest CSV parser must reject radius_weight_function_key through the shared continuous radius unsupported contract."
+
 $packagePath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Package.kt"
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusProductionGuardMissing" `
     -FilePath $packagePath `
     -Pattern "requireDiscreteCylinderRadiusProductionMetadata\s*\([\s\S]*?source\s*=\s*""PackageShape\.toPackingShapeOrNull""" `
     -MissingText "PackageShape.toPackingShapeOrNull must reject continuous radius optimization metadata before emitting production PackingShape3."
+
+$layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
+Add-RequiredPatternViolation `
+    -Check "HorizontalCylinderGeneratedStackSupportGuardMissing" `
+    -FilePath $layerGenerationContextPath `
+    -Pattern "horizontalCylinderSupportedStackCandidates\s*\([\s\S]*?canFullySupportHorizontalCylinder\s*\([\s\S]*?circlePackingStackedLayerIsGeometryValid\s*\([\s\S]*?enabledStackingOn\s*\([\s\S]*?circle-packing-horizontal-supported-stack" `
+    -MissingText "CirclePackingLayerGenerator must keep generated horizontal cylinder stacking behind full-support, 3D geometry, and stacking-policy checks."
 
 $itemPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt"
 Add-RequiredPatternViolation `
