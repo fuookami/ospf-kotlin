@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireDiscreteCylinderRadiusProductionMetadata
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireConcreteCylinderRadiusProductionMetadata
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireAxisAwareCylinderCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireUprightVerticalCylinderSupport
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
@@ -50,6 +50,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.leq
+import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -639,7 +640,7 @@ private fun circlePackingItemCandidates(
     if (bin != null && (item.weight leq bin.capacity) != true) {
         return emptyList()
     }
-    requireDiscreteCirclePackingRadiusMetadata(item)
+    requireConcreteCirclePackingRadiusMetadata(item)
     return when (val shape = item.packingShape) {
         is CylinderPackingShape3 -> {
             if (!item.enabledOrientations.contains(Orientation.Upright)) {
@@ -672,9 +673,9 @@ private fun circlePackingItemCandidates(
     }
 }
 
-private fun requireDiscreteCirclePackingRadiusMetadata(item: Item) {
+private fun requireConcreteCirclePackingRadiusMetadata(item: Item) {
     item.packingShapeSpec?.let { spec ->
-        requireDiscreteCylinderRadiusProductionMetadata(
+        requireConcreteCylinderRadiusProductionMetadata(
             spec = spec,
             source = CylinderCapabilityPath.CirclePackingCandidate.source
         )
@@ -708,6 +709,58 @@ private fun canFullySupportHorizontalCylinder(
 ): Boolean {
     return supportView.width.value.toDouble() + 1e-7 >= cylinderView.width.value.toDouble()
             && supportView.depth.value.toDouble() + 1e-7 >= cylinderView.depth.value.toDouble()
+}
+
+private fun horizontalCylinderSingleHangingSupportPlacements(
+    supportView: ItemView,
+    cylinderView: ItemView,
+    axis: Axis3
+): List<ItemPlacement3>? {
+    if (axis == Axis3.Y) {
+        return null
+    }
+    val supportAxisSpanValue = horizontalCylinderSupportAxisSpan(
+        view = supportView,
+        axis = axis
+    ).value.toDouble()
+    val cylinderAxisSpanValue = horizontalCylinderSupportAxisSpan(
+        view = cylinderView,
+        axis = axis
+    ).value.toDouble()
+    if (supportAxisSpanValue + 1e-7 < cylinderAxisSpanValue) {
+        return null
+    }
+
+    val supportRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = supportView,
+        axis = axis
+    )
+    val cylinderRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = cylinderView,
+        axis = axis
+    )
+    val supportRadialSpanValue = supportRadialSpan.value.toDouble()
+    val cylinderRadialSpanValue = cylinderRadialSpan.value.toDouble()
+    if (supportRadialSpanValue <= 0.0 || supportRadialSpanValue + 1e-7 >= cylinderRadialSpanValue) {
+        return null
+    }
+
+    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * infraScalar(0.5)
+    val supportPosition = when (axis) {
+        Axis3.X -> point3(z = radialOffset)
+        Axis3.Y -> point3()
+        Axis3.Z -> point3(x = radialOffset)
+    }
+    return listOf(
+        ItemPlacement3(
+            view = supportView,
+            position = supportPosition
+        ),
+        ItemPlacement3(
+            view = cylinderView,
+            position = point3(y = supportView.height)
+        )
+    )
 }
 
 private fun horizontalCylinderSupportAxisSpan(
@@ -969,6 +1022,44 @@ private suspend fun horizontalCylinderSupportedStackCandidates(
             }
         }
 
+        val hangingSupportPlacements = horizontalCylinderSingleHangingSupportPlacements(
+            supportView = supportView,
+            cylinderView = cylinderCandidate.view,
+            axis = cylinderShape.axis
+        )
+        if (hangingSupportPlacements != null
+            && circlePackingStackedLayerIsGeometryValid(
+                binShape = binShape,
+                placements = hangingSupportPlacements
+            )
+        ) {
+            val hangingCylinderPlacement = hangingSupportPlacements.last()
+            if (hangingCylinderPlacement.enabledStackingOn(
+                    bottomItems = hangingSupportPlacements.dropLast(1),
+                    space = binShape
+                )
+            ) {
+                candidates.add(
+                    CirclePackingLayerCandidate(
+                        layer = BinLayer(
+                            iteration = iteration,
+                            from = sourceClass.kotlin,
+                            bin = bin,
+                            shape = binShape,
+                            units = hangingSupportPlacements
+                        ),
+                        source = circlePackingSource(
+                            pattern = "circle-packing-horizontal-hanging-support",
+                            candidate = cylinderCandidate,
+                            axis = cylinderShape.axis
+                        ),
+                        packed = hangingSupportPlacements.size,
+                        volume = circlePackingVolume(hangingSupportPlacements)
+                    )
+                )
+            }
+        }
+
         val repeatedSupportCount = horizontalCylinderRepeatedSupportCount(
             supportView = supportView,
             cylinderView = cylinderCandidate.view,
@@ -1068,7 +1159,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         return emptyList()
     }
     for (item in request.items) {
-        requireDiscreteCirclePackingRadiusMetadata(item)
+        requireConcreteCirclePackingRadiusMetadata(item)
     }
 
     val candidates = ArrayList<CirclePackingLayerCandidate>()
@@ -1078,7 +1169,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         }
         .distinct()
     for (item in items) {
-        requireDiscreteCirclePackingRadiusMetadata(item)
+        requireConcreteCirclePackingRadiusMetadata(item)
         for (candidate in circlePackingItemCandidates(item, request.bin)) {
             val itemView = candidate.view
             val candidateShape = itemView.placementPackingShape as? CylinderPackingShape3
@@ -1479,7 +1570,7 @@ class CirclePackingLayerGenerator<V>(
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
             for (item in it.items) {
-                requireDiscreteCirclePackingRadiusMetadata(item)
+                requireConcreteCirclePackingRadiusMetadata(item)
                 requireAxisAwareCylinderCandidate(
                     shape = item.packingShape,
                     path = CylinderCapabilityPath.CirclePackingCandidate

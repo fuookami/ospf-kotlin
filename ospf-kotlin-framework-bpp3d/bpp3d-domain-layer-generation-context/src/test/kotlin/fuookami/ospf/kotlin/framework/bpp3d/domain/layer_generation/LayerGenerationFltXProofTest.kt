@@ -1460,7 +1460,86 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
-    fun circlePackingLayerGeneratorShouldRejectContinuousRadiusWeightFunctionKey() = runBlocking {
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderHangingSupport() = runBlocking {
+        val support = cuboidItem(
+            id = "item-circle-horizontal-hanging-support",
+            widthValue = 1.0,
+            heightValue = 0.2,
+            depthValue = 0.2
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-hanging-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 12
+            )
+        )
+
+        val hanging = generated.first { result ->
+            result.source == "circle-packing-horizontal-hanging-support-axis=x"
+        }
+        assertEquals(2, hanging.layer.units.size)
+        assertStackedLayerGeometry(hanging.layer)
+        assertTrue(hanging.layer.units.dropLast(1).single().absoluteZ.toDouble() > 0.0)
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldRejectPartialHorizontalCylinderHangingSupport() = runBlocking {
+        val support = cuboidItem(
+            id = "item-circle-horizontal-hanging-partial-support",
+            widthValue = 0.8,
+            heightValue = 0.2,
+            depthValue = 0.2
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-hanging-partial-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING-PARTIAL"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 12
+            )
+        )
+
+        assertTrue(
+            generated.none { result ->
+                result.source == "circle-packing-horizontal-hanging-support-axis=x"
+            }
+        )
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldAcceptSelectedContinuousRadiusWeightFunctionKey() = runBlocking {
         val radius = infraScalar(0.5) * Meter
         val weight = infraScalar(0.2) * Kilogram
         val shape = PackageShape(
@@ -1502,22 +1581,35 @@ class LayerGenerationFltXProofTest {
             typeCode = "BIN-LG-CIRCLE-CONTINUOUS-RADIUS-KEY"
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            CirclePackingLayerGenerator<InfraNumber>().generate(
-                Bpp3dLayerGenerationRequest(
-                    iteration = 0,
-                    bin = bin,
-                    items = listOf(item),
-                    maxCandidates = 4
-                )
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(item),
+                maxCandidates = 4
             )
-        }
-
-        assertTrue(error.message?.contains("continuous cylinder radius optimization") == true)
-        assertTrue(
-            error.message?.contains("CirclePackingLayerGenerator") == true,
-            error.message ?: "missing error message"
         )
+
+        assertTrue(generated.isNotEmpty())
+        val shapeResult = generated.first().layer.units.first().resolvedPackingShape() as CylinderPackingShape3
+        assertEquals(0.5, shapeResult.radius.toDouble(), 1e-9)
+        val packedBin = PackedBin(
+            name = "bin-selected-continuous-radius",
+            type = bin,
+            items = generated.first().layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val rendered = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.first().items.first()
+        assertEquals(0.5, rendered.radius!!.toDouble(), 1e-9)
+        assertEquals(PI * 0.5 * 0.5 * 1.0, rendered.actualVolume!!.toDouble(), 1e-9)
     }
 
     @Test

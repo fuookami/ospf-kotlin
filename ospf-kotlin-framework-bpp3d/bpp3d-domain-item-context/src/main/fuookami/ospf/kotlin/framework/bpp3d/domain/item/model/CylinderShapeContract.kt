@@ -211,7 +211,7 @@ fun unsupportedCylinderStackingSupportMessage(source: String): String {
  * @return 错误信息 / error message
  */
 fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): String {
-    return "Unsupported continuous cylinder radius optimization in $source: radiusWeightFunctionKey requires solver radius variables and final actual-radius validation."
+    return "Unsupported continuous cylinder radius optimization in $source: radiusWeightFunctionKey requires a concrete selected radius result for final actual-radius validation."
 }
 
 /**
@@ -251,18 +251,20 @@ fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
 }
 
 /**
- * 要求生产装箱形状不使用尚未闭环的连续半径优化。
- * Require production packing shape not to use unclosed continuous radius optimization.
+ * 要求生产装箱形状具备确定的圆柱半径。
+ * Require production packing shape to have a concrete cylinder radius.
  *
  * @param spec 包装形状规格 / package shape spec
  * @param source 调用来源 / call source
  */
-fun requireDiscreteCylinderRadiusProductionMetadata(
+fun requireConcreteCylinderRadiusProductionMetadata(
     spec: PackageShapeSpec,
     source: String
 ) {
-    if (hasContinuousCylinderRadiusOptimization(spec)) {
-        throw IllegalArgumentException(unsupportedContinuousCylinderRadiusOptimizationMessage(source))
+    if (spec is PackageShapeSpec.VerticalCylinder && hasContinuousCylinderRadiusOptimization(spec)) {
+        require(spec.radius.value.toDouble() > 0.0) {
+            unsupportedContinuousCylinderRadiusOptimizationMessage(source)
+        }
     }
 }
 

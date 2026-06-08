@@ -129,17 +129,11 @@ class GenericDomainAliasExampleTest {
             shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
                 radius = FltX(0.5) * Meter,
                 axis = Axis3.Y,
-                radiusCandidates = listOf(
-                    FltX(0.5) * Meter,
-                    FltX(0.6) * Meter
-                ),
                 radiusMin = FltX(0.5) * Meter,
                 radiusMax = FltX(0.6) * Meter,
                 radiusWeightFunctionKey = "radius-weight-v1",
-                radiusStep = FltX(0.05) * Meter,
                 diameterMin = FltX(1.0) * Meter,
-                diameterMax = FltX(1.2) * Meter,
-                diameterStep = FltX(0.1) * Meter
+                diameterMax = FltX(1.2) * Meter
             )
         )
 
@@ -149,11 +143,8 @@ class GenericDomainAliasExampleTest {
         assertTrue(cylinderSpec.radius eq (infraScalar(0.5) * Meter))
         assertEquals(Axis3.Y, cylinderSpec.axis)
         assertEquals("radius-weight-v1", cylinderSpec.radiusWeightFunctionKey)
-        assertEquals(2, cylinderSpec.radiusCandidates.size)
-        assertTrue(cylinderSpec.radiusStep!! eq (infraScalar(0.05) * Meter))
         assertTrue(cylinderSpec.diameterMin!! eq (infraScalar(1.0) * Meter))
         assertTrue(cylinderSpec.diameterMax!! eq (infraScalar(1.2) * Meter))
-        assertTrue(cylinderSpec.diameterStep!! eq (infraScalar(0.1) * Meter))
-        assertEquals(2, cylinderSpec.resolvedRadiusCandidates.size)
+        assertEquals(1, cylinderSpec.resolvedRadiusCandidates.size)
     }
 }

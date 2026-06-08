@@ -65,17 +65,11 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
                     shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
                         axis = Axis3.Y,
-                        radiusCandidates = listOf(
-                            FltX(0.5) * Meter,
-                            FltX(0.6) * Meter
-                        ),
                         radiusMin = FltX(0.5) * Meter,
                         radiusMax = FltX(0.6) * Meter,
                         radiusWeightFunctionKey = "generic-shape-spec-v1",
-                        radiusStep = FltX(0.05) * Meter,
                         diameterMin = FltX(1.0) * Meter,
-                        diameterMax = FltX(1.2) * Meter,
-                        diameterStep = FltX(0.1) * Meter
+                        diameterMax = FltX(1.2) * Meter
                     )
                 ),
                 materials = mapOf(material to UInt64.one)
@@ -94,13 +88,15 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
         assertNotNull(cylinderSpec)
         assertTrue(cylinderSpec.radius eq (infraScalar(0.5) * Meter))
         assertEquals(Axis3.Y, cylinderSpec.axis)
-        assertEquals(2, cylinderSpec.radiusCandidates.size)
+        assertEquals(0, cylinderSpec.radiusCandidates.size)
+        assertTrue(cylinderSpec.radiusMin!! eq (infraScalar(0.5) * Meter))
+        assertTrue(cylinderSpec.radiusMax!! eq (infraScalar(0.6) * Meter))
         assertEquals("generic-shape-spec-v1", cylinderSpec.radiusWeightFunctionKey)
-        assertTrue(cylinderSpec.radiusStep!! eq (infraScalar(0.05) * Meter))
+        assertEquals(null, cylinderSpec.radiusStep)
         assertTrue(cylinderSpec.diameterMin!! eq (infraScalar(1.0) * Meter))
         assertTrue(cylinderSpec.diameterMax!! eq (infraScalar(1.2) * Meter))
-        assertTrue(cylinderSpec.diameterStep!! eq (infraScalar(0.1) * Meter))
-        assertEquals(2, cylinderSpec.resolvedRadiusCandidates.size)
+        assertEquals(null, cylinderSpec.diameterStep)
+        assertEquals(1, cylinderSpec.resolvedRadiusCandidates.size)
     }
 
     @Test

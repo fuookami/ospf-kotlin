@@ -86,7 +86,7 @@ class PackageShapeSpecTest {
     }
 
     @Test
-    fun verticalCylinderProductionShapeShouldRejectContinuousRadiusOptimization() {
+    fun verticalCylinderProductionShapeShouldUseSelectedContinuousRadiusResult() {
         val shape = PackageShape(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(1.2) * Meter,
@@ -102,12 +102,40 @@ class PackageShapeSpecTest {
             )
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            shape.toPackingShapeOrNull()
+        val packingShape = assertNotNull(shape.toPackingShapeOrNull())
+
+        assertTrue(packingShape is CylinderPackingShape3)
+        assertTrue(packingShape.radius eq (infraScalar(0.5) * Meter))
+        assertEquals(
+            expected = "continuous-radius-prototype",
+            actual = (shape.shapeSpec as PackageShapeSpec.VerticalCylinder).radiusWeightFunctionKey
+        )
+    }
+
+    @Test
+    fun verticalCylinderRadiusWeightFunctionKeyShouldRejectDiscreteRadiusCandidates() {
+        assertFailsWith<IllegalArgumentException> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.5) * Meter,
+                axis = Axis3.Y,
+                radiusCandidates = listOf(
+                    infraScalar(0.4) * Meter,
+                    infraScalar(0.5) * Meter
+                ),
+                radiusWeightFunctionKey = "continuous-radius-prototype"
+            )
         }
 
-        assertTrue(error.message?.contains("continuous cylinder radius optimization") == true)
-        assertTrue(error.message?.contains("PackageShape.toPackingShapeOrNull") == true)
+        assertFailsWith<IllegalArgumentException> {
+            PackageShapeSpec.VerticalCylinder(
+                radius = infraScalar(0.5) * Meter,
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter,
+                radiusStep = infraScalar(0.1) * Meter,
+                radiusWeightFunctionKey = "continuous-radius-prototype"
+            )
+        }
     }
 
     @Test

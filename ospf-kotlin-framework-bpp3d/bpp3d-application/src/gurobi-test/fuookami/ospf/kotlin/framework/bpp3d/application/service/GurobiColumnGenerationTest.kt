@@ -1411,10 +1411,26 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun groupedLayerCsvShouldRejectContinuousRadiusWeightFunctionKey() {
+    fun groupedLayerCsvShouldAcceptSelectedContinuousRadiusWeightFunctionKey() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,radius_weight_function_key,axis
             0,0,item-continuous-radius-key,MAT-A,Material-A,1.0,vertical_cylinder,0.15,prefer-large-radius,Y
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val item = scenario.itemDemands.single().first
+        val cylinderSpec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+
+        assertNotNull(cylinderSpec)
+        assertEquals("prefer-large-radius", cylinderSpec.radiusWeightFunctionKey)
+        assertEquals(0.15, cylinderSpec.radius.value.toDouble(), 1e-9)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectContinuousRadiusWeightFunctionKeyWithoutSelectedRadius() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis
+            0,0,item-continuous-radius-key,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,prefer-large-radius,Y
         """.trimIndent()
 
         val exception = kotlin.test.assertFailsWith<IllegalStateException> {
@@ -2040,7 +2056,7 @@ class GurobiColumnGenerationTest {
             || normalizedShapeType == "verticalcylinder"
             || normalizedShapeType == "cylinder"
         ) {
-            requireDiscreteCsvRadiusMetadata(
+            requireConcreteCsvRadiusMetadata(
                 radiusMeter = radiusMeter,
                 radiusMinMeter = radiusMinMeter,
                 radiusMaxMeter = radiusMaxMeter,
@@ -2066,6 +2082,7 @@ class GurobiColumnGenerationTest {
                 axis = resolvedAxis,
                 radiusMin = radiusMinMeter?.let { it * Meter },
                 radiusMax = radiusMaxMeter?.let { it * Meter },
+                radiusWeightFunctionKey = radiusWeightFunctionKey,
                 radiusStep = radiusStepMeter?.let { it * Meter },
                 diameterMin = diameterMinMeter?.let { it * Meter },
                 diameterMax = diameterMaxMeter?.let { it * Meter },
@@ -2077,7 +2094,7 @@ class GurobiColumnGenerationTest {
         )
     }
 
-    private fun requireDiscreteCsvRadiusMetadata(
+    private fun requireConcreteCsvRadiusMetadata(
         radiusMeter: Flt64?,
         radiusMinMeter: Flt64?,
         radiusMaxMeter: Flt64?,
@@ -2089,10 +2106,17 @@ class GurobiColumnGenerationTest {
         rowDescription: String
     ) {
         if (!radiusWeightFunctionKey.isNullOrBlank()) {
-            throw IllegalStateException(
-                unsupportedContinuousCylinderRadiusOptimizationMessage("Gurobi CSV") +
-                        " field=radius_weight_function_key, $rowDescription"
-            )
+            if (radiusMeter == null) {
+                throw IllegalStateException(
+                    unsupportedContinuousCylinderRadiusOptimizationMessage("Gurobi CSV") +
+                            " field=radius_weight_function_key requires radius_meter, $rowDescription"
+                )
+            }
+            if (radiusStepMeter != null || diameterStepMeter != null) {
+                throw IllegalStateException(
+                    "radius_weight_function_key cannot be combined with discrete radius or diameter steps for cylinder row: $rowDescription"
+                )
+            }
         }
         if (radiusStepMeter != null && (radiusMinMeter == null || radiusMaxMeter == null)) {
             throw IllegalStateException(

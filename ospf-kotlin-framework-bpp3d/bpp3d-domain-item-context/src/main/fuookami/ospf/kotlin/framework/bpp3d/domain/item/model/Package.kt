@@ -182,6 +182,14 @@ sealed interface PackageShapeSpec {
                     "Resolved radius must be included in radius candidates when candidates are provided."
                 }
             }
+            if (radiusWeightFunctionKey != null) {
+                require(radiusCandidates.isEmpty()) {
+                    "Vertical cylinder radiusWeightFunctionKey cannot be combined with discrete radius candidates."
+                }
+                require(radiusStep == null && diameterStep == null) {
+                    "Vertical cylinder radiusWeightFunctionKey cannot be combined with discrete radius or diameter steps."
+                }
+            }
             radiusMin?.let {
                 require(it.value.toDouble() > 0.0) {
                     "Vertical cylinder radiusMin must be positive."
@@ -396,7 +404,7 @@ fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>
     return when (val spec = shapeSpec) {
         PackageShapeSpec.Cuboid -> null
         is PackageShapeSpec.VerticalCylinder -> {
-            requireDiscreteCylinderRadiusProductionMetadata(
+            requireConcreteCylinderRadiusProductionMetadata(
                 spec = spec,
                 source = "PackageShape.toPackingShapeOrNull"
             )
