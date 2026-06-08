@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
@@ -637,6 +636,17 @@ class Csp1dMilpSolver(
                 }
             }
 
+            // 余料惩罚: sum(restWidth * material.length * x_plan * restMaterialPenalty) / Rest material penalty
+            val restMaterialPenalty = wasteConfig.restMaterialPenalty
+            if (restMaterialPenalty != null) {
+                for (index in 0 until assignment.planCount) {
+                    val plan = cuttingPlans[index]
+                    val restMaterialValue = restMaterialValue(plan) ?: continue
+                    val coeff = restMaterialValue.toFlt64() * restMaterialPenalty.toFlt64()
+                    monomials.add(LinearMonomial(coeff, assignment[index]))
+                }
+            }
+
             // 物料成本惩罚: sum(x_plan * materialCostPenalty[plan.material.id])
             if (wasteConfig.materialCostPenalty.isNotEmpty()) {
                 for (index in 0 until assignment.planCount) {
@@ -651,10 +661,10 @@ class Csp1dMilpSolver(
             // 超产面积惩罚: 需要超产松弛变量 / Over-production area penalty: requires over-production slack variables
             val overAreaPenalty = wasteConfig.overProductionAreaPenalty
             if (overAreaPenalty != null && yieldConfig != null && yieldSlackVars.overProduction.any { it != null }) {
-                // 超产面积 = sum(over_production * product.width)
+                // 超产面积 = sum(over_production * product.maxWidth) / Over-production area uses product max width
                 for ((demandIndex, demand) in demands.withIndex()) {
                     val overVar = yieldSlackVars.overProduction.getOrNull(demandIndex) ?: continue
-                    val productWidthValue = demand.product.width.firstOrNull()?.value?.toFlt64() ?: continue
+                    val productWidthValue = demand.product.maxWidth()?.value?.toFlt64() ?: continue
                     val coeff = productWidthValue * overAreaPenalty.toFlt64()
                     monomials.add(LinearMonomial(coeff, overVar))
                 }
@@ -1007,6 +1017,22 @@ class Csp1dMilpSolver(
             totalTrimWidth = sum
         }
 
+        // 计算总余料面积代理 / Calculate total rest material area proxy
+        var totalRestMaterial: V? = null
+        if (wasteConfig.restMaterialPenalty != null) {
+            var sum: V? = null
+            for (index in 0 until assignment.planCount) {
+                val plan = cuttingPlans[index]
+                val batchCount = solutionAmount(model, assignment, index)
+                if (batchCount > UInt64.zero) {
+                    val restMaterialValue = restMaterialValue(plan) ?: continue
+                    val contribution = restMaterialValue * solverValueLike(restMaterialValue, batchCount.toFlt64())
+                    sum = if (sum != null) sum + contribution else contribution
+                }
+            }
+            totalRestMaterial = sum
+        }
+
         // 计算物料成本 / Calculate material costs
         val materialCosts = ArrayList<ModeledMaterialCost<V>>()
         if (wasteConfig.materialCostPenalty.isNotEmpty()) {
@@ -1034,7 +1060,7 @@ class Csp1dMilpSolver(
                 val overVar = yieldSlackVars.overProduction.getOrNull(demandIndex) ?: continue
                 val overDouble = model.tokens.find(overVar)?.doubleResult ?: continue
                 if (overDouble > 0.0) {
-                    val productWidthValue = demand.product.width.firstOrNull()?.value ?: continue
+                    val productWidthValue = demand.product.maxWidth()?.value ?: continue
                     val area = productWidthValue * solverValueLike(productWidthValue, Flt64(overDouble))
                     areaSum = if (areaSum != null) areaSum + area else area
                 }
@@ -1044,6 +1070,7 @@ class Csp1dMilpSolver(
 
         return WasteMinimizationResult(
             totalTrimWidth = totalTrimWidth,
+            totalRestMaterial = totalRestMaterial,
             materialCosts = materialCosts,
             overProductionArea = overProductionArea
         )
@@ -1224,6 +1251,18 @@ class Csp1dMilpSolver(
             monomials = emptyList(),
             constant = value
         )
+    }
+
+    private fun <V : RealNumber<V>> restMaterialValue(plan: CuttingPlan<V>): V? {
+        val restWidthValue = plan.restWidth?.value ?: return null
+        if (restWidthValue <= restWidthValue.constants.zero) {
+            return null
+        }
+        val materialLengthValue = plan.material.length?.value ?: return null
+        if (materialLengthValue <= materialLengthValue.constants.zero) {
+            return null
+        }
+        return restWidthValue * materialLengthValue
     }
 
     private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {

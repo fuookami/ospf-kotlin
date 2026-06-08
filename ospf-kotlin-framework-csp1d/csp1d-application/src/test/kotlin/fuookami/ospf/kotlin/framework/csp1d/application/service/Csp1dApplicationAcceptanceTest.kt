@@ -291,12 +291,20 @@ class Csp1dApplicationAcceptanceTest {
         id: String,
         width: Double
     ): Product<Flt64> {
+        return product(
+            id = id,
+            widths = listOf(width)
+        )
+    }
+
+    private fun product(
+        id: String,
+        widths: List<Double>
+    ): Product<Flt64> {
         return Product(
             id = id,
             name = "product-$id",
-            width = listOf(
-                Quantity(Flt64(width), Meter)
-            )
+            width = widths.map { Quantity(Flt64(it), Meter) }
         )
     }
 
@@ -320,7 +328,8 @@ class Csp1dApplicationAcceptanceTest {
         id: String,
         lowerWidth: Double,
         upperWidth: Double,
-        machineId: String? = null
+        machineId: String? = null,
+        length: Double? = null
     ): Material<Flt64> {
         return Material(
             id = id,
@@ -329,7 +338,8 @@ class Csp1dApplicationAcceptanceTest {
                 lower = lowerWidth,
                 upper = upperWidth
             ),
-            machineId = machineId
+            machineId = machineId,
+            length = length?.let { Quantity(Flt64(it), Meter) }
         )
     }
 
@@ -745,6 +755,57 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
+     * 验证 wasteConfig 带 restMaterialPenalty 时 MILP solver 正确提取余料面积代理 / Verify waste modeling extracts rest material area proxy when restMaterialPenalty is provided
+     */
+    @Test
+    fun milpWithRestMaterialPenaltyShouldProduceWasteResult(): Unit = runBlocking {
+        val product = product(
+            id = "p-rest-material",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-rest-material",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            length = 100.0
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            restMaterialPenalty = Flt64(0.5)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
+        assertEquals(
+            Flt64(70.0),
+            milpResult.wasteResult!!.totalRestMaterial,
+            "Total rest material should match rest width times material length times selected batch count"
+        )
+    }
+
+    /**
      * 验证 wasteConfig 带 materialCostPenalty 时 MILP solver 正确提取物料成本 / Verify waste modeling extracts material costs when materialCostPenalty is provided
      */
     @Test
@@ -839,7 +900,58 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(
             Flt64(0.8),
             milpResult.wasteResult!!.overProductionArea,
-            "Over-production area should match over slack times first product width"
+            "Over-production area should match over slack times max product width"
+        )
+    }
+
+    /**
+     * 验证多宽度产品的超产面积使用最大宽度，避免依赖 width 列表顺序 / Verify multi-width over-production area uses max width, independent of width list order
+     */
+    @Test
+    fun milpWithMultiWidthProductOverProductionAreaShouldUseMaxWidth(): Unit = runBlocking {
+        val product = product(
+            id = "p-area-multi-width",
+            widths = listOf(0.8, 1.2)
+        )
+        val material = material(
+            id = "m-area-multi-width",
+            lowerWidth = 0.5,
+            upperWidth = 2.0
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>()
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            overProductionAreaPenalty = Flt64(1.0)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            yieldConfig = yieldConfig,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
+        assertEquals(
+            Flt64(1.2),
+            milpResult.wasteResult!!.overProductionArea,
+            "Over-production area should use max product width for multi-width products"
         )
     }
 

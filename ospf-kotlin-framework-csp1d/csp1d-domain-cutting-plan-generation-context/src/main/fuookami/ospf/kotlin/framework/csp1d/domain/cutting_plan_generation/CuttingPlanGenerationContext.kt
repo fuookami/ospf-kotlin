@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
@@ -195,13 +196,16 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         if (candidates.isEmpty()) return emptyList()
 
         val existingIds = input.generationInput.existingPlans.map { it.id }.toSet()
+        val existingKeys = input.generationInput.existingPlans.map { it.canonicalKey() }.toSet()
         val maxGeneratedPlans = input.maxGeneratedPlans.toULong()
         val shadowPrices = input.shadowPrices
 
         return candidates
             .asSequence()
-            .filter { it.id !in existingIds }
-            .map { plan -> plan to computeDualBenefit(plan, shadowPrices) }
+            .map { plan -> plan to plan.canonicalKey() }
+            .filter { (plan, key) -> plan.id !in existingIds && key !in existingKeys }
+            .distinctBy { (_, key) -> key }
+            .map { (plan, _) -> plan to computeDualBenefit(plan, shadowPrices) }
             .filter { (_, benefit) -> isGreaterThanOne(benefit) }
             .sortedWith(compareByDualBenefit())
             .map { it.first }

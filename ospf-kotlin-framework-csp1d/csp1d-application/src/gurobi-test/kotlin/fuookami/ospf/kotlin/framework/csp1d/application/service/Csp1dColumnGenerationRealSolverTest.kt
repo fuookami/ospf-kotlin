@@ -741,10 +741,16 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun milpWithWasteConfigShouldProduceCorrectWasteResultOnRealSolver() = runBlocking {
         val product = product(id = "p-waste-real", width = 0.8)
-        val material = material(id = "m-waste-real", lowerWidth = 0.5, upperWidth = 1.5)
+        val material = material(
+            id = "m-waste-real",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            length = 100.0
+        )
         val demand = ProductDemand.legacyRoll(product = product, rollAmount = Flt64(5.0))
         val wasteConfig = WasteMinimizationConfig<Flt64>(
             trimWidthPenalty = Flt64(2.0),
+            restMaterialPenalty = Flt64(0.5),
             materialCostPenalty = mapOf("m-waste-real" to Flt64(5.0))
         )
         val input = ProduceInput(
@@ -791,6 +797,20 @@ class Csp1dColumnGenerationRealSolverTest {
             assertTrue(
                 (totalTrimWidth - expectedTrimWidth).abs() < Flt64(1e-4),
                 "Total trim width ($totalTrimWidth) should match expected ($expectedTrimWidth)"
+            )
+        }
+
+        // 验证余料计算口径: restWidth * material.length * batchCount 与回填值一致 / Verify rest material formula
+        val totalRestMaterial = wasteResult.totalRestMaterial
+        if (totalRestMaterial != null) {
+            val expectedRestMaterial = milpResult.produce.cuttingPlans.fold(Flt64.zero) { acc, usage ->
+                val restWidthValue = usage.plan.restWidth?.value ?: Flt64.zero
+                val materialLengthValue = usage.plan.material.length?.value ?: Flt64.zero
+                acc + restWidthValue * materialLengthValue * usage.amount.toFlt64()
+            }
+            assertTrue(
+                (totalRestMaterial - expectedRestMaterial).abs() < Flt64(1e-4),
+                "Total rest material ($totalRestMaterial) should match expected ($expectedRestMaterial)"
             )
         }
 
@@ -849,11 +869,11 @@ class Csp1dColumnGenerationRealSolverTest {
         assertNotNull(yieldResult, "Yield result should not be null")
         assertNotNull(wasteResult, "Waste result should not be null")
 
-        // 验证超产面积 = overProduction * productWidth 与回填值一致
+        // 验证超产面积 = overProduction * max(productWidth) 与回填值一致 / Verify over area uses max product width
         val overArea = wasteResult.overProductionArea
         if (overArea != null) {
             val overAmount = yieldResult.overProductions.firstOrNull()?.amount ?: Flt64.zero
-            val productWidth = product.width.first().value
+            val productWidth = product.maxWidth()?.value ?: Flt64.zero
             val expectedArea = overAmount * productWidth
             assertTrue(
                 (overArea - expectedArea).abs() < Flt64(1e-4),
@@ -1439,11 +1459,11 @@ class Csp1dColumnGenerationRealSolverTest {
         assertNotNull(milpResult.yieldResult, "Yield result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null")
 
-        // 验证超产面积 = sum(over_i * width_i)
+        // 验证超产面积 = sum(over_i * max(width_i)) / Verify over area uses each product max width
         val overArea = milpResult.wasteResult!!.overProductionArea
         if (overArea != null) {
             val expectedArea = milpResult.yieldResult!!.overProductions.fold(Flt64.zero) { acc, over ->
-                val productWidth = listOf(p1, p2).find { it.id == over.productId }?.width?.first()?.value ?: Flt64.zero
+                val productWidth = listOf(p1, p2).find { it.id == over.productId }?.maxWidth()?.value ?: Flt64.zero
                 acc + over.amount * productWidth
             }
             assertTrue(
@@ -1691,7 +1711,8 @@ class Csp1dColumnGenerationRealSolverTest {
         id: String,
         lowerWidth: Double,
         upperWidth: Double,
-        machineId: String? = null
+        machineId: String? = null,
+        length: Double? = null
     ): Material<Flt64> {
         return Material(
             id = id,
@@ -1700,7 +1721,8 @@ class Csp1dColumnGenerationRealSolverTest {
                 lower = lowerWidth,
                 upper = upperWidth
             ),
-            machineId = machineId
+            machineId = machineId,
+            length = length?.let { Quantity(Flt64(it), Meter) }
         )
     }
 

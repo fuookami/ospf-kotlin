@@ -5,18 +5,20 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 /**
  * 浪费最小化建模配置 / Waste minimization modeling configuration
  *
- * 当提供此配置时，Csp1dMilpSolver 在目标函数中加入余宽惩罚、物料成本惩罚和超产面积惩罚。
+ * 当提供此配置时，Csp1dMilpSolver 在目标函数中加入余宽惩罚、余料惩罚、物料成本惩罚和超产面积惩罚。
  * 所有权重为无量纲归一化系数，由调用方负责单位换算。
  *
  * @param V 数值类型 / Numeric value type
  * @property trimWidthPenalty 余宽惩罚权重（每单位余宽）/ Trim width penalty weight (per unit of trim width)
  * @property materialCostPenalty 按物料 ID 的单位成本惩罚 / Per-material unit cost penalty
  * @property overProductionAreaPenalty 超产面积惩罚权重 / Over-production area penalty weight
+ * @property restMaterialPenalty 余料惩罚权重（每单位余料面积代理）/ Rest material penalty weight (per unit of rest material area proxy)
  */
 data class WasteMinimizationConfig<V : RealNumber<V>>(
     val trimWidthPenalty: V? = null,
     val materialCostPenalty: Map<String, V> = emptyMap(),
-    val overProductionAreaPenalty: V? = null
+    val overProductionAreaPenalty: V? = null,
+    val restMaterialPenalty: V? = null
 )
 
 /**
@@ -28,11 +30,13 @@ data class WasteMinimizationConfig<V : RealNumber<V>>(
  * @property totalTrimWidth 总余宽 / Total trim width
  * @property materialCosts 按物料的成本 / Per-material costs
  * @property overProductionArea 总超产面积 / Total over-production area
+ * @property totalRestMaterial 总余料面积代理 / Total rest material area proxy
  */
 data class WasteMinimizationResult<V : RealNumber<V>>(
     val totalTrimWidth: V? = null,
     val materialCosts: List<ModeledMaterialCost<V>> = emptyList(),
-    val overProductionArea: V? = null
+    val overProductionArea: V? = null,
+    val totalRestMaterial: V? = null
 )
 
 /**

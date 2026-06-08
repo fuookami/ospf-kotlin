@@ -217,6 +217,53 @@ class ReducedCostPricingGeneratorTest {
     }
 
     @Test
+    fun deduplicatesAgainstExistingPlansByCanonicalKey() {
+        val p = product("p1")
+        val m = material()
+        val mch = machine()
+        val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
+        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val generator = ReducedCostPricingGenerator(enumerator)
+
+        val initialInput = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = listOf(mch),
+            demands = listOf(demand)
+        )
+        val existingPlans = enumerator.generate(initialInput).mapIndexed { index, plan ->
+            plan.copy(id = "existing-canonical-$index")
+        }
+
+        val generationInput = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = listOf(mch),
+            demands = listOf(demand),
+            existingPlans = existingPlans
+        )
+
+        val shadowPrices = ShadowPriceMap<Flt64>(
+            values = mapOf(
+                demandKey(demand) to Flt64(10.0)
+            )
+        )
+
+        val input = Csp1dPricingInput(
+            generationInput = generationInput,
+            shadowPrices = shadowPrices,
+            maxGeneratedPlans = UInt64(100UL)
+        )
+
+        val result = generator.generate(input)
+        assertEquals(
+            expected = 0,
+            actual = result.size,
+            message = "Should exclude structurally identical plans even when ids differ"
+        )
+    }
+
+    @Test
     fun materialShadowPriceReducesCost() {
         val p = product("p1")
         val m = material()
