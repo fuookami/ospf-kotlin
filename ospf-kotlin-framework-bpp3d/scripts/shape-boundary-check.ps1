@@ -59,6 +59,7 @@ $fixHints = @{
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must reject radiusWeightFunctionKey before generating candidates until continuous radius variables and final actual-radius validation are implemented."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
+    HorizontalCylinderSupportCoverageSharedGuardMissing = "Item stacking and final packing guards must use the shared horizontal-cylinder cuboid support coverage helper."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
@@ -454,8 +455,22 @@ $itemPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/osp
 Add-RequiredPatternViolation `
     -Check "HorizontalCylinderStackingSupportGuardMissing" `
     -FilePath $itemPath `
-    -Pattern "hasHorizontalCylinderStackingSupportCoverage\s*\([\s\S]*?CylinderPackingShape3[\s\S]*?axis\s*!=\s*Axis3\.Y" `
+    -Pattern "hasHorizontalCylinderStackingSupportCoverage\s*\([\s\S]*?CylinderPackingShape3[\s\S]*?horizontalCylinderCuboidSupportCoverage[\s\S]*?axis\s*!=\s*Axis3\.Y" `
     -MissingText "ItemPlacement3.enabledStackingOn must keep horizontal cylinder support behind the support-coverage guard."
+
+$supportCoveragePath = Join-Path $scanRoot "bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/HorizontalCylinderSupportCoverage.kt"
+Add-RequiredPatternViolation `
+    -Check "HorizontalCylinderSupportCoverageSharedGuardMissing" `
+    -FilePath $supportCoveragePath `
+    -Pattern "data\s+class\s+HorizontalCylinderSupportGeometry[\s\S]*?fun\s+horizontalCylinderCuboidSupportCoverage\s*\([\s\S]*?isCylinder[\s\S]*?intervalsCoverSpan" `
+    -MissingText "Horizontal cylinder support coverage must remain centralized in infrastructure."
+
+$packingGeometryGuardPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingGeometryGuard.kt"
+Add-RequiredPatternViolation `
+    -Check "HorizontalCylinderSupportCoverageSharedGuardMissing" `
+    -FilePath $packingGeometryGuardPath `
+    -Pattern "hasHorizontalCylinderSupportCoverage\s*\([\s\S]*?CylinderPackingShape3[\s\S]*?horizontalCylinderCuboidSupportCoverage" `
+    -MissingText "Final packing horizontal cylinder support guard must call the shared support coverage helper."
 
 $packerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/Packer.kt"
 if (Test-Path $packerPath) {

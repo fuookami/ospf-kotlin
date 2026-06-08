@@ -9,9 +9,11 @@ import kotlin.math.sqrt
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.HorizontalCylinderSupportGeometry
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.horizontalCylinderCuboidSupportCoverage
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.math.geometry.Axis3
 
@@ -72,34 +74,16 @@ private fun axesExcept(axis: Axis3): List<Axis3> {
     return Axis3.entries.filter { it != axis }
 }
 
-private fun horizontalCylinderSupportRadialAxis(axis: Axis3): Axis3 {
-    return when (axis) {
-        Axis3.X -> Axis3.Z
-        Axis3.Y -> Axis3.Y
-        Axis3.Z -> Axis3.X
-    }
-}
-
-private fun containsCoordinate(min: Double, max: Double, coordinate: Double): Boolean {
-    return coordinate >= min - PackingGeometryOverlapTolerance
-            && coordinate <= max + PackingGeometryOverlapTolerance
-}
-
-private fun intervalsCover(targetMin: Double, targetMax: Double, intervals: List<Pair<Double, Double>>): Boolean {
-    var coveredMax = targetMin
-    for ((intervalMin, intervalMax) in intervals.sortedBy { it.first }) {
-        if (intervalMax <= coveredMax + PackingGeometryOverlapTolerance) {
-            continue
-        }
-        if (intervalMin - coveredMax > PackingGeometryOverlapTolerance) {
-            return false
-        }
-        coveredMax = max(coveredMax, intervalMax)
-        if (coveredMax >= targetMax - PackingGeometryOverlapTolerance) {
-            return true
-        }
-    }
-    return coveredMax >= targetMax - PackingGeometryOverlapTolerance
+private fun PackingGeometry.toHorizontalCylinderSupportGeometry(): HorizontalCylinderSupportGeometry {
+    return HorizontalCylinderSupportGeometry(
+        minX = minX,
+        maxX = maxX,
+        minY = minY,
+        maxY = maxY,
+        minZ = minZ,
+        maxZ = maxZ,
+        isCylinder = shape is CylinderPackingShape3
+    )
 }
 
 private fun hasHorizontalCylinderSupportCoverage(
@@ -113,31 +97,13 @@ private fun hasHorizontalCylinderSupportCoverage(
         return true
     }
 
-    val radialAxis = horizontalCylinderSupportRadialAxis(axis)
-    val bottomLineCoordinate = geometry.center(radialAxis)
-    val supportIntervals = geometries.mapIndexedNotNull { candidateIndex, candidate ->
-        if (candidateIndex == index || candidate.shape is CylinderPackingShape3) {
-            return@mapIndexedNotNull null
-        }
-        if (abs(candidate.maxY - geometry.minY) > PackingGeometryOverlapTolerance) {
-            return@mapIndexedNotNull null
-        }
-        if (!containsCoordinate(candidate.min(radialAxis), candidate.max(radialAxis), bottomLineCoordinate)) {
-            return@mapIndexedNotNull null
-        }
-        val intervalMin = max(candidate.min(axis), geometry.min(axis))
-        val intervalMax = min(candidate.max(axis), geometry.max(axis))
-        if (intervalMax - intervalMin <= PackingGeometryOverlapTolerance) {
-            null
-        } else {
-            Pair(intervalMin, intervalMax)
-        }
-    }
-
-    return intervalsCover(
-        targetMin = geometry.min(axis),
-        targetMax = geometry.max(axis),
-        intervals = supportIntervals
+    return horizontalCylinderCuboidSupportCoverage(
+        cylinder = geometry.toHorizontalCylinderSupportGeometry(),
+        axis = axis,
+        supports = geometries
+            .filterIndexed { candidateIndex, _ -> candidateIndex != index }
+            .map { candidate -> candidate.toHorizontalCylinderSupportGeometry() },
+        tolerance = PackingGeometryOverlapTolerance
     )
 }
 

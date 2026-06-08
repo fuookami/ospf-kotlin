@@ -642,63 +642,20 @@ val ItemPlacement3.topFlat: Boolean
         return (view as ItemView).topFlat
     }
 
-private const val HorizontalCylinderStackingSupportTolerance = 1e-7
-
-private fun horizontalCylinderStackingSupportRadialAxis(axis: Axis3): Axis3 {
-    return when (axis) {
-        Axis3.X -> Axis3.Z
-        Axis3.Y -> Axis3.Y
-        Axis3.Z -> Axis3.X
-    }
-}
-
-private fun PackingShape3<InfraNumber>.boundingSpan(axis: Axis3): Double {
-    return when (axis) {
-        Axis3.X -> boundingWidth.toDouble()
-        Axis3.Y -> boundingHeight.toDouble()
-        Axis3.Z -> boundingDepth.toDouble()
-    }
-}
-
-private fun AnyPlacement3.shapeMin(axis: Axis3): Double {
-    return when (axis) {
-        Axis3.X -> absoluteX.toDouble()
-        Axis3.Y -> absoluteY.toDouble()
-        Axis3.Z -> absoluteZ.toDouble()
-    }
-}
-
-private fun AnyPlacement3.shapeMax(axis: Axis3): Double {
-    return shapeMin(axis) + resolvedPackingShape().boundingSpan(axis)
-}
-
-private fun AnyPlacement3.shapeCenter(axis: Axis3): Double {
-    return (shapeMin(axis) + shapeMax(axis)) / 2.0
-}
-
-private fun coordinateInSpan(min: Double, max: Double, coordinate: Double): Boolean {
-    return coordinate >= min - HorizontalCylinderStackingSupportTolerance
-            && coordinate <= max + HorizontalCylinderStackingSupportTolerance
-}
-
-private fun intervalsCoverSpan(targetMin: Double, targetMax: Double, intervals: List<Pair<Double, Double>>): Boolean {
-    var coveredMax = targetMin
-    val sortedIntervals = intervals.sortedWith { lhs, rhs ->
-        lhs.first.compareTo(rhs.first)
-    }
-    for ((intervalMin, intervalMax) in sortedIntervals) {
-        if (intervalMax <= coveredMax + HorizontalCylinderStackingSupportTolerance) {
-            continue
-        }
-        if (intervalMin - coveredMax > HorizontalCylinderStackingSupportTolerance) {
-            return false
-        }
-        coveredMax = kotlin.math.max(coveredMax, intervalMax)
-        if (coveredMax >= targetMax - HorizontalCylinderStackingSupportTolerance) {
-            return true
-        }
-    }
-    return coveredMax >= targetMax - HorizontalCylinderStackingSupportTolerance
+private fun AnyPlacement3.toHorizontalCylinderSupportGeometry(): HorizontalCylinderSupportGeometry {
+    val shape = resolvedPackingShape()
+    val minX = absoluteX.toDouble()
+    val minY = absoluteY.toDouble()
+    val minZ = absoluteZ.toDouble()
+    return HorizontalCylinderSupportGeometry(
+        minX = minX,
+        maxX = minX + shape.boundingWidth.toDouble(),
+        minY = minY,
+        maxY = minY + shape.boundingHeight.toDouble(),
+        minZ = minZ,
+        maxZ = minZ + shape.boundingDepth.toDouble(),
+        isCylinder = shape is CylinderPackingShape3
+    )
 }
 
 private fun hasHorizontalCylinderStackingSupportCoverage(
@@ -711,31 +668,10 @@ private fun hasHorizontalCylinderStackingSupportCoverage(
         return true
     }
 
-    val radialAxis = horizontalCylinderStackingSupportRadialAxis(axis)
-    val bottomLineCoordinate = item.shapeCenter(radialAxis)
-    val supportIntervals = bottomItems.mapNotNull { candidate ->
-        if (candidate.resolvedPackingShape() is CylinderPackingShape3) {
-            return@mapNotNull null
-        }
-        if (kotlin.math.abs(candidate.shapeMax(Axis3.Y) - item.shapeMin(Axis3.Y)) > HorizontalCylinderStackingSupportTolerance) {
-            return@mapNotNull null
-        }
-        if (!coordinateInSpan(candidate.shapeMin(radialAxis), candidate.shapeMax(radialAxis), bottomLineCoordinate)) {
-            return@mapNotNull null
-        }
-        val intervalMin = kotlin.math.max(candidate.shapeMin(axis), item.shapeMin(axis))
-        val intervalMax = kotlin.math.min(candidate.shapeMax(axis), item.shapeMax(axis))
-        if (intervalMax - intervalMin <= HorizontalCylinderStackingSupportTolerance) {
-            null
-        } else {
-            Pair(intervalMin, intervalMax)
-        }
-    }
-
-    return intervalsCoverSpan(
-        targetMin = item.shapeMin(axis),
-        targetMax = item.shapeMax(axis),
-        intervals = supportIntervals
+    return horizontalCylinderCuboidSupportCoverage(
+        cylinder = item.toHorizontalCylinderSupportGeometry(),
+        axis = axis,
+        supports = bottomItems.map { candidate -> candidate.toHorizontalCylinderSupportGeometry() }
     )
 }
 

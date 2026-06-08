@@ -11,7 +11,9 @@
 2. 已完成 shape metadata、CSV/Gurobi、program demand、material packing、depth boundary、final geometry、renderer metadata、README 和边界脚本的基础收口。
 3. 已完成连续半径生产入口、circle-packing 候选生成入口和 Gurobi CSV 连续半径 key guard，连续半径元数据不会静默降级为固定半径生产。
 4. 已开放横向圆柱贴地、单个全长长方体支撑、同类重复多支撑和异构多支撑区间覆盖的 3D stacking 检查，以及保守的 generated supported-stack 子集。
-5. 已补齐 focused tests、application adapter、触发式 Gurobi focused、Gurobi dataset suite、final renderer guard 正负例验证与边界脚本门禁，固定连续半径 guard、横向圆柱 generated provenance、X/Z 单支撑/同类重复/异构多支撑覆盖边界、底部圆柱支撑拒绝和 partial-support fallback 拒绝边界。
+5. 已将横向圆柱长方体支撑覆盖收敛为 infrastructure 共享合同，由 generated stacking 和 final packing/rendering 几何门禁共同复用。
+6. 已删除无调用的 `ItemDemandShadowPriceKey` 旧别名，并加 generic 边界脚本禁止回流。
+7. 已补齐 focused tests、application adapter、触发式 Gurobi focused、Gurobi dataset suite、final renderer guard 正负例验证与边界脚本门禁，固定连续半径 guard、横向圆柱 generated provenance、X/Z 单支撑/同类重复/异构多支撑覆盖边界、底部圆柱支撑拒绝和 partial-support fallback 拒绝边界。
 
 ## 2. 总目标与能力边界
 
@@ -43,11 +45,11 @@
 
 ## 3. 剩余工作量
 
-距离总目标仍约剩余 21%-25% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
+距离总目标仍约剩余 19%-23% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
 
 1. solver-native 连续半径变量、目标函数和 final actual-radius 闭环。
-2. 横向圆柱 generated stacking/hanging 自动支撑从保守长方体 supported-stack 子集扩展到可验证 hanging；X/Z supported-stack focused、dataset suite、final renderer 多支撑、底部圆柱支撑拒绝与 partial-support fallback 拒绝已覆盖。
-3. 旧 cuboid-only 兼容层的迁移、第一批删除、调用点门禁和最小保留清单收敛。
+2. 横向圆柱 generated stacking/hanging 自动支撑从保守长方体 supported-stack 子集扩展到可验证 hanging；X/Z supported-stack focused、dataset suite、final renderer 多支撑、底部圆柱支撑拒绝、partial-support fallback 拒绝和共享支撑覆盖合同已覆盖。
+3. 旧 cuboid-only 兼容层的下一批迁移、删除、调用点门禁和最小保留清单收敛。
 
 ## 4. 后续扩大收口事项
 
@@ -57,7 +59,7 @@
 
 1. 审计现存 cuboid-only 类型约束、外接长方体兼容入口、原始 `Cuboid` / `QuantityPlacement` / `Bin` 兼容构造和脚本 allowlist。
 2. 迁移 application、CSV/Gurobi、program demand、material packing、final packing 和 renderer adapter 中低风险边界到 shape-generic API。
-3. 删除第一批 stale cuboid-only 兼容构造、测试 fixture、脚本 allowlist 和外接长方体近似入口；已先收紧 `placement2Of` 泛型工厂回流门禁，只允许 typed factory 与 BLA 泛型投影搜索使用。
+3. 删除第一批 stale cuboid-only 兼容构造、测试 fixture、脚本 allowlist 和外接长方体近似入口；已先收紧 `placement2Of` 泛型工厂回流门禁，只允许 typed factory 与 BLA 泛型投影搜索使用，并已删除 `ItemDemandShadowPriceKey` 旧别名。
 4. 为短期必须保留的兼容层建立最小保留清单、调用方清单、保留原因、删除条件和下一次删除批次。
 5. 在边界脚本中新增或收紧 cuboid-only 回流检测，禁止新增生产入口依赖外接长方体近似绕过真实 shape 几何。
 6. 把测试 helper、样例数据和文档术语同步到 shape-generic 口径，避免新测试继续固化 cuboid-only API。
@@ -73,7 +75,7 @@
 
 ### 4.3 横向圆柱 stacking/hanging 自动支撑闭环
 
-1. 保持已开放的 X/Z 保守单支撑、同类重复多支撑和异构多支撑 generated supported-stack focused/dataset/final-renderer 正例，以及底部圆柱支撑和 partial-support fallback 负例验收。
+1. 保持已开放的 X/Z 保守单支撑、同类重复多支撑和异构多支撑 generated supported-stack focused/dataset/final-renderer 正例，以及底部圆柱支撑、partial-support fallback 负例验收和共享支撑覆盖 helper 门禁。
 2. 定义并实现可验证 hanging 子集，优先支持由真实坐标、真实支撑线/支撑区间和明确 provenance 表达的 generated/final path。
 3. 保持无坐标 hanging 面积入口、局部支撑、底部圆柱支撑和混轴同层生成 guarded，除非本轮能用完整几何和支撑线语义闭环。
 4. 将自动支撑结果接入 layer placement、final validation、renderer fixture、Gurobi CSV/dataset suite 和 application focused tests。
@@ -90,11 +92,11 @@
 
 ## 5. 下一轮执行计划
 
-1. 先做兼容层和生产入口审计，立即拆出可删除清单、必须保留清单和会阻塞连续半径/自动支撑的调用点。
-2. 第一批迁移并删除低风险 cuboid-only 兼容入口，同时继续收紧脚本 allowlist，防止后续改动回流；`placement2Of` 泛型工厂已进入调用点门禁。
-3. 实现连续半径 solver/DTO/final/renderer 生产合同，优先开放竖直圆柱连续半径；能闭环时同步开放横向圆柱连续半径。
-4. 保持横向圆柱 generated supported-stack 的 X/Z 单支撑、同类重复多支撑和异构多支撑验收，并优先尝试开放可验证 hanging 子集。
-5. 扩展 application、CSV/Gurobi、program/material packing、final validation、renderer fixture、dataset suite 和 negative tests。
+1. 继续扩大兼容层删除：优先删除无调用旧别名、只服务旧 cuboid-only 调用方式的 fixture/helper 和已经可由 typed factory 覆盖的入口，同时维护最小保留清单。
+2. 继续收紧脚本 allowlist，禁止新增生产入口依赖外接长方体近似、裸 `QuantityPlacement` 构造或旧 shadow-price/legacy alias。
+3. 实现连续半径 solver/DTO/final/renderer 生产合同，优先开放竖直圆柱连续半径；当前阻断点是缺少 solver-native 半径变量、radius selection 结果对象和 final actual-radius 回写字段。
+4. 继续保持横向圆柱 generated supported-stack 的 X/Z 单支撑、同类重复多支撑和异构多支撑验收，并优先定义可验证 hanging 子集；当前阻断点是 solver/generated path 尚无支撑线、端部悬挑和 hanging policy 参数的显式合同。
+5. 扩展 application、CSV/Gurobi、program/material packing、final validation、renderer fixture、dataset suite 和 negative tests，尤其覆盖 continuous radius 正例最小子集和 hanging guard。
 6. 对不能完整开放的连续半径或 hanging 子能力，统一沉淀 shared guard、错误信息、negative tests、脚本门禁和阻断记录。
 7. 更新 README、README_ch、refactor.md、生产矩阵、unsupported 矩阵、CSV/Gurobi 协议和兼容层删除清单。
 8. 跑完整 BPP3D 门禁、触发式 Gurobi 验收和必要 renderer 验收。
@@ -126,7 +128,7 @@
 ## 7. 验收标准
 
 1. 已开放的 `Axis3.Y`、`Axis3.X`、`Axis3.Z` 轴对齐圆柱生产路径不回退。
-2. 完全泛型化必须完成第一批 cuboid-only 兼容层删除，并具备最小保留清单、调用方清单、脚本 allowlist、保留原因和后续删除条件。
+2. 完全泛型化必须继续推进下一批 cuboid-only 兼容层删除，并具备最小保留清单、调用方清单、脚本 allowlist、保留原因和后续删除条件；已删除的旧别名不得回流。
 3. 连续半径优化若开放，必须至少开放一个生产子集，并同时具备 solver 变量、目标函数、final actual radius、renderer `actualVolume`、CSV/application DTO、Gurobi suite 和文档闭环。
 4. 连续半径优化若未能开放，必须保持 package production、circle-packing candidate、CSV/Gurobi guard、negative tests 和脚本门禁，明确记录阻断点，不能静默降级为固定半径或离散半径。
 5. 横向圆柱 generated stacking 必须继续覆盖 X/Z 单支撑、同类重复多支撑和异构多支撑；若 hanging 开放，必须同时具备真实几何、支撑线/支撑区间、solver、renderer 和测试闭环。

@@ -118,6 +118,10 @@ $contentChecks = @(
         Pattern = "\bLegacyCuboidGenericAdapter\b"
     },
     @{
+        Name = "ItemDemandShadowPriceKeyCompatAlias"
+        Pattern = "\bItemDemandShadowPriceKey\b"
+    },
+    @{
         Name = "legacyZeroToken"
         Pattern = "\blegacyZero\b"
     },

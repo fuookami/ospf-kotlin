@@ -359,12 +359,3 @@ class ItemDemandConstraint(
     shadowPriceExtractor = shadowPriceExtractor,
     name = name
 )
-
-@Deprecated(
-    message = "Use DemandShadowPriceKey instead.",
-    replaceWith = ReplaceWith("DemandShadowPriceKey(mode, key)")
-)
-typealias ItemDemandShadowPriceKey = DemandShadowPriceKey
-
-
-

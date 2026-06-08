@@ -45,7 +45,7 @@ See detailed progress in [refactor.md](./refactor.md).
 ## Shape Path Support Matrix
 
 The production path labels and unsupported messages are centralized in `CylinderCapabilityPath` / `CylinderShapeContract`.
-Candidate-generation, cuboid-only search/merge, support checks, known-coordinate final validation, renderer final validation, and depth-boundary final validation must use that shared contract instead of duplicating path strings.
+Candidate-generation, cuboid-only search/merge, support checks, known-coordinate final validation, renderer final validation, and depth-boundary final validation must use that shared contract instead of duplicating path strings. Horizontal-cylinder cuboid support coverage is centralized in infrastructure and reused by generated stacking checks and final packing/rendering geometry guards.
 
 | Path | Cuboid | `Axis3.Y` cylinder | `Axis3.X` / `Axis3.Z` cylinder |
 | --- | --- | --- | --- |
