@@ -14,11 +14,13 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property maxKnifeCount 最大刀数（切片总数上限）/ Max knife count (upper bound on total slices)
  * @property minKnifeCount 最小刀数（切片总数下限）/ Min knife count (lower bound on total slices)
  * @property maxOverProduceLength 最大超产长度 / Max over-produce length
+ * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  */
 data class GenerationConstraints<V : RealNumber<V>>(
     val maxKnifeCount: UInt64? = null,
     val minKnifeCount: UInt64? = null,
-    val maxOverProduceLength: Quantity<V>? = null
+    val maxOverProduceLength: Quantity<V>? = null,
+    val parallelism: Int = 1
 ) {
     companion object {
         fun <V : RealNumber<V>> unconstrained(): GenerationConstraints<V> = GenerationConstraints()

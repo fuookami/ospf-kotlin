@@ -40,6 +40,48 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
 )
 
 /**
+ * 切割方案生成终止原因 / Cutting plan generation stop reason
+ */
+enum class CuttingPlanGenerationStopReason {
+    Exhausted,
+    MaxPlans,
+    Timeout
+}
+
+/**
+ * 切割方案生成统计 / Cutting plan generation statistics
+ *
+ * @property visitedNodes 搜索访问节点数 / Visited search nodes
+ * @property generatedCandidates 产出的候选方案数 / Generated candidate plan count
+ * @property acceptedPlans 接受的方案数 / Accepted plan count
+ * @property infeasibleCandidates 被基础可行性拒绝的候选数 / Candidate count rejected by basic feasibility
+ * @property duplicateCandidates 被结构化去重过滤的候选数 / Candidate count filtered by structural deduplication
+ * @property elapsedMilliseconds 生成耗时毫秒数 / Generation elapsed time in milliseconds
+ * @property stopReason 终止原因 / Stop reason
+ */
+data class CuttingPlanGenerationStatistics(
+    val visitedNodes: Long = 0L,
+    val generatedCandidates: Long = 0L,
+    val acceptedPlans: Int = 0,
+    val infeasibleCandidates: Long = 0L,
+    val duplicateCandidates: Long = 0L,
+    val elapsedMilliseconds: Long = 0L,
+    val stopReason: CuttingPlanGenerationStopReason = CuttingPlanGenerationStopReason.Exhausted
+)
+
+/**
+ * 切割方案生成报告 / Cutting plan generation report
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property plans 生成并接受的切割方案 / Generated and accepted cutting plans
+ * @property statistics 生成统计 / Generation statistics
+ */
+data class CuttingPlanGenerationReport<V : RealNumber<V>>(
+    val plans: List<CuttingPlan<V>>,
+    val statistics: CuttingPlanGenerationStatistics
+)
+
+/**
  * 初始切割方案生成器 / Initial cutting plan generator
  *
  * @param V 数值类型 / Numeric value type
@@ -52,6 +94,25 @@ fun interface Csp1dInitialCuttingPlanGenerator<V : RealNumber<V>> {
      * @return 初始切割方案列表 / Initial cutting plans
      */
     fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>>
+
+    /**
+     * 生成初始切割方案并返回统计 / Generate initial cutting plans with statistics
+     *
+     * @param input 切割方案生成输入 / Cutting plan generation input
+     * @return 切割方案生成报告 / Cutting plan generation report
+     */
+    fun generateWithReport(input: CuttingPlanGenerationInput<V>): CuttingPlanGenerationReport<V> {
+        val startTime = System.nanoTime()
+        val plans = generate(input)
+        return CuttingPlanGenerationReport(
+            plans = plans,
+            statistics = CuttingPlanGenerationStatistics(
+                generatedCandidates = plans.size.toLong(),
+                acceptedPlans = plans.size,
+                elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L
+            )
+        )
+    }
 }
 
 /**

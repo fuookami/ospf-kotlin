@@ -1,0 +1,166 @@
+package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
+
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Meter
+
+class GeneratorParallelismTest {
+    private val arithmetic = Flt64QuantityArithmetic
+
+    @Test
+    fun parallelGeneratorsShouldKeepCanonicalForms() {
+        val firstProduct = product(
+            id = "p1",
+            width = 0.3
+        )
+        val secondProduct = product(
+            id = "p2",
+            width = 0.5
+        )
+        val input = CuttingPlanGenerationInput(
+            products = listOf(firstProduct, secondProduct),
+            materials = listOf(
+                material(
+                    id = "m1",
+                    upperBound = 1.2
+                ),
+                material(
+                    id = "m2",
+                    upperBound = 1.5
+                )
+            ),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.roll(
+                    product = firstProduct,
+                    quantity = Quantity(Flt64(5.0), RollCountUnit)
+                ),
+                ProductDemand.roll(
+                    product = secondProduct,
+                    quantity = Quantity(Flt64(4.0), RollCountUnit)
+                )
+            )
+        )
+        val sequentialConstraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(4UL)
+        )
+        val parallelConstraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(4UL),
+            parallelism = 2
+        )
+
+        val generators = listOf(
+            DFSGenerator(
+                constraints = sequentialConstraints,
+                arithmetic = arithmetic,
+                maxPlans = 256
+            ) to DFSGenerator(
+                constraints = parallelConstraints,
+                arithmetic = arithmetic,
+                maxPlans = 256
+            ),
+            NSumGenerator(
+                constraints = sequentialConstraints,
+                arithmetic = arithmetic,
+                maxDepth = UInt64(4UL),
+                maxPlans = 256
+            ) to NSumGenerator(
+                constraints = parallelConstraints,
+                arithmetic = arithmetic,
+                maxDepth = UInt64(4UL),
+                maxPlans = 256
+            ),
+            NSameGenerator(
+                constraints = sequentialConstraints,
+                arithmetic = arithmetic,
+                allAmount = true,
+                maxPlans = 256
+            ) to NSameGenerator(
+                constraints = parallelConstraints,
+                arithmetic = arithmetic,
+                allAmount = true,
+                maxPlans = 256
+            ),
+            FullSumGenerator(
+                constraints = sequentialConstraints,
+                arithmetic = arithmetic,
+                maxPlans = 256
+            ) to FullSumGenerator(
+                constraints = parallelConstraints,
+                arithmetic = arithmetic,
+                maxPlans = 256
+            )
+        )
+
+        for ((sequentialGenerator, parallelGenerator) in generators) {
+            assertSameCanonicalForms(
+                sequentialGenerator = sequentialGenerator,
+                parallelGenerator = parallelGenerator,
+                input = input
+            )
+        }
+    }
+
+    private fun assertSameCanonicalForms(
+        sequentialGenerator: Csp1dInitialCuttingPlanGenerator<Flt64>,
+        parallelGenerator: Csp1dInitialCuttingPlanGenerator<Flt64>,
+        input: CuttingPlanGenerationInput<Flt64>
+    ) {
+        val sequentialReport = sequentialGenerator.generateWithReport(input)
+        val parallelReport = parallelGenerator.generateWithReport(input)
+
+        assertTrue(sequentialReport.plans.isNotEmpty())
+        assertEquals(canonicalForms(sequentialReport.plans), canonicalForms(parallelReport.plans))
+        assertEquals(parallelReport.plans.size, parallelReport.statistics.acceptedPlans)
+    }
+
+    private fun canonicalForms(plans: List<CuttingPlan<Flt64>>): Set<Any> {
+        return plans.map { it.canonicalKey() }.toSet()
+    }
+
+    private fun product(
+        id: String,
+        width: Double
+    ): Product<Flt64> {
+        return Product(
+            id = id,
+            name = "product-$id",
+            width = listOf(
+                Quantity(Flt64(width), Meter)
+            )
+        )
+    }
+
+    private fun material(
+        id: String,
+        upperBound: Double
+    ): Material<Flt64> {
+        return Material(
+            id = id,
+            name = "material-$id",
+            widthRange = WidthRange(
+                width = QuantityRange(
+                    lowerBound = Quantity(Flt64.zero, Meter),
+                    upperBound = Quantity(Flt64(upperBound), Meter)
+                ),
+                step = Quantity(Flt64(0.1), Meter)
+            )
+        )
+    }
+}

@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationReport
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
@@ -30,13 +31,15 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * @property maxDepth 最大深度（最大切片总数）/ Max depth (max total slices)
  * @property maxPlans 最大方案数（提前终止）/ Max plans (early termination)
  * @property timeout 超时限制 / Timeout limit
+ * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  */
 class NSumGenerator<V : RealNumber<V>>(
     private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
     private val maxDepth: UInt64 = UInt64(7UL),
     private val maxPlans: Int = 1000,
-    private val timeout: Duration? = null
+    private val timeout: Duration? = null,
+    private val parallelism: Int = 1
 ) : Csp1dInitialCuttingPlanGenerator<V> {
 
     constructor(
@@ -50,7 +53,8 @@ class NSumGenerator<V : RealNumber<V>>(
         arithmetic = arithmetic,
         maxDepth = maxDepth,
         maxPlans = maxPlans,
-        timeout = timeout
+        timeout = timeout,
+        parallelism = constraints.parallelism
     )
 
     private data class ProductWidthEntry<V : RealNumber<V>>(
@@ -63,12 +67,53 @@ class NSumGenerator<V : RealNumber<V>>(
     private val leafConstraints = constraints.filter { !it.isPruning }
 
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
-        val plans = ArrayList<CuttingPlan<V>>()
+        return generateWithReport(input).plans
+    }
+
+    override fun generateWithReport(input: CuttingPlanGenerationInput<V>): CuttingPlanGenerationReport<V> {
+        val startTime = System.nanoTime()
         val planIndex = java.util.concurrent.atomic.AtomicInteger(0)
         val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
+        val collector = GenerationCollector<V>(
+            maxPlans = maxPlans,
+            deadline = deadline
+        )
+        val quantityCache = GenerationQuantityCache(arithmetic)
 
         val entries = buildProductWidthEntries(input.demands)
-        if (entries.isEmpty()) return emptyList()
+        if (entries.isEmpty()) return collector.report()
+
+        if (parallelism > 1 && input.materials.size > 1) {
+            val reports = runGenerationTasks(
+                parallelism = parallelism,
+                tasks = input.materials.map { material ->
+                    {
+                        val localCollector = GenerationCollector<V>(
+                            maxPlans = maxPlans,
+                            deadline = deadline
+                        )
+                        val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
+                        if (materialEntries.isNotEmpty()) {
+                            nSumSearch(
+                                material = material,
+                                entries = materialEntries,
+                                machines = input.machines,
+                                planIndex = planIndex,
+                                collector = localCollector,
+                                quantityCache = GenerationQuantityCache(arithmetic)
+                            )
+                        }
+                        localCollector.report()
+                    }
+                }
+            )
+            return mergeGenerationReports(
+                reports = reports,
+                maxPlans = maxPlans,
+                startedAt = startTime,
+                deadline = deadline
+            )
+        }
 
         for (material in input.materials) {
             val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
@@ -79,15 +124,14 @@ class NSumGenerator<V : RealNumber<V>>(
                 entries = materialEntries,
                 machines = input.machines,
                 planIndex = planIndex,
-                plans = plans,
-                deadline = deadline
+                collector = collector,
+                quantityCache = quantityCache
             )
 
-            if (plans.size >= maxPlans) break
-            if (deadline != null && System.nanoTime() > deadline) break
+            if (collector.shouldStop()) break
         }
 
-        return plans.take(maxPlans)
+        return collector.report()
     }
 
     private fun nSumSearch(
@@ -95,8 +139,8 @@ class NSumGenerator<V : RealNumber<V>>(
         entries: List<ProductWidthEntry<V>>,
         machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
-        plans: MutableList<CuttingPlan<V>>,
-        deadline: Long?
+        collector: GenerationCollector<V>,
+        quantityCache: GenerationQuantityCache<V>
     ) {
         val upperBound = material.widthRange.upperBound
         val stack = ArrayDeque<MutableList<CuttingPlanSlice<V>>>()
@@ -109,15 +153,26 @@ class NSumGenerator<V : RealNumber<V>>(
         cutStack.addLast(UInt64.zero)
         indexStack.addLast(0)
 
-        while (stack.isNotEmpty() && plans.size < maxPlans) {
-            if (deadline != null && System.nanoTime() > deadline) break
+        while (stack.isNotEmpty() && !collector.shouldStop()) {
+            if (collector.isTimedOut()) break
 
+            collector.visitNode()
             val currentSlices = stack.removeLast()
             val currentWidth = widthStack.removeLast()
             val currentCuts = cutStack.removeLast()
             val currentIndex = indexStack.removeLast()
+            val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
+            val remainingDepth = maxDepth - currentCuts
 
-            if (currentIndex >= entries.size) {
+            if (
+                currentIndex >= entries.size ||
+                remainingDepth == UInt64.zero ||
+                !hasFittableRemainingEntry(
+                    entries = entries,
+                    startIndex = currentIndex,
+                    remainingWidth = remainingWidth
+                )
+            ) {
                 if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
                     val plan = buildPlan(
                         material = material,
@@ -125,34 +180,17 @@ class NSumGenerator<V : RealNumber<V>>(
                         entries = entries,
                         planId = "nsum-${material.id}-${planIndex.getAndIncrement()}"
                     )
-                    if (material.enabled(plan, machines)) {
-                        plans.add(plan)
-                    }
+                    collector.record(
+                        plan = plan,
+                        feasible = material.enabled(plan, machines)
+                    )
                 }
                 continue
             }
 
             val entry = entries[currentIndex]
-            val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
 
-            // 深度约束：最大数量受剩余深度限制 / Depth constraint
-            val remainingDepth = maxDepth - currentCuts
-            if (remainingDepth == UInt64.zero) {
-                if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
-                    val plan = buildPlan(
-                        material = material,
-                        slices = currentSlices,
-                        entries = entries,
-                        planId = "nsum-${material.id}-${planIndex.getAndIncrement()}"
-                    )
-                    if (material.enabled(plan, machines)) {
-                        plans.add(plan)
-                    }
-                }
-                continue
-            }
-
-            val maxByWidth = computeMaxByWidth(entry.width, remainingWidth)
+            val maxByWidth = quantityCache.maxRepeatCount(entry.width, remainingWidth)
             val maxAmount = minOf(maxByWidth, remainingDepth)
 
             // 尝试数量 0 / Try amount 0
@@ -164,7 +202,7 @@ class NSumGenerator<V : RealNumber<V>>(
             // 尝试数量 1..maxAmount / Try amounts 1..maxAmount
             var amount = UInt64.one
             while (amount <= maxAmount) {
-                val addedWidth = repeatWidth(entry.width, amount)
+                val addedWidth = quantityCache.repeatWidth(entry.width, amount)
                 val newWidth = arithmetic.add(currentWidth, addedWidth)
                 val newCuts = currentCuts + amount
 
@@ -192,6 +230,19 @@ class NSumGenerator<V : RealNumber<V>>(
         }
     }
 
+    private fun hasFittableRemainingEntry(
+        entries: List<ProductWidthEntry<V>>,
+        startIndex: Int,
+        remainingWidth: Quantity<V>
+    ): Boolean {
+        for (index in startIndex until entries.size) {
+            if ((remainingWidth.value partialOrd entries[index].width.value) !is Order.Less) {
+                return true
+            }
+        }
+        return false
+    }
+
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -214,17 +265,6 @@ class NSumGenerator<V : RealNumber<V>>(
         return leafConstraints.all { it.isSatisfied(context) }
     }
 
-    private fun computeMaxByWidth(productWidth: Quantity<V>, remainingWidth: Quantity<V>): UInt64 {
-        if ((remainingWidth.value partialOrd productWidth.value) is Order.Less) return UInt64.zero
-        var count = UInt64.zero
-        var w = remainingWidth
-        while ((w.value partialOrd productWidth.value) !is Order.Less) {
-            w = arithmetic.subtract(w, productWidth)
-            count = count + UInt64.one
-        }
-        return count
-    }
-
     private fun buildPlan(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,
@@ -243,7 +283,11 @@ class NSumGenerator<V : RealNumber<V>>(
                     width = slice.width,
                     amount = slice.amount,
                     demandUnit = demandUnit,
-                    arithmetic = arithmetic
+                    arithmetic = arithmetic,
+                    length = generationContributionLength(
+                        product = product,
+                        material = material
+                    )
                 )
             )
         }
@@ -273,11 +317,4 @@ class NSumGenerator<V : RealNumber<V>>(
         return entries
     }
 
-    private fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
-        var result = arithmetic.zero(width.unit)
-        repeat(times.toInt()) {
-            result = arithmetic.add(result, width)
-        }
-        return result
-    }
 }

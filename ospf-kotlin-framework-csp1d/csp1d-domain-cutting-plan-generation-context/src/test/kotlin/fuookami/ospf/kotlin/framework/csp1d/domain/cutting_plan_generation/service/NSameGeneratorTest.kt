@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -179,8 +180,90 @@ class NSameGeneratorTest {
             demands = listOf(demand)
         )
 
+        val report = NSameGenerator(arithmetic = arithmetic).generateWithReport(input)
+
+        assertTrue(report.plans.isEmpty())
+        assertEquals(1, report.statistics.infeasibleCandidates)
+    }
+
+    @Test
+    fun reportShouldFilterDuplicateCanonicalPlans() {
+        val p = product(
+            id = "p-duplicate",
+            widths = listOf(
+                Quantity(Flt64(0.5), Meter),
+                Quantity(Flt64(0.5), Meter)
+            )
+        )
+        val m = material(upperBound = 1.0)
+        val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
+        val input = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = emptyList(),
+            costars = emptyList(),
+            demands = listOf(demand)
+        )
+
+        val report = NSameGenerator(arithmetic = arithmetic).generateWithReport(input)
+
+        assertEquals(1, report.plans.size)
+        assertEquals(2, report.statistics.generatedCandidates)
+        assertEquals(1, report.statistics.duplicateCandidates)
+        assertEquals(CuttingPlanGenerationStopReason.Exhausted, report.statistics.stopReason)
+    }
+
+    @Test
+    fun reportShouldStopAtMaxPlans() {
+        val p1 = product("p-limit-1", listOf(Quantity(Flt64(0.5), Meter)))
+        val p2 = product("p-limit-2", listOf(Quantity(Flt64(0.6), Meter)))
+        val m = material(upperBound = 1.5)
+        val input = CuttingPlanGenerationInput(
+            products = listOf(p1, p2),
+            materials = listOf(m),
+            machines = emptyList(),
+            costars = emptyList(),
+            demands = listOf(
+                ProductDemand.roll(p1, Quantity(Flt64(5.0), RollCountUnit)),
+                ProductDemand.roll(p2, Quantity(Flt64(5.0), RollCountUnit))
+            )
+        )
+
+        val report = NSameGenerator(
+            arithmetic = arithmetic,
+            maxPlans = 1
+        ).generateWithReport(input)
+
+        assertEquals(1, report.plans.size)
+        assertEquals(1, report.statistics.acceptedPlans)
+        assertEquals(CuttingPlanGenerationStopReason.MaxPlans, report.statistics.stopReason)
+    }
+
+    @Test
+    fun dynamicLengthWeightContributionShouldUseMaterialLengthInGeneration() {
+        val p = Product.dynamicLengthOf(
+            id = "p-dynamic-weight",
+            name = "product-p-dynamic-weight",
+            width = listOf(Quantity(Flt64(0.5), Meter)),
+            unitWeight = Quantity(Flt64(1.0), Kilogram)
+        )
+        val m = material(
+            id = "m-dynamic-weight",
+            upperBound = 1.0
+        )
+        val demand = ProductDemand.weight(p, Quantity(Flt64(20.0), Kilogram))
+        val input = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = emptyList(),
+            costars = emptyList(),
+            demands = listOf(demand)
+        )
+
         val plans = NSameGenerator(arithmetic = arithmetic).generate(input)
 
-        assertTrue(plans.isEmpty())
+        assertEquals(1, plans.size)
+        assertEquals(Flt64(100.0), plans.single().demandContributions.single().quantity.value)
+        assertEquals(Kilogram, plans.single().demandContributions.single().quantity.unit)
     }
 }

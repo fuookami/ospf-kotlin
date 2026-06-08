@@ -1,0 +1,106 @@
+# ospf-kotlin-framework-csp1d
+
+[中文](README_ch.md)
+
+`ospf-kotlin-framework-csp1d` is a reusable one-dimensional cutting stock framework. It keeps the generic CSP1D kernel in this repository and leaves downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection to business adapters.
+
+## Boundary
+
+The current public model is limited to entities already expressed by `csp1d-domain-material-context`:
+
+- `Product`, `ProductDemand`, `Production`
+- `Costar`
+- `Material`, `Machine`
+- `CuttingPlanSlice`, `CuttingPlan`
+- demand contribution, render DTOs, and the currently integrated yield, waste, and length assignment contexts
+
+POIT-specific concepts such as defects, segmentation, position constraints, `unitBatch`, material-level costar attributes, business DTO protocols, and formula languages are not modeled here until they first become generic domain entities.
+
+## Basic Use
+
+Create a `Csp1dProblem<V>` directly or with the builder DSL:
+
+```kotlin
+val problem = csp1dProblem<Flt64> {
+    products(products)
+    material(material)
+    demands(demands)
+    configuration(
+        Csp1dConfiguration(
+            maxInitialPlans = 64,
+            maxPricingPlans = 16,
+            iterationLimit = 8
+        )
+    )
+    solveConfig {
+        columnGeneration(
+            maxInitialPlans = 128,
+            maxPricingPlans = 32,
+            iterationLimit = 16
+        )
+        lengthConfig(lengthConfig)
+        wasteConfig(wasteConfig)
+        topKPlanLimit(10)
+        allowPartialSolution(true)
+    }
+}
+```
+
+Use `Csp1dMilp` for a plain MILP path and `Csp1dColumnGeneration` for column generation:
+
+```kotlin
+val milpSolution = Csp1dMilp<Flt64>(solver).solve(problem)
+val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
+```
+
+`solveConfig` can be passed directly to `solve(...)`, stored in `problem.solveConfig`, or supplied through constructor-level default configs. Explicit method arguments have the highest priority.
+
+## Outputs
+
+`Csp1dSolution<V>` contains:
+
+- `produce`: selected cutting plans, material usages, machine capacity usages, and unmet demands
+- `generatedPlans`: final plan pool used by MILP
+- `kpi`: selected plan count, batch count, satisfied/unmet demands, usage counts, generated plan count, Top-K count, and enhancement metric counts
+- `render`: stable DTO boundary for UI or serialization
+- `status`: `Feasible`, `Partial`, `NoInitialPlans`, or `Failed`
+- `failureMessage`: failure reason when available
+- `topPlans`: optional Top-K plan list
+
+`Csp1dColumnGenerationTrace` records termination reason, LP iteration objectives, priced plan counts, initial generation statistics, final MILP status, partial solution availability, and failure message.
+
+## Generation Semantics
+
+The generation context provides DFS, N-Same, N-Sum, FullSum, and reduced-cost pricing generators. Generators share timeout, max plan, canonical deduplication, feasibility filtering, statistics reporting, and `GenerationConstraints.parallelism` for material-level coroutine parallel generation.
+
+`Costar` is a filler for remaining width. It can appear in slices and render output, but it does not create demand contribution.
+
+For dynamic-length products, generation-stage demand contribution uses the product length when fixed, then falls back to material length when available. Final roll length assignment is still owned by the length assignment MILP context.
+
+## Demo
+
+The framework demo is:
+
+`ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3`
+
+The demo uses `Csp1dProblem<Flt64>`, framework generators, `ReducedCostPricingGenerator`, and `Csp1dColumnGeneration`. It no longer keeps a local hand-written RMP/SP model.
+
+## Local Validation
+
+Focused CSP1D tests:
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Gurobi profile compile gate:
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application -Pgurobi-cg-test -DskipTests test-compile
+```
+
+Demo3 compile gate:
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-infrastructure,.\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application,.\ospf-kotlin-starters\ospf-kotlin-starter-csp1d,.\ospf-kotlin-example "-Dexample.source.directory=src/main/fuookami/ospf/kotlin/example/framework_demo/demo3" -DskipTests compile
+```

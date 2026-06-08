@@ -1,100 +1,104 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo3
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.core.solver.scip.ScipColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
+import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dProblem
+import fuookami.ospf.kotlin.framework.csp1d.application.service.Csp1dColumnGeneration
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.FullSumGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.NSameGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 
 class CSP {
-    private val length = UInt64(1000UL)
-    private val products: List<Product> = arrayListOf(
-        Product(UInt64(450UL), UInt64(97UL)),
-        Product(UInt64(360UL), UInt64(610UL)),
-        Product(UInt64(310UL), UInt64(395UL)),
-        Product(UInt64(140UL), UInt64(211UL)),
+    private val rawLength = 1000.0
+    private val rawProducts: List<RawProduct> = listOf(
+        RawProduct(width = 450.0, demand = 97.0),
+        RawProduct(width = 360.0, demand = 610.0),
+        RawProduct(width = 310.0, demand = 395.0),
+        RawProduct(width = 140.0, demand = 211.0)
     )
 
     suspend operator fun invoke(): Try {
-        val initialCuttingPlans = InitialSolutionGenerator(length, products)
-        when (initialCuttingPlans) {
-            is Failed -> {
-                return Failed(initialCuttingPlans.error)
-            }
-
-            is Fatal -> {
-                return Fatal(initialCuttingPlans.errors)
-            }
-
-            is Ok -> {}
+        val products = rawProducts.mapIndexed { index, raw ->
+            Product(
+                id = "p-$index",
+                name = "product-${raw.width.toInt()}",
+                width = listOf(Quantity(Flt64(raw.width), Meter))
+            )
         }
-        val rmp = RMP(length, products, initialCuttingPlans.value)
-        val sp = SP()
-        var i = UInt64.zero
-        while (true) {
-            val spm = rmp(i)
-            when (spm) {
-                is Failed -> {
-                    return Failed(spm.error)
+        val material = Material(
+            id = "m-1000",
+            name = "material-1000",
+            widthRange = WidthRange(
+                width = QuantityRange(
+                    lowerBound = Quantity(Flt64.zero, Meter),
+                    upperBound = Quantity(Flt64(rawLength), Meter)
+                ),
+                step = Quantity(Flt64.one, Meter)
+            )
+        )
+        val problem = csp1dProblem<Flt64> {
+            products(products)
+            material(material)
+            demands(
+                rawProducts.mapIndexed { index, raw ->
+                    ProductDemand.legacyRoll(
+                        product = products[index],
+                        rollAmount = Flt64(raw.demand)
+                    )
                 }
-
-                is Fatal -> {
-                    return Fatal(spm.errors)
-                }
-
-                is Ok -> {}
-            }
-            val newCuttingPlan = sp(i, length, products, spm.value)
-            when (newCuttingPlan) {
-                is Failed -> {
-                    return Failed(newCuttingPlan.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(newCuttingPlan.errors)
-                }
-
-                is Ok -> {}
-            }
-            if (reducedCost(newCuttingPlan.value, spm.value) geq Flt64.zero
-                || !rmp.addColumn(newCuttingPlan.value)
-            ) {
-                break
-            }
-            ++i
+            )
+            configuration(
+                Csp1dConfiguration(
+                    maxInitialPlans = 16,
+                    maxPricingPlans = 32,
+                    iterationLimit = 16
+                )
+            )
         }
-        when (val solution = rmp()) {
-            is Failed -> {
-                return Failed(solution.error)
-            }
+        val pricingEnumerator = FullSumGenerator(
+            constraints = GenerationConstraints(
+                maxKnifeCount = UInt64(8UL)
+            ),
+            arithmetic = Flt64QuantityArithmetic,
+            maxPlans = 256
+        )
+        val solver = Csp1dColumnGeneration(
+            solver = ScipColumnGenerationSolver(),
+            initialGenerator = NSameGenerator(
+                arithmetic = Flt64QuantityArithmetic,
+                maxPlans = 16
+            ),
+            pricingGenerator = ReducedCostPricingGenerator(pricingEnumerator)
+        )
+        val result = solver.solveWithTrace(problem)
 
-            is Fatal -> {
-                return Fatal(solution.errors)
+        println(
+            result.solution.produce.cuttingPlans.joinToString(";") { usage ->
+                val pattern = usage.plan.slices.joinToString(",") { slice ->
+                    "${slice.width.value} * ${slice.amount}"
+                }
+                "$pattern: ${usage.amount}"
             }
-
-            is Ok -> {
-                println(
-                    solution.value.asIterable().joinToString(";") {
-                        "${
-                            it.key.products.asIterable()
-                                .joinToString(",") { product -> "${product.key.length} * ${product.value}" }
-                        }: ${it.value}"
-                    })
-            }
-        }
+        )
+        println("termination=${result.trace.terminationReason}; plans=${result.trace.finalPlanCount}")
         return ok
     }
 
-    private fun reducedCost(cuttingPlan: CuttingPlan, shadowPrices: ShadowPriceMap) = Flt64.one -
-            cuttingPlan.products.entries.fold(Flt64.zero) { acc, entry ->
-                acc + shadowPrices(entry.key) * entry.value.toFlt64()
-            }
+    private data class RawProduct(
+        val width: Double,
+        val demand: Double
+    )
 }
-
-
-
-
-
-
-
-
-

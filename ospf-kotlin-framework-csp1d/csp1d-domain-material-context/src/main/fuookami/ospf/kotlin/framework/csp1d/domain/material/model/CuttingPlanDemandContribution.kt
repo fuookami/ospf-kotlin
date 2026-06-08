@@ -24,20 +24,23 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
          * @param width 切片宽度 / Slice width
          * @param amount 切片份数 / Slice amount
          * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
+         * @param length 贡献长度覆盖值 / Contribution length override
          * @return 需求贡献 / Demand contribution
          */
         fun <V : RealNumber<V>> fromDemand(
             demand: ProductDemand<V>,
             width: Quantity<V>,
             amount: UInt64,
-            arithmetic: QuantityArithmetic<V>
+            arithmetic: QuantityArithmetic<V>,
+            length: Quantity<V>? = null
         ): CuttingPlanDemandContribution<V> {
             return of(
                 product = demand.product,
                 width = width,
                 amount = amount,
                 demandUnit = demand.quantity.unit,
-                arithmetic = arithmetic
+                arithmetic = arithmetic,
+                length = length
             )
         }
 
@@ -52,6 +55,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
          * @param amount 切片份数 / Slice amount
          * @param demandUnit 需求单位 / Demand unit
          * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
+         * @param length 贡献长度覆盖值 / Contribution length override
          * @return 需求贡献 / Demand contribution
          */
         fun <V : RealNumber<V>> of(
@@ -59,7 +63,8 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
             width: Quantity<V>,
             amount: UInt64,
             demandUnit: PhysicalUnit,
-            arithmetic: QuantityArithmetic<V>
+            arithmetic: QuantityArithmetic<V>,
+            length: Quantity<V>? = null
         ): CuttingPlanDemandContribution<V> {
             return CuttingPlanDemandContribution(
                 product = product,
@@ -68,7 +73,8 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
                     width = width,
                     amount = amount,
                     demandUnit = demandUnit,
-                    arithmetic = arithmetic
+                    arithmetic = arithmetic,
+                    length = length
                 )
             )
         }
@@ -81,6 +87,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
          * @param amount 切片份数 / Slice amount
          * @param demandUnit 需求单位 / Demand unit
          * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
+         * @param length 贡献长度覆盖值 / Contribution length override
          * @return 贡献值 / Contribution quantity
          */
         fun <V : RealNumber<V>> quantityOf(
@@ -88,12 +95,14 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
             width: Quantity<V>,
             amount: UInt64,
             demandUnit: PhysicalUnit,
-            arithmetic: QuantityArithmetic<V>
+            arithmetic: QuantityArithmetic<V>,
+            length: Quantity<V>? = null
         ): Quantity<V> {
+            val contributionLength = length ?: product.length
             val unitContribution = product.unitWeight?.let { unitWeight ->
-                product.length?.let { length ->
+                contributionLength?.let { currentLength ->
                     if (unitWeight.unit == demandUnit) {
-                        val areaValue = width.value * length.value
+                        val areaValue = width.value * currentLength.value
                         val weightValue = areaValue * unitWeight.value
                         Quantity(weightValue, demandUnit)
                     } else {
@@ -122,17 +131,20 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
  * @param width 切片宽度 / Slice width
  * @param amount 切片份数 / Slice amount
  * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
+ * @param length 贡献长度覆盖值 / Contribution length override
  * @return 需求贡献 / Demand contribution
  */
 fun <V : RealNumber<V>> ProductDemand<V>.contribution(
     width: Quantity<V>,
     amount: UInt64,
-    arithmetic: QuantityArithmetic<V>
+    arithmetic: QuantityArithmetic<V>,
+    length: Quantity<V>? = null
 ): CuttingPlanDemandContribution<V> {
     return CuttingPlanDemandContribution.fromDemand(
         demand = this,
         width = width,
         amount = amount,
-        arithmetic = arithmetic
+        arithmetic = arithmetic,
+        length = length
     )
 }

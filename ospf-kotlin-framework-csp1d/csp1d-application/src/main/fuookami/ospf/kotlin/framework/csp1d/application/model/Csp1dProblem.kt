@@ -6,6 +6,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
 
 /**
  * CSP1D 问题定义 / CSP1D problem definition
@@ -17,6 +20,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
  * @property costars 配规列表 / Costar list
  * @property demands 需求列表 / Demand list
  * @property configuration 求解配置 / Solving configuration
+ * @property solveConfig 一站式求解配置，缺省时使用 [configuration] / One-stop solve config, falls back to [configuration]
  */
 data class Csp1dProblem<V : RealNumber<V>>(
     val products: List<Product<V>>,
@@ -24,7 +28,8 @@ data class Csp1dProblem<V : RealNumber<V>>(
     val machines: List<Machine<V>>,
     val costars: List<Costar<V>> = emptyList(),
     val demands: List<ProductDemand<V>>,
-    val configuration: Csp1dConfiguration<V> = Csp1dConfiguration()
+    val configuration: Csp1dConfiguration<V> = Csp1dConfiguration(),
+    val solveConfig: Csp1dSolveConfig<V>? = null
 )
 
 /**
@@ -41,3 +46,22 @@ data class Csp1dConfiguration<V : RealNumber<V>>(
     val iterationLimit: Int = 8
 )
 
+/**
+ * CSP1D 一站式求解配置 / CSP1D one-stop solve configuration
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property columnGeneration 列生成配置 / Column generation configuration
+ * @property yieldConfig 产出约束与目标配置 / Yield constraint and objective configuration
+ * @property wasteConfig 浪费最小化配置 / Waste minimization configuration
+ * @property lengthConfig 长度分配配置 / Length assignment configuration
+ * @property topKPlanLimit Top-K 方案保留上限，null 表示不输出 / Top-K plan limit, null for disabled
+ * @property allowPartialSolution 最终 MILP 失败时是否返回部分结果 / Whether to return a partial result when final MILP fails
+ */
+data class Csp1dSolveConfig<V : RealNumber<V>>(
+    val columnGeneration: Csp1dConfiguration<V> = Csp1dConfiguration(),
+    val yieldConfig: YieldModelingConfig<V>? = null,
+    val wasteConfig: WasteMinimizationConfig<V>? = null,
+    val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
+    val topKPlanLimit: Int? = null,
+    val allowPartialSolution: Boolean = true
+)

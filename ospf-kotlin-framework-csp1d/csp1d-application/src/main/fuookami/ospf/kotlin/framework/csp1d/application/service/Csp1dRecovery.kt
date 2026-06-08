@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 
 /**
@@ -20,7 +21,13 @@ class Csp1dRecovery<V : RealNumber<V>>(
      * @param problem 问题定义 / Problem definition
      * @return 求解结果 / Solution
      */
-    suspend fun solve(problem: Csp1dProblem<V>): Csp1dSolution<V> {
-        return milp.solve(problem)
+    suspend fun solve(
+        problem: Csp1dProblem<V>,
+        solveConfig: Csp1dSolveConfig<V>? = null
+    ): Csp1dSolution<V> {
+        return milp.solve(
+            problem = problem,
+            solveConfig = solveConfig
+        )
     }
 }

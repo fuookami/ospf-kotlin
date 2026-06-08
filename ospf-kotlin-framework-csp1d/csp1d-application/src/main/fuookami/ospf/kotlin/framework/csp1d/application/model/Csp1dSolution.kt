@@ -3,37 +3,61 @@ package fuookami.ospf.kotlin.framework.csp1d.application.model
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.toFltX
+import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanDTO
+import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanProductionDTO
+import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderProductionType
+import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderSchemaDTO
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.toRenderDto
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
-import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanDTO
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanProductionDTO
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderProductionType
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderSchemaDTO
-import fuookami.ospf.kotlin.quantities.quantity.toFltX
+import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationResult
+
+/**
+ * CSP1D 解状态 / CSP1D solution status
+ */
+enum class Csp1dSolutionStatus {
+    /** 已得到最终 MILP 解 / Final MILP solution is available */
+    Feasible,
+    /** 只有方案池或中间结果可用 / Only plan pool or intermediate result is available */
+    Partial,
+    /** 无初始方案 / No initial plans */
+    NoInitialPlans,
+    /** 求解失败且无可用部分结果 / Solve failed without usable partial result */
+    Failed
+}
 
 /**
  * CSP1D KPI / CSP1D KPI
  *
  * @property selectedPlanCount 选中方案数量 / Selected plan count
  * @property selectedBatchCount 选中车次数量 / Selected batch count
+ * @property satisfiedDemandCount 已满足需求数量 / Satisfied demand count
  * @property unmetDemandCount 未满足需求数量 / Unmet demand count
  * @property materialUsageCount 物料使用条目数 / Material usage entry count
  * @property machineUsageCount 设备使用条目数 / Machine usage entry count
  * @property generatedPlanCount 本轮生成方案总数 / Generated plan count
+ * @property topPlanCount Top-K 方案数量 / Top-K plan count
+ * @property yieldMetricCount yield 回填指标数 / Yield metric count
+ * @property wasteMetricCount waste 回填指标数 / Waste metric count
+ * @property lengthMetricCount length 回填指标数 / Length metric count
  */
 data class Csp1dKpi(
     val selectedPlanCount: UInt64,
     val selectedBatchCount: UInt64,
+    val satisfiedDemandCount: UInt64,
     val unmetDemandCount: UInt64,
     val materialUsageCount: UInt64,
     val machineUsageCount: UInt64,
-    val generatedPlanCount: UInt64
+    val generatedPlanCount: UInt64,
+    val topPlanCount: UInt64 = UInt64.zero,
+    val yieldMetricCount: UInt64 = UInt64.zero,
+    val wasteMetricCount: UInt64 = UInt64.zero,
+    val lengthMetricCount: UInt64 = UInt64.zero
 )
 
 /**
@@ -44,6 +68,9 @@ data class Csp1dKpi(
  * @property generatedPlans 切割方案池 / Generated cutting plans
  * @property kpi KPI / KPI
  * @property render 渲染输出 / Render output
+ * @property status 解状态 / Solution status
+ * @property failureMessage 失败信息 / Failure message
+ * @property topPlans Top-K 方案 / Top-K plans
  */
 data class Csp1dSolution<V : RealNumber<V>>(
     val produce: Produce<V>,
@@ -52,7 +79,10 @@ data class Csp1dSolution<V : RealNumber<V>>(
     val lengthResult: LengthAssignmentModelingResult<V>? = null,
     val generatedPlans: List<CuttingPlan<V>>,
     val kpi: Csp1dKpi,
-    val render: RenderSchemaDTO
+    val render: RenderSchemaDTO,
+    val status: Csp1dSolutionStatus = Csp1dSolutionStatus.Feasible,
+    val failureMessage: String? = null,
+    val topPlans: List<CuttingPlan<V>> = emptyList()
 )
 
 /**
@@ -90,9 +120,11 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
         val selectedBatchCount = produce.cuttingPlans.fold(UInt64.zero) { acc, usage ->
             acc + usage.amount
         }
+        val satisfiedDemandCount = UInt64(problem.demands.size - produce.unmetDemands.size)
         val kpi = Csp1dKpi(
             selectedPlanCount = UInt64(produce.cuttingPlans.size),
             selectedBatchCount = selectedBatchCount,
+            satisfiedDemandCount = satisfiedDemandCount,
             unmetDemandCount = UInt64(produce.unmetDemands.size),
             materialUsageCount = UInt64(produce.materialUsages.size),
             machineUsageCount = UInt64(produce.machineUsages.size),
@@ -102,10 +134,15 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
             kpi = mapOf(
                 "selectedPlanCount" to kpi.selectedPlanCount.toString(),
                 "selectedBatchCount" to kpi.selectedBatchCount.toString(),
+                "satisfiedDemandCount" to kpi.satisfiedDemandCount.toString(),
                 "unmetDemandCount" to kpi.unmetDemandCount.toString(),
                 "materialUsageCount" to kpi.materialUsageCount.toString(),
                 "machineUsageCount" to kpi.machineUsageCount.toString(),
-                "generatedPlanCount" to kpi.generatedPlanCount.toString()
+                "generatedPlanCount" to kpi.generatedPlanCount.toString(),
+                "topPlanCount" to kpi.topPlanCount.toString(),
+                "yieldMetricCount" to kpi.yieldMetricCount.toString(),
+                "wasteMetricCount" to kpi.wasteMetricCount.toString(),
+                "lengthMetricCount" to kpi.lengthMetricCount.toString()
             ),
             cuttingPlans = produce.cuttingPlans.map { usage ->
                 renderCuttingPlan(

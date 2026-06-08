@@ -81,10 +81,20 @@
 17. 已完成 pricing 与增强目标第一阶段对齐：pricing input 可携带方案使用、余宽、余料和物料成本目标提示，候选筛选与排序保持 LP shadow price 基础语义。
 18. 已完成 material helper 与生成入口第一阶段收口：通用需求贡献 helper、Costar 不污染需求贡献、物料/设备基础可行性入口和生成器接入均已覆盖。
 19. 已完成列生成方案池稳定化第一阶段：pricing 重复列按 ID 和 canonical key 过滤，初始方案池按 canonical key 去重并应用 `maxInitialPlans` 上限。
+20. 已完成生成器统计与统一候选控制第一阶段：四类生成器均支持兼容式生成报告、候选上限、基础可行性拒绝统计、canonical 重复过滤统计和 trace 透传。
+21. 已完成 dynamic/fixed length 生成阶段默认策略第一阶段：固定长度优先使用产品长度，动态长度重量贡献可按物料长度推导，并已覆盖回归测试。
+22. 已完成 demo3 示例迁移第一阶段：示例侧手写领域模型、RMP、SP 和 shadow price map 已移除，主路径改为 `Csp1dProblem<Flt64>` 与 `Csp1dColumnGeneration`。
+23. 已完成 application 一站式配置与 KPI 收口第一阶段：`solveConfig`、Top-K、最终 MILP 状态、部分解语义、增强结果计数和 render KPI 已进入普通 MILP 与列生成入口。
+24. 已完成生成器规模化第一阶段：四类生成器接入数量计算缓存，DFS/NSum/FullSum 增加剩余宽度不可扩展时的提前剪枝，保持 canonical 输出语义稳定。
+25. 已完成当前验证基线刷新：CSP1D 窄测试、Gurobi profile 编译和 demo3 限定编译均已通过。
+26. 已完成 application public 使用面第一阶段：`Csp1dProblem` builder、`Csp1dSolveConfig` builder、README/README_ch 和 demo3 builder 示例已收口。
+27. 已完成生成器并行第一阶段：DFS、NSum、NSame、FullSum 支持按物料 coroutine 并行开关，并验证 canonical 结果集合稳定。
+28. 已完成 public 语义文档第一阶段：Costar filler、dynamic length 生成边界、trace/KPI/render、最终 MILP 状态和部分成功结果已写入 README。
+29. 已完成当前验证基线刷新：CSP1D 窄测试、Gurobi profile 编译、demo3 限定编译、门禁搜索和 `git diff --check` 均已通过。
 
 ## 3. 需要修正的事项
 
-当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是规模化生成、application 使用面、示例迁移和验证收口。
+当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是规模化生成、application 使用面和验证收口。
 
 ## 4. 未完成事项
 
@@ -96,15 +106,15 @@
 
 #### 事项
 
-1. `Product.dynamicLength` 与 length assignment 建模已有连接，但方案生成阶段仍缺少更明确的默认长度策略。
-2. `Costar` 的默认行为已通过 filler 收口，后续还需要把“只补余宽、不参与 demand contribution”的语义沉淀到更稳定的模型文档或配置边界。
-3. 当前统一可行性入口覆盖基础物料、设备和幅宽，后续需要和更细粒度长度、缺陷、分段实体的扩展边界保持一致。
+1. `Product.dynamicLength` 的生成阶段默认策略、最终 length assignment 边界和 public 文档说明已完成第一阶段。
+2. `Costar` 的默认 filler 行为和“不参与 demand contribution”的 public 语义已完成第一阶段。
+3. 当前统一可行性入口覆盖基础物料、设备和幅宽，后续需要随 material model 新增实体继续扩展。
 
 #### 计划
 
-1. 为 dynamic/fixed length 产品补充生成阶段的默认长度策略和测试。
-2. 将 Costar filler 的语义写入更稳定的 public 文档或配置说明，避免下游误把 costar 当作需求产品。
-3. 随 material model 新增实体时，扩展统一可行性入口，避免生成器和 solver 分叉。
+1. 随 material model 新增实体时，扩展统一可行性入口，避免生成器和 solver 分叉。
+2. 将缺陷、分段、位置约束、`unitBatch` 等延后能力维持在清单层，不在当前模型中增加半成品字段。
+3. 持续用测试和 README 校准 dynamic length 与 Costar 的边界，避免下游把生成贡献误解为最终卷长分配。
 
 #### 修改清单
 
@@ -117,9 +127,9 @@
 
 #### 验收标准
 
-1. 动态长度与固定长度产品在生成和最终 MILP 中的行为均有测试覆盖。
-2. Costar 语义在 public 文档或配置边界中清晰，不引入业务 DTO。
-3. 新增 material entity 后，生成器和 solver 对同一个 plan 的基础可行性判断一致。
+1. 新增 material entity 后，生成器和 solver 对同一个 plan 的基础可行性判断一致。
+2. Costar 和 dynamic length 语义持续保持在 public 文档或配置边界中，不引入业务 DTO。
+3. 延后能力不影响当前 material-context 边界内的编译和求解。
 
 ### 4.2 切割方案生成算法增强
 
@@ -129,15 +139,15 @@
 
 #### 事项
 
-1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造和可行性入口已收口，但并行生成、缓存和规模化剪枝不足。
-2. 单位长度、更细粒度长度约束、动态长度产品和中等规模性能基线仍待收口。
+1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、基础剪枝和按物料并行已收口。
+2. 单位长度、更细粒度长度约束、dominance 剪枝和中等规模性能基线仍待收口。
 3. 缺陷、分段、onSide/inMiddle、`unitBatch` 等 POIT 语义暂不属于当前实体边界；只有当 material model 增加通用实体后再纳入。
 
 #### 计划
 
-1. 为生成器增加 coroutine 并行、统一候选上限、可中断统计和中等规模基线。
-2. 增加 width combination 的上界估计、dominance 剪枝和按 material/demand unit 的缓存。
-3. 扩展 canonical 去重到生成器批量输出统计，记录被过滤的重复列数量。
+1. 建立中等规模样例，记录候选数量、耗时、重复过滤、基础可行性拒绝和剪枝效果。
+2. 继续扩展 width combination 的上界估计、dominance 剪枝和按 material/demand unit 的缓存。
+3. 将生成报告在 application KPI 与 render 边界持续固化，避免调用方只能读 trace。
 4. 将暂不建模的 POIT 语义集中放入“延后能力”清单，不在当前代码中留半成品字段。
 
 #### 修改清单
@@ -152,8 +162,8 @@
 #### 验收标准
 
 1. 所有生成器支持统一 timeout、候选上限和统计信息。
-2. 并行开关不改变结果集合的 canonical form。
-3. 中等规模样例生成耗时和候选数量有基线记录。
+2. 并行开关不改变结果集合的 canonical form，并持续覆盖回归测试。
+3. 中等规模样例生成耗时、候选数量、重复过滤和剪枝效果有基线记录。
 4. 延后能力清单不影响当前 material-context 边界内的编译和求解。
 
 ### 4.3 Application API、KPI 和恢复能力
@@ -164,16 +174,16 @@
 
 #### 事项
 
-1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出仍需统一入口和文档化。
-2. 列生成 trace 已覆盖基础终止原因、LP 失败和重复列收敛；恢复、最终 MILP 失败和部分成功结果表达仍可读性不足。
-3. 目前增强配置分散在 yield/waste/length，缺少面向调用方的一站式建模配置。
+1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出、builder、README 和 demo3 示例已完成统一入口第一阶段。
+2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态和部分成功结果；恢复、warm start 失效和重试策略仍可读性不足。
+3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，后续需要继续补齐更细 KPI 和恢复语义。
 
 #### 计划
 
-1. 收口 `Csp1dProblem` builder 和 `Csp1dSolveConfig`，统一 solver、pricing、yield、waste、length、trace、Top-K 配置。
-2. 补充 `Csp1dSolution` KPI：需求满足、欠产/超产、余宽、余料、物料成本、产能使用、列生成收敛信息。
-3. 明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效和局部可用解。
-4. 为恢复和 warm start 预留输入输出结构，不引入业务 DTO。
+1. 继续补充 `Csp1dSolution` KPI：欠产/超产量、余宽、余料、物料成本、产能使用和列生成收敛信息。
+2. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效和局部可用解。
+3. 为恢复和 warm start 预留输入输出结构，不引入业务 DTO。
+4. 将 public README 与 acceptance test 随 API 变化同步维护。
 
 #### 修改清单
 
@@ -188,42 +198,8 @@
 
 1. 调用方可以通过一个稳定配置对象完成普通 MILP 和列生成求解。
 2. solution 中的 KPI 与 solver 回填值一致，并覆盖空解、部分解和完整解。
-3. trace 能解释终止原因、每轮 LP 目标值、新列数量和最终 MILP 状态。
+3. trace 能解释终止原因、每轮 LP 目标值、新列数量、初始生成统计和最终 MILP 状态。
 4. 不引入 POIT DTO、运行参数、公式语言或 solver 插件选择逻辑。
-
-### 4.4 demo3 示例迁移
-
-#### 目标
-
-将 `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3` 从手写一维 cutting stock 建模迁移为 CSP1D framework 使用样例。
-
-#### 事项
-
-1. demo3 当前仍维护独立的 `Product`、`CuttingPlan`、`RMP`、`SP` 和 `ShadowPriceMap`。
-2. 示例输入仍偏裸数值，未体现 framework 的 `Quantity<V>` 和 `ProductDemand<V>`。
-3. 示例输出需要能体现方案使用、需求满足和列生成 trace。
-
-#### 计划
-
-1. 将 demo3 输入映射为 `Product<Flt64>`、`Material<Flt64>`、`Machine<Flt64>`、`ProductDemand<Flt64>` 和 `Csp1dProblem<Flt64>`。
-2. 使用 `Csp1dColumnGeneration` 替代示例侧 RMP/SP。
-3. 删除或废弃 demo3 专用领域模型和手写 shadow price map。
-4. 输出选中方案、未满足需求、KPI 和 trace。
-
-#### 修改清单
-
-1. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3/Domain.kt`
-2. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3/RMP.kt`
-3. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3/SP.kt`
-4. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3/Main.kt`
-5. `ospf-kotlin-framework-csp1d/csp1d-application/src/test/...`
-
-#### 验收标准
-
-1. demo3 不再直接构建 `LinearMetaModel`、`UIntVar`、RMP demand constraint 或 SP 背包模型。
-2. demo3 不再定义独立于 framework 的一维分切领域模型。
-3. demo3 通过 `Csp1dProblem<Flt64>` 和 `Csp1dColumnGeneration` 完成求解。
-4. 示例编译通过，并保持 CSP1D 门禁无新增命中。
 
 ## 5. 下一轮执行计划
 
@@ -231,22 +207,22 @@
 
 #### 目标
 
-下一轮尽量以一次宽范围迭代完成生成器规模化增强、application API/KPI 收口、demo3 示例迁移和验证基线固化，减少反复切换上下文。
+下一轮尽量以一次宽范围迭代完成中等规模生成基线、dominance 剪枝、恢复/warm start 语义和更细 KPI 收口，减少反复切换上下文。
 
 #### 事项
 
-1. 扩展生成器性能、缓存、剪枝、统计和中等规模基线。
-2. 补齐 dynamic/fixed length 产品在生成阶段的默认长度策略。
-3. 打通 application 一站式配置、KPI、trace 终止原因和部分成功结果。
-4. 迁移 demo3 示例，删除示例侧手写 RMP/SP 主路径。
-5. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令。
+1. 在已打通 application 一站式配置、builder、README、KPI、trace 最终 MILP 状态和部分成功结果的基础上，补齐恢复语义。
+2. 在已完成生成器数量缓存、基础剪枝和并行开关的基础上，扩展 dominance 剪枝和中等规模基线。
+3. 将生成统计继续沉淀到 application KPI/render 边界，降低调用方读取 trace 的负担。
+4. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令。
 
 #### 计划
 
-1. 第一段：生成器增强，完成并行开关、缓存、dominance 剪枝、统计输出和性能样例。
-2. 第二段：长度策略收口，完成 dynamic/fixed length 默认策略、约束入口和测试。
-3. 第三段：application API 与 demo3，完成统一 solve config、KPI 输出、最终 MILP 状态、部分成功结果和示例迁移。
-4. 第四段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
+1. 第一段：建立中等规模 generation benchmark 测试或样例，记录耗时、候选数量、重复过滤、可行性拒绝和剪枝效果。
+2. 第二段：实现更细粒度 dominance 剪枝和 material/demand unit 缓存，保证 canonical 结果集合稳定。
+3. 第三段：补齐恢复、warm start 失效、最终 MILP 失败和重试策略的输入输出结构与 acceptance test。
+4. 第四段：扩展 KPI/render，覆盖欠产/超产量、余宽、余料、物料成本、产能使用和列生成收敛信息。
+5. 第五段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
 
 #### 修改清单
 

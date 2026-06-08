@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1d
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingObjectiveConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
@@ -17,9 +18,12 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionAnalyzer
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
 import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSolutionAnalyzer
 
 /**
@@ -55,12 +59,29 @@ data class Csp1dIterationRecord(
     val planCountAfter: Int
 )
 
+/**
+ * 列生成求解追踪信息 / Column generation solve trace
+ *
+ * @property initialPlanCount 初始方案数 / Initial plan count
+ * @property finalPlanCount 最终方案池大小 / Final plan pool size
+ * @property pricedPlanCount 每轮新增定价方案数 / Priced plan count per iteration
+ * @property terminationReason 列生成终止原因 / Column generation termination reason
+ * @property iterations 每轮迭代记录 / Iteration records
+ * @property initialGenerationStatistics 初始生成统计 / Initial generation statistics
+ * @property finalMilpStatus 最终 MILP 状态 / Final MILP status
+ * @property partialSolutionAvailable 是否存在部分解 / Whether partial solution is available
+ * @property failureMessage 失败信息 / Failure message
+ */
 data class Csp1dColumnGenerationTrace(
     val initialPlanCount: UInt64,
     val finalPlanCount: UInt64,
     val pricedPlanCount: List<UInt64>,
     val terminationReason: Csp1dTerminationReason = Csp1dTerminationReason.PricingConverged,
-    val iterations: List<Csp1dIterationRecord> = emptyList()
+    val iterations: List<Csp1dIterationRecord> = emptyList(),
+    val initialGenerationStatistics: CuttingPlanGenerationStatistics? = null,
+    val finalMilpStatus: Csp1dFinalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
+    val partialSolutionAvailable: Boolean = false,
+    val failureMessage: String? = null
 )
 
 class Csp1dColumnGeneration<V : RealNumber<V>>(
@@ -73,37 +94,61 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val lengthConfig: LengthAssignmentModelingConfig<V>? = null
 ) {
     suspend fun solve(
-        problem: Csp1dProblem<V>
+        problem: Csp1dProblem<V>,
+        solveConfig: Csp1dSolveConfig<V>? = null
     ): Csp1dSolution<V> {
-        return solveWithTrace(problem).solution
+        return solveWithTrace(
+            problem = problem,
+            solveConfig = solveConfig
+        ).solution
     }
 
     suspend fun solveWithTrace(
-        problem: Csp1dProblem<V>
+        problem: Csp1dProblem<V>,
+        solveConfig: Csp1dSolveConfig<V>? = null
     ): Csp1dColumnGenerationResult<V> {
-        val initialPlans = initialPlans(problem)
+        val resolvedConfig = resolveSolveConfig(
+            problem = problem,
+            solveConfig = solveConfig
+        )
+        val columnConfig = resolvedConfig.columnGeneration
+        val initialPlanPool = initialPlanPool(
+            problem = problem,
+            configuration = columnConfig
+        )
+        val initialPlans = initialPlanPool.plans
         val initialCount = initialPlans.size
-        val config = problem.configuration
 
         if (initialPlans.isEmpty()) {
-            val emptyProduce = Produce<V>(
-                cuttingPlans = emptyList(),
-                materialUsages = emptyList(),
-                machineUsages = emptyList(),
-                unmetDemands = problem.demands
+            val failureMessage = "No initial cutting plans generated"
+            val emptyProduce = emptyProduce(problem)
+            val baseSolution = analyzer.analyze(
+                problem = problem,
+                produce = emptyProduce,
+                generatedPlans = emptyList()
+            )
+            val solution = enrichSolution(
+                solution = baseSolution,
+                topPlans = emptyList(),
+                status = Csp1dSolutionStatus.NoInitialPlans,
+                failureMessage = failureMessage,
+                terminationReason = Csp1dTerminationReason.NoInitialPlans,
+                finalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
+                partialSolutionAvailable = false,
+                initialGenerationStatistics = initialPlanPool.statistics
             )
             return Csp1dColumnGenerationResult(
-                solution = analyzer.analyze(
-                    problem = problem,
-                    produce = emptyProduce,
-                    generatedPlans = emptyList()
-                ),
+                solution = solution,
                 trace = Csp1dColumnGenerationTrace(
                     initialPlanCount = UInt64.zero,
                     finalPlanCount = UInt64.zero,
                     pricedPlanCount = emptyList(),
                     terminationReason = Csp1dTerminationReason.NoInitialPlans,
-                    iterations = emptyList()
+                    iterations = emptyList(),
+                    initialGenerationStatistics = initialPlanPool.statistics,
+                    finalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
+                    partialSolutionAvailable = false,
+                    failureMessage = failureMessage
                 )
             )
         }
@@ -113,7 +158,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val iterationRecords = ArrayList<Csp1dIterationRecord>()
         var terminationReason: Csp1dTerminationReason = Csp1dTerminationReason.PricingConverged
 
-        for (iteration in 0 until config.iterationLimit) {
+        for (iteration in 0 until columnConfig.iterationLimit) {
             val planCountBefore = currentPlans.size
             val lpResult = Csp1dMilpSolver(solver).solveLP(
                 ProduceInput(
@@ -151,8 +196,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     existingPlans = currentPlans
                 ),
                 shadowPrices = shadowPrices,
-                maxGeneratedPlans = UInt64(config.maxPricingPlans),
-                objectiveConfig = pricingObjectiveConfig()
+                maxGeneratedPlans = UInt64(columnConfig.maxPricingPlans.coerceAtLeast(0)),
+                objectiveConfig = pricingObjectiveConfig(resolvedConfig)
             )
             val newPlans = pricingGenerator.generate(pricingInput)
 
@@ -199,37 +244,44 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 )
             )
 
-            if (iteration == config.iterationLimit - 1) {
+            if (iteration == columnConfig.iterationLimit - 1) {
                 terminationReason = Csp1dTerminationReason.IterationLimitReached
             }
         }
 
-        val milpResult = Csp1dMilpSolver(solver).solve(
-            ProduceInput(
-                cuttingPlans = currentPlans,
-                demands = problem.demands,
-                materials = problem.materials,
-                machines = problem.machines
-            ),
-            yieldConfig = yieldConfig,
-            wasteConfig = wasteConfig,
-            lengthConfig = lengthConfig
+        val finalMilp = solveFinalMilp(
+            problem = problem,
+            cuttingPlans = currentPlans,
+            solveConfig = resolvedConfig
         )
-        val produce = milpResult?.produce ?: Produce(
-            cuttingPlans = emptyList(),
-            materialUsages = emptyList(),
-            machineUsages = emptyList(),
-            unmetDemands = problem.demands
-        )
+        val produce = finalMilp.milpResult?.produce ?: emptyProduce(problem)
         val baseSolution = analyzer.analyze(
             problem = problem,
             produce = produce,
             generatedPlans = currentPlans
         )
-        val solution = baseSolution.copy(
-            yieldResult = milpResult?.yieldResult,
-            wasteResult = milpResult?.wasteResult,
-            lengthResult = milpResult?.lengthResult
+        val topPlans = topCuttingPlans(
+            plans = currentPlans,
+            limit = resolvedConfig.topKPlanLimit
+        )
+        val solutionStatus = when (finalMilp.status) {
+            Csp1dFinalMilpStatus.Solved -> Csp1dSolutionStatus.Feasible
+            Csp1dFinalMilpStatus.Failed -> Csp1dSolutionStatus.Partial
+            Csp1dFinalMilpStatus.NotAttempted -> Csp1dSolutionStatus.Partial
+        }
+        val solution = enrichSolution(
+            solution = baseSolution.copy(
+                yieldResult = finalMilp.milpResult?.yieldResult,
+                wasteResult = finalMilp.milpResult?.wasteResult,
+                lengthResult = finalMilp.milpResult?.lengthResult
+            ),
+            topPlans = topPlans,
+            status = solutionStatus,
+            failureMessage = finalMilp.failureMessage,
+            terminationReason = terminationReason,
+            finalMilpStatus = finalMilp.status,
+            partialSolutionAvailable = finalMilp.status == Csp1dFinalMilpStatus.Failed,
+            initialGenerationStatistics = initialPlanPool.statistics
         )
         return Csp1dColumnGenerationResult(
             solution = solution,
@@ -238,16 +290,26 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 finalPlanCount = UInt64(currentPlans.size),
                 pricedPlanCount = pricedPlanCounts,
                 terminationReason = terminationReason,
-                iterations = iterationRecords
+                iterations = iterationRecords,
+                initialGenerationStatistics = initialPlanPool.statistics,
+                finalMilpStatus = finalMilp.status,
+                partialSolutionAvailable = finalMilp.status == Csp1dFinalMilpStatus.Failed,
+                failureMessage = finalMilp.failureMessage
             )
         )
     }
 
-    private fun initialPlans(problem: Csp1dProblem<V>): List<CuttingPlan<V>> {
-        if (problem.configuration.maxInitialPlans <= 0) {
-            return emptyList()
+    private fun initialPlanPool(
+        problem: Csp1dProblem<V>,
+        configuration: Csp1dConfiguration<V>
+    ): InitialPlanPool<V> {
+        if (configuration.maxInitialPlans <= 0) {
+            return InitialPlanPool(
+                plans = emptyList(),
+                statistics = null
+            )
         }
-        return initialGenerator.generate(
+        val report = initialGenerator.generateWithReport(
             CuttingPlanGenerationInput(
                 products = problem.products,
                 materials = problem.materials,
@@ -255,9 +317,18 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 costars = problem.costars,
                 demands = problem.demands
             )
-        ).distinctBy { it.canonicalKey() }
-            .take(problem.configuration.maxInitialPlans)
+        )
+        return InitialPlanPool(
+            plans = report.plans.distinctBy { it.canonicalKey() }
+                .take(configuration.maxInitialPlans),
+            statistics = report.statistics
+        )
     }
+
+    private data class InitialPlanPool<V : RealNumber<V>>(
+        val plans: List<CuttingPlan<V>>,
+        val statistics: CuttingPlanGenerationStatistics?
+    )
 
     private fun deduplicatePlans(
         existing: List<CuttingPlan<V>>,
@@ -270,14 +341,90 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
     }
 
-    private fun pricingObjectiveConfig(): Csp1dPricingObjectiveConfig<V> {
+    private fun pricingObjectiveConfig(solveConfig: Csp1dSolveConfig<V>): Csp1dPricingObjectiveConfig<V> {
         return Csp1dPricingObjectiveConfig(
-            planUsagePenalty = lengthConfig?.batchMinPenalty,
-            trimWidthPenalty = wasteConfig?.trimWidthPenalty,
-            restMaterialPenalty = wasteConfig?.restMaterialPenalty,
-            materialCostPenalty = wasteConfig?.materialCostPenalty ?: emptyMap()
+            planUsagePenalty = solveConfig.lengthConfig?.batchMinPenalty,
+            trimWidthPenalty = solveConfig.wasteConfig?.trimWidthPenalty,
+            restMaterialPenalty = solveConfig.wasteConfig?.restMaterialPenalty,
+            materialCostPenalty = solveConfig.wasteConfig?.materialCostPenalty ?: emptyMap()
         )
     }
+
+    private fun resolveSolveConfig(
+        problem: Csp1dProblem<V>,
+        solveConfig: Csp1dSolveConfig<V>?
+    ): Csp1dSolveConfig<V> {
+        val baseConfig = solveConfig ?: problem.solveConfig ?: Csp1dSolveConfig(
+            columnGeneration = problem.configuration
+        )
+        return baseConfig.copy(
+            yieldConfig = baseConfig.yieldConfig ?: yieldConfig,
+            wasteConfig = baseConfig.wasteConfig ?: wasteConfig,
+            lengthConfig = baseConfig.lengthConfig ?: lengthConfig
+        )
+    }
+
+    private suspend fun solveFinalMilp(
+        problem: Csp1dProblem<V>,
+        cuttingPlans: List<CuttingPlan<V>>,
+        solveConfig: Csp1dSolveConfig<V>
+    ): FinalMilpSolveResult<V> {
+        val result = try {
+            Csp1dMilpSolver(solver).solve(
+                input = ProduceInput(
+                    cuttingPlans = cuttingPlans,
+                    demands = problem.demands,
+                    materials = problem.materials,
+                    machines = problem.machines
+                ),
+                yieldConfig = solveConfig.yieldConfig,
+                wasteConfig = solveConfig.wasteConfig,
+                lengthConfig = solveConfig.lengthConfig
+            )
+        } catch (error: Exception) {
+            if (!solveConfig.allowPartialSolution) {
+                throw error
+            }
+            return FinalMilpSolveResult(
+                status = Csp1dFinalMilpStatus.Failed,
+                milpResult = null,
+                failureMessage = error.message ?: "Final MILP solve failed"
+            )
+        }
+
+        if (result != null) {
+            return FinalMilpSolveResult(
+                status = Csp1dFinalMilpStatus.Solved,
+                milpResult = result,
+                failureMessage = null
+            )
+        }
+
+        val failureMessage = "Final MILP returned no solution"
+        if (!solveConfig.allowPartialSolution) {
+            throw IllegalStateException(failureMessage)
+        }
+        return FinalMilpSolveResult(
+            status = Csp1dFinalMilpStatus.Failed,
+            milpResult = null,
+            failureMessage = failureMessage
+        )
+    }
+
+    private fun emptyProduce(problem: Csp1dProblem<V>): Produce<V> {
+        return Produce(
+            cuttingPlans = emptyList(),
+            materialUsages = emptyList(),
+            machineUsages = emptyList(),
+            unmetDemands = problem.demands
+        )
+    }
+
+    private data class FinalMilpSolveResult<V : RealNumber<V>>(
+        val status: Csp1dFinalMilpStatus,
+        val milpResult: Csp1dMilpSolver.MilpResult<V>?,
+        val failureMessage: String?
+    )
 }
 
 data class Csp1dColumnGenerationResult<V : RealNumber<V>>(

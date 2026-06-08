@@ -1,0 +1,106 @@
+# ospf-kotlin-framework-csp1d
+
+[English](README.md)
+
+`ospf-kotlin-framework-csp1d` 是可复用的一维分切开发包。它只沉淀通用 CSP1D 内核；下游请求 DTO、公式语言、项目运行参数、租户上下文、心跳逻辑和 solver 插件选择留给业务适配层。
+
+## 边界
+
+当前 public 模型只覆盖 `csp1d-domain-material-context` 已表达的实体：
+
+- `Product`、`ProductDemand`、`Production`
+- `Costar`
+- `Material`、`Machine`
+- `CuttingPlanSlice`、`CuttingPlan`
+- 需求贡献、render DTO，以及当前已经接入的 yield、waste、length assignment 增强上下文
+
+POIT 特有的缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、业务 DTO 协议和公式语言暂不在 framework 中建模；只有当它们先成为通用领域实体后，才进入本包。
+
+## 基本使用
+
+可以直接构造 `Csp1dProblem<V>`，也可以使用 builder DSL：
+
+```kotlin
+val problem = csp1dProblem<Flt64> {
+    products(products)
+    material(material)
+    demands(demands)
+    configuration(
+        Csp1dConfiguration(
+            maxInitialPlans = 64,
+            maxPricingPlans = 16,
+            iterationLimit = 8
+        )
+    )
+    solveConfig {
+        columnGeneration(
+            maxInitialPlans = 128,
+            maxPricingPlans = 32,
+            iterationLimit = 16
+        )
+        lengthConfig(lengthConfig)
+        wasteConfig(wasteConfig)
+        topKPlanLimit(10)
+        allowPartialSolution(true)
+    }
+}
+```
+
+普通 MILP 使用 `Csp1dMilp`，列生成使用 `Csp1dColumnGeneration`：
+
+```kotlin
+val milpSolution = Csp1dMilp<Flt64>(solver).solve(problem)
+val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
+```
+
+`solveConfig` 可以作为 `solve(...)` 参数显式传入，也可以挂在 `problem.solveConfig`，还可以从 solver 入口构造参数提供默认增强配置。显式方法参数优先级最高。
+
+## 输出
+
+`Csp1dSolution<V>` 包含：
+
+- `produce`：选中方案、物料使用、设备产能使用和未满足需求
+- `generatedPlans`：最终进入 MILP 的方案池
+- `kpi`：选中方案数、车次数、满足/未满足需求数、使用条目数、生成方案数、Top-K 数量和增强结果计数
+- `render`：面向 UI 或序列化的稳定 DTO 边界
+- `status`：`Feasible`、`Partial`、`NoInitialPlans` 或 `Failed`
+- `failureMessage`：可用时回填失败原因
+- `topPlans`：可选 Top-K 方案列表
+
+`Csp1dColumnGenerationTrace` 记录终止原因、每轮 LP 目标值、新增定价方案数、初始生成统计、最终 MILP 状态、是否存在部分结果和失败信息。
+
+## 生成语义
+
+generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告和 `GenerationConstraints.parallelism` 按物料协程并行开关。
+
+`Costar` 是余宽 filler。它可以出现在切片和 render 输出中，但不会产生 demand contribution。
+
+动态长度产品在生成阶段构造需求贡献时，固定长度产品优先使用产品长度，动态长度产品在物料长度可用时使用物料长度兜底。最终卷长分配仍由 length assignment MILP 上下文负责。
+
+## Demo
+
+framework 示例位于：
+
+`ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3`
+
+该示例使用 `Csp1dProblem<Flt64>`、framework 生成器、`ReducedCostPricingGenerator` 和 `Csp1dColumnGeneration`，不再维护示例侧手写 RMP/SP 模型。
+
+## 本地验证
+
+CSP1D 窄测试：
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+Gurobi profile 编译门禁：
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application -Pgurobi-cg-test -DskipTests test-compile
+```
+
+demo3 编译门禁：
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-infrastructure,.\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application,.\ospf-kotlin-starters\ospf-kotlin-starter-csp1d,.\ospf-kotlin-example "-Dexample.source.directory=src/main/fuookami/ospf/kotlin/example/framework_demo/demo3" -DskipTests compile
+```

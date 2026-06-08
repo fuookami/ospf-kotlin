@@ -23,6 +23,11 @@
             <artifactId>ospf-kotlin-framework-csp1d-domain-material-context</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>${kotlinx-coroutines.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
