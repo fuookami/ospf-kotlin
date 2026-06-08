@@ -9,9 +9,9 @@
 
 1. 已完成竖直圆柱、X/Z 轴对齐横向圆柱固定/离散半径 generated path、known-coordinate final path 和 renderer path 的主要生产闭环。
 2. 已完成 shape metadata、CSV/Gurobi、program demand、material packing、depth boundary、final geometry、renderer metadata、README 和边界脚本的基础收口。
-3. 已完成连续半径生产入口和 Gurobi CSV 连续半径 key guard，连续半径元数据不会静默降级为固定半径生产。
+3. 已完成连续半径生产入口、circle-packing 候选生成入口和 Gurobi CSV 连续半径 key guard，连续半径元数据不会静默降级为固定半径生产。
 4. 已开放横向圆柱贴地、单个全长长方体支撑、同类重复多支撑和异构多支撑区间覆盖的 3D stacking 检查，以及保守的 generated supported-stack 子集。
-5. 已补齐 focused tests、application adapter、触发式 Gurobi focused、Gurobi dataset suite、final renderer guard 正负例验证与边界脚本门禁，固定连续半径 guard、横向圆柱 generated provenance、单支撑/同类重复/异构多支撑覆盖边界和 partial-support fallback 拒绝边界。
+5. 已补齐 focused tests、application adapter、触发式 Gurobi focused、Gurobi dataset suite、final renderer guard 正负例验证与边界脚本门禁，固定连续半径 guard、横向圆柱 generated provenance、X/Z 单支撑/同类重复/异构多支撑覆盖边界、底部圆柱支撑拒绝和 partial-support fallback 拒绝边界。
 
 ## 2. 总目标与能力边界
 
@@ -26,7 +26,7 @@
 3. 固定半径/离散半径 `Axis3.X` / `Axis3.Z` 轴对齐横向圆柱支持 axis-aware circle-packing grid generated candidate path、保守的 full-length cuboid supported-stack generated candidate path、同类长方体重复多支撑轴向覆盖 generated candidate path，以及异构长方体多支撑轴向覆盖 generated candidate path。
 4. 已知坐标 final packing / renderer path 支持通过真实几何和支撑校验的 `Axis3.X` / `Axis3.Z` 轴对齐横向圆柱。
 5. 横向圆柱 3D stacking 支持贴地、单个全长长方体支撑、同类重复多支撑和异构多支撑区间覆盖子集；generated supported-stack 仅开放可验证的保守长方体支撑子集；无坐标 hanging、径向局部支撑和底部圆柱支撑仍不开放。
-6. 连续半径优化尚未开放；`radiusWeightFunctionKey`、CSV `radius_weight_function_key` 和连续半径生产入口必须保持 guarded，不得静默降级为固定半径或离散半径。
+6. 连续半径优化尚未开放；`radiusWeightFunctionKey`、CSV `radius_weight_function_key`、连续半径生产入口和 circle-packing 候选生成入口必须保持 guarded，不得静默降级为固定半径或离散半径。
 7. CSV、application DTO、program demand、material packing 和 renderer 只能传递已定义的 shape metadata，不能绕过 generated candidate provenance、known-coordinate final geometry 或 cuboid-only contract。
 
 ### 2.3 后续必要能力
@@ -43,15 +43,15 @@
 
 ## 3. 剩余工作量
 
-距离总目标仍约剩余 23%-27% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
+距离总目标仍约剩余 21%-25% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
 
 1. solver-native 连续半径变量、目标函数和 final actual-radius 闭环。
-2. 横向圆柱 generated stacking/hanging 自动支撑从保守长方体 supported-stack 子集扩展到可验证 hanging 和更完整失败场景闭环；supported-stack solver 触发 focused、dataset suite、final renderer 多支撑与 partial-support fallback 拒绝已覆盖。
+2. 横向圆柱 generated stacking/hanging 自动支撑从保守长方体 supported-stack 子集扩展到可验证 hanging；X/Z supported-stack focused、dataset suite、final renderer 多支撑、底部圆柱支撑拒绝与 partial-support fallback 拒绝已覆盖。
 3. 旧 cuboid-only 兼容层的迁移、第一批删除、调用点门禁和最小保留清单收敛。
 
 ## 4. 后续扩大收口事项
 
-后续扩大为“连续半径生产开放 + 横向圆柱自动支撑扩展 + cuboid-only 兼容层第一批删除 + dataset/renderer 验收”的大收口轮，目标是在一次迭代内把剩余工作压到约 10%-15%。后续不只做审计和 guard，而是优先交付可生产开放的闭环；只有当 solver、几何、支撑、renderer、CSV/Gurobi 和测试无法同时闭合时，才继续保留 shared guard/unsupported contract。
+后续继续按“连续半径生产开放 + 可验证 hanging 子集 + cuboid-only 兼容层第一批删除 + dataset/renderer 验收”的大收口轮推进，目标是在一次迭代内把剩余工作压到约 10%-15%。后续不只做审计和 guard，而是优先交付可生产开放的闭环；只有当 solver、几何、支撑、renderer、CSV/Gurobi 和测试无法同时闭合时，才继续保留 shared guard/unsupported contract。
 
 ### 4.1 完全泛型化收口
 
@@ -68,12 +68,12 @@
 2. 打通固定半径、离散半径、连续半径三类 radius metadata 的互斥和优先级协议，统一 application DTO、CSV、program demand 和 material packing 的解释。
 3. 将 solver 选出的 final actual radius 带入 final validation、renderer `actualVolume`、packing snapshot、Gurobi result 和 dataset suite。
 4. 至少开放一个连续半径生产子集，优先覆盖 `Axis3.Y` 竖直圆柱；若横向连续半径能完整闭环，则同步开放 `Axis3.X` / `Axis3.Z` 子集。
-5. 补齐连续半径 positive/negative tests，覆盖合法目标函数、非法区间、重复/冲突 metadata、缺失 solver 支持、禁止静默离散替代和 renderer volume 回写。
+5. 补齐连续半径 positive/negative tests，覆盖合法目标函数、非法区间、重复/冲突 metadata、缺失 solver 支持、禁止静默离散替代、circle-packing 入口 guard 和 renderer volume 回写。
 6. 将 Gurobi CSV `radius_weight_function_key` 从单纯 guard 推进到可触发生产的字段；若仍无法开放，保留 guard，并把阻断点、缺失 solver 合同和下一轮最小实现写入本文档。
 
 ### 4.3 横向圆柱 stacking/hanging 自动支撑闭环
 
-1. 将已开放的保守单支撑、同类重复多支撑和异构多支撑 generated supported-stack 从当前 focused/dataset/final-renderer 正例和 partial-support fallback 负例扩展到更多 solver/dataset 失败场景验收。
+1. 保持已开放的 X/Z 保守单支撑、同类重复多支撑和异构多支撑 generated supported-stack focused/dataset/final-renderer 正例，以及底部圆柱支撑和 partial-support fallback 负例验收。
 2. 定义并实现可验证 hanging 子集，优先支持由真实坐标、真实支撑线/支撑区间和明确 provenance 表达的 generated/final path。
 3. 保持无坐标 hanging 面积入口、局部支撑、底部圆柱支撑和混轴同层生成 guarded，除非本轮能用完整几何和支撑线语义闭环。
 4. 将自动支撑结果接入 layer placement、final validation、renderer fixture、Gurobi CSV/dataset suite 和 application focused tests。
@@ -83,7 +83,7 @@
 ### 4.4 Gurobi、renderer 与文档收口
 
 1. 扩展触发式 Gurobi suite，覆盖连续半径、横向自动支撑、program/material metadata、shape-generic DTO 和 final validation 失败场景。
-2. 新增或更新 Gurobi dataset 样例，继续覆盖 continuous radius、horizontal hanging guard、mixed cuboid/cylinder、unsupported metadata 和 supported-stack 失败场景；horizontal multi-support supported-stack 正例已覆盖。
+2. 新增或更新 Gurobi dataset 样例，继续覆盖 continuous radius、horizontal hanging guard、mixed cuboid/cylinder、unsupported metadata 和 supported-stack 失败场景；X/Z horizontal multi-support supported-stack 正例已覆盖。
 3. 保持 Gurobi 环境不可用时的 skip/trigger 语义，并提供非 Gurobi focused fallback。
 4. 若 renderer DTO、fixture、adapter 或显示语义发生变化，同步外部 renderer build/typecheck/Rust/视觉验收；若仅新增 fixture，也必须验证 schema 与 actualVolume。
 5. 同步 README、README_ch 和本文档，确保生产矩阵、unsupported 矩阵、CSV/Gurobi 协议、shape-generic 边界、cuboid-only 删除清单和验收入口一致。
@@ -93,7 +93,7 @@
 1. 先做兼容层和生产入口审计，立即拆出可删除清单、必须保留清单和会阻塞连续半径/自动支撑的调用点。
 2. 第一批迁移并删除低风险 cuboid-only 兼容入口，同时继续收紧脚本 allowlist，防止后续改动回流；`placement2Of` 泛型工厂已进入调用点门禁。
 3. 实现连续半径 solver/DTO/final/renderer 生产合同，优先开放竖直圆柱连续半径；能闭环时同步开放横向圆柱连续半径。
-4. 将横向圆柱 generated supported-stack 的单支撑、同类重复多支撑和异构多支撑补齐更多 solver/dataset 失败场景验收，并尝试开放可验证 hanging 子集。
+4. 保持横向圆柱 generated supported-stack 的 X/Z 单支撑、同类重复多支撑和异构多支撑验收，并优先尝试开放可验证 hanging 子集。
 5. 扩展 application、CSV/Gurobi、program/material packing、final validation、renderer fixture、dataset suite 和 negative tests。
 6. 对不能完整开放的连续半径或 hanging 子能力，统一沉淀 shared guard、错误信息、negative tests、脚本门禁和阻断记录。
 7. 更新 README、README_ch、refactor.md、生产矩阵、unsupported 矩阵、CSV/Gurobi 协议和兼容层删除清单。
@@ -128,8 +128,8 @@
 1. 已开放的 `Axis3.Y`、`Axis3.X`、`Axis3.Z` 轴对齐圆柱生产路径不回退。
 2. 完全泛型化必须完成第一批 cuboid-only 兼容层删除，并具备最小保留清单、调用方清单、脚本 allowlist、保留原因和后续删除条件。
 3. 连续半径优化若开放，必须至少开放一个生产子集，并同时具备 solver 变量、目标函数、final actual radius、renderer `actualVolume`、CSV/application DTO、Gurobi suite 和文档闭环。
-4. 连续半径优化若未能开放，必须保持 guard、negative tests 和脚本门禁，明确记录阻断点，不能静默降级为固定半径或离散半径。
-5. 横向圆柱 generated stacking 必须继续覆盖单支撑、同类重复多支撑和异构多支撑；若 hanging 开放，必须同时具备真实几何、支撑线/支撑区间、solver、renderer 和测试闭环。
+4. 连续半径优化若未能开放，必须保持 package production、circle-packing candidate、CSV/Gurobi guard、negative tests 和脚本门禁，明确记录阻断点，不能静默降级为固定半径或离散半径。
+5. 横向圆柱 generated stacking 必须继续覆盖 X/Z 单支撑、同类重复多支撑和异构多支撑；若 hanging 开放，必须同时具备真实几何、支撑线/支撑区间、solver、renderer 和测试闭环。
 6. 横向圆柱无坐标 hanging、局部支撑、底部圆柱支撑和混轴同层生成必须明确拒绝或保持 guarded；已开放的 supported-stack/hanging 不得绕过 generated provenance guard。
 7. final MILP 后的 same-layer axis、depth boundary、real geometry、outside bin、overlap、actual radius 和横向圆柱支撑校验不可绕过。
 8. CSV、application、generic DTO、program demand、material packing、Gurobi result 和 renderer/final packing 的 shape metadata 解释一致。

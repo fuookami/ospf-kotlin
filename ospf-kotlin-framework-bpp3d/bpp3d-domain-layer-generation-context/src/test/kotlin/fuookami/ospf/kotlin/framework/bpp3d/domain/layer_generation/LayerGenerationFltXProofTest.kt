@@ -1318,6 +1318,209 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun circlePackingLayerGeneratorShouldGenerateZAxisHorizontalCylinderSupportedStackVariants() = runBlocking {
+        val singleSupport = cuboidItem(
+            id = "item-circle-horizontal-z-stack-support",
+            widthValue = 1.0,
+            heightValue = 0.2,
+            depthValue = 1.2
+        )
+        val singleCylinder = cylinderItem(
+            id = "item-circle-horizontal-z-stack-cylinder",
+            axis = Axis3.Z,
+            radiusValue = 0.5
+        )
+        val singleBin = BinType(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-STACK"
+        )
+        val singleGenerated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = singleBin,
+                items = listOf(singleSupport, singleCylinder),
+                maxCandidates = 12
+            )
+        )
+        val singleStack = singleGenerated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-axis=z"
+        }
+        assertEquals(2, singleStack.layer.units.size)
+        assertStackedLayerGeometry(singleStack.layer)
+
+        val multiSupport = cuboidItem(
+            id = "item-circle-horizontal-z-stack-multi-support",
+            widthValue = 1.0,
+            heightValue = 0.2,
+            depthValue = 0.4
+        )
+        val multiCylinder = cylinderItem(
+            id = "item-circle-horizontal-z-stack-multi-cylinder",
+            axis = Axis3.Z,
+            radiusValue = 0.5
+        )
+        val multiBin = BinType(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.2) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-MULTI-STACK"
+        )
+        val multiGenerated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = multiBin,
+                items = listOf(multiSupport, multiCylinder),
+                maxCandidates = 12
+            )
+        )
+        val multiStack = multiGenerated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-multi-axis=z"
+        }
+        assertEquals(4, multiStack.layer.units.size)
+        assertStackedLayerGeometry(multiStack.layer)
+
+        val heterogeneousSupportA = cuboidItem(
+            id = "item-circle-horizontal-z-stack-heterogeneous-support-a",
+            widthValue = 1.0,
+            heightValue = 0.2,
+            depthValue = 0.4
+        )
+        val heterogeneousSupportB = cuboidItem(
+            id = "item-circle-horizontal-z-stack-heterogeneous-support-b",
+            widthValue = 1.0,
+            heightValue = 0.2,
+            depthValue = 0.6
+        )
+        val heterogeneousCylinder = cylinderItem(
+            id = "item-circle-horizontal-z-stack-heterogeneous-cylinder",
+            axis = Axis3.Z,
+            radiusValue = 0.5
+        )
+        val heterogeneousGenerated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = multiBin,
+                items = listOf(heterogeneousSupportA, heterogeneousSupportB, heterogeneousCylinder),
+                maxCandidates = 16
+            )
+        )
+        val heterogeneousStack = heterogeneousGenerated.first { result ->
+            result.source == "circle-packing-horizontal-supported-stack-heterogeneous-axis=z"
+        }
+        assertEquals(3, heterogeneousStack.layer.units.size)
+        assertStackedLayerGeometry(heterogeneousStack.layer)
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldRejectCylinderBottomSupportForHorizontalCylinderStack() = runBlocking {
+        val bottomCylinder = cylinderItem(
+            id = "item-circle-horizontal-stack-cylinder-support",
+            axis = Axis3.Y,
+            radiusValue = 0.5
+        )
+        val topCylinder = cylinderItem(
+            id = "item-circle-horizontal-stack-cylinder-bottom-top",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-CYLINDER-BOTTOM-STACK"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(bottomCylinder, topCylinder),
+                maxCandidates = 12
+            )
+        )
+
+        assertTrue(
+            generated.none { result ->
+                result.source == "circle-packing-horizontal-supported-stack-axis=x"
+                        || result.source == "circle-packing-horizontal-supported-stack-multi-axis=x"
+                        || result.source == "circle-packing-horizontal-supported-stack-heterogeneous-axis=x"
+            }
+        )
+    }
+
+    @Test
+    fun circlePackingLayerGeneratorShouldRejectContinuousRadiusWeightFunctionKey() = runBlocking {
+        val radius = infraScalar(0.5) * Meter
+        val weight = infraScalar(0.2) * Kilogram
+        val shape = PackageShape(
+            width = radius + radius,
+            height = infraScalar(1.0) * Meter,
+            depth = radius + radius,
+            weight = weight,
+            packageType = PackageType.CartonContainer
+        )
+        val pack = PackingProgram.innerPackage(
+            shape = shape,
+            materials = emptyMap()
+        )
+        val item = ActualItem(
+            id = "item-circle-continuous-radius-key",
+            name = "item-circle-continuous-radius-key",
+            width = pack.width,
+            height = pack.height,
+            depth = pack.depth,
+            weight = pack.weight,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-CIRCLE-CONTINUOUS-RADIUS-KEY"),
+            packageAttribute = defaultPackageAttribute(),
+            shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+                radius = radius,
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter,
+                radiusWeightFunctionKey = "prefer-large-radius"
+            )
+        )
+        val bin = BinType(
+            width = infraScalar(2.0) * Meter,
+            height = infraScalar(1.0) * Meter,
+            depth = infraScalar(2.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-CONTINUOUS-RADIUS-KEY"
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            CirclePackingLayerGenerator<InfraNumber>().generate(
+                Bpp3dLayerGenerationRequest(
+                    iteration = 0,
+                    bin = bin,
+                    items = listOf(item),
+                    maxCandidates = 4
+                )
+            )
+        }
+
+        assertTrue(error.message?.contains("continuous cylinder radius optimization") == true)
+        assertTrue(
+            error.message?.contains("CirclePackingLayerGenerator") == true,
+            error.message ?: "missing error message"
+        )
+    }
+
+    @Test
     fun circlePackingLayerGeneratorShouldPreserveCylinderItemIdentity() = runBlocking {
         val item = cylinderItem(
             id = "item-circle-axis-y",

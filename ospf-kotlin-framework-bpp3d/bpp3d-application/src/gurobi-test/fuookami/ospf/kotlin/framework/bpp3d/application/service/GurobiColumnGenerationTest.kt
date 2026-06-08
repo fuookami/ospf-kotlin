@@ -1653,6 +1653,34 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerHorizontalZMultiSupportSampleFileShouldGenerateSupportedStackSeedLayer() {
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-horizontal-z-multisupport-sample.csv")
+        val layer = scenario.initialColumns.single()
+
+        assertEquals(1, scenario.groupCount)
+        assertEquals(3, scenario.totalItemCount)
+        assertEquals(CirclePackingLayerGenerator::class, layer.from)
+        assertEquals(3, layer.units.size)
+        assertTrue(
+            layer.units.any { placement ->
+                val shape = placement.resolvedPackingShape() as? CylinderPackingShape3
+                shape?.axis == Axis3.Z
+            }
+        )
+        val supportIds = layer.units
+            .filter { placement -> placement.resolvedPackingShape() !is CylinderPackingShape3 }
+            .map { placement -> (placement.view.unit as ActualItem).id }
+            .toSet()
+        assertEquals(
+            setOf(
+                "item-horizontal-z-support-a",
+                "item-horizontal-z-support-b"
+            ),
+            supportIds
+        )
+    }
+
+    @Test
     fun groupedLayerCsvShouldRejectPartialHorizontalSupportFallback() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis,width_meter,height_meter,depth_meter

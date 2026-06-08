@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireDiscreteCylinderRadiusProductionMetadata
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireAxisAwareCylinderCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireUprightVerticalCylinderSupport
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
@@ -638,6 +639,7 @@ private fun circlePackingItemCandidates(
     if (bin != null && (item.weight leq bin.capacity) != true) {
         return emptyList()
     }
+    requireDiscreteCirclePackingRadiusMetadata(item)
     return when (val shape = item.packingShape) {
         is CylinderPackingShape3 -> {
             if (!item.enabledOrientations.contains(Orientation.Upright)) {
@@ -667,6 +669,15 @@ private fun circlePackingItemCandidates(
             val orientation = pickOrientation(item, bin) ?: return emptyList()
             listOf(CirclePackingItemCandidate(view = item.view(orientation)))
         }
+    }
+}
+
+private fun requireDiscreteCirclePackingRadiusMetadata(item: Item) {
+    item.packingShapeSpec?.let { spec ->
+        requireDiscreteCylinderRadiusProductionMetadata(
+            spec = spec,
+            source = CylinderCapabilityPath.CirclePackingCandidate.source
+        )
     }
 }
 
@@ -1056,6 +1067,9 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
     if (binWidth <= 0.0 || binDepth <= 0.0) {
         return emptyList()
     }
+    for (item in request.items) {
+        requireDiscreteCirclePackingRadiusMetadata(item)
+    }
 
     val candidates = ArrayList<CirclePackingLayerCandidate>()
     val items = request.items
@@ -1064,6 +1078,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         }
         .distinct()
     for (item in items) {
+        requireDiscreteCirclePackingRadiusMetadata(item)
         for (candidate in circlePackingItemCandidates(item, request.bin)) {
             val itemView = candidate.view
             val candidateShape = itemView.placementPackingShape as? CylinderPackingShape3
@@ -1464,6 +1479,7 @@ class CirclePackingLayerGenerator<V>(
     override suspend fun generate(request: Bpp3dLayerGenerationRequest<V>): List<Bpp3dLayerGenerationResult<V>> {
         return delegatedOrDefault(request, delegate) {
             for (item in it.items) {
+                requireDiscreteCirclePackingRadiusMetadata(item)
                 requireAxisAwareCylinderCandidate(
                     shape = item.packingShape,
                     path = CylinderCapabilityPath.CirclePackingCandidate

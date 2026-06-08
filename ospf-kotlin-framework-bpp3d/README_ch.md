@@ -22,7 +22,7 @@
 3. 横向圆柱必须贴在箱底，或由下方长方体支撑区间覆盖完整圆柱轴向；无支撑或局部支撑的横向圆柱会在最终校验和 3D stacking 支撑检查中被拒绝。
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
 5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
-6. 连续半径优化元数据在产出生产 `PackingShape3` 前会被拒绝；固定半径和离散半径候选仍保持支持。
+6. 连续半径优化元数据在产出生产 `PackingShape3` 前，以及 circle-packing 候选生成读取 `packingShape` 前都会被拒绝；固定半径和离散半径候选仍保持支持。
 7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
 
 当前仍未完成或未完全泛型化：
@@ -82,7 +82,7 @@
 
 grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack seed layer 可以验证单支撑、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
 
-动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。连续半径优化还不是生产能力；`radiusWeightFunctionKey` 元数据会在产出生产 `PackingShape3` 前被拒绝，CSV `radius_weight_function_key` 也会被 Gurobi dataset parser 拒绝，不能静默按固定半径求解。
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。连续半径优化还不是生产能力；`radiusWeightFunctionKey` 元数据会在产出生产 `PackingShape3` 前和 circle-packing 候选生成前被拒绝，CSV `radius_weight_function_key` 也会被 Gurobi dataset parser 拒绝，不能静默按固定半径求解。
 
 ### 深度边界层策略列
 
@@ -135,6 +135,8 @@ schema 门禁规则：
 1. `bpp3d-application/src/test/resources/gurobi/production-like-dataset.csv`
 2. `bpp3d-application/src/test/resources/gurobi/grouped-layer-cylinder-mixed-sample.csv`
 3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
+4. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-multisupport-sample.csv`
+5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
 
 ### 物料宽度数量 CSV
 

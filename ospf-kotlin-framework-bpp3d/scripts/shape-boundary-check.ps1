@@ -56,6 +56,7 @@ $fixHints = @{
     GurobiCsvDiscreteRadiusGuardMissing = "Gurobi CSV shape metadata parsing must reject continuous radius/diameter intervals unless a concrete fixed radius is provided."
     GurobiCsvContinuousRadiusKeyGuardMissing = "Gurobi CSV shape metadata parsing must reject radius_weight_function_key until continuous radius variables and final actual-radius validation are implemented."
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must reject radiusWeightFunctionKey production use until continuous radius variables and final actual-radius validation are implemented."
+    ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must reject radiusWeightFunctionKey before generating candidates until continuous radius variables and final actual-radius validation are implemented."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
@@ -437,6 +438,12 @@ Add-RequiredPatternViolation `
     -MissingText "PackageShape.toPackingShapeOrNull must reject continuous radius optimization metadata before emitting production PackingShape3."
 
 $layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusLayerGenerationGuardMissing" `
+    -FilePath $layerGenerationContextPath `
+    -Pattern "requireDiscreteCirclePackingRadiusMetadata\s*\([\s\S]*?requireDiscreteCylinderRadiusProductionMetadata\s*\([\s\S]*?source\s*=\s*CylinderCapabilityPath\.CirclePackingCandidate\.source[\s\S]*?class\s+CirclePackingLayerGenerator[\s\S]*?requireDiscreteCirclePackingRadiusMetadata\s*\([\s\S]*?requireAxisAwareCylinderCandidate" `
+    -MissingText "CirclePackingLayerGenerator must reject continuous radius optimization metadata through the shared contract before reading item.packingShape."
+
 Add-RequiredPatternViolation `
     -Check "HorizontalCylinderGeneratedStackSupportGuardMissing" `
     -FilePath $layerGenerationContextPath `

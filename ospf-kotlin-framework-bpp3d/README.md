@@ -22,7 +22,7 @@ For the current MVP:
 3. Horizontal cylinders must be on the bin floor or have cuboid support intervals underneath that cover the full cylinder axis; unsupported or partially supported horizontal cylinders are rejected in final validation and in the 3D stacking support checker.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
-6. Continuous radius optimization metadata is rejected before producing a production `PackingShape3`; fixed and discrete radius candidates remain supported.
+6. Continuous radius optimization metadata is rejected before producing a production `PackingShape3` and before circle-packing candidate generation reads `packingShape`; fixed and discrete radius candidates remain supported.
 7. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
 
 Unsupported or not fully generalized yet:
@@ -82,7 +82,7 @@ For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_mi
 
 Grouped-layer Gurobi test datasets may use `width_meter`, `height_meter`, and `depth_meter` to express explicit item dimensions, so horizontal cylinder supported-stack seed layers can validate single, repeated, or heterogeneous cuboid support coverage without changing the material-width-amount `width` axis-length contract.
 
-Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. Continuous radius optimization is not a production capability yet; `radiusWeightFunctionKey` metadata is rejected before producing production `PackingShape3`, and CSV `radius_weight_function_key` is rejected by the Gurobi dataset parser, so it cannot silently run as a fixed-radius solve.
+Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. Continuous radius optimization is not a production capability yet; `radiusWeightFunctionKey` metadata is rejected before producing production `PackingShape3` and before circle-packing candidate generation, while CSV `radius_weight_function_key` is rejected by the Gurobi dataset parser, so it cannot silently run as a fixed-radius solve.
 
 ### Depth Boundary Layer Policy Columns
 
@@ -135,6 +135,8 @@ Sample files:
 1. `bpp3d-application/src/test/resources/gurobi/production-like-dataset.csv`
 2. `bpp3d-application/src/test/resources/gurobi/grouped-layer-cylinder-mixed-sample.csv`
 3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
+4. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-multisupport-sample.csv`
+5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
 
 ### Material-Width-Amount CSV
 
