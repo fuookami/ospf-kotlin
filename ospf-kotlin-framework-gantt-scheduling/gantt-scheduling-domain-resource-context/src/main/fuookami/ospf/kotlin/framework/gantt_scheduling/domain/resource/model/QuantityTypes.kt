@@ -14,10 +14,10 @@ typealias ResourceQuantityRange<V> = Quantity<ValueRange<V>>
 typealias ResourceCostQuantity<V> = Quantity<V>
 
 /** Flt64 资源数量物理量兼容类型 / Flt64 resource quantity compatibility type */
-typealias Flt64ResourceQuantity = ResourceQuantity<Flt64>
+@Deprecated("Use ResourceQuantity<Flt64> directly") typealias Flt64ResourceQuantity = ResourceQuantity<Flt64>
 
 /** Flt64 资源数量范围物理量兼容类型 / Flt64 resource quantity range compatibility type */
-typealias Flt64ResourceQuantityRange = ResourceQuantityRange<Flt64>
+@Deprecated("Use ResourceQuantityRange<Flt64> directly") typealias Flt64ResourceQuantityRange = ResourceQuantityRange<Flt64>
 
 /** Flt64 资源成本物理量兼容类型 / Flt64 resource cost quantity compatibility type */
-typealias Flt64ResourceCostQuantity = ResourceCostQuantity<Flt64>
+@Deprecated("Use ResourceCostQuantity<Flt64> directly") typealias Flt64ResourceCostQuantity = ResourceCostQuantity<Flt64>

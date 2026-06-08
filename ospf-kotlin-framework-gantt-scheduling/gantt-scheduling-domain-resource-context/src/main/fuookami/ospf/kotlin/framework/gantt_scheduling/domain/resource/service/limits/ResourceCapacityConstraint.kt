@@ -55,7 +55,7 @@ class ResourceCapacityConstraint<
         V
         >(
     private val usage: ResourceUsage<S, R, C, V>,
-    private val quantity: Extractor<ValueRange<V>, S> = { it.resourceCapacity.quantity },
+    private val quantity: Extractor<ValueRange<V>, S> = { it.resourceCapacity.quantityRangeValue.value },
     private val withSlack: Boolean = true,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "${usage.name}_resource_capacity"
@@ -227,5 +227,4 @@ class ResourceCapacityConstraint<
         return ok
     }
 }
-
 

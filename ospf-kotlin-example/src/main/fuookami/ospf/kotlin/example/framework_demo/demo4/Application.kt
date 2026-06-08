@@ -79,10 +79,10 @@ object Demo4GenericQuantitySample {
         items = listOf(
             CostItem(
                 tag = "generic-demo",
-                value = FltX("1.25")
+                costQuantity = Quantity(FltX("1.25"), NoneUnit)
             )
         ),
-        constants = FltX
+        costSum = Quantity(FltX("1.25"), NoneUnit)
     )
 
     val quantityFieldCost = Cost(
@@ -194,6 +194,16 @@ object Demo4GenericQuantitySample {
     ).apply {
         makespan = LinearExpressionSymbol(Flt64(4.0), name = "demo4_makespan")
     }.quantity(
+        model = solverModel,
+        adapter = solverAdapter
+    )
+    val overMaxDelayTimeQuantity = taskTime.overMaxDelayTimeQuantity(
+        task = Demo4Task(id = "task-time", name = "task-time"),
+        model = solverModel,
+        adapter = solverAdapter
+    )
+    val overMaxAdvanceTimeQuantity = taskTime.overMaxAdvanceTimeQuantity(
+        task = Demo4Task(id = "task-time", name = "task-time"),
         model = solverModel,
         adapter = solverAdapter
     )

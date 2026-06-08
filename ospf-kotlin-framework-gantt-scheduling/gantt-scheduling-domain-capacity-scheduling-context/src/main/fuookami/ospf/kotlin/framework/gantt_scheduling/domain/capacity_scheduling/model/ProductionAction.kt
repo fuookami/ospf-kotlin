@@ -124,6 +124,10 @@ interface ProductionAction {
      * @param timeWindow Time window / 时间窗口
      * @return Unit capacity as V / 单位产能 (V)
      */
+    @Deprecated(
+        message = "Use the Quantity-typed method instead",
+        replaceWith = ReplaceWith("unitCapacityQuantity(timeWindow).value")
+    )
     fun <V : RealNumber<V>> unitCapacityV(timeWindow: TimeWindow<V>): V {
         val result = unitCapacity(timeWindow.asFlt64TimeWindow())
         return timeWindow.fromDouble(result.toDouble())
@@ -143,6 +147,10 @@ interface ProductionAction {
      * @param fromDouble Double 到 V 的转换函数 / Double to V converter
      * @return Unit cost as V / 单位成本 (V)
      */
+    @Deprecated(
+        message = "Use the Quantity-typed method instead",
+        replaceWith = ReplaceWith("unitCostQuantity(time, fromDouble).value")
+    )
     fun <V : RealNumber<V>> unitCostV(time: Instant, fromDouble: (Double) -> V): V {
         return fromDouble(unitCost(time).toDouble())
     }

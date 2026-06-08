@@ -64,7 +64,7 @@ class ConsumptionQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq reserve.quantity.upperBound.value.unwrap().toFlt64(),
+                                polyX leq reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                                 name = "${name}_ub_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
@@ -83,7 +83,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap().toFlt64(),
+                            consumption.quantity[material] leq reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                             name = "${name}_ub_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
@@ -101,7 +101,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] leq reserve.quantity.upperBound.value.unwrap().toFlt64(),
+                    consumption.quantity[material] leq reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                     name = "${name}_ub_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
@@ -122,7 +122,7 @@ class ConsumptionQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq reserve.quantity.lowerBound.value.unwrap().toFlt64(),
+                                polyX geq reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                                 name = "${name}_lb_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
@@ -141,7 +141,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap().toFlt64(),
+                            consumption.quantity[material] geq reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                             name = "${name}_lb_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
@@ -159,7 +159,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] geq reserve.quantity.lowerBound.value.unwrap().toFlt64(),
+                    consumption.quantity[material] geq reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                     name = "${name}_lb_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {

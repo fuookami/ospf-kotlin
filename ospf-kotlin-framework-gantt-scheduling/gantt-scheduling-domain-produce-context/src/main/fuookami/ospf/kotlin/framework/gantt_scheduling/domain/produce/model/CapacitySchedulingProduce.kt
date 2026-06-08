@@ -60,10 +60,10 @@ abstract class CapacitySchedulingProduce<
     init {
         for ((product, demand) in products) {
             if (demand != null) {
-                val lowerBound = demand.quantity.lowerBound.value.unwrap().toFlt64() -
-                        (demand.lessQuantity?.toFlt64() ?: Flt64.zero)
-                val upperBound = demand.quantity.upperBound.value.unwrap().toFlt64() +
-                        (demand.overQuantity?.toFlt64() ?: Flt64.zero)
+                val lowerBound = demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() -
+                        (demand.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero)
+                val upperBound = demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() +
+                        (demand.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
                 quantity[product].range.set(
                     ValueRange(
                         lowerBound,

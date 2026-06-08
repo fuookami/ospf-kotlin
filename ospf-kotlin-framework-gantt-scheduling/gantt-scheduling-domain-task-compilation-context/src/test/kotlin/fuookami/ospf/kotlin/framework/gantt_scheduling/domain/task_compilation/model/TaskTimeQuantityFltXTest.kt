@@ -106,6 +106,27 @@ class TaskTimeQuantityFltXTest {
         assertEquals(NoneUnit, quantity!!.unit)
         assertTrue(quantity.value eq FltX("4.5"))
     }
+
+    @Test
+    fun taskTimeShouldExposeOverMaxDelayAndAdvanceFltXQuantities() {
+        val taskTime = OverMaxConstantTaskTime()
+
+        val overMaxDelay = taskTime.overMaxDelayTimeQuantity(
+            task = task,
+            model = model,
+            adapter = adapter
+        )
+        val overMaxAdvance = taskTime.overMaxAdvanceTimeQuantity(
+            task = task,
+            model = model,
+            adapter = adapter
+        )
+
+        assertEquals(NoneUnit, overMaxDelay!!.unit)
+        assertTrue(overMaxDelay.value eq FltX("1.5"))
+        assertEquals(NoneUnit, overMaxAdvance!!.unit)
+        assertTrue(overMaxAdvance.value eq FltX("2.5"))
+    }
 }
 
 private data class QuantityTask(
@@ -135,6 +156,41 @@ private class ConstantTaskTime : TaskTime {
     override val advanceEarliestEndTime = constantSymbols("advance_earliest_end_time", Flt64(1.75))
     override val onTime = constantSymbols("on_time", Flt64.one)
     override val notOnTime = constantSymbols("not_on_time", Flt64.zero)
+
+    override fun register(model: MetaModel<Flt64>): Try {
+        return ok
+    }
+
+    private fun constantSymbols(
+        name: String,
+        value: Flt64
+    ): LinearIntermediateSymbols1<Flt64> {
+        return LinearIntermediateSymbols1(
+            name = name,
+            shape = Shape1(1)
+        ) { _, _ ->
+            LinearExpressionSymbol(value, name = name)
+        }
+    }
+}
+
+private class OverMaxConstantTaskTime : TaskTime {
+    override val delayEnabled: Boolean = true
+    override val overMaxDelayEnabled: Boolean = true
+    override val advanceEnabled: Boolean = true
+    override val overMaxAdvanceEnabled: Boolean = true
+    override val delayLastEndTimeEnabled: Boolean = false
+    override val advanceEarliestEndTimeEnabled: Boolean = false
+    override val estimateStartTime = constantSymbols("om_estimate_start_time", Flt64(1.0))
+    override val estimateEndTime = constantSymbols("om_estimate_end_time", Flt64(3.0))
+    override val delayTime = constantSymbols("om_delay_time", Flt64.zero)
+    override val advanceTime = constantSymbols("om_advance_time", Flt64.zero)
+    override val overMaxDelayTime = constantSymbols("om_over_max_delay_time", Flt64(1.5))
+    override val overMaxAdvanceTime = constantSymbols("om_over_max_advance_time", Flt64(2.5))
+    override val delayLastEndTime = constantSymbols("om_delay_last_end_time", Flt64.zero)
+    override val advanceEarliestEndTime = constantSymbols("om_advance_earliest_end_time", Flt64.zero)
+    override val onTime = constantSymbols("om_on_time", Flt64.one)
+    override val notOnTime = constantSymbols("om_not_on_time", Flt64.zero)
 
     override fun register(model: MetaModel<Flt64>): Try {
         return ok

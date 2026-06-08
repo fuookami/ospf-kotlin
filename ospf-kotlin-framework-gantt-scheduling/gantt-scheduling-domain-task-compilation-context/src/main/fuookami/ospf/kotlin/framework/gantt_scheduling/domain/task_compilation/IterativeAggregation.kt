@@ -360,7 +360,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
                     if (token.variable.belongsTo(xi)) {
                         val task = tasksIteration[i.toInt()][token.variable.index]
-                        logger.debug { "${task.executor} cost: ${policy.cost(task).sum!!}" }
+                        logger.debug { "${task.executor} cost: ${policy.cost(task).costSum!!.value}" }
                         break
                     }
                 }
@@ -560,6 +560,5 @@ open class IterativeTaskCompilationAggregationWithTime<
         return Ok(unduplicatedBunches)
     }
 }
-
 
 

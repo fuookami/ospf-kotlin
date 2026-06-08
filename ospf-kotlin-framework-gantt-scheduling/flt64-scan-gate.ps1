@@ -104,7 +104,7 @@ function Get-Flt64Category {
         return "Import/Comment"
     }
 
-    if ($line -match "^typealias\s+.*Flt64") {
+    if ($line -match "^(typealias\s+.*Flt64|@Deprecated.*typealias\s+.*Flt64)") {
         return "Compat Wrapper"
     }
 

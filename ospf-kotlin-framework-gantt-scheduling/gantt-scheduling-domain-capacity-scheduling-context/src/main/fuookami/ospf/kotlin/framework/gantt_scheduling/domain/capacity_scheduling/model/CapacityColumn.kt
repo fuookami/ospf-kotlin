@@ -33,6 +33,10 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
     val allocations: Map<A, UInt64>,
     val columnCost: CapacityCostQuantity<V>
 ) {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("CapacityColumn(executor, slotIndex, order, allocations, Quantity(cost, NoneUnit))")
+    )
     constructor(
         executor: E,
         slotIndex: Int,
@@ -48,6 +52,10 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
     )
 
     /** 列成本裸值兼容属性 / Raw column cost compatibility property */
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("columnCost.value")
+    )
     val cost: V get() = columnCost.value
 
     /**
@@ -85,4 +93,4 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
 
 // ── Flt64 向后兼容 typealias ──
 
-typealias Flt64CapacityColumn<E, A> = CapacityColumn<E, A, Flt64>
+@Deprecated("Use CapacityColumn<E, A, Flt64> directly") typealias Flt64CapacityColumn<E, A> = CapacityColumn<E, A, Flt64>

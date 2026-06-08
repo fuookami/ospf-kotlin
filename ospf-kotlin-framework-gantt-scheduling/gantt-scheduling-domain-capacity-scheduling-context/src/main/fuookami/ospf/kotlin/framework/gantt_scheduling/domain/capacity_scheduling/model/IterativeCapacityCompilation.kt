@@ -442,7 +442,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                     if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
                         continue
                     }
-                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(column.cost.toFlt64(), executorVar[iterIdx, colIdx])
+                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(column.columnCost.value.toFlt64(), executorVar[iterIdx, colIdx])
                 }
             }
         }

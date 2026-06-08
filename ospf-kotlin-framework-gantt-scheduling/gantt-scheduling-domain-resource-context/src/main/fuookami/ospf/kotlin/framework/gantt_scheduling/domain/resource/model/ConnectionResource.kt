@@ -43,6 +43,10 @@ abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
+    @Deprecated(
+        message = "Use initialQuantity(unit) returning Quantity instead",
+        replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
+    )
     override val initialQuantity: V = resourceQuantityZero(capacities)
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
@@ -51,11 +55,15 @@ abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
         time: TimeRange
     ): V
 
+    @Deprecated(
+        message = "Use usedQuantityQuantity returning Quantity instead",
+        replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
+    )
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
     ): V {
-        var counter = initialQuantity.constants.zero
+        var counter = initialQuantity().value.constants.zero
         for (i in bunch.tasks.indices) {
             counter += if (i == 0) {
                 usedBy(
@@ -351,15 +359,15 @@ class BunchSchedulingConnectionResourceUsage<
                 ) { s, _ ->
                     val slot = timeSlots[s]
                     LinearExpressionSymbol(
-                        constant = slot.resource.initialQuantity.toFlt64(),
+                        constant = slot.resource.initialQuantity().value.toFlt64(),
                         name = "${name}_quantity_${slot}"
                     )
                 }
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantity?.toFlt64() ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantity?.toFlt64() ?: Flt64.zero)
+                            slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero),
+                            slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
                         ).value!!
                     )
                 }
@@ -403,7 +411,7 @@ class BunchSchedulingConnectionResourceUsage<
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
                     quantity[slot].asMutable() += LinearMonomial(
-                        slot.resource.usedQuantity(bunch, slot.time).toFlt64(),
+                        slot.resource.usedQuantityQuantity(bunch, slot.time).value.toFlt64(),
                         xi[bunch]
                     )
                 }

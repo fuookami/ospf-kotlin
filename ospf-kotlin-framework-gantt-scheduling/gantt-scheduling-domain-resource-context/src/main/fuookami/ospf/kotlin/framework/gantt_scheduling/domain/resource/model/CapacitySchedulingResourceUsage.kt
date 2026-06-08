@@ -68,8 +68,8 @@ abstract class CapacitySchedulingResourceUsage<
         for (slot in timeSlots) {
             quantity[slot].range.set(
                 ValueRange(
-                    slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantity?.toFlt64() ?: Flt64.zero),
-                    slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantity?.toFlt64() ?: Flt64.zero)
+                    slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero),
+                    slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
                 ).value!!
             )
         }

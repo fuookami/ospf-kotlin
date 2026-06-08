@@ -10,7 +10,7 @@ typealias CapacityQuantity<V> = Quantity<V>
 typealias CapacityCostQuantity<V> = Quantity<V>
 
 /** Flt64 产能物理量兼容类型 / Flt64 capacity quantity compatibility type */
-typealias Flt64CapacityQuantity = CapacityQuantity<Flt64>
+@Deprecated("Use CapacityQuantity<Flt64> directly") typealias Flt64CapacityQuantity = CapacityQuantity<Flt64>
 
 /** Flt64 产能成本物理量兼容类型 / Flt64 capacity cost quantity compatibility type */
-typealias Flt64CapacityCostQuantity = CapacityCostQuantity<Flt64>
+@Deprecated("Use CapacityCostQuantity<Flt64> directly") typealias Flt64CapacityCostQuantity = CapacityCostQuantity<Flt64>

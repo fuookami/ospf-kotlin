@@ -292,6 +292,68 @@ interface TaskTime {
             unit = unit
         )
     }
+
+    /**
+     * 读取超最大延迟时间物理量 / Read over-max-delay time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 超最大延迟时间物理量 / Over-max-delay time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > overMaxDelayTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return overMaxDelayTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
+
+    /**
+     * 读取超最大提前时间物理量 / Read over-max-advance time as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param task 任务 / Task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 超最大提前时间物理量 / Over-max-advance time quantity
+     */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > overMaxAdvanceTimeQuantity(
+        task: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): TaskTimeQuantity<V>? {
+        return overMaxAdvanceTime[task].quantityOf(
+            model = model,
+            adapter = adapter,
+            unit = unit
+        )
+    }
 }
 
 private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.quantityOf(

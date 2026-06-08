@@ -47,10 +47,14 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
+    @Deprecated(
+        message = "Use initialQuantity(unit) returning Quantity instead",
+        replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
+    )
     override val initialQuantity: V = resourceQuantityZero(capacities)
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     open fun fixedCostIn(time: Duration): V {
-        return initialQuantity.constants.zero
+        return initialQuantity().value.constants.zero
     }
 
     open fun fixedCostIn(time: TimeRange): V {
@@ -71,7 +75,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     }
 
     open fun fixedSupplyIn(time: Duration): V {
-        return initialQuantity.constants.zero
+        return initialQuantity().value.constants.zero
     }
 
     open fun fixedSupplyIn(time: TimeRange): V {
@@ -102,7 +106,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
     ): V {
-        var sum = initialQuantity.constants.zero
+        var sum = initialQuantity().value.constants.zero
         for (i in bunch.tasks.indices) {
             sum += costBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
@@ -120,7 +124,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
     ): V {
-        var sum = initialQuantity.constants.zero
+        var sum = initialQuantity().value.constants.zero
         for (i in bunch.tasks.indices) {
             sum += supplyBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
@@ -134,6 +138,10 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
         return sum
     }
 
+    @Deprecated(
+        message = "Use usedQuantityQuantity returning Quantity instead",
+        replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
+    )
     override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
@@ -180,7 +188,7 @@ data class StorageResourceTimeSlot<
         return if (task != null) {
             supplyBy(task) - costBy(task)
         } else {
-            resource.initialQuantity.constants.zero
+            resource.initialQuantity().value.constants.zero
         }
     }
 
@@ -328,7 +336,7 @@ abstract class AbstractStorageResourceUsage<
                     val slot = timeSlots[s]
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
-                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity.toFlt64()) +
+                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity().value.toFlt64()) +
                         ((/* unchecked */ supply[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial() -
                         ((/* unchecked */ cost[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial()
                     LinearExpressionSymbol(
@@ -339,8 +347,8 @@ abstract class AbstractStorageResourceUsage<
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantity?.toFlt64() ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantity?.toFlt64() ?: Flt64.zero)
+                            slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero),
+                            slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
                         ).value!!
                     )
                 }
@@ -836,5 +844,3 @@ class BunchSchedulingStorageResourceUsage<
         return ok
     }
 }
-
-

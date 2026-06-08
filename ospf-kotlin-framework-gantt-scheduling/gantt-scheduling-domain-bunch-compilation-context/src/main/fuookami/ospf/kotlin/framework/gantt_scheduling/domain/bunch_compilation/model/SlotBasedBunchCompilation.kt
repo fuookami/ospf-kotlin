@@ -135,7 +135,7 @@ open class SlotBasedBunchCompilationV<
 }
 
 /** 向后兼容 typealias — Flt64 slot-based bunch compilation / Backward compat typealias */
-typealias SlotBasedBunchCompilation<B, T, E, A> = SlotBasedBunchCompilationV<B, Flt64, T, E, A>
+@Deprecated("Use SlotBasedBunchCompilationV<B, Flt64, T, E, A> directly") typealias SlotBasedBunchCompilation<B, T, E, A> = SlotBasedBunchCompilationV<B, Flt64, T, E, A>
 
 /** 向后兼容 typealias — Flt64 slot-based bunch compilation / Backward compat typealias */
-typealias Flt64SlotBasedBunchCompilation<B, T, E, A> = SlotBasedBunchCompilationV<B, Flt64, T, E, A>
+@Deprecated("Use SlotBasedBunchCompilationV<B, Flt64, T, E, A> directly") typealias Flt64SlotBasedBunchCompilation<B, T, E, A> = SlotBasedBunchCompilationV<B, Flt64, T, E, A>

@@ -64,7 +64,7 @@ class ProduceQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq demand.quantity.upperBound.value.unwrap().toFlt64(),
+                                polyX leq demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                                 name = "${name}_ub_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
@@ -83,7 +83,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] leq demand.quantity.upperBound.value.unwrap().toFlt64(),
+                            produce.quantity[product] leq demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                             name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
@@ -101,7 +101,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] leq demand.quantity.upperBound.value.unwrap().toFlt64(),
+                    produce.quantity[product] leq demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                     name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
@@ -122,7 +122,7 @@ class ProduceQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq demand.quantity.lowerBound.value.unwrap().toFlt64(),
+                                polyX geq demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                                 name = "${name}_lb_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
@@ -141,7 +141,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap().toFlt64(),
+                            produce.quantity[product] geq demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                             name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
@@ -159,7 +159,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] geq demand.quantity.lowerBound.value.unwrap().toFlt64(),
+                    produce.quantity[product] geq demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                     name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {

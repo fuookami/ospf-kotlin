@@ -34,6 +34,10 @@ data class CostItem<V : RealNumber<V>>(
     val costQuantity: CostQuantity<V>? = null,
     val message: String? = null
 ) : Copyable<CostItem<V>> {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("CostItem(tag, value?.let { Quantity(it, NoneUnit) }, message)")
+    )
     constructor(
         tag: String,
         value: V?,
@@ -44,6 +48,10 @@ data class CostItem<V : RealNumber<V>>(
         message = message
     )
 
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("costQuantity?.value")
+    )
     val value: V? get() = costQuantity?.value
     val valid get() = value != null
 
@@ -76,6 +84,10 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
             )
         }
 
+        @Deprecated(
+            message = "Use the Quantity-typed factory instead",
+            replaceWith = ReplaceWith("Cost(items, costSum)")
+        )
         operator fun <V : RealNumber<V>> invoke(
             items: List<CostItem<V>>,
             constants: RealNumberConstants<V>,
@@ -124,6 +136,10 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
 
     val items: List<CostItem<V>>
     val costSum: CostQuantity<V>?
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("costSum?.value")
+    )
     val sum: V? get() = costSum?.value
     val valid: Boolean get() = sum != null
 
@@ -178,6 +194,10 @@ class MutableCost<V : RealNumber<V>>(
         null
     }
 ) : Cost<V> {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("MutableCost(constants, items, sum?.let { Quantity(it, NoneUnit) })")
+    )
     constructor(
         constants: RealNumberConstants<V>,
         items: MutableList<CostItem<V>> = ArrayList(),
@@ -238,6 +258,10 @@ data class ImmutableCost<V : RealNumber<V>>(
         null
     }
 ) : Cost<V> {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("ImmutableCost(items, sum?.let { Quantity(it, NoneUnit) })")
+    )
     constructor(
         items: List<CostItem<V>>,
         sum: V?
@@ -256,7 +280,7 @@ data class ImmutableCost<V : RealNumber<V>>(
 
 // ── Flt64 向后兼容 typealias ──
 
-typealias Flt64CostItem = CostItem<Flt64>
-typealias Flt64Cost = Cost<Flt64>
-typealias Flt64MutableCost = MutableCost<Flt64>
-typealias Flt64ImmutableCost = ImmutableCost<Flt64>
+@Deprecated("Use CostItem<Flt64> directly") typealias Flt64CostItem = CostItem<Flt64>
+@Deprecated("Use Cost<Flt64> directly") typealias Flt64Cost = Cost<Flt64>
+@Deprecated("Use MutableCost<Flt64> directly") typealias Flt64MutableCost = MutableCost<Flt64>
+@Deprecated("Use ImmutableCost<Flt64> directly") typealias Flt64ImmutableCost = ImmutableCost<Flt64>

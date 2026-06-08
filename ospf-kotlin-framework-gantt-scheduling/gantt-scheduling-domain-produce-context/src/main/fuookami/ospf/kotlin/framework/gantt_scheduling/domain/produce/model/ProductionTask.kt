@@ -50,6 +50,10 @@ data class MaterialDemand<V>(
     val lessQuantityValue: MaterialQuantity<V>? = null,
     val overQuantityValue: MaterialQuantity<V>? = null
 ) where V : RealNumber<V>, V : NumberField<V> {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("MaterialDemand(Quantity(quantity, NoneUnit), lessQuantity?.let { Quantity(it, NoneUnit) }, overQuantity?.let { Quantity(it, NoneUnit) })")
+    )
     constructor(
         quantity: ValueRange<V>,
         lessQuantity: V? = null,
@@ -60,11 +64,23 @@ data class MaterialDemand<V>(
         overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) }
     )
 
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("quantityRangeValue.value")
+    )
     val quantity: ValueRange<V> get() = quantityRangeValue.value
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("lessQuantityValue?.value")
+    )
     val lessQuantity: V? get() = lessQuantityValue?.value
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("overQuantityValue?.value")
+    )
     val overQuantity: V? get() = overQuantityValue?.value
-    val lessEnabled: Boolean get() = lessQuantity != null
-    val overEnabled: Boolean get() = overQuantity != null
+    val lessEnabled: Boolean get() = lessQuantityValue != null
+    val overEnabled: Boolean get() = overQuantityValue != null
 
     /**
      * 数量范围物理量 / Quantity range as a physical quantity
@@ -98,7 +114,7 @@ data class MaterialDemand<V>(
 }
 
 /** Flt64 材料需求类型别名 / Flt64 material demand type alias */
-typealias Flt64MaterialDemand = MaterialDemand<Flt64>
+@Deprecated("Use MaterialDemand<Flt64> directly") typealias Flt64MaterialDemand = MaterialDemand<Flt64>
 
 /**
  * 材料储备 / Material reserves
@@ -112,6 +128,10 @@ open class MaterialReserves<V>(
     val lessQuantityValue: MaterialQuantity<V>? = null,
     val overQuantityValue: MaterialQuantity<V>? = null,
 ) where V : RealNumber<V>, V : NumberField<V> {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("MaterialReserves(Quantity(quantity, NoneUnit), lessQuantity?.let { Quantity(it, NoneUnit) }, overQuantity?.let { Quantity(it, NoneUnit) })")
+    )
     constructor(
         quantity: ValueRange<V>,
         lessQuantity: V? = null,
@@ -122,11 +142,23 @@ open class MaterialReserves<V>(
         overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) }
     )
 
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("quantityRangeValue.value")
+    )
     val quantity: ValueRange<V> get() = quantityRangeValue.value
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("lessQuantityValue?.value")
+    )
     val lessQuantity: V? get() = lessQuantityValue?.value
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("overQuantityValue?.value")
+    )
     val overQuantity: V? get() = overQuantityValue?.value
-    val lessEnabled: Boolean get() = lessQuantity != null
-    val overEnabled: Boolean get() = overQuantity != null
+    val lessEnabled: Boolean get() = lessQuantityValue != null
+    val overEnabled: Boolean get() = overQuantityValue != null
 
     /**
      * 数量范围物理量 / Quantity range as a physical quantity
@@ -160,7 +192,7 @@ open class MaterialReserves<V>(
 }
 
 /** Flt64 材料储备类型别名 / Flt64 material reserves type alias */
-typealias Flt64MaterialReserves = MaterialReserves<Flt64>
+@Deprecated("Use MaterialReserves<Flt64> directly") typealias Flt64MaterialReserves = MaterialReserves<Flt64>
 
 /**
  * 生产任务接口 / Production task interface
@@ -181,7 +213,15 @@ interface ProductionTask<
         C : AbstractMaterial,
         V : RealNumber<V>
         > : AbstractTask<E, A> {
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("produceQuantityByProduct")
+    )
     val produce: Map<P, V>
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("consumptionQuantityByMaterial")
+    )
     val consumption: Map<C, V>
 
     /** 生产量物理量映射 / Produce quantity map with units */
@@ -216,22 +256,22 @@ interface ProductionTask<
 }
 
 /** Flt64 生产任务类型别名 / Flt64 production task type alias */
-typealias Flt64ProductionTask<E, A, P, C> = ProductionTask<E, A, P, C, Flt64>
+@Deprecated("Use ProductionTask<E, A, P, C, Flt64> directly") typealias Flt64ProductionTask<E, A, P, C> = ProductionTask<E, A, P, C, Flt64>
 
 private fun <V : RealNumber<V>> AbstractTaskBunch<*, *, *, V>.quantityZero(): V {
     for (task in tasks) {
         if (task is ProductionTask<*, *, *, *, *>) {
-            task.produce.values.firstOrNull()?.let {
+            task.produceQuantityByProduct.values.firstOrNull()?.let {
                 @Suppress("UNCHECKED_CAST")
-                return (it as V).constants.zero
+                return (it.value as V).constants.zero
             }
-            task.consumption.values.firstOrNull()?.let {
+            task.consumptionQuantityByMaterial.values.firstOrNull()?.let {
                 @Suppress("UNCHECKED_CAST")
-                return (it as V).constants.zero
+                return (it.value as V).constants.zero
             }
         }
     }
-    cost.sum?.let {
+    cost.costSum?.value?.let {
         return it.constants.zero
     }
     throw IllegalArgumentException("production task bunch must contain at least one quantity or cost value to resolve zero.")
@@ -381,7 +421,7 @@ fun <
     val quantities = tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *, *> -> {
-                val value = it.produce.entries.firstOrNull { entry -> entry.key == product }?.value
+                val value = it.produceQuantityByProduct.entries.firstOrNull { entry -> entry.key == product }?.value?.value
                 @Suppress("UNCHECKED_CAST")
                 value as? V
             }
@@ -464,7 +504,7 @@ fun <
     val quantities = tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *, *> -> {
-                val value = it.consumption.entries.firstOrNull { entry -> entry.key == material }?.value
+                val value = it.consumptionQuantityByMaterial.entries.firstOrNull { entry -> entry.key == material }?.value?.value
                 @Suppress("UNCHECKED_CAST")
                 value as? V
             }

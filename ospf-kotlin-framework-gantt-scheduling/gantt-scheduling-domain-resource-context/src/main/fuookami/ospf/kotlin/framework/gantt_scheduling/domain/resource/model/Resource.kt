@@ -52,7 +52,10 @@ private fun setResourceSlackUpperBoundAsFlt64(
 internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<V>>): V
         where V : RealNumber<V>, V : NumberField<V> {
     return capacities.asSequence()
-        .mapNotNull { it.quantity.lowerBound.value.unwrapOrNull() ?: it.quantity.upperBound.value.unwrapOrNull() }
+        .mapNotNull {
+            it.quantityRangeValue.value.lowerBound.value.unwrapOrNull()
+                    ?: it.quantityRangeValue.value.upperBound.value.unwrapOrNull()
+        }
         .firstOrNull()
         ?.constants
         ?.zero
@@ -74,13 +77,25 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
     val quantityRangeValue: ResourceQuantityRange<V>
     val lessQuantityValue: ResourceQuantity<V>? get() = null
     val overQuantityValue: ResourceQuantity<V>? get() = null
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("quantityRangeValue.value")
+    )
     val quantity: ValueRange<V> get() = quantityRangeValue.value
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("lessQuantityValue?.value")
+    )
     val lessQuantity: V? get() = lessQuantityValue?.value
+    @Deprecated(
+        message = "Use the Quantity-typed property instead",
+        replaceWith = ReplaceWith("overQuantityValue?.value")
+    )
     val overQuantity: V? get() = overQuantityValue?.value
     val interval: Duration
     val name: String? get() = null
-    val lessEnabled: Boolean get() = lessQuantity != null
-    val overEnabled: Boolean get() = overQuantity != null
+    val lessEnabled: Boolean get() = lessQuantityValue != null
+    val overEnabled: Boolean get() = overQuantityValue != null
 
     /**
      * 数量范围物理量 / Quantity range as a physical quantity
@@ -131,6 +146,10 @@ open class ResourceCapacity<V>(
     override val interval: Duration = Duration.INFINITE,
     override val name: String? = null
 ) : AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
+    @Deprecated(
+        message = "Use the Quantity-typed primary constructor instead",
+        replaceWith = ReplaceWith("ResourceCapacity(time, Quantity(quantity, NoneUnit), lessQuantity?.let { Quantity(it, NoneUnit) }, overQuantity?.let { Quantity(it, NoneUnit) }, interval, name)")
+    )
     constructor(
         time: TimeRange,
         quantity: ValueRange<V>,
@@ -147,7 +166,7 @@ open class ResourceCapacity<V>(
         name = name
     )
 
-    override fun toString() = name ?: "${quantity}_${interval}"
+    override fun toString() = name ?: "${quantityRangeValue.value}_${interval}"
 }
 
 /**
@@ -163,6 +182,10 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
+    @Deprecated(
+        message = "Use initialQuantity(unit) returning Quantity instead",
+        replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
+    )
     abstract val initialQuantity: V
 
     /**
@@ -175,6 +198,10 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      * @param time 时间范围 / Time range
      * @return 使用量 / Used quantity
      */
+    @Deprecated(
+        message = "Use usedQuantityQuantity returning Quantity instead",
+        replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
+    )
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
@@ -186,6 +213,7 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      * @param unit 数量单位 / Quantity unit
      * @return 初始数量物理量 / Initial quantity
      */
+    @Suppress("DEPRECATION")
     fun initialQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V> {
         return Quantity(initialQuantity, unit)
     }
@@ -201,6 +229,7 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      * @param unit 数量单位 / Quantity unit
      * @return 使用量物理量 / Used quantity
      */
+    @Suppress("DEPRECATION")
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange,
@@ -239,13 +268,13 @@ interface ResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): V {
-        return resource.initialQuantity.constants.zero
+        return resource.initialQuantity().value.constants.zero
     }
 
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
         bunch: AbstractTaskBunch<T, E, A, V>
     ): V {
-        return resource.usedQuantity(bunch, time)
+        return resource.usedQuantityQuantity(bunch, time).value
     }
 }
 
@@ -385,14 +414,14 @@ abstract class AbstractResourceUsage<
                         if (slot.resourceCapacity.overEnabled) {
                             val slack = resourceSlack(
                                 x = quantity[slot],
-                                threshold = slot.resourceCapacity.quantity.upperBound.value.unwrap().toFlt64(),
+                                threshold = slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                                 type = UContinuous,
                                 withNegative = false,
                                 withPositive = true,
                                 constraint = false,
                                 name = "${name}_over_quantity_$slot"
                             )
-                            slot.resourceCapacity.overQuantity?.let {
+                            slot.resourceCapacity.overQuantityValue?.value?.let {
                                 setResourceSlackUpperBoundAsFlt64(slack.helperVariables.last().range, it.toFlt64())
                             }
                             slack
@@ -427,14 +456,14 @@ abstract class AbstractResourceUsage<
                         if (slot.resourceCapacity.lessEnabled) {
                             val slack = resourceSlack(
                                 x = quantity[slot],
-                                threshold = slot.resourceCapacity.quantity.lowerBound.value.unwrap().toFlt64(),
+                                threshold = slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                                 type = UContinuous,
                                 withNegative = true,
                                 withPositive = false,
                                 constraint = false,
                                 name = "${name}_less_quantity_$slot"
                             )
-                            slot.resourceCapacity.lessQuantity?.let {
+                            slot.resourceCapacity.lessQuantityValue?.value?.let {
                                 setResourceSlackUpperBoundAsFlt64(slack.helperVariables.first().range, it.toFlt64())
                             }
                             slack
@@ -517,4 +546,3 @@ abstract class AbstractResourceUsage<
         return ok
     }
 }
-

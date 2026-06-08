@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-07（最后更新：G8 深层时间/DTO/pre-solver 边界收口）
+日期：2026-06-08（最后更新：G9 续轮验证完成 — 内部裸值读取迁移到 Quantity 主路径）
 
 ## 1. 总目标
 
@@ -40,105 +40,101 @@
 6. 已完成 G8 深层时间/日历、capacity result、slot/pre-solver result、task/makespan/switch solved quantity、resource/produce/consumption solved quantity 的泛型物理量出口。
 7. 已保留旧裸 `V` 构造、裸值属性、helper 和 `Flt64` typealias，兼容层继续用于迁移期。
 8. 已补充 Flt64 legacy、FltX generic、Quantity<FltX> 字段构造、adapter conversion、time/calendar DTO、pre-solver result、demo4/example compile 的测试或编译验证。
-9. 已新增 `MIGRATION_G5.md`、`MIGRATION_G6.md`、`MIGRATION_G8.md`，记录迁移路径、旧入口、单位默认策略和剩余边界。
-10. 当前门禁基线：`flt64-scan-gate.ps1` 输出 main=1,400 / test=191 / total=1,591 / unclassified=0。
+9. 已新增 `MIGRATION_G5.md`、`MIGRATION_G6.md`、`MIGRATION_G8.md`、`MIGRATION_G9.md`，记录迁移路径、旧入口、单位默认策略和剩余边界。
+10. 已完成 G9 第一轮：`TaskTime` 接口补齐 `overMaxDelayTimeQuantity()` 和 `overMaxAdvanceTimeQuantity()`；`SlotBasedCapacityResult`、`CapacityIntermediateValues`、`SlotConstraints` 的旧裸值属性、旧构造函数/工厂标记 `@Deprecated` 并配套 `ReplaceWith`。
+11. 已审计 service/application 层 solver 暴露点，确认 `BranchAndPriceAlgorithm` public API 不暴露 solver 类型；剩余 `SolutionAnalyzer`/`BunchSolutionAnalyzer`/`TaskSolutionAnalyzer` 的 `AbstractLinearMetaModel<Flt64>` 参数属于 solver boundary 分类。
+12. 当前门禁基线：`flt64-scan-gate.ps1` 输出 main=1,402 / test=204 / total=1,606 / unclassified=0。
+13. 已完成 G9 续轮：`Cost`（6 个入口 + 4 个 Flt64 typealias）、`CapacityColumn`（2 个入口 + 1 个 typealias）、`AbstractResourceCapacity`/`ResourceCapacity`/`Resource`（6 个入口）、`MaterialDemand`/`MaterialReserves`（各 4 个入口 + 2 个 typealias）、`ProductionTask`（2 个入口 + 1 个 typealias）旧裸值属性/构造函数/工厂标记 `@Deprecated` + `ReplaceWith`。
+14. 已新增测试 `CostQuantityAlternativeTest`，验证 `CostItem`/`Cost`/`MutableCost`/`ImmutableCost` 主构造函数 Quantity 存储与 deprecated 裸值属性兼容路径。
+15. scan gate 脚本更新 `@Deprecated` typealias 分类规则，`unclassified` 归零。
+16. `ProductionAction.unitCapacityV` 和 `unitCostV` 标记 `@Deprecated`，引导调用方迁移到 `unitCapacityQuantity` 和 `unitCostQuantity`；`unitCapacity`、`unitCost`、`upperBound` 的 `Flt64` 签名继续保留为 solver 边界。
+17. task/capacity 编译内部读取已从 deprecated 裸值属性迁到 `costSum?.value`、`columnCost.value`。
+18. demo4 示例已改用 `CostItem.costQuantity`、`Cost.costSum` 和 `bunch.cost.costSum!!.value`，覆盖 Quantity 替代路径并避免示例继续依赖 deprecated 成本入口。
+19. produce/resource/capacity/bunch/task compilation 内部读取已继续迁移到 Quantity 主字段，覆盖 material demand/reserves、production task quantity map、resource capacity、resource usage、capacity column、bunch/task cost 等路径。
+20. resource 模块内部 `initialQuantity`、`usedQuantity`、`ResourceCapacity.toString()` 读取已收口到 `initialQuantity().value`、`usedQuantityQuantity(...).value` 和 `quantityRangeValue.value`，避免 main 编译继续触发本轮 deprecated 裸值警告。
 
 当前允许保留的边界：
 
 1. solver 建模对象、solver 内部结果、pre-solve 模型继续固定 `Flt64`。
 2. framework shadow price 基础 API 继续固定 `Flt64`，通过 adapter 与泛型 helper 隔离。
 3. 旧 wrapper、typealias、legacy API 和兼容测试可继续使用 `Flt64`。
-4. `ProductionAction.unitCost` 保留 `Flt64` 签名作为 solver 边界入口；泛型路径使用 `unitCostV<V>(time, fromDouble)` 或 `unitCostQuantity<V>`。
+4. `ProductionAction.unitCapacity`、`unitCost`、`upperBound` 保留 `Flt64` 签名作为 solver 边界入口；泛型物理量路径使用 `unitCapacityQuantity<V>` 或 `unitCostQuantity<V>`。
 5. application branch-and-price 内部迭代状态仍以 `Flt64` 驱动，外部通过 snapshot 转为泛型 `Quantity<V>` 与无量纲 `V`。
 6. task/bunch compilation、solution analyzer、pre-solver 的入模和求解参数仍归为 solver/model boundary；对外读取优先走泛型 summary、snapshot、quantity helper 或 adapter result。
 
-## 3. 当前目标：G9 service/application API 去 solver 泄漏与兼容层退场
+## 3. 当前目标：G9 续轮 — 扩展 deprecated 覆盖与进一步压缩分类
 
-G9 目标是在 G8 已提供更完整泛型读取出口后，集中处理 service/application 层仍直接要求 `Flt64` model、symbol、solution list 的调用面，并启动 deprecated 退场标记，减少总目标收尾轮次。
+G9 第一轮已完成 TaskTime 物理量补齐和第一批 deprecated 标记。续轮目标是继续扩展 deprecated 覆盖范围，压缩 `Domain DTO Pending`、`Time/Calendar Boundary` 分类，并完善测试矩阵。
 
-### 3.1 目标
+### 3.1 已完成事项（G9 第一轮）
 
-1. 将 task/bunch solution analyzer、application result adapter、pre-solver facade 的 solver-only API 与领域可读 API 分层，减少上层调用方直接接触 `AbstractLinearMetaModel<Flt64>`、`MetaModel<Flt64>`、`List<Flt64>`。
-2. 扩展 switch cost、limit cost、order/capacity result、resource slack、produce slack 等剩余领域结果的 `Quantity<V>` 出口。
-3. 为旧裸值入口、旧 helper、`Flt64` wrapper/typealias 建立可执行 deprecated 清单，明确替代 API、标记批次和最终删除条件。
-4. 继续压缩或拆分 `Domain DTO Pending`、`Time/Calendar Boundary`、`Application Algorithm Internal` 分类，确保新增 `Flt64` 都有明确边界解释。
-5. 扩展 demo4 与测试矩阵，覆盖 service/application facade、deprecated 替代路径和跨上下文 adapter result。
+1. `TaskTime` 接口补齐 `overMaxDelayTimeQuantity()` 和 `overMaxAdvanceTimeQuantity()`，与现有 6 个方法签名一致。
+2. `SlotBasedCapacityResult` 裸值构造函数、4 个裸值属性标记 `@Deprecated` + `ReplaceWith`。
+3. `CapacityIntermediateValues` 3 个裸值读取方法标记 `@Deprecated` + `ReplaceWith`。
+4. `SlotConstraints` 6 个裸值属性、裸值工厂标记 `@Deprecated` + `ReplaceWith`。
+5. demo4 新增 `overMaxDelayTimeQuantity` 和 `overMaxAdvanceTimeQuantity` 样例。
+6. 新增测试 `taskTimeShouldExposeOverMaxDelayAndAdvanceFltXQuantities`。
+7. 新增 `MIGRATION_G9.md` 迁移文档。
+8. service/application solver 暴露点审计完成，确认应用层 public API 已清洁。
 
-### 3.2 事项
+### 3.2 已完成事项（G9 续轮）
 
-1. **service facade 分层**
-   为 solution analyzer、pre-solver、branch-and-price result 增加领域可读 facade，保留 solver-only 内部入口。
+1. `CostItem.value`、`Cost.sum` 裸值属性标记 `@Deprecated`；`CostItem`/`MutableCost`/`ImmutableCost` 裸值构造函数标记 `@Deprecated`；`Cost.Companion.invoke(items, constants, sums: V?)` 裸值工厂标记 `@Deprecated`；4 个 Flt64 typealias 标记 `@Deprecated`。
+2. `CapacityColumn.cost` 裸值属性和裸值构造函数标记 `@Deprecated`；`Flt64CapacityColumn` typealias 标记 `@Deprecated`。
+3. `AbstractResourceCapacity.quantity`/`lessQuantity`/`overQuantity` 裸值属性标记 `@Deprecated`；`ResourceCapacity` 裸值构造函数标记 `@Deprecated`；`Resource.initialQuantity` 和 `Resource.usedQuantity` 标记 `@Deprecated`。
+4. `MaterialDemand`/`MaterialReserves` 各 3 个裸值属性 + 裸值构造函数标记 `@Deprecated`；`ProductionTask.produce`/`consumption` 裸值 map 标记 `@Deprecated`；3 个 Flt64 typealias 标记 `@Deprecated`。
+5. 新增测试 `CostQuantityAlternativeTest` 覆盖 5 个场景。
+6. scan gate 脚本 `@Deprecated` typealias 分类规则已更新，`unclassified=0`。
+7. `ProductionAction.unitCapacityV`、`unitCostV` 标记 deprecated，替代路径分别为 `unitCapacityQuantity(timeWindow).value` 和 `unitCostQuantity(time, fromDouble).value`。
+8. task/capacity 编译内部成本读取迁移到 Quantity 主字段，减少 main 代码对 deprecated 裸值属性的依赖。
+9. demo4 的成本样例和 shadow price reduced cost 改用 Quantity 主字段，并已通过 example reactor 编译。
+10. produce/resource/capacity/bunch/task compilation 的 main 代码裸值读取继续迁到 Quantity 主字段：`quantityRangeValue.value`、`lessQuantityValue?.value`、`overQuantityValue?.value`、`produceQuantityByProduct`、`consumptionQuantityByMaterial`、`costSum?.value`、`columnCost.value` 等路径已覆盖。
+11. resource 内部对 deprecated `initialQuantity` / `usedQuantity` 的自调用已收口到 Quantity helper，保留旧入口为兼容 API，不再作为内部主读取路径。
 
-2. **剩余 DTO 物理量出口**
-   补齐 switch cost、limit penalty、capacity order/result、resource slack、produce slack 的泛型 quantity helper。
+### 3.3 下一轮目标
 
-3. **兼容入口 deprecated**
-   分批标记旧裸值构造、旧 helper 和 wrapper/typealias，配套 `ReplaceWith` 或迁移说明。
+1. 压缩 `Domain DTO Pending` 分类，将已泛型化的 DTO 条目重新分类或移除。
+2. 压缩 `Time/Calendar Boundary` 分类，评估 `WorkingCalendar` 和 `TimeWindow` 中剩余 Flt64 的边界解释。
+3. 继续审计 produce/resource/capacity service/result facade 中尚未覆盖的结果 facade 与旧入口，优先把对外示例和内部逻辑迁到 Quantity 主字段。
+4. 下一轮改动后继续跑完整 gantt reactor、example reactor、scan gate 和 diff check。
 
-4. **application/example 同步**
-   demo4 覆盖新 facade、剩余 DTO helper 和 deprecated 替代路径，example reactor 必须可编译。
+### 3.4 计划
 
-5. **门禁与文档**
-   更新 scan gate 分类和 baseline，保持 `daily.md` 只记录阶段状态与下一轮计划。
+1. 先按 DTO 家族进一步压缩 scan gate 分类，将已泛型化条目重新归类。
+2. 继续评估 `ProductionAction` 旧 `Flt64` solver 边界入口是否只保留为内部入模入口，避免对外业务代码新增依赖。
+3. 每完成一个模块 deprecated 批次，同步补 FltX 主路径测试和 demo4 编译样例。
+4. 最后统一跑完整 gantt reactor、example reactor、scan gate 和 diff check。
 
-### 3.3 计划
+### 3.5 修改清单
 
-1. 先从 application/service API 反向审计所有 `AbstractLinearMetaModel<Flt64>`、`MetaModel<Flt64>`、`List<Flt64>` 暴露点，拆分 solver-only 与领域 facade。
-2. 再按 DTO 家族补 quantity helper：task limits -> capacity order/result -> resource/produce slack -> bunch/application result。
-3. 每完成一个 facade 或 DTO 家族，同步补 FltX 主路径测试、Flt64 legacy 测试和 demo4 编译样例。
-4. deprecated 先标记低风险 helper 和 typealias，再处理构造器/companion 旧入口，避免一次性破坏源码兼容。
-5. 最后统一跑完整 gantt reactor、example reactor、scan gate 和 diff check。
+预计涉及（续轮后续）：
 
-### 3.4 修改清单
+1. `gantt-scheduling-domain-capacity-scheduling-context`
+   - `ProductionAction` 旧 `Flt64` solver 边界入口审计
+   - `CapacityCompilation`、`CapacityOrderCompilation` 旧裸值 helper
 
-预计涉及：
-
-1. `gantt-scheduling-domain-task-compilation-context`
-   - solution analyzer facade
-   - switch/limit quantity helper
-   - deprecated 候选入口
-
-2. `gantt-scheduling-domain-bunch-compilation-context`
-   - pre-solver facade
-   - bunch analyzer/result adapter
-   - slot/capacity DTO 剩余 helper
-
-3. `gantt-scheduling-domain-capacity-scheduling-context`
-   - capacity order/result quantity helper
-   - capacity compilation facade
-
-4. `gantt-scheduling-domain-resource-context`
-   - resource slack/result quantity helper
-   -旧裸值入口 deprecated 候选
-
-5. `gantt-scheduling-domain-produce-context`
-   - produce/consumption slack/result quantity helper
-   -旧裸值入口 deprecated 候选
-
-6. `gantt-scheduling-application`
-   - task/bunch application result facade
-   - branch-and-price result boundary
-
-7. `ospf-kotlin-example`
+2. `ospf-kotlin-example`
    - `framework_demo/demo4`
-   - 新 facade、旧入口替代路径 compile sample
+   - 后续 deprecated 替代路径 compile sample
 
-8. 文档与门禁
+3. 文档与门禁
    - `daily.md`
    - `flt64-scan-gate.ps1`
-   - migration note
+   - `MIGRATION_G9.md` 更新
 
-### 3.5 验收标准
+### 3.6 验收标准
 
-1. G5-G8 已迁移字段、snapshot、summary、time/calendar quantity helper、pre-solver adapter、resource/produce solved quantity 的旧路径和新泛型路径均保持编译和测试通过。
-2. service/application 新增领域可读 facade 不直接要求调用方传入 solver 建模对象；solver-only 入口有明确分类。
-3. 剩余 DTO helper 覆盖 switch cost、limit penalty、capacity order/result、resource slack、produce slack 的主要读取路径。
-4. 旧裸值入口、旧 wrapper、旧 helper 完成第一批 deprecated 标记和替代 API 文档。
-5. `Domain DTO Pending`、`Time/Calendar Boundary`、`Application Algorithm Internal` 至少完成一轮进一步拆分或压缩，且 `unclassified=0`。
-6. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过。
-7. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过。
-8. `pwsh.exe -NoLogo -NoProfile -File ospf-kotlin-framework-gantt-scheduling/flt64-scan-gate.ps1` 通过。
-9. `git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example` 通过。
+1. G5-G9 已迁移字段、snapshot、summary、time/calendar quantity helper、pre-solver adapter、resource/produce solved quantity、TaskTime 全部 8 个 quantity helper 的旧路径和新泛型路径均保持编译和测试通过。
+2. service/application public API 确认不直接暴露 solver 建模对象（`BranchAndPriceAlgorithm` public API 清洁）。
+3. 第一批 deprecated 覆盖 `SlotBasedCapacityResult`、`CapacityIntermediateValues`、`SlotConstraints` 的裸值构造函数/工厂和裸值属性。
+4. 续轮 deprecated 覆盖 `Cost`、`CapacityColumn`、`AbstractResourceCapacity`、`ResourceCapacity`、`Resource`、`MaterialDemand`、`MaterialReserves`、`ProductionTask` 的裸值属性/构造函数/Flt64 typealias。
+5. `ProductionAction.unitCapacityV`、`unitCostV` deprecated 覆盖完成，`unitCapacity`、`unitCost`、`upperBound` 继续作为 solver boundary 保留。
+6. demo4 成本替代路径使用 Quantity 主字段，example reactor 编译通过。
+7. `Domain DTO Pending`、`Time/Calendar Boundary`、`Application Algorithm Internal` 分类保持不变，`unclassified=0`。
+8. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过。
+9. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过。
+10. `pwsh.exe -NoLogo -NoProfile -File ospf-kotlin-framework-gantt-scheduling/flt64-scan-gate.ps1` 通过。
+11. `git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example` 通过。
 
 ## 4. 向后兼容要求
 
@@ -163,7 +159,7 @@ typealias Flt64SlotBasedCapacityResult<A, M, R> = SlotBasedCapacityResult<A, M, 
 | 物理量化范围扩大 | `Quantity<V>` 会触发跨模块签名传播 | 按依赖顺序推进并保持每阶段测试可运行 |
 | example 编译耗时 | example reactor 会连带编译多个 framework | 保留可复现命令，并以 gantt reactor 作为最低门槛 |
 
-## 6. 当前基线与执行入口（2026-06-07）
+## 6. 当前基线与执行入口（2026-06-08）
 
 ### 当前状态一览
 
@@ -171,13 +167,13 @@ typealias Flt64SlotBasedCapacityResult<A, M, R> = SlotBasedCapacityResult<A, M, 
 |------|----------|----------|
 | infrastructure | `TimeWindow<V>`、`WorkingCalendar` duration helper 已可返回 `Quantity<V>` | 时间 DTO deprecated 策略 |
 | task/cost | `CostItem.costQuantity`、`Cost.costSum` 为主字段 | 旧裸值入口 deprecated 策略 |
-| capacity | `CapacityColumn.columnCost`、duration helper、capacity solution duration helper 已覆盖 | order/result facade 与剩余成本 helper |
-| resource | `ResourceCapacity` 主字段和 usage solved quantity 已覆盖 | slack/result facade 与 deprecated 策略 |
-| produce | demand/reserves、task quantity map、produce/consumption solved quantity 已覆盖 | slack/result facade 与 deprecated 策略 |
-| bunch-compilation | `SlotBasedCapacityResult`、`SlotConstraints`、pre-solver generic adapter 已覆盖 | analyzer facade 与 solver-only API 分层 |
-| task-compilation | solution summary、`TaskTime`、`Makespan`、`Switch` quantity helper 已覆盖 | analyzer facade、limit/switch cost helper |
-| application | algorithm 签名泛型，iteration snapshot 已补充 | service/result facade 与旧入口 deprecated |
-| example/demo4 | 覆盖旧裸值、新 `Quantity` 字段、time/calendar、snapshot、summary、solved quantity、switch quantity 样例 | 下一轮扩展 facade 与 deprecated 替代路径 |
+| task-compilation | `TaskTime` 全部 8 个 quantity helper（含 `overMaxDelayTime`/`overMaxAdvanceTime`）、`Switch`、`Makespan` 已覆盖 | solution analyzer facade |
+| capacity | `CapacityColumn.columnCost`、duration helper、capacity solution duration helper 已覆盖 | order/result facade 与 `ProductionAction` deprecated |
+| resource | `ResourceCapacity` 主字段、usage solved quantity、内部 capacity/usage 读取已覆盖 Quantity 主路径 | result facade 与旧入口退出策略 |
+| produce | demand/reserves、task quantity map、produce/consumption solved quantity、内部 demand/reserve 读取已覆盖 Quantity 主路径 | result facade 与旧入口退出策略 |
+| bunch-compilation | `SlotBasedCapacityResult`、`SlotConstraints` 裸值入口已标记 deprecated，pre-solver generic adapter 已覆盖 | 继续扩展 deprecated |
+| application | algorithm 签名泛型，iteration snapshot 已补充，public API 已清洁 | service/result facade 与旧入口 deprecated |
+| example/demo4 | 覆盖旧裸值、新 `Quantity` 字段、time/calendar、snapshot、summary、solved quantity、switch quantity、overMax quantity、成本替代路径样例 | 后续 facade 替代路径 compile sample |
 
 ### 验证命令
 
@@ -190,4 +186,4 @@ git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example
 
 ### 当前 scan gate 基线
 
-main=1,400 / test=191 / total=1,591 / unclassified=0
+main=1,402 / test=204 / total=1,606 / unclassified=0

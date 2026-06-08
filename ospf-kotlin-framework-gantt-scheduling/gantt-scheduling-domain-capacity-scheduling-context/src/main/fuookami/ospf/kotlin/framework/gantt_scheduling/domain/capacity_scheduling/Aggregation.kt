@@ -88,13 +88,17 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @return Total capacity / 总产能
      */
+    @Deprecated(
+        message = "Use the Quantity-typed method instead",
+        replaceWith = ReplaceWith("totalCapacityQuantity().value")
+    )
     fun totalCapacity(): V {
         val zero = timeWindow.fromDouble(0.0)
         var total = zero
         for (action in actions) {
             for (slot in slots) {
                 val ub = action.upperBoundV(slot, timeWindow)
-                val unitCap = action.unitCapacityV(timeWindow)
+                val unitCap = action.unitCapacityQuantity(timeWindow).value
                 // Convert to Double for multiplication, then back to V
                 // unitCap is V (capacity per unit), ub is UInt64 (unit count)
                 val capacityForSlot = timeWindow.toDouble(unitCap) * ub.toLong().toDouble()
@@ -139,4 +143,4 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
 
 // ── Flt64 向后兼容 typealias ──
 
-typealias Flt64CapacitySchedulingAggregation<A> = CapacitySchedulingAggregation<Flt64, A>
+@Deprecated("Use CapacitySchedulingAggregation<Flt64, A> directly") typealias Flt64CapacitySchedulingAggregation<A> = CapacitySchedulingAggregation<Flt64, A>

@@ -168,14 +168,14 @@ abstract class AbstractProduce<
                     if (demand != null && demand.overEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantity.upperBound.value.unwrap().toFlt64(),
+                            threshold = demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
                             type = UContinuous,
                             withNegative = false,
                             withPositive = true,
                             constraint = false,
                             name = "produce_over_quantity_${product}"
                         )
-                        demand.overQuantity?.let { overConstraints.add(slack.pos!! to it.toFlt64()) }
+                        demand.overQuantityValue?.value?.let { overConstraints.add(slack.pos!! to it.toFlt64()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -219,14 +219,14 @@ abstract class AbstractProduce<
                     if (demand != null && demand.lessEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantity.lowerBound.value.unwrap().toFlt64(),
+                            threshold = demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
                             type = UContinuous,
                             withNegative = true,
                             withPositive = false,
                             constraint = false,
                             name = "produce_less_quantity_${product}"
                         )
-                        demand.lessQuantity?.let { lessConstraints.add(slack.neg!! to it.toFlt64()) }
+                        demand.lessQuantityValue?.value?.let { lessConstraints.add(slack.neg!! to it.toFlt64()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -394,10 +394,10 @@ class BunchSchedulingProduce<
                 }
                 for ((product, demand) in products) {
                     if (demand != null) {
-                        val lowerBound = demand.quantity.lowerBound.value.unwrap().toFlt64() -
-                                (demand.lessQuantity?.toFlt64() ?: Flt64.zero)
-                        val upperBound = demand.quantity.upperBound.value.unwrap().toFlt64() +
-                                (demand.overQuantity?.toFlt64() ?: Flt64.zero)
+                        val lowerBound = demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() -
+                                (demand.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero)
+                        val upperBound = demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() +
+                                (demand.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
                         quantity[product].range.set(
                             ValueRange(
                                 lowerBound,
