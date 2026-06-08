@@ -36,6 +36,7 @@ $fixHints = @{
     QuantityPlacementTypeOutOfAllowList = "Use ItemPlacement2/3, BlockPlacement2/3, BinLayerPlacement, PalletLayerPlacement, or ItemContainerPlacement aliases."
     DirectQuantityPlacementConstructorOutOfFactory = "Create placements through placement2Of/placement3Of or narrower domain factories; do not call QuantityPlacement constructors directly."
     DirectQuantityPlacementConstructorInBusinessTest = "Business tests should create placements through itemPlacement2/3Of, blockPlacement2/3Of, binLayerPlacementOf, or other typed factories; keep direct QuantityPlacement constructor coverage in infrastructure tests only."
+    Placement2GenericFactoryUseOutOfAllowList = "Use itemPlacement2Of or blockPlacement2Of outside the BLA generic projection search; do not add new business callers of placement2Of."
     DirectBinConstructorOutOfFactory = "Create bins through layerBinOf, itemBinOf, or blockBinOf; do not call the generic Bin constructor from business code."
     ApplicationDirectItemLimitFactory = "Use item-specific limit factories that hide Cuboid generic constraints from application code."
     DuplicatedCylinderUnsupportedContract = "Keep cylinder unsupported messages in CylinderShapeContract; application and domain services should call the shared item-domain contract instead of duplicating message text."
@@ -56,7 +57,7 @@ $fixHints = @{
     GurobiCsvContinuousRadiusKeyGuardMissing = "Gurobi CSV shape metadata parsing must reject radius_weight_function_key until continuous radius variables and final actual-radius validation are implemented."
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must reject radiusWeightFunctionKey production use until continuous radius variables and final actual-radius validation are implemented."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
-    HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or full-length cuboid support."
+    HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
@@ -207,6 +208,11 @@ Add-TokenViolation -Check "ItemDomainPlacementFactoryCuboidBound" -Pattern "T\s*
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt"
 )
 
+Add-TokenViolation -Check "Placement2GenericFactoryUseOutOfAllowList" -Pattern "\bplacement2Of\s*\(" -AllowSuffixes @(
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt",
+    "/bpp3d-domain-bla-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/bla/service/BottomUpLeftJustifiedAlgorithm.kt"
+)
+
 Add-TokenViolation -Check "ItemDomainInternalBinCuboidBound" -Pattern "T\s*:\s*Cuboid<T>" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Bin.kt"
 ) -IncludeSuffixes @(
@@ -313,7 +319,7 @@ Add-TokenViolation -Check "CylinderCapabilityPathSourceOutOfContract" -Pattern "
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
 )
 
-Add-TokenViolation -Check "DuplicatedPackingGeometryUnsupportedContract" -Pattern "type=horizontal_support|type=outside_bin|type=overlap|must be placed on bin floor or full-length support|is outside bin|overlaps item|mixes cylinder axes" -AllowSuffixes @(
+Add-TokenViolation -Check "DuplicatedPackingGeometryUnsupportedContract" -Pattern "type=horizontal_support|type=outside_bin|type=overlap|must be placed on bin floor or cuboid support coverage|is outside bin|overlaps item|mixes cylinder axes" -AllowSuffixes @(
     "/bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingGeometryContract.kt"
 )
 
@@ -441,8 +447,8 @@ $itemPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/osp
 Add-RequiredPatternViolation `
     -Check "HorizontalCylinderStackingSupportGuardMissing" `
     -FilePath $itemPath `
-    -Pattern "hasFullLengthHorizontalCylinderStackingSupport\s*\([\s\S]*?CylinderPackingShape3[\s\S]*?axis\s*!=\s*Axis3\.Y" `
-    -MissingText "ItemPlacement3.enabledStackingOn must keep horizontal cylinder support behind the full-length support guard."
+    -Pattern "hasHorizontalCylinderStackingSupportCoverage\s*\([\s\S]*?CylinderPackingShape3[\s\S]*?axis\s*!=\s*Axis3\.Y" `
+    -MissingText "ItemPlacement3.enabledStackingOn must keep horizontal cylinder support behind the support-coverage guard."
 
 $packerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/Packer.kt"
 if (Test-Path $packerPath) {

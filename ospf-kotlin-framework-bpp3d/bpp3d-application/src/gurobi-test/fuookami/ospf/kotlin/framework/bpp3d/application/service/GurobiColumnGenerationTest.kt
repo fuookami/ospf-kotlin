@@ -1653,6 +1653,22 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerCsvShouldRejectPartialHorizontalSupportFallback() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis,width_meter,height_meter,depth_meter
+            0,0,item-horizontal-partial-support,MAT-HPS,Material-HPS,1.0,cuboid,,,0.4,0.2,0.4
+            0,0,item-horizontal-cylinder-x,MAT-HCX,Material-HCX,1.0,vertical_cylinder,0.5,X,1.0,1.0,1.0
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("Unsupported horizontal cylinder") == true)
+        assertTrue(exception.message?.contains("only verified axis-aware generated candidates") == true)
+    }
+
+    @Test
     fun materialWidthAmountMixedShapeSampleFileShouldBeParsable() {
         val scenario = loadCsvDrivenScenario("gurobi/material-width-amount-cylinder-sample.csv")
         val horizontalAxes = scenario.itemDemands.mapNotNull { (item, _) ->

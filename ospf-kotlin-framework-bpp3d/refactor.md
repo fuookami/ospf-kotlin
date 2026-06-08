@@ -11,7 +11,7 @@
 2. 已完成 shape metadata、CSV/Gurobi、program demand、material packing、depth boundary、final geometry、renderer metadata、README 和边界脚本的基础收口。
 3. 已完成连续半径生产入口和 Gurobi CSV 连续半径 key guard，连续半径元数据不会静默降级为固定半径生产。
 4. 已开放横向圆柱贴地、单个全长长方体支撑、同类重复多支撑和异构多支撑区间覆盖的 3D stacking 检查，以及保守的 generated supported-stack 子集。
-5. 已补齐 focused tests、application adapter、触发式 Gurobi focused、Gurobi dataset suite、final renderer guard 验证与边界脚本门禁，固定连续半径 guard、横向圆柱 generated provenance 和单支撑/同类重复/异构多支撑覆盖边界。
+5. 已补齐 focused tests、application adapter、触发式 Gurobi focused、Gurobi dataset suite、final renderer guard 正负例验证与边界脚本门禁，固定连续半径 guard、横向圆柱 generated provenance、单支撑/同类重复/异构多支撑覆盖边界和 partial-support fallback 拒绝边界。
 
 ## 2. 总目标与能力边界
 
@@ -43,11 +43,11 @@
 
 ## 3. 剩余工作量
 
-距离总目标仍约剩余 24%-28% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
+距离总目标仍约剩余 23%-27% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
 
 1. solver-native 连续半径变量、目标函数和 final actual-radius 闭环。
-2. 横向圆柱 generated stacking/hanging 自动支撑从保守长方体 supported-stack 子集扩展到可验证 hanging 和失败场景闭环；supported-stack solver 触发 focused 与 dataset suite 已覆盖。
-3. 旧 cuboid-only 兼容层的迁移、删除和最小保留清单收敛。
+2. 横向圆柱 generated stacking/hanging 自动支撑从保守长方体 supported-stack 子集扩展到可验证 hanging 和更完整失败场景闭环；supported-stack solver 触发 focused、dataset suite、final renderer 多支撑与 partial-support fallback 拒绝已覆盖。
+3. 旧 cuboid-only 兼容层的迁移、第一批删除、调用点门禁和最小保留清单收敛。
 
 ## 4. 后续扩大收口事项
 
@@ -57,7 +57,7 @@
 
 1. 审计现存 cuboid-only 类型约束、外接长方体兼容入口、原始 `Cuboid` / `QuantityPlacement` / `Bin` 兼容构造和脚本 allowlist。
 2. 迁移 application、CSV/Gurobi、program demand、material packing、final packing 和 renderer adapter 中低风险边界到 shape-generic API。
-3. 删除第一批 stale cuboid-only 兼容构造、测试 fixture、脚本 allowlist 和外接长方体近似入口。
+3. 删除第一批 stale cuboid-only 兼容构造、测试 fixture、脚本 allowlist 和外接长方体近似入口；已先收紧 `placement2Of` 泛型工厂回流门禁，只允许 typed factory 与 BLA 泛型投影搜索使用。
 4. 为短期必须保留的兼容层建立最小保留清单、调用方清单、保留原因、删除条件和下一次删除批次。
 5. 在边界脚本中新增或收紧 cuboid-only 回流检测，禁止新增生产入口依赖外接长方体近似绕过真实 shape 几何。
 6. 把测试 helper、样例数据和文档术语同步到 shape-generic 口径，避免新测试继续固化 cuboid-only API。
@@ -73,7 +73,7 @@
 
 ### 4.3 横向圆柱 stacking/hanging 自动支撑闭环
 
-1. 将已开放的保守单支撑、同类重复多支撑和异构多支撑 generated supported-stack 从当前 focused/dataset 正例扩展到失败场景验收。
+1. 将已开放的保守单支撑、同类重复多支撑和异构多支撑 generated supported-stack 从当前 focused/dataset/final-renderer 正例和 partial-support fallback 负例扩展到更多 solver/dataset 失败场景验收。
 2. 定义并实现可验证 hanging 子集，优先支持由真实坐标、真实支撑线/支撑区间和明确 provenance 表达的 generated/final path。
 3. 保持无坐标 hanging 面积入口、局部支撑、底部圆柱支撑和混轴同层生成 guarded，除非本轮能用完整几何和支撑线语义闭环。
 4. 将自动支撑结果接入 layer placement、final validation、renderer fixture、Gurobi CSV/dataset suite 和 application focused tests。
@@ -91,9 +91,9 @@
 ## 5. 下一轮执行计划
 
 1. 先做兼容层和生产入口审计，立即拆出可删除清单、必须保留清单和会阻塞连续半径/自动支撑的调用点。
-2. 第一批迁移并删除低风险 cuboid-only 兼容入口，同时收紧脚本 allowlist，防止后续改动回流。
+2. 第一批迁移并删除低风险 cuboid-only 兼容入口，同时继续收紧脚本 allowlist，防止后续改动回流；`placement2Of` 泛型工厂已进入调用点门禁。
 3. 实现连续半径 solver/DTO/final/renderer 生产合同，优先开放竖直圆柱连续半径；能闭环时同步开放横向圆柱连续半径。
-4. 将横向圆柱 generated supported-stack 的单支撑、同类重复多支撑和异构多支撑补齐失败场景验收，并尝试开放可验证 hanging 子集。
+4. 将横向圆柱 generated supported-stack 的单支撑、同类重复多支撑和异构多支撑补齐更多 solver/dataset 失败场景验收，并尝试开放可验证 hanging 子集。
 5. 扩展 application、CSV/Gurobi、program/material packing、final validation、renderer fixture、dataset suite 和 negative tests。
 6. 对不能完整开放的连续半径或 hanging 子能力，统一沉淀 shared guard、错误信息、negative tests、脚本门禁和阻断记录。
 7. 更新 README、README_ch、refactor.md、生产矩阵、unsupported 矩阵、CSV/Gurobi 协议和兼容层删除清单。

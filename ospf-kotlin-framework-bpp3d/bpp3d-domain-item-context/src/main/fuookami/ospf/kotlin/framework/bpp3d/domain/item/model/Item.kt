@@ -701,7 +701,7 @@ private fun intervalsCoverSpan(targetMin: Double, targetMax: Double, intervals: 
     return coveredMax >= targetMax - HorizontalCylinderStackingSupportTolerance
 }
 
-private fun hasFullLengthHorizontalCylinderStackingSupport(
+private fun hasHorizontalCylinderStackingSupportCoverage(
     item: ItemPlacement3,
     bottomItems: List<AnyPlacement3>
 ): Boolean {
@@ -864,7 +864,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
 ): Boolean {
     val shape = resolvedPackingShape()
     if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
-        if (!hasFullLengthHorizontalCylinderStackingSupport(
+        if (!hasHorizontalCylinderStackingSupportCoverage(
                 item = this,
                 bottomItems = bottomItems
             )

@@ -59,12 +59,21 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun item(id: String, material: Material<InfraNumber>): ActualItem {
+    private fun item(
+        id: String,
+        material: Material<InfraNumber>,
+        widthValue: Double = 1.0,
+        heightValue: Double = 1.0,
+        depthValue: Double = 1.0
+    ): ActualItem {
+        val width = infraScalar(widthValue) * Meter
+        val height = infraScalar(heightValue) * Meter
+        val depth = infraScalar(depthValue) * Meter
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = infraScalar(1.0) * Meter,
-                height = infraScalar(1.0) * Meter,
-                depth = infraScalar(1.0) * Meter,
+                width = width,
+                height = height,
+                depth = depth,
                 weight = infraScalar(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
@@ -74,6 +83,10 @@ class PackerAndRendererAdapterTest {
             id = id,
             name = id,
             pack = pack,
+            width = width,
+            height = height,
+            depth = depth,
+            weight = infraScalar(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute()
@@ -766,6 +779,72 @@ class PackerAndRendererAdapterTest {
     }
 
     @Test
+    fun rendererAdapterShouldAcceptHorizontalCylinderWithMultipleCuboidSupportIntervals() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-H-MULTI-SUPPORT"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-H-MULTI-SUPPORT",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val result = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = item(
+                                        id = "support-interval-a",
+                                        material = material,
+                                        widthValue = 0.5,
+                                        heightValue = 1.0,
+                                        depthValue = 1.0
+                                    ).view(Orientation.Upright),
+                                    position = point3()
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = item(
+                                        id = "support-interval-b",
+                                        material = material,
+                                        widthValue = 0.7,
+                                        heightValue = 1.0,
+                                        depthValue = 1.0
+                                    ).view(Orientation.Upright),
+                                    position = point3(x = infraScalar(0.5) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            ),
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = cylinderItem(
+                                        id = "cyl-x-multi-supported",
+                                        material = material,
+                                        axis = Axis3.X,
+                                        lengthValue = 1.2
+                                    ).view(Orientation.Upright),
+                                    position = point3(y = infraScalar(1.0) * Meter)
+                                ),
+                                loadingOrder = UInt64(3)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+
+        assertEquals(3, items.size)
+        assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
+    }
+
+    @Test
     fun rendererAdapterShouldRejectHorizontalCylinderWithPartialCuboidSupport() = runBlocking {
         val material = Material(
             no = MaterialNo("M-CYL-H-PARTIAL-SUPPORT"),
@@ -810,7 +889,7 @@ class PackerAndRendererAdapterTest {
             PackingRendererAdapter().toSchema(result)
         }
         assertTrue(error.message?.contains("type=horizontal_support") == true)
-        assertTrue(error.message?.contains("full-length support") == true)
+        assertTrue(error.message?.contains("cuboid support coverage") == true)
     }
 
     @Test

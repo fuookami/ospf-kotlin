@@ -24,7 +24,7 @@ internal fun unsupportedHorizontalCylinderSupportMessage(
     itemIndex: Int,
     diagnostic: String
 ): String {
-    return "Unsupported placement geometry in $source: type=horizontal_support, bin=$binName, item[$itemIndex] $diagnostic must be placed on bin floor or full-length support."
+    return "Unsupported placement geometry in $source: type=horizontal_support, bin=$binName, item[$itemIndex] $diagnostic must be placed on bin floor or cuboid support coverage."
 }
 
 /**

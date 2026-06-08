@@ -102,7 +102,7 @@ private fun intervalsCover(targetMin: Double, targetMax: Double, intervals: List
     return coveredMax >= targetMax - PackingGeometryOverlapTolerance
 }
 
-private fun hasFullLengthHorizontalCylinderSupport(
+private fun hasHorizontalCylinderSupportCoverage(
     geometry: PackingGeometry,
     index: Int,
     geometries: List<PackingGeometry>
@@ -148,7 +148,7 @@ private fun requireHorizontalCylinderSupport(
     binName: String,
     source: String
 ) {
-    if (!hasFullLengthHorizontalCylinderSupport(
+    if (!hasHorizontalCylinderSupportCoverage(
             geometry = geometry,
             index = index,
             geometries = geometries
