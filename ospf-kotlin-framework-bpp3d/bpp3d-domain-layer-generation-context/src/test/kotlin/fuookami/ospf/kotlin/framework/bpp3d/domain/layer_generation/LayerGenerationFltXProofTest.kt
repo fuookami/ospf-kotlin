@@ -1500,6 +1500,46 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun circlePackingLayerGeneratorShouldGenerateZAxisHorizontalCylinderHangingSupport() = runBlocking {
+        val support = cuboidItem(
+            id = "item-circle-horizontal-z-hanging-support",
+            widthValue = 0.2,
+            heightValue = 0.2,
+            depthValue = 1.0
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-z-hanging-cylinder",
+            axis = Axis3.Z,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(1.0) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.2) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-HANGING"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 12
+            )
+        )
+
+        val hanging = generated.first { result ->
+            result.source == "circle-packing-horizontal-hanging-support-axis=z"
+        }
+        assertEquals(2, hanging.layer.units.size)
+        assertStackedLayerGeometry(hanging.layer)
+        assertTrue(hanging.layer.units.dropLast(1).single().absoluteX.toDouble() > 0.0)
+    }
+
+    @Test
     fun circlePackingLayerGeneratorShouldRejectPartialHorizontalCylinderHangingSupport() = runBlocking {
         val support = cuboidItem(
             id = "item-circle-horizontal-hanging-partial-support",

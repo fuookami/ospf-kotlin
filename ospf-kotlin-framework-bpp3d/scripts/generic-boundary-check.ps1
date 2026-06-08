@@ -170,6 +170,14 @@ $contentChecks = @(
         Pattern = "\bAbstractBPP3DCGPipelineList\b"
     },
     @{
+        Name = "AbstractBPP3DShadowPriceExtractorCompatAlias"
+        Pattern = "\bAbstractBPP3DShadowPriceExtractor\b"
+    },
+    @{
+        Name = "AbstractBPP3DCGPipelineCompatAlias"
+        Pattern = "\bAbstractBPP3DCGPipeline\b"
+    },
+    @{
         Name = "GenericBPP3DCGPipelineListCompatAlias"
         Pattern = "\bGenericBPP3DCGPipelineList\b"
     },

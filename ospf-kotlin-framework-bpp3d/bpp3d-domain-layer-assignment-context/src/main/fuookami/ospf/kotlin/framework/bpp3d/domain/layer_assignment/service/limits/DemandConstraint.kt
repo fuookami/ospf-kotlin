@@ -9,10 +9,9 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeline
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceExtractor
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
@@ -139,7 +138,7 @@ open class DemandConstraint<
     private val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
     private val shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
     override val name: String = "demand"
-) : AbstractBPP3DCGPipeline<Args, T> {
+) : CGPipeline<Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>> {
     private fun symbolAt(index: Int): Symbol {
         return (runCatching { load.load[index] as Symbol }.getOrNull()
             ?: throw IllegalStateException("Missing load symbol at index $index"))
@@ -273,7 +272,7 @@ open class DemandConstraint<
         return ok
     }
 
-    override fun extractor(): AbstractBPP3DShadowPriceExtractor<Args, T>? {
+    override fun extractor(): ShadowPriceExtractor<Args, AbstractBPP3DShadowPriceMap<Args, T>>? {
         if (shadowPriceExtractor != null) {
             return { _, args ->
                 shadowPriceConverter.fromValue(shadowPriceExtractor.invoke(args) ?: layerAssignmentZero())

@@ -893,6 +893,60 @@ class PackerAndRendererAdapterTest {
     }
 
     @Test
+    fun rendererAdapterShouldRejectHorizontalCylinderWithMisalignedSupportLine() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-H-SUPPORT-LINE"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-H-SUPPORT-LINE",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val result = PackingResult(
+            aggregation = PackingAggregation(
+                listOf(
+                    PackedBin(
+                        name = "bin-test",
+                        type = binType(),
+                        items = listOf(
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = item(
+                                        id = "support-line-mismatch",
+                                        material = material,
+                                        widthValue = 1.2,
+                                        heightValue = 1.0,
+                                        depthValue = 0.2
+                                    ).view(Orientation.Upright),
+                                    position = point3()
+                                ),
+                                loadingOrder = UInt64.one
+                            ),
+                            PackedItem(
+                                placement = itemPlacement3Of(
+                                    view = cylinderItem(
+                                        id = "cyl-x-support-line-mismatch",
+                                        material = material,
+                                        axis = Axis3.X,
+                                        lengthValue = 1.2
+                                    ).view(Orientation.Upright),
+                                    position = point3(y = infraScalar(1.0) * Meter)
+                                ),
+                                loadingOrder = UInt64(2)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val error = assertFailsWith<IllegalArgumentException> {
+            PackingRendererAdapter().toSchema(result)
+        }
+        assertTrue(error.message?.contains("type=horizontal_support") == true)
+        assertTrue(error.message?.contains("cuboid support coverage") == true)
+    }
+
+    @Test
     fun rendererAdapterShouldAcceptSameAxisCylinderBoundaryTangentAndRejectTinyOverlap() = runBlocking {
         val material = Material(
             no = MaterialNo("M-CYL-SAME-AXIS"),

@@ -6,10 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 interface AbstractBPP3DShadowPriceArguments<
@@ -39,11 +36,3 @@ open class GenericBPP3DShadowPriceMap<
         > : AbstractShadowPriceMap<
         @UnsafeVariance Args, GenericBPP3DShadowPriceMap<@UnsafeVariance Args, @UnsafeVariance V, @UnsafeVariance T>
         >()
-
-typealias AbstractBPP3DShadowPriceExtractor<Args, T> = ShadowPriceExtractor<
-        Args, AbstractBPP3DShadowPriceMap<Args, T>
-        >
-
-typealias AbstractBPP3DCGPipeline<Args, T> = CGPipeline<
-        Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>
-        >
