@@ -106,7 +106,8 @@ schema 门禁规则：
 4. depth boundary 的圆柱轴向或长方体朝向策略非法值会被显式拒绝。
 5. CSV 重复列会被显式拒绝。
 6. grouped-layer 或 material-width-amount schema 之外的未知 CSV 列会被显式拒绝。
-7. 在 dataset suite 模式下，文件名可声明场景类型：
+7. 可变半径/直径区间必须是离散区间。`*_min` + `*_max` 但缺少 `*_step` 时会被拒绝，除非 `radius_meter` 已给出固定的具体半径。
+8. 在 dataset suite 模式下，文件名可声明场景类型：
    `grouped-layer` / `grouped_layer` => 分组分层 CSV，
    `material-width-amount` / `material_width_amount` => 物料宽度数量 CSV。
    文件名声明类型与表头识别类型不一致时会被显式拒绝。

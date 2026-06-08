@@ -1,7 +1,7 @@
 # BPP3D 形状泛型化与圆柱支持重构计划
 
 日期：2026-05-31
-最近更新：2026-06-07
+最近更新：2026-06-08
 
 本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的已完成状态与下一轮执行计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，继续推进 BPP3D 从 cuboid-only 业务模型收敛到 shape-aware / generic shape 模型。
 
@@ -11,6 +11,7 @@
 2. 已完成圆柱能力矩阵、unsupported contract、generated candidate provenance、cuboid-only search/merge、支撑语义、packing program/material packing shape metadata 和脚本门禁的主要收口。
 3. 已完成离散半径/直径候选能力；连续半径优化、任意 3D 旋转和无法证明支撑安全的路径继续保持非生产能力。
 4. 已完成 BPP3D focused tests、边界脚本、文档矩阵和触发式验收口径的同步维护，BPP3D 改动保持独立。
+5. 已补充 CSV/Gurobi shape metadata focused 验收：material-width-amount 横向圆柱轴长解释、连续半径/直径区间误用、非法半径区间和 grouped-layer 横向圆柱手工层绕过均进入可复现测试；`shape-boundary-check.ps1` 已增加对应离散半径 guard。
 
 ## 2. 总目标与下一轮方向
 

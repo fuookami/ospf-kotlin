@@ -1143,6 +1143,55 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun materialWidthAmountCsvShouldMapHorizontalCylinderWidthToAxisLength() {
+        val csv = """
+            material,width,amount,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis
+            MAT-X,1200,1,MAT-X,Material-X,1.0,vertical_cylinder,0.25,X
+            MAT-Z,1400,1,MAT-Z,Material-Z,1.0,vertical_cylinder,0.30,Z
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val itemsById = scenario.itemDemands.associate { (item, _) ->
+            item.id to item
+        }
+        val itemX = itemsById["item-material-width-0"]
+            ?: throw IllegalStateException("missing item-material-width-0")
+        val itemZ = itemsById["item-material-width-1"]
+            ?: throw IllegalStateException("missing item-material-width-1")
+
+        assertEquals(
+            expected = 1.2,
+            actual = itemX.packageShape.width.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.5,
+            actual = itemX.packageShape.height.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.5,
+            actual = itemX.packageShape.depth.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.6,
+            actual = itemZ.packageShape.width.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 0.6,
+            actual = itemZ.packageShape.height.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+        assertEquals(
+            expected = 1.4,
+            actual = itemZ.packageShape.depth.value.toDouble(),
+            absoluteTolerance = 1e-9
+        )
+    }
+
+    @Test
     fun csvShapeSpecParserShouldAcceptHorizontalCylinderAxesAsMetadata() {
         val cylinderXSpec = toPackageShapeSpec(
             shapeType = "vertical_cylinder",
@@ -1202,6 +1251,65 @@ class GurobiColumnGenerationTest {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
         assertTrue(exception.message?.contains("invalid axis") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectContinuousRadiusIntervalWithoutStep() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,axis
+            0,0,item-continuous-radius,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
+        assertTrue(exception.message?.contains("radius_step") == true)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectContinuousDiameterIntervalWithoutStep() {
+        val csv = """
+            material,width,amount,shape_type,diameter_min,diameter_max,axis
+            MAT-A,1000,1,vertical_cylinder,0.30,0.36,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("continuous diameter interval is unsupported") == true)
+        assertTrue(exception.message?.contains("diameter_step") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectInvalidRadiusInterval() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_step,axis
+            0,0,item-invalid-radius,MAT-A,Material-A,1.0,vertical_cylinder,0.20,0.15,0.01,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("radiusMin must be less than or equal to radiusMax") == true)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectMixedHorizontalAxesBeforeManualLayerPlacement() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis
+            0,0,item-x,MAT-X,Material-X,1.0,vertical_cylinder,0.25,X
+            0,0,item-z,MAT-Z,Material-Z,1.0,vertical_cylinder,0.25,Z
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("verified axis-aware generated candidates") == true)
     }
 
     @Test
@@ -1696,6 +1804,16 @@ class GurobiColumnGenerationTest {
             || normalizedShapeType == "verticalcylinder"
             || normalizedShapeType == "cylinder"
         ) {
+            requireDiscreteCsvRadiusMetadata(
+                radiusMeter = radiusMeter,
+                radiusMinMeter = radiusMinMeter,
+                radiusMaxMeter = radiusMaxMeter,
+                radiusStepMeter = radiusStepMeter,
+                diameterMinMeter = diameterMinMeter,
+                diameterMaxMeter = diameterMaxMeter,
+                diameterStepMeter = diameterStepMeter,
+                rowDescription = rowDescription
+            )
             val resolvedRadiusMeter = radiusMeter
                 ?: radiusMinMeter
                 ?: diameterMinMeter?.let { it / Flt64(2.0) }
@@ -1720,6 +1838,38 @@ class GurobiColumnGenerationTest {
         throw IllegalStateException(
             "unsupported shape_type for csv row: shape_type=$shapeType, $rowDescription"
         )
+    }
+
+    private fun requireDiscreteCsvRadiusMetadata(
+        radiusMeter: Flt64?,
+        radiusMinMeter: Flt64?,
+        radiusMaxMeter: Flt64?,
+        radiusStepMeter: Flt64?,
+        diameterMinMeter: Flt64?,
+        diameterMaxMeter: Flt64?,
+        diameterStepMeter: Flt64?,
+        rowDescription: String
+    ) {
+        if (radiusStepMeter != null && (radiusMinMeter == null || radiusMaxMeter == null)) {
+            throw IllegalStateException(
+                "radius_step requires radius_min and radius_max for cylinder row: $rowDescription"
+            )
+        }
+        if (diameterStepMeter != null && (diameterMinMeter == null || diameterMaxMeter == null)) {
+            throw IllegalStateException(
+                "diameter_step requires diameter_min and diameter_max for cylinder row: $rowDescription"
+            )
+        }
+        if (radiusMeter == null && radiusMinMeter != null && radiusMaxMeter != null && radiusStepMeter == null) {
+            throw IllegalStateException(
+                "continuous radius interval is unsupported for csv row: provide radius_step or radius_meter, $rowDescription"
+            )
+        }
+        if (radiusMeter == null && diameterMinMeter != null && diameterMaxMeter != null && diameterStepMeter == null) {
+            throw IllegalStateException(
+                "continuous diameter interval is unsupported for csv row: provide diameter_step or radius_meter, $rowDescription"
+            )
+        }
     }
 
     private fun optionalIntProperty(name: String): Int? {

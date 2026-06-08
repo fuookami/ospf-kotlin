@@ -106,7 +106,8 @@ Schema guard rules:
 4. Invalid depth boundary cylinder-axis or cuboid-orientation policy values are rejected explicitly.
 5. Duplicate CSV columns are rejected explicitly.
 6. Unsupported CSV columns outside the declared grouped-layer or material-width-amount schema are rejected explicitly.
-7. In dataset suite mode, file name can declare scenario kind:
+7. Variable radius/diameter intervals must be discrete. `*_min` + `*_max` without `*_step` is rejected unless `radius_meter` provides a fixed concrete radius.
+8. In dataset suite mode, file name can declare scenario kind:
    `grouped-layer` / `grouped_layer` => grouped layer CSV,
    `material-width-amount` / `material_width_amount` => material-width-amount CSV.
    Declared kind mismatch with header detection is rejected explicitly.

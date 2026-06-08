@@ -52,6 +52,7 @@ $fixHints = @{
     PatternPlacementCylinderGuardMissing = "Pattern placement must reject cylinders through the shared cuboid-only unsupported contract."
     ProgramCandidateShapeSpecGuardMissing = "Layer generation program-demand adapters must preserve PackingProgram.shape.shapeSpec when creating ActualItem instances."
     MaterialPackerShapeSpecGuardMissing = "MaterialPacker must preserve the selected PackingProgram shapeSpec when it emits packaged ActualItem instances."
+    GurobiCsvDiscreteRadiusGuardMissing = "Gurobi CSV shape metadata parsing must reject continuous radius/diameter intervals unless a concrete fixed radius is provided."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
 }
@@ -404,6 +405,13 @@ Add-RequiredPatternViolation `
     -FilePath $materialPackerPath `
     -Pattern "shapeSpecOverride\s*=\s*pack\.shape\.shapeSpec" `
     -MissingText "MaterialPacker must copy the selected package shapeSpec into emitted ActualItem."
+
+$gurobiColumnGenerationTestPath = Join-Path $scanRoot "bpp3d-application/src/gurobi-test/fuookami/ospf/kotlin/framework/bpp3d/application/service/GurobiColumnGenerationTest.kt"
+Add-RequiredPatternViolation `
+    -Check "GurobiCsvDiscreteRadiusGuardMissing" `
+    -FilePath $gurobiColumnGenerationTestPath `
+    -Pattern "requireDiscreteCsvRadiusMetadata\s*\([\s\S]*?continuous radius interval is unsupported[\s\S]*?continuous diameter interval is unsupported" `
+    -MissingText "GurobiColumnGenerationTest CSV parser must reject continuous radius/diameter intervals without a discrete step or fixed radius."
 
 $packerPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/Packer.kt"
 if (Test-Path $packerPath) {
