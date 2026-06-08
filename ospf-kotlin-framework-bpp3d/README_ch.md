@@ -25,11 +25,11 @@
 6. 连续半径优化元数据在产出生产 `PackingShape3` 前，以及 circle-packing 候选生成读取 `packingShape` 前都会被拒绝；固定半径和离散半径候选仍保持支持。
 7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
 
-当前仍未完成或未完全泛型化：
+明确非目标与剩余工作：
 
-1. 圆柱任意三维旋转。
-2. 全主链 legacy 长方体算法的 shape-generic 迁移。
-3. solver 原生连续半径优化完整闭环。
+1. 圆柱任意三维旋转不是当前目标。
+2. 全主链 legacy 长方体算法的 shape-generic 迁移仍在推进。
+3. solver 原生连续半径优化完整闭环仍在推进。
 4. 外部 renderer 源码不属于本仓；本模块负责输出用于外部 renderer 验收的 shape metadata。
 
 重构进度请查看 [refactor.md](./refactor.md)。
@@ -46,6 +46,7 @@
 
 生产路径标签和 unsupported 文案集中在 `CylinderCapabilityPath` / `CylinderShapeContract`。
 候选生成、cuboid-only search/merge、支撑检查、已知坐标终态校验、renderer 终态校验和 depth boundary 终态校验必须使用共享契约，不允许散落维护路径字符串。横向圆柱长方体支撑覆盖已集中到 infrastructure 合同，并由 generated stacking 检查和 final packing/rendering 几何门禁共同复用。
+strict generic 边界脚本会拒绝已删除的固定数值别名和兼容捷径回流，新代码应直接使用 shape-generic 或 solver-generic API。
 
 | 路径 | 长方体 | `Axis3.Y` 圆柱 | `Axis3.X` / `Axis3.Z` 圆柱 |
 | --- | --- | --- | --- |

@@ -25,11 +25,11 @@ For the current MVP:
 6. Continuous radius optimization metadata is rejected before producing a production `PackingShape3` and before circle-packing candidate generation reads `packingShape`; fixed and discrete radius candidates remain supported.
 7. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
 
-Unsupported or not fully generalized yet:
+Explicit non-goals and remaining work:
 
-1. Arbitrary 3D cylinder rotation.
-2. Fully shape-generic migration for all legacy cuboid algorithms.
-3. Full solver-native continuous radius optimization.
+1. Arbitrary 3D cylinder rotation is not a target.
+2. Fully shape-generic migration for all legacy cuboid algorithms is still in progress.
+3. Full solver-native continuous radius optimization is still in progress.
 4. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
 
 See detailed progress in [refactor.md](./refactor.md).
@@ -46,6 +46,7 @@ See detailed progress in [refactor.md](./refactor.md).
 
 The production path labels and unsupported messages are centralized in `CylinderCapabilityPath` / `CylinderShapeContract`.
 Candidate-generation, cuboid-only search/merge, support checks, known-coordinate final validation, renderer final validation, and depth-boundary final validation must use that shared contract instead of duplicating path strings. Horizontal-cylinder cuboid support coverage is centralized in infrastructure and reused by generated stacking checks and final packing/rendering geometry guards.
+Strict generic boundary checks reject stale fixed-number aliases and deleted compatibility shortcuts so new code uses the shape-generic or solver-generic APIs directly.
 
 | Path | Cuboid | `Axis3.Y` cylinder | `Axis3.X` / `Axis3.Z` cylinder |
 | --- | --- | --- | --- |

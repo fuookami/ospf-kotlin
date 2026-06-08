@@ -240,7 +240,6 @@ Add-TokenViolation -Check "AbstractCuboidOutOfAllowList" -Pattern "\bAbstractCub
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/PackingShape.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/ShadowPriceMap.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/InfraAliases.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemModelAliases.kt"
 )
 
@@ -313,7 +312,7 @@ Add-TokenViolation -Check "DirectBinConstructorOutOfFactory" -Pattern "\bBin\s*\
 
 Add-TokenViolation -Check "ApplicationDirectItemLimitFactory" -Pattern "\b(DemandConstraint|VolumeMinimization)\.forItem\s*\(" -AllowSuffixes @()
 
-Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsupported cylinder axis|Unsupported cylinder orientation|Unsupported cylinder top-layer|Unsupported cylinder stacking and hanging|Unsupported continuous cylinder radius optimization|Unsupported cylinder in|only Axis3\.Y is allowed|only upright orientations are allowed|side/lie stacking is not allowed|only upright Axis3\.Y items are allowed|radiusWeightFunctionKey requires solver radius variables|cuboid-only and does not provide verified cylinder geometry yet" -AllowSuffixes @(
+Add-TokenViolation -Check "DuplicatedCylinderUnsupportedContract" -Pattern "Unsupported cylinder axis|Unsupported cylinder orientation|Unsupported cylinder top-layer|Unsupported cylinder stacking and hanging|Unsupported coordinate-less cylinder stacking and hanging|Unsupported continuous cylinder radius optimization|Unsupported cylinder in|only Axis3\.Y is allowed|only upright orientations are allowed|side/lie stacking is not allowed|only upright Axis3\.Y items are allowed|horizontal cylinders require verified 3D placement support coverage|radiusWeightFunctionKey requires solver radius variables|cuboid-only and does not provide verified cylinder geometry yet" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
 )
 

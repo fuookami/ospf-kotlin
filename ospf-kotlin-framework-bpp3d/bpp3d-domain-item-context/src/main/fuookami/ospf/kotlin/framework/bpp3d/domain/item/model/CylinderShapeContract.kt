@@ -193,14 +193,14 @@ fun unsupportedCylinderTopLayerPolicyMessage(source: String): String {
 }
 
 /**
- * 圆柱堆叠/悬挂支撑未开放错误信息。
- * Unsupported cylinder stacking/hanging support message.
+ * 无坐标圆柱堆叠/悬挂支撑未开放错误信息。
+ * Unsupported coordinate-less cylinder stacking/hanging support message.
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
  */
 fun unsupportedCylinderStackingSupportMessage(source: String): String {
-    return "Unsupported cylinder stacking and hanging support in $source: only upright Axis3.Y items are allowed."
+    return "Unsupported coordinate-less cylinder stacking and hanging support in $source: only upright Axis3.Y items are allowed; horizontal cylinders require verified 3D placement support coverage."
 }
 
 /**

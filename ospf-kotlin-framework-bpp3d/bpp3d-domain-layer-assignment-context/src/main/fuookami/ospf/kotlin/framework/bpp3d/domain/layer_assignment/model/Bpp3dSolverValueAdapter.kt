@@ -122,16 +122,10 @@ interface Bpp3dSolverValueAdapter {
 }
 
 /**
- * BPP3D 需求值适配器别名。
- * BPP3D demand value adapter alias.
+ * 直接使用 InfraNumber 转换的默认实现。
+ * Default implementation using direct InfraNumber conversion.
  */
-typealias Bpp3dDemandValueAdapter = Bpp3dSolverValueAdapter
-
-/**
- * 默认 BPP3D 需求值适配器，直接使用 InfraNumber 转换。
- * Default BPP3D demand value adapter, uses direct InfraNumber conversion.
- */
-data object DefaultBpp3dDemandValueAdapter : Bpp3dSolverValueAdapter {
+private data object DirectBpp3dSolverValueAdapter : Bpp3dSolverValueAdapter {
     override fun amountToSolver(value: UInt64): InfraNumber = value.toSolverInfraNumber()
     override fun lengthToSolver(value: Quantity<InfraNumber>): InfraNumber = value.toSolverInfraNumber()
     override fun areaToSolver(value: Quantity<InfraNumber>): InfraNumber = value.toSolverInfraNumber()
@@ -143,5 +137,5 @@ data object DefaultBpp3dDemandValueAdapter : Bpp3dSolverValueAdapter {
  * 默认 BPP3D 求解器值适配器实例。
  * Default BPP3D solver value adapter instance.
  */
-val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dDemandValueAdapter
+val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = DirectBpp3dSolverValueAdapter
 

@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 typealias InfraNumber = InfraBaseFloating
 typealias InfraQuantity = Quantity<InfraNumber>
-typealias InfraCuboid = AbstractCuboid<InfraNumber>
 
 fun infraZero(): InfraNumber = InfraNumber.zero
 fun infraOne(): InfraNumber = InfraNumber.one

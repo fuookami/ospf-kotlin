@@ -32,15 +32,15 @@ class GenericDomainAliasExampleTest {
     }
 
     @Test
-    fun infraNumberAliasShouldBuildGenericDomainObjects() {
-        val material: InfraNumberMaterial = GenericMaterial(
+    fun infraNumberGenericDomainObjectsShouldBuildDirectly() {
+        val material: GenericMaterial<InfraNumber> = GenericMaterial(
             no = MaterialNo("MAT-64"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-64",
             weight = infraScalar(0.5) * Kilogram
         )
-        val pack: InfraNumberPackage = GenericPackage.innerPackage(
+        val pack: GenericPackage<InfraNumber> = GenericPackage.innerPackage(
             shape = GenericPackageShape(
                 width = infraScalar(1.0) * Meter,
                 height = infraScalar(2.0) * Meter,
@@ -50,7 +50,7 @@ class GenericDomainAliasExampleTest {
             ),
             materials = mapOf(material to UInt64(2))
         )
-        val item: InfraNumberItem = GenericItem(
+        val item: GenericItem<InfraNumber> = GenericItem(
             id = "InfraNumber-item",
             name = "InfraNumber-item",
             pack = pack,
@@ -58,7 +58,7 @@ class GenericDomainAliasExampleTest {
             batchNo = BatchNo("BATCH-64"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer: InfraNumberBinLayer = GenericBinLayer(
+        val layer: GenericBinLayer<InfraNumber> = GenericBinLayer(
             iteration = Int64.zero,
             from = GenericDomainAliasExampleTest::class,
             width = infraScalar(5.0) * Meter,
@@ -75,15 +75,15 @@ class GenericDomainAliasExampleTest {
     }
 
     @Test
-    fun fltXAliasShouldBuildGenericDomainObjects() {
-        val material: FltXMaterial = GenericMaterial(
+    fun fltXGenericDomainObjectsShouldBuildDirectly() {
+        val material: GenericMaterial<FltX> = GenericMaterial(
             no = MaterialNo("MAT-X"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-X",
             weight = FltX(0.5) * Kilogram
         )
-        val pack: FltXPackage = GenericPackage.innerPackage(
+        val pack: GenericPackage<FltX> = GenericPackage.innerPackage(
             shape = GenericPackageShape(
                 width = FltX.one * Meter,
                 height = FltX(2.0) * Meter,
@@ -93,7 +93,7 @@ class GenericDomainAliasExampleTest {
             ),
             materials = mapOf(material to UInt64(2))
         )
-        val item: FltXItem = GenericItem(
+        val item: GenericItem<FltX> = GenericItem(
             id = "fltx-item",
             name = "fltx-item",
             pack = pack,
@@ -101,7 +101,7 @@ class GenericDomainAliasExampleTest {
             batchNo = BatchNo("BATCH-X"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer: FltXBinLayer = GenericBinLayer(
+        val layer: GenericBinLayer<FltX> = GenericBinLayer(
             iteration = Int64.zero,
             from = GenericDomainAliasExampleTest::class,
             width = FltX(5.0) * Meter,

@@ -84,7 +84,7 @@ class DepthFirstSearchAlgorithm(
         val blockComparator: (Space, Block, Block) -> Order = { space, lhs, rhs ->
             compareWithFitness(space, lhs, rhs) { spc, block -> fitness(spc, block) }
         },
-        val spaceDirectionOrder: List<Direction> = listOf(Front, Bottom, Side),
+        val spaceDirectionOrder: List<ProjectivePlane> = listOf(Front, Bottom, Side),
         val spaceComparator: (Space, Space, Block?) -> Order = { lhs, rhs, block ->
             if (block != null) {
                 fitness(lhs, block) ord fitness(rhs, block)

@@ -323,7 +323,8 @@ class MixedShapeGeometryTest {
             cylinder.enabledStackingOn(support)
         }
 
-        assertTrue(error.message?.contains("upright Axis3.Y") == true)
+        assertTrue(error.message?.contains("coordinate-less cylinder stacking and hanging support") == true)
+        assertTrue(error.message?.contains("verified 3D placement support coverage") == true)
     }
 
     @Test
@@ -406,7 +407,8 @@ class MixedShapeGeometryTest {
             cylinder.view(Orientation.Side).enabledStackingOn(support)
         }
 
-        assertTrue(error.message?.contains("upright Axis3.Y") == true)
+        assertTrue(error.message?.contains("coordinate-less cylinder stacking and hanging support") == true)
+        assertTrue(error.message?.contains("verified 3D placement support coverage") == true)
     }
 
     @Test

@@ -41,9 +41,6 @@ data class MaterialPackingDemand<V : FloatingNumber<V>>(
     val weight: Quantity<V>? = null
 )
 
-/** InfraNumber 物料装箱需求别名。InfraNumber material-packing demand alias. */
-typealias InfraMaterialPackingDemand = MaterialPackingDemand<MaterialPackingNumber>
-
 /**
  * 包装方案候选，描述包装程序与生成 item 的附加属性。
  * Candidate packaging program and item generation options.
@@ -57,9 +54,6 @@ data class MaterialPackingProgramCandidate<V : FloatingNumber<V>>(
     val warehouse: String? = null,
     val packageAttribute: PackageAttribute? = null
 )
-
-/** InfraNumber 装箱程序候选别名。InfraNumber packing-program candidate alias. */
-typealias InfraMaterialPackingProgramCandidate = MaterialPackingProgramCandidate<MaterialPackingNumber>
 
 /**
  * 包装方案选择结果（x[p]）。

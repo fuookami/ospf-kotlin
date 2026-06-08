@@ -122,6 +122,82 @@ $contentChecks = @(
         Pattern = "\bItemDemandShadowPriceKey\b"
     },
     @{
+        Name = "Bpp3dDemandValueAdapterCompatAlias"
+        Pattern = "\bBpp3dDemandValueAdapter\b"
+    },
+    @{
+        Name = "DefaultBpp3dDemandValueAdapterCompatAlias"
+        Pattern = "\bDefaultBpp3dDemandValueAdapter\b"
+    },
+    @{
+        Name = "InfraBpp3dDemandEntryCompatAlias"
+        Pattern = "\bInfraBpp3dDemandEntry\b"
+    },
+    @{
+        Name = "InfraBpp3dItemDemandCompatAlias"
+        Pattern = "\bInfraBpp3dItemDemand\b"
+    },
+    @{
+        Name = "InfraBpp3dMaterialDemandCompatAlias"
+        Pattern = "\bInfraBpp3dMaterialDemand\b"
+    },
+    @{
+        Name = "InfraLoadCompatAlias"
+        Pattern = "\bInfraLoad\b"
+    },
+    @{
+        Name = "BPP3DShadowPriceExtractorCompatAlias"
+        Pattern = "\bBPP3DShadowPriceExtractor\b"
+    },
+    @{
+        Name = "BPP3DCGPipelineCompatAlias"
+        Pattern = "\bBPP3DCGPipeline\b"
+    },
+    @{
+        Name = "BPP3DCGPipelineListCompatAlias"
+        Pattern = "\bBPP3DCGPipelineList\b"
+    },
+    @{
+        Name = "GenericBPP3DShadowPriceExtractorCompatAlias"
+        Pattern = "\bGenericBPP3DShadowPriceExtractor\b"
+    },
+    @{
+        Name = "GenericBPP3DCGPipelineCompatAlias"
+        Pattern = "\bGenericBPP3DCGPipeline\b"
+    },
+    @{
+        Name = "AbstractBPP3DCGPipelineListCompatAlias"
+        Pattern = "\bAbstractBPP3DCGPipelineList\b"
+    },
+    @{
+        Name = "GenericBPP3DCGPipelineListCompatAlias"
+        Pattern = "\bGenericBPP3DCGPipelineList\b"
+    },
+    @{
+        Name = "InfraMaterialPackingDemandCompatAlias"
+        Pattern = "\bInfraMaterialPackingDemand\b"
+    },
+    @{
+        Name = "InfraMaterialPackingProgramCandidateCompatAlias"
+        Pattern = "\bInfraMaterialPackingProgramCandidate\b"
+    },
+    @{
+        Name = "InfraNumberGenericDomainAliasToken"
+        Pattern = "\bInfraNumber(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
+    },
+    @{
+        Name = "FltXGenericDomainAliasToken"
+        Pattern = "\bFltX(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
+    },
+    @{
+        Name = "InfraCuboidCompatAlias"
+        Pattern = "\bInfraCuboid\b"
+    },
+    @{
+        Name = "ProjectionPlaneCompatAlias"
+        Pattern = "^\s*typealias\s+(Direction|ZOX|XOY|ZOY)\b"
+    },
+    @{
         Name = "legacyZeroToken"
         Pattern = "\blegacyZero\b"
     },

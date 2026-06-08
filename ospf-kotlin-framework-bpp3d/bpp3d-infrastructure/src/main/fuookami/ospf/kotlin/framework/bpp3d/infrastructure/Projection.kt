@@ -130,8 +130,6 @@ sealed class ProjectivePlane {
     }
 }
 
-typealias Direction = ProjectivePlane
-
 /**
  * ZOX
  */
@@ -153,8 +151,6 @@ object Bottom : ProjectivePlane() {
         return "Bottom-ZOX"
     }
 }
-
-typealias ZOX = Bottom
 
 /**
  * XOY
@@ -178,8 +174,6 @@ object Side : ProjectivePlane() {
     }
 }
 
-typealias XOY = Side
-
 /**
  * ZOY
  */
@@ -201,8 +195,6 @@ object Front : ProjectivePlane() {
         return "Front-ZOY"
     }
 }
-
-typealias ZOY = Front
 
 sealed interface Projection<
         T : Cuboid<T>,

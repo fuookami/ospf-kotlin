@@ -26,9 +26,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dSolverValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dDemandValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -148,8 +145,6 @@ data class Bpp3dDemandEntry<V : FloatingNumber<V>>(
         get() = resolveUnitDomain(quantityUnit, Bpp3dDemandDomain.Continuous)
 }
 
-typealias InfraBpp3dDemandEntry = Bpp3dDemandEntry<InfraNumber>
-
 private fun defaultDemandValue(
     domain: Bpp3dDemandDomain = Bpp3dDemandDomain.Discrete
 ): Bpp3dDemandValue {
@@ -179,15 +174,11 @@ data class Bpp3dItemDemand<V : FloatingNumber<V>>(
     override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
 ) : ItemDemand<V>
 
-typealias InfraBpp3dItemDemand = Bpp3dItemDemand<InfraNumber>
-
 data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
     override val material: MaterialKey,
     override val quantity: Quantity<V>,
     override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
 ) : MaterialDemand<V>
-
-typealias InfraBpp3dMaterialDemand = Bpp3dMaterialDemand<InfraNumber>
 
 private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
     return when (mode) {
@@ -211,7 +202,7 @@ private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
 
 private fun demandValueFromQuantity(
     quantity: Quantity<InfraNumber>,
-    demandValueAdapter: Bpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter
 ): InfraNumber {
     return if (isDiscreteDemandUnit(quantity.unit)) {
         demandValueAdapter.amountToSolver(toDiscreteAmount(quantity))
@@ -232,7 +223,7 @@ private fun exactDemandRange(value: InfraNumber): ValueRange<InfraNumber> {
 
 fun demandEntriesFromItemDemands(
     items: List<Pair<Item, Quantity<InfraNumber>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromLabeledItemDemands(
         items = items.map { (item, quantity) ->
@@ -247,7 +238,7 @@ fun demandEntriesFromItemDemands(
 
 fun demandEntriesFromLabeledItemDemands(
     items: List<ItemDemand<InfraNumber>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return items.map { demand ->
         val mode = resolveItemDemandMode(demand.mode)
@@ -264,7 +255,7 @@ fun demandEntriesFromLabeledItemDemands(
 
 fun demandEntriesFromItems(
     items: List<Pair<Item, UInt64>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return items.map { (item, demand) ->
         val demandValue = demandValueAdapter.amountToSolver(demand)
@@ -280,7 +271,7 @@ fun demandEntriesFromItems(
 
 fun demandEntriesFromItemRanges(
     items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return items.map { (item, demand, demandRange) ->
         Bpp3dDemandEntry(
@@ -295,7 +286,7 @@ fun demandEntriesFromItemRanges(
 
 private fun demandEntriesFromMaterialDemandsByKey(
     materials: List<MaterialDemand<InfraNumber>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return materials.map { demand ->
         val mode = resolveMaterialDemandMode(demand.mode)
@@ -312,7 +303,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
 
 fun demandEntriesFromMaterialDemands(
     materials: List<Pair<Material<InfraNumber>, Quantity<InfraNumber>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
@@ -327,7 +318,7 @@ fun demandEntriesFromMaterialDemands(
 
 fun demandEntriesFromLabeledMaterialDemands(
     materials: List<MaterialDemand<InfraNumber>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials,
@@ -337,7 +328,7 @@ fun demandEntriesFromLabeledMaterialDemands(
 
 private fun demandEntriesFromMaterialAmountsByKey(
     materials: List<Pair<MaterialKey, UInt64>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
@@ -352,7 +343,7 @@ private fun demandEntriesFromMaterialAmountsByKey(
 
 fun demandEntriesFromMaterialAmounts(
     materials: List<Pair<Material<InfraNumber>, UInt64>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialAmountsByKey(
         materials = materials.map { (material, demand) -> Pair(material.key, demand) },
@@ -362,7 +353,7 @@ fun demandEntriesFromMaterialAmounts(
 
 private fun demandEntriesFromMaterialWeightsByKey(
     materials: List<Pair<MaterialKey, Quantity<InfraNumber>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials.map { (material, demand) ->
@@ -377,7 +368,7 @@ private fun demandEntriesFromMaterialWeightsByKey(
 
 fun demandEntriesFromMaterialWeights(
     materials: List<Pair<Material<InfraNumber>, Quantity<InfraNumber>>>,
-    demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<InfraNumber>> {
     return demandEntriesFromMaterialWeightsByKey(
         materials = materials.map { (material, demand) -> Pair(material.key, demand) },
@@ -395,7 +386,7 @@ interface Load<V : FloatingNumber<V>> {
     /** 需求条目列表 / demand entry list */
     val demandEntries: List<Bpp3dDemandEntry<V>>
     /** 需求值适配器 / demand value adapter */
-    val demandValueAdapter: Bpp3dDemandValueAdapter
+    val demandValueAdapter: Bpp3dSolverValueAdapter
     /** 负载符号 / load symbols */
     val load: LinearIntermediateSymbols1<InfraNumber>
     /** 超载符号 / over-load symbols */
@@ -410,16 +401,10 @@ interface Load<V : FloatingNumber<V>> {
 }
 
 /**
- * 基础负载类型别名。
- * Base load type alias.
- */
-typealias InfraLoad = Load<InfraNumber>
-
-/**
  * 抽象负载基类，提供超载和欠载符号的注册。
  * Abstract load base class, provides registration of over-load and less-load symbols.
  */
-abstract class AbstractLoad : InfraLoad {
+abstract class AbstractLoad : Load<InfraNumber> {
     override lateinit var overLoad: LinearIntermediateSymbols1<InfraNumber>
     override lateinit var lessLoad: LinearIntermediateSymbols1<InfraNumber>
 
@@ -503,7 +488,7 @@ class ImpreciseLoad(
     private val assignment: ImpreciseAssignment,
     override val overEnabled: Boolean = true,
     override val lessEnabled: Boolean = true,
-    override val demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    override val demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
  ) : AbstractLoad() {
     companion object {
         fun fromItems(
@@ -511,7 +496,7 @@ class ImpreciseLoad(
             assignment: ImpreciseAssignment,
             overEnabled: Boolean = true,
             lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+            demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
         ): ImpreciseLoad {
             return ImpreciseLoad(
                 demandEntries = demandEntriesFromItems(items, demandValueAdapter),
@@ -527,7 +512,7 @@ class ImpreciseLoad(
             assignment: ImpreciseAssignment,
             overEnabled: Boolean = true,
             lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+            demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
         ): ImpreciseLoad {
             return ImpreciseLoad(
                 demandEntries = demandEntriesFromItemRanges(items, demandValueAdapter),
@@ -601,7 +586,7 @@ class PreciseLoad(
     private val assignment: PreciseAssignment,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = true,
-    override val demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+    override val demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
  ) : AbstractLoad() {
     companion object {
         fun fromItems(
@@ -610,7 +595,7 @@ class PreciseLoad(
             assignment: PreciseAssignment,
             overEnabled: Boolean = false,
             lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+            demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
         ): PreciseLoad {
             return PreciseLoad(
                 demandEntries = demandEntriesFromItems(items, demandValueAdapter),
@@ -628,7 +613,7 @@ class PreciseLoad(
             assignment: PreciseAssignment,
             overEnabled: Boolean = false,
             lessEnabled: Boolean = true,
-            demandValueAdapter: Bpp3dDemandValueAdapter = DefaultBpp3dDemandValueAdapter
+            demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
         ): PreciseLoad {
             return PreciseLoad(
                 demandEntries = demandEntriesFromItemRanges(items, demandValueAdapter),
