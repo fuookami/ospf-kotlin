@@ -9,7 +9,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
@@ -27,8 +27,8 @@ enum class MaterialPackingMipStatus {
 data class MaterialPackingMipResult(
     val status: MaterialPackingMipStatus,
     val selections: Map<Int, UInt64> = emptyMap(),
-    val objective: MaterialPackingNumber? = null,
-    val gap: MaterialPackingNumber? = null,
+    val objective: InfraNumber? = null,
+    val gap: InfraNumber? = null,
     val timeMillis: Long = 0L,
     val rawStatus: String? = null
 )

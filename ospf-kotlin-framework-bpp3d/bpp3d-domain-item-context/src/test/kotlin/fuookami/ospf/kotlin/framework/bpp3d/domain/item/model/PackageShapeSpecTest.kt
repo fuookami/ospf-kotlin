@@ -113,6 +113,25 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    fun verticalCylinderContinuousRadiusSelectionShouldExposeSelectedResult() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(0.5) * Meter,
+            axis = Axis3.Z,
+            radiusMin = infraScalar(0.4) * Meter,
+            radiusMax = infraScalar(0.6) * Meter,
+            radiusWeightFunctionKey = "continuous-radius-prototype"
+        )
+
+        val selection = assertNotNull(spec.continuousRadiusSelectionResult())
+
+        assertEquals("continuous-radius-prototype", selection.key)
+        assertEquals(Axis3.Z, selection.axis)
+        assertTrue(selection.selectedRadius eq (infraScalar(0.5) * Meter))
+        assertTrue(selection.radiusMin!! eq (infraScalar(0.4) * Meter))
+        assertTrue(selection.radiusMax!! eq (infraScalar(0.6) * Meter))
+    }
+
+    @Test
     fun verticalCylinderRadiusWeightFunctionKeyShouldRejectDiscreteRadiusCandidates() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(

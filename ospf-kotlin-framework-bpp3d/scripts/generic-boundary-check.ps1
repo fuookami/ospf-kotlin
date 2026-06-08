@@ -190,6 +190,14 @@ $contentChecks = @(
         Pattern = "\bInfraMaterialPackingProgramCandidate\b"
     },
     @{
+        Name = "MaterialPackingNumberCompatAlias"
+        Pattern = "\bMaterialPackingNumber\b"
+    },
+    @{
+        Name = "MaterialPackingQuantityCompatAlias"
+        Pattern = "\bMaterialPackingQuantity\b"
+    },
+    @{
         Name = "InfraNumberGenericDomainAliasToken"
         Pattern = "\bInfraNumber(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
     },

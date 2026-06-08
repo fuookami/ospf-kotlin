@@ -12,10 +12,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -26,9 +26,9 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * Material packing objective weights.
  */
 data class MaterialPackingObjectiveConfig(
-    val packageCountWeight: MaterialPackingNumber = materialPackingScalar(1_000_000.0),
-    val volumeWeight: MaterialPackingNumber = materialPackingScalar(1_000.0),
-    val slackWeight: MaterialPackingNumber = materialPackingOne()
+    val packageCountWeight: InfraNumber = materialPackingScalar(1_000_000.0),
+    val volumeWeight: InfraNumber = materialPackingScalar(1_000.0),
+    val slackWeight: InfraNumber = materialPackingOne()
 )
 
 /**
@@ -36,7 +36,7 @@ data class MaterialPackingObjectiveConfig(
  * Material demand with amount/weight mixed input.
  */
 data class MaterialPackingDemand<V : FloatingNumber<V>>(
-    val material: Material<MaterialPackingNumber>,
+    val material: Material<InfraNumber>,
     val amount: UInt64 = UInt64.zero,
     val weight: Quantity<V>? = null
 )
@@ -95,8 +95,8 @@ enum class MaterialPackingStatus {
  */
 data class MaterialPackingSolveInfo(
     val status: MaterialPackingStatus,
-    val objective: MaterialPackingNumber? = null,
-    val gap: MaterialPackingNumber? = null,
+    val objective: InfraNumber? = null,
+    val gap: InfraNumber? = null,
     val timeMillis: Long = 0L,
     val selectedPackageCount: UInt64 = UInt64.zero,
     val rawStatus: String? = null

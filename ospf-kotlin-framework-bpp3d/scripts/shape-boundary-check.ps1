@@ -56,6 +56,7 @@ $fixHints = @{
     GurobiCsvDiscreteRadiusGuardMissing = "Gurobi CSV shape metadata parsing must reject continuous radius/diameter intervals unless a concrete fixed radius is provided."
     GurobiCsvContinuousRadiusKeyGuardMissing = "Gurobi CSV shape metadata parsing must require radius_weight_function_key to carry a concrete selected radius."
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must require radiusWeightFunctionKey production use to carry a concrete selected radius."
+    ContinuousCylinderRadiusSelectionResultGuardMissing = "Continuous-radius production must expose an explicit selected-radius result object, not just a metadata string."
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must require concrete radius metadata before generating candidates."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
@@ -436,6 +437,13 @@ Add-RequiredPatternViolation `
     -FilePath $packagePath `
     -Pattern "requireConcreteCylinderRadiusProductionMetadata\s*\([\s\S]*?source\s*=\s*""PackageShape\.toPackingShapeOrNull""" `
     -MissingText "PackageShape.toPackingShapeOrNull must require a concrete selected radius before emitting production PackingShape3."
+
+$cylinderShapeContractPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSelectionResultGuardMissing" `
+    -FilePath $cylinderShapeContractPath `
+    -Pattern "data\s+class\s+CylinderRadiusSelectionResult[\s\S]*?selectedRadius[\s\S]*?fun\s+PackageShapeSpec\.VerticalCylinder\.continuousRadiusSelectionResult\s*\([\s\S]*?CylinderRadiusSelectionResult[\s\S]*?requireConcreteCylinderRadiusProductionMetadata\s*\([\s\S]*?continuousRadiusSelectionResult" `
+    -MissingText "CylinderShapeContract must keep selected continuous-radius results behind a typed result object used by the production guard."
 
 $layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
 Add-RequiredPatternViolation `

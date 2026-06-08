@@ -7,6 +7,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
@@ -215,6 +216,50 @@ fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): Stri
 }
 
 /**
+ * 连续半径已选择结果。
+ * Selected continuous-radius result.
+ *
+ * @property key 半径权重函数键 / radius weight function key
+ * @property selectedRadius 已选择半径 / selected radius
+ * @property axis 圆柱轴向 / cylinder axis
+ * @property radiusMin 半径下界（可选） / radius lower bound (optional)
+ * @property radiusMax 半径上界（可选） / radius upper bound (optional)
+ */
+data class CylinderRadiusSelectionResult(
+    val key: String,
+    val selectedRadius: Quantity<InfraNumber>,
+    val axis: Axis3,
+    val radiusMin: Quantity<InfraNumber>? = null,
+    val radiusMax: Quantity<InfraNumber>? = null
+) {
+    init {
+        require(key.isNotBlank()) {
+            "Cylinder radius selection key must not be blank."
+        }
+        require(selectedRadius.value.toDouble() > 0.0) {
+            "Cylinder selected radius must be positive."
+        }
+    }
+}
+
+/**
+ * 获取连续半径已选择结果。
+ * Get selected continuous-radius result.
+ *
+ * @return 已选择半径结果；未使用连续半径 key 时返回 null / selected radius result, or null when no continuous-radius key is used
+ */
+fun PackageShapeSpec.VerticalCylinder.continuousRadiusSelectionResult(): CylinderRadiusSelectionResult? {
+    val key = radiusWeightFunctionKey ?: return null
+    return CylinderRadiusSelectionResult(
+        key = key,
+        selectedRadius = radius,
+        axis = axis,
+        radiusMin = radiusMin,
+        radiusMax = radiusMax
+    )
+}
+
+/**
  * 圆柱进入仅长方体路径未开放错误信息。
  * Unsupported cylinder message for cuboid-only paths.
  *
@@ -262,7 +307,8 @@ fun requireConcreteCylinderRadiusProductionMetadata(
     source: String
 ) {
     if (spec is PackageShapeSpec.VerticalCylinder && hasContinuousCylinderRadiusOptimization(spec)) {
-        require(spec.radius.value.toDouble() > 0.0) {
+        val selection = spec.continuousRadiusSelectionResult()
+        require(selection != null && selection.selectedRadius.value.toDouble() > 0.0) {
             unsupportedContinuousCylinderRadiusOptimizationMessage(source)
         }
     }

@@ -22,14 +22,14 @@ For the current MVP:
 3. Horizontal cylinders must be on the bin floor or have cuboid support intervals underneath that cover the full cylinder axis and the bottom support line; unsupported or partially supported horizontal cylinders are rejected in final validation and in the 3D stacking support checker.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
-6. `radiusWeightFunctionKey` can enter production only with a concrete selected `radius` that is carried through final validation and renderer `actualVolume`; interval-only continuous radius variables remain unsupported. Fixed and discrete radius candidates remain supported.
+6. `radiusWeightFunctionKey` can enter production only with a typed selected-radius result and a concrete selected `radius` that is carried through final validation and renderer `actualVolume`; interval-only continuous radius variables remain unsupported. Fixed and discrete radius candidates remain supported.
 7. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
 
 Explicit non-goals and remaining work:
 
 1. Arbitrary 3D cylinder rotation is not a target.
 2. Fully shape-generic migration for all legacy cuboid algorithms is still in progress.
-3. Full solver-native continuous radius optimization is still in progress.
+3. Full solver-native continuous radius optimization is still in progress; the current column-generation model selects concrete generated `BinLayer` columns and does not yet expose symbolic radius variables that affect footprint, volume, and renderer `actualVolume`.
 4. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
 
 See detailed progress in [refactor.md](./refactor.md).
@@ -46,7 +46,7 @@ See detailed progress in [refactor.md](./refactor.md).
 
 The production path labels and unsupported messages are centralized in `CylinderCapabilityPath` / `CylinderShapeContract`.
 Candidate-generation, cuboid-only search/merge, support checks, known-coordinate final validation, renderer final validation, and depth-boundary final validation must use that shared contract instead of duplicating path strings. Horizontal-cylinder cuboid support coverage is centralized in infrastructure and reused by generated stacking checks and final packing/rendering geometry guards.
-Strict generic boundary checks reject stale fixed-number aliases and deleted compatibility shortcuts so new code uses the shape-generic or solver-generic APIs directly.
+Strict generic boundary checks reject stale fixed-number aliases, material-packing number aliases, and deleted compatibility shortcuts so new code uses the shape-generic or solver-generic APIs directly.
 
 | Path | Cuboid | `Axis3.Y` cylinder | `Axis3.X` / `Axis3.Z` cylinder |
 | --- | --- | --- | --- |
@@ -83,7 +83,7 @@ For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_mi
 
 Grouped-layer Gurobi test datasets may use `width_meter`, `height_meter`, and `depth_meter` to express explicit item dimensions, so horizontal cylinder supported-stack seed layers can validate single, repeated, or heterogeneous cuboid support coverage without changing the material-width-amount `width` axis-length contract.
 
-Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. `radiusWeightFunctionKey` is a selected-radius production marker only when a concrete `radius_meter` / `radius` is present; interval-only continuous radius variables and key + discrete-step combinations are rejected, so they cannot silently run as fixed-radius solves.
+Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. `radiusWeightFunctionKey` is a selected-radius production marker only when a concrete `radius_meter` / `radius` is present, and the selected radius is represented by a typed result contract before production shape emission; interval-only continuous radius variables and key + discrete-step combinations are rejected, so they cannot silently run as fixed-radius solves.
 
 ### Depth Boundary Layer Policy Columns
 
