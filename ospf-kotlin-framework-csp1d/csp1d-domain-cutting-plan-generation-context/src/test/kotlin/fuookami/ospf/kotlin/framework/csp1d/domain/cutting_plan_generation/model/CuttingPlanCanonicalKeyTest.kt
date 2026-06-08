@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
@@ -133,6 +134,29 @@ class CuttingPlanCanonicalKeyTest {
             product = p,
             demand = demand
         )
+
+        assertNotEquals(
+            illegal = first.canonicalKey(),
+            actual = second.canonicalKey()
+        )
+    }
+
+    @Test
+    fun canonicalKeyKeepsCapacityConsumption() {
+        val p = product(id = "p", width = 0.5)
+        val demand = ProductDemand.roll(p, Quantity(Flt64(1.0), RollCountUnit))
+        val first = singlePlan(
+            id = "first",
+            material = material(),
+            product = p,
+            demand = demand
+        ).copy(capacityConsumption = Quantity(Flt64(10.0), Kilogram))
+        val second = singlePlan(
+            id = "second",
+            material = material(),
+            product = p,
+            demand = demand
+        ).copy(capacityConsumption = Quantity(Flt64(12.0), Kilogram))
 
         assertNotEquals(
             illegal = first.canonicalKey(),

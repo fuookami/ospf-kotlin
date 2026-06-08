@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
@@ -78,6 +79,7 @@ class FullSumGenerator<V : RealNumber<V>>(
             fullSumSearch(
                 material = material,
                 entries = materialEntries,
+                machines = input.machines,
                 planIndex = planIndex,
                 plans = plans,
                 deadline = deadline
@@ -93,6 +95,7 @@ class FullSumGenerator<V : RealNumber<V>>(
     private fun fullSumSearch(
         material: Material<V>,
         entries: List<WidthEntry<V>>,
+        machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         plans: MutableList<CuttingPlan<V>>,
         deadline: Long?
@@ -123,7 +126,9 @@ class FullSumGenerator<V : RealNumber<V>>(
                         entries = entries,
                         planId = "fullsum-${material.id}-${planIndex.getAndIncrement()}"
                     )
-                    plans.add(plan)
+                    if (material.enabled(plan, machines)) {
+                        plans.add(plan)
+                    }
                 }
                 continue
             }
@@ -225,11 +230,12 @@ class FullSumGenerator<V : RealNumber<V>>(
             }?.demandUnit ?: slice.width.unit
             CuttingPlanDemandContribution(
                 product = product,
-                quantity = computeSliceContribution(
+                quantity = CuttingPlanDemandContribution.quantityOf(
                     product = product,
                     width = slice.width,
                     amount = slice.amount,
-                    demandUnit = demandUnit
+                    demandUnit = demandUnit,
+                    arithmetic = arithmetic
                 )
             )
         }
@@ -241,26 +247,6 @@ class FullSumGenerator<V : RealNumber<V>>(
             demandContributions = contributions,
             arithmetic = arithmetic
         )
-    }
-
-    private fun computeSliceContribution(
-        product: Product<V>,
-        width: Quantity<V>,
-        amount: UInt64,
-        demandUnit: PhysicalUnit
-    ): Quantity<V> {
-        val unitContribution = product.unitWeight?.let { unitWeight ->
-            product.length?.let { length ->
-                val areaValue = width.value * length.value
-                val weightValue = areaValue * unitWeight.value
-                Quantity(weightValue, unitWeight.unit)
-            }
-        }
-        if (unitContribution != null) {
-            return repeatQuantity(unitContribution, amount)
-        }
-        val onePerPiece = Quantity(width.value.constants.one, demandUnit)
-        return repeatQuantity(onePerPiece, amount)
     }
 
     private fun buildWidthEntries(demands: List<ProductDemand<V>>): List<WidthEntry<V>> {
@@ -283,14 +269,6 @@ class FullSumGenerator<V : RealNumber<V>>(
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {
             result = arithmetic.add(result, width)
-        }
-        return result
-    }
-
-    private fun repeatQuantity(q: Quantity<V>, times: UInt64): Quantity<V> {
-        var result = arithmetic.zero(q.unit)
-        repeat(times.toInt()) {
-            result = arithmetic.add(result, q)
         }
         return result
     }

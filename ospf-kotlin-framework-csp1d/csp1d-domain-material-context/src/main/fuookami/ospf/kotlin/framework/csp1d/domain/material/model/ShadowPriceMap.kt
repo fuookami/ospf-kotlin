@@ -35,7 +35,16 @@ data class MaterialUsageShadowPriceKey(
 }
 
 /**
- * 设备产能影子价格键 / Machine capacity shadow price key
+ * 设备批次数影子价格键 / Machine batch count shadow price key
+ */
+data class MachineBatchShadowPriceKey(
+    val machineId: String
+) : ShadowPriceKey {
+    override val name = "machine-batch:$machineId"
+}
+
+/**
+ * 设备业务产能影子价格键 / Machine business capacity shadow price key
  */
 data class MachineCapacityShadowPriceKey(
     val machineId: String

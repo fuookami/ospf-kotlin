@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
@@ -22,6 +23,7 @@ import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
@@ -473,40 +475,128 @@ class Csp1dMilpSolver(
         shadowPriceKeys: MutableMap<String, ShadowPriceKey>? = null
     ) {
         for ((machineIndex, machine) in input.machines.withIndex()) {
-            val maxBatchCount = machine.maxBatchCount ?: continue
-            val lhs = LinearPolynomial(
-                monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
-                    if (plan.machineId != machine.id) {
-                        return@mapIndexedNotNull null
-                    }
-                    LinearMonomial(
-                        coefficient = Flt64.one,
-                        symbol = assignment[index]
-                    )
-                },
-                constant = Flt64.zero
+            addMachineBatchConstraint(
+                input = input,
+                assignment = assignment,
+                model = model,
+                shadowPriceKeys = shadowPriceKeys,
+                machineIndex = machineIndex,
+                machine = machine
             )
-            if (lhs.monomials.isEmpty()) {
-                continue
-            }
-
-            val constraintName = "machine_$machineIndex"
-            shadowPriceKeys?.set(
-                constraintName,
-                MachineCapacityShadowPriceKey(machine.id)
-            )
-            ensureTry(
-                model.addConstraint(
-                    relation = LinearInequality(
-                        lhs = lhs,
-                        rhs = constantPolynomial(maxBatchCount.toFlt64()),
-                        comparison = Comparison.LE
-                    ),
-                    name = constraintName
-                ),
-                "build machine batch constraint"
+            addMachineCapacityConstraint(
+                input = input,
+                assignment = assignment,
+                model = model,
+                shadowPriceKeys = shadowPriceKeys,
+                machineIndex = machineIndex,
+                machine = machine
             )
         }
+    }
+
+    private fun <V : RealNumber<V>> addMachineBatchConstraint(
+        input: ProduceInput<V>,
+        assignment: Csp1dAssignment,
+        model: LinearMetaModel<Flt64>,
+        shadowPriceKeys: MutableMap<String, ShadowPriceKey>?,
+        machineIndex: Int,
+        machine: Machine<V>
+    ) {
+        val maxBatchCount = machine.maxBatchCount ?: return
+        val lhs = LinearPolynomial(
+            monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
+                if (plan.machineId != machine.id) {
+                    return@mapIndexedNotNull null
+                }
+                LinearMonomial(
+                    coefficient = Flt64.one,
+                    symbol = assignment[index]
+                )
+            },
+            constant = Flt64.zero
+        )
+        if (lhs.monomials.isEmpty()) {
+            return
+        }
+
+        val constraintName = "machine_batch_$machineIndex"
+        shadowPriceKeys?.set(
+            constraintName,
+            MachineBatchShadowPriceKey(machine.id)
+        )
+        ensureTry(
+            model.addConstraint(
+                relation = LinearInequality(
+                    lhs = lhs,
+                    rhs = constantPolynomial(maxBatchCount.toFlt64()),
+                    comparison = Comparison.LE
+                ),
+                name = constraintName
+            ),
+            "build machine batch constraint"
+        )
+    }
+
+    private fun <V : RealNumber<V>> addMachineCapacityConstraint(
+        input: ProduceInput<V>,
+        assignment: Csp1dAssignment,
+        model: LinearMetaModel<Flt64>,
+        shadowPriceKeys: MutableMap<String, ShadowPriceKey>?,
+        machineIndex: Int,
+        machine: Machine<V>
+    ) {
+        val capacity = machine.capacity ?: return
+        val lhs = LinearPolynomial(
+            monomials = input.cuttingPlans.mapIndexedNotNull { index, plan ->
+                if (plan.machineId != machine.id) {
+                    return@mapIndexedNotNull null
+                }
+                val consumption = machineCapacityConsumptionValue(
+                    plan = plan,
+                    machine = machine
+                ) ?: return@mapIndexedNotNull null
+                LinearMonomial(
+                    coefficient = consumption.toFlt64(),
+                    symbol = assignment[index]
+                )
+            },
+            constant = Flt64.zero
+        )
+        if (lhs.monomials.isEmpty()) {
+            return
+        }
+
+        val constraintName = "machine_capacity_$machineIndex"
+        shadowPriceKeys?.set(
+            constraintName,
+            MachineCapacityShadowPriceKey(machine.id)
+        )
+        ensureTry(
+            model.addConstraint(
+                relation = LinearInequality(
+                    lhs = lhs,
+                    rhs = constantPolynomial(capacity.value.toFlt64()),
+                    comparison = Comparison.LE
+                ),
+                name = constraintName
+            ),
+            "build machine capacity constraint"
+        )
+    }
+
+    private fun <V : RealNumber<V>> machineCapacityConsumptionValue(
+        plan: CuttingPlan<V>,
+        machine: Machine<V>
+    ): V? {
+        val capacity = machine.capacity ?: return null
+        val consumption = plan.capacityConsumption ?: return null
+        if (consumption.unit != capacity.unit) {
+            return null
+        }
+        if (consumption.value <= consumption.value.constants.zero) {
+            return null
+        }
+        return consumption.value
     }
 
     /**
@@ -636,12 +726,15 @@ class Csp1dMilpSolver(
                 }
             }
 
-            // 余料惩罚: sum(restWidth * material.length * x_plan * restMaterialPenalty) / Rest material penalty
+            // 余料面积代理惩罚: sum(restWidth * material.length * x_plan * restMaterialPenalty) / Rest material area proxy penalty
             val restMaterialPenalty = wasteConfig.restMaterialPenalty
             if (restMaterialPenalty != null) {
                 for (index in 0 until assignment.planCount) {
                     val plan = cuttingPlans[index]
-                    val restMaterialValue = restMaterialValue(plan) ?: continue
+                    val restMaterialValue = restMaterialValue(
+                        plan = plan,
+                        measure = wasteConfig.restMaterialMeasure
+                    ) ?: continue
                     val coeff = restMaterialValue.toFlt64() * restMaterialPenalty.toFlt64()
                     monomials.add(LinearMonomial(coeff, assignment[index]))
                 }
@@ -658,13 +751,16 @@ class Csp1dMilpSolver(
                 }
             }
 
-            // 超产面积惩罚: 需要超产松弛变量 / Over-production area penalty: requires over-production slack variables
+            // 超产面积代理惩罚: 需要超产松弛变量 / Over-production area proxy penalty: requires over-production slack variables
             val overAreaPenalty = wasteConfig.overProductionAreaPenalty
             if (overAreaPenalty != null && yieldConfig != null && yieldSlackVars.overProduction.any { it != null }) {
-                // 超产面积 = sum(over_production * product.maxWidth) / Over-production area uses product max width
+                // 超产面积代理 = sum(over_production * product.maxWidth) / Over-production area proxy uses product max width
                 for ((demandIndex, demand) in demands.withIndex()) {
                     val overVar = yieldSlackVars.overProduction.getOrNull(demandIndex) ?: continue
-                    val productWidthValue = demand.product.maxWidth()?.value?.toFlt64() ?: continue
+                    val productWidthValue = overProductionAreaWidthValue(
+                        demand = demand,
+                        measure = wasteConfig.overProductionAreaMeasure
+                    )?.toFlt64() ?: continue
                     val coeff = productWidthValue * overAreaPenalty.toFlt64()
                     monomials.add(LinearMonomial(coeff, overVar))
                 }
@@ -1025,7 +1121,10 @@ class Csp1dMilpSolver(
                 val plan = cuttingPlans[index]
                 val batchCount = solutionAmount(model, assignment, index)
                 if (batchCount > UInt64.zero) {
-                    val restMaterialValue = restMaterialValue(plan) ?: continue
+                    val restMaterialValue = restMaterialValue(
+                        plan = plan,
+                        measure = wasteConfig.restMaterialMeasure
+                    ) ?: continue
                     val contribution = restMaterialValue * solverValueLike(restMaterialValue, batchCount.toFlt64())
                     sum = if (sum != null) sum + contribution else contribution
                 }
@@ -1052,7 +1151,7 @@ class Csp1dMilpSolver(
             }
         }
 
-        // 计算超产面积 / Calculate over-production area
+        // 计算超产面积代理 / Calculate over-production area proxy
         var overProductionArea: V? = null
         if (wasteConfig.overProductionAreaPenalty != null && yieldConfig != null && yieldSlackVars.overProduction.any { it != null }) {
             var areaSum: V? = null
@@ -1060,7 +1159,10 @@ class Csp1dMilpSolver(
                 val overVar = yieldSlackVars.overProduction.getOrNull(demandIndex) ?: continue
                 val overDouble = model.tokens.find(overVar)?.doubleResult ?: continue
                 if (overDouble > 0.0) {
-                    val productWidthValue = demand.product.maxWidth()?.value ?: continue
+                    val productWidthValue = overProductionAreaWidthValue(
+                        demand = demand,
+                        measure = wasteConfig.overProductionAreaMeasure
+                    ) ?: continue
                     val area = productWidthValue * solverValueLike(productWidthValue, Flt64(overDouble))
                     areaSum = if (areaSum != null) areaSum + area else area
                 }
@@ -1072,7 +1174,9 @@ class Csp1dMilpSolver(
             totalTrimWidth = totalTrimWidth,
             totalRestMaterial = totalRestMaterial,
             materialCosts = materialCosts,
-            overProductionArea = overProductionArea
+            overProductionArea = overProductionArea,
+            overProductionAreaMeasure = wasteConfig.overProductionAreaMeasure,
+            restMaterialMeasure = wasteConfig.restMaterialMeasure
         )
     }
 
@@ -1206,11 +1310,34 @@ class Csp1dMilpSolver(
         cuttingPlans: List<CuttingPlanUsage<V>>
     ): List<MachineCapacityUsage<V>> {
         return machines.mapNotNull { machine ->
-            val used = cuttingPlans.any { usage -> usage.plan.machineId == machine.id }
-            if (used) {
+            val machineCapacity = machine.capacity
+            val used = cuttingPlans
+                .filter { usage -> usage.plan.machineId == machine.id }
+                .fold(null as Quantity<V>?) { acc, usage ->
+                    val consumption = usage.plan.capacityConsumption ?: return@fold acc
+                    if (machineCapacity != null && consumption.unit != machineCapacity.unit) {
+                        return@fold acc
+                    }
+                    if (acc != null && acc.unit != consumption.unit) {
+                        return@fold acc
+                    }
+                    val contribution = Quantity(
+                        consumption.value * solverValueLike(
+                            sample = consumption.value,
+                            value = usage.amount.toFlt64()
+                        ),
+                        consumption.unit
+                    )
+                    if (acc == null) {
+                        contribution
+                    } else {
+                        Quantity(acc.value + contribution.value, acc.unit)
+                    }
+                }
+            if (used != null) {
                 MachineCapacityUsage(
                     machine = machine,
-                    used = machine.capacity
+                    used = used
                 )
             } else {
                 null
@@ -1253,16 +1380,32 @@ class Csp1dMilpSolver(
         )
     }
 
-    private fun <V : RealNumber<V>> restMaterialValue(plan: CuttingPlan<V>): V? {
-        val restWidthValue = plan.restWidth?.value ?: return null
-        if (restWidthValue <= restWidthValue.constants.zero) {
-            return null
+    private fun <V : RealNumber<V>> restMaterialValue(
+        plan: CuttingPlan<V>,
+        measure: RestMaterialMeasure
+    ): V? {
+        return when (measure) {
+            RestMaterialMeasure.RestWidthByMaterialLengthProxy -> {
+                val restWidthValue = plan.restWidth?.value ?: return null
+                if (restWidthValue <= restWidthValue.constants.zero) {
+                    return null
+                }
+                val materialLengthValue = plan.material.length?.value ?: return null
+                if (materialLengthValue <= materialLengthValue.constants.zero) {
+                    return null
+                }
+                restWidthValue * materialLengthValue
+            }
         }
-        val materialLengthValue = plan.material.length?.value ?: return null
-        if (materialLengthValue <= materialLengthValue.constants.zero) {
-            return null
+    }
+
+    private fun <V : RealNumber<V>> overProductionAreaWidthValue(
+        demand: ProductDemand<V>,
+        measure: OverProductionAreaMeasure
+    ): V? {
+        return when (measure) {
+            OverProductionAreaMeasure.ProductMaxWidthProxy -> demand.product.maxWidth()?.value
         }
-        return restWidthValue * materialLengthValue
     }
 
     private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {

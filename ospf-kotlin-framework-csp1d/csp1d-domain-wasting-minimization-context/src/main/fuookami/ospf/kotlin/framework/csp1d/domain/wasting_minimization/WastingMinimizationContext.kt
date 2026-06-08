@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.quantities.quantity.times
  * @property restWidthWastes 余宽浪费列表 / Rest width waste list
  * @property restMaterialWastes 余料浪费列表 / Rest material waste list
  * @property totalRestWidth 总余宽 / Total rest width
- * @property totalRestMaterial 总余料 / Total rest material
+ * @property totalRestMaterial 总余料面积代理 / Total rest material area proxy
  */
 data class WasteAnalysis<V : RealNumber<V>>(
     val restWidthWastes: List<RestWidthWaste<V>>,
@@ -49,7 +49,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
             val plan = usage.plan
             val restWidth = plan.restWidth ?: continue
 
-            // Account for batch multiplier
+            // 计入批次数倍数 / Account for batch multiplier
             val batchRestWidth = repeatQuantity(restWidth, usage.amount.toULong())
             restWidthWastes.add(RestWidthWaste(plan = plan, restWidth = batchRestWidth))
             totalRestWidth = if (totalRestWidth == null) {
@@ -58,7 +58,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
                 arithmetic.add(totalRestWidth, batchRestWidth)
             }
 
-            // Rest material = restWidth * material.length (area proxy)
+            // 余料面积代理 = 余宽 * 物料长度 / Rest material area proxy = rest width * material length
             val materialLength = plan.material.length
             if (materialLength != null) {
                 val batchRestMaterial = repeatQuantity(

@@ -154,4 +154,33 @@ class NSameGeneratorTest {
 
         assertTrue(plans.isEmpty())
     }
+
+    @Test
+    fun machineWidthRangeShouldFilterInfeasibleMaterial() {
+        val p = product("p-machine", listOf(Quantity(Flt64(0.8), Meter)))
+        val m = material(id = "m-machine", upperBound = 2.0).copy(machineId = "machine-small")
+        val machine = Machine(
+            id = "machine-small",
+            name = "small machine",
+            widthRange = WidthRange(
+                width = QuantityRange(
+                    lowerBound = Quantity(Flt64(0.5), Meter),
+                    upperBound = Quantity(Flt64(1.0), Meter)
+                ),
+                step = Quantity(Flt64(0.1), Meter)
+            )
+        )
+        val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
+        val input = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = listOf(machine),
+            costars = emptyList(),
+            demands = listOf(demand)
+        )
+
+        val plans = NSameGenerator(arithmetic = arithmetic).generate(input)
+
+        assertTrue(plans.isEmpty())
+    }
 }

@@ -28,6 +28,7 @@ data class CuttingPlanSlice<V : RealNumber<V>>(
  * @property slices 切片列表 / Cut slices
  * @property demandContributions 需求贡献 / Demand contributions
  * @property arithmetic 物理量算术策略，为空时按物料值自动解析 / Quantity arithmetic strategy, auto-resolved from material value when null
+ * @property capacityConsumption 单次方案使用的设备产能消耗，必须与设备产能同单位才进入主问题约束 / Machine capacity consumed by one plan usage, modeled only when unit matches machine capacity
  */
 data class CuttingPlan<V : RealNumber<V>>(
     val id: String,
@@ -35,7 +36,8 @@ data class CuttingPlan<V : RealNumber<V>>(
     val machineId: String? = material.machineId,
     val slices: List<CuttingPlanSlice<V>>,
     val demandContributions: List<CuttingPlanDemandContribution<V>> = emptyList(),
-    val arithmetic: QuantityArithmetic<V>? = null
+    val arithmetic: QuantityArithmetic<V>? = null,
+    val capacityConsumption: Quantity<V>? = null
 ) {
     private val resolvedArithmetic: QuantityArithmetic<V> by lazy {
         arithmetic ?: DefaultQuantityArithmetic.resolveFor(material.widthRange.upperBound.value)

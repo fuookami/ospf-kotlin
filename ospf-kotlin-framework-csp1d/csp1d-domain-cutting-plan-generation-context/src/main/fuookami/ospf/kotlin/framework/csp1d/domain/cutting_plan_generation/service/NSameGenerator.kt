@@ -11,13 +11,13 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxKnifeCountConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxOverProduceLengthConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.contribution
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
@@ -102,14 +102,10 @@ class NSameGenerator<V : RealNumber<V>>(
                             continue
                         }
 
-                        val contribution = CuttingPlanDemandContribution(
-                            product = demand.product,
-                            quantity = computeContributionQuantity(
-                                product = demand.product,
-                                width = productWidth,
-                                amount = amount,
-                                demandUnit = demand.quantity.unit
-                            )
+                        val contribution = demand.contribution(
+                            width = productWidth,
+                            amount = amount,
+                            arithmetic = arithmetic
                         )
 
                         val plan = CuttingPlan(
@@ -119,7 +115,9 @@ class NSameGenerator<V : RealNumber<V>>(
                             demandContributions = listOf(contribution),
                             arithmetic = arithmetic
                         )
-                        plans.add(plan)
+                        if (material.enabled(plan, input.machines)) {
+                            plans.add(plan)
+                        }
                     }
                 }
             }
@@ -130,7 +128,7 @@ class NSameGenerator<V : RealNumber<V>>(
     private fun computeMaxAmount(
         productWidth: Quantity<V>,
         material: Material<V>,
-        product: fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product<V>
+        product: Product<V>
     ): UInt64 {
         var maxAmount = UInt64.maximum
 
@@ -180,38 +178,10 @@ class NSameGenerator<V : RealNumber<V>>(
         return constraints.all { it.isSatisfied(context) }
     }
 
-    private fun computeContributionQuantity(
-        product: fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product<V>,
-        width: Quantity<V>,
-        amount: UInt64,
-        demandUnit: PhysicalUnit
-    ): Quantity<V> {
-        val unitContribution = product.unitWeight?.let { unitWeight ->
-            product.length?.let { length ->
-                val areaValue = width.value * length.value
-                val weightValue = areaValue * unitWeight.value
-                Quantity(weightValue, unitWeight.unit)
-            }
-        }
-        if (unitContribution != null) {
-            return repeatQuantity(unitContribution, amount)
-        }
-        val onePerPiece = Quantity(width.value.constants.one, demandUnit)
-        return repeatQuantity(onePerPiece, amount)
-    }
-
     private fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {
             result = arithmetic.add(result, width)
-        }
-        return result
-    }
-
-    private fun repeatQuantity(q: Quantity<V>, times: UInt64): Quantity<V> {
-        var result = arithmetic.zero(q.unit)
-        repeat(times.toInt()) {
-            result = arithmetic.add(result, q)
         }
         return result
     }

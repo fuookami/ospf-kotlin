@@ -23,6 +23,9 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.solver.Flt64FeasibleSolverOutput
 import fuookami.ospf.kotlin.framework.solver.Flt64LinearMetaModel
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
@@ -95,6 +98,15 @@ private class Csp1dFakeSolver : ColumnGenerationSolver {
     }
 }
 
+private class CapturingPricingGenerator : Csp1dPricingGenerator<Flt64> {
+    var lastInput: Csp1dPricingInput<Flt64>? = null
+
+    override fun generate(input: Csp1dPricingInput<Flt64>): List<CuttingPlan<Flt64>> {
+        lastInput = input
+        return emptyList()
+    }
+}
+
 class Csp1dApplicationAcceptanceTest {
     private val fakeSolver = Csp1dFakeSolver()
 
@@ -141,7 +153,7 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     @Test
-    fun milpShouldCoverCostarRestWidthAndMachineCapacity(): Unit = runBlocking {
+    fun milpShouldCoverCostarRestWidthWithoutMisreportingMachineCapacity(): Unit = runBlocking {
         val product = product(
             id = "p-capacity",
             width = 1.3
@@ -186,14 +198,177 @@ class Csp1dApplicationAcceptanceTest {
         val solution = Csp1dMilp<Flt64>(fakeSolver).solve(problem)
         val selectedPlan = solution.produce.cuttingPlans.first().plan
         val restWidth = selectedPlan.restWidth
-        val machineCapacityUsage = solution.produce.machineUsages.firstOrNull {
-            it.machine.id == "machine-capacity"
-        }?.used
 
         assertNotNull(restWidth)
         assertTrue(restWidth eq Quantity(Flt64(0.7), Meter))
-        assertNotNull(machineCapacityUsage)
-        assertTrue(machineCapacityUsage eq Quantity(Flt64(500.0), Kilogram))
+        assertTrue(
+            solution.produce.machineUsages.isEmpty(),
+            "Machine capacity usage should not be reported without plan capacity consumption"
+        )
+    }
+
+    /**
+     * 验证设备批次数和业务产能约束可同时建模，并按解回填实际产能使用量 /
+     * Verify machine batch and business capacity constraints can coexist and actual capacity usage is extracted
+     */
+    @Test
+    fun milpWithMachineCapacityConsumptionShouldConstrainAndBackfillUsage(): Unit = runBlocking {
+        val product = product(
+            id = "p-machine-capacity",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-machine-capacity",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            machineId = "machine-capacity-modeled"
+        )
+        val machine = machine(
+            id = "machine-capacity-modeled",
+            capacity = 120.0,
+            maxBatchCount = UInt64(3UL)
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(1.0)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0),
+                    machineId = machine.id,
+                    capacityConsumption = 80.0
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = listOf(machine)
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val machineCapacityUsage = milpResult.produce.machineUsages.firstOrNull {
+            it.machine.id == machine.id
+        }?.used
+        assertNotNull(machineCapacityUsage, "Machine capacity usage should be extracted")
+        assertTrue(machineCapacityUsage eq Quantity(Flt64(80.0), Kilogram))
+
+        @Suppress("UNCHECKED_CAST")
+        val constraintNames = milpResult.model.constraints.mapNotNull { constraint ->
+            (constraint as? LinearInequalityConstraint<Flt64>)?.name
+        }.toSet()
+        assertTrue("machine_batch_0" in constraintNames)
+        assertTrue("machine_capacity_0" in constraintNames)
+    }
+
+    /**
+     * 验证缺少方案产能消耗时不添加设备业务产能约束，也不误报使用量 /
+     * Verify machine business capacity is not constrained or reported without plan capacity consumption
+     */
+    @Test
+    fun milpWithMachineCapacityButNoPlanConsumptionShouldSkipCapacityUsage(): Unit = runBlocking {
+        val product = product(
+            id = "p-machine-no-consumption",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-machine-no-consumption",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            machineId = "machine-no-consumption"
+        )
+        val machine = machine(
+            id = "machine-no-consumption",
+            capacity = 120.0
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(1.0)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0),
+                    machineId = machine.id
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = listOf(machine)
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertTrue(
+            milpResult.produce.machineUsages.isEmpty(),
+            "Machine capacity usage should be empty when no plan consumption is provided"
+        )
+
+        @Suppress("UNCHECKED_CAST")
+        val constraintNames = milpResult.model.constraints.mapNotNull { constraint ->
+            (constraint as? LinearInequalityConstraint<Flt64>)?.name
+        }.toSet()
+        assertTrue("machine_capacity_0" !in constraintNames)
+    }
+
+    /**
+     * 验证方案产能消耗与设备产能单位不一致时不添加约束，也不回填使用量 /
+     * Verify capacity consumption with mismatched unit skips constraint and usage extraction
+     */
+    @Test
+    fun milpWithMismatchedMachineCapacityConsumptionUnitShouldSkipCapacityUsage(): Unit = runBlocking {
+        val product = product(
+            id = "p-machine-capacity-unit",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-machine-capacity-unit",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            machineId = "machine-capacity-unit"
+        )
+        val machine = machine(
+            id = "machine-capacity-unit",
+            capacity = 120.0
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(1.0)
+        )
+        val plan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64(1.0),
+            machineId = machine.id
+        ).copy(
+            capacityConsumption = Quantity(Flt64(80.0), Meter)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(plan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = listOf(machine)
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertTrue(
+            milpResult.produce.machineUsages.isEmpty(),
+            "Machine capacity usage should be empty when consumption unit mismatches capacity unit"
+        )
+
+        @Suppress("UNCHECKED_CAST")
+        val constraintNames = milpResult.model.constraints.mapNotNull { constraint ->
+            (constraint as? LinearInequalityConstraint<Flt64>)?.name
+        }.toSet()
+        assertTrue("machine_capacity_0" !in constraintNames)
     }
 
     @Test
@@ -287,6 +462,190 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Flt64.one, result.solution.lengthResult!!.overLengths.first().overLength)
     }
 
+    /**
+     * 验证列生成入口向 pricing 透传方案级目标提示 / Verify column generation passes plan-level objective hints to pricing
+     */
+    @Test
+    fun columnGenerationShouldPassObjectiveHintsToPricing(): Unit = runBlocking {
+        val product = product(
+            id = "p-cg-pricing-objective",
+            width = 1.0
+        )
+        val material = material(
+            id = "m-cg-pricing-objective",
+            lowerWidth = 0.8,
+            upperWidth = 1.5,
+            length = 100.0
+        )
+        val initialPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val pricingGenerator = CapturingPricingGenerator()
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            trimWidthPenalty = Flt64(0.2),
+            restMaterialPenalty = Flt64(0.3),
+            materialCostPenalty = mapOf(material.id to Flt64(0.4))
+        )
+        val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
+            batchMinPenalty = Flt64(0.5)
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(2.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 8,
+                iterationLimit = 1
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(initialPlan) },
+            pricingGenerator = pricingGenerator,
+            wasteConfig = wasteConfig,
+            lengthConfig = lengthConfig
+        )
+
+        columnGeneration.solveWithTrace(problem)
+
+        val pricingInput = assertNotNull(
+            pricingGenerator.lastInput,
+            "Pricing input should be captured"
+        )
+        val objectiveConfig = pricingInput.objectiveConfig
+        assertEquals(Flt64(0.5), objectiveConfig.planUsagePenalty)
+        assertEquals(Flt64(0.2), objectiveConfig.trimWidthPenalty)
+        assertEquals(Flt64(0.3), objectiveConfig.restMaterialPenalty)
+        assertEquals(Flt64(0.4), objectiveConfig.materialCostPenalty[material.id])
+    }
+
+    /**
+     * 验证列生成按 canonical key 过滤不同 ID 的重复列 / Verify column generation filters duplicate columns by canonical key even with different IDs
+     */
+    @Test
+    fun columnGenerationShouldFilterDuplicatePricingPlansByCanonicalKey(): Unit = runBlocking {
+        val product = product(
+            id = "p-cg-duplicate",
+            width = 1.0
+        )
+        val material = material(
+            id = "m-cg-duplicate",
+            lowerWidth = 0.8,
+            upperWidth = 1.5
+        )
+        val initialPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val pricingGenerator = Csp1dPricingGenerator<Flt64> {
+            listOf(initialPlan.copy(id = "pricing-duplicate"))
+        }
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(2.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 8,
+                iterationLimit = 1
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(initialPlan) },
+            pricingGenerator = pricingGenerator
+        )
+
+        val result = columnGeneration.solveWithTrace(problem)
+
+        assertEquals(Csp1dTerminationReason.AllDuplicates, result.trace.terminationReason)
+        assertEquals(UInt64.one, result.trace.initialPlanCount)
+        assertEquals(UInt64.one, result.trace.finalPlanCount)
+    }
+
+    /**
+     * 验证初始方案池按 canonical key 去重并应用配置上限 / Verify initial plans are deduplicated by canonical key and capped by configuration
+     */
+    @Test
+    fun columnGenerationShouldCapInitialPlansAfterCanonicalDeduplication(): Unit = runBlocking {
+        val p1 = product(
+            id = "p-cg-initial-1",
+            width = 0.8
+        )
+        val p2 = product(
+            id = "p-cg-initial-2",
+            width = 1.0
+        )
+        val material = material(
+            id = "m-cg-initial-cap",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val firstPlan = simpleCuttingPlan(
+            product = p1,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val secondPlan = simpleCuttingPlan(
+            product = p2,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(p1, p2),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = p1,
+                    rollAmount = Flt64.one
+                ),
+                ProductDemand.legacyRoll(
+                    product = p2,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 1,
+                maxPricingPlans = 8,
+                iterationLimit = 1
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator<Flt64> {
+                listOf(
+                    firstPlan,
+                    firstPlan.copy(id = "initial-duplicate"),
+                    secondPlan
+                )
+            },
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() }
+        )
+
+        val result = columnGeneration.solveWithTrace(problem)
+
+        assertEquals(UInt64.one, result.trace.initialPlanCount)
+        assertEquals(UInt64.one, result.trace.finalPlanCount)
+        assertEquals(Csp1dTerminationReason.PricingConverged, result.trace.terminationReason)
+    }
+
     private fun product(
         id: String,
         width: Double
@@ -345,11 +704,13 @@ class Csp1dApplicationAcceptanceTest {
 
     private fun machine(
         id: String,
-        capacity: Double
+        capacity: Double,
+        maxBatchCount: UInt64? = null
     ): Machine<Flt64> {
         return Machine(
             id = id,
             name = "machine-$id",
+            maxBatchCount = maxBatchCount,
             capacity = Quantity(Flt64(capacity), Kilogram)
         )
     }
@@ -803,6 +1164,60 @@ class Csp1dApplicationAcceptanceTest {
             milpResult.wasteResult!!.totalRestMaterial,
             "Total rest material should match rest width times material length times selected batch count"
         )
+        assertEquals(
+            RestMaterialMeasure.RestWidthByMaterialLengthProxy,
+            milpResult.wasteResult!!.restMaterialMeasure
+        )
+    }
+
+    /**
+     * 验证缺少物料长度时余料面积代理不产生结果 / Verify rest material area proxy is skipped without material length
+     */
+    @Test
+    fun milpWithRestMaterialPenaltyButNoMaterialLengthShouldSkipRestMaterial(): Unit = runBlocking {
+        val product = product(
+            id = "p-rest-material-no-length",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-rest-material-no-length",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+
+        val wasteConfig = WasteMinimizationConfig<Flt64>(
+            restMaterialPenalty = Flt64(0.5)
+        )
+
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                simpleCuttingPlan(
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0)
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+            input = input,
+            wasteConfig = wasteConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
+        assertEquals(null, milpResult.wasteResult!!.totalRestMaterial)
+        assertEquals(
+            RestMaterialMeasure.RestWidthByMaterialLengthProxy,
+            milpResult.wasteResult!!.restMaterialMeasure
+        )
     }
 
     /**
@@ -901,6 +1316,10 @@ class Csp1dApplicationAcceptanceTest {
             Flt64(0.8),
             milpResult.wasteResult!!.overProductionArea,
             "Over-production area should match over slack times max product width"
+        )
+        assertEquals(
+            OverProductionAreaMeasure.ProductMaxWidthProxy,
+            milpResult.wasteResult!!.overProductionAreaMeasure
         )
     }
 
@@ -1212,7 +1631,9 @@ class Csp1dApplicationAcceptanceTest {
     private fun simpleCuttingPlan(
         product: Product<Flt64>,
         material: Material<Flt64>,
-        rollContribution: Flt64
+        rollContribution: Flt64,
+        machineId: String? = null,
+        capacityConsumption: Double? = null
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
             id = "plan-${product.id}-${material.id}",
@@ -1230,7 +1651,8 @@ class Csp1dApplicationAcceptanceTest {
                     quantity = Quantity(rollContribution, RollCountUnit)
                 )
             ),
-            machineId = null
+            machineId = machineId,
+            capacityConsumption = capacityConsumption?.let { Quantity(Flt64(it), Kilogram) }
         )
     }
 

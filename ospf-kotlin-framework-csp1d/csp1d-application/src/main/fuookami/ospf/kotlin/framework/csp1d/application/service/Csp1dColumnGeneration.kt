@@ -7,9 +7,11 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingObjectiveConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
@@ -149,7 +151,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     existingPlans = currentPlans
                 ),
                 shadowPrices = shadowPrices,
-                maxGeneratedPlans = UInt64(config.maxPricingPlans)
+                maxGeneratedPlans = UInt64(config.maxPricingPlans),
+                objectiveConfig = pricingObjectiveConfig()
             )
             val newPlans = pricingGenerator.generate(pricingInput)
 
@@ -241,6 +244,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     }
 
     private fun initialPlans(problem: Csp1dProblem<V>): List<CuttingPlan<V>> {
+        if (problem.configuration.maxInitialPlans <= 0) {
+            return emptyList()
+        }
         return initialGenerator.generate(
             CuttingPlanGenerationInput(
                 products = problem.products,
@@ -249,7 +255,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 costars = problem.costars,
                 demands = problem.demands
             )
-        )
+        ).distinctBy { it.canonicalKey() }
+            .take(problem.configuration.maxInitialPlans)
     }
 
     private fun deduplicatePlans(
@@ -257,7 +264,19 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         candidates: List<CuttingPlan<V>>
     ): List<CuttingPlan<V>> {
         val existingIds = existing.map { it.id }.toSet()
-        return candidates.filter { it.id !in existingIds }
+        val existingKeys = existing.map { it.canonicalKey() }.toSet()
+        return candidates.filter { candidate ->
+            candidate.id !in existingIds && candidate.canonicalKey() !in existingKeys
+        }
+    }
+
+    private fun pricingObjectiveConfig(): Csp1dPricingObjectiveConfig<V> {
+        return Csp1dPricingObjectiveConfig(
+            planUsagePenalty = lengthConfig?.batchMinPenalty,
+            trimWidthPenalty = wasteConfig?.trimWidthPenalty,
+            restMaterialPenalty = wasteConfig?.restMaterialPenalty,
+            materialCostPenalty = wasteConfig?.materialCostPenalty ?: emptyMap()
+        )
     }
 }
 

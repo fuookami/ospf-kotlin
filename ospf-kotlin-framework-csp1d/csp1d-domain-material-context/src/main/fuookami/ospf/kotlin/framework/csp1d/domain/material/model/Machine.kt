@@ -11,10 +11,10 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @param V 数值类型 / Numeric value type
  * @property id 设备标识 / Machine identifier
  * @property name 设备名称 / Machine name
- * @property maxBatchCount 最大批次数 / Maximum batch count
- * @property maxSwitchCount 最大换料次数 / Maximum material switch count
+ * @property maxBatchCount 最大批次数，主问题按设备方案使用量求和建模 / Maximum batch count modeled by plan usage sum in master problem
+ * @property maxSwitchCount 最大换料次数，需要加工序列变量，当前无序主问题不建模 / Maximum material switch count requiring sequence variables, not modeled in current unordered master problem
  * @property widthRange 可加工幅宽范围 / Processable width range
- * @property capacity 产能（按业务单位）/ Capacity in business unit
+ * @property capacity 业务产能上限，仅与同单位方案产能消耗一起建模 / Business capacity upper bound modeled only with same-unit plan consumption
  */
 data class Machine<V : RealNumber<V>>(
     val id: String,
@@ -36,4 +36,3 @@ data class Machine<V : RealNumber<V>>(
                 && thisWidthRange.width.contains(material.widthRange.upperBound)
     }
 }
-

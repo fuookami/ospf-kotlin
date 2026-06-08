@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
@@ -61,7 +62,27 @@ fun interface Csp1dInitialCuttingPlanGenerator<V : RealNumber<V>> {
 data class Csp1dPricingInput<V : RealNumber<V>>(
     val generationInput: CuttingPlanGenerationInput<V>,
     val shadowPrices: ShadowPriceMap<V>,
-    val maxGeneratedPlans: UInt64 = UInt64.one
+    val maxGeneratedPlans: UInt64 = UInt64.one,
+    val objectiveConfig: Csp1dPricingObjectiveConfig<V> = Csp1dPricingObjectiveConfig()
+)
+
+/**
+ * 定价候选的方案级目标提示 / Plan-level objective hints for pricing candidates
+ *
+ * 这些配置只用于候选筛选和排序，不改变 LP shadow price 提取口径。
+ * These settings only affect candidate filtering and ordering, not LP shadow price extraction.
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property planUsagePenalty 单次方案使用惩罚 / Penalty per plan usage
+ * @property trimWidthPenalty 余宽惩罚 / Trim width penalty
+ * @property restMaterialPenalty 余料面积代理惩罚 / Rest material area proxy penalty
+ * @property materialCostPenalty 按物料 ID 的成本惩罚 / Per-material cost penalty
+ */
+data class Csp1dPricingObjectiveConfig<V : RealNumber<V>>(
+    val planUsagePenalty: V? = null,
+    val trimWidthPenalty: V? = null,
+    val restMaterialPenalty: V? = null,
+    val materialCostPenalty: Map<String, V> = emptyMap()
 )
 
 /**
@@ -92,24 +113,25 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
                 val width = demand.product.width.firstOrNull { productWidth ->
                     material.widthRange.canCut(productWidth)
                 } ?: continue
-                plans.add(
-                    CuttingPlan(
-                        id = "init-${material.id}-${demand.product.id}-${plans.size}",
-                        material = material,
-                        slices = listOf(
-                            CuttingPlanSlice(
-                                production = demand.product,
-                                width = width
-                            )
-                        ),
-                        demandContributions = listOf(
-                            CuttingPlanDemandContribution(
-                                product = demand.product,
-                                quantity = demand.quantity
-                            )
+                val plan = CuttingPlan(
+                    id = "init-${material.id}-${demand.product.id}-${plans.size}",
+                    material = material,
+                    slices = listOf(
+                        CuttingPlanSlice(
+                            production = demand.product,
+                            width = width
+                        )
+                    ),
+                    demandContributions = listOf(
+                        CuttingPlanDemandContribution(
+                            product = demand.product,
+                            quantity = demand.quantity
                         )
                     )
                 )
+                if (material.enabled(plan, input.machines)) {
+                    plans.add(plan)
+                }
             }
         }
         return plans
@@ -142,24 +164,25 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
             val width = demand.product.width.firstOrNull { productWidth ->
                 material.widthRange.width.contains(productWidth)
             } ?: continue
-            pricedPlans.add(
-                CuttingPlan(
-                    id = "pricing-${material.id}-${demand.product.id}-${pricedPlans.size}",
-                    material = material,
-                    slices = listOf(
-                        CuttingPlanSlice(
-                            production = demand.product,
-                            width = width
-                        )
-                    ),
-                    demandContributions = listOf(
-                        CuttingPlanDemandContribution(
-                            product = demand.product,
-                            quantity = demand.quantity
-                        )
+            val plan = CuttingPlan(
+                id = "pricing-${material.id}-${demand.product.id}-${pricedPlans.size}",
+                material = material,
+                slices = listOf(
+                    CuttingPlanSlice(
+                        production = demand.product,
+                        width = width
+                    )
+                ),
+                demandContributions = listOf(
+                    CuttingPlanDemandContribution(
+                        product = demand.product,
+                        quantity = demand.quantity
                     )
                 )
             )
+            if (material.enabled(plan, input.generationInput.machines)) {
+                pricedPlans.add(plan)
+            }
         }
         return pricedPlans
     }
@@ -205,10 +228,17 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
             .map { plan -> plan to plan.canonicalKey() }
             .filter { (plan, key) -> plan.id !in existingIds && key !in existingKeys }
             .distinctBy { (_, key) -> key }
-            .map { (plan, _) -> plan to computeDualBenefit(plan, shadowPrices) }
-            .filter { (_, benefit) -> isGreaterThanOne(benefit) }
-            .sortedWith(compareByDualBenefit())
-            .map { it.first }
+            .map { (plan, _) ->
+                val benefit = computeDualBenefit(plan, shadowPrices)
+                PricedCandidate(
+                    plan = plan,
+                    benefit = benefit,
+                    objectiveCost = computeObjectiveCost(plan, input.objectiveConfig)
+                )
+            }
+            .filter { candidate -> isImproving(candidate) }
+            .sortedWith(compareByScore())
+            .map { it.plan }
             .take(maxGeneratedPlans.toInt())
             .toList()
     }
@@ -242,31 +272,90 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
 
         val machineId = plan.machineId
         if (machineId != null) {
+            val machineBatchKey = MachineBatchShadowPriceKey(machineId)
+            val machineBatchSp = shadowPrices[machineBatchKey]
+            if (machineBatchSp != null) {
+                benefit += machineBatchSp
+            }
+
             val machineKey = MachineCapacityShadowPriceKey(machineId)
             val machineSp = shadowPrices[machineKey]
-            if (machineSp != null) {
-                benefit += machineSp
+            val capacityConsumption = plan.capacityConsumption
+            if (machineSp != null && capacityConsumption != null) {
+                benefit += capacityConsumption.value * machineSp
             }
         }
 
         return benefit
     }
 
-    private fun isGreaterThanOne(value: V): Boolean {
-        return when (value partialOrd value.constants.one) {
+    private fun isPositive(value: V): Boolean {
+        return when (value partialOrd value.constants.zero) {
             is Order.Greater -> true
             else -> false
         }
     }
 
-    private fun compareByDualBenefit(): Comparator<Pair<CuttingPlan<V>, V>> {
+    private fun computeObjectiveCost(
+        plan: CuttingPlan<V>,
+        objectiveConfig: Csp1dPricingObjectiveConfig<V>
+    ): V {
+        var cost = plan.material.widthRange.upperBound.value.constants.one
+
+        val planUsagePenalty = objectiveConfig.planUsagePenalty
+        if (planUsagePenalty != null) {
+            cost += planUsagePenalty
+        }
+
+        val trimWidthPenalty = objectiveConfig.trimWidthPenalty
+        val restWidthValue = plan.restWidth?.value
+        if (trimWidthPenalty != null && restWidthValue != null && isPositive(restWidthValue)) {
+            cost += restWidthValue * trimWidthPenalty
+        }
+
+        val restMaterialPenalty = objectiveConfig.restMaterialPenalty
+        val materialLengthValue = plan.material.length?.value
+        if (
+            restMaterialPenalty != null &&
+            restWidthValue != null &&
+            materialLengthValue != null &&
+            isPositive(restWidthValue) &&
+            isPositive(materialLengthValue)
+        ) {
+            cost += restWidthValue * materialLengthValue * restMaterialPenalty
+        }
+
+        val materialCostPenalty = objectiveConfig.materialCostPenalty[plan.material.id]
+        if (materialCostPenalty != null) {
+            cost += materialCostPenalty
+        }
+
+        return cost
+    }
+
+    private fun isImproving(candidate: PricedCandidate<V>): Boolean {
+        return when (candidate.benefit partialOrd candidate.objectiveCost) {
+            is Order.Greater -> true
+            else -> false
+        }
+    }
+
+    private fun compareByScore(): Comparator<PricedCandidate<V>> {
         return Comparator { left, right ->
-            when (left.second partialOrd right.second) {
+            val leftScoreSide = left.benefit + right.objectiveCost
+            val rightScoreSide = right.benefit + left.objectiveCost
+            when (leftScoreSide partialOrd rightScoreSide) {
                 is Order.Greater -> -1
                 is Order.Less -> 1
                 else -> 0
             }
         }
     }
+
+    private data class PricedCandidate<V : RealNumber<V>>(
+        val plan: CuttingPlan<V>,
+        val benefit: V,
+        val objectiveCost: V
+    )
 }
 

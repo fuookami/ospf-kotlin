@@ -6,13 +6,20 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingObjectiveConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
@@ -171,6 +178,81 @@ class ReducedCostPricingGeneratorTest {
     }
 
     @Test
+    fun objectiveConfigPrefersLowerTrimWidthCandidate() {
+        val narrowProduct = product("p-narrow", width = 0.8)
+        val wideProduct = product("p-wide", width = 1.8)
+        val material = material()
+        val machine = machine()
+        val narrowDemand = ProductDemand.roll(narrowProduct, Quantity(Flt64.one, RollCountUnit))
+        val wideDemand = ProductDemand.roll(wideProduct, Quantity(Flt64.one, RollCountUnit))
+        val highTrimPlan = CuttingPlan(
+            id = "high-trim",
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = narrowProduct,
+                    width = narrowProduct.width.first()
+                )
+            ),
+            demandContributions = listOf(
+                CuttingPlanDemandContribution(
+                    product = narrowProduct,
+                    quantity = Quantity(Flt64.one, RollCountUnit)
+                )
+            )
+        )
+        val lowTrimPlan = CuttingPlan(
+            id = "low-trim",
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = wideProduct,
+                    width = wideProduct.width.first()
+                )
+            ),
+            demandContributions = listOf(
+                CuttingPlanDemandContribution(
+                    product = wideProduct,
+                    quantity = Quantity(Flt64.one, RollCountUnit)
+                )
+            )
+        )
+        val enumerator = Csp1dInitialCuttingPlanGenerator<Flt64> {
+            listOf(highTrimPlan, lowTrimPlan)
+        }
+        val generator = ReducedCostPricingGenerator(enumerator)
+        val generationInput = CuttingPlanGenerationInput(
+            products = listOf(narrowProduct, wideProduct),
+            materials = listOf(material),
+            machines = listOf(machine),
+            demands = listOf(narrowDemand, wideDemand)
+        )
+        val shadowPrices = ShadowPriceMap<Flt64>(
+            values = mapOf(
+                demandKey(narrowDemand) to Flt64(3.0),
+                demandKey(wideDemand) to Flt64(3.0)
+            )
+        )
+
+        val result = generator.generate(
+            Csp1dPricingInput(
+                generationInput = generationInput,
+                shadowPrices = shadowPrices,
+                maxGeneratedPlans = UInt64.one,
+                objectiveConfig = Csp1dPricingObjectiveConfig(
+                    trimWidthPenalty = Flt64.one
+                )
+            )
+        )
+
+        assertEquals(
+            expected = listOf(lowTrimPlan),
+            actual = result,
+            message = "Objective-aware pricing should prefer the candidate with lower trim width"
+        )
+    }
+
+    @Test
     fun deduplicatesAgainstExistingPlans() {
         val p = product("p1")
         val m = material()
@@ -319,6 +401,52 @@ class ReducedCostPricingGeneratorTest {
         )
     }
 
+    @Test
+    fun machineCapacityShadowPriceUsesPlanCapacityConsumption() {
+        val p = product("p1")
+        val m = material()
+        val mch = machine(id = "mch-capacity")
+        val plan = CuttingPlan(
+            id = "capacity-plan",
+            material = m,
+            machineId = mch.id,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = p,
+                    width = p.width.first()
+                )
+            ),
+            capacityConsumption = Quantity(Flt64(2.0), Kilogram)
+        )
+        val enumerator = Csp1dInitialCuttingPlanGenerator<Flt64> { listOf(plan) }
+        val generator = ReducedCostPricingGenerator(enumerator)
+        val generationInput = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = listOf(mch),
+            demands = emptyList()
+        )
+        val shadowPrices = ShadowPriceMap<Flt64>(
+            values = mapOf(
+                MachineCapacityShadowPriceKey(mch.id) to Flt64(0.6)
+            )
+        )
+
+        val result = generator.generate(
+            Csp1dPricingInput(
+                generationInput = generationInput,
+                shadowPrices = shadowPrices,
+                maxGeneratedPlans = UInt64.one
+            )
+        )
+
+        assertEquals(
+            expected = listOf(plan),
+            actual = result,
+            message = "Capacity shadow price should be multiplied by plan capacity consumption"
+        )
+    }
+
     /**
      * 验证 ProductDemandShadowPriceKey 按 product + unit 口径区分不同需求单位
      * Verify ProductDemandShadowPriceKey distinguishes different demand units by product + unit
@@ -362,11 +490,13 @@ class ReducedCostPricingGeneratorTest {
             unitSymbol = unitSymbol(RollCountUnit)
         )
         val materialKey = MaterialUsageShadowPriceKey("m_underscore_test")
+        val machineBatchKey = MachineBatchShadowPriceKey("machine_test_1")
         val machineKey = MachineCapacityShadowPriceKey("machine_test_1")
 
         // 含下划线的 id 不影响 key 的生成和查询 / Underscores in ids don't affect key generation and lookup
         assertTrue(rollKey.name.contains("p_underscore_test"), "Product demand key should contain underscore id")
         assertTrue(materialKey.name.contains("m_underscore_test"), "Material key should contain underscore id")
+        assertTrue(machineBatchKey.name.contains("machine_test_1"), "Machine batch key should contain underscore id")
         assertTrue(machineKey.name.contains("machine_test_1"), "Machine key should contain underscore id")
 
         // ShadowPriceMap 应能正确存储和查询 / ShadowPriceMap should store and query correctly
@@ -374,11 +504,13 @@ class ReducedCostPricingGeneratorTest {
             values = mapOf(
                 rollKey to Flt64(2.0),
                 materialKey to Flt64(1.0),
+                machineBatchKey to Flt64(0.3),
                 machineKey to Flt64(0.5)
             )
         )
         assertEquals(Flt64(2.0), shadowPrices[rollKey])
         assertEquals(Flt64(1.0), shadowPrices[materialKey])
+        assertEquals(Flt64(0.3), shadowPrices[machineBatchKey])
         assertEquals(Flt64(0.5), shadowPrices[machineKey])
     }
 

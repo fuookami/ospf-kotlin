@@ -6,6 +6,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -68,5 +69,92 @@ class ProductDemandModelTest {
         assertNotNull(contribution.product)
         assertEquals(true, contribution.quantity eq Quantity(Flt64(88.0), Kilogram))
     }
-}
 
+    @Test
+    fun contributionBuilderShouldKeepRollDemandUnitForWeightedProduct() {
+        val product = Product(
+            id = "weighted-roll",
+            name = "weighted roll",
+            width = listOf(Quantity(Flt64(0.5), Meter)),
+            length = Quantity(Flt64(10.0), Meter),
+            unitWeight = Quantity(Flt64(2.0), Kilogram)
+        )
+        val demand = ProductDemand.roll(
+            product = product,
+            quantity = Quantity(Flt64(9.0), RollCountUnit)
+        )
+
+        val contribution = demand.contribution(
+            width = product.width.first(),
+            amount = UInt64(3UL),
+            arithmetic = Flt64QuantityArithmetic
+        )
+
+        assertEquals(true, contribution.quantity eq Quantity(Flt64(3.0), RollCountUnit))
+    }
+
+    @Test
+    fun contributionBuilderShouldDeriveWeightWhenDemandUsesWeightUnit() {
+        val product = Product(
+            id = "weighted-demand",
+            name = "weighted demand",
+            width = listOf(Quantity(Flt64(0.5), Meter)),
+            length = Quantity(Flt64(10.0), Meter),
+            unitWeight = Quantity(Flt64(2.0), Kilogram)
+        )
+        val demand = ProductDemand.weight(
+            product = product,
+            quantity = Quantity(Flt64(30.0), Kilogram)
+        )
+
+        val contribution = demand.contribution(
+            width = product.width.first(),
+            amount = UInt64(3UL),
+            arithmetic = Flt64QuantityArithmetic
+        )
+
+        assertEquals(true, contribution.quantity eq Quantity(Flt64(30.0), Kilogram))
+    }
+
+    @Test
+    fun materialEnabledShouldCheckPlanMaterialAndMachineWidthRange() {
+        val material = Material(
+            id = "m-enabled",
+            name = "enabled material",
+            widthRange = WidthRange(
+                width = QuantityRange(
+                    lowerBound = Quantity(Flt64(1.0), Meter),
+                    upperBound = Quantity(Flt64(2.0), Meter)
+                ),
+                step = Quantity(Flt64(0.1), Meter)
+            ),
+            machineId = "machine-narrow"
+        )
+        val plan = CuttingPlan(
+            id = "plan-enabled",
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = product("enabled-product"),
+                    width = Quantity(Flt64(1.5), Meter)
+                )
+            ),
+            arithmetic = Flt64QuantityArithmetic
+        )
+        val incompatibleMachine = Machine(
+            id = "machine-narrow",
+            name = "narrow machine",
+            widthRange = WidthRange(
+                width = QuantityRange(
+                    lowerBound = Quantity(Flt64(0.1), Meter),
+                    upperBound = Quantity(Flt64(1.0), Meter)
+                ),
+                step = Quantity(Flt64(0.1), Meter)
+            )
+        )
+        val otherMaterial = material.copy(id = "m-other")
+
+        assertFalse(material.enabled(plan, listOf(incompatibleMachine)))
+        assertFalse(otherMaterial.enabled(plan))
+    }
+}

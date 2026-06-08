@@ -104,4 +104,36 @@ class CostarFillerTest {
         val enriched = results.filter { it.slices.size > 1 }
         assertTrue(enriched.isNotEmpty(), "Should have plans with additional costar slices")
     }
+
+    @Test
+    fun costarSlicesShouldNotChangeDemandContributions() {
+        val p = product("p-demand", Quantity(Flt64(1.0), Meter))
+        val costar = Costar(
+            id = "c-demand",
+            name = "costar-demand",
+            width = listOf(Quantity(Flt64(0.5), Meter))
+        )
+        val contribution = CuttingPlanDemandContribution(
+            product = p,
+            quantity = Quantity(Flt64.one, RollCountUnit)
+        )
+        val plan = CuttingPlan(
+            id = "cp-demand",
+            material = material(),
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = p,
+                    width = Quantity(Flt64(1.0), Meter),
+                    amount = UInt64.one
+                )
+            ),
+            demandContributions = listOf(contribution),
+            arithmetic = arithmetic
+        )
+
+        val results = CostarFiller(arithmetic).fill(plan, listOf(costar))
+
+        assertTrue(results.any { it.slices.any { slice -> slice.production.id == costar.id } })
+        assertTrue(results.all { it.demandContributions == listOf(contribution) })
+    }
 }

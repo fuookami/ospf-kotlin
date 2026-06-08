@@ -17,12 +17,14 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Production
  *
  * @property materialId 物料标识 / Material identifier
  * @property machineId 设备标识 / Machine identifier
+ * @property capacityConsumption 设备产能消耗键 / Machine capacity consumption key
  * @property slices 切片结构键 / Slice structural keys
  * @property demandContributions 需求贡献结构键 / Demand contribution structural keys
  */
 data class CuttingPlanCanonicalKey(
     val materialId: String,
     val machineId: String?,
+    val capacityConsumption: String?,
     val slices: List<CuttingPlanSliceCanonicalKey>,
     val demandContributions: List<CuttingPlanDemandContributionCanonicalKey>
 )
@@ -64,6 +66,7 @@ fun <V : RealNumber<V>> CuttingPlan<V>.canonicalKey(): CuttingPlanCanonicalKey {
     return CuttingPlanCanonicalKey(
         materialId = material.id,
         machineId = machineId,
+        capacityConsumption = capacityConsumption?.canonicalQuantityKey(),
         slices = slices.canonicalSliceKeys(),
         demandContributions = demandContributions.canonicalDemandContributionKeys()
     )

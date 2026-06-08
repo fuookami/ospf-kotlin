@@ -2,12 +2,12 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
  * 切割方案使用量 / Cutting plan usage
@@ -38,7 +38,7 @@ data class MaterialUsage<V : RealNumber<V>>(
  *
  * @param V 数值类型 / Numeric value type
  * @property machine 设备 / Machine
- * @property used 已使用产能 / Used capacity
+ * @property used 按方案产能消耗聚合的实际使用产能 / Actual used capacity aggregated from plan consumption
  */
 data class MachineCapacityUsage<V : RealNumber<V>>(
     val machine: Machine<V>,

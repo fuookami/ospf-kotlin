@@ -22,7 +22,7 @@ data class RestWidthWaste<V : RealNumber<V>>(
  *
  * @param V 数值类型 / Numeric value type
  * @property plan 切割方案 / Cutting plan
- * @property restMaterial 余料量（面积或体积，按业务单位）/ Rest material quantity (area or volume per business unit)
+ * @property restMaterial 余料面积代理（按业务单位）/ Rest material area proxy in business unit
  */
 data class RestMaterialWaste<V : RealNumber<V>>(
     val plan: CuttingPlan<V>,
@@ -34,7 +34,7 @@ data class RestMaterialWaste<V : RealNumber<V>>(
  *
  * @param V 数值类型 / Numeric value type
  * @property product 产品 / Product
- * @property wasteArea 浪费面积量 / Waste area quantity
+ * @property wasteArea 浪费面积代理 / Waste area proxy
  */
 data class OverProductionAreaWaste<V : RealNumber<V>>(
     val product: Product<V>,

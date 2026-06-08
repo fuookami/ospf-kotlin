@@ -73,115 +73,18 @@
 9. 已完成切割方案生成第一阶段能力：DFS、N-Same、N-Sum、FullSum、Costar filler、可组合约束、超时退出和基础测试。
 10. 已完成 waste 余料面积代理、超产面积 `product.maxWidth()` 口径和 canonical form 去重第一阶段。
 11. 已完成当前模型与 POIT CSP1D 的边界复核：现有模型来源正确，主干未偏离；当前只承诺 material-context 已表达实体能建模的部分。
-12. 已完成当前主问题多项式复核：基础 demand、material、machine、yield、waste、length 线性表达方向正确；需要显式修正的风险主要集中在设备 `capacity` 未入约束、超产面积代理口径和增强目标未参与 pricing。
+12. 已完成当前主问题多项式复核：基础 demand、material、machine batch、yield、waste、length 线性表达方向正确；需要显式修正的风险主要集中在设备业务产能、换料次数、超产面积代理口径和增强目标未参与 pricing。
+13. 已完成设备业务产能第一阶段建模：`CuttingPlan.capacityConsumption` 进入 `Machine.capacity` 约束，设备 batch shadow price 与 capacity shadow price 分离，`MachineCapacityUsage.used` 改为按 solver 解聚合实际使用量。
+14. 已完成设备换料与批次因子边界收口：`maxSwitchCount` 明确为需要排程序列变量的后续能力，`availableBatches`、`maxBatchCount` 和业务产能口径已文档化。
+15. 已完成 waste 面积口径显式化：超产面积和余料面积代理均进入配置与结果字段，缺少物料长度和多宽度产品场景已覆盖。
+16. 已完成本轮目标验证：fake solver、cutting-plan-generation、Gurobi profile 编译、Gurobi 单目标测试和 CSP1D 门禁均已通过。
+17. 已完成 pricing 与增强目标第一阶段对齐：pricing input 可携带方案使用、余宽、余料和物料成本目标提示，候选筛选与排序保持 LP shadow price 基础语义。
+18. 已完成 material helper 与生成入口第一阶段收口：通用需求贡献 helper、Costar 不污染需求贡献、物料/设备基础可行性入口和生成器接入均已覆盖。
+19. 已完成列生成方案池稳定化第一阶段：pricing 重复列按 ID 和 canonical key 过滤，初始方案池按 canonical key 去重并应用 `maxInitialPlans` 上限。
 
 ## 3. 需要修正的事项
 
-### 3.1 主问题产能与资源口径收口
-
-#### 目标
-
-让 produce 主问题的资源约束完整覆盖当前 `Material` 和 `Machine` 已暴露的字段，避免实体已有字段只在结果中回显而不参与可行性判断。
-
-#### 事项
-
-1. `Machine.capacity: Quantity<V>?` 当前未进入 MILP 约束，只在结果统计中回显。
-2. `MachineCapacityUsage.used` 当前回填的是配置值，不是 solver 解中的实际使用值。
-3. `Machine.maxSwitchCount` 当前未建模；如果保留字段，需要明确为后续能力或实现通用换产约束。
-4. `Material.availableBatches` 已建模为 `Σx_j <= availableBatches`，但缺少与 future batch factor 的统一入口。
-
-#### 计划
-
-1. 为 `CuttingPlan` 或 produce 建模输入新增通用产能消耗描述，支持按方案使用量计算 `Σ consumption_j * x_j <= machine.capacity`。
-2. 保持 `maxBatchCount` 作为离散批次数约束，`capacity` 作为带单位的业务产能约束，两者可同时启用。
-3. 修改 `machineUsages()`，从 solver 解聚合实际产能使用量；无产能消耗定义时不伪装为已使用。
-4. 对 `maxSwitchCount` 做二选一处理：实现基础 material switch 计数，或从当前阶段文档/API 中标记为未建模字段。
-
-#### 修改清单
-
-1. `csp1d-domain-material-context/src/main/.../Machine.kt`
-2. `csp1d-domain-material-context/src/main/.../CuttingPlan.kt`
-3. `csp1d-domain-produce-context/src/main/.../Produce.kt`
-4. `csp1d-application/src/main/.../Csp1dMilpSolver.kt`
-5. `csp1d-application/src/test/.../Csp1dApplicationAcceptanceTest.kt`
-6. `csp1d-application/src/gurobi-test/.../Csp1dColumnGenerationRealSolverTest.kt`
-
-#### 验收标准
-
-1. 当 `Machine.capacity` 配置且方案有产能消耗时，MILP 添加对应 `<= capacity` 约束。
-2. 同一设备同时配置 `maxBatchCount` 与 `capacity` 时，两类约束同时生效。
-3. `MachineCapacityUsage.used` 反映 solver 解聚合后的实际使用量。
-4. 未配置产能消耗时，结果不误报已使用产能。
-5. fake solver 与 Gurobi profile 均覆盖产能约束生效、不可行或受限的场景。
-
-### 3.2 超产面积与余料口径显式化
-
-#### 目标
-
-把 waste 目标中的面积类口径从隐式代理改成显式策略，保证调用方知道当前结果是最大宽度代理、方案级面积还是其他业务口径。
-
-#### 事项
-
-1. 当前 `overProductionAreaPenalty` 使用 `over_i * product.maxWidth()`，是当前实体能力下的保守代理，不等价于 POIT 的方案级 `plan.overProduceArea * x_j`。
-2. 当前 `restMaterialPenalty` 使用 `restWidth * material.length * x_j`，适合作为余料面积代理，但需要与 `WasteModel` 分析层命名保持一致。
-3. 多宽度产品、动态长度产品、缺少 material length 的场景需要统一空值策略。
-
-#### 计划
-
-1. 为 `WasteMinimizationConfig` 增加面积口径策略或明确命名，至少区分 `ProductMaxWidthProxy` 与未来可扩展的 `PlanArea`。
-2. 将 `WasteMinimizationResult` 中的面积字段命名、注释和 render/KPI 输出统一为“代理”或“精确”口径。
-3. 保留当前 `product.maxWidth()` 默认行为，但在测试中固定其语义，避免误改回 `width.first()`。
-4. 评估是否需要在 `CuttingPlanDemandContribution` 中携带 width/length 来源，以支持后续方案级超产面积。
-
-#### 修改清单
-
-1. `csp1d-application/src/main/.../WasteMinimizationConfig.kt`
-2. `csp1d-application/src/main/.../Csp1dMilpSolver.kt`
-3. `csp1d-domain-wasting-minimization-context/src/main/.../WasteModel.kt`
-4. `csp1d-application/src/test/.../Csp1dApplicationAcceptanceTest.kt`
-5. `csp1d-application/src/gurobi-test/.../Csp1dColumnGenerationRealSolverTest.kt`
-
-#### 验收标准
-
-1. 文档、配置和结果字段能清晰说明超产面积使用何种口径。
-2. 多宽度产品的超产面积测试覆盖宽度顺序不敏感。
-3. 缺少 material length 时余料代理不产生错误目标项，并有反向测试覆盖。
-4. Gurobi profile 中 waste + yield 联合建模仍能回填稳定数值。
-
-### 3.3 Pricing 与最终目标的一致性修正
-
-#### 目标
-
-让 column generation 的 pricing 策略与最终 MILP 目标保持可解释的一致性，同时不破坏 LP shadow price 的基础语义。
-
-#### 事项
-
-1. 当前 LP 轮次只用于提取基础 demand/material/machine shadow price，不加入 yield slack、waste 目标和 length 目标，这是正确的基础列生成口径。
-2. 最终 MILP 若启用 waste/length/yield 目标，当前 pricing 不会主动寻找能改善这些增强目标的列。
-3. `ReducedCostPricingGenerator` 当前仍以枚举候选再筛选为主，适合正确性验证，不适合中大规模问题。
-
-#### 计划
-
-1. 明确两类 pricing 策略：基础 RMP reduced cost pricing 与最终目标感知候选增强。
-2. 在不改变 LP shadow price 提取方式的前提下，为 pricing 增加候选评分项，可选考虑余宽、余料、物料成本和长度惩罚。
-3. 将 pricing generator 注入点收口为稳定接口，支持 DFS/NSum/FullSum/MILP pricing/专用 reduced cost pricing 按场景替换。
-4. 增加候选上界估计、重复列过滤、按物料和需求单位的缓存，以及可配置候选数量上限。
-
-#### 修改清单
-
-1. `csp1d-domain-cutting-plan-generation-context/src/main/.../CuttingPlanGenerationContext.kt`
-2. `csp1d-domain-cutting-plan-generation-context/src/main/.../ReducedCostPricingGenerator.kt`
-3. `csp1d-domain-cutting-plan-generation-context/src/main/.../CuttingPlanCanonicalKey.kt`
-4. `csp1d-application/src/main/.../Csp1dColumnGeneration.kt`
-5. `csp1d-application/src/test/...`
-6. `csp1d-domain-cutting-plan-generation-context/src/test/...`
-
-#### 验收标准
-
-1. 默认 pricing 与现有列生成结果兼容，原有真实 solver 回归继续通过。
-2. 启用 waste/length 目标时，候选生成能稳定偏向低余宽、低余料或低惩罚方案，并有测试证明。
-3. duplicate plan 按 ID 和 canonical key 都能被排除。
-4. 中等规模样例的候选数量、耗时或迭代次数有可记录改善。
+当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是规模化生成、application 使用面、示例迁移和验证收口。
 
 ## 4. 未完成事项
 
@@ -193,17 +96,15 @@
 
 #### 事项
 
-1. `ProductDemand` 与 `CuttingPlanDemandContribution` 的贡献构造仍主要依赖调用方手动填写。
-2. `Costar` 作为 `Production` 可进入切片，但没有清晰区分是否参与需求、是否只用于填充剩余宽度。
-3. `Material.enabled(plan)` 只覆盖基础 machine 和 width range，尚未与 generation/pricing 的可行性入口完全统一。
-4. `Product.dynamicLength` 与 length assignment 建模已有连接，但方案生成阶段仍缺少更明确的默认贡献和长度策略。
+1. `Product.dynamicLength` 与 length assignment 建模已有连接，但方案生成阶段仍缺少更明确的默认长度策略。
+2. `Costar` 的默认行为已通过 filler 收口，后续还需要把“只补余宽、不参与 demand contribution”的语义沉淀到更稳定的模型文档或配置边界。
+3. 当前统一可行性入口覆盖基础物料、设备和幅宽，后续需要和更细粒度长度、缺陷、分段实体的扩展边界保持一致。
 
 #### 计划
 
-1. 增加通用 contribution builder，按 demand unit 生成 roll/weight/sheet 贡献，避免下游重复手写。
-2. 将 Costar filler 的行为和 `Costar` 的通用语义写入模型或配置，明确 costar 默认不进入 demand contribution。
-3. 将 `Material.enabled(plan)`、`Machine.enabled(material)`、generation constraints 和 pricing 入口合并为统一可行性检查链。
-4. 为 dynamic/fixed length 产品补充生成阶段的默认长度策略和测试。
+1. 为 dynamic/fixed length 产品补充生成阶段的默认长度策略和测试。
+2. 将 Costar filler 的语义写入更稳定的 public 文档或配置说明，避免下游误把 costar 当作需求产品。
+3. 随 material model 新增实体时，扩展统一可行性入口，避免生成器和 solver 分叉。
 
 #### 修改清单
 
@@ -216,10 +117,9 @@
 
 #### 验收标准
 
-1. 常见 roll/weight/sheet 贡献可通过通用 helper 生成。
-2. Costar filler 不会意外污染产品需求贡献。
-3. 生成器和 solver 对同一个 plan 的基础可行性判断一致。
-4. 动态长度与固定长度产品在生成和最终 MILP 中的行为均有测试覆盖。
+1. 动态长度与固定长度产品在生成和最终 MILP 中的行为均有测试覆盖。
+2. Costar 语义在 public 文档或配置边界中清晰，不引入业务 DTO。
+3. 新增 material entity 后，生成器和 solver 对同一个 plan 的基础可行性判断一致。
 
 ### 4.2 切割方案生成算法增强
 
@@ -229,15 +129,15 @@
 
 #### 事项
 
-1. DFS/NSum/NSame/FullSum 已可用，但并行生成、缓存和规模化剪枝不足。
-2. 单位长度、更细粒度长度约束和动态长度产品的生成策略仍待收口。
+1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造和可行性入口已收口，但并行生成、缓存和规模化剪枝不足。
+2. 单位长度、更细粒度长度约束、动态长度产品和中等规模性能基线仍待收口。
 3. 缺陷、分段、onSide/inMiddle、`unitBatch` 等 POIT 语义暂不属于当前实体边界；只有当 material model 增加通用实体后再纳入。
 
 #### 计划
 
-1. 为生成器增加 coroutine 并行、全局 timeout、候选上限和可中断统计。
+1. 为生成器增加 coroutine 并行、统一候选上限、可中断统计和中等规模基线。
 2. 增加 width combination 的上界估计、dominance 剪枝和按 material/demand unit 的缓存。
-3. 统一 DFS/NSum/NSame/FullSum 的 contribution 构造和 canonical 去重。
+3. 扩展 canonical 去重到生成器批量输出统计，记录被过滤的重复列数量。
 4. 将暂不建模的 POIT 语义集中放入“延后能力”清单，不在当前代码中留半成品字段。
 
 #### 修改清单
@@ -265,14 +165,14 @@
 #### 事项
 
 1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出仍需统一入口和文档化。
-2. 列生成 trace 已有基础字段，但恢复、重复列、LP 失败和最终 MILP 失败的结果表达仍可读性不足。
+2. 列生成 trace 已覆盖基础终止原因、LP 失败和重复列收敛；恢复、最终 MILP 失败和部分成功结果表达仍可读性不足。
 3. 目前增强配置分散在 yield/waste/length，缺少面向调用方的一站式建模配置。
 
 #### 计划
 
 1. 收口 `Csp1dProblem` builder 和 `Csp1dSolveConfig`，统一 solver、pricing、yield、waste、length、trace、Top-K 配置。
 2. 补充 `Csp1dSolution` KPI：需求满足、欠产/超产、余宽、余料、物料成本、产能使用、列生成收敛信息。
-3. 明确异常和部分成功结果：LP 失败、pricing 无新列、重复列收敛、最终 MILP 不可行。
+3. 明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效和局部可用解。
 4. 为恢复和 warm start 预留输入输出结构，不引入业务 DTO。
 
 #### 修改清单
@@ -331,21 +231,21 @@
 
 #### 目标
 
-下一轮尽量以一次宽范围迭代完成主问题修正、pricing 对齐、生成增强和示例迁移的基础版本，减少反复切换上下文。
+下一轮尽量以一次宽范围迭代完成生成器规模化增强、application API/KPI 收口、demo3 示例迁移和验证基线固化，减少反复切换上下文。
 
 #### 事项
 
-1. 优先修正当前实体已暴露但未建模的 `Machine.capacity`。
-2. 同步显式化 waste 面积口径，避免后续测试继续绑定隐式代理。
-3. 在 pricing 中加入增强目标感知候选评分，不改变 LP shadow price 基础约束。
-4. 扩展生成器性能和可中断能力。
-5. 打通 application 一站式配置和 demo3 示例。
+1. 扩展生成器性能、缓存、剪枝、统计和中等规模基线。
+2. 补齐 dynamic/fixed length 产品在生成阶段的默认长度策略。
+3. 打通 application 一站式配置、KPI、trace 终止原因和部分成功结果。
+4. 迁移 demo3 示例，删除示例侧手写 RMP/SP 主路径。
+5. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令。
 
 #### 计划
 
-1. 第一段：主问题修正，完成产能约束、使用量回填、面积口径配置和相关测试。
-2. 第二段：pricing/生成器增强，完成 canonical 去重稳定化、候选评分、并行/timeout/统计和性能样例。
-3. 第三段：application API 与 demo3，完成统一 solve config、KPI 输出和示例迁移。
+1. 第一段：生成器增强，完成并行开关、缓存、dominance 剪枝、统计输出和性能样例。
+2. 第二段：长度策略收口，完成 dynamic/fixed length 默认策略、约束入口和测试。
+3. 第三段：application API 与 demo3，完成统一 solve config、KPI 输出、最终 MILP 状态、部分成功结果和示例迁移。
 4. 第四段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
 
 #### 修改清单
@@ -361,8 +261,8 @@
 
 #### 验收标准
 
-1. 当前 `material-context` 实体能表达的目标和约束均有明确多项式或明确“不建模”说明。
-2. fake solver 测试覆盖主问题、yield、waste、length、pricing 和 generation 的新增行为。
+1. 生成器中等规模样例有候选数量、耗时和重复列过滤统计。
+2. fake solver 测试覆盖 generation、application API 和 demo3 入口的新增行为。
 3. Gurobi profile 至少完成 `test-compile`；环境可用时执行端到端目标测试。
 4. demo3 示例不再维护手写 RMP/SP。
 5. CSP1D 门禁搜索、`git diff --check -- ospf-kotlin-framework-csp1d` 通过。
@@ -382,9 +282,9 @@
 
 #### 计划
 
-1. 优先执行 `mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am test-compile`。
-2. 优先执行 `mvn -pl ospf-kotlin-framework-csp1d/csp1d-domain-cutting-plan-generation-context -am test`，若超时则拆目标测试。
-3. Gurobi 环境可用时执行 `mvn -pl ospf-kotlin-framework-csp1d/csp1d-application -am -Pgurobi-cg-test test`；不可用时至少执行 `-DskipTests test-compile`。
+1. 优先执行 CSP1D 窄 reactor application 测试，避免被上游未跟踪 framework 改动阻塞。
+2. 优先执行 material-context 与 cutting-plan-generation-context 的目标测试，覆盖 helper、pricing 和生成器。
+3. Gurobi 环境可用时执行 CSP1D 窄 reactor `-Pgurobi-cg-test`；不可用时至少执行 `-DskipTests test-compile`。
 4. 每次改动后执行门禁 grep 和 `git diff --check`。
 
 #### 修改清单

@@ -266,6 +266,79 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
+     * 验证设备业务产能约束在真实 solver 上限制方案使用量并回填实际使用量 /
+     * Verify machine business capacity constrains plan usage and backfills actual usage on real solver
+     */
+    @Test
+    fun milpMachineCapacityConstraintLimitsUsageOnRealSolver() = runBlocking {
+        val product = product(
+            id = "p_machine_capacity_real",
+            width = 0.8
+        )
+        val material = material(
+            id = "m_machine_capacity_real",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            machineId = "machine_capacity_real"
+        )
+        val machine = machine(
+            id = "machine_capacity_real",
+            capacity = 120.0,
+            maxBatchCount = UInt64(10UL)
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(
+                cuttingPlan(
+                    id = "plan_machine_capacity_real",
+                    product = product,
+                    material = material,
+                    rollContribution = Flt64(1.0),
+                    machineId = machine.id,
+                    capacityConsumption = 80.0
+                )
+            ),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = listOf(machine)
+        )
+        val yieldConfig = YieldModelingConfig<Flt64>(
+            underProductionPenalty = mapOf(demandKey to Flt64(100.0))
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(
+            input = input,
+            yieldConfig = yieldConfig
+        )
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        val usage = milpResult.produce.cuttingPlans.firstOrNull {
+            it.plan.id == "plan_machine_capacity_real"
+        }
+        assertNotNull(usage, "Capacity-constrained plan should be selected")
+        assertEquals(UInt64.one, usage.amount, "Capacity 120 and consumption 80 should allow one integer batch")
+
+        val machineUsage = milpResult.produce.machineUsages.firstOrNull {
+            it.machine.id == machine.id
+        }?.used
+        assertNotNull(machineUsage, "Machine capacity usage should be extracted")
+        assertTrue(machineUsage eq Quantity(Flt64(80.0), Kilogram))
+
+        val underProduction = milpResult.yieldResult?.underProductions?.firstOrNull {
+            it.productId == product.id
+        }
+        assertNotNull(underProduction, "Remaining demand should be represented by under-production slack")
+        assertEquals(Flt64(2.0), underProduction.amount)
+    }
+
+    /**
      * 验证 id 含下划线时 shadow price 映射正确
      * Verify shadow price mapping works correctly when ids contain underscores
      */
@@ -1617,11 +1690,14 @@ class Csp1dColumnGenerationRealSolverTest {
         id: String,
         product: Product<Flt64>,
         material: Material<Flt64>,
-        rollContribution: Flt64
+        rollContribution: Flt64,
+        machineId: String? = material.machineId,
+        capacityConsumption: Double? = null
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
             id = id,
             material = material,
+            machineId = machineId,
             slices = listOf(
                 CuttingPlanSlice(
                     production = product,
@@ -1634,7 +1710,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     product = product,
                     quantity = Quantity(rollContribution, RollCountUnit)
                 )
-            )
+            ),
+            capacityConsumption = capacityConsumption?.let { Quantity(Flt64(it), Kilogram) }
         )
     }
 
@@ -1728,11 +1805,13 @@ class Csp1dColumnGenerationRealSolverTest {
 
     private fun machine(
         id: String,
-        capacity: Double
+        capacity: Double,
+        maxBatchCount: UInt64? = null
     ): Machine<Flt64> {
         return Machine(
             id = id,
             name = "machine-$id",
+            maxBatchCount = maxBatchCount,
             capacity = Quantity(Flt64(capacity), Kilogram)
         )
     }
