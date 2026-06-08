@@ -61,7 +61,7 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 - `produce`：选中方案、物料使用、设备产能使用和未满足需求
 - `generatedPlans`：最终进入 MILP 的方案池
-- `kpi`：选中方案数、车次数、满足/未满足需求数、使用条目数、生成方案数、Top-K 数量和增强结果计数
+- `kpi`：选中方案数、车次数、满足/未满足需求数、使用条目数、生成方案数、Top-K 数量、增强结果计数和可序列化 KPI 明细
 - `render`：面向 UI 或序列化的稳定 DTO 边界
 - `status`：`Feasible`、`Partial`、`NoInitialPlans` 或 `Failed`
 - `failureMessage`：可用时回填失败原因
@@ -73,9 +73,15 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告和 `GenerationConstraints.parallelism` 按物料协程并行开关。
 
+`GenerationConstraints.enableDominancePruning` 用于开启同贡献候选 dominance 剪枝。对于物料、设备、产能消耗和需求贡献向量相同的候选，生成器保留余宽更小的方案，并把过滤数量记录到 `dominatedCandidates`。
+
 `Costar` 是余宽 filler。它可以出现在切片和 render 输出中，但不会产生 demand contribution。
 
 动态长度产品在生成阶段构造需求贡献时，固定长度产品优先使用产品长度，动态长度产品在物料长度可用时使用物料长度兜底。最终卷长分配仍由 length assignment MILP 上下文负责。
+
+## 恢复
+
+`Csp1dRecovery` 保留简单的 `solve(problem, solveConfig)` API，同时提供 `solveWithTrace(Csp1dRecoveryInput<V>)`。trace 会记录恢复状态、warm start 状态、尝试次数和说明。当前 MILP adapter 不直接消费 warm start，因此兼容的 warm start 会标记为 `Ignored`；不兼容的 warm start 在启用 `retryWithoutWarmStart` 时会退回普通求解。
 
 ## Demo
 

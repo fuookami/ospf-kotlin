@@ -214,6 +214,40 @@ class NSameGeneratorTest {
     }
 
     @Test
+    fun reportShouldPruneDominatedSameContributionPlans() {
+        val p = product(
+            id = "p-dominance",
+            widths = listOf(
+                Quantity(Flt64(0.4), Meter),
+                Quantity(Flt64(0.5), Meter)
+            )
+        )
+        val m = material(upperBound = 1.0)
+        val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
+        val input = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = emptyList(),
+            costars = emptyList(),
+            demands = listOf(demand)
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(2UL),
+            enableDominancePruning = true
+        )
+
+        val report = NSameGenerator(
+            constraints = constraints,
+            arithmetic = arithmetic
+        ).generateWithReport(input)
+
+        assertEquals(1, report.plans.size)
+        assertEquals(2, report.statistics.generatedCandidates)
+        assertEquals(1, report.statistics.dominatedCandidates)
+        assertTrue(report.plans.single().restWidth!! eq Quantity(Flt64.zero, Meter))
+    }
+
+    @Test
     fun reportShouldStopAtMaxPlans() {
         val p1 = product("p-limit-1", listOf(Quantity(Flt64(0.5), Meter)))
         val p2 = product("p-limit-2", listOf(Quantity(Flt64(0.6), Meter)))

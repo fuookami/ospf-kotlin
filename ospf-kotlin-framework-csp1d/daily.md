@@ -91,10 +91,13 @@
 27. 已完成生成器并行第一阶段：DFS、NSum、NSame、FullSum 支持按物料 coroutine 并行开关，并验证 canonical 结果集合稳定。
 28. 已完成 public 语义文档第一阶段：Costar filler、dynamic length 生成边界、trace/KPI/render、最终 MILP 状态和部分成功结果已写入 README。
 29. 已完成当前验证基线刷新：CSP1D 窄测试、Gurobi profile 编译、demo3 限定编译、门禁搜索和 `git diff --check` 均已通过。
+30. 已完成 application KPI 明细第一阶段：`Csp1dKpi.details` 与 render KPI 同步输出 yield、waste、length、物料使用、设备产能和列生成收敛明细。
+31. 已完成 recovery/warm start 语义第一阶段：恢复输入、warm start 输入、恢复 trace、warm start ignored/invalid/fallback 语义和验收测试已建立。
+32. 已完成生成器中等规模基线与 dominance 剪枝第一阶段：新增中等规模统计样例，支持同贡献候选 dominance 剪枝并输出 `dominatedCandidates`。
 
 ## 3. 需要修正的事项
 
-当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是规模化生成、application 使用面和验证收口。
+当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是更细粒度生成剪枝、恢复能力深化、KPI 口径稳定化和验证收口。
 
 ## 4. 未完成事项
 
@@ -139,14 +142,14 @@
 
 #### 事项
 
-1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、基础剪枝和按物料并行已收口。
-2. 单位长度、更细粒度长度约束、dominance 剪枝和中等规模性能基线仍待收口。
+1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、基础剪枝、按物料并行、同贡献 dominance 和中等规模基线已完成第一阶段。
+2. 单位长度、更细粒度长度约束、跨 material/demand unit 缓存和更强 dominance 剪枝仍待深化。
 3. 缺陷、分段、onSide/inMiddle、`unitBatch` 等 POIT 语义暂不属于当前实体边界；只有当 material model 增加通用实体后再纳入。
 
 #### 计划
 
-1. 建立中等规模样例，记录候选数量、耗时、重复过滤、基础可行性拒绝和剪枝效果。
-2. 继续扩展 width combination 的上界估计、dominance 剪枝和按 material/demand unit 的缓存。
+1. 扩展中等规模样例，区分 DFS、NSum、NSame、FullSum 的候选数量、耗时、重复过滤、基础可行性拒绝和剪枝效果。
+2. 继续扩展 width combination 的上界估计、跨 material/demand unit 缓存和更强 dominance 剪枝。
 3. 将生成报告在 application KPI 与 render 边界持续固化，避免调用方只能读 trace。
 4. 将暂不建模的 POIT 语义集中放入“延后能力”清单，不在当前代码中留半成品字段。
 
@@ -163,7 +166,7 @@
 
 1. 所有生成器支持统一 timeout、候选上限和统计信息。
 2. 并行开关不改变结果集合的 canonical form，并持续覆盖回归测试。
-3. 中等规模样例生成耗时、候选数量、重复过滤和剪枝效果有基线记录。
+3. 中等规模样例生成耗时、候选数量、重复过滤、dominance 剪枝和基础可行性拒绝有基线记录。
 4. 延后能力清单不影响当前 material-context 边界内的编译和求解。
 
 ### 4.3 Application API、KPI 和恢复能力
@@ -175,14 +178,14 @@
 #### 事项
 
 1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出、builder、README 和 demo3 示例已完成统一入口第一阶段。
-2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态和部分成功结果；恢复、warm start 失效和重试策略仍可读性不足。
-3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，后续需要继续补齐更细 KPI 和恢复语义。
+2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构已完成第一阶段。
+3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，后续需要继续稳定 KPI key、恢复策略和更细异常分类。
 
 #### 计划
 
-1. 继续补充 `Csp1dSolution` KPI：欠产/超产量、余宽、余料、物料成本、产能使用和列生成收敛信息。
-2. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效和局部可用解。
-3. 为恢复和 warm start 预留输入输出结构，不引入业务 DTO。
+1. 稳定 KPI detail key 命名和单位表达，避免下游依赖临时字符串。
+2. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效、fallback 禁用和局部可用解。
+3. 在不引入业务 DTO 的前提下，为真正 solver warm start adapter 预留落点。
 4. 将 public README 与 acceptance test 随 API 变化同步维护。
 
 #### 修改清单
@@ -207,21 +210,21 @@
 
 #### 目标
 
-下一轮尽量以一次宽范围迭代完成中等规模生成基线、dominance 剪枝、恢复/warm start 语义和更细 KPI 收口，减少反复切换上下文。
+下一轮尽量以一次宽范围迭代完成 KPI key 稳定化、恢复策略深化、生成器多算法基线和更强剪枝，减少反复切换上下文。
 
 #### 事项
 
-1. 在已打通 application 一站式配置、builder、README、KPI、trace 最终 MILP 状态和部分成功结果的基础上，补齐恢复语义。
-2. 在已完成生成器数量缓存、基础剪枝和并行开关的基础上，扩展 dominance 剪枝和中等规模基线。
-3. 将生成统计继续沉淀到 application KPI/render 边界，降低调用方读取 trace 的负担。
+1. 在已打通 application 一站式配置、builder、README、KPI 明细、trace 最终 MILP 状态、部分成功结果和恢复 trace 的基础上，稳定 public key 和异常分类。
+2. 在已完成生成器数量缓存、基础剪枝、并行开关、同贡献 dominance 和中等规模 FullSum 基线的基础上，扩展多算法基线与更强剪枝。
+3. 将生成统计继续沉淀到 application KPI/render 边界，并明确哪些明细属于稳定 key。
 4. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令。
 
 #### 计划
 
-1. 第一段：建立中等规模 generation benchmark 测试或样例，记录耗时、候选数量、重复过滤、可行性拒绝和剪枝效果。
-2. 第二段：实现更细粒度 dominance 剪枝和 material/demand unit 缓存，保证 canonical 结果集合稳定。
-3. 第三段：补齐恢复、warm start 失效、最终 MILP 失败和重试策略的输入输出结构与 acceptance test。
-4. 第四段：扩展 KPI/render，覆盖欠产/超产量、余宽、余料、物料成本、产能使用和列生成收敛信息。
+1. 第一段：将中等规模 generation benchmark 扩展到 DFS、NSum、NSame、FullSum，并记录各自统计口径。
+2. 第二段：实现更细粒度 dominance 剪枝、宽度组合上界估计和 material/demand unit 缓存，保证 canonical 结果集合稳定。
+3. 第三段：深化恢复策略，区分 warm start ignored、invalid、adapter unsupported、fallback disabled 和 solver failure。
+4. 第四段：稳定 KPI/render 明细 key 与单位表达，形成 README 中的稳定字段清单。
 5. 第五段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
 
 #### 修改清单
@@ -237,8 +240,8 @@
 
 #### 验收标准
 
-1. 生成器中等规模样例有候选数量、耗时和重复列过滤统计。
-2. fake solver 测试覆盖 generation、application API 和 demo3 入口的新增行为。
+1. 四类生成器中等规模样例有候选数量、耗时、重复过滤、dominance 剪枝和基础可行性拒绝统计。
+2. fake solver 测试覆盖 generation、application API、recovery 和 demo3 入口的新增行为。
 3. Gurobi profile 至少完成 `test-compile`；环境可用时执行端到端目标测试。
 4. demo3 示例不再维护手写 RMP/SP。
 5. CSP1D 门禁搜索、`git diff --check -- ospf-kotlin-framework-csp1d` 通过。

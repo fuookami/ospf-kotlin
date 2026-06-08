@@ -45,6 +45,7 @@ enum class Csp1dSolutionStatus {
  * @property yieldMetricCount yield 回填指标数 / Yield metric count
  * @property wasteMetricCount waste 回填指标数 / Waste metric count
  * @property lengthMetricCount length 回填指标数 / Length metric count
+ * @property details 可序列化 KPI 明细 / Serializable KPI details
  */
 data class Csp1dKpi(
     val selectedPlanCount: UInt64,
@@ -57,7 +58,8 @@ data class Csp1dKpi(
     val topPlanCount: UInt64 = UInt64.zero,
     val yieldMetricCount: UInt64 = UInt64.zero,
     val wasteMetricCount: UInt64 = UInt64.zero,
-    val lengthMetricCount: UInt64 = UInt64.zero
+    val lengthMetricCount: UInt64 = UInt64.zero,
+    val details: Map<String, String> = emptyMap()
 )
 
 /**

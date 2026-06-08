@@ -61,7 +61,7 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 - `produce`: selected cutting plans, material usages, machine capacity usages, and unmet demands
 - `generatedPlans`: final plan pool used by MILP
-- `kpi`: selected plan count, batch count, satisfied/unmet demands, usage counts, generated plan count, Top-K count, and enhancement metric counts
+- `kpi`: selected plan count, batch count, satisfied/unmet demands, usage counts, generated plan count, Top-K count, enhancement metric counts, and serializable KPI details
 - `render`: stable DTO boundary for UI or serialization
 - `status`: `Feasible`, `Partial`, `NoInitialPlans`, or `Failed`
 - `failureMessage`: failure reason when available
@@ -73,9 +73,15 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 The generation context provides DFS, N-Same, N-Sum, FullSum, and reduced-cost pricing generators. Generators share timeout, max plan, canonical deduplication, feasibility filtering, statistics reporting, and `GenerationConstraints.parallelism` for material-level coroutine parallel generation.
 
+`GenerationConstraints.enableDominancePruning` enables opt-in same-contribution dominance pruning. For candidates with the same material, machine, capacity consumption, and demand contribution vector, the generator keeps the candidate with smaller remaining width and records the filtered count in `dominatedCandidates`.
+
 `Costar` is a filler for remaining width. It can appear in slices and render output, but it does not create demand contribution.
 
 For dynamic-length products, generation-stage demand contribution uses the product length when fixed, then falls back to material length when available. Final roll length assignment is still owned by the length assignment MILP context.
+
+## Recovery
+
+`Csp1dRecovery` keeps the simple `solve(problem, solveConfig)` API and also provides `solveWithTrace(Csp1dRecoveryInput<V>)`. The trace records recovery status, warm start status, attempt count, and message. Current MILP adapters do not consume warm start directly, so compatible warm starts are marked as `Ignored`; incompatible warm starts can fall back to normal solve when `retryWithoutWarmStart` is enabled.
 
 ## Demo
 

@@ -27,15 +27,27 @@ internal fun <V : RealNumber<V>> enrichSolution(
     terminationReason: Csp1dTerminationReason? = null,
     finalMilpStatus: Csp1dFinalMilpStatus? = null,
     partialSolutionAvailable: Boolean = false,
-    initialGenerationStatistics: CuttingPlanGenerationStatistics? = null
+    initialGenerationStatistics: CuttingPlanGenerationStatistics? = null,
+    iterationRecords: List<Csp1dIterationRecord> = emptyList()
 ): Csp1dSolution<V> {
+    val details = kpiDetails(
+        solution = solution,
+        topPlans = topPlans,
+        terminationReason = terminationReason,
+        finalMilpStatus = finalMilpStatus,
+        partialSolutionAvailable = partialSolutionAvailable,
+        initialGenerationStatistics = initialGenerationStatistics,
+        iterationRecords = iterationRecords
+    )
     val kpi = solution.kpi.copy(
         topPlanCount = UInt64(topPlans.size),
         yieldMetricCount = UInt64(yieldMetricCount(solution)),
         wasteMetricCount = UInt64(wasteMetricCount(solution)),
-        lengthMetricCount = UInt64(lengthMetricCount(solution))
+        lengthMetricCount = UInt64(lengthMetricCount(solution)),
+        details = details
     )
     val renderKpi = LinkedHashMap(solution.render.kpi)
+    renderKpi.putAll(details)
     renderKpi["topPlanCount"] = kpi.topPlanCount.toString()
     renderKpi["yieldMetricCount"] = kpi.yieldMetricCount.toString()
     renderKpi["wasteMetricCount"] = kpi.wasteMetricCount.toString()
@@ -54,6 +66,7 @@ internal fun <V : RealNumber<V>> enrichSolution(
         renderKpi["initialAcceptedPlans"] = initialGenerationStatistics.acceptedPlans.toString()
         renderKpi["initialInfeasibleCandidates"] = initialGenerationStatistics.infeasibleCandidates.toString()
         renderKpi["initialDuplicateCandidates"] = initialGenerationStatistics.duplicateCandidates.toString()
+        renderKpi["initialDominatedCandidates"] = initialGenerationStatistics.dominatedCandidates.toString()
         renderKpi["initialGenerationElapsedMilliseconds"] = initialGenerationStatistics.elapsedMilliseconds.toString()
         renderKpi["initialGenerationStopReason"] = initialGenerationStatistics.stopReason.name
     }
@@ -69,6 +82,83 @@ internal fun <V : RealNumber<V>> enrichSolution(
         failureMessage = failureMessage,
         topPlans = topPlans
     )
+}
+
+private fun <V : RealNumber<V>> kpiDetails(
+    solution: Csp1dSolution<V>,
+    topPlans: List<CuttingPlan<V>>,
+    terminationReason: Csp1dTerminationReason?,
+    finalMilpStatus: Csp1dFinalMilpStatus?,
+    partialSolutionAvailable: Boolean,
+    initialGenerationStatistics: CuttingPlanGenerationStatistics?,
+    iterationRecords: List<Csp1dIterationRecord>
+): Map<String, String> {
+    val details = LinkedHashMap<String, String>()
+
+    details["generatedPlanCount"] = solution.generatedPlans.size.toString()
+    details["selectedPlanCount"] = solution.produce.cuttingPlans.size.toString()
+    details["selectedBatchCount"] = solution.produce.cuttingPlans.fold(UInt64.zero) { acc, usage ->
+        acc + usage.amount
+    }.toString()
+    details["topPlanCount"] = topPlans.size.toString()
+    details["partialSolutionAvailable"] = partialSolutionAvailable.toString()
+
+    terminationReason?.let { details["columnGeneration.terminationReason"] = it.name }
+    finalMilpStatus?.let { details["finalMilpStatus"] = it.name }
+    details["columnGeneration.iterationCount"] = iterationRecords.size.toString()
+    details["columnGeneration.pricedPlanCount"] = iterationRecords.fold(UInt64.zero) { acc, record ->
+        acc + record.pricedPlanCount
+    }.toString()
+    iterationRecords.lastOrNull()?.let { record ->
+        details["columnGeneration.lastLpObjective"] = record.lpObjective.toString()
+        details["columnGeneration.lastPlanCount"] = record.planCountAfter.toString()
+    }
+
+    if (initialGenerationStatistics != null) {
+        details["initialGeneration.visitedNodes"] = initialGenerationStatistics.visitedNodes.toString()
+        details["initialGeneration.generatedCandidates"] = initialGenerationStatistics.generatedCandidates.toString()
+        details["initialGeneration.acceptedPlans"] = initialGenerationStatistics.acceptedPlans.toString()
+        details["initialGeneration.infeasibleCandidates"] = initialGenerationStatistics.infeasibleCandidates.toString()
+        details["initialGeneration.duplicateCandidates"] = initialGenerationStatistics.duplicateCandidates.toString()
+        details["initialGeneration.dominatedCandidates"] = initialGenerationStatistics.dominatedCandidates.toString()
+        details["initialGeneration.elapsedMilliseconds"] = initialGenerationStatistics.elapsedMilliseconds.toString()
+        details["initialGeneration.stopReason"] = initialGenerationStatistics.stopReason.name
+    }
+
+    for (materialUsage in solution.produce.materialUsages) {
+        details["materialUsage.${materialUsage.material.id}.batchCount"] = materialUsage.amount.toString()
+    }
+    for (machineUsage in solution.produce.machineUsages) {
+        val used = machineUsage.used ?: continue
+        details["machineCapacityUsed.${machineUsage.machine.id}"] = used.toString()
+    }
+    for (underProduction in solution.yieldResult?.underProductions.orEmpty()) {
+        details["underProduction.${underProduction.productId}.${underProduction.unitSymbol}"] = underProduction.amount.toString()
+    }
+    for (overProduction in solution.yieldResult?.overProductions.orEmpty()) {
+        details["overProduction.${overProduction.productId}.${overProduction.unitSymbol}"] = overProduction.amount.toString()
+    }
+
+    val wasteResult = solution.wasteResult
+    if (wasteResult != null) {
+        wasteResult.totalTrimWidth?.let { details["totalTrimWidth"] = it.toString() }
+        wasteResult.totalRestMaterial?.let { details["totalRestMaterial"] = it.toString() }
+        wasteResult.overProductionArea?.let { details["overProductionArea"] = it.toString() }
+        details["overProductionAreaMeasure"] = wasteResult.overProductionAreaMeasure.name
+        details["restMaterialMeasure"] = wasteResult.restMaterialMeasure.name
+        for (materialCost in wasteResult.materialCosts) {
+            details["materialCost.${materialCost.materialId}"] = materialCost.cost.toString()
+        }
+    }
+
+    for (assignedLength in solution.lengthResult?.assignedLengths.orEmpty()) {
+        details["assignedLength.${assignedLength.productId}"] = assignedLength.assignedLength.toString()
+    }
+    for (overLength in solution.lengthResult?.overLengths.orEmpty()) {
+        details["overLength.${overLength.productId}"] = overLength.overLength.toString()
+    }
+
+    return details
 }
 
 private fun <V : RealNumber<V>> yieldMetricCount(solution: Csp1dSolution<V>): Int {

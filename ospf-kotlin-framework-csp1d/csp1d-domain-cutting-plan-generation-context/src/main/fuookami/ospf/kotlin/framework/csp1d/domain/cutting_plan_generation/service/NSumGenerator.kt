@@ -32,6 +32,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * @property maxPlans 最大方案数（提前终止）/ Max plans (early termination)
  * @property timeout 超时限制 / Timeout limit
  * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
+ * @property enableDominancePruning 是否启用同贡献候选 dominance 剪枝 / Whether to enable dominance pruning for same-contribution candidates
  */
 class NSumGenerator<V : RealNumber<V>>(
     private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
@@ -39,7 +40,8 @@ class NSumGenerator<V : RealNumber<V>>(
     private val maxDepth: UInt64 = UInt64(7UL),
     private val maxPlans: Int = 1000,
     private val timeout: Duration? = null,
-    private val parallelism: Int = 1
+    private val parallelism: Int = 1,
+    private val enableDominancePruning: Boolean = false
 ) : Csp1dInitialCuttingPlanGenerator<V> {
 
     constructor(
@@ -54,7 +56,8 @@ class NSumGenerator<V : RealNumber<V>>(
         maxDepth = maxDepth,
         maxPlans = maxPlans,
         timeout = timeout,
-        parallelism = constraints.parallelism
+        parallelism = constraints.parallelism,
+        enableDominancePruning = constraints.enableDominancePruning
     )
 
     private data class ProductWidthEntry<V : RealNumber<V>>(
@@ -76,7 +79,8 @@ class NSumGenerator<V : RealNumber<V>>(
         val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
         val collector = GenerationCollector<V>(
             maxPlans = maxPlans,
-            deadline = deadline
+            deadline = deadline,
+            enableDominancePruning = enableDominancePruning
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
 
@@ -90,7 +94,8 @@ class NSumGenerator<V : RealNumber<V>>(
                     {
                         val localCollector = GenerationCollector<V>(
                             maxPlans = maxPlans,
-                            deadline = deadline
+                            deadline = deadline,
+                            enableDominancePruning = enableDominancePruning
                         )
                         val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
                         if (materialEntries.isNotEmpty()) {

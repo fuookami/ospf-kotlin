@@ -825,6 +825,10 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals("2", result.solution.render.kpi["initialGeneratedCandidates"])
         assertEquals("2", result.solution.render.kpi["initialAcceptedPlans"])
         assertEquals("Exhausted", result.solution.render.kpi["initialGenerationStopReason"])
+        assertEquals("1", result.solution.kpi.details["columnGeneration.iterationCount"])
+        assertEquals("0", result.solution.kpi.details["columnGeneration.pricedPlanCount"])
+        assertEquals("2", result.solution.kpi.details["materialUsage.m-cg-config.batchCount"])
+        assertEquals("1", result.solution.render.kpi["columnGeneration.iterationCount"])
     }
 
     /**
@@ -953,6 +957,174 @@ class Csp1dApplicationAcceptanceTest {
         }
 
         assertTrue(error.message?.contains("forced final MILP failure") == true)
+    }
+
+    /**
+     * 验证恢复入口显式记录当前 warm start 被忽略并完成普通求解 /
+     * Verify recovery records ignored warm start and completes normal solve
+     */
+    @Test
+    fun recoveryShouldTraceIgnoredWarmStart(): Unit = runBlocking {
+        val product = product(
+            id = "p-recovery-warm",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-warm",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val result = Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    cuttingPlans = listOf(warmStartPlan)
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Ignored, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.attemptCount)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证恢复入口识别无效 warm start 并退回普通求解 /
+     * Verify recovery detects invalid warm start and falls back to normal solve
+     */
+    @Test
+    fun recoveryShouldRetryWithoutInvalidWarmStart(): Unit = runBlocking {
+        val product = product(
+            id = "p-recovery-invalid",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-valid",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val invalidMaterial = material(
+            id = "m-recovery-invalid",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val invalidPlan = simpleCuttingPlan(
+            product = product,
+            material = invalidMaterial,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val result = Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    cuttingPlans = listOf(invalidPlan)
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.RetriedWithoutWarmStart, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Invalid, result.trace.warmStartStatus)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证禁用 fallback 后无效 warm start 会直接失败 /
+     * Verify invalid warm start fails when fallback is disabled
+     */
+    @Test
+    fun recoveryShouldRejectInvalidWarmStartWhenFallbackDisabled() {
+        val product = product(
+            id = "p-recovery-reject",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-reject-valid",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val invalidMaterial = material(
+            id = "m-recovery-reject-invalid",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            runBlocking {
+                Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+                    Csp1dRecoveryInput(
+                        problem = problem,
+                        warmStart = Csp1dWarmStart(
+                            cuttingPlans = listOf(
+                                simpleCuttingPlan(
+                                    product = product,
+                                    material = invalidMaterial,
+                                    rollContribution = Flt64.one
+                                )
+                            )
+                        ),
+                        options = Csp1dRecoveryOptions(
+                            retryWithoutWarmStart = false
+                        )
+                    )
+                )
+            }
+        }
     }
 
     private fun product(

@@ -135,7 +135,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 terminationReason = Csp1dTerminationReason.NoInitialPlans,
                 finalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
                 partialSolutionAvailable = false,
-                initialGenerationStatistics = initialPlanPool.statistics
+                initialGenerationStatistics = initialPlanPool.statistics,
+                iterationRecords = emptyList()
             )
             return Csp1dColumnGenerationResult(
                 solution = solution,
@@ -281,7 +282,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             terminationReason = terminationReason,
             finalMilpStatus = finalMilp.status,
             partialSolutionAvailable = finalMilp.status == Csp1dFinalMilpStatus.Failed,
-            initialGenerationStatistics = initialPlanPool.statistics
+            initialGenerationStatistics = initialPlanPool.statistics,
+            iterationRecords = iterationRecords
         )
         return Csp1dColumnGenerationResult(
             solution = solution,
