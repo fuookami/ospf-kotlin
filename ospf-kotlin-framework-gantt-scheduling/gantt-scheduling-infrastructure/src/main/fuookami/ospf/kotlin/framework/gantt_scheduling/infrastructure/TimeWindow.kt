@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
@@ -119,31 +118,6 @@ data class TimeWindow<V : RealNumber<V>>(
         }
 
         /**
-         * 创建秒级 Flt64 时间窗口 / Create a seconds-level Flt64 time window
-         */
-        @Deprecated(
-            message = "Use generic TimeWindow.seconds with explicit numeric converters",
-            replaceWith = ReplaceWith(
-                "TimeWindow.seconds(timeWindow = timeWindow, dateOffset = dateOffset, continues = continues, interval = interval, fromDouble = { Flt64(it) }, toDouble = { it.toDouble() })"
-            )
-        )
-        fun seconds(
-            timeWindow: TimeRange,
-            dateOffset: Flt64 = Flt64.zero,
-            continues: Boolean = true,
-            interval: Flt64 = Flt64.one
-        ): TimeWindow<Flt64> {
-            return seconds(
-                timeWindow = timeWindow,
-                dateOffset = dateOffset,
-                continues = continues,
-                interval = interval,
-                fromDouble = { Flt64(it) },
-                toDouble = { it.toDouble() }
-            )
-        }
-
-        /**
          * 创建分钟级泛型时间窗口 / Create a minutes-level generic time window
          *
          * @param V 数值类型 / Numeric type
@@ -201,31 +175,6 @@ data class TimeWindow<V : RealNumber<V>>(
                 interval = interval.value,
                 fromDouble = fromDouble,
                 toDouble = toDouble
-            )
-        }
-
-        /**
-         * 创建分钟级 Flt64 时间窗口 / Create a minutes-level Flt64 time window
-         */
-        @Deprecated(
-            message = "Use generic TimeWindow.minutes with explicit numeric converters",
-            replaceWith = ReplaceWith(
-                "TimeWindow.minutes(timeWindow = timeWindow, dateOffset = dateOffset, continues = continues, interval = interval, fromDouble = { Flt64(it) }, toDouble = { it.toDouble() })"
-            )
-        )
-        fun minutes(
-            timeWindow: TimeRange,
-            dateOffset: Flt64 = Flt64.zero,
-            continues: Boolean = true,
-            interval: Flt64 = Flt64.one
-        ): TimeWindow<Flt64> {
-            return minutes(
-                timeWindow = timeWindow,
-                dateOffset = dateOffset,
-                continues = continues,
-                interval = interval,
-                fromDouble = { Flt64(it) },
-                toDouble = { it.toDouble() }
             )
         }
 
@@ -290,30 +239,6 @@ data class TimeWindow<V : RealNumber<V>>(
             )
         }
 
-        /**
-         * 创建小时级 Flt64 时间窗口 / Create an hours-level Flt64 time window
-         */
-        @Deprecated(
-            message = "Use generic TimeWindow.hours with explicit numeric converters",
-            replaceWith = ReplaceWith(
-                "TimeWindow.hours(timeWindow = timeWindow, dateOffset = dateOffset, continues = continues, interval = interval, fromDouble = { Flt64(it) }, toDouble = { it.toDouble() })"
-            )
-        )
-        fun hours(
-            timeWindow: TimeRange,
-            dateOffset: Flt64 = Flt64.zero,
-            continues: Boolean = true,
-            interval: Flt64 = Flt64.one
-        ): TimeWindow<Flt64> {
-            return hours(
-                timeWindow = timeWindow,
-                dateOffset = dateOffset,
-                continues = continues,
-                interval = interval,
-                fromDouble = { Flt64(it) },
-                toDouble = { it.toDouble() }
-            )
-        }
     }
 
     /**

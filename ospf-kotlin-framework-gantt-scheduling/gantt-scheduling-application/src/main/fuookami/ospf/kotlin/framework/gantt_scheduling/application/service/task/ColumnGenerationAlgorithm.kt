@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /** 任务列生成算法入口 / Task column generation algorithm entry */

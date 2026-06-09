@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /** 主生产计划入口 / Master Production Scheduling entry point */

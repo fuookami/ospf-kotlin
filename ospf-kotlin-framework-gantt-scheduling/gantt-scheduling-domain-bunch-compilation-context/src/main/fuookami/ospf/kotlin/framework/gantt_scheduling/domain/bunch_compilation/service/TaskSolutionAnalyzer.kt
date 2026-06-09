@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 
 /** 任务束上下文任务解分析器 / Task solution analyzer in bunch context */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service

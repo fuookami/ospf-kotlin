@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 
 /** 任务束编译上下文 / Bunch compilation context */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation

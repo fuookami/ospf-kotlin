@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 
 /** 任务束成本最小化 / Bunch cost minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.limits

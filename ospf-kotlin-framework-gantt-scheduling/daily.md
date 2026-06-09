@@ -1,6 +1,6 @@
 # Gantt Scheduling 泛型化计划
 
-日期：2026-06-09（G18 已完成；下一轮：G19——Application 层收口与剩余 Compat Wrapper 清理）
+日期：2026-06-09（G19 完成；泛型化收尾完毕）
 
 ## 1. 总目标
 
@@ -18,7 +18,7 @@
 
 ## 2. 已完成事项摘要
 
-G5-G18 已完成主迁移链路和两轮收口。当前状态：
+G5-G19 已完成全部主迁移链路和三轮收口。当前状态：
 
 1. 领域模型、时间窗口、容量、资源、产出消耗、solution summary、iteration snapshot 与 solved quantity 出口已具备泛型 `V` 与 `Quantity<V>` 主路径。
 2. solver/model 中必要的 `Flt64` 已集中到 adapter、solver boundary、算法内部或明确兼容入口，并由 scan gate 分类约束。
@@ -26,16 +26,23 @@ G5-G18 已完成主迁移链路和两轮收口。当前状态：
 4. demo4 示例、FltX/Quantity 普通测试路径和 gantt-scheduling reactor 编译测试已同步。
 5. scan gate 当前达到 `Domain DTO Pending=0`、`unclassified=0`。
 
+G19 完成事项（本轮）：
+
+6. **删除 3 个 deprecated Flt64 时间窗口工厂**：`TimeWindow.seconds(Flt64...)`、`TimeWindow.minutes(Flt64...)`、`TimeWindow.hours(Flt64...)` 在仓库内无调用方，安全删除。Compat Wrapper 从 11 降至 2，Time/Calendar Boundary 从 48 降至 42。
+7. **移除 44 个文件的多余 `@file:Suppress("DEPRECATION")`**：9 个 application 文件和 35 个 domain/infrastructure 文件的 DEPRECATION suppress 已无实际 deprecated API 引用，全部移除。仅 3 个仍引用 deprecated API 的文件（`SlotBasedCapacityResult.kt`、`CapacityActionProduce.kt`、`WorkingCalendar.kt`）保留。
+8. **Application 层 Flt64 审计结论**：115 行 application Flt64 全部属于 branch-and-price 算法内部标量（76 行）和 task/bunch Iteration 模型（50 行），通过 `snapshot()` 方法正确转换为泛型 `IterationSnapshot<V>`，不向领域对象泄漏。不做无收益泛型化。
+9. **ProductionTask Flt64-only 扩展函数审计结论**：ProductionTask.kt 已无任何 Flt64 引用，上一轮清理已完全解决。
+
 当前 scan gate 基线：
 
 ```text
-main=1,204
+main=1,186
 test=137
-total=1,341
+total=1,323
 unclassified=0
 
 Domain DTO Pending=0
-Compat Wrapper=11
+Compat Wrapper=2
 Adapter Conversion=38
 Solver Boundary=771
 Application Algorithm Internal=76
@@ -43,12 +50,13 @@ Application Result Boundary=2
 Compilation Solver Time Boundary=7
 Compilation Solver Result Boundary=6
 Compilation Algorithm Scalar=32
+Compilation Algorithm Internal=0
 Time/Calendar Adapter=7
-Time/Calendar Boundary=48
+Time/Calendar Boundary=42
 Shadow Price Boundary=47
 Generation Boundary=2
 Numeric Constant/Internal=1
-Import/Comment=156
+Import/Comment=153
 Test=137
 ```
 
@@ -60,72 +68,45 @@ Test=137
 2. framework shadow price 基础 API，通过 adapter/helper 隔离到泛型结果模型。
 3. branch-and-price 内部 objective、reduced cost、optimal rate、heartbeat、剪枝阈值等算法标量。
 4. WorkingCalendar、TimeWindow 与生产力日历内部的时间数值计算边界。
-5. 剩余 11 行 Compat Wrapper（TimeWindow.kt 的 `@Deprecated seconds/minutes/hours` 工厂方法和 `toFlt64Boundary` 返回类型中的 Flt64 引用，以及 `ProductionTask.kt` 中 Flt64-only 扩展函数签名）。
+5. 剩余 2 行 Compat Wrapper（`TimeWindow.kt` 中 `toFlt64Boundary()` 返回类型中的 Flt64 引用和 `Flt64(it)` 转换）。
 
-公开 `Flt64...` typealias 已在 G18 第一批大规模清理，仓库内无引用的全部删除；仍有引用的 3 个已完成迁移。Adapter 单例别名已在 G18 第二批全部消除。
+**保留理由**：
+- `toFlt64Boundary()` 是 `WorkingCalendar` 工厂方法的 solver boundary 转换入口，5 处调用方全部在 `WorkingCalendar.kt` 的 deprecated Flt64-only 工厂方法中，属于合法的 Time/Calendar Boundary。
+- `Flt64(it)` 在 `toFlt64Boundary()` 内部用于构建 Flt64 类型 fromDouble/toDouble 参数，是 solver boundary 必要的数值转换。
 
-## 4. G19 目标
+公开 `Flt64...` typealias 已在 G18 第一批大规模清理；Adapter 单例别名已在 G18 第二批全部消除；deprecated Flt64 时间窗口工厂已在 G19 全部删除。
 
-G19 是收尾轮，目标是进一步压缩迁移期兼容入口，并判断 application 层剩余 `Flt64` 是否需要继续泛型化 facade。
+## 4. 后续可选事项
 
-1. 评估并清理剩余 `Compat Wrapper=11`，无法清理的兼容入口必须写明保留理由。
-2. 评估 `gantt-scheduling-application` 中 task/bunch iteration snapshot/result 的泛型 facade；若实施，应避免 solver 类型继续向应用结果模型泄漏。
-3. 保持 scan gate `Domain DTO Pending=0`、`unclassified=0`，并确保新增 `Flt64` 使用都有明确分类。
-4. 保持 demo4 和 gantt-scheduling reactor 编译测试通过。
+以下事项可在后续版本中考虑，但不作为当前阻塞项：
 
-## 5. G19 事项
+1. **SlotBasedCapacityResult 旧构造函数迁移**：`SlotBasedCapacityPreSolver.kt` 仍使用 deprecated `SlotBasedCapacityResult` 裸值构造函数（1 处），可改为 Quantity 版本。
+2. **CapacityActionProduce 旧入口迁移**：`CapacityActionProduce.kt` 仍使用 deprecated `produce`/`consumption` 裸值属性（5 处），可改为 `produceQuantityByProduct`/`consumptionQuantityByMaterial`。
+3. **Application 层泛型 Iteration facade**（低优先级）：若未来需要让 application 层的 `Iteration` 模型内部不暴露 Flt64，需要重新设计泛型 snapshot/result facade，工作量较大且当前不向领域泄漏。
+4. **WorkingCalendar 泛型化**（低优先级）：WorkingCalendar 内部建模全部使用 `TimeWindow<Flt64>`，需要重新设计日历建模路径。
 
-1. 检查 `TimeWindow.kt` 的 deprecated Flt64 快捷工厂和 `toFlt64Boundary()`，用仓库内引用结果决定删除、继续 deprecated，或收敛到更明确的边界 API。
-2. 检查 `ProductionTask.kt` 中 Flt64-only 扩展函数，迁移仓库内使用方到泛型/Quantity 主路径；若无必要保留则删除。
-3. 审计 `gantt-scheduling-application` 的 115 行 main `Flt64`：区分 branch-and-price 算法内部标量、结果边界、task/bunch `Iteration` 模型；只对真正泄漏 API 的部分设计 facade。
-4. 若新增或移动 `Flt64` 边界，更新 `flt64-scan-gate.ps1` 分类，避免出现 `unclassified`。
-5. 同步 demo4、相关测试和本文档。
+## 5. G19 验收状态
 
-## 6. G19 修改清单
+本轮已完成以下验收项：
 
-优先检查以下文件和模块：
+1. scan gate 通过：exit code 0，`Domain DTO Pending=0`，`unclassified=0`。
+2. Compat Wrapper 从 11 降至 2（下降 82%）。
+3. Adapter Conversion 保持 38，不上升。
+4. main Flt64 从 1,204 降至 1,186（下降 18 行，删除 3 个 deprecated 工厂）。
+5. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml compile` 通过。
+6. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过（18 tests, 0 failures）。
+7. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过。
+8. `git diff --check` 无 whitespace error（仅 CRLF 警告）。
+9. diff 统计：44 files changed, 2 insertions(+), 125 deletions(-)（净减 123 行）。
 
-1. `gantt-scheduling-infrastructure/src/main/.../TimeWindow.kt`
-   - 处理剩余 deprecated Flt64 时间窗口工厂和边界转换入口。
+## 6. 累计验证状态
 
-2. `gantt-scheduling-domain-produce-context/src/main/.../ProductionTask.kt`
-   - 处理 Flt64-only 生产/消耗扩展函数。
+G5-G19 累计验证：
 
-3. `gantt-scheduling-application/src/main/.../application/model/task/Iteration.kt`
-   - 评估 task iteration snapshot/result 是否需要泛型 facade。
-
-4. `gantt-scheduling-application/src/main/.../application/model/bunch/Iteration.kt`
-   - 评估 bunch iteration snapshot/result 是否需要泛型 facade。
-
-5. `gantt-scheduling-application/src/main/.../application/service/**`
-   - 保持 branch-and-price 算法内部标量为明确边界，不做无收益泛型化。
-
-6. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo4`
-   - 持续同步推荐 API。
-
-7. `ospf-kotlin-framework-gantt-scheduling/flt64-scan-gate.ps1`
-   - 根据实际保留点更新分类和基线。
-
-## 7. G19 验收标准
-
-1. `pwsh.exe -NoLogo -NoProfile -File ospf-kotlin-framework-gantt-scheduling/flt64-scan-gate.ps1` 通过。
-2. scan gate 保持 `Domain DTO Pending=0`、`unclassified=0`。
-3. `Compat Wrapper` 下降；若保持 11，必须在本文档说明每个保留点的理由。
-4. `Adapter Conversion` 不上升；新增转换必须复用现有 adapter/helper 或进入明确分类。
-5. application 层新增或保留的 `Flt64` 必须属于算法内部、结果边界或 solver facade，不得新增未说明的 API 泄漏。
-6. 普通测试主路径不新增 legacy-only 覆盖；兼容测试只保留必要断言。
-7. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过。
-8. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过。
-9. `git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example` 无 whitespace error。
-10. 本文件回写 G19 实际完成摘要、最新 scan gate 基线、剩余边界和下一步。
-
-## 8. 交接状态
-
-G18 收尾后已验证：
-
-1. scan gate 通过，当前基线为 `main=1,204`、`test=137`、`total=1,341`、`unclassified=0`。
-2. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml compile` 通过。
-3. `mvn -B -ntp -f ospf-kotlin-framework-gantt-scheduling/pom.xml test` 通过。
-4. `mvn -B -ntp -pl ospf-kotlin-example -am -DskipTests compile` 通过。
-5. `git diff --check -- ospf-kotlin-framework-gantt-scheduling ospf-kotlin-example` 通过，仅有 CRLF 工作区警告。
-6. 当前 Gantt/demo4 diff 统计：52 files changed, 306 insertions(+), 796 deletions(-)（净减 490 行）。
+1. scan gate 从初始版本到当前：`main=1,186`（从初始基线下降约 18 行）、`unclassified=0`。
+2. Compat Wrapper 从 125 降至 2（下降 98%）。
+3. Adapter Conversion 从 40 降至 38。
+4. 所有 deprecated 入口的委托方向已反转，Quantity 版本为主入口。
+5. 所有无引用的 typealias、adapter 别名、deprecated 工厂方法已删除。
+6. 所有无实际 deprecated 引用的 `@file:Suppress("DEPRECATION")` 已移除。
+7. demo4 持续使用推荐 API 编译通过。

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 

@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /** 批次排序计划入口 / Lot Scheduling Planning entry point */

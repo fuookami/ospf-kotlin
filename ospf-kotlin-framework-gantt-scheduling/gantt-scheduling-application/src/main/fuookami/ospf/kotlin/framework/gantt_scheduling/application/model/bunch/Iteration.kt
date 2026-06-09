@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /** 任务束迭代器 / Bunch iterator */

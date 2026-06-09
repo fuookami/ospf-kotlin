@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION", "UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
