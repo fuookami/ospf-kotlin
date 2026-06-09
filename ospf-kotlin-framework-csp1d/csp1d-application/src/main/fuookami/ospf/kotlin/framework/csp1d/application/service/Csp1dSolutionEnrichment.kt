@@ -29,6 +29,8 @@ internal fun <V : RealNumber<V>> enrichSolution(
     finalMilpStatus: Csp1dFinalMilpStatus? = null,
     partialSolutionAvailable: Boolean = false,
     initialGenerationStatistics: CuttingPlanGenerationStatistics? = null,
+    pricingGenerationStatistics: CuttingPlanGenerationStatistics? = null,
+    lpFailureMessage: String? = null,
     iterationRecords: List<Csp1dIterationRecord> = emptyList()
 ): Csp1dSolution<V> {
     val details = kpiDetails(
@@ -81,6 +83,21 @@ internal fun <V : RealNumber<V>> enrichSolution(
         renderKpi[Csp1dKpiKeys.InitialGenerationElapsedMillisecondsRender] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationStopReasonRender] = initialGenerationStatistics.stopReason.name
+    }
+    if (pricingGenerationStatistics != null) {
+        renderKpi[Csp1dKpiKeys.PricingVisitedNodes] = pricingGenerationStatistics.visitedNodes.toString()
+        renderKpi[Csp1dKpiKeys.PricingGeneratedCandidates] = pricingGenerationStatistics.generatedCandidates.toString()
+        renderKpi[Csp1dKpiKeys.PricingAcceptedPlans] = pricingGenerationStatistics.acceptedPlans.toString()
+        renderKpi[Csp1dKpiKeys.PricingInfeasibleCandidates] = pricingGenerationStatistics.infeasibleCandidates.toString()
+        renderKpi[Csp1dKpiKeys.PricingDuplicateCandidates] = pricingGenerationStatistics.duplicateCandidates.toString()
+        renderKpi[Csp1dKpiKeys.PricingDominatedCandidates] = pricingGenerationStatistics.dominatedCandidates.toString()
+        renderKpi[Csp1dKpiKeys.PricingElapsedMilliseconds] = pricingGenerationStatistics.elapsedMilliseconds.toString()
+        renderKpi[Csp1dKpiKeys.PricingStopReason] = pricingGenerationStatistics.stopReason.name
+    }
+    if (lpFailureMessage != null) {
+        renderKpi[Csp1dKpiKeys.LpFailureMessage] = lpFailureMessage
+    } else {
+        renderKpi.remove(Csp1dKpiKeys.LpFailureMessage)
     }
     if (failureMessage != null) {
         renderKpi[Csp1dKpiKeys.FailureMessage] = failureMessage

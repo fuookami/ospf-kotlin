@@ -2085,11 +2085,11 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
-     * 验证首次 LP 求解失败时列生成返回 LpSolveFailed 终止原因 /
-     * Verify column generation returns LpSolveFailed when LP fails on first iteration
+     * 验证首次 LP 求解失败时列生成返回 LpInfeasible 终止原因 /
+     * Verify column generation returns LpInfeasible when first LP solve fails
      */
     @Test
-    fun columnGenerationShouldReturnLpSolveFailedWhenFirstLpFails(): Unit = runBlocking {
+    fun columnGenerationShouldReturnLpInfeasibleWhenFirstLpFails(): Unit = runBlocking {
         val product = product(
             id = "p-lp-infeasible",
             width = 0.8
@@ -2128,10 +2128,12 @@ class Csp1dApplicationAcceptanceTest {
 
         val result = columnGeneration.solveWithTrace(problem)
 
-        assertEquals(Csp1dTerminationReason.LpSolveFailed, result.trace.terminationReason)
+        assertEquals(Csp1dTerminationReason.LpInfeasible, result.trace.terminationReason)
         assertTrue(result.trace.lpFailureMessage?.contains("LP solve returned null") == true)
         // LP 失败但最终 MILP 使用初始方案仍然成功，所以 solutionStatus 为 Feasible
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+        // LP failure message 应合并到 solution.failureMessage
+        assertTrue(result.solution.failureMessage?.contains("LP solve returned null") == true)
     }
 
     /**

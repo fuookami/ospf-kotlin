@@ -33,9 +33,9 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSoluti
 enum class Csp1dTerminationReason {
     /** 达到迭代上限 / Iteration limit reached */
     IterationLimitReached,
-    /** LP 求解失败（异常、超时等） / LP solve failed (exception, timeout, etc.) */
+    /** LP 求解失败（异常、超时等，有前序有效 LP 解） / LP solve failed (exception, timeout, etc., with a prior valid LP result) */
     LpSolveFailed,
-    /** LP 松弛不可行 / LP relaxation is infeasible */
+    /** 首次 LP 求解即失败，疑似 LP 松弛不可行 / First LP solve failed, likely LP relaxation infeasible */
     LpInfeasible,
     /** 无负 reduced cost 新列，自然收敛 / No negative reduced cost columns, natural convergence */
     PricingConverged,
@@ -166,6 +166,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val pricedPlanCounts = ArrayList<UInt64>()
         val iterationRecords = ArrayList<Csp1dIterationRecord>()
         var terminationReason: Csp1dTerminationReason = Csp1dTerminationReason.PricingConverged
+        var hasValidLpResult = false
         var lpFailureMessage: String? = null
         var pricingGenerationStatistics: CuttingPlanGenerationStatistics? = null
 
@@ -190,10 +191,16 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                         planCountAfter = planCountBefore
                     )
                 )
-                terminationReason = Csp1dTerminationReason.LpSolveFailed
+                terminationReason = if (!hasValidLpResult) {
+                    Csp1dTerminationReason.LpInfeasible
+                } else {
+                    Csp1dTerminationReason.LpSolveFailed
+                }
                 lpFailureMessage = "LP solve returned null at iteration $iteration"
                 break
             }
+
+            hasValidLpResult = true
 
             val lpObjective = lpResult.lpOutput.result.obj
             val shadowPrices = lpResult.shadowPrices
@@ -286,6 +293,12 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             Csp1dFinalMilpStatus.Failed -> if (resolvedConfig.allowPartialSolution) Csp1dSolutionStatus.Partial else Csp1dSolutionStatus.Failed
             Csp1dFinalMilpStatus.NotAttempted -> Csp1dSolutionStatus.Partial
         }
+        val combinedFailureMessage = when {
+            lpFailureMessage != null && finalMilp.failureMessage != null ->
+                "$lpFailureMessage; ${finalMilp.failureMessage}"
+            lpFailureMessage != null -> lpFailureMessage
+            else -> finalMilp.failureMessage
+        }
         val solution = enrichSolution(
             solution = baseSolution.copy(
                 yieldResult = finalMilp.milpResult?.yieldResult,
@@ -294,11 +307,13 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             ),
             topPlans = topPlans,
             status = solutionStatus,
-            failureMessage = finalMilp.failureMessage,
+            failureMessage = combinedFailureMessage,
             terminationReason = terminationReason,
             finalMilpStatus = finalMilp.status,
             partialSolutionAvailable = finalMilp.status == Csp1dFinalMilpStatus.Failed,
             initialGenerationStatistics = initialPlanPool.statistics,
+            pricingGenerationStatistics = pricingGenerationStatistics,
+            lpFailureMessage = lpFailureMessage,
             iterationRecords = iterationRecords
         )
         return Csp1dColumnGenerationResult(
