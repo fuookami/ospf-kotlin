@@ -257,7 +257,9 @@ class ColumnGenerationStandardExecutors(
                     "model" to artifacts.model.name,
                     "lp_time_ms" to solved.time.inWholeMilliseconds.toString(),
                     "lp_gap" to solved.gap.toString(),
-                    "lp_objective" to solved.obj.toString()
+                    "lp_objective" to solved.obj.toString(),
+                    "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
+                    "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 )
             )
         }
@@ -370,7 +372,9 @@ class ColumnGenerationStandardExecutors(
                     "milp_gap" to solved.gap.toString(),
                     "milp_objective" to solved.obj.toString(),
                     "selected_bin_count" to selectedBins.size.toString(),
-                    "selected_layer_count" to selectedColumns.size.toString()
+                    "selected_layer_count" to selectedColumns.size.toString(),
+                    "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
+                    "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 )
             )
         }

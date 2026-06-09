@@ -29,7 +29,7 @@ Explicit non-goals and remaining work:
 
 1. Arbitrary 3D cylinder rotation is not a target.
 2. Fully shape-generic migration for all legacy cuboid algorithms is still in progress.
-3. Full solver-native continuous radius optimization is still in progress; the current column-generation model selects concrete generated `BinLayer` columns. Continuous-radius metadata has a typed solver-variable prototype, but symbolic radius variables are not yet wired into footprint, volume, support coverage, final MILP selection, and renderer `actualVolume`.
+3. Full solver-native continuous radius optimization is still in progress; the current column-generation model selects concrete generated `BinLayer` columns. Continuous-radius metadata has a typed solver-variable prototype carried through `ColumnGenerationState`, RMP/final solve info, and packing snapshot KPI, but symbolic radius variables are not yet registered into the solver model or wired into footprint, volume, support coverage, final MILP selection, and renderer `actualVolume`.
 4. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
 
 See detailed progress in [refactor.md](./refactor.md).
@@ -83,7 +83,7 @@ For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_mi
 
 Grouped-layer Gurobi test datasets may use `width_meter`, `height_meter`, and `depth_meter` to express explicit item dimensions, so horizontal cylinder supported-stack and hanging seed layers can validate single, repeated narrow-line, repeated same-shape, or heterogeneous cuboid support coverage without changing the material-width-amount `width` axis-length contract.
 
-Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. `radiusWeightFunctionKey` is a selected-radius production marker only when a concrete `radius_meter` / `radius` is present, and the selected radius is represented by a typed result contract before production shape emission. Interval-only continuous radius variables have a `ContinuousCylinderRadiusSolverPrototype` in diagnostics, but are still rejected through `ContinuousCylinderRadiusOptimizationGapReport`, so both grouped-layer and material-width-amount CSV inputs cannot silently run as fixed-radius solves.
+Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. `radiusWeightFunctionKey` is a selected-radius production marker only when a concrete `radius_meter` / `radius` is present, and the selected radius is represented by a typed result contract before production shape emission. Interval-only continuous radius variables have a `ContinuousCylinderRadiusSolverPrototype` in diagnostics and selected-radius prototypes are carried through column-generation solver context, but interval-only inputs are still rejected through `ContinuousCylinderRadiusOptimizationGapReport`, so both grouped-layer and material-width-amount CSV inputs cannot silently run as fixed-radius solves.
 
 ### Depth Boundary Layer Policy Columns
 

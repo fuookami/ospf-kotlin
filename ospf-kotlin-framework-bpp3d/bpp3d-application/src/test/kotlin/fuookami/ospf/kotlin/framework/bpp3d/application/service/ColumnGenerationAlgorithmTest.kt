@@ -23,6 +23,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer as QuantityBinLayer
@@ -51,6 +52,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
@@ -89,6 +91,34 @@ class ColumnGenerationAlgorithmTest {
                 depth = InfraNumber.one * Meter,
                 weight = InfraNumber.one * Kilogram,
                 packageType = PackageType.CartonContainer
+            ),
+            materials = mapOf(material to UInt64.one)
+        )
+        return ActualItem(
+            id = id,
+            name = id,
+            pack = pack,
+            enabledOrientations = listOf(Orientation.Upright),
+            batchNo = BatchNo("B-$id"),
+            packageAttribute = packageAttribute()
+        )
+    }
+
+    private fun continuousRadiusItem(id: String, material: Material<InfraNumber>): ActualItem {
+        val pack = Package.innerPackage(
+            shape = PackageShape(
+                width = InfraNumber.one * Meter,
+                height = infraScalar(1.2) * Meter,
+                depth = InfraNumber.one * Meter,
+                weight = InfraNumber.one * Kilogram,
+                packageType = PackageType.CartonContainer,
+                shapeSpec = PackageShapeSpec.VerticalCylinder(
+                    radius = infraScalar(0.5) * Meter,
+                    axis = Axis3.Y,
+                    radiusMin = infraScalar(0.4) * Meter,
+                    radiusMax = infraScalar(0.6) * Meter,
+                    radiusWeightFunctionKey = "cg-radius-key"
+                )
             ),
             materials = mapOf(material to UInt64.one)
         )
@@ -384,6 +414,68 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
+    fun algorithmShouldPropagateContinuousRadiusSolverPrototypesToStates() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CG-RADIUS"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CG-RADIUS",
+            weight = InfraNumber.one * Kilogram
+        )
+        val item = continuousRadiusItem(
+            id = "item-cg-radius",
+            material = material
+        )
+        val rmpVariables = ArrayList<String>()
+        val requestBuilderVariables = ArrayList<String>()
+        var finalVariables = emptyList<String>()
+        var analyzerVariables = emptyList<String>()
+        val algorithm = ColumnGenerationAlgorithm(
+            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    return emptyList()
+                }
+            },
+            rmpSolver = ColumnGenerationRmpSolver { state ->
+                rmpVariables.addAll(state.continuousRadiusSolverPrototypes.map { it.variableName })
+                ColumnGenerationLpResult(
+                    shadowPrices = emptyMap(),
+                    objective = InfraNumber(1.0)
+                )
+            },
+            finalMilpSolver = ColumnGenerationFinalSolver { state ->
+                finalVariables = state.continuousRadiusSolverPrototypes.map { it.variableName }
+                ColumnGenerationFinalResult(columns = state.columns)
+            },
+            solutionAnalyzer = ColumnGenerationSolutionAnalyzer { state ->
+                analyzerVariables = state.continuousRadiusSolverPrototypes.map { it.variableName }
+            },
+            layerRequestBuilder = ColumnGenerationLayerRequestBuilder { state, items, cgConfig ->
+                requestBuilderVariables.addAll(state.continuousRadiusSolverPrototypes.map { it.variableName })
+                Bpp3dLayerGenerationRequest(
+                    iteration = state.iteration,
+                    items = items,
+                    existingLayers = state.columns,
+                    shadowPrices = state.shadowPrices,
+                    maxCandidates = cgConfig.maxColumnsPerIteration
+                )
+            }
+        )
+
+        val result = algorithm.solve(
+            items = listOf(item),
+            config = ColumnGenerationConfig(iterationLimit = 1)
+        )
+        val expectedVariable = "cylinder_radius_ColumnGenerationState_item_0_cg_radius_key_Y"
+
+        assertEquals(listOf(expectedVariable), rmpVariables)
+        assertEquals(listOf(expectedVariable), requestBuilderVariables)
+        assertEquals(listOf(expectedVariable), finalVariables)
+        assertEquals(listOf(expectedVariable), analyzerVariables)
+        assertEquals(listOf(InfraNumber(1.0)), result.lpObjectives)
+    }
+
+    @Test
     fun finalSolverReturnedBinsShouldReachPackingAnalyzer() = runBlocking {
         val material = Material(
             no = MaterialNo("M-1"),
@@ -415,6 +507,40 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(1, snapshot.bins.size)
         assertEquals("1", snapshot.schema.kpi["bin_count"])
         assertTrue(result.finalSolved)
+    }
+
+    @Test
+    fun packingAnalyzerShouldExposeContinuousRadiusSolverPrototypeKpi() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CG-RADIUS-KPI"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CG-RADIUS-KPI",
+            weight = InfraNumber.one * Kilogram
+        )
+        val item = continuousRadiusItem(
+            id = "item-cg-radius-kpi",
+            material = material
+        )
+        val bin = layerBin(listOf(item))
+        val prototype = continuousRadiusSolverPrototypesFromItems(listOf(item)).single()
+        val analyzer = ColumnGenerationPackingAnalyzer()
+
+        analyzer.analyze(
+            state = ColumnGenerationState(
+                iteration = 0,
+                columns = listOf(bin.units.first().unit),
+                bins = listOf(bin),
+                continuousRadiusSolverPrototypes = listOf(prototype)
+            )
+        )
+        val snapshot = assertNotNull(analyzer.latest)
+
+        assertEquals("1", snapshot.schema.kpi["continuous_radius_solver_prototype_count"])
+        assertEquals(
+            prototype.variableName,
+            snapshot.schema.kpi["continuous_radius_solver_prototype_variables"]
+        )
     }
 
     @Test

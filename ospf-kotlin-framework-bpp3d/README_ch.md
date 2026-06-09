@@ -29,7 +29,7 @@
 
 1. 圆柱任意三维旋转不是当前目标。
 2. 全主链 legacy 长方体算法的 shape-generic 迁移仍在推进。
-3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，但符号半径变量还没有接入 footprint、volume、支撑覆盖、final MILP 选择和 renderer `actualVolume`。
+3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，并已进入 `ColumnGenerationState`、RMP/final solve info 和 packing snapshot KPI，但符号半径变量还没有注册到 solver 模型，也没有接入 footprint、volume、支撑覆盖、final MILP 选择和 renderer `actualVolume`。
 4. 外部 renderer 源码不属于本仓；本模块负责输出用于外部 renderer 验收的 shape metadata。
 
 重构进度请查看 [refactor.md](./refactor.md)。
@@ -83,7 +83,7 @@ strict generic 边界脚本会拒绝已删除的固定数值别名、material pa
 
 grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack / hanging seed layer 可以验证单支撑、同类重复窄支撑线、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
 
-动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius`，且在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量会在诊断中给出 `ContinuousCylinderRadiusSolverPrototype`，但仍通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，因此 grouped-layer 和 material-width-amount 两类 CSV 都不能静默按固定半径求解。
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius`，且在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量会在诊断中给出 `ContinuousCylinderRadiusSolverPrototype`，已选择半径原型会进入列生成 solver 上下文，但 interval-only 输入仍通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，因此 grouped-layer 和 material-width-amount 两类 CSV 都不能静默按固定半径求解。
 
 ### 深度边界层策略列
 

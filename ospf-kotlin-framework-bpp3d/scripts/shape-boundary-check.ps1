@@ -59,6 +59,7 @@ $fixHints = @{
     ContinuousCylinderRadiusSelectionResultGuardMissing = "Continuous-radius production must expose an explicit selected-radius result object, not just a metadata string."
     ContinuousCylinderRadiusOptimizationGapReportGuardMissing = "Continuous-radius unsupported solver-native paths must be represented by a typed gap report shared by production and CSV guards."
     ContinuousCylinderRadiusSolverPrototypeGuardMissing = "Continuous-radius solver-native work must keep a typed variable prototype wired into CSV guard diagnostics instead of silently fixing interval-only radius metadata."
+    ContinuousCylinderRadiusSolverContextGuardMissing = "Column generation solver context must carry continuous-radius solver prototypes into RMP, final MILP, and packing snapshots."
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must require concrete radius metadata before generating candidates."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking/hanging limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
@@ -464,6 +465,27 @@ Add-RequiredPatternViolation `
     -FilePath $gurobiColumnGenerationTestPath `
     -Pattern "requireConcreteCsvRadiusMetadata\s*\([\s\S]*?continuousCylinderRadiusSolverPrototype\s*\([\s\S]*?axis\s*=\s*axis[\s\S]*?gapReport\.message\s*\(rowDescription\)\s*\+\s*\(solverPrototype\?\.messageSuffix\(\)" `
     -MissingText "Gurobi CSV radius guard must include the typed continuous-radius solver prototype in interval-only/key-without-radius diagnostics."
+
+$columnGenerationAlgorithmPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationAlgorithm.kt"
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverContextGuardMissing" `
+    -FilePath $columnGenerationAlgorithmPath `
+    -Pattern "data\s+class\s+ColumnGenerationState[\s\S]*?continuousRadiusSolverPrototypes[\s\S]*?fun\s+continuousRadiusSolverPrototypesFromItems\s*\([\s\S]*?continuousRadiusSolverPrototype[\s\S]*?val\s+continuousRadiusSolverPrototypes\s*=\s*continuousRadiusSolverPrototypesFromItems\s*\(items\)[\s\S]*?ColumnGenerationState[\s\S]*?continuousRadiusSolverPrototypes\s*=\s*continuousRadiusSolverPrototypes" `
+    -MissingText "ColumnGenerationAlgorithm must extract continuous-radius solver prototypes from items and propagate them through ColumnGenerationState."
+
+$columnGenerationStandardExecutorsPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationStandardExecutors.kt"
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverContextGuardMissing" `
+    -FilePath $columnGenerationStandardExecutorsPath `
+    -Pattern "continuous_radius_solver_prototype_count[\s\S]*?state\.continuousRadiusSolverPrototypes\.size[\s\S]*?continuous_radius_solver_prototype_variables[\s\S]*?state\.continuousRadiusSolverPrototypes\.joinToString[\s\S]*?continuous_radius_solver_prototype_count[\s\S]*?state\.continuousRadiusSolverPrototypes\.size[\s\S]*?continuous_radius_solver_prototype_variables[\s\S]*?state\.continuousRadiusSolverPrototypes\.joinToString" `
+    -MissingText "ColumnGenerationStandardExecutors must expose continuous-radius solver prototype count and variables in both RMP and final MILP solve info."
+
+$columnGenerationPackingAnalyzerPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationPackingAnalyzer.kt"
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverContextGuardMissing" `
+    -FilePath $columnGenerationPackingAnalyzerPath `
+    -Pattern "schemaKpi\[""continuous_radius_solver_prototype_count""\]\s*=\s*state\.continuousRadiusSolverPrototypes\.size\.toString\(\)[\s\S]*?schemaKpi\[""continuous_radius_solver_prototype_variables""\]\s*=\s*state\.continuousRadiusSolverPrototypes\.joinToString" `
+    -MissingText "ColumnGenerationPackingAnalyzer must carry continuous-radius solver prototype context into renderer schema KPI diagnostics."
 
 $layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
 Add-RequiredPatternViolation `

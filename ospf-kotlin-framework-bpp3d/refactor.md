@@ -9,7 +9,7 @@
 
 1. 已完成竖直圆柱、X/Z 轴对齐横向圆柱固定/离散半径 generated path、known-coordinate final path 和 renderer path 的主要生产闭环。
 2. 已完成 shape metadata、CSV/Gurobi、program demand、material packing、depth boundary、final geometry、renderer metadata、README 和边界脚本的基础收口。
-3. 已完成已选择连续半径结果的最小生产闭环，并将 solver-native 连续半径未开放路径收敛为类型化缺口合同和变量原型；仅区间型 solver-native 连续半径求解仍保持 guarded。
+3. 已完成已选择连续半径结果的最小生产闭环，并将 solver-native 连续半径未开放路径收敛为类型化缺口合同和变量原型；变量原型已进入列生成 solver 上下文、RMP/final solve info 和 packing snapshot KPI，仅区间型 solver-native 连续半径求解仍保持 guarded。
 4. 已开放横向圆柱贴地、单个全长长方体支撑、单条或同类重复窄支撑线 hanging、同类重复多支撑和异构多支撑区间覆盖的 3D stacking/hanging 检查，以及保守的 generated supported-stack/hanging 子集。
 5. 已将横向圆柱长方体支撑覆盖收敛为 infrastructure 共享合同，由 generated stacking 和 final packing/rendering 几何门禁共同复用。
 6. 已删除四批无调用或低风险的固定数值、shadow、pipeline、projection、物料装箱、layer 和 depth-limit 兼容别名，并加 generic 边界脚本禁止回流。
@@ -29,7 +29,7 @@
 3. 固定半径/离散半径 `Axis3.X` / `Axis3.Z` 轴对齐横向圆柱支持 axis-aware circle-packing grid generated candidate path、保守的 full-length cuboid supported-stack generated candidate path、单条或同类重复窄支撑线 hanging generated candidate path、同类长方体重复多支撑轴向覆盖 generated candidate path，以及异构长方体多支撑轴向覆盖 generated candidate path。
 4. 已知坐标 final packing / renderer path 支持通过真实几何和支撑校验的 `Axis3.X` / `Axis3.Z` 轴对齐横向圆柱。
 5. 横向圆柱 3D stacking/hanging 支持贴地、单个全长长方体支撑、单条或同类重复窄支撑线 hanging、同类重复多支撑和异构多支撑区间覆盖子集；generated supported-stack/hanging 仅开放可验证的保守长方体支撑子集；无坐标 hanging 明确要求走已验证 3D placement 支撑覆盖，未覆盖底部支撑线的径向局部支撑和底部圆柱支撑仍不开放。
-6. 已选择连续半径结果可开放：`radiusWeightFunctionKey`、CSV `radius_weight_function_key` 必须绑定类型化 selected-radius 结果和具体 `radius` / `radius_meter`，并禁止与离散 step 混用；solver-native 区间型连续半径变量已有类型化变量原型，但目标函数求解和无 concrete radius 的 key 必须通过类型化缺口合同保持 guarded，不得静默降级为固定半径或离散半径。
+6. 已选择连续半径结果可开放：`radiusWeightFunctionKey`、CSV `radius_weight_function_key` 必须绑定类型化 selected-radius 结果和具体 `radius` / `radius_meter`，并禁止与离散 step 混用；solver-native 区间型连续半径变量已有类型化变量原型和列生成 solver 上下文承载，但目标函数求解和无 concrete radius 的 key 必须通过类型化缺口合同保持 guarded，不得静默降级为固定半径或离散半径。
 7. CSV、application DTO、program demand、material packing 和 renderer 只能传递已定义的 shape metadata，不能绕过 generated candidate provenance、known-coordinate final geometry 或 cuboid-only contract。
 
 ### 2.3 后续必要能力
@@ -46,15 +46,15 @@
 
 ## 3. 剩余工作量
 
-距离总目标仍约剩余 6%-7% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
+距离总目标仍约剩余 5%-6% 工作量。主要剩余工作不是当前 X/Z 固定/离散半径生产链路，而是：
 
-1. solver-native 连续半径变量接入、目标函数和 radius selection 求解闭环；已选择半径结果的 final actual-radius / renderer 闭环已经开放，未开放路径已经具备类型化缺口合同和 solver 变量原型。
+1. solver-native 连续半径真实变量注册、目标函数和 radius selection 求解闭环；已选择半径结果的 final actual-radius / renderer 闭环已经开放，未开放路径已经具备类型化缺口合同、solver 变量原型和列生成 solver 上下文承载。
 2. 横向圆柱 generated stacking/hanging 自动支撑从当前保守长方体 supported-stack/单条或同类重复窄支撑线 hanging 子集继续扩展；X/Z supported-stack/hanging focused、dataset suite、final renderer 多支撑、底部圆柱支撑拒绝、partial-support fallback 拒绝和共享支撑覆盖合同已覆盖。
 3. 旧 cuboid-only 兼容层的下一批迁移、删除、调用点门禁和最小保留清单收敛；前四批无调用或低风险兼容别名已删除并加门禁。
 
 ## 4. 下一轮扩大收口事项
 
-下一轮按“solver-native 连续半径变量接入 + 下一批 shape-generic 迁移/删除 + 横向自动支撑可验证子集扩展 + dataset/renderer 验收”的大收口轮推进，目标是在一次迭代内把剩余工作压到约 3%-4%。下一轮优先交付可生产开放的闭环；只有当 solver、几何、支撑、renderer、CSV/Gurobi 和测试无法同时闭合时，才继续保留 shared guard/unsupported contract。
+下一轮按“solver-native 连续半径真实变量注册/selection 回写 + 下一批 shape-generic 迁移/删除 + 横向自动支撑可验证子集扩展 + dataset/renderer 验收”的大收口轮推进，目标是在一次迭代内把剩余工作压到约 3%-4%。下一轮优先交付可生产开放的闭环；只有当 solver、几何、支撑、renderer、CSV/Gurobi 和测试无法同时闭合时，才继续保留 shared guard/unsupported contract。
 
 ### 4.1 完全泛型化收口
 
@@ -67,12 +67,12 @@
 
 ### 4.2 连续半径优化生产闭环
 
-1. 将 `ContinuousCylinderRadiusSolverPrototype` 接入 solver 侧上下文，定义变量上下界、变量命名、目标函数/权重函数语义和 radius selection 结果回写位置。
+1. 在已有 `ContinuousCylinderRadiusSolverPrototype` 和列生成 solver 上下文基础上，注册真实 solver 半径变量，定义变量上下界、变量命名、目标函数/权重函数语义和 radius selection 结果回写位置。
 2. 打通固定半径、离散半径、连续半径三类 radius metadata 的互斥和优先级协议，统一 application DTO、CSV、program demand 和 material packing 的解释。
 3. 将 solver 选出的 final actual radius 带入 final validation、renderer `actualVolume`、packing snapshot、Gurobi result 和 dataset suite。
-4. 已选择半径生产子集已覆盖 `Axis3.Y` 竖直圆柱，并已具备类型化 selected-radius 结果对象、solver 变量原型和 CSV guard 诊断；下一步优先开放 solver-native 连续半径变量并回写 selected radius，若横向连续半径能完整闭环，则同步开放 `Axis3.X` / `Axis3.Z` 子集。
+4. 已选择半径生产子集已覆盖 `Axis3.Y` 竖直圆柱，并已具备类型化 selected-radius 结果对象、solver 变量原型、列生成 solver 上下文和 CSV guard 诊断；下一步优先开放 solver-native 连续半径变量并回写 selected radius，若横向连续半径能完整闭环，则同步开放 `Axis3.X` / `Axis3.Z` 子集。
 5. 补齐连续半径 positive/negative tests，覆盖合法目标函数、非法区间、重复/冲突 metadata、缺失 solver 支持、禁止静默离散替代、circle-packing 入口 guard、solver prototype 诊断和 renderer volume 回写。
-6. Gurobi CSV `radius_weight_function_key` 已从单纯 guard 推进到 selected-radius 生产字段，并通过类型化缺口合同和变量原型覆盖 grouped-layer 与 material-width-amount 两类入口；下一步推进 interval-only continuous radius 到 solver-native 变量。当前阻断点是 column generation 只选择具体 `BinLayer` 列，尚无符号半径变量影响 footprint、volume、支撑覆盖和 renderer `actualVolume` 的统一接口；若仍无法开放，必须完成变量接入或 radius selection 回写中的一个更大闭环拆分。
+6. Gurobi CSV `radius_weight_function_key` 已从单纯 guard 推进到 selected-radius 生产字段，并通过类型化缺口合同、变量原型和 solver 上下文覆盖 grouped-layer 与 material-width-amount 两类入口；下一步推进 interval-only continuous radius 到 solver-native 变量。当前阻断点是 column generation 只选择具体 `BinLayer` 列，尚无符号半径变量影响 footprint、volume、支撑覆盖和 renderer `actualVolume` 的统一接口；若仍无法开放，必须完成真实变量注册或 radius selection 回写中的一个更大闭环拆分。
 
 ### 4.3 横向圆柱 stacking/hanging 自动支撑闭环
 
@@ -93,9 +93,9 @@
 
 ## 5. 下一轮执行计划
 
-1. 优先把 `Axis3.Y` `ContinuousCylinderRadiusSolverPrototype` 接入 solver 侧上下文，落地变量上下界、目标函数、radius selection 结果对象和 selected radius 回写；已选择半径的 DTO/final/renderer 最小生产合同和类型化缺口合同继续保持。
+1. 优先在 `Axis3.Y` `ContinuousCylinderRadiusSolverPrototype` 已进入 solver 上下文的基础上，注册真实 solver 半径变量，落地变量上下界、目标函数、radius selection 结果对象和 selected radius 回写；已选择半径的 DTO/final/renderer 最小生产合同和类型化缺口合同继续保持。
 2. 评估并同步开放 `Axis3.X` / `Axis3.Z` 横向连续半径子集；若横向连续半径不能与支撑、renderer actualVolume 和 CSV/Gurobi 同时闭环，则保留明确 guard。
-3. 若 solver-native 连续半径无法完整生产开放，必须至少完成“符号半径变量进入 solver 模型”或“solver selection 回写 selected-radius 生产结果”中的一个可运行闭环，并把缺失的 footprint/volume 约束、目标函数和 renderer actualVolume 回写拆成下一批实现清单；interval-only guard、solver prototype 诊断与 negative tests 必须保留。
+3. 若 solver-native 连续半径无法完整生产开放，必须至少完成“符号半径变量注册进 solver 模型”或“solver selection 回写 selected-radius 生产结果”中的一个可运行闭环，并把缺失的 footprint/volume 约束、目标函数和 renderer actualVolume 回写拆成下一批实现清单；interval-only guard、solver prototype 诊断、solver context 承载与 negative tests 必须保留。
 4. 继续扩展可验证横向 hanging/stacking 子集，要求真实坐标、支撑线/支撑区间、provenance、final/rendering 校验和 unsupported fallback 同时存在；无坐标 hanging、局部支撑、底部圆柱支撑和混轴同层生成继续拒绝。
 5. 扩展 generated supported-stack/hanging focused tests，覆盖 X/Z 单支撑、单条或同类重复窄支撑线 hanging、多支撑、局部支撑拒绝、底部圆柱支撑拒绝、径向支撑线错位拒绝、overlap、outside bin、axis mismatch 和 provenance guard。
 6. 删除下一批 cuboid-only 兼容层：优先处理无调用别名、旧测试 fixture、裸 `QuantityPlacement` 入口、外接长方体近似入口和 stale allowlist；同时维护必须保留项的调用方和删除条件。material packing、layer 和 depth-limit 兼容别名已删除并加门禁。
@@ -131,8 +131,8 @@
 
 1. 已开放的 `Axis3.Y`、`Axis3.X`、`Axis3.Z` 轴对齐圆柱生产路径不回退。
 2. 完全泛型化必须继续推进下一批 cuboid-only 兼容层删除，并具备最小保留清单、调用方清单、脚本 allowlist、保留原因和后续删除条件；已删除的旧别名和兼容捷径不得回流。
-3. 已选择连续半径生产子集必须保持 final actual radius、typed selected-radius result、typed solver prototype、renderer `actualVolume`、CSV/application DTO、Gurobi focused 和文档闭环；solver-native 连续变量若开放，必须补齐变量、目标函数和 radius selection 回写。
-4. solver-native 连续半径优化若未能开放，必须保持 interval-only package production、circle-packing candidate、CSV/Gurobi typed gap guard、solver prototype 诊断、negative tests 和脚本门禁，明确记录阻断点，不能静默降级为固定半径或离散半径。
+3. 已选择连续半径生产子集必须保持 final actual radius、typed selected-radius result、typed solver prototype、solver context、renderer `actualVolume`、CSV/application DTO、Gurobi focused 和文档闭环；solver-native 连续变量若开放，必须补齐真实变量注册、目标函数和 radius selection 回写。
+4. solver-native 连续半径优化若未能开放，必须保持 interval-only package production、circle-packing candidate、CSV/Gurobi typed gap guard、solver prototype 诊断、solver context 承载、negative tests 和脚本门禁，明确记录阻断点，不能静默降级为固定半径或离散半径。
 5. 横向圆柱 generated stacking/hanging 必须继续覆盖 X/Z 单支撑、单条或同类重复窄支撑线 hanging、同类重复多支撑和异构多支撑；若扩展 hanging，必须同时具备真实几何、支撑线/支撑区间、solver、renderer 和测试闭环。
 6. 横向圆柱无坐标 hanging、局部支撑、底部圆柱支撑和混轴同层生成必须明确拒绝或保持 guarded；已开放的 supported-stack/hanging 不得绕过 generated provenance guard 或已验证 3D placement 支撑覆盖。
 7. final MILP 后的 same-layer axis、depth boundary、real geometry、outside bin、overlap、actual radius 和横向圆柱支撑校验不可绕过。

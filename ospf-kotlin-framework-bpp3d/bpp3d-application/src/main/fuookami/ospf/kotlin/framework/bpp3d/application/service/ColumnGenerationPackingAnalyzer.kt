@@ -132,6 +132,8 @@ class ColumnGenerationPackingAnalyzer(
             demandModeShadowPriceEntryCounts[modeTag] = (demandModeShadowPriceEntryCounts[modeTag] ?: 0) + 1
         }
         val schemaKpi = LinkedHashMap(schema.kpi)
+        schemaKpi["continuous_radius_solver_prototype_count"] = state.continuousRadiusSolverPrototypes.size.toString()
+        schemaKpi["continuous_radius_solver_prototype_variables"] = state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
         for ((mode, total) in demandModeShadowPriceTotals) {
             schemaKpi["shadow_price_mode_${mode}_total"] = total.toString()
         }

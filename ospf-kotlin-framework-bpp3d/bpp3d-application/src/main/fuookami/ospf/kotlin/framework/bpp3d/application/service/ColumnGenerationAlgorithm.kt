@@ -8,11 +8,14 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
@@ -48,13 +51,36 @@ data class ColumnGenerationConfig(
  * @property columns 当前列集合 / current column set
  * @property bins 最终箱子（可选） / final bins (optional)
  * @property shadowPrices 影子价格映射 / shadow price map
+ * @property continuousRadiusSolverPrototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  */
 data class ColumnGenerationState<V>(
     val iteration: Int,
     val columns: List<BinLayer>,
     val bins: List<LayerBin> = emptyList(),
-    val shadowPrices: Map<DemandModeKey, V> = emptyMap()
+    val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
+    val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList()
 )
+
+/**
+ * 从货物列表抽取连续半径 solver 变量原型。
+ * Extract continuous-radius solver variable prototypes from item list.
+ *
+ * @param items 货物列表 / item list
+ * @return 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
+ */
+fun continuousRadiusSolverPrototypesFromItems(
+    items: List<Item>
+): List<ContinuousCylinderRadiusSolverPrototype> {
+    val prototypes = LinkedHashMap<String, ContinuousCylinderRadiusSolverPrototype>()
+    for ((index, item) in items.withIndex()) {
+        val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder ?: continue
+        val prototype = spec.continuousRadiusSolverPrototype(
+            source = "ColumnGenerationState.item.${index}"
+        ) ?: continue
+        prototypes.putIfAbsent(prototype.variableName, prototype)
+    }
+    return prototypes.values.toList()
+}
 
 /**
  * 列生成 LP 求解结果。
@@ -261,6 +287,7 @@ class ColumnGenerationAlgorithm<V>(
         val lpInfos = ArrayList<Map<String, String>>()
         var finalObjective: V? = null
         var finalInfo: Map<String, String> = emptyMap()
+        val continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypesFromItems(items)
 
         while (iterations < config.iterationLimit) {
             if (startedAt.elapsedNow() >= config.timeLimit) {
@@ -272,7 +299,8 @@ class ColumnGenerationAlgorithm<V>(
                 iteration = iterations,
                 columns = columns,
                 bins = emptyList(),
-                shadowPrices = latestShadowPrices
+                shadowPrices = latestShadowPrices,
+                continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
             )
             val lpResult = when {
                 rmpSolver != null -> rmpSolver.solve(state)
@@ -291,7 +319,8 @@ class ColumnGenerationAlgorithm<V>(
                 iteration = iterations,
                 columns = columns,
                 bins = emptyList(),
-                shadowPrices = shadowPrices
+                shadowPrices = shadowPrices,
+                continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
             )
             val request = layerRequestBuilder?.build(
                 shadowPriceRefreshedState,
@@ -319,7 +348,8 @@ class ColumnGenerationAlgorithm<V>(
                     iteration = iterations,
                     columns = columns,
                     bins = emptyList(),
-                    shadowPrices = shadowPrices
+                    shadowPrices = shadowPrices,
+                    continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
                 )
             )
             heartbeat?.invoke(
@@ -327,7 +357,8 @@ class ColumnGenerationAlgorithm<V>(
                     iteration = iterations,
                     columns = columns,
                     bins = emptyList(),
-                    shadowPrices = shadowPrices
+                    shadowPrices = shadowPrices,
+                    continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
                 )
             )
             iterations += 1
@@ -341,7 +372,8 @@ class ColumnGenerationAlgorithm<V>(
             iteration = iterations,
             columns = columns,
             bins = emptyList(),
-            shadowPrices = latestShadowPrices
+            shadowPrices = latestShadowPrices,
+            continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
         )
         if (config.finalMilpEnabled) {
             val finalResult = when {
