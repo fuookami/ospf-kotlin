@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
@@ -211,6 +212,33 @@ class ColumnGenerationStandardExecutors(
 
     }
 
+    private data class ContinuousRadiusSolverVariableRegistrationPlan(
+        val variableNames: List<String>,
+        val boundDescriptions: List<String>,
+        val selectedRadiusDescriptions: List<String>,
+        val gapDescriptions: List<String>,
+        val productionReadyVariables: List<String>,
+        val modelRegistrationBlockedVariables: List<String>
+    ) {
+        fun info(): Map<String, String> {
+            val blockedReason = if (modelRegistrationBlockedVariables.isEmpty()) {
+                ""
+            } else {
+                "solver numeric variable bound conversion requires explicit constants or core token-bound support; footprint/volume/support/renderer remain unbound"
+            }
+            return mapOf(
+                "continuous_radius_solver_registration_plan_count" to variableNames.size.toString(),
+                "continuous_radius_solver_registration_plan_variables" to variableNames.joinToString("|"),
+                "continuous_radius_solver_registration_plan_bounds" to boundDescriptions.joinToString("|"),
+                "continuous_radius_solver_registration_plan_selected_radii" to selectedRadiusDescriptions.joinToString("|"),
+                "continuous_radius_solver_registration_plan_gap_variables" to gapDescriptions.joinToString("|"),
+                "continuous_radius_solver_registration_plan_production_ready_variables" to productionReadyVariables.joinToString("|"),
+                "continuous_radius_solver_model_registration_blocked_variables" to modelRegistrationBlockedVariables.joinToString("|"),
+                "continuous_radius_solver_model_registration_blocked_reason" to blockedReason
+            )
+        }
+    }
+
     /**
      * 创建 RMP 求解器。
      * Create RMP solver.
@@ -260,7 +288,7 @@ class ColumnGenerationStandardExecutors(
                     "lp_objective" to solved.obj.toString(),
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
-                )
+                ) + artifacts.continuousRadiusVariablePlan.info()
             )
         }
     }
@@ -288,6 +316,9 @@ class ColumnGenerationStandardExecutors(
             }
 
             val model = newModel("${config.finalSolveNamePrefix}-${state.iteration}")
+            val continuousRadiusVariablePlan = planContinuousRadiusSolverVariables(
+                prototypes = state.continuousRadiusSolverPrototypes
+            )
             val assignment = PreciseAssignment(
                 bins = bins,
                 layers = state.columns
@@ -375,7 +406,7 @@ class ColumnGenerationStandardExecutors(
                     "selected_layer_count" to selectedColumns.size.toString(),
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
-                )
+                ) + continuousRadiusVariablePlan.info()
             )
         }
     }
@@ -415,7 +446,8 @@ class ColumnGenerationStandardExecutors(
 
     private data class RmpArtifacts(
         val model: LinearMetaModel<InfraNumber>,
-        val demandConstraint: ItemDemandConstraint
+        val demandConstraint: ItemDemandConstraint,
+        val continuousRadiusVariablePlan: ContinuousRadiusSolverVariableRegistrationPlan
     )
 
     private suspend fun buildRmpArtifacts(
@@ -472,10 +504,68 @@ class ColumnGenerationStandardExecutors(
         volumeMinimization.register(model)
         ensureTry(volumeMinimization.invoke(model), "build rmp objective")
 
+        val continuousRadiusVariablePlan = planContinuousRadiusSolverVariables(
+            prototypes = state.continuousRadiusSolverPrototypes
+        )
+
         return RmpArtifacts(
             model = model,
-            demandConstraint = demandConstraint
+            demandConstraint = demandConstraint,
+            continuousRadiusVariablePlan = continuousRadiusVariablePlan
         )
+    }
+
+    private fun planContinuousRadiusSolverVariables(
+        prototypes: List<ContinuousCylinderRadiusSolverPrototype>
+    ): ContinuousRadiusSolverVariableRegistrationPlan {
+        val variableNames = ArrayList<String>()
+        val boundDescriptions = ArrayList<String>()
+        val selectedRadiusDescriptions = ArrayList<String>()
+        val gapDescriptions = ArrayList<String>()
+        val productionReadyVariables = ArrayList<String>()
+        val modelRegistrationBlockedVariables = ArrayList<String>()
+        for (prototype in prototypes) {
+            variableNames.add(prototype.variableName)
+            boundDescriptions.add(prototype.registrationBoundDescription())
+            prototype.registrationSelectedRadiusDescription()?.let { description ->
+                selectedRadiusDescriptions.add(description)
+            }
+            if (prototype.gaps.isNotEmpty()) {
+                gapDescriptions.add("${prototype.variableName}:${prototype.gaps.joinToString("+") { it.name }}")
+            }
+            if (prototype.isProductionReady) {
+                productionReadyVariables.add(prototype.variableName)
+            }
+            modelRegistrationBlockedVariables.add(prototype.variableName)
+        }
+        return ContinuousRadiusSolverVariableRegistrationPlan(
+            variableNames = variableNames,
+            boundDescriptions = boundDescriptions,
+            selectedRadiusDescriptions = selectedRadiusDescriptions,
+            gapDescriptions = gapDescriptions,
+            productionReadyVariables = productionReadyVariables,
+            modelRegistrationBlockedVariables = modelRegistrationBlockedVariables
+        )
+    }
+
+    private fun ContinuousCylinderRadiusSolverPrototype.registrationBoundDescription(): String {
+        val selectedRadius = initialRadius
+        if (selectedRadius != null && gaps.isEmpty()) {
+            val selectedText = "${selectedRadius.value.toDouble()} ${selectedRadius.unit.symbol}"
+            return "$variableName:$selectedText..$selectedText"
+        }
+        val lowerText = radiusLowerBound
+            ?.let { "${it.value.toDouble()} ${it.unit.symbol}" }
+            ?: "-inf"
+        val upperText = radiusUpperBound
+            ?.let { "${it.value.toDouble()} ${it.unit.symbol}" }
+            ?: "+inf"
+        return "$variableName:$lowerText..$upperText"
+    }
+
+    private fun ContinuousCylinderRadiusSolverPrototype.registrationSelectedRadiusDescription(): String? {
+        val selectedRadius = initialRadius ?: return null
+        return "$variableName:${selectedRadius.value.toDouble()} ${selectedRadius.unit.symbol}"
     }
 
     private fun collectSelectedColumns(

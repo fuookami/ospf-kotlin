@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer as QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem as QuantityItem
@@ -540,6 +541,292 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(
             prototype.variableName,
             snapshot.schema.kpi["continuous_radius_solver_prototype_variables"]
+        )
+    }
+
+    @Test
+    fun standardExecutorsShouldExposeContinuousRadiusSolverRegistrationPlan() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CG-RADIUS-VAR"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CG-RADIUS-VAR",
+            weight = InfraNumber.one * Kilogram
+        )
+        val item = continuousRadiusItem(
+            id = "item-cg-radius-var",
+            material = material
+        )
+        val seedBin = layerBin(listOf(item))
+        val rawSeedLayer = seedBin.units.first().unit
+        val seedLayer = BinLayer(
+            iteration = rawSeedLayer.iteration,
+            from = rawSeedLayer.from,
+            bin = seedBin.shape,
+            shape = rawSeedLayer.shape,
+            units = rawSeedLayer.units
+        )
+        val finalBin: LayerBin = layerBinOf(
+            shape = seedBin.shape,
+            units = emptyList<BinLayerPlacement>(),
+            batchNo = seedBin.batchNo
+        )
+        val prototype = continuousRadiusSolverPrototypesFromItems(listOf(item)).single()
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(item),
+                demand = InfraNumber.one
+            )
+        )
+        val lpRadiusTokens = ArrayList<String>()
+        val milpRadiusTokens = ArrayList<String>()
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-radius-variable-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                for (token in metaModel.tokens.tokensInSolver) {
+                    if (token.name == prototype.variableName) {
+                        milpRadiusTokens.add(token.name)
+                    }
+                }
+                return Ok(
+                    FeasibleSolverOutput(
+                        obj = Flt64(3.0),
+                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.one },
+                        time = Duration.ZERO,
+                        possibleBestObj = Flt64(3.0),
+                        gap = Flt64.zero
+                    )
+                )
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                for (token in metaModel.tokens.tokensInSolver) {
+                    if (token.name == prototype.variableName) {
+                        lpRadiusTokens.add(token.name)
+                    }
+                }
+                val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
+                return Ok(
+                    lpResultOf(
+                        result = FeasibleSolverOutput(
+                            obj = Flt64(2.0),
+                            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                            time = Duration.ZERO,
+                            possibleBestObj = Flt64(2.0),
+                            gap = Flt64.zero
+                        ),
+                        dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
+                    )
+                )
+            }
+        }
+        val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
+            solver = solver,
+            itemDemands = listOf(Pair(item, UInt64.one)),
+            demandEntries = demandEntries,
+            finalBins = listOf(finalBin)
+        )
+        val algorithm = ColumnGenerationAlgorithm(
+            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    return emptyList()
+                }
+            },
+            rmpSolver = executors.rmpSolver(),
+            finalMilpSolver = executors.finalSolver(),
+            layerRequestBuilder = executors.requestBuilder(),
+            initialColumns = { listOf(seedLayer) }
+        )
+
+        val result = algorithm.solve(items = listOf(item))
+        val selectedRadiusValue = assertNotNull(prototype.initialRadius).value.toDouble()
+
+        assertTrue(lpRadiusTokens.isEmpty())
+        assertTrue(milpRadiusTokens.isEmpty())
+        assertEquals("1", result.lpInfos.single()["continuous_radius_solver_registration_plan_count"])
+        assertEquals(
+            prototype.variableName,
+            result.lpInfos.single()["continuous_radius_solver_registration_plan_variables"]
+        )
+        assertTrue(
+            result.lpInfos.single()["continuous_radius_solver_registration_plan_bounds"]
+                ?.contains("$selectedRadiusValue m..$selectedRadiusValue m") == true
+        )
+        assertEquals(
+            prototype.variableName,
+            result.lpInfos.single()["continuous_radius_solver_registration_plan_production_ready_variables"]
+        )
+        assertEquals(
+            prototype.variableName,
+            result.lpInfos.single()["continuous_radius_solver_model_registration_blocked_variables"]
+        )
+        assertTrue(
+            result.lpInfos.single()["continuous_radius_solver_model_registration_blocked_reason"]
+                ?.contains("core token-bound support") == true
+        )
+        assertEquals("1", result.finalInfo["continuous_radius_solver_registration_plan_count"])
+        assertEquals(
+            prototype.variableName,
+            result.finalInfo["continuous_radius_solver_registration_plan_production_ready_variables"]
+        )
+    }
+
+    @Test
+    fun standardExecutorsShouldKeepIntervalContinuousRadiusRegistrationPlanGuarded() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CG-RADIUS-INTERVAL"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CG-RADIUS-INTERVAL",
+            weight = InfraNumber.one * Kilogram
+        )
+        val item = item("item-cg-radius-interval-demand", material)
+        val seedBin = layerBin(listOf(item))
+        val rawSeedLayer = seedBin.units.first().unit
+        val seedLayer = BinLayer(
+            iteration = rawSeedLayer.iteration,
+            from = rawSeedLayer.from,
+            bin = seedBin.shape,
+            shape = rawSeedLayer.shape,
+            units = rawSeedLayer.units
+        )
+        val finalBin: LayerBin = layerBinOf(
+            shape = seedBin.shape,
+            units = emptyList<BinLayerPlacement>(),
+            batchNo = seedBin.batchNo
+        )
+        val prototype = assertNotNull(
+            continuousCylinderRadiusSolverPrototype(
+                source = "ColumnGenerationState.item.interval",
+                radiusWeightFunctionKey = "prefer-large-radius",
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter
+            )
+        )
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(item),
+                demand = InfraNumber.one
+            )
+        )
+        val lpRadiusTokens = ArrayList<String>()
+        val milpRadiusTokens = ArrayList<String>()
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-radius-interval-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                for (token in metaModel.tokens.tokensInSolver) {
+                    if (token.name == prototype.variableName) {
+                        milpRadiusTokens.add(token.name)
+                    }
+                }
+                return Ok(
+                    FeasibleSolverOutput(
+                        obj = Flt64(5.0),
+                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                        time = Duration.ZERO,
+                        possibleBestObj = Flt64(5.0),
+                        gap = Flt64.zero
+                    )
+                )
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                for (token in metaModel.tokens.tokensInSolver) {
+                    if (token.name == prototype.variableName) {
+                        lpRadiusTokens.add(token.name)
+                    }
+                }
+                val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
+                return Ok(
+                    lpResultOf(
+                        result = FeasibleSolverOutput(
+                            obj = Flt64(4.0),
+                            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                            time = Duration.ZERO,
+                            possibleBestObj = Flt64(4.0),
+                            gap = Flt64.zero
+                        ),
+                        dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
+                    )
+                )
+            }
+        }
+        val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
+            solver = solver,
+            itemDemands = listOf(Pair(item, UInt64.one)),
+            demandEntries = demandEntries,
+            finalBins = listOf(finalBin)
+        )
+        val state = ColumnGenerationState<InfraNumber>(
+            iteration = 0,
+            columns = listOf(seedLayer),
+            continuousRadiusSolverPrototypes = listOf(prototype)
+        )
+
+        val lpResult = executors.rmpSolver().solve(state)
+        val finalResult = executors.finalSolver().solve(state)
+
+        assertTrue(lpRadiusTokens.isEmpty())
+        assertTrue(milpRadiusTokens.isEmpty())
+        assertEquals("1", lpResult.info["continuous_radius_solver_registration_plan_count"])
+        assertEquals(
+            prototype.variableName,
+            lpResult.info["continuous_radius_solver_registration_plan_variables"]
+        )
+        assertTrue(
+            lpResult.info["continuous_radius_solver_registration_plan_bounds"]
+                ?.contains("0.4 m..0.6 m") == true
+        )
+        assertTrue(
+            lpResult.info["continuous_radius_solver_registration_plan_gap_variables"]
+                ?.contains("MissingSelectedRadius") == true
+        )
+        assertTrue(
+            lpResult.info["continuous_radius_solver_registration_plan_gap_variables"]
+                ?.contains("SolverNativeRadiusIntervalUnsupported") == true
+        )
+        assertEquals("", lpResult.info["continuous_radius_solver_registration_plan_production_ready_variables"])
+        assertEquals(
+            prototype.variableName,
+            lpResult.info["continuous_radius_solver_model_registration_blocked_variables"]
+        )
+        assertTrue(
+            lpResult.info["continuous_radius_solver_model_registration_blocked_reason"]
+                ?.contains("core token-bound support") == true
+        )
+        assertEquals("1", finalResult.info["continuous_radius_solver_registration_plan_count"])
+        assertTrue(
+            finalResult.info["continuous_radius_solver_registration_plan_gap_variables"]
+                ?.contains("MissingSelectedRadius") == true
         )
     }
 

@@ -480,6 +480,12 @@ Add-RequiredPatternViolation `
     -Pattern "continuous_radius_solver_prototype_count[\s\S]*?state\.continuousRadiusSolverPrototypes\.size[\s\S]*?continuous_radius_solver_prototype_variables[\s\S]*?state\.continuousRadiusSolverPrototypes\.joinToString[\s\S]*?continuous_radius_solver_prototype_count[\s\S]*?state\.continuousRadiusSolverPrototypes\.size[\s\S]*?continuous_radius_solver_prototype_variables[\s\S]*?state\.continuousRadiusSolverPrototypes\.joinToString" `
     -MissingText "ColumnGenerationStandardExecutors must expose continuous-radius solver prototype count and variables in both RMP and final MILP solve info."
 
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverRegistrationPlanGuardMissing" `
+    -FilePath $columnGenerationStandardExecutorsPath `
+    -Pattern "data\s+class\s+ContinuousRadiusSolverVariableRegistrationPlan[\s\S]*?core token-bound support[\s\S]*?continuous_radius_solver_registration_plan_count[\s\S]*?continuous_radius_solver_registration_plan_variables[\s\S]*?continuous_radius_solver_registration_plan_bounds[\s\S]*?continuous_radius_solver_model_registration_blocked_variables[\s\S]*?continuous_radius_solver_model_registration_blocked_reason[\s\S]*?fun\s+planContinuousRadiusSolverVariables\s*\([\s\S]*?registrationBoundDescription" `
+    -MissingText "ColumnGenerationStandardExecutors must expose the continuous-radius solver registration plan and blocked model-registration reason without adding unsupported symbolic radius variables to the solver model."
+
 $columnGenerationPackingAnalyzerPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationPackingAnalyzer.kt"
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverContextGuardMissing" `
