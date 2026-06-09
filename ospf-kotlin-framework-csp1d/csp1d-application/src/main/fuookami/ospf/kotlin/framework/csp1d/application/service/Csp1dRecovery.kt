@@ -46,7 +46,7 @@ enum class Csp1dWarmStartStatus {
  *
  * @param V 数值类型 / Numeric value type
  * @property cuttingPlans 预热方案池 / Warm-start cutting plan pool
- * @property previousSolution 上一轮解，可用于调用方记录来源 / Previous solution for caller-side provenance
+ * @property previousSolution 上一轮解，会提取与当前问题兼容的方案和使用量 / Previous solution whose current-problem-compatible plans and usages are extracted
  */
 data class Csp1dWarmStart<V : RealNumber<V>>(
     val cuttingPlans: List<CuttingPlan<V>> = emptyList(),
@@ -84,7 +84,7 @@ data class Csp1dRecoveryInput<V : RealNumber<V>>(
  * @property status 恢复状态 / Recovery status
  * @property warmStartStatus warm start 状态 / Warm start status
  * @property attemptCount 求解尝试次数 / Solve attempt count
- * @property warmStartPlanCount warm start 方案数 / Warm-start plan count
+ * @property warmStartPlanCount 可复用 warm start 方案数 / Reusable warm-start plan count
  * @property appliedWarmStartPlanCount 已应用 warm start 方案数 / Applied warm-start plan count
  * @property appliedWarmStartUsageCount 已应用 warm start 使用量条目数 / Applied warm-start usage entry count
  * @property message 补充说明 / Additional message
@@ -279,10 +279,12 @@ class Csp1dRecovery<V : RealNumber<V>>(
      */
     suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Csp1dRecoveryResult<V> {
         val warmStart = input.warmStart
-        val warmStartPlans = warmStart?.let { warmStartPlans(it) }.orEmpty()
+        val warmStartPlanSelection = warmStartPlanSelection(input)
+        val warmStartPlans = warmStartPlanSelection.plans
         val initialWarmStartStatus = warmStartStatus(
             input = input,
-            plans = warmStartPlans
+            plans = warmStartPlans,
+            selectedStatus = warmStartPlanSelection.status
         )
         val adapterResult = if (initialWarmStartStatus == Csp1dWarmStartStatus.AdapterUnsupported && warmStart != null) {
             warmStartAdapter.apply(
@@ -366,8 +368,12 @@ class Csp1dRecovery<V : RealNumber<V>>(
 
     private fun warmStartStatus(
         input: Csp1dRecoveryInput<V>,
-        plans: List<CuttingPlan<V>>
+        plans: List<CuttingPlan<V>>,
+        selectedStatus: Csp1dWarmStartStatus?
     ): Csp1dWarmStartStatus {
+        if (selectedStatus != null) {
+            return selectedStatus
+        }
         if (input.warmStart == null) {
             return Csp1dWarmStartStatus.NotProvided
         }
@@ -380,33 +386,59 @@ class Csp1dRecovery<V : RealNumber<V>>(
         return Csp1dWarmStartStatus.AdapterUnsupported
     }
 
+    private fun warmStartPlanSelection(
+        input: Csp1dRecoveryInput<V>
+    ): WarmStartPlanSelection<V> {
+        val warmStart = input.warmStart ?: return WarmStartPlanSelection(
+            plans = emptyList(),
+            status = Csp1dWarmStartStatus.NotProvided
+        )
+        if (warmStart.cuttingPlans.isNotEmpty()) {
+            if (!isWarmStartCompatible(warmStart.cuttingPlans, input.problem)) {
+                return WarmStartPlanSelection(
+                    plans = warmStart.cuttingPlans,
+                    status = Csp1dWarmStartStatus.Invalid
+                )
+            }
+            return WarmStartPlanSelection(
+                plans = warmStart.cuttingPlans
+            )
+        }
+        val compatiblePlans = warmStart.previousSolution
+            ?.generatedPlans
+            ?.filter { plan -> isWarmStartCompatible(plan, input.problem) }
+            .orEmpty()
+        return WarmStartPlanSelection(
+            plans = compatiblePlans
+        )
+    }
+
     private fun isWarmStartCompatible(
         plans: List<CuttingPlan<V>>,
+        problem: Csp1dProblem<V>
+    ): Boolean {
+        return plans.all { plan -> isWarmStartCompatible(plan, problem) }
+    }
+
+    private fun isWarmStartCompatible(
+        plan: CuttingPlan<V>,
         problem: Csp1dProblem<V>
     ): Boolean {
         val materialById = problem.materials.associateBy { it.id }
         val machineIds = problem.machines.map { it.id }.toSet()
         val productIds = problem.products.map { it.id }.toSet()
-        for (plan in plans) {
-            val material = materialById[plan.material.id] ?: return false
-            if (!material.enabled(plan, problem.machines)) {
-                return false
-            }
-            val machineId = plan.machineId
-            if (machineId != null && machineIds.isNotEmpty() && machineId !in machineIds) {
-                return false
-            }
-            if (plan.demandContributions.any { it.product.id !in productIds }) {
-                return false
-            }
+        val material = materialById[plan.material.id] ?: return false
+        if (!material.enabled(plan, problem.machines)) {
+            return false
+        }
+        val machineId = plan.machineId
+        if (machineId != null && machineIds.isNotEmpty() && machineId !in machineIds) {
+            return false
+        }
+        if (plan.demandContributions.any { it.product.id !in productIds }) {
+            return false
         }
         return true
-    }
-
-    private fun warmStartPlans(warmStart: Csp1dWarmStart<V>): List<CuttingPlan<V>> {
-        return warmStart.cuttingPlans.ifEmpty {
-            warmStart.previousSolution?.generatedPlans.orEmpty()
-        }
     }
 
     private fun requiresFallback(status: Csp1dWarmStartStatus): Boolean {
@@ -431,4 +463,9 @@ class Csp1dRecovery<V : RealNumber<V>>(
             else -> "Warm start cannot be applied and fallback is disabled"
         }
     }
+
+    private data class WarmStartPlanSelection<V : RealNumber<V>>(
+        val plans: List<CuttingPlan<V>>,
+        val status: Csp1dWarmStartStatus? = null
+    )
 }

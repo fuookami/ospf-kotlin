@@ -108,10 +108,12 @@
 44. 已完成 benchmark 多场景快照第一阶段：生成器稳定快照扩展到混合需求单位与更紧刀数场景。
 45. 已完成 recovery previousSolution 真实后端路径第一阶段：恢复流程可从上一轮解提取兼容方案池和使用量，并通过 Gurobi native warm start 完成真实求解 smoke。
 46. 已完成当前验证基线刷新：CSP1D 窄测试、Gurobi profile 编译、Gurobi native warm start 双路径 smoke、demo3 限定编译、门禁搜索和 `git diff --check` 均已通过。
+47. 已完成 recovery previousSolution 兼容子集过滤第一阶段：上一轮方案池可在当前问题变化后过滤不兼容方案，继续复用兼容方案和使用量，并覆盖 fake solver 初始解捕获与 Gurobi 真实后端 smoke。
+48. 已完成当前验证基线刷新：CSP1D 窄测试、Gurobi native warm start 三路径 smoke、demo3 限定编译、门禁搜索和 `git diff --check` 均已通过。
 
 ## 3. 需要修正的事项
 
-当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是 solver 后端 native initial solution 的复杂场景验证、生成算法性能深化、更多业务规模 benchmark 扩展、Gurobi 列生成端到端覆盖和 public API 收口。
+当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是 solver 后端 native initial solution 的列生成恢复和设备/增强配置复杂场景验证、生成算法性能深化、更多业务规模 benchmark 扩展、Gurobi 列生成端到端覆盖和 public API 收口。
 
 ## 4. 未完成事项
 
@@ -192,13 +194,13 @@
 #### 事项
 
 1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出、builder、README 和 demo3 示例已完成统一入口第一阶段。
-2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构、状态分类、trace 异常、plan-pool adapter、native initial solution 落点和 recovery previousSolution 真实路径已完成第一阶段。
-3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，KPI key 已有稳定 public 入口；后续需要继续收口 solver 后端 warm start 复杂场景、恢复结果分类和端到端稳定性。
+2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构、状态分类、trace 异常、plan-pool adapter、native initial solution 落点、recovery previousSolution 真实路径和兼容子集过滤已完成第一阶段。
+3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，KPI key 已有稳定 public 入口；后续需要继续收口 solver 后端 warm start 在列生成恢复、设备产能和增强配置场景下的端到端稳定性。
 
 #### 计划
 
 1. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效、fallback 禁用和局部可用解。
-2. 在不引入业务 DTO 的前提下，继续扩展 solver 后端对 native initial solution 的多物料、多需求和列生成恢复场景验证，保留 plan-pool adapter 作为 framework 级 fallback。
+2. 在不引入业务 DTO 的前提下，继续扩展 solver 后端对 native initial solution 的列生成恢复、设备产能和增强配置场景验证，保留 plan-pool adapter 作为 framework 级 fallback。
 3. 将 KPI key 的单位表达和动态 key helper 随新增指标持续补齐，避免下游依赖临时字符串。
 4. 将 public README 与 acceptance test 随 API 变化同步维护。
 
@@ -228,7 +230,7 @@
 
 #### 事项
 
-1. 在已完成 public key、KPI 明细、trace 最终 MILP 状态、部分成功结果、recovery 异常分类、plan-pool adapter、native initial solution 落点、direct MILP Gurobi smoke 和 recovery previousSolution Gurobi smoke 的基础上，继续深化真实 solver warm start 复杂场景验证。
+1. 在已完成 public key、KPI 明细、trace 最终 MILP 状态、部分成功结果、recovery 异常分类、plan-pool adapter、native initial solution 落点、direct MILP Gurobi smoke、recovery previousSolution Gurobi smoke 和问题变化兼容子集过滤的基础上，继续深化真实 solver warm start 复杂场景验证。
 2. 在已完成数量缓存、宽度索引剪枝、并行开关、同贡献 dominance、四算法中等规模 baseline 和多场景稳定快照的基础上，推进组合 dominance、物料等价复用和更细长度剪枝。
 3. 将生成统计继续沉淀到 application KPI/render 边界，并把 benchmark 快照扩展到更大规模可比较基线。
 4. 扩展 application acceptance 与 demo3 覆盖，确保 public builder、solveConfig、recovery、Top-K、部分解和 render KPI 的使用面稳定。
@@ -238,7 +240,7 @@
 
 1. 第一段：深化生成算法剪枝，覆盖组合 dominance、物料等价复用、长度边界剪枝和结果 canonical 稳定性。
 2. 第二段：将四算法 benchmark 快照扩展为更大规模基线，明确耗时类统计与数量类统计的验收口径。
-3. 第三段：继续验证 solver 后端对 native initial solution 的实际消费，扩展多物料、多需求、列生成恢复和 fallback 禁用场景；若 solver 层能力不足，保留接口和失败 trace，不把业务 DTO 带入 framework。
+3. 第三段：继续验证 solver 后端对 native initial solution 的实际消费，扩展列生成恢复、设备产能、增强配置和 fallback 禁用场景；若 solver 层能力不足，保留接口和失败 trace，不把业务 DTO 带入 framework。
 4. 第四段：继续把新增生成统计、recovery 状态、warm start 处理结果和 partial solution 语义沉淀到 KPI/render 或 trace 稳定边界。
 5. 第五段：扩展 demo3 和 README 的 public 使用示例，确保示例仍只依赖 framework API。
 6. 第六段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。

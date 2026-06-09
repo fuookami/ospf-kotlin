@@ -1228,6 +1228,132 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
+     * 验证 previousSolution 只复用当前问题兼容的方案和使用量 /
+     * Verify previousSolution reuses only plans and usages compatible with the current problem
+     */
+    @Test
+    fun recoveryShouldFilterPreviousSolutionPlansBeforeNativeWarmStart(): Unit = runBlocking {
+        val rollProduct = product(
+            id = "p-recovery-filter-roll",
+            width = 0.5
+        )
+        val sheetProduct = product(
+            id = "p-recovery-filter-sheet",
+            width = 0.7
+        )
+        val staleProduct = product(
+            id = "p-recovery-filter-stale",
+            width = 0.9
+        )
+        val rollMaterial = material(
+            id = "m-recovery-filter-roll",
+            lowerWidth = 0.5,
+            upperWidth = 1.2
+        )
+        val sheetMaterial = material(
+            id = "m-recovery-filter-sheet",
+            lowerWidth = 0.5,
+            upperWidth = 1.4
+        )
+        val staleMaterial = material(
+            id = "m-recovery-filter-stale",
+            lowerWidth = 0.5,
+            upperWidth = 1.6
+        )
+        val rollPlan = simpleCuttingPlan(
+            product = rollProduct,
+            material = rollMaterial,
+            rollContribution = Flt64(2.0)
+        ).copy(id = "warm-start-roll-plan")
+        val sheetPlan = sheetCuttingPlan(
+            id = "warm-start-sheet-plan",
+            product = sheetProduct,
+            material = sheetMaterial,
+            sheetContribution = Flt64(3.0)
+        )
+        val stalePlan = simpleCuttingPlan(
+            product = staleProduct,
+            material = staleMaterial,
+            rollContribution = Flt64.one
+        ).copy(id = "warm-start-stale-plan")
+        val previousProblem = Csp1dProblem<Flt64>(
+            products = listOf(rollProduct, sheetProduct, staleProduct),
+            materials = listOf(rollMaterial, sheetMaterial, staleMaterial),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = rollProduct,
+                    rollAmount = Flt64(2.0)
+                ),
+                ProductDemand.legacySheet(
+                    product = sheetProduct,
+                    sheetAmount = Flt64(3.0)
+                ),
+                ProductDemand.legacyRoll(
+                    product = staleProduct,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(rollPlan, sheetPlan, stalePlan)
+            }
+        ).solve(previousProblem)
+        val currentProblem = Csp1dProblem<Flt64>(
+            products = listOf(rollProduct, sheetProduct),
+            materials = listOf(rollMaterial, sheetMaterial),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = rollProduct,
+                    rollAmount = Flt64(2.0)
+                ),
+                ProductDemand.legacySheet(
+                    product = sheetProduct,
+                    sheetAmount = Flt64(3.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solver = Csp1dInitialResultCapturingSolver()
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = solver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = currentProblem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(2, result.trace.warmStartPlanCount)
+        assertEquals(2, result.trace.appliedWarmStartPlanCount)
+        assertEquals(2, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertEquals(Flt64.one, solver.lastInitialResults["x_1"])
+        assertTrue(result.solution.generatedPlans.none { it.id == stalePlan.id })
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
      * 验证空 warm start 输入会被记录为 ignored 并完成普通求解 /
      * Verify empty warm start input is recorded as ignored and normal solve completes
      */
@@ -2451,6 +2577,31 @@ class Csp1dApplicationAcceptanceTest {
             ),
             machineId = machineId,
             capacityConsumption = capacityConsumption?.let { Quantity(Flt64(it), Kilogram) }
+        )
+    }
+
+    private fun sheetCuttingPlan(
+        id: String,
+        product: Product<Flt64>,
+        material: Material<Flt64>,
+        sheetContribution: Flt64
+    ): CuttingPlan<Flt64> {
+        return CuttingPlan(
+            id = id,
+            material = material,
+            slices = listOf(
+                CuttingPlanSlice(
+                    production = product,
+                    amount = UInt64.one,
+                    width = product.width.first()
+                )
+            ),
+            demandContributions = listOf(
+                CuttingPlanDemandContribution(
+                    product = product,
+                    quantity = Quantity(sheetContribution, SheetCountUnit)
+                )
+            )
         )
     }
 

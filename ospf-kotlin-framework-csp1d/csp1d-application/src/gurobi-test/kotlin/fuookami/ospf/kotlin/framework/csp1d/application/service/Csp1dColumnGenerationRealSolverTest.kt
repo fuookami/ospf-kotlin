@@ -399,6 +399,140 @@ class Csp1dColumnGenerationRealSolverTest {
     }
 
     /**
+     * 验证 recovery 会在问题变化后过滤 previousSolution 的不兼容方案 /
+     * Verify recovery filters incompatible previous-solution plans after problem changes
+     */
+    @Test
+    fun recoveryPreviousSolutionWarmStartFiltersChangedProblemOnRealSolver() = runBlocking {
+        val rollProduct = product(
+            id = "p_recovery_filter_roll",
+            width = 0.5
+        )
+        val sheetProduct = product(
+            id = "p_recovery_filter_sheet",
+            width = 0.7
+        )
+        val staleProduct = product(
+            id = "p_recovery_filter_stale",
+            width = 0.9
+        )
+        val rollMaterial = material(
+            id = "m_recovery_filter_roll",
+            lowerWidth = 0.5,
+            upperWidth = 1.2
+        )
+        val sheetMaterial = material(
+            id = "m_recovery_filter_sheet",
+            lowerWidth = 0.5,
+            upperWidth = 1.4
+        )
+        val staleMaterial = material(
+            id = "m_recovery_filter_stale",
+            lowerWidth = 0.5,
+            upperWidth = 1.6
+        )
+        val rollPlan = cuttingPlan(
+            id = "plan_recovery_filter_roll",
+            product = rollProduct,
+            material = rollMaterial,
+            rollContribution = Flt64(2.0)
+        )
+        val sheetPlan = sheetCuttingPlan(
+            id = "plan_recovery_filter_sheet",
+            product = sheetProduct,
+            material = sheetMaterial,
+            sheetContribution = Flt64(3.0)
+        )
+        val stalePlan = cuttingPlan(
+            id = "plan_recovery_filter_stale",
+            product = staleProduct,
+            material = staleMaterial,
+            rollContribution = Flt64.one
+        )
+        val previousProblem = Csp1dProblem<Flt64>(
+            products = listOf(rollProduct, sheetProduct, staleProduct),
+            materials = listOf(rollMaterial, sheetMaterial, staleMaterial),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = rollProduct,
+                    rollAmount = Flt64(4.0)
+                ),
+                ProductDemand.legacySheet(
+                    product = sheetProduct,
+                    sheetAmount = Flt64(6.0)
+                ),
+                ProductDemand.legacyRoll(
+                    product = staleProduct,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = solver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(rollPlan, sheetPlan, stalePlan)
+            }
+        ).solve(previousProblem)
+        val currentProblem = Csp1dProblem<Flt64>(
+            products = listOf(rollProduct, sheetProduct),
+            materials = listOf(rollMaterial, sheetMaterial),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = rollProduct,
+                    rollAmount = Flt64(4.0)
+                ),
+                ProductDemand.legacySheet(
+                    product = sheetProduct,
+                    sheetAmount = Flt64(6.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = solver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = currentProblem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(2, result.trace.warmStartPlanCount)
+        assertEquals(2, result.trace.appliedWarmStartPlanCount)
+        assertEquals(2, result.trace.appliedWarmStartUsageCount)
+        assertTrue(result.solution.generatedPlans.none { it.id == stalePlan.id })
+        val rollUsage = result.solution.produce.cuttingPlans.firstOrNull {
+            it.plan.id == rollPlan.id
+        }
+        val sheetUsage = result.solution.produce.cuttingPlans.firstOrNull {
+            it.plan.id == sheetPlan.id
+        }
+        assertNotNull(rollUsage, "Roll previous-solution plan should be selected")
+        assertNotNull(sheetUsage, "Sheet previous-solution plan should be selected")
+        assertEquals(UInt64(2UL), rollUsage.amount)
+        assertEquals(UInt64(2UL), sheetUsage.amount)
+    }
+
+    /**
      * 验证设备业务产能约束在真实 solver 上限制方案使用量并回填实际使用量 /
      * Verify machine business capacity constrains plan usage and backfills actual usage on real solver
      */
