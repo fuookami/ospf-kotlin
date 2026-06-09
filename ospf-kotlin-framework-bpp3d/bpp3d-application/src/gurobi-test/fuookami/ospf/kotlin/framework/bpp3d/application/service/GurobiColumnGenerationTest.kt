@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusOptimizationGapReport
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
@@ -1410,6 +1411,8 @@ class GurobiColumnGenerationTest {
 
         assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
         assertTrue(exception.message?.contains("radius_step") == true)
+        assertTrue(exception.message?.contains("solverPrototype") == true)
+        assertTrue(exception.message?.contains("cylinder_radius_Gurobi_CSV_anonymous_Y") == true)
     }
 
     @Test
@@ -1441,6 +1444,8 @@ class GurobiColumnGenerationTest {
 
         assertTrue(exception.message?.contains("Unsupported continuous cylinder radius optimization") == true)
         assertTrue(exception.message?.contains("radius_weight_function_key") == true)
+        assertTrue(exception.message?.contains("solverPrototype") == true)
+        assertTrue(exception.message?.contains("cylinder_radius_Gurobi_CSV_prefer_large_radius_Y") == true)
     }
 
     @Test
@@ -1473,6 +1478,8 @@ class GurobiColumnGenerationTest {
         assertTrue(exception.message?.contains("field=radius_weight_function_key requires radius_meter") == true)
         assertTrue(exception.message?.contains("radius_weight_function_key") == true)
         assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
+        assertTrue(exception.message?.contains("solverPrototype") == true)
+        assertTrue(exception.message?.contains("cylinder_radius_Gurobi_CSV_prefer_large_radius_Y") == true)
     }
 
     @Test
@@ -2137,6 +2144,10 @@ class GurobiColumnGenerationTest {
             || normalizedShapeType == "verticalcylinder"
             || normalizedShapeType == "cylinder"
         ) {
+            val resolvedAxis = parseAxis3OrThrow(
+                axis = axis,
+                rowDescription = rowDescription
+            )
             requireConcreteCsvRadiusMetadata(
                 radiusMeter = radiusMeter,
                 radiusMinMeter = radiusMinMeter,
@@ -2146,6 +2157,7 @@ class GurobiColumnGenerationTest {
                 diameterMaxMeter = diameterMaxMeter,
                 diameterStepMeter = diameterStepMeter,
                 radiusWeightFunctionKey = radiusWeightFunctionKey,
+                axis = resolvedAxis,
                 rowDescription = rowDescription
             )
             val resolvedRadiusMeter = radiusMeter
@@ -2154,10 +2166,6 @@ class GurobiColumnGenerationTest {
                 ?: throw IllegalStateException(
                     "missing radius_meter, radius_min, or diameter_min for cylinder row: $rowDescription"
                 )
-            val resolvedAxis = parseAxis3OrThrow(
-                axis = axis,
-                rowDescription = rowDescription
-            )
             return PackageShapeSpec.VerticalCylinder(
                 radius = resolvedRadiusMeter * Meter,
                 axis = resolvedAxis,
@@ -2184,6 +2192,7 @@ class GurobiColumnGenerationTest {
         diameterMaxMeter: Flt64?,
         diameterStepMeter: Flt64?,
         radiusWeightFunctionKey: String?,
+        axis: Axis3,
         rowDescription: String
     ) {
         if (radiusStepMeter != null && (radiusMinMeter == null || radiusMaxMeter == null)) {
@@ -2196,6 +2205,17 @@ class GurobiColumnGenerationTest {
                 "diameter_step requires diameter_min and diameter_max for cylinder row: $rowDescription"
             )
         }
+        val solverPrototype = continuousCylinderRadiusSolverPrototype(
+            source = "Gurobi CSV",
+            radiusWeightFunctionKey = radiusWeightFunctionKey,
+            axis = axis,
+            selectedRadius = radiusMeter?.let { it * Meter },
+            radiusMin = radiusMinMeter?.let { it * Meter },
+            radiusMax = radiusMaxMeter?.let { it * Meter },
+            diameterMin = diameterMinMeter?.let { it * Meter },
+            diameterMax = diameterMaxMeter?.let { it * Meter },
+            hasDiscreteRadiusStep = radiusStepMeter != null || diameterStepMeter != null
+        )
         val gapReport = continuousCylinderRadiusOptimizationGapReport(
             source = "Gurobi CSV",
             radiusWeightFunctionKey = radiusWeightFunctionKey,
@@ -2211,7 +2231,7 @@ class GurobiColumnGenerationTest {
                     && diameterStepMeter == null
         )
         if (gapReport != null) {
-            throw IllegalStateException(gapReport.message(rowDescription))
+            throw IllegalStateException(gapReport.message(rowDescription) + (solverPrototype?.messageSuffix() ?: ""))
         }
     }
 

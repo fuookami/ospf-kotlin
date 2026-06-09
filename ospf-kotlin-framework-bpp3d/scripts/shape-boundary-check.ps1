@@ -58,6 +58,7 @@ $fixHints = @{
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must require radiusWeightFunctionKey production use to carry a concrete selected radius."
     ContinuousCylinderRadiusSelectionResultGuardMissing = "Continuous-radius production must expose an explicit selected-radius result object, not just a metadata string."
     ContinuousCylinderRadiusOptimizationGapReportGuardMissing = "Continuous-radius unsupported solver-native paths must be represented by a typed gap report shared by production and CSV guards."
+    ContinuousCylinderRadiusSolverPrototypeGuardMissing = "Continuous-radius solver-native work must keep a typed variable prototype wired into CSV guard diagnostics instead of silently fixing interval-only radius metadata."
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must require concrete radius metadata before generating candidates."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking/hanging limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
@@ -451,6 +452,18 @@ Add-RequiredPatternViolation `
     -FilePath $cylinderShapeContractPath `
     -Pattern "enum\s+class\s+ContinuousCylinderRadiusOptimizationGap[\s\S]*?SolverNativeRadiusIntervalUnsupported[\s\S]*?SolverNativeDiameterIntervalUnsupported[\s\S]*?data\s+class\s+ContinuousCylinderRadiusOptimizationGapReport[\s\S]*?fun\s+continuousCylinderRadiusOptimizationGapReport\s*\([\s\S]*?MissingSelectedRadius[\s\S]*?DiscreteRadiusMetadataConflict" `
     -MissingText "CylinderShapeContract must expose a typed continuous-radius optimization gap report for solver-native unsupported paths."
+
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverPrototypeGuardMissing" `
+    -FilePath $cylinderShapeContractPath `
+    -Pattern "data\s+class\s+ContinuousCylinderRadiusSolverPrototype[\s\S]*?variableName[\s\S]*?isProductionReady[\s\S]*?fun\s+continuousCylinderRadiusSolverPrototype\s*\([\s\S]*?continuousCylinderRadiusOptimizationGapReport[\s\S]*?fun\s+PackageShapeSpec\.VerticalCylinder\.continuousRadiusSolverPrototype" `
+    -MissingText "CylinderShapeContract must keep a typed solver-native continuous-radius variable prototype and expose it from VerticalCylinder metadata."
+
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverPrototypeGuardMissing" `
+    -FilePath $gurobiColumnGenerationTestPath `
+    -Pattern "requireConcreteCsvRadiusMetadata\s*\([\s\S]*?continuousCylinderRadiusSolverPrototype\s*\([\s\S]*?axis\s*=\s*axis[\s\S]*?gapReport\.message\s*\(rowDescription\)\s*\+\s*\(solverPrototype\?\.messageSuffix\(\)" `
+    -MissingText "Gurobi CSV radius guard must include the typed continuous-radius solver prototype in interval-only/key-without-radius diagnostics."
 
 $layerGenerationContextPath = Join-Path $scanRoot "bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt"
 Add-RequiredPatternViolation `

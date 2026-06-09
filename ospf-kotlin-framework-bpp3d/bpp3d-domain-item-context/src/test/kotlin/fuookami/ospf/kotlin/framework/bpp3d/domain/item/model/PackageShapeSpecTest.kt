@@ -132,6 +132,28 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    fun selectedContinuousRadiusShouldExposeSolverPrototype() {
+        val spec = PackageShapeSpec.VerticalCylinder(
+            radius = infraScalar(0.5) * Meter,
+            axis = Axis3.Z,
+            radiusMin = infraScalar(0.4) * Meter,
+            radiusMax = infraScalar(0.6) * Meter,
+            radiusWeightFunctionKey = "continuous-radius-prototype"
+        )
+
+        val prototype = assertNotNull(spec.continuousRadiusSolverPrototype(source = "unit test"))
+
+        assertEquals("continuous-radius-prototype", prototype.radiusWeightFunctionKey)
+        assertEquals(Axis3.Z, prototype.axis)
+        assertEquals("cylinder_radius_unit_test_continuous_radius_prototype_Z", prototype.variableName)
+        assertTrue(prototype.radiusLowerBound!! eq (infraScalar(0.4) * Meter))
+        assertTrue(prototype.radiusUpperBound!! eq (infraScalar(0.6) * Meter))
+        assertTrue(prototype.initialRadius!! eq (infraScalar(0.5) * Meter))
+        assertTrue(prototype.isProductionReady)
+        assertEquals(emptyList(), prototype.gaps)
+    }
+
+    @Test
     fun selectedContinuousRadiusShouldHaveNoOptimizationGap() {
         val report = continuousCylinderRadiusOptimizationGapReport(
             source = "test",
@@ -170,6 +192,35 @@ class PackageShapeSpecTest {
         assertTrue(report.message("row=1").contains("continuous-radius-prototype"))
         assertTrue(report.message("row=1").contains("symbolic radius variables"))
         assertTrue(report.message("row=1").contains("row=1"))
+    }
+
+    @Test
+    fun intervalOnlyContinuousRadiusShouldExposeSolverPrototypeGap() {
+        val prototype = assertNotNull(
+            continuousCylinderRadiusSolverPrototype(
+                source = "Gurobi CSV",
+                radiusWeightFunctionKey = "continuous-radius-prototype",
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.15) * Meter,
+                radiusMax = infraScalar(0.18) * Meter
+            )
+        )
+
+        assertEquals("continuous-radius-prototype", prototype.radiusWeightFunctionKey)
+        assertEquals("cylinder_radius_Gurobi_CSV_continuous_radius_prototype_Y", prototype.variableName)
+        assertTrue(prototype.radiusLowerBound!! eq (infraScalar(0.15) * Meter))
+        assertTrue(prototype.radiusUpperBound!! eq (infraScalar(0.18) * Meter))
+        assertEquals(null, prototype.initialRadius)
+        assertEquals(
+            expected = listOf(
+                ContinuousCylinderRadiusOptimizationGap.MissingSelectedRadius,
+                ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported
+            ),
+            actual = prototype.gaps
+        )
+        assertEquals(false, prototype.isProductionReady)
+        assertTrue(prototype.messageSuffix().contains("solverPrototype"))
+        assertTrue(prototype.messageSuffix().contains("productionReady=false"))
     }
 
     @Test

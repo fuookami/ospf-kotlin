@@ -22,14 +22,14 @@
 3. 横向圆柱必须贴在箱底，或由下方长方体支撑区间覆盖完整圆柱轴向及底部支撑线；无支撑或局部支撑的横向圆柱会在最终校验和 3D stacking 支撑检查中被拒绝。
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
 5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
-6. `radiusWeightFunctionKey` 只有在同时具备类型化的已选择半径结果和确定的 `radius` 时才能进入生产，并继续回写 final validation 和 renderer `actualVolume`；仅区间型连续半径变量仍不支持，并通过类型化缺口合同报告。固定半径和离散半径候选仍保持支持。
+6. `radiusWeightFunctionKey` 只有在同时具备类型化的已选择半径结果和确定的 `radius` 时才能进入生产，并继续回写 final validation 和 renderer `actualVolume`；仅区间型连续半径变量已经具备类型化 solver 变量原型用于诊断，但生产求解仍不支持，并通过类型化缺口合同报告。固定半径和离散半径候选仍保持支持。
 7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
 
 明确非目标与剩余工作：
 
 1. 圆柱任意三维旋转不是当前目标。
 2. 全主链 legacy 长方体算法的 shape-generic 迁移仍在推进。
-3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列，还没有表达会影响 footprint、volume、支撑覆盖和 renderer `actualVolume` 的符号半径变量。
+3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，但符号半径变量还没有接入 footprint、volume、支撑覆盖、final MILP 选择和 renderer `actualVolume`。
 4. 外部 renderer 源码不属于本仓；本模块负责输出用于外部 renderer 验收的 shape metadata。
 
 重构进度请查看 [refactor.md](./refactor.md)。
@@ -83,7 +83,7 @@ strict generic 边界脚本会拒绝已删除的固定数值别名、material pa
 
 grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack / hanging seed layer 可以验证单支撑、同类重复窄支撑线、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
 
-动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius`，且在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量以及 key + 离散 step 组合会通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，因此 grouped-layer 和 material-width-amount 两类 CSV 都不能静默按固定半径求解。
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius`，且在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量会在诊断中给出 `ContinuousCylinderRadiusSolverPrototype`，但仍通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，因此 grouped-layer 和 material-width-amount 两类 CSV 都不能静默按固定半径求解。
 
 ### 深度边界层策略列
 
@@ -114,7 +114,7 @@ schema 门禁规则：
 5. CSV 重复列会被显式拒绝。
 6. grouped-layer 或 material-width-amount schema 之外的未知 CSV 列会被显式拒绝。
 7. 可变半径/直径区间必须是离散区间。`*_min` + `*_max` 但缺少 `*_step` 时会被拒绝，除非 `radius_meter` 已给出固定的具体半径。
-8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，且不能与 `radius_step` 或 `diameter_step` 混用；solver 原生区间型连续半径变量仍不支持，并通过共享类型化缺口合同拒绝。
+8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，且不能与 `radius_step` 或 `diameter_step` 混用；solver 原生区间型连续半径变量仍不支持，会在诊断中输出类型化 solver 原型，并通过共享类型化缺口合同拒绝。
 9. 在 dataset suite 模式下，文件名可声明场景类型：
    `grouped-layer` / `grouped_layer` => 分组分层 CSV，
    `material-width-amount` / `material_width_amount` => 物料宽度数量 CSV。

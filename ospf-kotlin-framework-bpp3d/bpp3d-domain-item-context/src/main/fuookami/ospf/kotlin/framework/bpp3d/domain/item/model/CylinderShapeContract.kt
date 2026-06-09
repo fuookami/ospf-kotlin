@@ -8,11 +8,13 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.convertTo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.OrientationCategory
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 
 /**
  * 圆柱能力路径状态。
@@ -334,6 +336,187 @@ fun continuousCylinderRadiusOptimizationGapReport(
     )
 }
 
+private val ContinuousRadiusVariableTokenRegex = Regex("[^A-Za-z0-9]+")
+
+private fun String.continuousRadiusVariableToken(fallback: String): String {
+    val token = trim()
+        .replace(ContinuousRadiusVariableTokenRegex, "_")
+        .trim('_')
+    return token.ifEmpty { fallback }
+}
+
+private fun continuousRadiusVariableName(
+    source: String,
+    radiusWeightFunctionKey: String?,
+    axis: Axis3
+): String {
+    val sourceToken = source.continuousRadiusVariableToken("source")
+    val keyToken = radiusWeightFunctionKey
+        ?.continuousRadiusVariableToken("anonymous")
+        ?: "anonymous"
+    return "cylinder_radius_${sourceToken}_${keyToken}_${axis.name}"
+}
+
+private fun Quantity<InfraNumber>.toContinuousRadiusBoundFromDiameter(
+    radiusUnitSource: Quantity<InfraNumber>?
+): Quantity<InfraNumber> {
+    val targetUnit = radiusUnitSource?.unit ?: unit
+    val converted = convertTo(targetUnit)
+        ?: throw IllegalArgumentException("Cylinder diameter bound must use a length-compatible unit.")
+    return Quantity(infraScalar(converted.value.toDouble() / 2.0), targetUnit)
+}
+
+private fun Quantity<InfraNumber>.radiusValueText(): String {
+    return "${value.toDouble()} ${unit.symbol}"
+}
+
+/**
+ * 连续半径 solver 原生变量原型。
+ * Solver-native continuous-radius variable prototype.
+ *
+ * @property source 调用来源 / call source
+ * @property radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
+ * @property axis 圆柱轴向 / cylinder axis
+ * @property variableName solver 半径变量名 / solver radius variable name
+ * @property radiusLowerBound 半径下界（可选） / radius lower bound (optional)
+ * @property radiusUpperBound 半径上界（可选） / radius upper bound (optional)
+ * @property initialRadius 初始或已选择半径（可选） / initial or selected radius (optional)
+ * @property gaps 当前生产闭环缺口 / current production closure gaps
+ */
+data class ContinuousCylinderRadiusSolverPrototype(
+    val source: String,
+    val radiusWeightFunctionKey: String?,
+    val axis: Axis3,
+    val variableName: String,
+    val radiusLowerBound: Quantity<InfraNumber>? = null,
+    val radiusUpperBound: Quantity<InfraNumber>? = null,
+    val initialRadius: Quantity<InfraNumber>? = null,
+    val gaps: List<ContinuousCylinderRadiusOptimizationGap> = emptyList()
+) {
+    init {
+        require(source.isNotBlank()) {
+            "Continuous cylinder radius solver prototype source must not be blank."
+        }
+        radiusWeightFunctionKey?.let {
+            require(it.isNotBlank()) {
+                "Continuous cylinder radius solver prototype key must not be blank."
+            }
+        }
+        require(variableName.isNotBlank()) {
+            "Continuous cylinder radius solver prototype variable name must not be blank."
+        }
+        radiusLowerBound?.let {
+            require(it.value.toDouble() > 0.0) {
+                "Continuous cylinder radius solver prototype lower bound must be positive."
+            }
+        }
+        radiusUpperBound?.let {
+            require(it.value.toDouble() > 0.0) {
+                "Continuous cylinder radius solver prototype upper bound must be positive."
+            }
+        }
+        initialRadius?.let {
+            require(it.value.toDouble() > 0.0) {
+                "Continuous cylinder radius solver prototype initial radius must be positive."
+            }
+        }
+        if (radiusLowerBound != null && radiusUpperBound != null) {
+            val upper = radiusUpperBound.convertTo(radiusLowerBound.unit)
+                ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")
+            require(radiusLowerBound.value.toDouble() <= upper.value.toDouble()) {
+                "Continuous cylinder radius solver prototype lower bound must be less than or equal to upper bound."
+            }
+        }
+    }
+
+    /** 是否已经具备生产级回写闭环。 / Whether the production selection closure is available. */
+    val isProductionReady: Boolean get() = initialRadius != null && gaps.isEmpty()
+
+    /**
+     * 转为错误信息后缀。
+     * Convert to error message suffix.
+     *
+     * @return 错误信息后缀 / error message suffix
+     */
+    fun messageSuffix(): String {
+        val keyText = radiusWeightFunctionKey
+            ?.let { ", key=$it" }
+            ?: ""
+        val lowerText = radiusLowerBound
+            ?.radiusValueText()
+            ?: "unbounded"
+        val upperText = radiusUpperBound
+            ?.radiusValueText()
+            ?: "unbounded"
+        val initialText = initialRadius
+            ?.radiusValueText()
+            ?: "unselected"
+        return " solverPrototype(variable=$variableName, axis=$axis$keyText, radiusBounds=[$lowerText, $upperText], initialRadius=$initialText, productionReady=$isProductionReady)"
+    }
+}
+
+/**
+ * 构建连续半径 solver 原生变量原型。
+ * Build a solver-native continuous-radius variable prototype.
+ *
+ * @param source 调用来源 / call source
+ * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
+ * @param axis 圆柱轴向 / cylinder axis
+ * @param selectedRadius 已选择半径（可选） / selected radius (optional)
+ * @param radiusMin 半径下界（可选） / radius lower bound (optional)
+ * @param radiusMax 半径上界（可选） / radius upper bound (optional)
+ * @param diameterMin 直径下界（可选） / diameter lower bound (optional)
+ * @param diameterMax 直径上界（可选） / diameter upper bound (optional)
+ * @param hasDiscreteRadiusCandidates 是否存在离散半径候选 / whether discrete radius candidates exist
+ * @param hasDiscreteRadiusStep 是否存在离散半径或直径步长 / whether discrete radius or diameter step exists
+ * @return solver 原生变量原型；未请求连续半径语义时返回 null / solver-native variable prototype, or null when no continuous-radius semantics are requested
+ */
+fun continuousCylinderRadiusSolverPrototype(
+    source: String,
+    radiusWeightFunctionKey: String?,
+    axis: Axis3,
+    selectedRadius: Quantity<InfraNumber>? = null,
+    radiusMin: Quantity<InfraNumber>? = null,
+    radiusMax: Quantity<InfraNumber>? = null,
+    diameterMin: Quantity<InfraNumber>? = null,
+    diameterMax: Quantity<InfraNumber>? = null,
+    hasDiscreteRadiusCandidates: Boolean = false,
+    hasDiscreteRadiusStep: Boolean = false
+): ContinuousCylinderRadiusSolverPrototype? {
+    val key = radiusWeightFunctionKey?.takeIf { it.isNotBlank() }
+    val hasRadiusInterval = selectedRadius == null && radiusMin != null && radiusMax != null && !hasDiscreteRadiusStep
+    val hasDiameterInterval = selectedRadius == null && diameterMin != null && diameterMax != null && !hasDiscreteRadiusStep
+    if (key == null && !hasRadiusInterval && !hasDiameterInterval) {
+        return null
+    }
+    val gapReport = continuousCylinderRadiusOptimizationGapReport(
+        source = source,
+        radiusWeightFunctionKey = key,
+        hasConcreteSelectedRadius = selectedRadius?.value?.toDouble()?.let { it > 0.0 } == true,
+        hasDiscreteRadiusCandidates = hasDiscreteRadiusCandidates,
+        hasDiscreteRadiusStep = hasDiscreteRadiusStep,
+        hasContinuousRadiusInterval = hasRadiusInterval,
+        hasContinuousDiameterInterval = hasDiameterInterval
+    )
+    val referenceRadius = selectedRadius ?: radiusMin ?: radiusMax
+    val lowerBound = radiusMin ?: diameterMin?.toContinuousRadiusBoundFromDiameter(referenceRadius)
+    val upperBound = radiusMax ?: diameterMax?.toContinuousRadiusBoundFromDiameter(referenceRadius ?: lowerBound)
+    return ContinuousCylinderRadiusSolverPrototype(
+        source = source,
+        radiusWeightFunctionKey = key,
+        axis = axis,
+        variableName = continuousRadiusVariableName(
+            source = source,
+            radiusWeightFunctionKey = key,
+            axis = axis
+        ),
+        radiusLowerBound = lowerBound,
+        radiusUpperBound = upperBound,
+        initialRadius = selectedRadius,
+        gaps = gapReport?.gaps ?: emptyList()
+    )
+}
+
 /**
  * 连续半径已选择结果。
  * Selected continuous-radius result.
@@ -375,6 +558,31 @@ fun PackageShapeSpec.VerticalCylinder.continuousRadiusSelectionResult(): Cylinde
         axis = axis,
         radiusMin = radiusMin,
         radiusMax = radiusMax
+    )
+}
+
+/**
+ * 获取连续半径 solver 原生变量原型。
+ * Get the solver-native continuous-radius variable prototype.
+ *
+ * @param source 调用来源 / call source
+ * @return solver 原生变量原型；未使用连续半径 key 时返回 null / solver-native variable prototype, or null when no continuous-radius key is used
+ */
+fun PackageShapeSpec.VerticalCylinder.continuousRadiusSolverPrototype(
+    source: String = "PackageShapeSpec.VerticalCylinder"
+): ContinuousCylinderRadiusSolverPrototype? {
+    val selection = continuousRadiusSelectionResult()
+    return continuousCylinderRadiusSolverPrototype(
+        source = source,
+        radiusWeightFunctionKey = radiusWeightFunctionKey,
+        axis = axis,
+        selectedRadius = selection?.selectedRadius,
+        radiusMin = radiusMin,
+        radiusMax = radiusMax,
+        diameterMin = diameterMin,
+        diameterMax = diameterMax,
+        hasDiscreteRadiusCandidates = radiusCandidates.isNotEmpty(),
+        hasDiscreteRadiusStep = radiusStep != null || diameterStep != null
     )
 }
 

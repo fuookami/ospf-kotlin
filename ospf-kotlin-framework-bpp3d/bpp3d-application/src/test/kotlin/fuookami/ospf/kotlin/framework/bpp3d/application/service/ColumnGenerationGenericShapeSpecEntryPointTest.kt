@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSelectionResult
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
@@ -101,6 +102,11 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
         val selectedRadius = assertNotNull(cylinderSpec.continuousRadiusSelectionResult())
         assertEquals("generic-shape-spec-v1", selectedRadius.key)
         assertTrue(selectedRadius.selectedRadius eq (infraScalar(0.5) * Meter))
+        val solverPrototype = assertNotNull(cylinderSpec.continuousRadiusSolverPrototype(source = "generic DTO"))
+        assertEquals("generic-shape-spec-v1", solverPrototype.radiusWeightFunctionKey)
+        assertEquals("cylinder_radius_generic_DTO_generic_shape_spec_v1_Y", solverPrototype.variableName)
+        assertTrue(solverPrototype.initialRadius!! eq (infraScalar(0.5) * Meter))
+        assertTrue(solverPrototype.isProductionReady)
     }
 
     @Test
