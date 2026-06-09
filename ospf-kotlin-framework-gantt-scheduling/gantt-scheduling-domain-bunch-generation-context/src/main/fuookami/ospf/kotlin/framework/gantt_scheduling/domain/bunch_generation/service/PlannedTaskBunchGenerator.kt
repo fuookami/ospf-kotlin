@@ -8,7 +8,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 //import fuookami.ospf.kotlin.utils.functional.Ok
 //import fuookami.ospf.kotlin.utils.functional.Ret
 //import fuookami.ospf.kotlin.math.algebra.number.UInt64
-//import kotlinx.datetime.Instant
+//import kotlin.time.Instant
 //import kotlin.time.Duration
 //
 //open class TaskBunchGenerator<E : Executor, L : Label<E>>(

@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -31,6 +32,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
+
+private fun UInt64.solverAllocationAmount() = Flt64(toLong().toDouble())
 
 /**
  * 将 wildcard 错误收敛为 ErrorCode 错误。
@@ -143,6 +146,48 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      */
     private val materials: List<M> = emptyList()
 ) {
+    /**
+     * 通过 solver 时间窗口边界创建分时隙产能预求解服务 /
+     * Create slot-based capacity pre-solving service from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param actions 生产动作列表 / List of production actions
+     * @param executors 执行器列表 / List of executors
+     * @param slots 时隙列表 / List of time slots
+     * @param products 产品列表及其需求量 / Products with demand quantities
+     * @param resourceCapacities 资源容量列表 / List of resource capacities
+     * @param useColumnGeneration 是否使用列生成 / Whether to use column generation
+     * @param unitProduceOfAction 动作单位操作时间产品产量 / Product production per unit operation time
+     * @param unitConsumptionOfAction 动作单位操作时间原料消耗 / Material consumption per unit operation time
+     * @param unitResourceUsageOfAction 动作在时隙内单位操作时间资源使用量 / Resource usage per unit operation time in slot
+     * @param materials 原料列表 / Material list
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        actions: List<A>,
+        executors: List<E>,
+        slots: List<TimeSlot>,
+        products: List<Pair<M, Flt64>> = emptyList(),
+        resourceCapacities: List<R> = emptyList(),
+        useColumnGeneration: Boolean = false,
+        unitProduceOfAction: ((A, M) -> Flt64)? = null,
+        unitConsumptionOfAction: ((A, M) -> Flt64)? = null,
+        unitResourceUsageOfAction: ((A, R, TimeSlot) -> Flt64)? = null,
+        materials: List<M> = emptyList()
+    ) : this(
+        actions = actions,
+        executors = executors,
+        slots = slots,
+        timeWindow = timeBoundary.source,
+        products = products,
+        resourceCapacities = resourceCapacities,
+        useColumnGeneration = useColumnGeneration,
+        unitProduceOfAction = unitProduceOfAction,
+        unitConsumptionOfAction = unitConsumptionOfAction,
+        unitResourceUsageOfAction = unitResourceUsageOfAction,
+        materials = materials
+    )
+
     /**
      * 产能编译对象
      * Capacity compilation object
@@ -327,7 +372,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
             // Calculate total cost for this slot
             // 计算该时隙的总成�?
             val totalCost = allocations.fold(Flt64.zero) { acc, alloc ->
-                acc + alloc.action.unitCost(alloc.slot.time.start) * alloc.amount.toFlt64()
+                acc + alloc.action.unitCost(alloc.slot.time.start) * alloc.amount.solverAllocationAmount()
             }
 
             // Calculate produce and consumption by material

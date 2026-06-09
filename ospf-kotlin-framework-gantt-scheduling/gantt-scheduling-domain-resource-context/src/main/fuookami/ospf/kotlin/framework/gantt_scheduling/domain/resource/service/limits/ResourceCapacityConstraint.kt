@@ -1,6 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/** 资源容量约束 / Resource capacity constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
@@ -68,7 +66,7 @@ class ResourceCapacityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq thisQuantity.upperBound.value.unwrap().toFlt64(),
+                                polyX leq thisQuantity.solverUpperBound(),
                                 name = "${name}_ub_$slot",
                                 args = ResourceCapacityShadowPriceKey(slot)
                             )) {
@@ -87,7 +85,7 @@ class ResourceCapacityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            usage.quantity[slot] leq thisQuantity.upperBound.value.unwrap().toFlt64(),
+                            usage.quantity[slot] leq thisQuantity.solverUpperBound(),
                             name = "${name}_ub_$slot",
                             args = ResourceCapacityShadowPriceKey(slot)
                         )) {
@@ -105,7 +103,7 @@ class ResourceCapacityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    usage.quantity[slot] leq thisQuantity.upperBound.value.unwrap().toFlt64(),
+                    usage.quantity[slot] leq thisQuantity.solverUpperBound(),
                     name = "${usage.name}_${name}_ub_$slot",
                     args = ResourceCapacityShadowPriceKey(slot)
                 )) {
@@ -126,7 +124,7 @@ class ResourceCapacityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq thisQuantity.lowerBound.value.unwrap().toFlt64(),
+                                polyX geq thisQuantity.solverLowerBound(),
                                 name = "${name}_lb_$slot",
                                 args = ResourceCapacityShadowPriceKey(slot)
                             )) {
@@ -145,7 +143,7 @@ class ResourceCapacityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            usage.quantity[slot] geq thisQuantity.lowerBound.value.unwrap().toFlt64(),
+                            usage.quantity[slot] geq thisQuantity.solverLowerBound(),
                             name = "${name}_lb_$slot",
                             args = ResourceCapacityShadowPriceKey(slot)
                         )) {
@@ -163,7 +161,7 @@ class ResourceCapacityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    usage.quantity[slot] geq thisQuantity.lowerBound.value.unwrap().toFlt64(),
+                    usage.quantity[slot] geq thisQuantity.solverLowerBound(),
                     name = "${name}_lb_$slot",
                     args = ResourceCapacityShadowPriceKey(slot)
                 )) {
@@ -188,14 +186,16 @@ class ResourceCapacityConstraint<
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     usage.timeSlots.sumOf {
-                        it.relationTo(null, args.task).toFlt64() * (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
+                        it.relationTo(null, args.task).solverResourceQuantity() *
+                                (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                     }
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     if (args.task != null) {
                         usage.timeSlots.sumOf {
-                            it.relationTo(null, args.task).toFlt64() * (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
+                            it.relationTo(null, args.task).solverResourceQuantity() *
+                                    (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                         }
                     } else {
                         Flt64.zero
@@ -227,4 +227,3 @@ class ResourceCapacityConstraint<
         return ok
     }
 }
-

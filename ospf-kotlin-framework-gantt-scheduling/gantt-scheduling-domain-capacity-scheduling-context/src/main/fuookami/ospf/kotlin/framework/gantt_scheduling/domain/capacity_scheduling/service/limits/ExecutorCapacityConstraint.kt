@@ -67,4 +67,8 @@ class ExecutorCapacityConstraint<V : RealNumber<V>, A : ProductionAction>(
 
 // ── Flt64 向后兼容 typealias ──
 
+@Deprecated(
+    message = "Use ExecutorCapacityConstraint<Flt64, A> directly",
+    replaceWith = ReplaceWith("ExecutorCapacityConstraint<Flt64, A>")
+)
 typealias Flt64ExecutorCapacityConstraint<A> = ExecutorCapacityConstraint<Flt64, A>

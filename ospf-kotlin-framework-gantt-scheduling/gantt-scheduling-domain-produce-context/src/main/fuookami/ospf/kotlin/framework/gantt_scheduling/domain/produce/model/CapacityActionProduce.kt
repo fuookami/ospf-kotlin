@@ -1,19 +1,19 @@
 @file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
- * 支持 ProductionAction 的产�?消耗接�?
- * Produce/Consumption interface that supports ProductionAction
+ * 支持 ProductionAction 的产出消耗接口。
+ * Produce/Consumption interface that supports ProductionAction.
  *
- * 此接口定义了生产动作与产品产量、原料消耗之间的关系
- * This interface defines the relationship between production actions and product output/material consumption
+ * 此接口定义生产动作与产品产量、原料消耗之间的关系。
+ * This interface defines the relationship between production actions and product output/material consumption.
  */
 interface CapacityActionProduce<
         P : AbstractMaterial,
@@ -34,7 +34,13 @@ interface CapacityActionProduce<
 }
 
 /** Flt64 生产动作产出消耗类型别名 / Flt64 production action produce-consumption type alias */
+@Deprecated(
+    message = "Use CapacityActionProduce<P, C, Flt64> directly",
+    replaceWith = ReplaceWith("CapacityActionProduce<P, C, Flt64>")
+)
 typealias Flt64CapacityActionProduce<P, C> = CapacityActionProduce<P, C, Flt64>
+
+private fun UInt64.solverAmount(): Flt64 = Flt64(toLong().toDouble())
 
 /**
  * 按产品方向读取生产动作的单位产量映射。
@@ -67,35 +73,67 @@ fun <C : AbstractMaterial, V : RealNumber<V>> unitConsumptionMapOf(
 }
 
 /**
- * �?CapacityColumn 计算产量
- * Calculate produce from CapacityColumn
+ * 按 CapacityColumn 计算产量。
+ * Calculate produce from a CapacityColumn.
+ *
+ * @param product 产品 / Product
+ * @param amountValue 分配数量到领域数值的转换 / Allocation amount to domain value converter
+ * @return 产量 / Produce amount
+ */
+fun <E : Executor, A : ProductionAction, P : AbstractMaterial, V : RealNumber<V>>
+        CapacityColumn<E, A, V>.produceV(
+    product: P,
+    amountValue: (UInt64) -> V
+): V {
+    var result = columnCost.value.constants.zero
+    for ((action, amount) in allocations) {
+        val unitProduce = unitProduceMapOf<P, V>(action)?.get(product) ?: result.constants.zero
+        result += unitProduce * amountValue(amount)
+    }
+    return result
+}
+
+/**
+ * 按 CapacityColumn 计算消耗。
+ * Calculate consumption from a CapacityColumn.
+ *
+ * @param material 原料 / Material
+ * @param amountValue 分配数量到领域数值的转换 / Allocation amount to domain value converter
+ * @return 消耗量 / Consumption amount
+ */
+fun <E : Executor, A : ProductionAction, C : AbstractMaterial, V : RealNumber<V>>
+        CapacityColumn<E, A, V>.consumptionV(
+    material: C,
+    amountValue: (UInt64) -> V
+): V {
+    var result = columnCost.value.constants.zero
+    for ((action, amount) in allocations) {
+        val unitConsumption = unitConsumptionMapOf<C, V>(action)?.get(material) ?: result.constants.zero
+        result += unitConsumption * amountValue(amount)
+    }
+    return result
+}
+
+/**
+ * 按 CapacityColumn 计算产量。
+ * Calculate produce from CapacityColumn.
  *
  * @param product 产品 / Product
  * @return 产量 / Produce amount
  */
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.produce(product: P): Flt64 {
-    var result = Flt64.zero
-    for ((action, amount) in allocations) {
-        val unitProduce = unitProduceMapOf<P, Flt64>(action)?.get(product) ?: Flt64.zero
-        result += unitProduce * amount.toFlt64()
-    }
-    return result
+    return produceV(product) { it.solverAmount() }
 }
 
 /**
- * �?CapacityColumn 计算消�?
- * Calculate consumption from CapacityColumn
+ * 按 CapacityColumn 计算消耗。
+ * Calculate consumption from CapacityColumn.
  *
  * @param material 原料 / Material
  * @return 消耗量 / Consumption amount
  */
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.consumption(material: C): Flt64 {
-    var result = Flt64.zero
-    for ((action, amount) in allocations) {
-        val unitConsumption = unitConsumptionMapOf<C, Flt64>(action)?.get(material) ?: Flt64.zero
-        result += unitConsumption * amount.toFlt64()
-    }
-    return result
+    return consumptionV(material) { it.solverAmount() }
 }

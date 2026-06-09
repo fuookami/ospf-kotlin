@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.functional.eq
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import kotlin.time.Duration

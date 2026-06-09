@@ -33,7 +33,15 @@ open class SlotBasedBunchAggregationV<
 }
 
 /** 向后兼容 typealias — Flt64 slot-based bunch aggregation / Backward compat typealias */
-@Deprecated("Use SlotBasedBunchAggregationV<B, Flt64, T, E, A> directly") typealias SlotBasedBunchAggregation<B, T, E, A> = SlotBasedBunchAggregationV<B, Flt64, T, E, A>
+@Deprecated(
+    message = "Use SlotBasedBunchAggregationV<B, Flt64, T, E, A> directly",
+    replaceWith = ReplaceWith("SlotBasedBunchAggregationV<B, Flt64, T, E, A>")
+)
+typealias SlotBasedBunchAggregation<B, T, E, A> = SlotBasedBunchAggregationV<B, Flt64, T, E, A>
 
 /** 向后兼容 typealias — Flt64 slot-based bunch aggregation / Backward compat typealias */
-@Deprecated("Use SlotBasedBunchAggregationV<B, Flt64, T, E, A> directly") typealias Flt64SlotBasedBunchAggregation<B, T, E, A> = SlotBasedBunchAggregationV<B, Flt64, T, E, A>
+@Deprecated(
+    message = "Use SlotBasedBunchAggregationV<B, Flt64, T, E, A> directly",
+    replaceWith = ReplaceWith("SlotBasedBunchAggregationV<B, Flt64, T, E, A>")
+)
+typealias Flt64SlotBasedBunchAggregation<B, T, E, A> = SlotBasedBunchAggregationV<B, Flt64, T, E, A>

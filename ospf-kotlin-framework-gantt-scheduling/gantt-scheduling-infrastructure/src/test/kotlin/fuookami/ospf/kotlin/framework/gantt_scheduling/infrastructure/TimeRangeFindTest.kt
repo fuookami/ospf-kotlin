@@ -5,7 +5,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure;
 
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 
 class TimeRangeFindTest {

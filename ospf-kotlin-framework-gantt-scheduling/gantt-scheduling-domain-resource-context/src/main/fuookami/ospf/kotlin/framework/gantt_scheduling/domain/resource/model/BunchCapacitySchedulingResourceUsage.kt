@@ -140,7 +140,7 @@ class BunchCapacitySchedulingResourceUsage<
             for ((actionIndex, action) in actions.withIndex()) {
                 val unitUsage = slot.resource.usedBy(action, slot.time)
                 if (unitUsage neq unitUsage.constants.zero) {
-                    quantity[slot].asMutable() += LinearMonomial(unitUsage.toFlt64(), compilation.operationTime[actionIndex, slotIndex])
+                    quantity[slot].asMutable() += LinearMonomial(unitUsage.solverResourceQuantity(), compilation.operationTime[actionIndex, slotIndex])
                 }
             }
         }

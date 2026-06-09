@@ -30,8 +30,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.Iterati
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- * @param initialSlowLpImprovementStep 初始慢LP改进步长 / Initial slow LP improvement step
- * @param relativeImprovementStep 相对改进步长 / Relative improvement step
+ * @param initialSlowLpImprovementStep 初始慢 LP 目标标量改进步长 / Initial slow LP objective scalar improvement step
+ * @param relativeImprovementStep 相对目标标量改进步长 / Relative objective scalar improvement step
  * @param improvementSlowCount 改进缓慢计数 / Improvement slow count
  */
 class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V : RealNumber<V>>(
@@ -66,10 +66,10 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
         }
 
     /**
-     * 刷新下界 / Refresh lower bound
+     * 刷新算法下界，约简成本为 branch-and-price 内部目标标量 / Refresh lower bound with branch-and-price internal reduced-cost scalar
      *
      * @param newBunches 新任务束列表 / List of new bunches
-     * @param reducedCost 约简成本函数 / Reduced cost function
+     * @param reducedCost 约简成本标量函数 / Reduced-cost scalar function
      */
     fun refreshLowerBound(
         newBunches: List<AbstractTaskBunch<T, E, A, V>>,
@@ -95,9 +95,9 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
     }
 
     /**
-     * 刷新LP目标值 / Refresh LP objective
+     * 刷新 LP 目标标量 / Refresh LP objective scalar
      *
-     * @param obj LP目标值 / LP objective value
+     * @param obj LP 目标标量 / LP objective scalar
      * @return 是否有改进 / Whether improved
      */
     fun refreshLpObj(obj: Flt64): Boolean {
@@ -128,9 +128,9 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
     }
 
     /**
-     * 刷新IP目标值 / Refresh IP objective
+     * 刷新 IP 目标标量 / Refresh IP objective scalar
      *
-     * @param obj IP目标值 / IP objective value
+     * @param obj IP 目标标量 / IP objective scalar
      * @return 是否有改进 / Whether improved
      */
     fun refreshIpObj(obj: Flt64): Boolean {

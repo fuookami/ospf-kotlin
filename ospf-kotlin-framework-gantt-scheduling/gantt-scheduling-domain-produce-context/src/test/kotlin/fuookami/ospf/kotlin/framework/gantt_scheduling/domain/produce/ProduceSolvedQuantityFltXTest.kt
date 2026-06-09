@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Cons
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Material
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -25,7 +25,7 @@ class ProduceSolvedQuantityFltXTest {
     private val material = QuantityMaterial(index = 1, id = "material")
     private val model = LinearMetaModel(
         name = "produce-solved-quantity-test",
-        converter = SchedulingSolverValueAdapter.Flt64
+        converter = schedulingSolverValueAdapter
     )
     private val adapter = GenericSolverValueAdapter(FltX)
 

@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.AndFunction
@@ -28,6 +29,8 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 
 /** 切换时间物理量 / Switch time quantity */
 typealias SwitchTimeQuantity<V> = Quantity<V>
+
+private val solverValueAdapter = schedulingSolverValueAdapter
 
 /** 切换接口 / Switch interface */
 interface Switch {
@@ -70,7 +73,7 @@ interface Switch {
     ): SwitchTimeQuantity<V>? {
         val value = (switchTime[from, to] as IntermediateSymbol<Flt64>).evaluate(
             tokenTable = model.tokens,
-            converter = SchedulingSolverValueAdapter.Flt64,
+            converter = solverValueAdapter,
             zeroIfNone = true
         ) ?: switchTime[from, to].toLinearPolynomial().constant
         return Quantity(adapter.intoValue(value), unit)
@@ -100,6 +103,31 @@ class TaskSchedulingSwitch<
     private val compilation: TaskCompilation<T, E, A>,
     private val taskTime: TaskTime? = null
 ) : Switch {
+    /**
+     * 通过 solver 时间窗口边界创建任务调度切换 / Create task scheduling switch from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param compilation 任务编译结果 / Task compilation result
+     * @param taskTime 任务时间对象 / Task time object
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        compilation: TaskCompilation<T, E, A>,
+        taskTime: TaskTime? = null
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        compilation = compilation,
+        taskTime = taskTime
+    )
+
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     private lateinit var frontOf: LinearIntermediateSymbols2<Flt64>
     private lateinit var betweenIn: LinearIntermediateSymbols3<Flt64>
     override lateinit var switch: LinearIntermediateSymbols3<Flt64>
@@ -123,11 +151,11 @@ class TaskSchedulingSwitch<
                         IfFunction.from(
                             inequality = LinearConstraintInput.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
-                                converter = SchedulingSolverValueAdapter.Flt64,
+                                converter = solverValueAdapter,
                                 lhsRange = taskTime.estimateStartTime[task1].range.range!!,
                                 rhsConstant = Flt64.zero
                             ),
-                            converter = SchedulingSolverValueAdapter.Flt64,
+                            converter = solverValueAdapter,
                             name = "front_of_${task1}_$task2"
                         )
                     }
@@ -167,7 +195,7 @@ class TaskSchedulingSwitch<
                                 frontOf[task1, task3],
                                 frontOf[task3, task2]
                             ),
-                            converter = SchedulingSolverValueAdapter.Flt64,
+                            converter = solverValueAdapter,
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     }
@@ -217,7 +245,7 @@ class TaskSchedulingSwitch<
                     }
                     AndFunction.fromLinearPolynomials(
                         polynomials = conditions,
-                        converter = SchedulingSolverValueAdapter.Flt64,
+                        converter = solverValueAdapter,
                         name = "switch_${executor}_${task1}_${task2}"
                     )
                 } else {
@@ -229,7 +257,7 @@ class TaskSchedulingSwitch<
                                 compilation.taskAssignment[executor, task1],
                                 compilation.taskAssignment[executor, task2]
                             ),
-                            converter = SchedulingSolverValueAdapter.Flt64,
+                            converter = solverValueAdapter,
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     } else {
@@ -259,7 +287,10 @@ class TaskSchedulingSwitch<
                 val xPoly = taskTime?.let { it.estimateStartTime[task2].toLinearPolynomial() - it.estimateEndTime[task1].toLinearPolynomial() }
                     ?: LinearPolynomial(
                         emptyList(),
-                        with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }
+                        timeBoundary.distanceValue(
+                            from = task1.time!!.end,
+                            to = task2.time!!.start
+                        )
                     )
                 MaskingFunction.fromLinearPolynomials(
                     x = LinearExpressionSymbol(
@@ -267,7 +298,7 @@ class TaskSchedulingSwitch<
                         name = "switch_time_x_${task1}_$task2"
                     ),
                     mask = thisSwitch,
-                    converter = SchedulingSolverValueAdapter.Flt64,
+                    converter = solverValueAdapter,
                     name = "switch_time_${task1}_$task2"
                 )
             }

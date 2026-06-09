@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.symbol.function.MinMaxFunction
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -20,6 +21,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /** 最大完工时间物理量 / Makespan quantity */
 typealias MakespanQuantity<V> = Quantity<V>
+
+private val solverValueAdapter = schedulingSolverValueAdapter
 
 /**
  * 最大完工时间 / Makespan
@@ -99,7 +102,7 @@ class Makespan<
     ): MakespanQuantity<V>? {
         val value = (makespan as IntermediateSymbol<Flt64>).evaluate(
             tokenTable = model.tokens,
-            converter = SchedulingSolverValueAdapter.Flt64,
+            converter = solverValueAdapter,
             zeroIfNone = true
         ) ?: makespan.toLinearPolynomial().constant
         return Quantity(adapter.intoValue(value), unit)

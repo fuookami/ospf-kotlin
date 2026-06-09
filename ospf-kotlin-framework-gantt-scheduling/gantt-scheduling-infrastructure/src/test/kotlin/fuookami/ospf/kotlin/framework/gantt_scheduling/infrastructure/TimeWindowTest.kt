@@ -4,13 +4,15 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 
 /**
  * Unit tests for TimeWindow class.
@@ -35,6 +37,25 @@ class TimeWindowTest {
 
         assert(durationQuantity.value eq FltX("2.0"))
         assert(instantQuantity.value eq FltX("3.0"))
+    }
+
+    @Test
+    fun quantityFactoryShouldCreateGenericTimeWindow() {
+        val timeWindow = TimeWindow.minutes(
+            timeWindow = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            ),
+            dateOffset = Quantity(FltX("0.0"), NoneUnit),
+            continues = true,
+            interval = Quantity(FltX("15.0"), NoneUnit),
+            fromDouble = { FltX(it.toString()) },
+            toDouble = { it.toDouble() }
+        )
+
+        assert(timeWindow.interval == 15.toDuration(DurationUnit.MINUTES))
+        assert(timeWindow.valueOf(30.toDuration(DurationUnit.MINUTES)) eq FltX("30.0"))
+        assert(timeWindow.valueOf(Instant.parse("2020-08-30T08:45:00Z")) eq FltX("45.0"))
     }
 
     /**

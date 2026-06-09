@@ -108,8 +108,53 @@ function Get-Flt64Category {
         return "Compat Wrapper"
     }
 
+    if ($line -match "Use .*Flt64.* directly|ReplaceWith\(.*Flt64") {
+        return "Compat Wrapper"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-infrastructure/src/main/.*/infrastructure/TimeWindow\.kt$") {
+        if ($line -match "toFlt64Boundary") {
+            return "Time/Calendar Adapter"
+        }
+        if ($line -match "TimeWindow\.(seconds|minutes|hours).*Flt64|TimeWindow<Flt64>|Flt64\(it\)") {
+            return "Compat Wrapper"
+        }
+    }
+
+    if ($relativePath -match "^gantt-scheduling-infrastructure/src/main/.*/infrastructure/WorkingCalendar\.kt$") {
+        if ($line -match "calendarValueOf|productivityRateOf") {
+            return "Time/Calendar Adapter"
+        }
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-compilation-context/src/main/.*/domain/task_compilation/model/SolverTimeWindowBoundary\.kt$") {
+        return "Compilation Solver Time Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-compilation-context/src/main/.*/domain/task_compilation/service/limits/ThresholdSlack\.kt$") {
+        return "Solver Boundary"
+    }
+
     if ($line -match "SchedulingSolverValueAdapter|\.toFlt64\(\)") {
         return "Adapter Conversion"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-capacity-scheduling-context/src/main/.*/domain/capacity_scheduling/model/CapacitySolverValue\.kt$") {
+        return "Adapter Conversion"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-produce-context/src/main/.*/domain/produce/model/ProduceSolverValue\.kt$") {
+        return "Adapter Conversion"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-resource-context/src/main/.*/domain/resource/model/ResourceSolverValue\.kt$") {
+        return "Adapter Conversion"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-bunch-compilation-context/src/main/.*/domain/bunch_compilation/model/SlotBasedCapacityResult\.kt$") {
+        if ($line -match "toGeneric|Quantity<Flt64>") {
+            return "Adapter Conversion"
+        }
     }
 
     if ($relativePath -match "^gantt-scheduling-domain-task-context/src/main/.*/domain/task/model/SchedulingSolverValueAdapter\.kt$") {
@@ -124,8 +169,67 @@ function Get-Flt64Category {
         return "Solver Boundary"
     }
 
-    if ($line -match "LinearIntermediateSymbol[s]?[0-9]?<Flt64>|LinearExpressionSymbol[s]?[0-9]?<Flt64>|LinearFunctionSymbolAdapter<Flt64>|LinearPolynomial<Flt64>") {
+    if ($line -match "LinearIntermediateSymbol[s]?[0-9]?<Flt64>|LinearExpressionSymbol[s]?[0-9]?<Flt64>|LinearFunctionSymbolAdapter<Flt64>|LinearPolynomial<Flt64>|MutableLinearPolynomial|LinearMonomial\(Flt64|LinearPolynomial\(.*Flt64|LinearExpressionSymbol\(Flt64") {
         return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-bunch-compilation-context/src/main/.*/domain/bunch_compilation/service/SlotBasedCapacityPreSolver\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-bunch-compilation-context/src/main/.*/domain/bunch_compilation/(BunchCompilationContext|model/(TaskTime|Compilation)|service/(SlotBasedBunchCompilationContext|TaskSolutionAnalyzer|BunchSolutionAnalyzer|limits/BunchCostMinimization))\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-capacity-scheduling-context/src/main/.*/domain/capacity_scheduling/(model/(CapacityCompilation|CapacityOrderCompilation|IterativeCapacityCompilation|ProductionAction)|service/limits/(ExecutorCapacityConstraint|OrderConstraint))\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-(resource|produce)-context/src/main/.*/domain/(resource|produce)/service/limits/.*QuantityConstraint\.kt$") {
+        return "Shadow Price Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-(resource|produce)-context/src/main/.*/domain/(resource|produce)/service/limits/.*(Constraint|Minimization|Maximization)\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-(resource|produce)-context/src/main/.*/domain/(resource|produce)/model/.*(Slack|Usage|Produce|Consumption)\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-resource-context/src/main/.*/domain/resource/model/(Resource|ExecutionResource|ConnectionResource|StorageResource)\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-produce-context/src/main/.*/domain/produce/model/ProductionTask\.kt$") {
+        if ($line -match "flt64|Flt64|nonZeroFlt64|AbstractTaskBunch<.*Flt64") {
+            return "Compat Wrapper"
+        }
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-compilation-context/src/main/.*/domain/task_compilation/service/limits/.*Constraint\.kt$") {
+        if ($line -match "ShadowPrice|shadowPrice") {
+            return "Shadow Price Boundary"
+        }
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-compilation-context/src/main/.*/domain/task_compilation/service/limits/.*(Minimization|Maximization)\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-compilation-context/src/main/.*/domain/task_compilation/service/(SolutionAnalyzer|limits/ThresholdSlack)\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-compilation-context/src/main/.*/domain/task_compilation/model/(TaskTime|Switch|Makespan|Compilation)\.kt$") {
+        return "Solver Boundary"
+    }
+
+    if ($relativePath -match "^gantt-scheduling-domain-task-context/src/main/.*/domain/task/model/Cost\.kt$") {
+        if ($line -match "solverCost|\.toFlt64\(\)") {
+            return "Adapter Conversion"
+        }
     }
 
     if ($relativePath -match "^gantt-scheduling-application/src/main/.*/application/model/(task|bunch)/Iteration\.kt$") {
@@ -140,6 +244,15 @@ function Get-Flt64Category {
     }
 
     if ($relativePath -match "^gantt-scheduling-domain-(task|bunch)-compilation-context/src/main/.*/domain/(task|bunch)_compilation/(IterativeAggregation|IterativeContext|Aggregation)\.kt$") {
+        if ($line -match "TimeWindow<Flt64>") {
+            return "Compilation Solver Time Boundary"
+        }
+        if ($line -match "solution:\s+List<Flt64>|Ret<Map<.*Flt64|HashMap<.*Flt64|predicate:\s*\(Flt64\)") {
+            return "Compilation Solver Result Boundary"
+        }
+        if ($line -match "maximumReducedCost|reducedCost|bar|bestValue|Ret<Flt64>|Flt64\.(zero|one)|Flt64\([0-9.+-]") {
+            return "Compilation Algorithm Scalar"
+        }
         return "Compilation Algorithm Internal"
     }
 
@@ -244,7 +357,11 @@ $categoryDescriptions = [ordered]@{
     "Adapter Conversion" = "V 与 Flt64 的适配转换 / V and Flt64 adapter conversion"
     "Application Algorithm Internal" = "application 分支定价算法内部目标值、阈值与心跳 / application branch-and-price internal objectives, thresholds, and heartbeat"
     "Application Result Boundary" = "application 结果快照与泛型物理量适配边界 / application result snapshot and generic quantity adapter boundary"
-    "Compilation Algorithm Internal" = "task/bunch compilation 迭代与聚合算法内部值 / task/bunch compilation iterative and aggregation internals"
+    "Compilation Solver Time Boundary" = "task/bunch compilation solver 时间窗口边界 / task/bunch compilation solver time-window boundary"
+    "Compilation Solver Result Boundary" = "task/bunch compilation 解值、比例与提取谓词边界 / task/bunch compilation solution value, ratio, and extraction predicate boundary"
+    "Compilation Algorithm Scalar" = "task/bunch compilation 约简成本、阈值与固定策略标量 / task/bunch compilation reduced-cost, threshold, and fixing-policy scalar"
+    "Compilation Algorithm Internal" = "task/bunch compilation 其它迭代与聚合算法内部值 / other task/bunch compilation iterative and aggregation internals"
+    "Time/Calendar Adapter" = "泛型时间窗口到 Flt64 日历边界的集中适配 / centralized generic time-window to Flt64 calendar boundary adapter"
     "Time/Calendar Boundary" = "时间窗口、日历与 task time solver 边界 / time window, calendar, and task-time solver boundary"
     "Domain DTO Pending" = "capacity/resource/produce/bunch 领域 DTO 待迁移边界 / capacity/resource/produce/bunch domain DTO pending boundary"
     "Generation Boundary" = "生成器标签与路径评估边界 / generator label and path-evaluation boundary"

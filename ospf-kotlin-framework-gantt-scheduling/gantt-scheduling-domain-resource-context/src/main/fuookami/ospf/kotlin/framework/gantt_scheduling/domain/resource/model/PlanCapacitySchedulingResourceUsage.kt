@@ -116,7 +116,7 @@ class PlanCapacitySchedulingResourceUsage<
                     val actionIndex = actions.indexOf(action)
                     val slotIndex = resolveCapacitySlotIndex(slot)
                     if (actionIndex >= 0 && slotIndex >= 0 && slotIndex < compilation.operationTime.shape[1]) {
-                        quantity[slot].asMutable() += LinearMonomial(unitUsage.toFlt64(), compilation.operationTime[actionIndex, slotIndex])
+                        quantity[slot].asMutable() += LinearMonomial(unitUsage.solverResourceQuantity(), compilation.operationTime[actionIndex, slotIndex])
                     }
                 }
             }

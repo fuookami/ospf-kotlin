@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -20,29 +19,29 @@ class GenericFltXPathTest {
             items = listOf(
                 CostItem(
                     tag = "setup",
-                    value = FltX("1.25")
+                    costQuantity = Quantity(FltX("1.25"), NoneUnit)
                 ),
                 CostItem(
                     tag = "processing",
-                    value = FltX("2.75")
+                    costQuantity = Quantity(FltX("2.75"), NoneUnit)
                 )
             ),
-            constants = FltX
+            costSum = Quantity(FltX("4.00"), NoneUnit)
         )
 
         assertTrue(cost.valid)
-        assertTrue(cost.sum!! eq FltX("4.00"))
+        assertTrue(cost.costSum!!.value eq FltX("4.00"))
     }
 
     @Test
     fun costQuantityShouldSupportFltX() {
         val item = CostItem(
             tag = "processing",
-            value = FltX("2.75")
+            costQuantity = Quantity(FltX("2.75"), NoneUnit)
         )
         val cost = Cost(
             items = listOf(item),
-            constants = FltX
+            costSum = Quantity(FltX("2.75"), NoneUnit)
         )
 
         val itemQuantity = item.quantity()
@@ -65,23 +64,23 @@ class GenericFltXPathTest {
             costSum = Quantity(FltX("2.75"), NoneUnit)
         )
 
-        assertTrue(item.value!! eq FltX("2.75"))
+        assertTrue(item.costQuantity!!.value eq FltX("2.75"))
         assertEquals(NoneUnit, item.costQuantity!!.unit)
         assertTrue(cost.valid)
-        assertTrue(cost.sum!! eq FltX("2.75"))
+        assertTrue(cost.costSum!!.value eq FltX("2.75"))
         assertEquals(NoneUnit, cost.costSum!!.unit)
     }
 
     @Test
     fun timeWindowShouldSupportFltX() {
-        val timeWindow = TimeWindow(
-            window = TimeRange(
+        val timeWindow = TimeWindow.minutes(
+            timeWindow = TimeRange(
                 start = Instant.parse("2020-08-30T08:00:00Z"),
                 end = Instant.parse("2020-08-30T10:00:00Z")
             ),
-            durationUnit = DurationUnit.MINUTES,
-            interval = 15.minutes,
-            fromDouble = { FltX(it) },
+            dateOffset = FltX.zero,
+            interval = FltX("15.0"),
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 

@@ -58,64 +58,280 @@ data class TimeWindow<V : RealNumber<V>>(
 
     companion object {
         /**
+         * 创建秒级泛型时间窗口 / Create a seconds-level generic time window
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间范围 / Time range
+         * @param dateOffset 日期偏移量 / Date offset
+         * @param continues 是否连续 / Whether continuous
+         * @param interval 时间间隔 / Time interval
+         * @param fromDouble 从 Double 转换为 V / Convert from Double to V
+         * @param toDouble 从 V 转换为 Double / Convert from V to Double
+         * @return 泛型时间窗口 / Generic time window
+         */
+        fun <V : RealNumber<V>> seconds(
+            timeWindow: TimeRange,
+            dateOffset: V,
+            continues: Boolean = true,
+            interval: V,
+            fromDouble: (Double) -> V,
+            toDouble: (V) -> Double
+        ): TimeWindow<V> {
+            return TimeWindow(
+                window = timeWindow,
+                dateOffset = toDouble(dateOffset).toDuration(DurationUnit.SECONDS),
+                continues = continues,
+                durationUnit = DurationUnit.SECONDS,
+                interval = toDouble(interval).toDuration(DurationUnit.SECONDS),
+                fromDouble = fromDouble,
+                toDouble = toDouble
+            )
+        }
+
+        /**
+         * 通过物理量创建秒级泛型时间窗口 / Create a seconds-level generic time window from quantities
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间范围 / Time range
+         * @param dateOffset 日期偏移量物理量 / Date offset quantity
+         * @param continues 是否连续 / Whether continuous
+         * @param interval 时间间隔物理量 / Time interval quantity
+         * @param fromDouble 从 Double 转换为 V / Convert from Double to V
+         * @param toDouble 从 V 转换为 Double / Convert from V to Double
+         * @return 泛型时间窗口 / Generic time window
+         */
+        fun <V : RealNumber<V>> seconds(
+            timeWindow: TimeRange,
+            dateOffset: TimeWindowValueQuantity<V>,
+            continues: Boolean = true,
+            interval: TimeWindowValueQuantity<V>,
+            fromDouble: (Double) -> V,
+            toDouble: (V) -> Double
+        ): TimeWindow<V> {
+            return seconds(
+                timeWindow = timeWindow,
+                dateOffset = dateOffset.value,
+                continues = continues,
+                interval = interval.value,
+                fromDouble = fromDouble,
+                toDouble = toDouble
+            )
+        }
+
+        /**
          * 创建秒级 Flt64 时间窗口 / Create a seconds-level Flt64 time window
          */
+        @Deprecated(
+            message = "Use generic TimeWindow.seconds with explicit numeric converters",
+            replaceWith = ReplaceWith(
+                "TimeWindow.seconds(timeWindow = timeWindow, dateOffset = dateOffset, continues = continues, interval = interval, fromDouble = { Flt64(it) }, toDouble = { it.toDouble() })"
+            )
+        )
         fun seconds(
             timeWindow: TimeRange,
             dateOffset: Flt64 = Flt64.zero,
             continues: Boolean = true,
             interval: Flt64 = Flt64.one
         ): TimeWindow<Flt64> {
-            return TimeWindow(
-                window = timeWindow,
-                dateOffset = dateOffset.toDuration(DurationUnit.SECONDS),
+            return seconds(
+                timeWindow = timeWindow,
+                dateOffset = dateOffset,
                 continues = continues,
-                durationUnit = DurationUnit.SECONDS,
-                interval = interval.toDouble().toDuration(DurationUnit.SECONDS),
+                interval = interval,
                 fromDouble = { Flt64(it) },
                 toDouble = { it.toDouble() }
+            )
+        }
+
+        /**
+         * 创建分钟级泛型时间窗口 / Create a minutes-level generic time window
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间范围 / Time range
+         * @param dateOffset 日期偏移量 / Date offset
+         * @param continues 是否连续 / Whether continuous
+         * @param interval 时间间隔 / Time interval
+         * @param fromDouble 从 Double 转换为 V / Convert from Double to V
+         * @param toDouble 从 V 转换为 Double / Convert from V to Double
+         * @return 泛型时间窗口 / Generic time window
+         */
+        fun <V : RealNumber<V>> minutes(
+            timeWindow: TimeRange,
+            dateOffset: V,
+            continues: Boolean = true,
+            interval: V,
+            fromDouble: (Double) -> V,
+            toDouble: (V) -> Double
+        ): TimeWindow<V> {
+            return TimeWindow(
+                window = timeWindow,
+                dateOffset = toDouble(dateOffset).toDuration(DurationUnit.MINUTES),
+                continues = continues,
+                durationUnit = DurationUnit.MINUTES,
+                interval = toDouble(interval).toDuration(DurationUnit.MINUTES),
+                fromDouble = fromDouble,
+                toDouble = toDouble
+            )
+        }
+
+        /**
+         * 通过物理量创建分钟级泛型时间窗口 / Create a minutes-level generic time window from quantities
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间范围 / Time range
+         * @param dateOffset 日期偏移量物理量 / Date offset quantity
+         * @param continues 是否连续 / Whether continuous
+         * @param interval 时间间隔物理量 / Time interval quantity
+         * @param fromDouble 从 Double 转换为 V / Convert from Double to V
+         * @param toDouble 从 V 转换为 Double / Convert from V to Double
+         * @return 泛型时间窗口 / Generic time window
+         */
+        fun <V : RealNumber<V>> minutes(
+            timeWindow: TimeRange,
+            dateOffset: TimeWindowValueQuantity<V>,
+            continues: Boolean = true,
+            interval: TimeWindowValueQuantity<V>,
+            fromDouble: (Double) -> V,
+            toDouble: (V) -> Double
+        ): TimeWindow<V> {
+            return minutes(
+                timeWindow = timeWindow,
+                dateOffset = dateOffset.value,
+                continues = continues,
+                interval = interval.value,
+                fromDouble = fromDouble,
+                toDouble = toDouble
             )
         }
 
         /**
          * 创建分钟级 Flt64 时间窗口 / Create a minutes-level Flt64 time window
          */
+        @Deprecated(
+            message = "Use generic TimeWindow.minutes with explicit numeric converters",
+            replaceWith = ReplaceWith(
+                "TimeWindow.minutes(timeWindow = timeWindow, dateOffset = dateOffset, continues = continues, interval = interval, fromDouble = { Flt64(it) }, toDouble = { it.toDouble() })"
+            )
+        )
         fun minutes(
             timeWindow: TimeRange,
             dateOffset: Flt64 = Flt64.zero,
             continues: Boolean = true,
             interval: Flt64 = Flt64.one
         ): TimeWindow<Flt64> {
-            return TimeWindow(
-                window = timeWindow,
-                dateOffset = dateOffset.toDuration(DurationUnit.MINUTES),
+            return minutes(
+                timeWindow = timeWindow,
+                dateOffset = dateOffset,
                 continues = continues,
-                durationUnit = DurationUnit.MINUTES,
-                interval = interval.toDouble().toDuration(DurationUnit.MINUTES),
+                interval = interval,
                 fromDouble = { Flt64(it) },
                 toDouble = { it.toDouble() }
             )
         }
 
         /**
+         * 创建小时级泛型时间窗口 / Create an hours-level generic time window
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间范围 / Time range
+         * @param dateOffset 日期偏移量 / Date offset
+         * @param continues 是否连续 / Whether continuous
+         * @param interval 时间间隔 / Time interval
+         * @param fromDouble 从 Double 转换为 V / Convert from Double to V
+         * @param toDouble 从 V 转换为 Double / Convert from V to Double
+         * @return 泛型时间窗口 / Generic time window
+         */
+        fun <V : RealNumber<V>> hours(
+            timeWindow: TimeRange,
+            dateOffset: V,
+            continues: Boolean = true,
+            interval: V,
+            fromDouble: (Double) -> V,
+            toDouble: (V) -> Double
+        ): TimeWindow<V> {
+            return TimeWindow(
+                window = timeWindow,
+                dateOffset = toDouble(dateOffset).toDuration(DurationUnit.HOURS),
+                continues = continues,
+                durationUnit = DurationUnit.HOURS,
+                interval = toDouble(interval).toDuration(DurationUnit.HOURS),
+                fromDouble = fromDouble,
+                toDouble = toDouble
+            )
+        }
+
+        /**
+         * 通过物理量创建小时级泛型时间窗口 / Create an hours-level generic time window from quantities
+         *
+         * @param V 数值类型 / Numeric type
+         * @param timeWindow 时间范围 / Time range
+         * @param dateOffset 日期偏移量物理量 / Date offset quantity
+         * @param continues 是否连续 / Whether continuous
+         * @param interval 时间间隔物理量 / Time interval quantity
+         * @param fromDouble 从 Double 转换为 V / Convert from Double to V
+         * @param toDouble 从 V 转换为 Double / Convert from V to Double
+         * @return 泛型时间窗口 / Generic time window
+         */
+        fun <V : RealNumber<V>> hours(
+            timeWindow: TimeRange,
+            dateOffset: TimeWindowValueQuantity<V>,
+            continues: Boolean = true,
+            interval: TimeWindowValueQuantity<V>,
+            fromDouble: (Double) -> V,
+            toDouble: (V) -> Double
+        ): TimeWindow<V> {
+            return hours(
+                timeWindow = timeWindow,
+                dateOffset = dateOffset.value,
+                continues = continues,
+                interval = interval.value,
+                fromDouble = fromDouble,
+                toDouble = toDouble
+            )
+        }
+
+        /**
          * 创建小时级 Flt64 时间窗口 / Create an hours-level Flt64 time window
          */
+        @Deprecated(
+            message = "Use generic TimeWindow.hours with explicit numeric converters",
+            replaceWith = ReplaceWith(
+                "TimeWindow.hours(timeWindow = timeWindow, dateOffset = dateOffset, continues = continues, interval = interval, fromDouble = { Flt64(it) }, toDouble = { it.toDouble() })"
+            )
+        )
         fun hours(
             timeWindow: TimeRange,
             dateOffset: Flt64 = Flt64.zero,
             continues: Boolean = true,
             interval: Flt64 = Flt64.one
         ): TimeWindow<Flt64> {
-            return TimeWindow(
-                window = timeWindow,
-                dateOffset = dateOffset.toDuration(DurationUnit.HOURS),
+            return hours(
+                timeWindow = timeWindow,
+                dateOffset = dateOffset,
                 continues = continues,
-                durationUnit = DurationUnit.HOURS,
-                interval = interval.toDouble().toDuration(DurationUnit.HOURS),
+                interval = interval,
                 fromDouble = { Flt64(it) },
                 toDouble = { it.toDouble() }
             )
         }
+    }
+
+    /**
+     * 转换为日历数值边界，用于仍固定 solver 数值类型的日历或 solver 内部 /
+     * Convert to a calendar numeric boundary for calendar or solver internals that still use the solver numeric type
+     *
+     * @return 日历数值时间窗口边界 / The calendar numeric time-window boundary
+     */
+    fun toFlt64Boundary(): TimeWindow<Flt64> {
+        return TimeWindow(
+            window = window,
+            continues = continues,
+            durationUnit = durationUnit,
+            dateOffset = dateOffset,
+            interval = interval,
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
+        )
     }
 
     /** 将持续时间转换为 V 数值 / Convert duration to V numeric value */
@@ -200,8 +416,8 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /** 将 V 数值转换为持续时间 / Convert V numeric value to duration */
     val V.duration: Duration get() = toDouble(this).toDuration(durationUnit)
-    val Int64.duration: Duration get() = this.toFlt64().toDouble().toDuration(durationUnit)
-    val UInt64.duration: Duration get() = this.toFlt64().toDouble().toDuration(durationUnit)
+    val Int64.duration: Duration get() = timeWindowValue().toDuration(durationUnit)
+    val UInt64.duration: Duration get() = timeWindowValue().toDuration(durationUnit)
 
     /**
      * 从 V 数值创建持续时间 / Create a duration from a V value
@@ -220,8 +436,8 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /** 将 V 数值转换为时间点 / Convert V numeric value to an instant */
     val V.instant: Instant get() = window.start + toDouble(this).toDuration(durationUnit)
-    val Int64.instant: Instant get() = window.start + this.toFlt64().toDouble().toDuration(durationUnit)
-    val UInt64.instant: Instant get() = window.start + this.toFlt64().toDouble().toDuration(durationUnit)
+    val Int64.instant: Instant get() = window.start + timeWindowValue().toDuration(durationUnit)
+    val UInt64.instant: Instant get() = window.start + timeWindowValue().toDuration(durationUnit)
 
     /**
      * 从 V 数值创建时间点 / Create an instant from a V value
@@ -266,6 +482,10 @@ data class TimeWindow<V : RealNumber<V>>(
             }
         }
     }
+
+    private fun Int64.timeWindowValue() = toLong().toDouble()
+
+    private fun UInt64.timeWindowValue() = toLong().toDouble()
 
     /** 上级时间窗口 / The upper-level time window */
     val upper: TimeWindow<V> by lazy {
@@ -585,4 +805,8 @@ data class TimeWindow<V : RealNumber<V>>(
 }
 
 /** Flt64 时间窗口兼容别名 / Flt64 time window compatibility alias */
+@Deprecated(
+    message = "Use TimeWindow with an explicit numeric type directly",
+    replaceWith = ReplaceWith("TimeWindow<Flt64>")
+)
 typealias Flt64TimeWindow = TimeWindow<Flt64>

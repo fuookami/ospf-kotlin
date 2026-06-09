@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractUnplannedTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -28,7 +30,7 @@ class LabelGenerateBunchTest {
     private val start = Instant.parse("2024-01-01T08:00:00Z")
 
     @Test
-    fun legacyLabelShouldGenerateBunchFromTraceTasks() {
+    fun labelVShouldGenerateBunchFromTraceTasksWithSolverValue() {
         val first = task(
             id = "task-1",
             start = start
@@ -37,7 +39,7 @@ class LabelGenerateBunchTest {
             id = "task-2",
             start = start + 1.hours
         )
-        val endLabel: Flt64Label<TestTask, Executor, AssignmentPolicy<Executor>> = flt64EndLabel(first, second)
+        val endLabel = solverEndLabel(first, second)
 
         val bunch = endLabel.generateBunch(
             iteration = Int64(2),
@@ -50,14 +52,14 @@ class LabelGenerateBunchTest {
                 assertEquals(executor, actualExecutor)
                 assertEquals(null, lastTask)
                 assertEquals(listOf(first, second), tasks)
-                flt64Cost(Flt64(tasks.size.toDouble()))
+                solverCost(Flt64(tasks.size.toDouble()))
             }
         )
 
         assertNotNull(bunch)
         assertEquals(listOf(first, second), bunch.tasks)
         assertEquals(Int64(2), bunch.iteration)
-        assertTrue(bunch.cost.sum!! eq Flt64(2.0))
+        assertTrue(bunch.cost.costSum!!.value eq Flt64(2.0))
     }
 
     @Test
@@ -88,7 +90,7 @@ class LabelGenerateBunchTest {
         assertNotNull(bunch)
         assertEquals(listOf(first, second), bunch.tasks)
         assertEquals(Int64(3), bunch.iteration)
-        assertTrue(bunch.cost.sum!! eq FltX("10.0"))
+        assertTrue(bunch.cost.costSum!!.value eq FltX("10.0"))
     }
 
     private fun task(id: String, start: Instant): TestTask {
@@ -105,29 +107,29 @@ class LabelGenerateBunchTest {
         )
     }
 
-    private fun flt64EndLabel(
+    private fun solverEndLabel(
         first: TestTask,
         second: TestTask
     ): LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64> {
         val root = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
-            cost = flt64Cost(Flt64.zero),
+            cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             node = RootNode
         )
         val firstLabel = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
-            cost = flt64Cost(Flt64.zero),
+            cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             prevLabel = root,
             task = first
         )
         val secondLabel = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
-            cost = flt64Cost(Flt64.zero),
+            cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             prevLabel = firstLabel,
             task = second
         )
         return LabelV(
-            cost = flt64Cost(Flt64.zero),
+            cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             prevLabel = secondLabel,
             node = EndNode
@@ -164,12 +166,12 @@ class LabelGenerateBunchTest {
         )
     }
 
-    private fun flt64Cost(value: Flt64): ImmutableCost<Flt64> {
+    private fun solverCost(value: Flt64): ImmutableCost<Flt64> {
         return ImmutableCost(
             items = listOf(
                 CostItem(
                     tag = "total",
-                    value = value
+                    costQuantity = Quantity(value, NoneUnit)
                 )
             )
         )
@@ -180,7 +182,7 @@ class LabelGenerateBunchTest {
             items = listOf(
                 CostItem(
                     tag = "total",
-                    value = value
+                    costQuantity = Quantity(value, NoneUnit)
                 )
             )
         )

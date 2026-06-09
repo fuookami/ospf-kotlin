@@ -1,6 +1,4 @@
 @file:Suppress("DEPRECATION")
-
-/** 生产任务模型 / Production task model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -8,7 +6,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -114,7 +111,11 @@ data class MaterialDemand<V>(
 }
 
 /** Flt64 材料需求类型别名 / Flt64 material demand type alias */
-@Deprecated("Use MaterialDemand<Flt64> directly") typealias Flt64MaterialDemand = MaterialDemand<Flt64>
+@Deprecated(
+    message = "Use MaterialDemand<Flt64> directly",
+    replaceWith = ReplaceWith("MaterialDemand<Flt64>")
+)
+typealias Flt64MaterialDemand = MaterialDemand<Flt64>
 
 /**
  * 材料储备 / Material reserves
@@ -192,7 +193,11 @@ open class MaterialReserves<V>(
 }
 
 /** Flt64 材料储备类型别名 / Flt64 material reserves type alias */
-@Deprecated("Use MaterialReserves<Flt64> directly") typealias Flt64MaterialReserves = MaterialReserves<Flt64>
+@Deprecated(
+    message = "Use MaterialReserves<Flt64> directly",
+    replaceWith = ReplaceWith("MaterialReserves<Flt64>")
+)
+typealias Flt64MaterialReserves = MaterialReserves<Flt64>
 
 /**
  * 生产任务接口 / Production task interface
@@ -218,11 +223,13 @@ interface ProductionTask<
         replaceWith = ReplaceWith("produceQuantityByProduct")
     )
     val produce: Map<P, V>
+        get() = produceQuantityByProduct.mapValues { (_, quantity) -> quantity.value }
     @Deprecated(
         message = "Use the Quantity-typed property instead",
         replaceWith = ReplaceWith("consumptionQuantityByMaterial")
     )
     val consumption: Map<C, V>
+        get() = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.value }
 
     /** 生产量物理量映射 / Produce quantity map with units */
     val produceQuantityByProduct: Map<P, MaterialQuantity<V>>
@@ -256,7 +263,11 @@ interface ProductionTask<
 }
 
 /** Flt64 生产任务类型别名 / Flt64 production task type alias */
-@Deprecated("Use ProductionTask<E, A, P, C, Flt64> directly") typealias Flt64ProductionTask<E, A, P, C> = ProductionTask<E, A, P, C, Flt64>
+@Deprecated(
+    message = "Use ProductionTask<E, A, P, C, Flt64> directly",
+    replaceWith = ReplaceWith("ProductionTask<E, A, P, C, Flt64>")
+)
+typealias Flt64ProductionTask<E, A, P, C> = ProductionTask<E, A, P, C, Flt64>
 
 private fun <V : RealNumber<V>> AbstractTaskBunch<*, *, *, V>.quantityZero(): V {
     for (task in tasks) {
@@ -281,33 +292,9 @@ private fun <V : RealNumber<V>> List<V>.sumOrZero(zero: V): V {
     return fold(zero) { acc, value -> acc + value }
 }
 
-/**
- * 读取 Flt64 兼容生产量 / Read Flt64-compatible produce quantity
- *
- * @param P 生产材料类型 / Production material type
- * @param product 产品 / Product
- * @return 生产量 / Produce quantity
- */
-fun <P : AbstractMaterial> ProductionTask<*, *, *, *, *>.flt64Produce(product: P): Flt64? {
-    return produce.entries.firstOrNull { it.key == product }?.value as? Flt64
-}
-
-/**
- * 读取非零 Flt64 兼容生产物料 / Read non-zero Flt64-compatible produce materials
- *
- * @param P 生产材料类型 / Production material type
- * @return 非零生产物料 / Non-zero produce materials
- */
-fun <P : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroFlt64ProduceMaterials(): List<P> {
-    return produce.mapNotNull { (product, quantity) ->
-        val value = quantity as? Flt64 ?: return@mapNotNull null
-        if (value neq Flt64.zero) {
-            @Suppress("UNCHECKED_CAST")
-            product as P
-        } else {
-            null
-        }
-    }
+private fun Quantity<*>.isNonZero(): Boolean {
+    val realValue = value as? RealNumber<*> ?: return false
+    return realValue != realValue.constants.zero
 }
 
 /**
@@ -317,39 +304,10 @@ fun <P : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroFlt64ProduceMate
  * @return 非零生产物料 / Non-zero produce materials
  */
 fun <P : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroProduceMaterials(): List<P> {
-    return produce.mapNotNull { (product, quantity) ->
-        if (quantity.toFlt64() neq Flt64.zero) {
+    return produceQuantityByProduct.mapNotNull { (product, quantity) ->
+        if (quantity.isNonZero()) {
             @Suppress("UNCHECKED_CAST")
             product as P
-        } else {
-            null
-        }
-    }
-}
-
-/**
- * 读取 Flt64 兼容消耗量 / Read Flt64-compatible consumption quantity
- *
- * @param C 消耗材料类型 / Consumption material type
- * @param material 材料 / Material
- * @return 消耗量 / Consumption quantity
- */
-fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.flt64Consumption(material: C): Flt64? {
-    return consumption.entries.firstOrNull { it.key == material }?.value as? Flt64
-}
-
-/**
- * 读取非零 Flt64 兼容消耗物料 / Read non-zero Flt64-compatible consumption materials
- *
- * @param C 消耗材料类型 / Consumption material type
- * @return 非零消耗物料 / Non-zero consumption materials
- */
-fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroFlt64ConsumptionMaterials(): List<C> {
-    return consumption.mapNotNull { (material, quantity) ->
-        val value = quantity as? Flt64 ?: return@mapNotNull null
-        if (value neq Flt64.zero) {
-            @Suppress("UNCHECKED_CAST")
-            material as C
         } else {
             null
         }
@@ -363,8 +321,8 @@ fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroFlt64Consumption
  * @return 非零消耗物料 / Non-zero consumption materials
  */
 fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroConsumptionMaterials(): List<C> {
-    return consumption.mapNotNull { (material, quantity) ->
-        if (quantity.toFlt64() neq Flt64.zero) {
+    return consumptionQuantityByMaterial.mapNotNull { (material, quantity) ->
+        if (quantity.isNonZero()) {
             @Suppress("UNCHECKED_CAST")
             material as C
         } else {
@@ -383,21 +341,17 @@ fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroConsumptionMater
  * @param product 产品 / Product
  * @return 生产量 / Produce quantity
  */
+@Deprecated(
+    message = "Use produceV or produceQuantityV instead",
+    replaceWith = ReplaceWith("produceV(product)")
+)
 fun <
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
         P : AbstractMaterial
         > AbstractTaskBunch<T, E, A, Flt64>.produce(product: P): Flt64 {
-    return tasks.mapNotNull {
-        when (it) {
-            is ProductionTask<*, *, *, *, *> -> it.flt64Produce(product)
-
-            else -> {
-                null
-            }
-        }
-    }.sumOf { it }
+    return produceV(product)
 }
 
 /**
@@ -466,21 +420,17 @@ fun <
  * @param material 材料 / Material
  * @return 消耗量 / Consumption quantity
  */
+@Deprecated(
+    message = "Use consumptionV or consumptionQuantityV instead",
+    replaceWith = ReplaceWith("consumptionV(material)")
+)
 fun <
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
         C : AbstractMaterial
         > AbstractTaskBunch<T, E, A, Flt64>.consumption(material: C): Flt64 {
-    return tasks.mapNotNull {
-        when (it) {
-            is ProductionTask<*, *, *, *, *> -> it.flt64Consumption(material)
-
-            else -> {
-                null
-            }
-        }
-    }.sumOf { it }
+    return consumptionV(material)
 }
 
 /**

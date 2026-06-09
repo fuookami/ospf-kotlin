@@ -1,6 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/** 资源模型 / Resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
@@ -380,7 +378,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantity
 ): ResourceQuantity<V>? {
     val value = (this as IntermediateSymbol<Flt64>).evaluate(
         tokenTable = model.tokens,
-        converter = SchedulingSolverValueAdapter.Flt64,
+        converter = resourceSolverValueAdapter,
         zeroIfNone = true
     ) ?: toLinearPolynomial().constant
     return Quantity(adapter.intoValue(value), unit)
@@ -414,15 +412,18 @@ abstract class AbstractResourceUsage<
                         if (slot.resourceCapacity.overEnabled) {
                             val slack = resourceSlack(
                                 x = quantity[slot],
-                                threshold = slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                                threshold = slot.resourceCapacity.solverUpperBound(),
                                 type = UContinuous,
                                 withNegative = false,
                                 withPositive = true,
                                 constraint = false,
                                 name = "${name}_over_quantity_$slot"
                             )
-                            slot.resourceCapacity.overQuantityValue?.value?.let {
-                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.last().range, it.toFlt64())
+                            slot.resourceCapacity.overQuantityValue?.let {
+                                setResourceSlackUpperBoundAsFlt64(
+                                    range = slack.helperVariables.last().range,
+                                    upperBound = slot.resourceCapacity.solverOverQuantity()
+                                )
                             }
                             slack
                         } else {
@@ -456,15 +457,18 @@ abstract class AbstractResourceUsage<
                         if (slot.resourceCapacity.lessEnabled) {
                             val slack = resourceSlack(
                                 x = quantity[slot],
-                                threshold = slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                                threshold = slot.resourceCapacity.solverLowerBound(),
                                 type = UContinuous,
                                 withNegative = true,
                                 withPositive = false,
                                 constraint = false,
                                 name = "${name}_less_quantity_$slot"
                             )
-                            slot.resourceCapacity.lessQuantityValue?.value?.let {
-                                setResourceSlackUpperBoundAsFlt64(slack.helperVariables.first().range, it.toFlt64())
+                            slot.resourceCapacity.lessQuantityValue?.let {
+                                setResourceSlackUpperBoundAsFlt64(
+                                    range = slack.helperVariables.first().range,
+                                    upperBound = slot.resourceCapacity.solverLessQuantity()
+                                )
                             }
                             slack
                         } else {

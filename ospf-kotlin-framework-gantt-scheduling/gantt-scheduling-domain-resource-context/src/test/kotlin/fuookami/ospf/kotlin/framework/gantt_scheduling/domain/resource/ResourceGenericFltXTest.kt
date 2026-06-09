@@ -6,7 +6,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.DurationUnit
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -23,6 +23,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Exe
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResourceTimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZero
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.solverResourceQuantity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -30,8 +31,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
- * Tests verifying that the resource module's V-generic domain paths
- * work correctly with FltX (arbitrary-precision decimal).
+ * 验证资源模块的 V 泛型领域路径支持 FltX。
+ * Tests verifying that the resource module's V-generic domain paths support FltX.
  */
 class ResourceGenericFltXTest {
 
@@ -40,21 +41,27 @@ class ResourceGenericFltXTest {
         end = Instant.parse("2024-01-01T18:00:00Z")
     )
 
-    // ---- resourceQuantityZero ----
+    // ---- resourceQuantityZero / 资源数量零值 ----
 
     @Test
     fun resourceQuantityZeroShouldResolveFltXZeroFromUpperBound() {
         val range = ValueRange(FltX("0"), FltX("100"), Interval.Closed, Interval.Closed, FltX).value!!
-        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range)
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit)
+        )
         val zero = resourceQuantityZero(listOf(cap))
         assertTrue(zero eq FltX.zero)
     }
 
     @Test
     fun resourceQuantityZeroShouldResolveFltXZeroFromLowerBound() {
-        // Upper bound is INFINITE (no finite value), so zero comes from lower bound
+        // 上界不可用时从下界取得数值类型零值 / Use the lower bound when the upper bound is unavailable.
         val range = ValueRange(FltX("5"), FltX("5"), Interval.Closed, Interval.Closed, FltX).value!!
-        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range)
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit)
+        )
         val zero = resourceQuantityZero(listOf(cap))
         assertTrue(zero.constants.zero eq FltX("0"))
     }
@@ -63,16 +70,25 @@ class ResourceGenericFltXTest {
     fun resourceQuantityZeroShouldWorkWithMultipleCapacitiesFltX() {
         val range1 = ValueRange(FltX("10"), FltX("50"), Interval.Closed, Interval.Closed, FltX).value!!
         val range2 = ValueRange(FltX("0"), FltX("200"), Interval.Closed, Interval.Closed, FltX).value!!
-        val cap1 = ResourceCapacity<FltX>(time = timeRange, quantity = range1)
-        val cap2 = ResourceCapacity<FltX>(time = timeRange, quantity = range2)
+        val cap1 = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range1, NoneUnit)
+        )
+        val cap2 = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range2, NoneUnit)
+        )
         val zero = resourceQuantityZero(listOf(cap1, cap2))
         assertTrue(zero eq FltX("0"))
     }
 
     @Test
-    fun resourceQuantityZeroShouldWorkWithFlt64() {
+    fun resourceQuantityZeroShouldWorkWithSolverValue() {
         val range = ValueRange(Flt64(0.0), Flt64(100.0), Interval.Closed, Interval.Closed, Flt64).value!!
-        val cap = ResourceCapacity<Flt64>(time = timeRange, quantity = range)
+        val cap = ResourceCapacity<Flt64>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit)
+        )
         val zero = resourceQuantityZero(listOf(cap))
         assertTrue(zero eq Flt64.zero)
     }
@@ -88,9 +104,9 @@ class ResourceGenericFltXTest {
         ).value!!
         val cap = ResourceCapacity<FltX>(
             time = timeRange,
-            quantity = range,
-            lessQuantity = FltX("2.5"),
-            overQuantity = FltX("7.5")
+            quantityRangeValue = Quantity(range, NoneUnit),
+            lessQuantityValue = Quantity(FltX("2.5"), NoneUnit),
+            overQuantityValue = Quantity(FltX("7.5"), NoneUnit)
         )
 
         val quantityRange = cap.quantityRange()
@@ -122,9 +138,9 @@ class ResourceGenericFltXTest {
             overQuantityValue = Quantity(FltX("7.5"), NoneUnit)
         )
 
-        assertTrue(cap.quantity.lowerBound.value eq FltX("0"))
-        assertTrue(cap.lessQuantity!! eq FltX("2.5"))
-        assertTrue(cap.overQuantity!! eq FltX("7.5"))
+        assertTrue(cap.quantityRangeValue.value.lowerBound.value eq FltX("0"))
+        assertTrue(cap.lessQuantityValue!!.value eq FltX("2.5"))
+        assertTrue(cap.overQuantityValue!!.value eq FltX("7.5"))
         assertEquals(NoneUnit, cap.quantityRangeValue.unit)
         assertEquals(NoneUnit, cap.lessQuantityValue!!.unit)
         assertEquals(NoneUnit, cap.overQuantityValue!!.unit)
@@ -139,7 +155,10 @@ class ResourceGenericFltXTest {
             ubInterval = Interval.Closed,
             constants = FltX
         ).value!!
-        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range)
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit)
+        )
         val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
             id = "quantity-exec",
             name = "Quantity Exec",
@@ -159,12 +178,16 @@ class ResourceGenericFltXTest {
         assertTrue(initialQuantity.value eq FltX("12.5"))
     }
 
-    // ---- StorageResourceTimeSlot FltX ----
+    // ---- StorageResourceTimeSlot FltX / FltX 存储资源时间槽 ----
 
     @Test
     fun storageResourceTimeSlotRelationToWithFltX() {
         val range = ValueRange(FltX("0"), FltX("100"), Interval.Closed, Interval.Closed, FltX).value!!
-        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range, interval = 2.hours)
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit),
+            interval = 2.hours
+        )
         val resource = object : StorageResource<ResourceCapacity<FltX>, FltX>(
             id = "test-storage",
             name = "Test Storage",
@@ -180,10 +203,13 @@ class ResourceGenericFltXTest {
         }
 
         val tw = TimeWindow<FltX>(
-            window = timeRange, continues = true,
-            durationUnit = DurationUnit.HOURS, dateOffset = Duration.ZERO,
+            window = timeRange,
+            continues = true,
+            durationUnit = DurationUnit.HOURS,
+            dateOffset = Duration.ZERO,
             interval = 2.hours,
-            fromDouble = { FltX(it.toString()) }, toDouble = { it.toDouble() }
+            fromDouble = { FltX(it.toString()) },
+            toDouble = { it.toDouble() }
         )
         val slot = StorageResourceTimeSlot(
             timeWindow = tw,
@@ -193,17 +219,21 @@ class ResourceGenericFltXTest {
             indexInRule = UInt64.zero
         )
 
-        // relationTo with null task returns initialQuantity.constants.zero
+        // 空任务返回初始数量的零值 / Null task returns the initial-quantity zero value.
         val relation = slot.relationTo<Executor, AssignmentPolicy<Executor>>(null, null)
         assertTrue(relation eq FltX("0"))
     }
 
-    // ---- ExecutionResourceTimeSlot FltX ----
+    // ---- ExecutionResourceTimeSlot FltX / FltX 执行资源时间槽 ----
 
     @Test
     fun executionResourceTimeSlotUsedByWithFltX() {
         val range = ValueRange(FltX("0"), FltX("50"), Interval.Closed, Interval.Closed, FltX).value!!
-        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range, interval = 1.hours)
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit),
+            interval = 1.hours
+        )
         val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
             id = "test-exec",
             name = "Test Exec",
@@ -221,17 +251,21 @@ class ResourceGenericFltXTest {
             indexInRule = UInt64.zero
         )
 
-        // relationTo with null task returns initialQuantity.constants.zero
+        // 空任务返回初始数量的零值 / Null task returns the initial-quantity zero value.
         val relation = slot.relationTo<Executor, AssignmentPolicy<Executor>>(null, null)
         assertTrue(relation eq FltX("0"))
     }
 
-    // ---- ConnectionResourceTimeSlot FltX ----
+    // ---- ConnectionResourceTimeSlot FltX / FltX 连接资源时间槽 ----
 
     @Test
     fun connectionResourceTimeSlotUsedByWithFltX() {
         val range = ValueRange(FltX("0"), FltX("200"), Interval.Closed, Interval.Closed, FltX).value!!
-        val cap = ResourceCapacity<FltX>(time = timeRange, quantity = range, interval = 1.hours)
+        val cap = ResourceCapacity<FltX>(
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit),
+            interval = 1.hours
+        )
         val resource = object : ConnectionResource<ResourceCapacity<FltX>, FltX>(
             id = "test-conn",
             name = "Test Conn",
@@ -249,46 +283,31 @@ class ResourceGenericFltXTest {
             indexInRule = UInt64.zero
         )
 
-        // relationTo with null tasks returns usedBy(null, null) = 1.5
+        // 空任务返回 usedBy(null, null) 的结果 / Null tasks return the usedBy(null, null) result.
         val relation = slot.relationTo<Executor, AssignmentPolicy<Executor>>(null, null)
         assertTrue(relation eq FltX("1.5"))
     }
 
-    // ---- V to Flt64 conversion boundary ----
+    // ---- V to solver conversion boundary / V 到 solver 转换边界 ----
 
     @Test
-    fun fltXToFlt64ConversionAtSolverBoundary() {
+    fun fltXShouldConvertAtSolverBoundary() {
         val range = ValueRange(FltX("0"), FltX("100"), Interval.Closed, Interval.Closed, FltX).value!!
         val cap = ResourceCapacity<FltX>(
-            time = timeRange, quantity = range,
-            lessQuantity = FltX("5.0"), overQuantity = FltX("10.0")
+            time = timeRange,
+            quantityRangeValue = Quantity(range, NoneUnit),
+            lessQuantityValue = Quantity(FltX("5.0"), NoneUnit),
+            overQuantityValue = Quantity(FltX("10.0"), NoneUnit)
         )
 
-        // Verify V→Flt64 conversion at boundary
-        val ubFlt64 = cap.quantity.upperBound.value.unwrap().toFlt64()
-        assertTrue(ubFlt64 eq Flt64(100.0))
-        val lbFlt64 = cap.quantity.lowerBound.value.unwrap().toFlt64()
-        assertTrue(lbFlt64 eq Flt64(0.0))
-        val lessFlt64 = cap.lessQuantity!!.toFlt64()
-        assertTrue(lessFlt64 eq Flt64(5.0))
-        val overFlt64 = cap.overQuantity!!.toFlt64()
-        assertTrue(overFlt64 eq Flt64(10.0))
+        val solverUpperBound = cap.quantityRangeValue.value.upperBound.value.unwrap().solverResourceQuantity()
+        assertTrue(solverUpperBound eq Flt64(100.0))
+        val solverLowerBound = cap.quantityRangeValue.value.lowerBound.value.unwrap().solverResourceQuantity()
+        assertTrue(solverLowerBound eq Flt64(0.0))
+        val solverLessQuantity = cap.lessQuantityValue!!.value.solverResourceQuantity()
+        assertTrue(solverLessQuantity eq Flt64(5.0))
+        val solverOverQuantity = cap.overQuantityValue!!.value.solverResourceQuantity()
+        assertTrue(solverOverQuantity eq Flt64(10.0))
     }
 
-    // ---- Flt64 compat with existing ResourceCapacity ----
-
-    @Test
-    fun resourceCapacityFlt64Compat() {
-        val range = ValueRange(Flt64(0.0), Flt64(100.0), Interval.Closed, Interval.Closed, Flt64).value!!
-        val cap = ResourceCapacity<Flt64>(
-            time = timeRange, quantity = range,
-            lessQuantity = Flt64(5.0), overQuantity = Flt64(10.0),
-            interval = 2.hours, name = "flt64-compat"
-        )
-
-        assertTrue(cap.quantity.lowerBound.value eq Flt64(0.0))
-        assertTrue(cap.quantity.upperBound.value eq Flt64(100.0))
-        assertTrue(cap.lessQuantity!! eq Flt64(5.0))
-        assertTrue(cap.overQuantity!! eq Flt64(10.0))
-    }
 }

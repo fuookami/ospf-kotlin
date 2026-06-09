@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.flatMap
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -172,7 +171,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                                     if (column.slotIndex == s) {
                                         val amount = column.amountFor(action)
                                         if (amount > UInt64.zero) {
-                                            val coefficient = unitOperationTime.toFlt64() * Flt64(amount.toLong().toDouble())
+                                            val coefficient = unitOperationTime.solverCapacityCoefficient() * amount.solverCapacityAmount()
                                             poly += LinearMonomial(coefficient, executorVar[iterIdx, colIdx])
                                         }
                                     }
@@ -416,7 +415,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                         } else {
                             timeWindow.valueOf(timeWindow.interval)
                         }
-                        val coefficient = unitOperationTime.toFlt64() * Flt64(amount.toLong().toDouble())
+                        val coefficient = unitOperationTime.solverCapacityCoefficient() * amount.solverCapacityAmount()
                         operationTime[actionIndex, column.slotIndex].asMutable() += LinearMonomial(coefficient, variable)
                     }
                 }
@@ -442,7 +441,10 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
                     if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
                         continue
                     }
-                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(column.columnCost.value.toFlt64(), executorVar[iterIdx, colIdx])
+                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(
+                        column.columnCost.value.solverCapacityCoefficient(),
+                        executorVar[iterIdx, colIdx]
+                    )
                 }
             }
         }
@@ -506,7 +508,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         // 从 operationTime 计算执行器产能
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
-                val capValue = capacity[e, s].evaluate(model.tokens, SchedulingSolverValueAdapter.Flt64)
+                val capValue = capacity[e, s].evaluate(model.tokens, capacitySolverValueAdapter)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
                     timeWindow.durationOf(timeWindow.fromDouble(capValue.toDouble()))
                 } else {

@@ -1,6 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/** 存储资源模型 / Storage resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -21,7 +19,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -310,7 +307,7 @@ abstract class AbstractStorageResourceUsage<
                     acc + (elem as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()
                 }
                 LinearExpressionSymbol(
-                    polynomial = LinearPolynomial(emptyList(), fixedSupply.toFlt64()) + executorSum,
+                    polynomial = LinearPolynomial(emptyList(), fixedSupply.solverResourceQuantity()) + executorSum,
                     name = "${name}_supply_${resource}_${slot}"
                 )
             }
@@ -336,7 +333,7 @@ abstract class AbstractStorageResourceUsage<
                     val slot = timeSlots[s]
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
-                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity().value.toFlt64()) +
+                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.solverInitialQuantity()) +
                         ((/* unchecked */ supply[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial() -
                         ((/* unchecked */ cost[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial()
                     LinearExpressionSymbol(
@@ -345,12 +342,7 @@ abstract class AbstractStorageResourceUsage<
                     )
                 }
                 for (slot in timeSlots) {
-                    quantity[slot].range.set(
-                        ValueRange(
-                            slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero),
-                            slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                        ).value!!
-                    )
+                    quantity[slot].range.set(slot.resourceCapacity.solverValueRange())
                 }
             }
             when (val result = model.add(quantity)) {
@@ -559,7 +551,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                 val time = TimeRange(timeWindow.start, slot.end)
                 val fixedCost = resource.fixedCostIn(time)
                 LinearExpressionSymbol(
-                    constant = fixedCost.toFlt64(),
+                    constant = fixedCost.solverResourceQuantity(),
                     name = "${name}_cost_${resource}_${slot}"
                 )
             }
@@ -611,7 +603,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                             if (thisTasks.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((task, supplyQuantity) in thisTasks) {
-                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.toFlt64(), xi[task])
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.solverResourceQuantity(), xi[task])
                                 }
                             }
                         }
@@ -635,7 +627,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                         if (thisTasks.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((task, costQuantity) in thisTasks) {
-                                cost[r, t].asMutable() += LinearMonomial(costQuantity.toFlt64(), xi[task])
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity.solverResourceQuantity(), xi[task])
                             }
                         }
                     }
@@ -751,7 +743,7 @@ class BunchSchedulingStorageResourceUsage<
                 val time = TimeRange(timeWindow.start, slot.end)
                 val fixedCost = resource.fixedCostIn(time)
                 LinearExpressionSymbol(
-                    constant = fixedCost.toFlt64(),
+                    constant = fixedCost.solverResourceQuantity(),
                     name = "${name}_cost_${resource}_${slot}"
                 )
             }
@@ -808,7 +800,7 @@ class BunchSchedulingStorageResourceUsage<
                             if (thisBunches.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((bunch, supplyQuantity) in thisBunches) {
-                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.toFlt64(), xi[bunch])
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.solverResourceQuantity(), xi[bunch])
                                 }
                             }
                         }
@@ -833,7 +825,7 @@ class BunchSchedulingStorageResourceUsage<
                         if (thisBunches.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((bunch, costQuantity) in thisBunches) {
-                                cost[r, t].asMutable() += LinearMonomial(costQuantity.toFlt64(), xi[bunch])
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity.solverResourceQuantity(), xi[bunch])
                             }
                         }
                     }

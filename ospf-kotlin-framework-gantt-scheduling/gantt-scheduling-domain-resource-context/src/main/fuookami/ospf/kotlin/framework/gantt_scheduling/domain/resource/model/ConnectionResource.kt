@@ -1,6 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/** 连接资源模型 / Connection resource model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
@@ -22,7 +20,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -359,17 +356,12 @@ class BunchSchedulingConnectionResourceUsage<
                 ) { s, _ ->
                     val slot = timeSlots[s]
                     LinearExpressionSymbol(
-                        constant = slot.resource.initialQuantity().value.toFlt64(),
+                        constant = slot.resource.solverInitialQuantity(),
                         name = "${name}_quantity_${slot}"
                     )
                 }
                 for (slot in timeSlots) {
-                    quantity[slot].range.set(
-                        ValueRange(
-                            slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero),
-                            slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                        ).value!!
-                    )
+                    quantity[slot].range.set(slot.resourceCapacity.solverValueRange())
                 }
             }
             when (val result = model.add(quantity)) {
@@ -411,7 +403,7 @@ class BunchSchedulingConnectionResourceUsage<
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
                     quantity[slot].asMutable() += LinearMonomial(
-                        slot.resource.usedQuantityQuantity(bunch, slot.time).value.toFlt64(),
+                        slot.resource.usedQuantityQuantity(bunch, slot.time).value.solverResourceQuantity(),
                         xi[bunch]
                     )
                 }

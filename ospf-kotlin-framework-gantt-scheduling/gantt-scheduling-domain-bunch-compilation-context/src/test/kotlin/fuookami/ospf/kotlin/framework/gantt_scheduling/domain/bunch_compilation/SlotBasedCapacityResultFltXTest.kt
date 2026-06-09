@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -39,11 +39,11 @@ private object StubAction : ProductionAction {
     override val name = "stub"
     override val executor = Executor("e1", "executor-1")
     override val discrete = false
-    override fun unitCapacity(timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+    override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
         throw UnsupportedOperationException("stub")
     override fun unitCost(time: Instant) =
         throw UnsupportedOperationException("stub")
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<fuookami.ospf.kotlin.math.algebra.number.Flt64>) =
+    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
         throw UnsupportedOperationException("stub")
 }
 
@@ -55,7 +55,7 @@ class SlotBasedCapacityResultFltXTest {
     private val adapter = GenericSolverValueAdapter(FltX)
 
     @Test
-    fun flt64CapacityIntermediateValuesShouldConvertToGenericQuantityValues() {
+    fun solverCapacityIntermediateValuesShouldConvertToGenericQuantityValues() {
         val result = SlotBasedCapacityResult<ProductionAction, String, String, Flt64>(
             slot = slot,
             slotIndex = 0,
@@ -72,7 +72,7 @@ class SlotBasedCapacityResultFltXTest {
 
         val generic = intermediate.toGeneric(adapter)
 
-        assertTrue(generic.results[slot]!!.totalCost eq FltX("12.5"))
+        assertTrue(generic.results[slot]!!.totalCostQuantityValue.value eq FltX("12.5"))
         assertTrue(generic.produceQuantity(slot, productA)!!.value eq FltX("100.0"))
         assertTrue(generic.consumptionQuantity(slot, materialB)!!.value eq FltX("50.0"))
         assertTrue(generic.resourceUsageQuantity(slot, resourceC)!!.value eq FltX("75.5"))
@@ -93,16 +93,16 @@ class SlotBasedCapacityResultFltXTest {
                     duration = 2.hours
                 )
             ),
-            totalCost = FltX("12.50"),
-            produceByProduct = mapOf(productA to FltX("100.0")),
-            consumptionByMaterial = mapOf(materialB to FltX("50.0")),
-            resourceUsageByResource = mapOf(resourceC to FltX("75.5"))
+            totalCostQuantityValue = Quantity(FltX("12.50"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("100.0"), NoneUnit)),
+            consumptionQuantityByMaterial = mapOf(materialB to Quantity(FltX("50.0"), NoneUnit)),
+            resourceUsageQuantityByResource = mapOf(resourceC to Quantity(FltX("75.5"), NoneUnit))
         )
 
-        assertTrue(result.totalCost eq FltX("12.50"))
-        assertTrue(result.produceByProduct[productA]!! eq FltX("100.0"))
-        assertTrue(result.consumptionByMaterial[materialB]!! eq FltX("50.0"))
-        assertTrue(result.resourceUsageByResource[resourceC]!! eq FltX("75.5"))
+        assertTrue(result.totalCostQuantityValue.value eq FltX("12.50"))
+        assertTrue(result.produceQuantityByProduct[productA]!!.value eq FltX("100.0"))
+        assertTrue(result.consumptionQuantityByMaterial[materialB]!!.value eq FltX("50.0"))
+        assertTrue(result.resourceUsageQuantityByResource[resourceC]!!.value eq FltX("75.5"))
         assertEquals(1, result.actionAllocations.size)
         assertEquals(0, result.slotIndex)
     }
@@ -119,14 +119,14 @@ class SlotBasedCapacityResultFltXTest {
             resourceUsageQuantityByResource = mapOf(resourceC to Quantity(FltX("75.5"), NoneUnit))
         )
 
-        assertTrue(result.totalCost eq FltX("12.50"))
+        assertTrue(result.totalCostQuantityValue.value eq FltX("12.50"))
         assertEquals(NoneUnit, result.totalCostQuantityValue.unit)
         assertEquals(NoneUnit, result.totalCostQuantity().unit)
-        assertTrue(result.produceByProduct[productA]!! eq FltX("100.0"))
+        assertTrue(result.produceQuantityByProduct[productA]!!.value eq FltX("100.0"))
         assertEquals(NoneUnit, result.produceQuantityByProduct[productA]!!.unit)
-        assertTrue(result.consumptionByMaterial[materialB]!! eq FltX("50.0"))
+        assertTrue(result.consumptionQuantityByMaterial[materialB]!!.value eq FltX("50.0"))
         assertEquals(NoneUnit, result.consumptionQuantityByMaterial[materialB]!!.unit)
-        assertTrue(result.resourceUsageByResource[resourceC]!! eq FltX("75.5"))
+        assertTrue(result.resourceUsageQuantityByResource[resourceC]!!.value eq FltX("75.5"))
         assertEquals(NoneUnit, result.resourceUsageQuantityByResource[resourceC]!!.unit)
     }
 
@@ -136,10 +136,10 @@ class SlotBasedCapacityResultFltXTest {
             slot = slot,
             slotIndex = 0,
             actionAllocations = emptyList(),
-            totalCost = FltX("5.0"),
-            produceByProduct = mapOf(productA to FltX("20.0")),
-            consumptionByMaterial = mapOf(materialB to FltX("10.0")),
-            resourceUsageByResource = mapOf(resourceC to FltX("15.0"))
+            totalCostQuantityValue = Quantity(FltX("5.0"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("20.0"), NoneUnit)),
+            consumptionQuantityByMaterial = mapOf(materialB to Quantity(FltX("10.0"), NoneUnit)),
+            resourceUsageQuantityByResource = mapOf(resourceC to Quantity(FltX("15.0"), NoneUnit))
         )
 
         val intermediate = CapacityIntermediateValues<ProductionAction, String, String, FltX>(
@@ -147,9 +147,9 @@ class SlotBasedCapacityResultFltXTest {
             results = mapOf(slot to slotResult)
         )
 
-        assertTrue(intermediate.produce(slot, productA)!! eq FltX("20.0"))
-        assertTrue(intermediate.consumption(slot, materialB)!! eq FltX("10.0"))
-        assertTrue(intermediate.resourceUsage(slot, resourceC)!! eq FltX("15.0"))
+        assertTrue(intermediate.produceQuantity(slot, productA)!!.value eq FltX("20.0"))
+        assertTrue(intermediate.consumptionQuantity(slot, materialB)!!.value eq FltX("10.0"))
+        assertTrue(intermediate.resourceUsageQuantity(slot, resourceC)!!.value eq FltX("15.0"))
     }
 
     @Test
@@ -158,20 +158,20 @@ class SlotBasedCapacityResultFltXTest {
             slot = slot,
             slotIndex = 0,
             actionAllocations = emptyList(),
-            totalCost = FltX("0"),
-            produceByProduct = mapOf(productA to FltX("5.0")),
-            consumptionByMaterial = mapOf(materialB to FltX("3.0")),
-            resourceUsageByResource = mapOf(resourceC to FltX("7.0"))
+            totalCostQuantityValue = Quantity(FltX("0"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("5.0"), NoneUnit)),
+            consumptionQuantityByMaterial = mapOf(materialB to Quantity(FltX("3.0"), NoneUnit)),
+            resourceUsageQuantityByResource = mapOf(resourceC to Quantity(FltX("7.0"), NoneUnit))
         )
 
         val constraints = SlotConstraints.from(result)
 
-        assertTrue(constraints.maxProduce[productA]!! eq FltX("5.0"))
-        assertTrue(constraints.minProduce[productA]!! eq FltX("5.0"))
-        assertTrue(constraints.maxConsumption[materialB]!! eq FltX("3.0"))
-        assertTrue(constraints.minConsumption[materialB]!! eq FltX("3.0"))
-        assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("7.0"))
-        assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("7.0"))
+        assertTrue(constraints.maxProduceQuantity[productA]!!.value eq FltX("5.0"))
+        assertTrue(constraints.minProduceQuantity[productA]!!.value eq FltX("5.0"))
+        assertTrue(constraints.maxConsumptionQuantity[materialB]!!.value eq FltX("3.0"))
+        assertTrue(constraints.minConsumptionQuantity[materialB]!!.value eq FltX("3.0"))
+        assertTrue(constraints.maxResourceUsageQuantity[resourceC]!!.value eq FltX("7.0"))
+        assertTrue(constraints.minResourceUsageQuantity[resourceC]!!.value eq FltX("7.0"))
         assertEquals(0, constraints.slotIndex)
     }
 
@@ -188,17 +188,17 @@ class SlotBasedCapacityResultFltXTest {
             minResourceUsageQuantity = mapOf(resourceC to Quantity(FltX("6.0"), NoneUnit))
         )
 
-        assertTrue(constraints.maxProduce[productA]!! eq FltX("5.0"))
+        assertTrue(constraints.maxProduceQuantity[productA]!!.value eq FltX("5.0"))
         assertEquals(NoneUnit, constraints.maxProduceQuantity[productA]!!.unit)
-        assertTrue(constraints.minProduce[productA]!! eq FltX("4.0"))
+        assertTrue(constraints.minProduceQuantity[productA]!!.value eq FltX("4.0"))
         assertEquals(NoneUnit, constraints.minProduceQuantity[productA]!!.unit)
-        assertTrue(constraints.maxConsumption[materialB]!! eq FltX("3.0"))
+        assertTrue(constraints.maxConsumptionQuantity[materialB]!!.value eq FltX("3.0"))
         assertEquals(NoneUnit, constraints.maxConsumptionQuantity[materialB]!!.unit)
-        assertTrue(constraints.minConsumption[materialB]!! eq FltX("2.0"))
+        assertTrue(constraints.minConsumptionQuantity[materialB]!!.value eq FltX("2.0"))
         assertEquals(NoneUnit, constraints.minConsumptionQuantity[materialB]!!.unit)
-        assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("7.0"))
+        assertTrue(constraints.maxResourceUsageQuantity[resourceC]!!.value eq FltX("7.0"))
         assertEquals(NoneUnit, constraints.maxResourceUsageQuantity[resourceC]!!.unit)
-        assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("6.0"))
+        assertTrue(constraints.minResourceUsageQuantity[resourceC]!!.value eq FltX("6.0"))
         assertEquals(NoneUnit, constraints.minResourceUsageQuantity[resourceC]!!.unit)
     }
 
@@ -208,24 +208,24 @@ class SlotBasedCapacityResultFltXTest {
             slot = slot,
             slotIndex = 0,
             actionAllocations = emptyList(),
-            totalCost = FltX("0"),
-            produceByProduct = mapOf(productA to FltX("5.0")),
-            consumptionByMaterial = mapOf(materialB to FltX("3.0")),
-            resourceUsageByResource = mapOf(resourceC to FltX("7.0"))
+            totalCostQuantityValue = Quantity(FltX("0"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("5.0"), NoneUnit)),
+            consumptionQuantityByMaterial = mapOf(materialB to Quantity(FltX("3.0"), NoneUnit)),
+            resourceUsageQuantityByResource = mapOf(resourceC to Quantity(FltX("7.0"), NoneUnit))
         )
 
         val tolerance = FltX("1.5")
         val constraints = SlotConstraints.from(result, tolerance)
 
         // max = value + tolerance
-        assertTrue(constraints.maxProduce[productA]!! eq FltX("6.5"))
-        assertTrue(constraints.maxConsumption[materialB]!! eq FltX("4.5"))
-        assertTrue(constraints.maxResourceUsage[resourceC]!! eq FltX("8.5"))
+        assertTrue(constraints.maxProduceQuantity[productA]!!.value eq FltX("6.5"))
+        assertTrue(constraints.maxConsumptionQuantity[materialB]!!.value eq FltX("4.5"))
+        assertTrue(constraints.maxResourceUsageQuantity[resourceC]!!.value eq FltX("8.5"))
 
         // min = max(value - tolerance, zero) -- all positive here
-        assertTrue(constraints.minProduce[productA]!! eq FltX("3.5"))
-        assertTrue(constraints.minConsumption[materialB]!! eq FltX("1.5"))
-        assertTrue(constraints.minResourceUsage[resourceC]!! eq FltX("5.5"))
+        assertTrue(constraints.minProduceQuantity[productA]!!.value eq FltX("3.5"))
+        assertTrue(constraints.minConsumptionQuantity[materialB]!!.value eq FltX("1.5"))
+        assertTrue(constraints.minResourceUsageQuantity[resourceC]!!.value eq FltX("5.5"))
     }
 
     @Test
@@ -234,18 +234,18 @@ class SlotBasedCapacityResultFltXTest {
             slot = slot,
             slotIndex = 0,
             actionAllocations = emptyList(),
-            totalCost = FltX("0"),
-            produceByProduct = mapOf(productA to FltX("1.0")),
-            consumptionByMaterial = emptyMap(),
-            resourceUsageByResource = emptyMap()
+            totalCostQuantityValue = Quantity(FltX("0"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("1.0"), NoneUnit)),
+            consumptionQuantityByMaterial = emptyMap(),
+            resourceUsageQuantityByResource = emptyMap()
         )
 
         // tolerance > value, so min should clamp at zero
         val tolerance = FltX("5.0")
         val constraints = SlotConstraints.from(result, tolerance)
 
-        assertTrue(constraints.maxProduce[productA]!! eq FltX("6.0"))
-        assertTrue(constraints.minProduce[productA]!! eq FltX("0"))
+        assertTrue(constraints.maxProduceQuantity[productA]!!.value eq FltX("6.0"))
+        assertTrue(constraints.minProduceQuantity[productA]!!.value eq FltX("0"))
     }
 
     @Test
@@ -254,10 +254,10 @@ class SlotBasedCapacityResultFltXTest {
             slot = slot,
             slotIndex = 0,
             actionAllocations = emptyList(),
-            totalCost = FltX("0"),
-            produceByProduct = mapOf(productA to FltX("10.0")),
-            consumptionByMaterial = emptyMap(),
-            resourceUsageByResource = emptyMap()
+            totalCostQuantityValue = Quantity(FltX("0"), NoneUnit),
+            produceQuantityByProduct = mapOf(productA to Quantity(FltX("10.0"), NoneUnit)),
+            consumptionQuantityByMaterial = emptyMap(),
+            resourceUsageQuantityByResource = emptyMap()
         )
 
         val intermediate = CapacityIntermediateValues<ProductionAction, String, String, FltX>(
@@ -267,7 +267,7 @@ class SlotBasedCapacityResultFltXTest {
 
         val constraints = intermediate.slotConstraints(slot)
         assertNotNull(constraints)
-        assertTrue(constraints!!.maxProduce[productA]!! eq FltX("10.0"))
+        assertTrue(constraints!!.maxProduceQuantity[productA]!!.value eq FltX("10.0"))
     }
 
     @Test

@@ -6,7 +6,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.task
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
@@ -74,7 +74,7 @@ class BranchAndPriceAlgorithm<
      * @param contextBuilder 上下文构建器 / Context builder
      * @param extractContextBuilder 提取上下文构建器列表 / Extract context builder list
      * @param shadowPriceMap 影子价格映射构建器 / Shadow price map builder
-     * @param reducedCost 约简成本函数 / Reduced cost function
+     * @param reducedCost 约简成本标量函数，仅用于 branch-and-price 内部列筛选 / Reduced-cost scalar function used only for internal column filtering
      * @param taskGenerator 任务生成器 / Task generator
      */
     data class Policy<
@@ -149,7 +149,7 @@ class BranchAndPriceAlgorithm<
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: TaskSolution<T, E, A>
-        return LinearMetaModel<Flt64>(id, converter = SchedulingSolverValueAdapter.Flt64).use { model ->
+        return LinearMetaModel<Flt64>(id, converter = schedulingSolverValueAdapter).use { model ->
             try {
                 var iteration = Iteration<IT, E, A>()
                 when (val result = register(model)) {
@@ -525,6 +525,12 @@ class BranchAndPriceAlgorithm<
         }
     }
 
+    /**
+     * 记录算法心跳，最优率是无量纲内部标量 / Record algorithm heartbeat with dimensionless internal optimal-rate scalar
+     *
+     * @param id 标识符 / Identifier
+     * @param optimalRate 无量纲最优率标量 / Dimensionless optimal-rate scalar
+     */
     private fun heartBeat(id: String, optimalRate: Flt64) {
         logger.info { "Heart beat, current optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
     }
@@ -951,5 +957,3 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 }
-
-

@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskSchedulingTaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -20,6 +21,11 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.time.Duration
+
+private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
+    val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
+    return max(Flt64(reducedCostCutoff.toLong().toDouble()), Flt64(5.0))
+}
 
 /**
  * 抽象迭代任务编译聚合 / Abstract iterative task compilation aggregation
@@ -174,7 +180,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
         val remainingAmount = UInt64(tasks.size.toULong())
         return if (remainingAmount > maximumColumnAmount) {
-            Ok(max((maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)).toFlt64(), Flt64(5.0)))
+            Ok(nextReducedCostCutoff(maximumReducedCost))
         } else {
             Ok(maximumReducedCost)
         }
@@ -463,11 +469,43 @@ open class IterativeTaskCompilationAggregationWithTime<
     executors = executors,
     lockedCancelTasks = lockCancelTasks
 ) {
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     val taskTime: IterativeTaskSchedulingTaskTime<IT, T, E, A> = IterativeTaskSchedulingTaskTime(
-        timeWindow = timeWindow,
+        timeBoundary = timeBoundary,
         tasks = tasks,
         compilation = compilation,
         redundancyRange = redundancyRange
+    )
+
+    /**
+     * 通过 solver 时间窗口边界创建带时间的迭代任务编译聚合 /
+     * Create iterative task compilation aggregation with time from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param policy 策略 / Policy
+     * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+     * @param redundancyRange 冗余范围 / Redundancy range
+     * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        policy: Policy<IT, V, E, A>,
+        lockCancelTasks: Set<T> = emptySet(),
+        redundancyRange: Duration? = null,
+        makespanExtra: Boolean = false
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        policy = policy,
+        lockCancelTasks = lockCancelTasks,
+        redundancyRange = redundancyRange,
+        makespanExtra = makespanExtra
     )
 
     val makespan: Makespan<T, E, A> = Makespan(
@@ -560,5 +598,3 @@ open class IterativeTaskCompilationAggregationWithTime<
         return Ok(unduplicatedBunches)
     }
 }
-
-

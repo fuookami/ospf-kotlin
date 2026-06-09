@@ -8,7 +8,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.dto
 
 import fuookami.ospf.kotlin.utils.serialization.DateTimeSerializer
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 /**

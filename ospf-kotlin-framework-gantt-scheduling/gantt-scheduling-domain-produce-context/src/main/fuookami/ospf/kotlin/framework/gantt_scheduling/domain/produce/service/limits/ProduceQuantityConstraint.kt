@@ -1,4 +1,3 @@
-/** 生产数量约束 / Produce quantity constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
@@ -10,6 +9,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Mate
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroProduceMaterials
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverLowerBound
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverUpperBound
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
@@ -64,7 +65,7 @@ class ProduceQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                                polyX leq demand.solverUpperBound(),
                                 name = "${name}_ub_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
@@ -83,7 +84,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] leq demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                            produce.quantity[product] leq demand.solverUpperBound(),
                             name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
@@ -101,7 +102,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] leq demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                    produce.quantity[product] leq demand.solverUpperBound(),
                     name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
@@ -122,7 +123,7 @@ class ProduceQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                                polyX geq demand.solverLowerBound(),
                                 name = "${name}_lb_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
@@ -141,7 +142,7 @@ class ProduceQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            produce.quantity[product] geq demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                            produce.quantity[product] geq demand.solverLowerBound(),
                             name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
@@ -159,7 +160,7 @@ class ProduceQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    produce.quantity[product] geq demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                    produce.quantity[product] geq demand.solverLowerBound(),
                     name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {

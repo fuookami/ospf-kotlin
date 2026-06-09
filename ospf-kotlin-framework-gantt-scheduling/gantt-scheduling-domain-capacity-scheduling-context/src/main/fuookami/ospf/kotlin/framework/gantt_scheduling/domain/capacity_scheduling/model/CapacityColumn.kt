@@ -93,4 +93,8 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
 
 // ── Flt64 向后兼容 typealias ──
 
-@Deprecated("Use CapacityColumn<E, A, Flt64> directly") typealias Flt64CapacityColumn<E, A> = CapacityColumn<E, A, Flt64>
+@Deprecated(
+    message = "Use CapacityColumn<E, A, Flt64> directly",
+    replaceWith = ReplaceWith("CapacityColumn<E, A, Flt64>")
+)
+typealias Flt64CapacityColumn<E, A> = CapacityColumn<E, A, Flt64>

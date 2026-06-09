@@ -48,7 +48,7 @@ class PlanCapacitySchedulingProduce<
                     for ((s, _) in slots.withIndex()) {
                         val actionIndex = actions.indexOf(action)
                         if (actionIndex >= 0) {
-                            quantity[product].asMutable() += LinearMonomial(unitProduce.toFlt64(), compilation.operationTime[actionIndex, s])
+                            quantity[product].asMutable() += LinearMonomial(unitProduce.solverMaterialQuantity(), compilation.operationTime[actionIndex, s])
                         }
                     }
                 }

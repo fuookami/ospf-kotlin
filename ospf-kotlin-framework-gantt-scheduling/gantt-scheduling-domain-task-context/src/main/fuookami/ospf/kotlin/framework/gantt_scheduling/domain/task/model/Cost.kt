@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 /**
  * 成本模型，支持可变和不可变成本 / Cost model supporting mutable and immutable costs
  */
@@ -19,6 +17,10 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 typealias CostQuantity<V> = Quantity<V>
 
 /** Flt64 成本物理量兼容类型 / Flt64 cost quantity compatibility type */
+@Deprecated(
+    message = "Use CostQuantity<Flt64> directly",
+    replaceWith = ReplaceWith("CostQuantity<Flt64>")
+)
 typealias Flt64CostQuantity = CostQuantity<Flt64>
 
 /**
@@ -53,7 +55,7 @@ data class CostItem<V : RealNumber<V>>(
         replaceWith = ReplaceWith("costQuantity?.value")
     )
     val value: V? get() = costQuantity?.value
-    val valid get() = value != null
+    val valid get() = costQuantity != null
 
     /**
      * 成本项物理量 / Cost item as a physical quantity
@@ -91,8 +93,8 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
         operator fun <V : RealNumber<V>> invoke(
             items: List<CostItem<V>>,
             constants: RealNumberConstants<V>,
-            sums: V? = if (items.isNotEmpty() && items.all { it.value != null }) {
-                items.sumOf(constants) { it.value!! }
+            sums: V? = if (items.isNotEmpty() && items.all { it.costQuantity != null }) {
+                items.sumOf(constants) { it.costQuantity!!.value }
             } else {
                 null
             }
@@ -141,7 +143,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
         replaceWith = ReplaceWith("costSum?.value")
     )
     val sum: V? get() = costSum?.value
-    val valid: Boolean get() = sum != null
+    val valid: Boolean get() = costSum != null
 
     /**
      * 总成本物理量 / Sum cost as a physical quantity
@@ -152,6 +154,16 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
     fun sumQuantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
         return costSum?.let { Quantity(it.value, unit) }
     }
+
+    /**
+     * 读取 solver 成本值 / Read cost as a solver value
+     *
+     * @param default 成本缺失时使用的默认 solver 值 / Default solver value when cost is absent
+     * @return solver 成本值 / Solver cost value
+     */
+    fun solverCost(default: Flt64? = null) = costSum?.value?.toFlt64()
+        ?: default
+        ?: throw IllegalStateException("cost sum is required to build solver cost")
 
     fun asMutable(): MutableCost<V>? {
         return when (this) {
@@ -187,8 +199,8 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
 class MutableCost<V : RealNumber<V>>(
     val constants: RealNumberConstants<V>,
     override val items: MutableList<CostItem<V>> = ArrayList(),
-    override var costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.value != null }) {
-        items.sumOf(constants) { it.value!! }
+    override var costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.costQuantity != null }) {
+        items.sumOf(constants) { it.costQuantity!!.value }
             .let { Quantity(it, NoneUnit) }
     } else {
         null
@@ -209,21 +221,23 @@ class MutableCost<V : RealNumber<V>>(
     )
 
     operator fun plusAssign(rhs: CostItem<V>) {
-        if (!rhs.valid || rhs.value!! neq constants.zero) {
+        if (!rhs.valid || rhs.costQuantity!!.value neq constants.zero) {
             items.add(rhs)
         }
 
         if (rhs.valid) {
-            costSum = sum?.plus(rhs.value!!)?.let { Quantity(it, costSum?.unit ?: rhs.costQuantity?.unit ?: NoneUnit) }
+            costSum = costSum?.value
+                ?.plus(rhs.costQuantity!!.value)
+                ?.let { Quantity(it, costSum?.unit ?: rhs.costQuantity.unit) }
         }
     }
 
     operator fun plusAssign(rhs: Cost<V>) {
-        items.addAll(rhs.items.filter { !it.valid || it.value!! neq constants.zero })
+        items.addAll(rhs.items.filter { !it.valid || it.costQuantity!!.value neq constants.zero })
 
         costSum = if (this.valid && rhs.valid) {
             Quantity(
-                value = sum!! + rhs.sum!!,
+                value = costSum!!.value + rhs.costSum!!.value,
                 unit = costSum?.unit ?: rhs.costSum?.unit ?: NoneUnit
             )
         } else {
@@ -249,9 +263,9 @@ class MutableCost<V : RealNumber<V>>(
  */
 data class ImmutableCost<V : RealNumber<V>>(
     override val items: List<CostItem<V>>,
-    override val costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.value != null }) {
-        items.first().value!!.constants.let { constants ->
-            items.sumOf(constants) { it.value!! }
+    override val costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.costQuantity != null }) {
+        items.first().costQuantity!!.value.constants.let { constants ->
+            items.sumOf(constants) { it.costQuantity!!.value }
                 .let { Quantity(it, items.first().costQuantity?.unit ?: NoneUnit) }
         }
     } else {
@@ -280,7 +294,26 @@ data class ImmutableCost<V : RealNumber<V>>(
 
 // ── Flt64 向后兼容 typealias ──
 
-@Deprecated("Use CostItem<Flt64> directly") typealias Flt64CostItem = CostItem<Flt64>
-@Deprecated("Use Cost<Flt64> directly") typealias Flt64Cost = Cost<Flt64>
-@Deprecated("Use MutableCost<Flt64> directly") typealias Flt64MutableCost = MutableCost<Flt64>
-@Deprecated("Use ImmutableCost<Flt64> directly") typealias Flt64ImmutableCost = ImmutableCost<Flt64>
+@Deprecated(
+    message = "Use CostItem<Flt64> directly",
+    replaceWith = ReplaceWith("CostItem<Flt64>")
+)
+typealias Flt64CostItem = CostItem<Flt64>
+
+@Deprecated(
+    message = "Use Cost<Flt64> directly",
+    replaceWith = ReplaceWith("Cost<Flt64>")
+)
+typealias Flt64Cost = Cost<Flt64>
+
+@Deprecated(
+    message = "Use MutableCost<Flt64> directly",
+    replaceWith = ReplaceWith("MutableCost<Flt64>")
+)
+typealias Flt64MutableCost = MutableCost<Flt64>
+
+@Deprecated(
+    message = "Use ImmutableCost<Flt64> directly",
+    replaceWith = ReplaceWith("ImmutableCost<Flt64>")
+)
+typealias Flt64ImmutableCost = ImmutableCost<Flt64>

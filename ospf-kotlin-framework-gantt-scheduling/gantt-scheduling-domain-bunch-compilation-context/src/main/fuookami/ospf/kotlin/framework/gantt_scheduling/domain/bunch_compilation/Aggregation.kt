@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSchedulingTaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -22,6 +23,11 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.time.Duration
+
+private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
+    val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
+    return max(Flt64(reducedCostCutoff.toLong().toDouble()), Flt64(5.0))
+}
 
 /**
  * 抽象任务束编译聚合 / Abstract bunch compilation aggregation
@@ -157,12 +163,7 @@ abstract class AbstractBunchCompilationAggregation<
 
         val remainingAmount = UInt64(bunches.size.toULong())
         return if (remainingAmount > maximumColumnAmount) {
-            Ok(
-                max(
-                    (maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)).toFlt64(),
-                    Flt64(5.0)
-                )
-            )
+            Ok(nextReducedCostCutoff(maximumReducedCost))
         } else {
             Ok(maximumReducedCost)
         }
@@ -369,7 +370,7 @@ abstract class AbstractBunchCompilationAggregation<
 
                     if (token.variable belongsTo xi) {
                         val bunch = bunchesIteration[i.toInt()][token.variable.index]
-                        logger.debug { "${bunch.executor} cost: ${bunch.cost.sum!!}" }
+                        logger.debug { "${bunch.executor} cost: ${bunch.cost.costSum!!.value}" }
                         break
                     }
                 }
@@ -509,11 +510,43 @@ open class BunchCompilationAggregationWithTime<
     lockCancelTasks = lockCancelTasks,
     withExecutorLeisure = withExecutorLeisure
 ) {
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     val taskTime: BunchSchedulingTaskTime<B, V, T, E, A> = BunchSchedulingTaskTime(
-        timeWindow = timeWindow,
+        timeBoundary = timeBoundary,
         tasks = tasks,
         compilation = compilation,
         redundancyRange = redundancyRange
+    )
+
+    /**
+     * 通过 solver 时间窗口边界创建带时间的任务束编译聚合 /
+     * Create bunch compilation aggregation with time from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+     * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+     * @param redundancyRange 冗余范围 / Redundancy range
+     * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        lockCancelTasks: Set<T> = emptySet(),
+        withExecutorLeisure: Boolean = true,
+        redundancyRange: Duration? = null,
+        makespanExtra: Boolean = false
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        lockCancelTasks = lockCancelTasks,
+        withExecutorLeisure = withExecutorLeisure,
+        redundancyRange = redundancyRange,
+        makespanExtra = makespanExtra
     )
 
     val makespan: Makespan<T, E, A> = Makespan(

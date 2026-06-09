@@ -1,9 +1,8 @@
-@file:Suppress("DEPRECATION")
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import kotlin.time.Duration
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -114,6 +113,11 @@ interface ProductionAction {
     // 新实现可直接覆盖泛型版本以避免 Flt64 转换。
     // New implementations may override generic versions to avoid Flt64 conversion.
 
+    private fun <V : RealNumber<V>> unitCapacityValue(timeWindow: TimeWindow<V>): V {
+        val result = unitCapacity(timeWindow.asFlt64TimeWindow())
+        return timeWindow.fromDouble(result.toDouble())
+    }
+
     /**
      * 泛型单位产能 / Generic unit capacity
      *
@@ -129,8 +133,7 @@ interface ProductionAction {
         replaceWith = ReplaceWith("unitCapacityQuantity(timeWindow).value")
     )
     fun <V : RealNumber<V>> unitCapacityV(timeWindow: TimeWindow<V>): V {
-        val result = unitCapacity(timeWindow.asFlt64TimeWindow())
-        return timeWindow.fromDouble(result.toDouble())
+        return unitCapacityValue(timeWindow)
     }
 
     /**
@@ -167,7 +170,7 @@ interface ProductionAction {
         timeWindow: TimeWindow<V>,
         unit: PhysicalUnit = NoneUnit
     ): CapacityQuantity<V> {
-        return Quantity(unitCapacityV(timeWindow), unit)
+        return Quantity(unitCapacityValue(timeWindow), unit)
     }
 
     /**
@@ -184,7 +187,7 @@ interface ProductionAction {
         fromDouble: (Double) -> V,
         unit: PhysicalUnit = NoneUnit
     ): CapacityCostQuantity<V> {
-        return Quantity(unitCostV(time, fromDouble), unit)
+        return Quantity(fromDouble(unitCost(time).toDouble()), unit)
     }
 
     /**

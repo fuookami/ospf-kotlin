@@ -94,4 +94,8 @@ class CapacityCostMinimization<V : RealNumber<V>, A : ProductionAction>(
 
 // ── Flt64 向后兼容 typealias ──
 
+@Deprecated(
+    message = "Use CapacityCostMinimization<Flt64, A> directly",
+    replaceWith = ReplaceWith("CapacityCostMinimization<Flt64, A>")
+)
 typealias Flt64CapacityCostMinimization<A> = CapacityCostMinimization<Flt64, A>

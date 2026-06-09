@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
@@ -52,6 +53,32 @@ class TaskAdvanceEarliestEndTimeConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_advance_earliest_end_time"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+    /**
+     * 通过 solver 时间窗口边界创建任务提前最早结束时间约束 /
+     * Create task advance earliest end time constraint from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param taskTime 任务时间对象 / Task time object
+     * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
+     * @param name 管道名称 / Pipeline name
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<AbstractTask<E, A>>,
+        taskTime: TaskTime,
+        shadowPriceExtractor: ((Args) -> Flt64?)? = null,
+        name: String = "task_advance_earliest_end_time"
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        taskTime = taskTime,
+        shadowPriceExtractor = shadowPriceExtractor,
+        name = name
+    )
+
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     private val tasks = if (taskTime.advanceEarliestEndTimeEnabled) {
         tasks.filter { !it.advanceEnabled && it.earliestEndTime != null }
     } else {
@@ -64,7 +91,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
                 "TaskAdvanceEarliestEndTimeConstraint.invoke 要求 task.earliestEndTime 非空: $task"
             }
             when (val result = model.addConstraint(
-                taskTime.estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
+                taskTime.estimateEndTime[task] geq timeBoundary.valueOf(earliestEndTime),
                 name = "${name}_${task}",
                 args = TaskAdvanceEarliestEndTimeShadowPriceKey(task)
             )) {

@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.OrFunction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -27,6 +27,8 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
+
+private val solverValueAdapter = schedulingSolverValueAdapter
 
 /** 编译接口 / Compilation interface */
 interface Compilation {
@@ -245,7 +247,7 @@ class TaskCompilation<
                 val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
                 val or = OrFunction(
                     polynomials = orPolynomials,
-                    converter = SchedulingSolverValueAdapter.Flt64,
+                    converter = solverValueAdapter,
                     name = "executor_compilation_or_${executors[i]}"
                 )
                 orFunctions.add(or)
@@ -260,7 +262,7 @@ class TaskCompilation<
                 )
             }
             for (or in orFunctions) {
-                when (val result = model.add(LinearFunctionSymbolAdapter(or, SchedulingSolverValueAdapter.Flt64))) {
+                when (val result = model.add(LinearFunctionSymbolAdapter(or, solverValueAdapter))) {
                     is Ok -> {}
 
                     is Failed -> {
@@ -543,7 +545,7 @@ open class IterativeTaskCompilation<
 
         taskCost.flush()
         for (task in unduplicatedTasks) {
-            (taskCost as LinearExpressionSymbol<Flt64>).asMutable() += (cost(task).costSum?.value?.toFlt64() ?: Flt64.infinity) * LinearPolynomial(xi[task])
+            (taskCost as LinearExpressionSymbol<Flt64>).asMutable() += cost(task).solverCost(Flt64.infinity) * LinearPolynomial(xi[task])
         }
 
         for (originTask in originTasks) {

@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingSwitch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingTaskTime
@@ -41,6 +42,8 @@ abstract class AbstractTaskSchedulingAggregation<
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
 ) {
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     val compilation: TaskCompilation<T, E, A> = TaskCompilation(
         tasks = tasks,
         executors = executors,
@@ -50,7 +53,7 @@ abstract class AbstractTaskSchedulingAggregation<
     )
 
     val switch: TaskSchedulingSwitch<T, E, A> = TaskSchedulingSwitch(
-        timeWindow = timeWindow,
+        timeBoundary = timeBoundary,
         tasks = tasks,
         executors = executors,
         compilation = compilation
@@ -122,7 +125,33 @@ open class TaskCompilationAggregation<
     lockCancelTasks = lockCancelTasks,
     taskCancelEnabled = taskCancelEnabled,
     withExecutorLeisure = withExecutorLeisure
-)
+) {
+    /**
+     * 通过 solver 时间窗口边界创建任务编译聚合 / Create task compilation aggregation from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+     * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
+     * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        lockCancelTasks: Set<T> = emptySet(),
+        taskCancelEnabled: Boolean = false,
+        withExecutorLeisure: Boolean = false
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        lockCancelTasks = lockCancelTasks,
+        taskCancelEnabled = taskCancelEnabled,
+        withExecutorLeisure = withExecutorLeisure
+    )
+}
 
 /**
  * 带时间的任务编译聚合 / Task compilation aggregation with time
@@ -172,8 +201,10 @@ open class TaskCompilationAggregationWithTime<
     taskCancelEnabled = taskCancelEnabled,
     withExecutorLeisure = withExecutorLeisure
 ) {
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     val taskTime: TaskSchedulingTaskTime<T, E, A> = TaskSchedulingTaskTime(
-        timeWindow = timeWindow,
+        timeBoundary = timeBoundary,
         tasks = tasks,
         compilation = compilation,
         estimateEndTimeCalculator = estimateEndTimeCalculator,
@@ -183,6 +214,57 @@ open class TaskCompilationAggregationWithTime<
         overMaxAdvanceEnabled = overMaxAdvanceEnabled,
         delayLastEndTimeEnabled = delayLastEndTimeEnabled,
         advanceEarliestEndTimeEnabled = advanceEarliestEndTimeEnabled
+    )
+
+    /**
+     * 通过 solver 时间窗口边界创建带时间的任务编译聚合 /
+     * Create task compilation aggregation with time from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+     * @param estimateEndTimeCalculator 预估结束时间计算器 / Estimate end time calculator
+     * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
+     * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+     * @param delayEnabled 是否启用延迟 / Whether delay is enabled
+     * @param overMaxDelayEnabled 是否启用超最大延迟 / Whether over-max delay is enabled
+     * @param advanceEnabled 是否启用提前 / Whether advance is enabled
+     * @param overMaxAdvanceEnabled 是否启用超最大提前 / Whether over-max advance is enabled
+     * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
+     * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
+     * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        lockCancelTasks: Set<T> = emptySet(),
+        estimateEndTimeCalculator: (T, LinearPolynomial<Flt64>) -> LinearPolynomial<Flt64>,
+        taskCancelEnabled: Boolean = false,
+        withExecutorLeisure: Boolean = false,
+        delayEnabled: Boolean = false,
+        overMaxDelayEnabled: Boolean = false,
+        advanceEnabled: Boolean = false,
+        overMaxAdvanceEnabled: Boolean = false,
+        delayLastEndTimeEnabled: Boolean = false,
+        advanceEarliestEndTimeEnabled: Boolean = false,
+        makespanExtra: Boolean = false
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        lockCancelTasks = lockCancelTasks,
+        estimateEndTimeCalculator = estimateEndTimeCalculator,
+        taskCancelEnabled = taskCancelEnabled,
+        withExecutorLeisure = withExecutorLeisure,
+        delayEnabled = delayEnabled,
+        overMaxDelayEnabled = overMaxDelayEnabled,
+        advanceEnabled = advanceEnabled,
+        overMaxAdvanceEnabled = overMaxAdvanceEnabled,
+        delayLastEndTimeEnabled = delayLastEndTimeEnabled,
+        advanceEarliestEndTimeEnabled = advanceEarliestEndTimeEnabled,
+        makespanExtra = makespanExtra
     )
 
     val makespan: Makespan<T, E, A> = Makespan(

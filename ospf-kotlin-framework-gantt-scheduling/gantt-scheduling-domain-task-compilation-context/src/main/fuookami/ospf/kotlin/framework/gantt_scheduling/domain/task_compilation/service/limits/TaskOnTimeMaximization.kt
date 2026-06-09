@@ -55,7 +55,7 @@ class TaskOnTimeMaximization<
         } else {
             val slack = thresholdSlack(
                 x = sum(taskTime.onTime[_a].map { it.toLinearPolynomial() }),
-                threshold = threshold.toFlt64(),
+                threshold = threshold.solverThresholdValue(),
                 type = UInteger,
                 name = "task_on_time_threshold"
             )
@@ -89,5 +89,4 @@ class TaskOnTimeMaximization<
         return ok
     }
 }
-
 

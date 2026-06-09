@@ -10,7 +10,15 @@ typealias CapacityQuantity<V> = Quantity<V>
 typealias CapacityCostQuantity<V> = Quantity<V>
 
 /** Flt64 产能物理量兼容类型 / Flt64 capacity quantity compatibility type */
-@Deprecated("Use CapacityQuantity<Flt64> directly") typealias Flt64CapacityQuantity = CapacityQuantity<Flt64>
+@Deprecated(
+    message = "Use CapacityQuantity<Flt64> directly",
+    replaceWith = ReplaceWith("CapacityQuantity<Flt64>")
+)
+typealias Flt64CapacityQuantity = CapacityQuantity<Flt64>
 
 /** Flt64 产能成本物理量兼容类型 / Flt64 capacity cost quantity compatibility type */
-@Deprecated("Use CapacityCostQuantity<Flt64> directly") typealias Flt64CapacityCostQuantity = CapacityCostQuantity<Flt64>
+@Deprecated(
+    message = "Use CapacityCostQuantity<Flt64> directly",
+    replaceWith = ReplaceWith("CapacityCostQuantity<Flt64>")
+)
+typealias Flt64CapacityCostQuantity = CapacityCostQuantity<Flt64>

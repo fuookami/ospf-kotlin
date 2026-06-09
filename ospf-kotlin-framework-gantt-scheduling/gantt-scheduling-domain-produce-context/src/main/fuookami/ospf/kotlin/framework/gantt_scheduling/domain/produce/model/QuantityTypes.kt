@@ -11,7 +11,15 @@ typealias MaterialQuantity<V> = Quantity<V>
 typealias MaterialQuantityRange<V> = Quantity<ValueRange<V>>
 
 /** Flt64 物料数量物理量兼容类型 / Flt64 material quantity compatibility type */
-@Deprecated("Use MaterialQuantity<Flt64> directly") typealias Flt64MaterialQuantity = MaterialQuantity<Flt64>
+@Deprecated(
+    message = "Use MaterialQuantity<Flt64> directly",
+    replaceWith = ReplaceWith("MaterialQuantity<Flt64>")
+)
+typealias Flt64MaterialQuantity = MaterialQuantity<Flt64>
 
 /** Flt64 物料数量范围物理量兼容类型 / Flt64 material quantity range compatibility type */
-@Deprecated("Use MaterialQuantityRange<Flt64> directly") typealias Flt64MaterialQuantityRange = MaterialQuantityRange<Flt64>
+@Deprecated(
+    message = "Use MaterialQuantityRange<Flt64> directly",
+    replaceWith = ReplaceWith("MaterialQuantityRange<Flt64>")
+)
+typealias Flt64MaterialQuantityRange = MaterialQuantityRange<Flt64>

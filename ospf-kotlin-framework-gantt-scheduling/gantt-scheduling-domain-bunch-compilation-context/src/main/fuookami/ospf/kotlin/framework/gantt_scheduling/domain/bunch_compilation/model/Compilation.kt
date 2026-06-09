@@ -261,7 +261,7 @@ open class BunchCompilation<
         for (bunch in unduplicatedBunches) {
             (bunchCost as LinearExpressionSymbol<Flt64>).flush()
             (bunchCost as LinearExpressionSymbol<Flt64>).asMutable() += LinearMonomial(
-                bunch.cost.costSum?.value?.toFlt64() ?: Flt64.infinity,
+                bunch.cost.solverCost(Flt64.infinity),
                 xi[bunch]
             )
         }

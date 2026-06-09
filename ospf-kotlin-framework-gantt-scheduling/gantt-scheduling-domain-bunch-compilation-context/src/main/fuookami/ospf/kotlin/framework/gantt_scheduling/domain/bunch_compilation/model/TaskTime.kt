@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTimeImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -88,6 +89,26 @@ open class BunchSchedulingTaskTime<
     override val compilation: BunchCompilation<B, V, T, E, A>,
     private val redundancyRange: Duration? = null,
 ) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
+    /**
+     * 通过 solver 时间窗口边界创建任务束调度时间 / Create bunch scheduling task time from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param compilation 任务束编译结果 / Bunch compilation result
+     * @param redundancyRange 冗余范围 / Redundancy range
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        compilation: BunchCompilation<B, V, T, E, A>,
+        redundancyRange: Duration? = null
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        compilation = compilation,
+        redundancyRange = redundancyRange
+    )
+
     override val delayEnabled: Boolean = true
     override val overMaxDelayEnabled: Boolean = true
     override val advanceEnabled: Boolean = true
@@ -113,8 +134,8 @@ open class BunchSchedulingTaskTime<
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
             if (!::estRedundancy.isInitialized) {
-                estRedundancy = if (timeWindow.continues) {
-                    val redundancyValue = with(timeWindow) { redundancyRange!!.value }
+                estRedundancy = if (timeBoundary.continues) {
+                    val redundancyValue = timeBoundary.valueOf(redundancyRange!!)
                     val est = RealVariable1("est_redundancy", Shape1(tasks.size))
                     for (task in tasks) {
                         val variable = est[task]
@@ -133,7 +154,7 @@ open class BunchSchedulingTaskTime<
                     }
                     est
                 } else {
-                    val redundancyValue = with(timeWindow) { redundancyRange!!.value }.floor().toInt64()
+                    val redundancyValue = timeBoundary.signedFlooredValueOf(redundancyRange!!)
                     val est = IntVariable1("est", Shape1(tasks.size))
                     for (task in tasks) {
                         val variable = est[task]
@@ -243,15 +264,15 @@ open class BunchSchedulingTaskTime<
                         }
 
                         else -> {
-                            val y = if (timeWindow.continues) {
-                                with(timeWindow) { time.start.value }
+                            val y = if (timeBoundary.continues) {
+                                timeBoundary.valueOf(time.start)
                             } else {
-                                with(timeWindow) { time.start.value }.floor()
+                                timeBoundary.flooredValueOf(time.start)
                             }
                             val slack = slackSymbol(
                                 x = estimateStartTime[task],
                                 y = y,
-                                type = if (timeWindow.continues) {
+                                type = if (timeBoundary.continues) {
                                     UContinuous
                                 } else {
                                     UInteger
@@ -313,8 +334,8 @@ open class BunchSchedulingTaskTime<
                 for (bunch in thisBunches) {
                     val actualTask = bunch.get(task) ?: continue
                     val time = actualTask.time!!
-                    est.asMutable() += LinearMonomial(with(timeWindow) { time.start.value }, xi[bunch])
-                    eet.asMutable() += LinearMonomial(with(timeWindow) { time.end.value }, xi[bunch])
+                    est.asMutable() += LinearMonomial(timeBoundary.valueOf(time.start), xi[bunch])
+                    eet.asMutable() += LinearMonomial(timeBoundary.valueOf(time.end), xi[bunch])
                 }
             }
         }
@@ -322,6 +343,3 @@ open class BunchSchedulingTaskTime<
         return ok
     }
 }
-
-
-

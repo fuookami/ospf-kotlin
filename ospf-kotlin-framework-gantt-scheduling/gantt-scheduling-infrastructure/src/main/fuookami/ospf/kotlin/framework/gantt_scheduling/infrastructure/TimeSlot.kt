@@ -7,7 +7,7 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.time.Duration
 
 /**

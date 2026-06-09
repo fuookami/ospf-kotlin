@@ -3,9 +3,9 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.DurationUnit
 import kotlin.time.Duration.Companion.hours
-import kotlinx.datetime.Instant
+import kotlin.time.DurationUnit
+import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -56,19 +56,6 @@ private fun fltXTimeWindow(): TimeWindow<FltX> {
         durationUnit = DurationUnit.HOURS,
         interval = 1.hours,
         fromDouble = { FltX(it) },
-        toDouble = { it.toDouble() }
-    )
-}
-
-private fun flt64TimeWindow(): TimeWindow<Flt64> {
-    val start = Instant.parse("2026-06-07T00:00:00Z")
-    val end = start + 8.hours
-    return TimeWindow(
-        window = TimeRange(start, end),
-        continues = true,
-        durationUnit = DurationUnit.HOURS,
-        interval = 1.hours,
-        fromDouble = { Flt64(it) },
         toDouble = { it.toDouble() }
     )
 }
@@ -130,11 +117,10 @@ class AggregationFltXTest {
             timeWindow = tw
         )
 
-        // unitCapacityV returns FltX(1.0), upperBoundV returns UInt64(3)
-        // totalCapacity = 1.0 * 3 = 3.0
-        val total = aggregation.totalCapacity()
-        assertTrue(total is FltX)
-        assertEquals(FltX(3.0), total)
+        // 泛型容量和上界应保留 V 类型 / Generic capacity and upper bound should keep the V type.
+        val total = aggregation.totalCapacityQuantity()
+        assertEquals(NoneUnit, total.unit)
+        assertTrue(total.value eq FltX(3.0))
     }
 
     @Test
@@ -146,25 +132,9 @@ class AggregationFltXTest {
             timeWindow = tw
         )
 
-        // Action1: unitCap=1.0, ub=3 -> 3.0 per slot * 2 slots = 6.0
-        // Action2: unitCap=2.0, ub=4 -> 8.0 per slot * 2 slots = 16.0
-        // Total = 6.0 + 16.0 = 22.0
-        val total = aggregation.totalCapacity()
-        assertEquals(FltX(22.0), total)
-    }
-
-    @Test
-    fun flt64CompatTypealiasShouldWork() {
-        val tw = flt64TimeWindow()
-        val aggregation = Flt64CapacitySchedulingAggregation<ProductionAction>(
-            actions = listOf(FltXTestAction),
-            slots = listOf(slot1),
-            timeWindow = tw
-        )
-
-        val total = aggregation.totalCapacity()
-        assertTrue(total is Flt64)
-        assertEquals(Flt64(3.0), total)
+        // 多动作多时间槽总容量应按 V 类型累计 / Multi-action and multi-slot capacity should accumulate as V.
+        val total = aggregation.totalCapacityQuantity()
+        assertTrue(total.value eq FltX(22.0))
     }
 
     @Test
@@ -185,27 +155,22 @@ class AggregationFltXTest {
 class ProductionActionUnitCostVTest {
 
     @Test
-    fun unitCostVShouldConvertFromFlt64ToFltX() {
+    fun unitCostVShouldConvertFromSolverValueToFltX() {
         val time = Instant.parse("2026-06-07T00:00:00Z")
-        val result = FltXTestAction.unitCostV<FltX>(time) { FltX(it) }
-        assertTrue(result is FltX)
-        assertEquals(FltX(10.5), result)
-    }
-
-    @Test
-    fun unitCostVShouldConvertFromFlt64ToFlt64() {
-        val time = Instant.parse("2026-06-07T00:00:00Z")
-        val result = FltXTestAction.unitCostV<Flt64>(time) { Flt64(it) }
-        assertTrue(result is Flt64)
-        assertEquals(Flt64(10.5), result)
+        val result = FltXTestAction.unitCostQuantity<FltX>(
+            time = time,
+            fromDouble = { FltX(it) }
+        )
+        assertEquals(NoneUnit, result.unit)
+        assertTrue(result.value eq FltX(10.5))
     }
 
     @Test
     fun unitCapacityVShouldWorkWithFltX() {
         val tw = fltXTimeWindow()
-        val result = FltXTestAction.unitCapacityV(tw)
-        assertTrue(result is FltX)
-        assertEquals(FltX(1.0), result)
+        val result = FltXTestAction.unitCapacityQuantity(tw)
+        assertEquals(NoneUnit, result.unit)
+        assertTrue(result.value eq FltX(1.0))
     }
 
     @Test

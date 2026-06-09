@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
@@ -20,6 +19,10 @@ typealias TotalCostCalculatorV<T, E, V> = (executor: E, lastTask: T?, tasks: Lis
 /**
  * 向后兼容 Flt64 总成本计算器 / Backward compat Flt64 total cost calculator
  */
+@Deprecated(
+    message = "Use TotalCostCalculatorV<T, E, Flt64> directly",
+    replaceWith = ReplaceWith("TotalCostCalculatorV<T, E, Flt64>")
+)
 typealias TotalCostCalculator<T, E> = TotalCostCalculatorV<T, E, Flt64>
 
 /**
@@ -138,7 +141,7 @@ open class LabelV<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>,
     val node: Node? = null,
     val task: T? = null
 ) where V : RealNumber<V>, V : PlusGroup<V> {
-    open val reducedCost get() = cost.sum!! - shadowPrice
+    open val reducedCost get() = cost.costSum!!.value - shadowPrice
     val executorChange: UInt64 =
         if (task?.executorChanged == true) {
             UInt64.one
@@ -262,7 +265,15 @@ open class LabelV<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>,
 }
 
 /** 向后兼容 typealias — Flt64 label / Backward compat typealias */
+@Deprecated(
+    message = "Use LabelV<T, E, A, Flt64> directly",
+    replaceWith = ReplaceWith("LabelV<T, E, A, Flt64>")
+)
 typealias Label<T, E, A> = LabelV<T, E, A, Flt64>
 
 /** 向后兼容 typealias — Flt64 label / Backward compat typealias */
+@Deprecated(
+    message = "Use LabelV<T, E, A, Flt64> directly",
+    replaceWith = ReplaceWith("LabelV<T, E, A, Flt64>")
+)
 typealias Flt64Label<T, E, A> = LabelV<T, E, A, Flt64>

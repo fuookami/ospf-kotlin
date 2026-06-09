@@ -5,12 +5,13 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingTaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
@@ -113,6 +114,48 @@ data object SolutionAnalyzer {
         assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
         solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
+        return invoke(
+            timeBoundary = SolverTimeWindowBoundary(timeWindow),
+            tasks = tasks,
+            executors = executors,
+            compilation = compilation,
+            taskTime = taskTime,
+            results = results,
+            model = model,
+            assignedPolicyGenerator = assignedPolicyGenerator,
+            solution = solution
+        )
+    }
+
+    /**
+     * 通过 solver 时间窗口边界分析任务调度解 / Analyze task scheduling solution from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param compilation 任务编译结果 / Task compilation result
+     * @param taskTime 任务时间对象 / Task time object
+     * @param results 求解结果 / Solver results
+     * @param model 线性模型 / Linear model
+     * @param assignedPolicyGenerator 分配策略生成器 / Assignment policy generator
+     * @param solution 备选求解向量 / Optional solution vector
+     * @return 任务解 / Task solution
+     */
+    operator fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        compilation: TaskCompilation<T, E, A>,
+        taskTime: TaskSchedulingTaskTime<T, E, A>,
+        results: List<Flt64>,
+        model: AbstractLinearMetaModel<Flt64>,
+        assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
+        solution: List<Flt64>? = null,
+    ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
             val token = model.tokens.find(x) ?: continue
@@ -143,12 +186,12 @@ data object SolutionAnalyzer {
                 val index = model.tokens.indexOf(token) ?: continue
                 solution?.get(index) ?: continue
             }
-            assignedEST[task] = timeWindow.instantOf(result)
+            assignedEST[task] = timeBoundary.instantOf(result)
         }
 
         val assignedECT = assignedExecutor.entries.associate { (task, _) ->
-            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, SchedulingSolverValueAdapter.Flt64)?.let {
-                with(timeWindow) { it.instant }
+            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, schedulingSolverValueAdapter)?.let {
+                timeBoundary.instantOf(it)
             } ?: Instant.DISTANT_FUTURE)
         }
 
@@ -240,5 +283,3 @@ data object SolutionAnalyzer {
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
 }
-
-

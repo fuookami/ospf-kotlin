@@ -8,7 +8,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /**
  * 执行者初始可用性，记录上一个任务和可用时间 / Executor initial usability recording the last task and enabled time

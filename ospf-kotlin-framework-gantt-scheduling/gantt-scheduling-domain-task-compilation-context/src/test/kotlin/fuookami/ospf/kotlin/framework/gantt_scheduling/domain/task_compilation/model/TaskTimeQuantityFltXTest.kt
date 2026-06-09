@@ -1,5 +1,10 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
+import kotlin.time.DurationUnit
+import kotlin.time.Instant
+import kotlin.time.toDuration
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
@@ -13,7 +18,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -27,7 +34,7 @@ class TaskTimeQuantityFltXTest {
     private val task = QuantityTask(index = 0, id = "task-0")
     private val model = LinearMetaModel(
         name = "task-time-quantity-test",
-        converter = SchedulingSolverValueAdapter.Flt64
+        converter = schedulingSolverValueAdapter
     )
     private val adapter = GenericSolverValueAdapter(FltX)
 
@@ -126,6 +133,30 @@ class TaskTimeQuantityFltXTest {
         assertTrue(overMaxDelay.value eq FltX("1.5"))
         assertEquals(NoneUnit, overMaxAdvance!!.unit)
         assertTrue(overMaxAdvance.value eq FltX("2.5"))
+    }
+
+    @Test
+    fun solverTimeWindowBoundaryShouldCentralizeTimeValues() {
+        val start = Instant.fromEpochSeconds(0L)
+        val timeWindow = TimeWindow.seconds(
+            timeWindow = TimeRange(
+                start = start,
+                end = start + 60.toDuration(DurationUnit.SECONDS)
+            ),
+            dateOffset = Flt64.zero,
+            continues = true,
+            interval = Flt64.one,
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
+        )
+        val boundary = SolverTimeWindowBoundary(timeWindow)
+
+        assertTrue(boundary.durationValue eq Flt64(60.0))
+        assertTrue(boundary.valueOf(start + 5.toDuration(DurationUnit.SECONDS)) eq Flt64(5.0))
+        assertTrue(boundary.remainingValueAfter(start + 45.toDuration(DurationUnit.SECONDS)) eq Flt64(15.0))
+        assertTrue(boundary.elapsedValueBefore(start + 20.toDuration(DurationUnit.SECONDS)) eq Flt64(20.0))
+        assertTrue(boundary.afterWindowDurationValue(start + 10.toDuration(DurationUnit.SECONDS)) eq Flt64(70.0))
+        assertTrue(boundary.beforeWindowDurationValue(start + 10.toDuration(DurationUnit.SECONDS)) eq Flt64(-50.0))
     }
 }
 

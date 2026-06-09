@@ -128,9 +128,17 @@ interface SlotBasedBunchCompilationContextV<
 }
 
 /** 向后兼容 typealias — Flt64 slot-based bunch compilation context / Backward compat typealias */
+@Deprecated(
+    message = "Use SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R> directly",
+    replaceWith = ReplaceWith("SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>")
+)
 typealias SlotBasedBunchCompilationContext<Args, B, T, E, A, Action, M, R> =
     SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>
 
 /** 向后兼容 typealias — Flt64 slot-based bunch compilation context / Backward compat typealias */
+@Deprecated(
+    message = "Use SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R> directly",
+    replaceWith = ReplaceWith("SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>")
+)
 typealias Flt64SlotBasedBunchCompilationContext<Args, B, T, E, A, Action, M, R> =
     SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>

@@ -74,7 +74,7 @@ class BunchCapacitySchedulingProduce<
                     continue
                 }
                 for ((slotIndex, _) in slots.withIndex()) {
-                    quantity[product].asMutable() += LinearMonomial(unitProduce.toFlt64(), compilation.operationTime[actionIndex, slotIndex])
+                    quantity[product].asMutable() += LinearMonomial(unitProduce.solverMaterialQuantity(), compilation.operationTime[actionIndex, slotIndex])
                 }
             }
         }

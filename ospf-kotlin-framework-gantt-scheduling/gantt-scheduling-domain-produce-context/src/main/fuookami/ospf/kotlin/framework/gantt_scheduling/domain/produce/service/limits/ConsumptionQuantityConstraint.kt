@@ -1,4 +1,3 @@
-/** 消费数量约束 / Consumption quantity constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
@@ -10,6 +9,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Cons
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroConsumptionMaterials
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverLowerBound
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverUpperBound
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
@@ -64,7 +65,7 @@ class ConsumptionQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         overQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                                polyX leq reserve.solverUpperBound(),
                                 name = "${name}_ub_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
@@ -83,7 +84,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] leq reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                            consumption.quantity[material] leq reserve.solverUpperBound(),
                             name = "${name}_ub_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
@@ -101,7 +102,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] leq reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                    consumption.quantity[material] leq reserve.solverUpperBound(),
                     name = "${name}_ub_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
@@ -122,7 +123,7 @@ class ConsumptionQuantityConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessQuantity.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                                polyX geq reserve.solverLowerBound(),
                                 name = "${name}_lb_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
@@ -141,7 +142,7 @@ class ConsumptionQuantityConstraint<
 
                     else -> {
                         when (val result = model.addConstraint(
-                            consumption.quantity[material] geq reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                            consumption.quantity[material] geq reserve.solverLowerBound(),
                             name = "${name}_lb_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
@@ -159,7 +160,7 @@ class ConsumptionQuantityConstraint<
                 }
             } else {
                 when (val result = model.addConstraint(
-                    consumption.quantity[material] geq reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                    consumption.quantity[material] geq reserve.solverLowerBound(),
                     name = "${name}_lb_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {

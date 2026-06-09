@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
@@ -51,6 +52,32 @@ class TaskDelayLastEndTimeConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_delay_last_end_time"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+    /**
+     * 通过 solver 时间窗口边界创建任务延迟最晚结束时间约束 /
+     * Create task delay last end time constraint from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param taskTime 任务时间对象 / Task time object
+     * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
+     * @param name 管道名称 / Pipeline name
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<AbstractTask<E, A>>,
+        taskTime: TaskTime,
+        shadowPriceExtractor: ((Args) -> Flt64?)? = null,
+        name: String = "task_delay_last_end_time"
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        taskTime = taskTime,
+        shadowPriceExtractor = shadowPriceExtractor,
+        name = name
+    )
+
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     private val tasks = if (taskTime.delayLastEndTimeEnabled) {
         tasks.filter { !it.delayEnabled && it.lastEndTime != null }
     } else {
@@ -63,7 +90,7 @@ class TaskDelayLastEndTimeConstraint<
                 "TaskDelayLastEndTimeConstraint.invoke 要求 task.lastEndTime 非空: $task"
             }
             when (val result = model.addConstraint(
-                taskTime.estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
+                taskTime.estimateEndTime[task] leq timeBoundary.valueOf(lastEndTime),
                 name = "${name}_${task}",
                 args = TaskDelayLastEndTimeShadowPriceKey(task)
             )) {

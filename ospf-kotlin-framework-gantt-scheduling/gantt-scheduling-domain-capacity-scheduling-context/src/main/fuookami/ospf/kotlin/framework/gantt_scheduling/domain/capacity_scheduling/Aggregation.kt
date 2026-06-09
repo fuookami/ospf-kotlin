@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling
 
@@ -93,6 +92,10 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
         replaceWith = ReplaceWith("totalCapacityQuantity().value")
     )
     fun totalCapacity(): V {
+        return totalCapacityValue()
+    }
+
+    private fun totalCapacityValue(): V {
         val zero = timeWindow.fromDouble(0.0)
         var total = zero
         for (action in actions) {
@@ -115,7 +118,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      * @return Total capacity as Quantity<V> / 总产能物理量
      */
     fun totalCapacityQuantity(unit: PhysicalUnit = NoneUnit): CapacityQuantity<V> {
-        return Quantity(totalCapacity(), unit)
+        return Quantity(totalCapacityValue(), unit)
     }
 
     /**
@@ -143,4 +146,8 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
 
 // ── Flt64 向后兼容 typealias ──
 
-@Deprecated("Use CapacitySchedulingAggregation<Flt64, A> directly") typealias Flt64CapacitySchedulingAggregation<A> = CapacitySchedulingAggregation<Flt64, A>
+@Deprecated(
+    message = "Use CapacitySchedulingAggregation<Flt64, A> directly",
+    replaceWith = ReplaceWith("CapacitySchedulingAggregation<Flt64, A>")
+)
+typealias Flt64CapacitySchedulingAggregation<A> = CapacitySchedulingAggregation<Flt64, A>

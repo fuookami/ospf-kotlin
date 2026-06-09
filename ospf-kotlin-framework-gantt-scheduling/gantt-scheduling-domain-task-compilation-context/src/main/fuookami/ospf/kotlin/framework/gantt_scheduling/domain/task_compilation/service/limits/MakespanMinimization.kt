@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -40,8 +41,33 @@ class MakespanMinimization<
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+    /**
+     * 通过 solver 时间窗口边界创建最大完工时间最小化 / Create makespan minimization from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param makespan 最大完工时间对象 / Makespan object
+     * @param threshold 阈值时间点 / Threshold time point
+     * @param coefficient 成本系数 / Cost coefficient
+     * @param name 管道名称 / Pipeline name
+     */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        makespan: Makespan<*, E, A>,
+        threshold: Instant = timeBoundary.source.window.start,
+        coefficient: Flt64 = Flt64.one,
+        name: String = "makespan_minimization"
+    ) : this(
+        timeWindow = timeBoundary.source,
+        makespan = makespan,
+        threshold = threshold,
+        coefficient = coefficient,
+        name = name
+    )
+
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
-        val thresholdValue = with(timeWindow) { threshold.value }
+        val thresholdValue = timeBoundary.valueOf(threshold)
         if (thresholdValue eq Flt64.zero) {
             when (val result = model.minimize(
                 polynomial = coefficient * makespan.makespan.toLinearPolynomial(),
@@ -61,7 +87,7 @@ class MakespanMinimization<
             val slack = thresholdSlack(
                 x = makespan.makespan,
                 threshold = thresholdValue,
-                type = if (timeWindow.continues) {
+                type = if (timeBoundary.continues) {
                     UContinuous
                 } else {
                     UInteger

@@ -4,20 +4,42 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Gram
-import kotlinx.datetime.Instant
-import org.junit.jupiter.api.Test
-import kotlin.time.DurationUnit
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit
+import kotlin.time.Instant
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.unit.Gram
+import fuookami.ospf.kotlin.quantities.unit.Kilogram
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 class WorkingCalendarTest {
+    private fun minutesTimeWindow(timeWindow: TimeRange): TimeWindow<Flt64> {
+        return TimeWindow.minutes(
+            timeWindow = timeWindow,
+            dateOffset = Flt64.zero,
+            continues = true,
+            interval = Flt64.one,
+            fromDouble = { Flt64(it) },
+            toDouble = { it.toDouble() }
+        )
+    }
+
+    private fun genericMinutesTimeWindow(timeWindow: TimeRange): TimeWindow<FltX> {
+        return TimeWindow.minutes(
+            timeWindow = timeWindow,
+            dateOffset = Quantity(FltX("0.0"), NoneUnit),
+            continues = true,
+            interval = Quantity(FltX("1.0"), NoneUnit),
+            fromDouble = { FltX(it.toString()) },
+            toDouble = { it.toDouble() }
+        )
+    }
+
     @Test
     fun actualTimeShouldExposeGenericDurationQuantities() {
         val timeWindow = TimeWindow(
@@ -62,10 +84,75 @@ class WorkingCalendarTest {
     }
 
     @Test
+    fun workingCalendarShouldAcceptGenericTimeWindowBoundary() {
+        val calendar = WorkingCalendar(
+            timeWindow = genericMinutesTimeWindow(
+                TimeRange(
+                    start = Instant.parse("2020-08-30T08:00:00Z"),
+                    end = Instant.parse("2020-08-30T18:00:00Z")
+                )
+            ),
+            unavailableTimes = listOf(
+                TimeRange(
+                    start = Instant.parse("2020-08-30T12:00:00Z"),
+                    end = Instant.parse("2020-08-30T13:00:00Z")
+                )
+            )
+        )
+
+        val actualTime = calendar.actualTime(
+            time = TimeRange(
+                start = Instant.parse("2020-08-30T11:00:00Z"),
+                end = Instant.parse("2020-08-30T13:00:00Z")
+            )
+        )
+
+        assert(actualTime.time == TimeRange(
+            start = Instant.parse("2020-08-30T11:00:00Z"),
+            end = Instant.parse("2020-08-30T14:00:00Z")
+        ))
+    }
+
+    @Test
+    fun quantityProductivityCalendarShouldAcceptGenericTimeWindowBoundary() {
+        val calendar = DiscreteQuantityProductivityCalendar(
+            timeWindow = genericMinutesTimeWindow(
+                TimeRange(
+                    start = Instant.parse("2020-08-30T08:00:00Z"),
+                    end = Instant.parse("2020-08-30T18:00:00Z")
+                )
+            ),
+            productivity = listOf(
+                QuantityProductivity<UInt64, Int, Int>(
+                    timeWindow = TimeRange(
+                        start = Instant.parse("2020-08-30T08:00:00Z"),
+                        end = Instant.parse("2020-08-30T18:00:00Z")
+                    ),
+                    extractor = { it },
+                    capacities = emptyMap(),
+                    unitYields = mapOf(Pair(1, Quantity(UInt64(1), Kilogram)))
+                )
+            ),
+            quantityUnit = Kilogram
+        )
+
+        val quantity = calendar.actualQuantity(
+            material = 1,
+            time = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T09:00:00Z")
+            )
+        )
+
+        assert(quantity.value == UInt64(60))
+        assert(quantity.unit == Kilogram)
+    }
+
+    @Test
     fun testWorkingCalendarActualTime() {
         val calendar1 = WorkingCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-31T18:00:00Z")
                 )
@@ -190,8 +277,8 @@ class WorkingCalendarTest {
         )
 
         val calendar2 = WorkingCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-31T18:00:00Z")
                 )
@@ -220,8 +307,8 @@ class WorkingCalendarTest {
     @Test
     fun testProductivityCalendarActualTime() {
         val calendar1 = DiscreteProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-31T18:00:00Z")
                 )
@@ -419,8 +506,8 @@ class WorkingCalendarTest {
         )
 
         val calendar2 = DiscreteProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-31T18:00:00Z")
                 )
@@ -628,8 +715,8 @@ class WorkingCalendarTest {
     @Test
     fun testQuantityProductivityCalendarActualTime() {
         val calendar1 = DiscreteQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-31T18:00:00Z")
                 )
@@ -757,8 +844,8 @@ class WorkingCalendarTest {
 
         // ContinuousQuantityProductivityCalendar basic test
         val continuousCalendar = ContinuousQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-30T18:00:00Z")
                 )
@@ -804,8 +891,8 @@ class WorkingCalendarTest {
         // 使用 Kilogram 作为产出单位，验证 unitYields 路径的物理单位语义
         // unitYield = 1 kg/min，60 分钟生产 60 kg
         val calendar = DiscreteQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-30T18:00:00Z")
                 )
@@ -872,8 +959,8 @@ class WorkingCalendarTest {
     fun testQuantityProductivityCalendarUnitMismatch() {
         // 日历使用 Kilogram 单位
         val calendar = DiscreteQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-30T18:00:00Z")
                 )
@@ -924,8 +1011,8 @@ class WorkingCalendarTest {
     fun testQuantityProductivityCalendarInconsistentUnitYields() {
         // 两个 productivity 条目使用不同单位 → averageUnitYield 应拒绝
         val calendar = DiscreteQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-30T18:00:00Z")
                 )
@@ -966,8 +1053,8 @@ class WorkingCalendarTest {
     @Test
     fun testQuantityProductivityCalendarMaterialSpecificUnits() {
         val calendar = DiscreteQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-30T18:00:00Z")
                 )
@@ -1015,8 +1102,8 @@ class WorkingCalendarTest {
     @Test
     fun testQuantityProductivityCalendarActualQuantityRejectsInconsistentMaterialUnits() {
         val calendar = DiscreteQuantityProductivityCalendar(
-            timeWindow = TimeWindow.minutes(
-                timeWindow = TimeRange(
+            timeWindow = minutesTimeWindow(
+                TimeRange(
                     start = Instant.parse("2020-08-30T08:00:00Z"),
                     end = Instant.parse("2020-08-30T18:00:00Z")
                 )

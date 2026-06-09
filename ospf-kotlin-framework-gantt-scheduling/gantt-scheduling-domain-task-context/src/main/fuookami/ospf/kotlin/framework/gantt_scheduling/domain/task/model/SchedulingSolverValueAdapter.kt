@@ -50,6 +50,9 @@ interface SchedulingSolverValueAdapter<V : RealNumber<V>> : IntoValue<V> {
     }
 }
 
+/** solver 默认 adapter 的共享出口 / Shared default adapter for solver internals */
+val schedulingSolverValueAdapter: SchedulingSolverValueAdapter<Flt64> = SchedulingSolverValueAdapter.Flt64
+
 /** Flt64 恒等 adapter 实现，等价于 IntoValue.Identity 加上调度专用方法。 */
 private object Flt64SolverValueAdapter : SchedulingSolverValueAdapter<Flt64> {
     override val converter: IntoValue<Flt64> get() = IntoValue.Identity

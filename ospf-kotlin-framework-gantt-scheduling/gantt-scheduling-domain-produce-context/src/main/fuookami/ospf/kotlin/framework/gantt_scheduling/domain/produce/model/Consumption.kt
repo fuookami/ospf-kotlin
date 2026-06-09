@@ -1,6 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/** 消耗模型 / Consumption model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -27,7 +25,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
@@ -126,7 +123,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.materialQuantity
 ): MaterialQuantity<V>? {
     val value = (this as IntermediateSymbol<Flt64>).evaluate(
         tokenTable = model.tokens,
-        converter = SchedulingSolverValueAdapter.Flt64,
+        converter = produceSolverValueAdapter,
         zeroIfNone = true
     ) ?: toLinearPolynomial().constant
     return Quantity(adapter.intoValue(value), unit)
@@ -168,14 +165,14 @@ abstract class AbstractConsumption<
                     if (demand != null && demand.overEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64(),
+                            threshold = demand.solverUpperBound(),
                             type = UContinuous,
                             withNegative = false,
                             withPositive = true,
                             constraint = false,
                             name = "consumption_over_quantity_${product}"
                         )
-                        demand.overQuantityValue?.value?.let { overConstraints.add(slack.pos!! to it.toFlt64()) }
+                        demand.overQuantityValue?.let { overConstraints.add(slack.pos!! to demand.solverOverQuantity()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -219,14 +216,14 @@ abstract class AbstractConsumption<
                     if (demand != null && demand.lessEnabled) {
                         val slack = produceSlack(
                             x = quantity[product],
-                            threshold = demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64(),
+                            threshold = demand.solverLowerBound(),
                             type = UContinuous,
                             withNegative = true,
                             withPositive = false,
                             constraint = false,
                             name = "consumption_less_quantity_${product}"
                         )
-                        demand.lessQuantityValue?.value?.let { lessConstraints.add(slack.neg!! to it.toFlt64()) }
+                        demand.lessQuantityValue?.let { lessConstraints.add(slack.neg!! to demand.solverLessQuantity()) }
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
@@ -394,16 +391,7 @@ class BunchSchedulingConsumption<
                 }
                 for ((material, reserve) in materials) {
                     if (reserve != null) {
-                        val lowerBound = reserve.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() -
-                                (reserve.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                        val upperBound = reserve.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() +
-                                (reserve.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                        quantity[material].range.set(
-                            ValueRange(
-                                lowerBound,
-                                upperBound
-                            ).value!!
-                        )
+                        quantity[material].range.set(reserve.solverValueRange())
                     }
                 }
             }
@@ -450,7 +438,10 @@ class BunchSchedulingConsumption<
             if (thisBunches.isNotEmpty()) {
                 quantity[material].flush()
                 for ((bunch, consumptionQuantity) in thisBunches) {
-                    quantity[material].asMutable() += LinearMonomial(consumptionQuantity.toFlt64(), xi[bunch])
+                    quantity[material].asMutable() += LinearMonomial(
+                        consumptionQuantity.solverMaterialQuantity(),
+                        xi[bunch]
+                    )
                 }
             }
         }

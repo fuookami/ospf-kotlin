@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 /**
  * 甘特调度影子价格映射及相关类型 / Gantt scheduling shadow price map and related types
  */
@@ -101,7 +99,7 @@ inline fun <
         >.reducedCost(
     bunch: AbstractTaskBunch<T, E, A, V>
 ): V {
-    var ret = bunch.cost.sum!!.toFlt64()
+    var ret = bunch.cost.solverCost()
     if (bunch.executor.indexed) {
         ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
         for ((index, task) in bunch.tasks.withIndex()) {
@@ -160,5 +158,3 @@ typealias AbstractGanttSchedulingCGPipelineList<Args, E, A> = List<
 typealias GanttSchedulingCGPipelineList<E, A> = AbstractGanttSchedulingCGPipelineList<
         AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
         >
-
-

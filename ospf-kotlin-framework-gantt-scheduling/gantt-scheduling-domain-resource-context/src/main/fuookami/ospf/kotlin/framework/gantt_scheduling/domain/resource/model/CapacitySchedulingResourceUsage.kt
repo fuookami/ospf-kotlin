@@ -1,5 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
@@ -10,7 +9,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -66,12 +64,7 @@ abstract class CapacitySchedulingResourceUsage<
             )
         }
         for (slot in timeSlots) {
-            quantity[slot].range.set(
-                ValueRange(
-                    slot.resourceCapacity.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() - (slot.resourceCapacity.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero),
-                    slot.resourceCapacity.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() + (slot.resourceCapacity.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                ).value!!
-            )
+            quantity[slot].range.set(slot.resourceCapacity.solverValueRange())
         }
     }
 

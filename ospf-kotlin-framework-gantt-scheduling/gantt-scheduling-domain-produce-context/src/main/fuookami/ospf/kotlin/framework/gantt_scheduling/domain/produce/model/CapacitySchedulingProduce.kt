@@ -1,5 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
@@ -60,16 +58,7 @@ abstract class CapacitySchedulingProduce<
     init {
         for ((product, demand) in products) {
             if (demand != null) {
-                val lowerBound = demand.quantityRangeValue.value.lowerBound.value.unwrap().toFlt64() -
-                        (demand.lessQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                val upperBound = demand.quantityRangeValue.value.upperBound.value.unwrap().toFlt64() +
-                        (demand.overQuantityValue?.value?.toFlt64() ?: Flt64.zero)
-                quantity[product].range.set(
-                    ValueRange(
-                        lowerBound,
-                        upperBound
-                    ).value!!
-                )
+                quantity[product].range.set(demand.solverValueRange())
             }
         }
     }

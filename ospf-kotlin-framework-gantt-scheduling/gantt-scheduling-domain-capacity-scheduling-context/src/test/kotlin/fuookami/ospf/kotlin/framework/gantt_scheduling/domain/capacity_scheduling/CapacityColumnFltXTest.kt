@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -52,10 +52,10 @@ class CapacityColumnFltXTest {
             slotIndex = 0,
             order = 0,
             allocations = mapOf(TestAction to UInt64(5)),
-            cost = FltX("125.75")
+            columnCost = Quantity(FltX("125.75"), NoneUnit)
         )
 
-        assertTrue(column.cost eq FltX("125.75"))
+        assertTrue(column.columnCost.value eq FltX("125.75"))
         assertEquals(testExecutor, column.executor)
         assertEquals(0, column.slotIndex)
         assertEquals(0, column.order)
@@ -68,7 +68,7 @@ class CapacityColumnFltXTest {
             slotIndex = 1,
             order = 0,
             allocations = mapOf(TestAction to UInt64(3)),
-            cost = FltX("50.0")
+            columnCost = Quantity(FltX("50.0"), NoneUnit)
         )
 
         assertEquals(UInt64(3), column.amountFor(TestAction))
@@ -85,7 +85,7 @@ class CapacityColumnFltXTest {
                 TestAction to UInt64(2),
                 TestAction2 to UInt64(7)
             ),
-            cost = FltX("200.50")
+            columnCost = Quantity(FltX("200.50"), NoneUnit)
         )
 
         assertEquals(UInt64(9), column.totalAmount)
@@ -98,7 +98,7 @@ class CapacityColumnFltXTest {
             slotIndex = 0,
             order = 0,
             allocations = emptyMap(),
-            cost = FltX("0")
+            columnCost = Quantity(FltX("0"), NoneUnit)
         )
         assertTrue(emptyColumn.isEmpty)
 
@@ -107,7 +107,7 @@ class CapacityColumnFltXTest {
             slotIndex = 0,
             order = 0,
             allocations = mapOf(TestAction to UInt64(1)),
-            cost = FltX("10.0")
+            columnCost = Quantity(FltX("10.0"), NoneUnit)
         )
         assertTrue(!nonEmptyColumn.isEmpty)
     }
@@ -119,7 +119,7 @@ class CapacityColumnFltXTest {
             slotIndex = 0,
             order = 0,
             allocations = mapOf(TestAction to UInt64.zero),
-            cost = FltX("0")
+            columnCost = Quantity(FltX("0"), NoneUnit)
         )
         assertTrue(column.isEmpty)
     }
@@ -131,7 +131,7 @@ class CapacityColumnFltXTest {
             slotIndex = 0,
             order = 0,
             allocations = mapOf(TestAction to UInt64(2)),
-            cost = FltX("88.25")
+            columnCost = Quantity(FltX("88.25"), NoneUnit)
         )
 
         val cost = column.costQuantity()
@@ -149,7 +149,7 @@ class CapacityColumnFltXTest {
             columnCost = Quantity(FltX("91.25"), NoneUnit)
         )
 
-        assertTrue(column.cost eq FltX("91.25"))
+        assertTrue(column.columnCost.value eq FltX("91.25"))
         assertEquals(NoneUnit, column.columnCost.unit)
         assertTrue(column.costQuantity().value eq FltX("91.25"))
     }

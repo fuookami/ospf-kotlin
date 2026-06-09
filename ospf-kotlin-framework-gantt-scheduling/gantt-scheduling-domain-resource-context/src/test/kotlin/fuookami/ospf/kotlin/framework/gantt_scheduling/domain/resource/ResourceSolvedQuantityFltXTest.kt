@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -26,6 +26,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
@@ -37,13 +38,16 @@ class ResourceSolvedQuantityFltXTest {
     )
     private val capacity = ResourceCapacity(
         time = time,
-        quantity = ValueRange(
-            lb = FltX("0"),
-            ub = FltX("100"),
-            lbInterval = Interval.Closed,
-            ubInterval = Interval.Closed,
-            constants = FltX
-        ).value!!
+        quantityRangeValue = Quantity(
+            value = ValueRange(
+                lb = FltX("0"),
+                ub = FltX("100"),
+                lbInterval = Interval.Closed,
+                ubInterval = Interval.Closed,
+                constants = FltX
+            ).value!!,
+            unit = NoneUnit
+        )
     )
     private val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
         id = "resource",
@@ -65,7 +69,7 @@ class ResourceSolvedQuantityFltXTest {
     )
     private val model = LinearMetaModel(
         name = "resource-solved-quantity-test",
-        converter = SchedulingSolverValueAdapter.Flt64
+        converter = schedulingSolverValueAdapter
     )
     private val adapter = GenericSolverValueAdapter(FltX)
 

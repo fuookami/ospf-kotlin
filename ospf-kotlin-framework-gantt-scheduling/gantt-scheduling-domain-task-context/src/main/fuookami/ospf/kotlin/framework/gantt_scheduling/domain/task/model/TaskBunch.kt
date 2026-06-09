@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
@@ -15,7 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.sumOf
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.time.Duration
 
 /**
@@ -90,7 +88,7 @@ open class AbstractTaskBunch<
 
     /** 成本密度（成本/任务数）/ Cost density (cost/number of tasks) */
     open val costDensity by lazy {
-        (cost.sum?.toFlt64() ?: Flt64.zero) / Flt64(size.toDouble())
+        cost.solverCost(Flt64.zero) / Flt64(size.toDouble())
     }
 
     /** 忙碌时间 / Busy time */
@@ -217,4 +215,8 @@ open class AbstractTaskBunch<
 }
 
 /** 任务束类型别名 / Task bunch type alias */
+@Deprecated(
+    message = "Use AbstractTaskBunch<Task<*, E>, E, A, Flt64> directly",
+    replaceWith = ReplaceWith("AbstractTaskBunch<Task<*, E>, E, A, Flt64>")
+)
 typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A, Flt64>

@@ -260,7 +260,15 @@ class TaskReverse<
 }
 
 /** 向后兼容 typealias — Flt64 task reverse builder / Backward compat typealias */
+@Deprecated(
+    message = "Use TaskReverseBuilderV<B, Flt64, T, E, A> directly",
+    replaceWith = ReplaceWith("TaskReverseBuilderV<B, Flt64, T, E, A>")
+)
 typealias TaskReverseBuilder<B, T, E, A> = TaskReverseBuilderV<B, Flt64, T, E, A>
 
 /** 向后兼容 typealias — Flt64 task reverse builder / Backward compat typealias */
+@Deprecated(
+    message = "Use TaskReverseBuilderV<B, Flt64, T, E, A> directly",
+    replaceWith = ReplaceWith("TaskReverseBuilderV<B, Flt64, T, E, A>")
+)
 typealias Flt64TaskReverseBuilder<B, T, E, A> = TaskReverseBuilderV<B, Flt64, T, E, A>
