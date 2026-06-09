@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber

@@ -113,11 +113,11 @@ function Get-Flt64Category {
     }
 
     if ($relativePath -match "^gantt-scheduling-infrastructure/src/main/.*/infrastructure/TimeWindow\.kt$") {
-        if ($line -match "toFlt64Boundary") {
+        if ($line -match "toFlt64Boundary|fun toFlt64Boundary") {
             return "Time/Calendar Adapter"
         }
         if ($line -match "TimeWindow\.(seconds|minutes|hours).*Flt64|TimeWindow<Flt64>|Flt64\(it\)") {
-            return "Compat Wrapper"
+            return "Time/Calendar Adapter"
         }
     }
 

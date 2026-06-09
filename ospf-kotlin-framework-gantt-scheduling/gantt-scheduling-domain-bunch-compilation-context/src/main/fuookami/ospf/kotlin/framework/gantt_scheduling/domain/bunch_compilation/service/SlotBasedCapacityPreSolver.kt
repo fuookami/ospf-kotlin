@@ -18,6 +18,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -414,10 +416,10 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
                 slot = slot,
                 slotIndex = slotIndex,
                 actionAllocations = allocations,
-                totalCost = totalCost,
-                produceByProduct = produceByProduct,
-                consumptionByMaterial = consumptionByMaterial,
-                resourceUsageByResource = resourceUsageByResource
+                totalCostQuantityValue = Quantity(totalCost, NoneUnit),
+                produceQuantityByProduct = produceByProduct.mapValues { (_, v) -> Quantity(v, NoneUnit) },
+                consumptionQuantityByMaterial = consumptionByMaterial.mapValues { (_, v) -> Quantity(v, NoneUnit) },
+                resourceUsageQuantityByResource = resourceUsageByResource.mapValues { (_, v) -> Quantity(v, NoneUnit) }
             )
         }
 

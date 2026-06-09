@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
@@ -458,43 +456,37 @@ data class SlotConstraints<M, R, V>(
             }
 
             val zero = tolerance.constants.zero
-            val maxProduce = result.produceByProduct.mapValues { (_, v) -> v + tolerance }
-            val minProduce = result.produceByProduct.mapValues { (_, v) ->
-                val value = v - tolerance
-                if (value ls zero) {
-                    zero
-                } else {
-                    value
-                }
+            val maxProduceQuantity = result.produceQuantityByProduct.mapValues { (_, q) ->
+                Quantity(q.value + tolerance, q.unit)
             }
-            val maxConsumption = result.consumptionByMaterial.mapValues { (_, v) -> v + tolerance }
-            val minConsumption = result.consumptionByMaterial.mapValues { (_, v) ->
-                val value = v - tolerance
-                if (value ls zero) {
-                    zero
-                } else {
-                    value
-                }
+            val minProduceQuantity = result.produceQuantityByProduct.mapValues { (_, q) ->
+                val value = q.value - tolerance
+                Quantity(if (value ls zero) zero else value, q.unit)
             }
-            val maxResourceUsage = result.resourceUsageByResource.mapValues { (_, v) -> v + tolerance }
-            val minResourceUsage = result.resourceUsageByResource.mapValues { (_, v) ->
-                val value = v - tolerance
-                if (value ls zero) {
-                    zero
-                } else {
-                    value
-                }
+            val maxConsumptionQuantity = result.consumptionQuantityByMaterial.mapValues { (_, q) ->
+                Quantity(q.value + tolerance, q.unit)
+            }
+            val minConsumptionQuantity = result.consumptionQuantityByMaterial.mapValues { (_, q) ->
+                val value = q.value - tolerance
+                Quantity(if (value ls zero) zero else value, q.unit)
+            }
+            val maxResourceUsageQuantity = result.resourceUsageQuantityByResource.mapValues { (_, q) ->
+                Quantity(q.value + tolerance, q.unit)
+            }
+            val minResourceUsageQuantity = result.resourceUsageQuantityByResource.mapValues { (_, q) ->
+                val value = q.value - tolerance
+                Quantity(if (value ls zero) zero else value, q.unit)
             }
 
             return SlotConstraints(
                 slot = result.slot,
                 slotIndex = result.slotIndex,
-                maxProduce = maxProduce,
-                minProduce = minProduce,
-                maxConsumption = maxConsumption,
-                minConsumption = minConsumption,
-                maxResourceUsage = maxResourceUsage,
-                minResourceUsage = minResourceUsage
+                maxProduceQuantity = maxProduceQuantity,
+                minProduceQuantity = minProduceQuantity,
+                maxConsumptionQuantity = maxConsumptionQuantity,
+                minConsumptionQuantity = minConsumptionQuantity,
+                maxResourceUsageQuantity = maxResourceUsageQuantity,
+                minResourceUsageQuantity = minResourceUsageQuantity
             )
         }
     }
