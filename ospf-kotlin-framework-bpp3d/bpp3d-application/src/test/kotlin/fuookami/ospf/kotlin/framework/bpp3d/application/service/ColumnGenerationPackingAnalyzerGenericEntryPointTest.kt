@@ -330,16 +330,22 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
 
     @Test
     fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderMultiHangingSupport() = runBlocking {
+        for (axis in listOf(Axis3.X, Axis3.Z)) {
+            assertGeneratedHorizontalCylinderMultiHangingSupport(axis)
+        }
+    }
+
+    private suspend fun assertGeneratedHorizontalCylinderMultiHangingSupport(axis: Axis3) {
         val material = GenericMaterial(
-            no = MaterialNo("M-ADAPTER-CYLINDER-MULTI-HANGING"),
+            no = MaterialNo("M-ADAPTER-CYLINDER-MULTI-HANGING-$axis"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
-            name = "M-ADAPTER-CYLINDER-MULTI-HANGING",
+            name = "M-ADAPTER-CYLINDER-MULTI-HANGING-$axis",
             weight = FltX(0.2) * Kilogram
         )
         val support = GenericItem(
-            id = "item-adapter-cylinder-multi-hanging-support",
-            name = "item-adapter-cylinder-multi-hanging-support",
+            id = "item-adapter-cylinder-multi-hanging-support-$axis",
+            name = "item-adapter-cylinder-multi-hanging-support-$axis",
             pack = GenericPackage.innerPackage(
                 shape = GenericPackageShape(
                     width = FltX(0.4) * Meter,
@@ -351,12 +357,12 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
                 materials = mapOf(material to UInt64.one)
             ),
             enabledOrientations = listOf(Orientation.Upright),
-            batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-HANGING-SUPPORT"),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-HANGING-SUPPORT-$axis"),
             packageAttribute = packageAttribute()
         ).toModel()
         val cylinder = GenericItem(
-            id = "item-adapter-cylinder-multi-hanging-cylinder",
-            name = "item-adapter-cylinder-multi-hanging-cylinder",
+            id = "item-adapter-cylinder-multi-hanging-cylinder-$axis",
+            name = "item-adapter-cylinder-multi-hanging-cylinder-$axis",
             pack = GenericPackage.innerPackage(
                 shape = GenericPackageShape(
                     width = FltX(1.0) * Meter,
@@ -366,13 +372,13 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
                     packageType = PackageType.CartonContainer,
                     shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
-                        axis = Axis3.X
+                        axis = axis
                     )
                 ),
                 materials = mapOf(material to UInt64.one)
             ),
             enabledOrientations = listOf(Orientation.Upright),
-            batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-HANGING-CYLINDER"),
+            batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-HANGING-CYLINDER-$axis"),
             packageAttribute = packageAttribute()
         ).toModel()
         val bin = BinType(
@@ -382,7 +388,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             capacity = infraScalar(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-HANGING"
+            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-HANGING-$axis"
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -393,16 +399,22 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
                 maxCandidates = 16
             )
         )
+        val sourceAxis = axis.name.lowercase()
         val layer = generated.first { result ->
-            result.source == "circle-packing-horizontal-hanging-support-multi-axis=x"
+            result.source == "circle-packing-horizontal-hanging-support-multi-axis=$sourceAxis"
         }.layer
         val placement = layer.toLayerPlacement()
 
-        assertEquals(4, placement.unit.units.size)
+        val expectedSupportCount = if (axis == Axis3.X) {
+            3
+        } else {
+            5
+        }
+        assertEquals(expectedSupportCount + 1, placement.unit.units.size)
         assertTrue(
             placement.unit.units.any { unitPlacement ->
                 val shape = unitPlacement.resolvedPackingShape()
-                shape is CylinderPackingShape3 && shape.axis == Axis3.X
+                shape is CylinderPackingShape3 && shape.axis == axis
             }
         )
     }

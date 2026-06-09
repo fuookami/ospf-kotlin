@@ -59,6 +59,7 @@ $fixHints = @{
     ContinuousCylinderRadiusSelectionResultGuardMissing = "Continuous-radius production must expose an explicit selected-radius result object, not just a metadata string."
     ContinuousCylinderRadiusOptimizationGapReportGuardMissing = "Continuous-radius unsupported solver-native paths must be represented by a typed gap report shared by production and CSV guards."
     ContinuousCylinderRadiusSolverPrototypeGuardMissing = "Continuous-radius solver-native work must keep a typed variable prototype wired into CSV guard diagnostics instead of silently fixing interval-only radius metadata."
+    ContinuousCylinderRadiusSolverPrototypeBoundGuardMissing = "Continuous-radius solver prototypes must validate selected radius against solver registration bounds before reaching RMP/final/analyzer diagnostics."
     ContinuousCylinderRadiusSolverContextGuardMissing = "Column generation solver context must carry continuous-radius solver prototypes into RMP, final MILP, and packing snapshots."
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must require concrete radius metadata before generating candidates."
     HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking/hanging limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
@@ -459,6 +460,12 @@ Add-RequiredPatternViolation `
     -FilePath $cylinderShapeContractPath `
     -Pattern "data\s+class\s+ContinuousCylinderRadiusSolverPrototype[\s\S]*?variableName[\s\S]*?isProductionReady[\s\S]*?fun\s+continuousCylinderRadiusSolverPrototype\s*\([\s\S]*?continuousCylinderRadiusOptimizationGapReport[\s\S]*?fun\s+PackageShapeSpec\.VerticalCylinder\.continuousRadiusSolverPrototype" `
     -MissingText "CylinderShapeContract must keep a typed solver-native continuous-radius variable prototype and expose it from VerticalCylinder metadata."
+
+Add-RequiredPatternViolation `
+    -Check "ContinuousCylinderRadiusSolverPrototypeBoundGuardMissing" `
+    -FilePath $cylinderShapeContractPath `
+    -Pattern "data\s+class\s+ContinuousCylinderRadiusSolverPrototype[\s\S]*?initialRadius\s*!=\s*null\s*&&\s*radiusLowerBound\s*!=\s*null[\s\S]*?greater than or equal to lower bound[\s\S]*?initialRadius\s*!=\s*null\s*&&\s*radiusUpperBound\s*!=\s*null[\s\S]*?less than or equal to upper bound" `
+    -MissingText "ContinuousCylinderRadiusSolverPrototype must reject selected or initial radius values outside solver registration bounds."
 
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverPrototypeGuardMissing" `

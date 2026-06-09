@@ -1432,6 +1432,24 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerCsvShouldRejectSelectedContinuousRadiusOutsideRadiusBounds() {
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,radius_min,radius_max,radius_weight_function_key,axis
+            0,0,item-continuous-radius-key,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.20,0.30,prefer-large-radius,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(
+            exception.message
+                ?.contains("selected or initial radius must be greater than or equal to lower bound") == true
+        )
+        assertTrue(exception.message?.contains("prefer-large-radius") == true)
+    }
+
+    @Test
     fun groupedLayerCsvShouldRejectContinuousRadiusWeightFunctionKeyWithoutSelectedRadius() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis
@@ -1462,6 +1480,24 @@ class GurobiColumnGenerationTest {
         assertNotNull(cylinderSpec)
         assertEquals("prefer-large-radius", cylinderSpec.radiusWeightFunctionKey)
         assertEquals(0.20, cylinderSpec.radius.value.toDouble(), 1e-9)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectSelectedContinuousRadiusOutsideDiameterBounds() {
+        val csv = """
+            material,width,amount,shape_type,radius_meter,diameter_min,diameter_max,radius_weight_function_key,axis
+            MAT-A,1000,1,vertical_cylinder,0.20,0.50,0.70,prefer-large-radius,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(
+            exception.message
+                ?.contains("selected or initial radius must be greater than or equal to lower bound") == true
+        )
+        assertTrue(exception.message?.contains("prefer-large-radius") == true)
     }
 
     @Test
@@ -2205,17 +2241,28 @@ class GurobiColumnGenerationTest {
                 "diameter_step requires diameter_min and diameter_max for cylinder row: $rowDescription"
             )
         }
-        val solverPrototype = continuousCylinderRadiusSolverPrototype(
-            source = "Gurobi CSV",
-            radiusWeightFunctionKey = radiusWeightFunctionKey,
-            axis = axis,
-            selectedRadius = radiusMeter?.let { it * Meter },
-            radiusMin = radiusMinMeter?.let { it * Meter },
-            radiusMax = radiusMaxMeter?.let { it * Meter },
-            diameterMin = diameterMinMeter?.let { it * Meter },
-            diameterMax = diameterMaxMeter?.let { it * Meter },
-            hasDiscreteRadiusStep = radiusStepMeter != null || diameterStepMeter != null
-        )
+        val solverPrototype = try {
+            continuousCylinderRadiusSolverPrototype(
+                source = "Gurobi CSV",
+                radiusWeightFunctionKey = radiusWeightFunctionKey,
+                axis = axis,
+                selectedRadius = radiusMeter?.let { it * Meter },
+                radiusMin = radiusMinMeter?.let { it * Meter },
+                radiusMax = radiusMaxMeter?.let { it * Meter },
+                diameterMin = diameterMinMeter?.let { it * Meter },
+                diameterMax = diameterMaxMeter?.let { it * Meter },
+                hasDiscreteRadiusStep = radiusStepMeter != null || diameterStepMeter != null
+            )
+        } catch (exception: IllegalArgumentException) {
+            val keyText = radiusWeightFunctionKey
+                ?.takeIf { it.isNotBlank() }
+                ?.let { ", key=$it" }
+                ?: ""
+            throw IllegalStateException(
+                "invalid continuous cylinder radius metadata$keyText, $rowDescription: ${exception.message}",
+                exception
+            )
+        }
         val gapReport = continuousCylinderRadiusOptimizationGapReport(
             source = "Gurobi CSV",
             radiusWeightFunctionKey = radiusWeightFunctionKey,

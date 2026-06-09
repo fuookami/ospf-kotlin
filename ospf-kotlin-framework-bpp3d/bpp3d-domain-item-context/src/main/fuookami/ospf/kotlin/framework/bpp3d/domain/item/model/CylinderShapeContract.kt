@@ -420,6 +420,20 @@ data class ContinuousCylinderRadiusSolverPrototype(
                 "Continuous cylinder radius solver prototype initial radius must be positive."
             }
         }
+        if (initialRadius != null && radiusLowerBound != null) {
+            val lower = radiusLowerBound.convertTo(initialRadius.unit)
+                ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")
+            require(initialRadius.value.toDouble() >= lower.value.toDouble()) {
+                "Continuous cylinder radius solver prototype selected or initial radius must be greater than or equal to lower bound."
+            }
+        }
+        if (initialRadius != null && radiusUpperBound != null) {
+            val upper = radiusUpperBound.convertTo(initialRadius.unit)
+                ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")
+            require(initialRadius.value.toDouble() <= upper.value.toDouble()) {
+                "Continuous cylinder radius solver prototype selected or initial radius must be less than or equal to upper bound."
+            }
+        }
         if (radiusLowerBound != null && radiusUpperBound != null) {
             val upper = radiusUpperBound.convertTo(radiusLowerBound.unit)
                 ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")

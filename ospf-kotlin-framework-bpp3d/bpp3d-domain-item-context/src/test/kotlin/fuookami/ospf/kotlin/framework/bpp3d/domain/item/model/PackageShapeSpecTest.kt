@@ -154,6 +154,38 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    fun selectedContinuousRadiusSolverPrototypeShouldRejectRadiusBelowBounds() {
+        val exception = assertFailsWith<IllegalArgumentException> {
+            continuousCylinderRadiusSolverPrototype(
+                source = "unit test",
+                radiusWeightFunctionKey = "continuous-radius-prototype",
+                axis = Axis3.Y,
+                selectedRadius = infraScalar(0.3) * Meter,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter
+            )
+        }
+
+        assertTrue(exception.message?.contains("greater than or equal to lower bound") == true)
+    }
+
+    @Test
+    fun selectedContinuousRadiusSolverPrototypeShouldRejectRadiusAboveBounds() {
+        val exception = assertFailsWith<IllegalArgumentException> {
+            continuousCylinderRadiusSolverPrototype(
+                source = "unit test",
+                radiusWeightFunctionKey = "continuous-radius-prototype",
+                axis = Axis3.Y,
+                selectedRadius = infraScalar(0.7) * Meter,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter
+            )
+        }
+
+        assertTrue(exception.message?.contains("less than or equal to upper bound") == true)
+    }
+
+    @Test
     fun selectedContinuousRadiusShouldHaveNoOptimizationGap() {
         val report = continuousCylinderRadiusOptimizationGapReport(
             source = "test",

@@ -1,0 +1,7 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis,width_meter,height_meter,depth_meter
+0,0,item-horizontal-z-hanging-multi-support-a,MAT-HZHMS,Material-HZHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-z-hanging-multi-support-b,MAT-HZHMS,Material-HZHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-z-hanging-multi-support-c,MAT-HZHMS,Material-HZHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-z-hanging-multi-support-d,MAT-HZHMS,Material-HZHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-z-hanging-multi-support-e,MAT-HZHMS,Material-HZHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-z-hanging-multi-cylinder,MAT-HZHMC,Material-HZHMC,1.0,vertical_cylinder,0.5,Z,1.0,1.0,1.0
