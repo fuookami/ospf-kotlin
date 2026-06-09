@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationReport
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.DominanceStrategy
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxKnifeCountConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
@@ -41,7 +42,8 @@ class NSameGenerator<V : RealNumber<V>>(
     private val timeout: Duration? = null,
     private val maxPlans: Int = 1000,
     private val parallelism: Int = 1,
-    private val enableDominancePruning: Boolean = false
+    private val enableDominancePruning: Boolean = false,
+    private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) : Csp1dInitialCuttingPlanGenerator<V> {
 
     constructor(
@@ -57,7 +59,8 @@ class NSameGenerator<V : RealNumber<V>>(
         timeout = timeout,
         maxPlans = maxPlans,
         parallelism = constraints.parallelism,
-        enableDominancePruning = constraints.enableDominancePruning
+        enableDominancePruning = constraints.enableDominancePruning,
+        dominanceStrategy = constraints.dominanceStrategy
     )
 
     /** 从约束中提取 maxKnifeCount，用于枚举范围限制 / Extract maxKnifeCount for enumeration bound */
@@ -77,7 +80,8 @@ class NSameGenerator<V : RealNumber<V>>(
         val collector = GenerationCollector<V>(
             maxPlans = maxPlans,
             deadline = deadline,
-            enableDominancePruning = enableDominancePruning
+            enableDominancePruning = enableDominancePruning,
+            dominanceStrategy = dominanceStrategy
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
 
@@ -89,17 +93,25 @@ class NSameGenerator<V : RealNumber<V>>(
                         val localCollector = GenerationCollector<V>(
                             maxPlans = maxPlans,
                             deadline = deadline,
-                            enableDominancePruning = enableDominancePruning
+                            enableDominancePruning = enableDominancePruning,
+                            dominanceStrategy = dominanceStrategy
                         )
+                        val localQuantityCache = GenerationQuantityCache(arithmetic)
                         generateMaterial(
                             material = material,
                             demands = input.demands,
                             machines = input.machines,
                             planIndex = planIndex,
                             collector = localCollector,
-                            quantityCache = GenerationQuantityCache(arithmetic)
+                            quantityCache = localQuantityCache
                         )
-                        localCollector.report()
+                        val localReport = localCollector.report()
+                        localReport.copy(
+                            statistics = localReport.statistics.copy(
+                                quantityCacheHits = localQuantityCache.totalHits,
+                                quantityCacheMisses = localQuantityCache.totalMisses
+                            )
+                        )
                     }
                 }
             )
@@ -122,7 +134,13 @@ class NSameGenerator<V : RealNumber<V>>(
             )
             if (collector.shouldStop()) break
         }
-        return collector.report()
+        val report = collector.report()
+        return report.copy(
+            statistics = report.statistics.copy(
+                quantityCacheHits = quantityCache.totalHits,
+                quantityCacheMisses = quantityCache.totalMisses
+            )
+        )
     }
 
     private fun generateMaterial(

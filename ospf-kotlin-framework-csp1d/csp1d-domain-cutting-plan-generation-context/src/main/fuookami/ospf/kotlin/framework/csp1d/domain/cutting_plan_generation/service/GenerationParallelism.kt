@@ -48,6 +48,10 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
     val lengthBoundPrunedEntries = reports.sumOf { it.statistics.lengthBoundPrunedEntries }
     val materialWidthIndexCacheHits = reports.sumOf { it.statistics.materialWidthIndexCacheHits }
     val materialSliceTemplateCacheHits = reports.sumOf { it.statistics.materialSliceTemplateCacheHits }
+    val materialSliceTemplateCacheMisses = reports.sumOf { it.statistics.materialSliceTemplateCacheMisses }
+    val quantityCacheHits = reports.sumOf { it.statistics.quantityCacheHits }
+    val quantityCacheMisses = reports.sumOf { it.statistics.quantityCacheMisses }
+    var crossWorkerDuplicateCandidates = 0L
 
     for (report in reports) {
         for (plan in report.plans) {
@@ -56,6 +60,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             }
             if (!canonicalKeys.add(plan.canonicalKey())) {
                 ++duplicateCandidates
+                ++crossWorkerDuplicateCandidates
                 continue
             }
             plans.add(plan)
@@ -88,6 +93,10 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             lengthBoundPrunedEntries = lengthBoundPrunedEntries,
             materialWidthIndexCacheHits = materialWidthIndexCacheHits,
             materialSliceTemplateCacheHits = materialSliceTemplateCacheHits,
+            quantityCacheHits = quantityCacheHits,
+            quantityCacheMisses = quantityCacheMisses,
+            materialSliceTemplateCacheMisses = materialSliceTemplateCacheMisses,
+            crossWorkerDuplicateCandidates = crossWorkerDuplicateCandidates,
             elapsedMilliseconds = (System.nanoTime() - startedAt) / 1_000_000L,
             stopReason = stopReason
         )

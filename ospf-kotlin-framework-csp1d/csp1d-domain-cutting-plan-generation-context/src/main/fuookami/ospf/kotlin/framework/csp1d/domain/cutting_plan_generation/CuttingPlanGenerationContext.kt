@@ -62,6 +62,11 @@ enum class CuttingPlanGenerationStopReason {
  * @property lengthBoundPrunedEntries 被长度上界剪枝的搜索入口数 / Search entry count pruned by length upper bound
  * @property materialWidthIndexCacheHits 物料等价宽度入口缓存命中数 / Material-equivalent width-entry cache hit count
  * @property materialSliceTemplateCacheHits 物料等价切片模板缓存命中数 / Material-equivalent slice-template cache hit count
+ * @property quantityCacheHits 数量缓存命中数 / Quantity cache hit count
+ * @property quantityCacheMisses 数量缓存未命中数 / Quantity cache miss count
+ * @property materialSliceTemplateCacheMisses 物料等价切片模板缓存未命中数 / Material-equivalent slice-template cache miss count
+ * @property crossWorkerDuplicateCandidates 并行合并时跨 worker 重复候选数 / Cross-worker duplicate candidate count during parallel merge
+ * @property crossContributionDominated 跨贡献 dominance 剪枝过滤的候选数 / Candidate count filtered by cross-contribution dominance pruning
  * @property elapsedMilliseconds 生成耗时毫秒数 / Generation elapsed time in milliseconds
  * @property stopReason 终止原因 / Stop reason
  */
@@ -77,6 +82,11 @@ data class CuttingPlanGenerationStatistics(
     val lengthBoundPrunedEntries: Long = 0L,
     val materialWidthIndexCacheHits: Long = 0L,
     val materialSliceTemplateCacheHits: Long = 0L,
+    val quantityCacheHits: Long = 0L,
+    val quantityCacheMisses: Long = 0L,
+    val materialSliceTemplateCacheMisses: Long = 0L,
+    val crossWorkerDuplicateCandidates: Long = 0L,
+    val crossContributionDominated: Long = 0L,
     val elapsedMilliseconds: Long = 0L,
     val stopReason: CuttingPlanGenerationStopReason = CuttingPlanGenerationStopReason.Exhausted
 )
@@ -100,6 +110,11 @@ data class CuttingPlanGenerationStatistics(
  * @property lengthBoundPrunedEntries 被长度上界剪枝的搜索入口数 / Search entry count pruned by length upper bound
  * @property materialWidthIndexCacheHits 物料等价宽度入口缓存命中数 / Material-equivalent width-entry cache hit count
  * @property materialSliceTemplateCacheHits 物料等价切片模板缓存命中数 / Material-equivalent slice-template cache hit count
+ * @property quantityCacheHits 数量缓存命中数 / Quantity cache hit count
+ * @property quantityCacheMisses 数量缓存未命中数 / Quantity cache miss count
+ * @property materialSliceTemplateCacheMisses 物料等价切片模板缓存未命中数 / Material-equivalent slice-template cache miss count
+ * @property crossWorkerDuplicateCandidates 并行合并时跨 worker 重复候选数 / Cross-worker duplicate candidate count during parallel merge
+ * @property crossContributionDominated 跨贡献 dominance 剪枝过滤的候选数 / Candidate count filtered by cross-contribution dominance pruning
  * @property stopReason 终止原因 / Stop reason
  */
 data class CuttingPlanGenerationBenchmarkSnapshot(
@@ -115,6 +130,11 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
     val lengthBoundPrunedEntries: Long,
     val materialWidthIndexCacheHits: Long,
     val materialSliceTemplateCacheHits: Long,
+    val quantityCacheHits: Long,
+    val quantityCacheMisses: Long,
+    val materialSliceTemplateCacheMisses: Long,
+    val crossWorkerDuplicateCandidates: Long,
+    val crossContributionDominated: Long,
     val stopReason: CuttingPlanGenerationStopReason
 ) {
     /**
@@ -136,6 +156,11 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
             "lengthBoundPrunedEntries=$lengthBoundPrunedEntries",
             "materialWidthIndexCacheHits=$materialWidthIndexCacheHits",
             "materialSliceTemplateCacheHits=$materialSliceTemplateCacheHits",
+            "quantityCacheHits=$quantityCacheHits",
+            "quantityCacheMisses=$quantityCacheMisses",
+            "materialSliceTemplateCacheMisses=$materialSliceTemplateCacheMisses",
+            "crossWorkerDuplicateCandidates=$crossWorkerDuplicateCandidates",
+            "crossContributionDominated=$crossContributionDominated",
             "stopReason=${stopReason.name}"
         ).joinToString(";")
     }
@@ -165,6 +190,11 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
                 lengthBoundPrunedEntries = statistics.lengthBoundPrunedEntries,
                 materialWidthIndexCacheHits = statistics.materialWidthIndexCacheHits,
                 materialSliceTemplateCacheHits = statistics.materialSliceTemplateCacheHits,
+                quantityCacheHits = statistics.quantityCacheHits,
+                quantityCacheMisses = statistics.quantityCacheMisses,
+                materialSliceTemplateCacheMisses = statistics.materialSliceTemplateCacheMisses,
+                crossWorkerDuplicateCandidates = statistics.crossWorkerDuplicateCandidates,
+                crossContributionDominated = statistics.crossContributionDominated,
                 stopReason = statistics.stopReason
             )
         }
@@ -261,6 +291,25 @@ fun interface Csp1dPricingGenerator<V : RealNumber<V>> {
      * @return 新切割方案列表 / New cutting plans
      */
     fun generate(input: Csp1dPricingInput<V>): List<CuttingPlan<V>>
+
+    /**
+     * 生成新列并返回统计 / Generate new columns with statistics
+     *
+     * @param input 定价输入 / Pricing input
+     * @return 切割方案生成报告 / Cutting plan generation report
+     */
+    fun generateWithReport(input: Csp1dPricingInput<V>): CuttingPlanGenerationReport<V> {
+        val startTime = System.nanoTime()
+        val plans = generate(input)
+        return CuttingPlanGenerationReport(
+            plans = plans,
+            statistics = CuttingPlanGenerationStatistics(
+                generatedCandidates = plans.size.toLong(),
+                acceptedPlans = plans.size,
+                elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L
+            )
+        )
+    }
 }
 
 /**
@@ -378,15 +427,21 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
     private val enumerator: Csp1dInitialCuttingPlanGenerator<V>
 ) : Csp1dPricingGenerator<V> {
     override fun generate(input: Csp1dPricingInput<V>): List<CuttingPlan<V>> {
-        val candidates = enumerator.generate(input.generationInput)
-        if (candidates.isEmpty()) return emptyList()
+        return generateWithReport(input).plans
+    }
+
+    override fun generateWithReport(input: Csp1dPricingInput<V>): CuttingPlanGenerationReport<V> {
+        val report = enumerator.generateWithReport(input.generationInput)
+        if (report.plans.isEmpty()) {
+            return report
+        }
 
         val existingIds = input.generationInput.existingPlans.map { it.id }.toSet()
         val existingKeys = input.generationInput.existingPlans.map { it.canonicalKey() }.toSet()
         val maxGeneratedPlans = input.maxGeneratedPlans.toULong()
         val shadowPrices = input.shadowPrices
 
-        return candidates
+        val pricedPlans = report.plans
             .asSequence()
             .map { plan -> plan to plan.canonicalKey() }
             .filter { (plan, key) -> plan.id !in existingIds && key !in existingKeys }
@@ -404,6 +459,12 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
             .map { it.plan }
             .take(maxGeneratedPlans.toInt())
             .toList()
+        return report.copy(
+            plans = pricedPlans,
+            statistics = report.statistics.copy(
+                acceptedPlans = pricedPlans.size
+            )
+        )
     }
 
     /**
@@ -521,4 +582,3 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         val objectiveCost: V
     )
 }
-

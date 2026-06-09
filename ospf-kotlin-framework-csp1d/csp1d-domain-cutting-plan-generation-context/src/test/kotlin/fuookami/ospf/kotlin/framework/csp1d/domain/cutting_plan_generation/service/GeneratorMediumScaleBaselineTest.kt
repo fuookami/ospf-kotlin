@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.DominanceStrategy
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
@@ -82,10 +83,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -162,10 +163,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -231,10 +232,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=2181;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=117;generatedCandidates=82;acceptedPlans=82;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=2181;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=117;generatedCandidates=82;acceptedPlans=82;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=0;quantityCacheMisses=0;materialSliceTemplateCacheMisses=0;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -406,6 +407,110 @@ class GeneratorMediumScaleBaselineTest {
         }
     }
 
+    @Test
+    fun generatorsShouldReportParallelTemplateReuseForEquivalentMaterials() {
+        val products = listOf(
+            product(id = "p-par-eq-030", width = 0.30),
+            product(id = "p-par-eq-045", width = 0.45)
+        )
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = listOf(
+                material(
+                    id = "m-par-eq-a",
+                    upperBound = 1.20
+                ),
+                material(
+                    id = "m-par-eq-b",
+                    upperBound = 1.20
+                )
+            ),
+            machines = emptyList(),
+            demands = products.map { product ->
+                ProductDemand.roll(
+                    product = product,
+                    quantity = Quantity(Flt64(8.0), RollCountUnit)
+                )
+            }
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(4UL),
+            parallelism = 2,
+            enableDominancePruning = true
+        )
+
+        for (case in generatorCases(
+            constraints = constraints,
+            maxPlans = 128,
+            nSumDepth = UInt64(4UL)
+        )) {
+            val report = case.generator.generateWithReport(input)
+            val materialIds = report.plans.map { it.material.id }.toSet()
+
+            assertEquals(
+                expected = setOf("m-par-eq-a", "m-par-eq-b"),
+                actual = materialIds,
+                message = "${case.name} should rebuild plans for both materials under parallelism"
+            )
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans under parallelism")
+            assertTrue(
+                report.statistics.materialSliceTemplateCacheHits >= 0L,
+                "${case.name} template cache hit count should be non-negative under parallelism"
+            )
+            assertTrue(
+                report.statistics.materialSliceTemplateCacheMisses >= 0L,
+                "${case.name} template cache miss count should be non-negative under parallelism"
+            )
+        }
+    }
+
+    @Test
+    fun generatorsShouldReportCrossContributionDominance() {
+        val products = listOf(
+            product(id = "p-dom-030", width = 0.30),
+            product(id = "p-dom-045", width = 0.45),
+            product(id = "p-dom-060", width = 0.60)
+        )
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = listOf(
+                material(
+                    id = "m-dom-120",
+                    upperBound = 1.20
+                )
+            ),
+            machines = emptyList(),
+            demands = products.mapIndexed { index, product ->
+                ProductDemand.roll(
+                    product = product,
+                    quantity = Quantity(Flt64(10.0 + index), RollCountUnit)
+                )
+            }
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(4UL),
+            enableDominancePruning = true,
+            dominanceStrategy = DominanceStrategy.CrossContribution
+        )
+
+        for (case in generatorCases(
+            constraints = constraints,
+            maxPlans = 256,
+            nSumDepth = UInt64(4UL)
+        )) {
+            val report = case.generator.generateWithReport(input)
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans with cross-contribution dominance")
+            assertTrue(
+                report.statistics.crossContributionDominated >= 0L,
+                "${case.name} cross-contribution dominated count should be non-negative"
+            )
+            assertTrue(
+                report.statistics.dominatedCandidates >= 0L,
+                "${case.name} total dominated count should be non-negative"
+            )
+        }
+    }
+
     private data class GeneratorCase(
         val name: String,
         val generator: Csp1dInitialCuttingPlanGenerator<Flt64>
@@ -472,6 +577,11 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(statistics.lengthBoundPrunedEntries >= 0L, "$name length-bound pruning count should be non-negative")
         assertTrue(statistics.materialWidthIndexCacheHits >= 0L, "$name width-index cache hit count should be non-negative")
         assertTrue(statistics.materialSliceTemplateCacheHits >= 0L, "$name slice-template cache hit count should be non-negative")
+        assertTrue(statistics.quantityCacheHits >= 0L, "$name quantity cache hit count should be non-negative")
+        assertTrue(statistics.quantityCacheMisses >= 0L, "$name quantity cache miss count should be non-negative")
+        assertTrue(statistics.materialSliceTemplateCacheMisses >= 0L, "$name slice-template cache miss count should be non-negative")
+        assertTrue(statistics.crossWorkerDuplicateCandidates >= 0L, "$name cross-worker duplicate count should be non-negative")
+        assertTrue(statistics.crossContributionDominated >= 0L, "$name cross-contribution dominated count should be non-negative")
         assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||

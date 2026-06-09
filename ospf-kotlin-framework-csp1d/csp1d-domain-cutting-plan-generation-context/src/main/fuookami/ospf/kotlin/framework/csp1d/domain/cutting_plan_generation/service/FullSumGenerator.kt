@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationReport
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.DominanceStrategy
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxKnifeCountConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MinKnifeCountConstraint
@@ -43,7 +44,8 @@ class FullSumGenerator<V : RealNumber<V>>(
     private val maxPlans: Int = 1000,
     private val timeout: Duration? = null,
     private val parallelism: Int = 1,
-    private val enableDominancePruning: Boolean = false
+    private val enableDominancePruning: Boolean = false,
+    private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) : Csp1dInitialCuttingPlanGenerator<V> {
 
     constructor(
@@ -57,7 +59,8 @@ class FullSumGenerator<V : RealNumber<V>>(
         maxPlans = maxPlans,
         timeout = timeout,
         parallelism = constraints.parallelism,
-        enableDominancePruning = constraints.enableDominancePruning
+        enableDominancePruning = constraints.enableDominancePruning,
+        dominanceStrategy = constraints.dominanceStrategy
     )
 
     private val pruningConstraints = constraints.filter { it.isPruning }
@@ -77,7 +80,8 @@ class FullSumGenerator<V : RealNumber<V>>(
         val collector = GenerationCollector<V>(
             maxPlans = maxPlans,
             deadline = deadline,
-            enableDominancePruning = enableDominancePruning
+            enableDominancePruning = enableDominancePruning,
+            dominanceStrategy = dominanceStrategy
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
 
@@ -87,8 +91,12 @@ class FullSumGenerator<V : RealNumber<V>>(
             baseIndex = widthIndex,
             maxOverProduceLength = maxOverProduceLength
         )
-        val materialSliceTemplateCache = if (parallelism == 1 && canReuseMaterialSliceTemplates(constraints)) {
-            GenerationMaterialSliceTemplateCache<V>()
+        val materialSliceTemplateCache: GenerationSliceTemplateCache<V>? = if (canReuseMaterialSliceTemplates(constraints)) {
+            if (parallelism == 1) {
+                SequentialGenerationSliceTemplateCache<V>()
+            } else {
+                ConcurrentGenerationSliceTemplateCache<V>()
+            }
         } else {
             null
         }
@@ -101,23 +109,48 @@ class FullSumGenerator<V : RealNumber<V>>(
                         val localCollector = GenerationCollector<V>(
                             maxPlans = maxPlans,
                             deadline = deadline,
-                            enableDominancePruning = enableDominancePruning
+                            enableDominancePruning = enableDominancePruning,
+                            dominanceStrategy = dominanceStrategy
                         )
+                        val localQuantityCache = GenerationQuantityCache(arithmetic)
                         val materialWidthIndex = materialWidthIndexCache.get(
                             material = material,
                             collector = localCollector
                         )
                         if (!materialWidthIndex.isEmpty) {
-                            fullSumSearch(
-                                material = material,
-                                widthIndex = materialWidthIndex,
-                                machines = input.machines,
-                                planIndex = planIndex,
-                                collector = localCollector,
-                                quantityCache = GenerationQuantityCache(arithmetic)
-                            )
+                            val templates = materialSliceTemplateCache?.get(material, localCollector)
+                            if (templates != null) {
+                                emitTemplates(
+                                    material = material,
+                                    widthIndex = materialWidthIndex,
+                                    machines = input.machines,
+                                    planIndex = planIndex,
+                                    collector = localCollector,
+                                    templates = templates
+                                )
+                            } else {
+                                val templateRecorder = GenerationSliceTemplateRecorder<V>()
+                                fullSumSearch(
+                                    material = material,
+                                    widthIndex = materialWidthIndex,
+                                    machines = input.machines,
+                                    planIndex = planIndex,
+                                    collector = localCollector,
+                                    quantityCache = localQuantityCache,
+                                    templateRecorder = templateRecorder
+                                )
+                                if (!localCollector.shouldStop()) {
+                                    materialSliceTemplateCache?.put(material, templateRecorder.templates)
+                                }
+                            }
                         }
-                        localCollector.report()
+                        val localReport = localCollector.report()
+                        localReport.copy(
+                            statistics = localReport.statistics.copy(
+                                quantityCacheHits = localQuantityCache.totalHits,
+                                quantityCacheMisses = localQuantityCache.totalMisses
+                            )
+                        )
                     }
                 }
             )
@@ -171,7 +204,13 @@ class FullSumGenerator<V : RealNumber<V>>(
             if (collector.shouldStop()) break
         }
 
-        return collector.report()
+        val report = collector.report()
+        return report.copy(
+            statistics = report.statistics.copy(
+                quantityCacheHits = quantityCache.totalHits,
+                quantityCacheMisses = quantityCache.totalMisses
+            )
+        )
     }
 
     private fun fullSumSearch(

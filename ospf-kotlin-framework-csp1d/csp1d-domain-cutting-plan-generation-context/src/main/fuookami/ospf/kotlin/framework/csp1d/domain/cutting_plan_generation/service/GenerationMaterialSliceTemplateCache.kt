@@ -11,8 +11,12 @@ internal class GenerationMaterialSliceTemplateCache<V : RealNumber<V>> {
         material: Material<V>,
         collector: GenerationCollector<V>
     ): List<List<CuttingPlanSlice<V>>>? {
-        val templates = cache[material.generationWidthRangeKey()] ?: return null
-        collector.recordMaterialSliceTemplateCacheHit()
+        val templates = cache[material.generationWidthRangeKey()]
+        if (templates != null) {
+            collector.recordMaterialSliceTemplateCacheHit()
+        } else {
+            collector.recordMaterialSliceTemplateCacheMiss()
+        }
         return templates
     }
 

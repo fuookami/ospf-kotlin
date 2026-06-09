@@ -16,13 +16,15 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property maxOverProduceLength 最大超产长度 / Max over-produce length
  * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  * @property enableDominancePruning 是否启用同贡献候选 dominance 剪枝 / Whether to enable dominance pruning for same-contribution candidates
+ * @property dominanceStrategy dominance 剪枝策略 / Dominance pruning strategy
  */
 data class GenerationConstraints<V : RealNumber<V>>(
     val maxKnifeCount: UInt64? = null,
     val minKnifeCount: UInt64? = null,
     val maxOverProduceLength: Quantity<V>? = null,
     val parallelism: Int = 1,
-    val enableDominancePruning: Boolean = false
+    val enableDominancePruning: Boolean = false,
+    val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) {
     companion object {
         fun <V : RealNumber<V>> unconstrained(): GenerationConstraints<V> = GenerationConstraints()
@@ -45,4 +47,15 @@ data class GenerationConstraints<V : RealNumber<V>>(
         constraints.add(WidthUpperBoundConstraint())
         return constraints
     }
+}
+
+/**
+ * dominance 剪枝策略 / Dominance pruning strategy
+ *
+ * - [SameContribution]：按精确需求贡献分组，只比较相同贡献的方案余宽（当前默认行为）
+ * - [CrossContribution]：按产品集合分组，贡献超集 + 余宽更优的方案 dominate 旧方案
+ */
+enum class DominanceStrategy {
+    SameContribution,
+    CrossContribution
 }
