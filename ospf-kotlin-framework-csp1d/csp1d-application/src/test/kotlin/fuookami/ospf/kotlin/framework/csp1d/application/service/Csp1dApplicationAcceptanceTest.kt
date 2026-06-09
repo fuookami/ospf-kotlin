@@ -1354,6 +1354,84 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
+     * 验证列生成最终 MILP 会消费 warm start adapter 提供的使用量 /
+     * Verify column generation final MILP consumes usages provided by warm-start adapter
+     */
+    @Test
+    fun columnGenerationShouldApplyWarmStartUsagesToFinalMilp(): Unit = runBlocking {
+        val product = product(
+            id = "p-cg-native-warm",
+            width = 0.5
+        )
+        val material = material(
+            id = "m-cg-native-warm",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val singlePlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        ).copy(id = "cg-native-warm-single")
+        val packedPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64(3.0)
+        ).copy(id = "cg-native-warm-packed")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(3.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(singlePlan, packedPlan)
+            }
+        ).solve(problem)
+        val adapterResult = Csp1dWarmStartPlanPoolAdapter<Flt64>(
+            appendFallbackPlans = false
+        ).apply(
+            Csp1dWarmStartAdapterInput(
+                problem = problem,
+                solveConfig = null,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                ),
+                cuttingPlans = previousSolution.generatedPlans
+            )
+        )
+        val solver = Csp1dInitialResultCapturingSolver()
+        val initialGenerator = assertNotNull(
+            adapterResult.initialGenerator,
+            "Warm-start adapter should provide an initial generator"
+        )
+
+        val result = Csp1dColumnGeneration(
+            solver = solver,
+            initialGenerator = initialGenerator,
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() },
+            warmStartPlanUsages = adapterResult.initialPlanUsages
+        ).solveWithTrace(problem)
+
+        assertEquals(Csp1dFinalMilpStatus.Solved, result.trace.finalMilpStatus)
+        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertEquals(Flt64.one, solver.lastInitialResults["x_1"])
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
      * 验证空 warm start 输入会被记录为 ignored 并完成普通求解 /
      * Verify empty warm start input is recorded as ignored and normal solve completes
      */

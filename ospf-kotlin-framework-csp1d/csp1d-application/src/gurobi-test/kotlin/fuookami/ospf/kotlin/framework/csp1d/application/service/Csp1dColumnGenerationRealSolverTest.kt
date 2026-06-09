@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
@@ -317,6 +318,73 @@ class Csp1dColumnGenerationRealSolverTest {
         assertNotNull(milpResult, "MILP result should not be null")
         assertTrue(milpResult.produce.unmetDemands.isEmpty(), "Warm-started MILP should meet demand")
         val packedUsage = milpResult.produce.cuttingPlans.firstOrNull {
+            it.plan.id == packedPlan.id
+        }
+        assertNotNull(packedUsage, "Packed warm-start plan should be selected by the real solver")
+        assertEquals(UInt64(2UL), packedUsage.amount)
+    }
+
+    /**
+     * 验证列生成最终 MILP 可消费 native warm start 初始解 /
+     * Verify column generation final MILP consumes native warm-start initial solution
+     */
+    @Test
+    fun columnGenerationFinalMilpWarmStartWorksOnRealSolver() = runBlocking {
+        val product = product(
+            id = "p_cg_warm_start",
+            width = 0.5
+        )
+        val material = material(
+            id = "m_cg_warm_start",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val singlePlan = cuttingPlan(
+            id = "plan_cg_warm_start_single",
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val packedPlan = cuttingPlan(
+            id = "plan_cg_warm_start_packed",
+            product = product,
+            material = material,
+            rollContribution = Flt64(3.0)
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(6.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val result = Csp1dColumnGeneration(
+            solver = solver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(singlePlan, packedPlan)
+            },
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() },
+            warmStartPlanUsages = listOf(
+                CuttingPlanUsage(
+                    plan = packedPlan,
+                    amount = UInt64(2UL)
+                )
+            )
+        ).solveWithTrace(problem)
+
+        assertEquals(Csp1dFinalMilpStatus.Solved, result.trace.finalMilpStatus)
+        assertTrue(result.solution.produce.unmetDemands.isEmpty(), "Warm-started column generation should meet demand")
+        val packedUsage = result.solution.produce.cuttingPlans.firstOrNull {
             it.plan.id == packedPlan.id
         }
         assertNotNull(packedUsage, "Packed warm-start plan should be selected by the real solver")

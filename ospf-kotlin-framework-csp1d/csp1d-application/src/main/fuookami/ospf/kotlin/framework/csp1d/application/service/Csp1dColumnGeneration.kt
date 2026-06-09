@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Simpl
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
@@ -91,7 +92,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val analyzer: Csp1dSolutionAnalyzer<V> = DefaultCsp1dSolutionAnalyzer(),
     private val yieldConfig: YieldModelingConfig<V>? = null,
     private val wasteConfig: WasteMinimizationConfig<V>? = null,
-    private val lengthConfig: LengthAssignmentModelingConfig<V>? = null
+    private val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
+    private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList()
 ) {
     suspend fun solve(
         problem: Csp1dProblem<V>,
@@ -377,7 +379,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     cuttingPlans = cuttingPlans,
                     demands = problem.demands,
                     materials = problem.materials,
-                    machines = problem.machines
+                    machines = problem.machines,
+                    warmStartPlanUsages = warmStartPlanUsages
                 ),
                 yieldConfig = solveConfig.yieldConfig,
                 wasteConfig = solveConfig.wasteConfig,
