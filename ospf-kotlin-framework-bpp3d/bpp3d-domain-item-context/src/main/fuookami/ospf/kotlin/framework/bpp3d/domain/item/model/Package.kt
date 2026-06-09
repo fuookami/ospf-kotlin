@@ -182,13 +182,15 @@ sealed interface PackageShapeSpec {
                     "Resolved radius must be included in radius candidates when candidates are provided."
                 }
             }
-            if (radiusWeightFunctionKey != null) {
-                require(radiusCandidates.isEmpty()) {
-                    "Vertical cylinder radiusWeightFunctionKey cannot be combined with discrete radius candidates."
-                }
-                require(radiusStep == null && diameterStep == null) {
-                    "Vertical cylinder radiusWeightFunctionKey cannot be combined with discrete radius or diameter steps."
-                }
+            val continuousRadiusGapReport = continuousCylinderRadiusOptimizationGapReport(
+                source = "PackageShapeSpec.VerticalCylinder",
+                radiusWeightFunctionKey = radiusWeightFunctionKey,
+                hasConcreteSelectedRadius = true,
+                hasDiscreteRadiusCandidates = radiusCandidates.isNotEmpty(),
+                hasDiscreteRadiusStep = radiusStep != null || diameterStep != null
+            )
+            if (continuousRadiusGapReport != null) {
+                throw IllegalArgumentException(continuousRadiusGapReport.message())
             }
             radiusMin?.let {
                 require(it.value.toDouble() > 0.0) {

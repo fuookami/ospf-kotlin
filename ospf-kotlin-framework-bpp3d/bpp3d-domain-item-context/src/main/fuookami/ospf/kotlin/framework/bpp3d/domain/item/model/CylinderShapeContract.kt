@@ -216,6 +216,125 @@ fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): Stri
 }
 
 /**
+ * 连续半径优化缺口。
+ * Continuous-radius optimization gap.
+ *
+ * @property detail 缺口说明 / gap detail
+ */
+enum class ContinuousCylinderRadiusOptimizationGap(
+    val detail: String
+) {
+    /** 缺失已选择具体半径。 / Missing concrete selected radius. */
+    MissingSelectedRadius(
+        detail = "field=radius_weight_function_key requires radius_meter or selected radius"
+    ),
+
+    /** 连续半径 key 与离散半径元数据冲突。 / Continuous-radius key conflicts with discrete radius metadata. */
+    DiscreteRadiusMetadataConflict(
+        detail = "radius_weight_function_key cannot be combined with discrete radius candidates or radius/diameter steps"
+    ),
+
+    /** 区间型半径仍缺少 solver 原生符号变量闭环。 / Interval radius still lacks solver-native symbolic variable closure. */
+    SolverNativeRadiusIntervalUnsupported(
+        detail = "continuous radius interval is unsupported: provide radius_step or radius_meter; symbolic radius variables are not wired to layer footprint, volume, support coverage, and renderer actualVolume"
+    ),
+
+    /** 区间型直径仍缺少 solver 原生符号变量闭环。 / Interval diameter still lacks solver-native symbolic variable closure. */
+    SolverNativeDiameterIntervalUnsupported(
+        detail = "continuous diameter interval is unsupported: provide diameter_step or radius_meter; symbolic radius variables are not wired to layer footprint, volume, support coverage, and renderer actualVolume"
+    )
+}
+
+/**
+ * 连续半径优化缺口报告。
+ * Continuous-radius optimization gap report.
+ *
+ * @property source 调用来源 / call source
+ * @property radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
+ * @property gaps 缺口列表 / gap list
+ */
+data class ContinuousCylinderRadiusOptimizationGapReport(
+    val source: String,
+    val radiusWeightFunctionKey: String?,
+    val gaps: List<ContinuousCylinderRadiusOptimizationGap>
+) {
+    init {
+        require(source.isNotBlank()) {
+            "Continuous cylinder radius optimization gap source must not be blank."
+        }
+        require(gaps.isNotEmpty()) {
+            "Continuous cylinder radius optimization gap report must contain at least one gap."
+        }
+    }
+
+    /**
+     * 转为错误信息。
+     * Convert to error message.
+     *
+     * @param rowDescription 行描述（可选） / row description (optional)
+     * @return 错误信息 / error message
+     */
+    fun message(rowDescription: String? = null): String {
+        val keyText = radiusWeightFunctionKey
+            ?.takeIf { it.isNotBlank() }
+            ?.let { " key=$it;" }
+            ?: ""
+        val gapText = gaps.joinToString(separator = "; ") { gap -> gap.detail }
+        val rowText = rowDescription
+            ?.takeIf { it.isNotBlank() }
+            ?.let { ", $it" }
+            ?: ""
+        return "${unsupportedContinuousCylinderRadiusOptimizationMessage(source)}$keyText gaps=$gapText$rowText"
+    }
+}
+
+/**
+ * 构建连续半径优化缺口报告。
+ * Build continuous-radius optimization gap report.
+ *
+ * @param source 调用来源 / call source
+ * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
+ * @param hasConcreteSelectedRadius 是否已提供具体选择半径 / whether a concrete selected radius is provided
+ * @param hasDiscreteRadiusCandidates 是否存在离散半径候选 / whether discrete radius candidates exist
+ * @param hasDiscreteRadiusStep 是否存在离散半径或直径步长 / whether discrete radius or diameter step exists
+ * @param hasContinuousRadiusInterval 是否存在未离散化的半径区间 / whether an undiscretized radius interval exists
+ * @param hasContinuousDiameterInterval 是否存在未离散化的直径区间 / whether an undiscretized diameter interval exists
+ * @return 缺口报告；无缺口时返回 null / gap report, or null when there is no gap
+ */
+fun continuousCylinderRadiusOptimizationGapReport(
+    source: String,
+    radiusWeightFunctionKey: String?,
+    hasConcreteSelectedRadius: Boolean,
+    hasDiscreteRadiusCandidates: Boolean = false,
+    hasDiscreteRadiusStep: Boolean = false,
+    hasContinuousRadiusInterval: Boolean = false,
+    hasContinuousDiameterInterval: Boolean = false
+): ContinuousCylinderRadiusOptimizationGapReport? {
+    val key = radiusWeightFunctionKey?.takeIf { it.isNotBlank() }
+    val gaps = ArrayList<ContinuousCylinderRadiusOptimizationGap>()
+    if (key != null && !hasConcreteSelectedRadius) {
+        gaps.add(ContinuousCylinderRadiusOptimizationGap.MissingSelectedRadius)
+    }
+    if (key != null && (hasDiscreteRadiusCandidates || hasDiscreteRadiusStep)) {
+        gaps.add(ContinuousCylinderRadiusOptimizationGap.DiscreteRadiusMetadataConflict)
+    }
+    if (!hasConcreteSelectedRadius && hasContinuousRadiusInterval) {
+        gaps.add(ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported)
+    }
+    if (!hasConcreteSelectedRadius && hasContinuousDiameterInterval) {
+        gaps.add(ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported)
+    }
+    if (gaps.isEmpty()) {
+        return null
+    }
+    return ContinuousCylinderRadiusOptimizationGapReport(
+        source = source,
+        radiusWeightFunctionKey = key,
+        gaps = gaps
+    )
+}
+
+/**
  * 连续半径已选择结果。
  * Selected continuous-radius result.
  *
@@ -308,8 +427,13 @@ fun requireConcreteCylinderRadiusProductionMetadata(
 ) {
     if (spec is PackageShapeSpec.VerticalCylinder && hasContinuousCylinderRadiusOptimization(spec)) {
         val selection = spec.continuousRadiusSelectionResult()
-        require(selection != null && selection.selectedRadius.value.toDouble() > 0.0) {
-            unsupportedContinuousCylinderRadiusOptimizationMessage(source)
+        val gapReport = continuousCylinderRadiusOptimizationGapReport(
+            source = source,
+            radiusWeightFunctionKey = spec.radiusWeightFunctionKey,
+            hasConcreteSelectedRadius = selection?.selectedRadius?.value?.toDouble()?.let { it > 0.0 } == true
+        )
+        if (gapReport != null) {
+            throw IllegalArgumentException(gapReport.message())
         }
     }
 }

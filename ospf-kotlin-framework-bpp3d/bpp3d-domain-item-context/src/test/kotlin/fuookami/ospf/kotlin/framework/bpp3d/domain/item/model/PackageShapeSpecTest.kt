@@ -132,6 +132,47 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    fun selectedContinuousRadiusShouldHaveNoOptimizationGap() {
+        val report = continuousCylinderRadiusOptimizationGapReport(
+            source = "test",
+            radiusWeightFunctionKey = "continuous-radius-prototype",
+            hasConcreteSelectedRadius = true,
+            hasDiscreteRadiusCandidates = false,
+            hasDiscreteRadiusStep = false,
+            hasContinuousRadiusInterval = false,
+            hasContinuousDiameterInterval = false
+        )
+
+        assertEquals(
+            expected = null,
+            actual = report
+        )
+    }
+
+    @Test
+    fun intervalOnlyContinuousRadiusShouldExposeTypedOptimizationGap() {
+        val report = assertNotNull(
+            continuousCylinderRadiusOptimizationGapReport(
+                source = "test",
+                radiusWeightFunctionKey = "continuous-radius-prototype",
+                hasConcreteSelectedRadius = false,
+                hasContinuousRadiusInterval = true
+            )
+        )
+
+        assertEquals(
+            expected = listOf(
+                ContinuousCylinderRadiusOptimizationGap.MissingSelectedRadius,
+                ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported
+            ),
+            actual = report.gaps
+        )
+        assertTrue(report.message("row=1").contains("continuous-radius-prototype"))
+        assertTrue(report.message("row=1").contains("symbolic radius variables"))
+        assertTrue(report.message("row=1").contains("row=1"))
+    }
+
+    @Test
     fun verticalCylinderRadiusWeightFunctionKeyShouldRejectDiscreteRadiusCandidates() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(

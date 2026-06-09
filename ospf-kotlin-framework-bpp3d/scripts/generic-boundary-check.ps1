@@ -198,6 +198,18 @@ $contentChecks = @(
         Pattern = "\bMaterialPackingQuantity\b"
     },
     @{
+        Name = "LoadingDepthLimitCompatAlias"
+        Pattern = "\bLoadingDepthLimit\b"
+    },
+    @{
+        Name = "PalletLayerViewCompatAlias"
+        Pattern = "\bPalletLayerView\b"
+    },
+    @{
+        Name = "PalletLayerPlacementCompatAlias"
+        Pattern = "\bPalletLayerPlacement\b"
+    },
+    @{
         Name = "InfraNumberGenericDomainAliasToken"
         Pattern = "\bInfraNumber(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
     },

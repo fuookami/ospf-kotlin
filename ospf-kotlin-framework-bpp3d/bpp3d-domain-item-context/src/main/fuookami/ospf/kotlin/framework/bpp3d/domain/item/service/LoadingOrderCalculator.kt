@@ -26,10 +26,8 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 
-private typealias LoadingDepthLimit = Quantity<InfraNumber>
-
 class LoadingOrderCalculator(
-    private val maxBlockDepth: LoadingDepthLimit?,
+    private val maxBlockDepth: Quantity<InfraNumber>?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
     private fun resolvePackingShape(placement: AnyPlacement3): PackingShape3<InfraNumber> {

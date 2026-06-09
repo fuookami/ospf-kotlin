@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSelectionResult
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
@@ -97,6 +98,9 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
         assertTrue(cylinderSpec.diameterMax!! eq (infraScalar(1.2) * Meter))
         assertEquals(null, cylinderSpec.diameterStep)
         assertEquals(1, cylinderSpec.resolvedRadiusCandidates.size)
+        val selectedRadius = assertNotNull(cylinderSpec.continuousRadiusSelectionResult())
+        assertEquals("generic-shape-spec-v1", selectedRadius.key)
+        assertTrue(selectedRadius.selectedRadius eq (infraScalar(0.5) * Meter))
     }
 
     @Test

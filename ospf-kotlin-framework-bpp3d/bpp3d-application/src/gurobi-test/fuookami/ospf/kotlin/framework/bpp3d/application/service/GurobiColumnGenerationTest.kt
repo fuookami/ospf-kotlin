@@ -19,9 +19,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusOptimizationGapReport
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.unsupportedContinuousCylinderRadiusOptimizationMessage
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
@@ -1444,6 +1444,52 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun materialWidthAmountCsvShouldAcceptSelectedContinuousRadiusWeightFunctionKey() {
+        val csv = """
+            material,width,amount,shape_type,radius_meter,radius_weight_function_key,axis
+            MAT-A,1000,1,vertical_cylinder,0.20,prefer-large-radius,Y
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val item = scenario.itemDemands.single().first
+        val cylinderSpec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+
+        assertNotNull(cylinderSpec)
+        assertEquals("prefer-large-radius", cylinderSpec.radiusWeightFunctionKey)
+        assertEquals(0.20, cylinderSpec.radius.value.toDouble(), 1e-9)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectContinuousRadiusWeightFunctionKeyWithoutSelectedRadius() {
+        val csv = """
+            material,width,amount,shape_type,radius_min,radius_max,radius_weight_function_key,axis
+            MAT-A,1000,1,vertical_cylinder,0.15,0.18,prefer-large-radius,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("field=radius_weight_function_key requires radius_meter") == true)
+        assertTrue(exception.message?.contains("radius_weight_function_key") == true)
+        assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
+    }
+
+    @Test
+    fun materialWidthAmountCsvShouldRejectContinuousRadiusWeightFunctionKeyWithDiscreteStep() {
+        val csv = """
+            material,width,amount,shape_type,radius_meter,radius_min,radius_max,radius_step,radius_weight_function_key,axis
+            MAT-A,1000,1,vertical_cylinder,0.16,0.15,0.18,0.01,prefer-large-radius,Y
+        """.trimIndent()
+
+        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+            loadCsvDrivenScenarioFromCsvText(csv)
+        }
+
+        assertTrue(exception.message?.contains("radius_weight_function_key cannot be combined") == true)
+    }
+
+    @Test
     fun materialWidthAmountCsvShouldRejectContinuousDiameterIntervalWithoutStep() {
         val csv = """
             material,width,amount,shape_type,diameter_min,diameter_max,axis
@@ -2140,19 +2186,6 @@ class GurobiColumnGenerationTest {
         radiusWeightFunctionKey: String?,
         rowDescription: String
     ) {
-        if (!radiusWeightFunctionKey.isNullOrBlank()) {
-            if (radiusMeter == null) {
-                throw IllegalStateException(
-                    unsupportedContinuousCylinderRadiusOptimizationMessage("Gurobi CSV") +
-                            " field=radius_weight_function_key requires radius_meter, $rowDescription"
-                )
-            }
-            if (radiusStepMeter != null || diameterStepMeter != null) {
-                throw IllegalStateException(
-                    "radius_weight_function_key cannot be combined with discrete radius or diameter steps for cylinder row: $rowDescription"
-                )
-            }
-        }
         if (radiusStepMeter != null && (radiusMinMeter == null || radiusMaxMeter == null)) {
             throw IllegalStateException(
                 "radius_step requires radius_min and radius_max for cylinder row: $rowDescription"
@@ -2163,15 +2196,22 @@ class GurobiColumnGenerationTest {
                 "diameter_step requires diameter_min and diameter_max for cylinder row: $rowDescription"
             )
         }
-        if (radiusMeter == null && radiusMinMeter != null && radiusMaxMeter != null && radiusStepMeter == null) {
-            throw IllegalStateException(
-                "continuous radius interval is unsupported for csv row: provide radius_step or radius_meter, $rowDescription"
-            )
-        }
-        if (radiusMeter == null && diameterMinMeter != null && diameterMaxMeter != null && diameterStepMeter == null) {
-            throw IllegalStateException(
-                "continuous diameter interval is unsupported for csv row: provide diameter_step or radius_meter, $rowDescription"
-            )
+        val gapReport = continuousCylinderRadiusOptimizationGapReport(
+            source = "Gurobi CSV",
+            radiusWeightFunctionKey = radiusWeightFunctionKey,
+            hasConcreteSelectedRadius = radiusMeter != null,
+            hasDiscreteRadiusStep = radiusStepMeter != null || diameterStepMeter != null,
+            hasContinuousRadiusInterval = radiusMeter == null
+                    && radiusMinMeter != null
+                    && radiusMaxMeter != null
+                    && radiusStepMeter == null,
+            hasContinuousDiameterInterval = radiusMeter == null
+                    && diameterMinMeter != null
+                    && diameterMaxMeter != null
+                    && diameterStepMeter == null
+        )
+        if (gapReport != null) {
+            throw IllegalStateException(gapReport.message(rowDescription))
         }
     }
 
