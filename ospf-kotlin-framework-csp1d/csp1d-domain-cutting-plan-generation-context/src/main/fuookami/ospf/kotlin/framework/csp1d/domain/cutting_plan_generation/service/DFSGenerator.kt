@@ -73,6 +73,10 @@ class DFSGenerator<V : RealNumber<V>>(
 
         val widthIndex = GenerationWidthIndex.fromDemands(input.demands)
         if (widthIndex.isEmpty) return collector.report()
+        val materialWidthIndexCache = GenerationMaterialWidthIndexCache(
+            baseIndex = widthIndex,
+            maxOverProduceLength = maxOverProduceLength
+        )
 
         if (parallelism > 1 && input.materials.size > 1) {
             val reports = runGenerationTasks(
@@ -84,12 +88,10 @@ class DFSGenerator<V : RealNumber<V>>(
                             deadline = deadline,
                             enableDominancePruning = enableDominancePruning
                         )
-                        val materialWidthIndex = widthIndex
-                            .filter { material.widthRange.canCut(it.width) }
-                            .filterByLengthBound(
-                                maxOverProduceLength = maxOverProduceLength,
-                                collector = localCollector
-                            )
+                        val materialWidthIndex = materialWidthIndexCache.get(
+                            material = material,
+                            collector = localCollector
+                        )
                         if (!materialWidthIndex.isEmpty) {
                             dfsSearch(
                                 material = material,
@@ -113,12 +115,10 @@ class DFSGenerator<V : RealNumber<V>>(
         }
 
         for (material in input.materials) {
-            val materialWidthIndex = widthIndex
-                .filter { material.widthRange.canCut(it.width) }
-                .filterByLengthBound(
-                    maxOverProduceLength = maxOverProduceLength,
-                    collector = collector
-                )
+            val materialWidthIndex = materialWidthIndexCache.get(
+                material = material,
+                collector = collector
+            )
             if (materialWidthIndex.isEmpty) continue
 
             dfsSearch(

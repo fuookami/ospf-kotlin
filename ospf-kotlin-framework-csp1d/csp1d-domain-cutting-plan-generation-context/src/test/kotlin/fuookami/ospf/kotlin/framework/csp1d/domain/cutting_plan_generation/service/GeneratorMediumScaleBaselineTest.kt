@@ -82,10 +82,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -162,10 +162,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -223,6 +223,58 @@ class GeneratorMediumScaleBaselineTest {
                 report.plans.none { plan -> plan.slices.any { slice -> slice.production.id == "p-long" } },
                 "${case.name} should not emit the over-length product"
             )
+        }
+    }
+
+    @Test
+    fun generatorsShouldReportMaterialEquivalentWidthIndexReuse() {
+        val products = listOf(
+            product(id = "p-eq-030", width = 0.30),
+            product(id = "p-eq-045", width = 0.45)
+        )
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = listOf(
+                material(
+                    id = "m-eq-a",
+                    upperBound = 1.20
+                ),
+                material(
+                    id = "m-eq-b",
+                    upperBound = 1.20
+                )
+            ),
+            machines = emptyList(),
+            demands = products.map { product ->
+                ProductDemand.roll(
+                    product = product,
+                    quantity = Quantity(Flt64(8.0), RollCountUnit)
+                )
+            }
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(4UL),
+            enableDominancePruning = true
+        )
+
+        for (case in generatorCases(
+            constraints = constraints,
+            maxPlans = 128,
+            nSumDepth = UInt64(4UL)
+        )) {
+            val report = case.generator.generateWithReport(input)
+            val expectedCacheHits = if (case.name == "NSame") {
+                0L
+            } else {
+                1L
+            }
+
+            assertEquals(
+                expected = expectedCacheHits,
+                actual = report.statistics.materialWidthIndexCacheHits,
+                message = "${case.name} material-equivalent cache hit count should match"
+            )
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans")
         }
     }
 
@@ -289,6 +341,7 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(statistics.dominatedCandidates >= 0L, "$name dominance count should be non-negative")
         assertTrue(statistics.widthBoundPrunedNodes >= 0L, "$name width-bound pruning count should be non-negative")
         assertTrue(statistics.lengthBoundPrunedEntries >= 0L, "$name length-bound pruning count should be non-negative")
+        assertTrue(statistics.materialWidthIndexCacheHits >= 0L, "$name width-index cache hit count should be non-negative")
         assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||

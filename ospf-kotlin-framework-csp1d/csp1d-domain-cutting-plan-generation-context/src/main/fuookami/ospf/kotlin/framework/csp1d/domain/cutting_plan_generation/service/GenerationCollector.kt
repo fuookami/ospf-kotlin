@@ -25,6 +25,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private var dominatedCandidates = 0L
     private var widthBoundPrunedNodes = 0L
     private var lengthBoundPrunedEntries = 0L
+    private var materialWidthIndexCacheHits = 0L
     private var visitedNodes = 0L
     private var timedOut = false
 
@@ -40,6 +41,10 @@ internal class GenerationCollector<V : RealNumber<V>>(
 
     fun recordLengthBoundPrunedEntries(count: Long = 1L) {
         lengthBoundPrunedEntries += count
+    }
+
+    fun recordMaterialWidthIndexCacheHit() {
+        ++materialWidthIndexCacheHits
     }
 
     fun shouldStop(): Boolean {
@@ -107,6 +112,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
                 dominatedCandidates = dominatedCandidates,
                 widthBoundPrunedNodes = widthBoundPrunedNodes,
                 lengthBoundPrunedEntries = lengthBoundPrunedEntries,
+                materialWidthIndexCacheHits = materialWidthIndexCacheHits,
                 elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L,
                 stopReason = stopReason()
             )

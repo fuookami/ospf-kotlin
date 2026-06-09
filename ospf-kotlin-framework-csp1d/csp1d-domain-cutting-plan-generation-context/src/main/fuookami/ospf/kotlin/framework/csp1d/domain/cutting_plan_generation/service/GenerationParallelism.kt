@@ -45,6 +45,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
     val dominatedCandidates = reports.sumOf { it.statistics.dominatedCandidates }
     val widthBoundPrunedNodes = reports.sumOf { it.statistics.widthBoundPrunedNodes }
     val lengthBoundPrunedEntries = reports.sumOf { it.statistics.lengthBoundPrunedEntries }
+    val materialWidthIndexCacheHits = reports.sumOf { it.statistics.materialWidthIndexCacheHits }
 
     for (report in reports) {
         for (plan in report.plans) {
@@ -82,6 +83,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             dominatedCandidates = dominatedCandidates,
             widthBoundPrunedNodes = widthBoundPrunedNodes,
             lengthBoundPrunedEntries = lengthBoundPrunedEntries,
+            materialWidthIndexCacheHits = materialWidthIndexCacheHits,
             elapsedMilliseconds = (System.nanoTime() - startedAt) / 1_000_000L,
             stopReason = stopReason
         )

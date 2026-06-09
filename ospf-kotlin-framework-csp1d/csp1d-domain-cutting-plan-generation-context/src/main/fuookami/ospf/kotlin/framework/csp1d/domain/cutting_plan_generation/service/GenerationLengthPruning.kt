@@ -23,11 +23,13 @@ internal fun <V : RealNumber<V>> Product<V>.fitsGenerationLengthBound(
 }
 
 internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
-    maxOverProduceLength: Quantity<V>?,
-    collector: GenerationCollector<V>
-): GenerationWidthIndex<V> {
+    maxOverProduceLength: Quantity<V>?
+): GenerationLengthBoundFilterResult<V> {
     if (maxOverProduceLength == null) {
-        return this
+        return GenerationLengthBoundFilterResult(
+            widthIndex = this,
+            prunedEntries = 0L
+        )
     }
 
     var prunedEntries = 0L
@@ -38,6 +40,22 @@ internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
         }
         accepted
     }
-    collector.recordLengthBoundPrunedEntries(prunedEntries)
-    return filtered
+    return GenerationLengthBoundFilterResult(
+        widthIndex = filtered,
+        prunedEntries = prunedEntries
+    )
 }
+
+internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
+    maxOverProduceLength: Quantity<V>?,
+    collector: GenerationCollector<V>
+): GenerationWidthIndex<V> {
+    val result = filterByLengthBound(maxOverProduceLength)
+    collector.recordLengthBoundPrunedEntries(result.prunedEntries)
+    return result.widthIndex
+}
+
+internal data class GenerationLengthBoundFilterResult<V : RealNumber<V>>(
+    val widthIndex: GenerationWidthIndex<V>,
+    val prunedEntries: Long
+)
