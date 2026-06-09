@@ -70,6 +70,8 @@ internal fun <V : RealNumber<V>> enrichSolution(
         renderKpi[Csp1dKpiKeys.InitialDominatedCandidates] = initialGenerationStatistics.dominatedCandidates.toString()
         renderKpi[Csp1dKpiKeys.InitialWidthBoundPrunedNodes] =
             initialGenerationStatistics.widthBoundPrunedNodes.toString()
+        renderKpi[Csp1dKpiKeys.InitialLengthBoundPrunedEntries] =
+            initialGenerationStatistics.lengthBoundPrunedEntries.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationElapsedMillisecondsRender] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationStopReasonRender] = initialGenerationStatistics.stopReason.name
@@ -131,6 +133,8 @@ private fun <V : RealNumber<V>> kpiDetails(
             initialGenerationStatistics.dominatedCandidates.toString()
         details[Csp1dKpiKeys.InitialGenerationWidthBoundPrunedNodes] =
             initialGenerationStatistics.widthBoundPrunedNodes.toString()
+        details[Csp1dKpiKeys.InitialGenerationLengthBoundPrunedEntries] =
+            initialGenerationStatistics.lengthBoundPrunedEntries.toString()
         details[Csp1dKpiKeys.InitialGenerationElapsedMilliseconds] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         details[Csp1dKpiKeys.InitialGenerationStopReason] = initialGenerationStatistics.stopReason.name

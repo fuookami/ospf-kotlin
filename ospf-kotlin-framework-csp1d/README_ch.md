@@ -73,13 +73,15 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 ## 生成语义
 
-generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告、宽度上界剪枝统计和 `GenerationConstraints.parallelism` 按物料协程并行开关。
+generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告、宽度/长度上界剪枝统计和 `GenerationConstraints.parallelism` 按物料协程并行开关。
 
 DFS、N-Sum 和 FullSum 会按产品、宽度、宽度单位和需求单位去重需求宽度入口，并复用 suffix 最小宽度索引跳过剩余宽度无法容纳后续产品宽度的搜索分支。剪枝节点数记录为 `widthBoundPrunedNodes`，并通过 `Csp1dKpiKeys.InitialGenerationWidthBoundPrunedNodes` / `Csp1dKpiKeys.InitialWidthBoundPrunedNodes` 暴露。
 
+配置 `GenerationConstraints.maxOverProduceLength` 时，DFS、N-Sum、N-Same 和 FullSum 会在组合搜索或单产品枚举前过滤超长产品入口。剪枝入口数记录为 `lengthBoundPrunedEntries`，并通过 `Csp1dKpiKeys.InitialGenerationLengthBoundPrunedEntries` / `Csp1dKpiKeys.InitialLengthBoundPrunedEntries` 暴露。
+
 `GenerationConstraints.enableDominancePruning` 用于开启同贡献候选 dominance 剪枝。对于物料、设备、产能消耗和需求贡献向量相同的候选，生成器保留余宽更小的方案，并把过滤数量记录到 `dominatedCandidates`。
 
-中等规模和混合需求单位 baseline 测试已覆盖 DFS、N-Sum、N-Same 和 FullSum，统一记录访问节点数、候选数量、接受方案数、不可行候选数、重复候选数、dominance 剪枝数、宽度上界剪枝节点数、耗时和停止原因。`CuttingPlanGenerationBenchmarkSnapshot` 只保留确定性的数量字段，并通过 `toStableLine()` 输出可比较的 benchmark 快照；耗时仍留在原始统计中作为趋势观察。
+中等规模和混合需求单位 baseline 测试已覆盖 DFS、N-Sum、N-Same 和 FullSum，统一记录访问节点数、候选数量、接受方案数、不可行候选数、重复候选数、dominance 剪枝数、宽度上界剪枝节点数、长度上界剪枝入口数、耗时和停止原因。`CuttingPlanGenerationBenchmarkSnapshot` 只保留确定性的数量字段，并通过 `toStableLine()` 输出可比较的 benchmark 快照；耗时仍留在原始统计中作为趋势观察。
 
 `Costar` 是余宽 filler。它可以出现在切片和 render 输出中，但不会产生 demand contribution。
 

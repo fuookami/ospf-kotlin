@@ -859,9 +859,11 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals("1", result.solution.render.kpi[Csp1dKpiKeys.TopPlanCount])
         assertEquals("2", result.solution.render.kpi[Csp1dKpiKeys.InitialGeneratedCandidates])
         assertEquals("2", result.solution.render.kpi[Csp1dKpiKeys.InitialAcceptedPlans])
+        assertEquals("0", result.solution.render.kpi[Csp1dKpiKeys.InitialLengthBoundPrunedEntries])
         assertEquals("Exhausted", result.solution.render.kpi[Csp1dKpiKeys.InitialGenerationStopReasonRender])
         assertEquals("1", result.solution.kpi.details[Csp1dKpiKeys.ColumnGenerationIterationCount])
         assertEquals("0", result.solution.kpi.details[Csp1dKpiKeys.ColumnGenerationPricedPlanCount])
+        assertEquals("0", result.solution.kpi.details[Csp1dKpiKeys.InitialGenerationLengthBoundPrunedEntries])
         assertEquals("2", result.solution.kpi.details[Csp1dKpiKeys.materialUsageBatchCount("m-cg-config")])
         assertEquals("1", result.solution.render.kpi[Csp1dKpiKeys.ColumnGenerationIterationCount])
     }

@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxKnifeCountConstraint
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxOverProduceLengthConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
@@ -61,11 +60,11 @@ class NSameGenerator<V : RealNumber<V>>(
         enableDominancePruning = constraints.enableDominancePruning
     )
 
-    /** 从约束中提取 maxKnifeCount，用于枚举范围限制 */
+    /** 从约束中提取 maxKnifeCount，用于枚举范围限制 / Extract maxKnifeCount for enumeration bound */
     private val maxKnifeCount: UInt64? = constraints.filterIsInstance<MaxKnifeCountConstraint<V>>().firstOrNull()?.value
 
-    /** 从约束中提取 maxOverProduceLength，用于枚举范围限制 */
-    private val maxOverProduceLength: Quantity<V>? = constraints.filterIsInstance<MaxOverProduceLengthConstraint<V>>().firstOrNull()?.value
+    /** 从约束中提取 maxOverProduceLength，用于枚举范围限制 / Extract maxOverProduceLength for enumeration bound */
+    private val maxOverProduceLength: Quantity<V>? = generationMaxOverProduceLength(constraints)
 
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
         return generateWithReport(input).plans
@@ -140,6 +139,10 @@ class NSameGenerator<V : RealNumber<V>>(
             for (productWidth in demand.product.width) {
                 if (collector.shouldStop()) break
                 if (!material.widthRange.canCut(productWidth)) continue
+                if (!demand.product.fitsGenerationLengthBound(maxOverProduceLength)) {
+                    collector.recordLengthBoundPrunedEntries()
+                    continue
+                }
 
                 val maxAmount = computeMaxAmount(
                     productWidth = productWidth,

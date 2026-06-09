@@ -82,10 +82,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -162,13 +162,68 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
+    }
+
+    @Test
+    fun generatorsShouldReportLengthBoundPruning() {
+        val shortProduct = product(
+            id = "p-short",
+            width = 0.40,
+            length = 1.0
+        )
+        val longProduct = product(
+            id = "p-long",
+            width = 0.45,
+            length = 5.0
+        )
+        val products = listOf(shortProduct, longProduct)
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = listOf(
+                material(
+                    id = "m-length-bound",
+                    upperBound = 1.00
+                )
+            ),
+            machines = emptyList(),
+            demands = products.map { product ->
+                ProductDemand.roll(
+                    product = product,
+                    quantity = Quantity(Flt64(10.0), RollCountUnit)
+                )
+            }
+        )
+        val constraints = GenerationConstraints(
+            maxKnifeCount = UInt64(3UL),
+            maxOverProduceLength = Quantity(Flt64(2.0), Meter),
+            enableDominancePruning = true
+        )
+
+        for (case in generatorCases(
+            constraints = constraints,
+            maxPlans = 64,
+            nSumDepth = UInt64(3UL)
+        )) {
+            val report = case.generator.generateWithReport(input)
+
+            assertEquals(
+                expected = 1L,
+                actual = report.statistics.lengthBoundPrunedEntries,
+                message = "${case.name} should prune the long entry"
+            )
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should keep feasible short-product plans")
+            assertTrue(
+                report.plans.none { plan -> plan.slices.any { slice -> slice.production.id == "p-long" } },
+                "${case.name} should not emit the over-length product"
+            )
+        }
     }
 
     private data class GeneratorCase(
@@ -233,6 +288,7 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(statistics.duplicateCandidates >= 0L, "$name duplicate count should be non-negative")
         assertTrue(statistics.dominatedCandidates >= 0L, "$name dominance count should be non-negative")
         assertTrue(statistics.widthBoundPrunedNodes >= 0L, "$name width-bound pruning count should be non-negative")
+        assertTrue(statistics.lengthBoundPrunedEntries >= 0L, "$name length-bound pruning count should be non-negative")
         assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||
@@ -243,14 +299,16 @@ class GeneratorMediumScaleBaselineTest {
 
     private fun product(
         id: String,
-        width: Double
+        width: Double,
+        length: Double? = null
     ): Product<Flt64> {
         return Product(
             id = id,
             name = "product-$id",
             width = listOf(
                 Quantity(Flt64(width), Meter)
-            )
+            ),
+            length = length?.let { Quantity(Flt64(it), Meter) }
         )
     }
 

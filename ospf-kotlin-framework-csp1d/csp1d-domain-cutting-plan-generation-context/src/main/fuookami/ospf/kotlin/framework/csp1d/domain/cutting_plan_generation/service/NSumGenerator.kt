@@ -58,6 +58,7 @@ class NSumGenerator<V : RealNumber<V>>(
 
     private val pruningConstraints = constraints.filter { it.isPruning }
     private val leafConstraints = constraints.filter { !it.isPruning }
+    private val maxOverProduceLength = generationMaxOverProduceLength(constraints)
 
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
         return generateWithReport(input).plans
@@ -87,7 +88,12 @@ class NSumGenerator<V : RealNumber<V>>(
                             deadline = deadline,
                             enableDominancePruning = enableDominancePruning
                         )
-                        val materialWidthIndex = widthIndex.filter { material.widthRange.canCut(it.width) }
+                        val materialWidthIndex = widthIndex
+                            .filter { material.widthRange.canCut(it.width) }
+                            .filterByLengthBound(
+                                maxOverProduceLength = maxOverProduceLength,
+                                collector = localCollector
+                            )
                         if (!materialWidthIndex.isEmpty) {
                             nSumSearch(
                                 material = material,
@@ -111,7 +117,12 @@ class NSumGenerator<V : RealNumber<V>>(
         }
 
         for (material in input.materials) {
-            val materialWidthIndex = widthIndex.filter { material.widthRange.canCut(it.width) }
+            val materialWidthIndex = widthIndex
+                .filter { material.widthRange.canCut(it.width) }
+                .filterByLengthBound(
+                    maxOverProduceLength = maxOverProduceLength,
+                    collector = collector
+                )
             if (materialWidthIndex.isEmpty) continue
 
             nSumSearch(
