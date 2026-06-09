@@ -64,12 +64,16 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 - `kpi`: selected plan count, batch count, satisfied/unmet demands, usage counts, generated plan count, Top-K count, enhancement metric counts, and serializable KPI details
 - `render`: stable DTO boundary for UI or serialization
 - `status`: `Feasible`, `Partial`, `NoInitialPlans`, or `Failed`
-- `failureMessage`: failure reason when available
+- `failureMessage`: failure reason when available; LP and MILP failure messages are merged with semicolons
 - `topPlans`: optional Top-K plan list
 
-`Csp1dColumnGenerationTrace` records termination reason, LP iteration objectives, priced plan counts, initial generation statistics, final MILP status, partial solution availability, and failure message.
+`Csp1dColumnGenerationTrace` records termination reason (`PricingConverged`, `IterationLimitReached`, `LpInfeasible`, `LpSolveFailed`, `AllDuplicates`, `NoInitialPlans`), LP iteration objectives, priced plan counts, initial and pricing generation statistics, final MILP status, partial solution availability, failure message, and LP failure detail message.
 
-Stable KPI field names are exposed by `Csp1dKpiKeys`. Stable scalar keys include plan counts, demand counts, usage counts, `solutionStatus`, `finalMilpStatus`, `partialSolutionAvailable`, column-generation iteration/pricing keys, and initial-generation statistics keys. Dynamic detail keys should be built through helper methods such as `materialUsageBatchCount(...)`, `machineCapacityUsed(...)`, `underProduction(...)`, `overProduction(...)`, `materialCost(...)`, `assignedLength(...)`, and `overLength(...)`.
+`LpInfeasible` indicates the first LP solve failed (likely LP relaxation infeasible); `LpSolveFailed` indicates LP solve failed after a prior valid LP result. Both are inferred from LP null returns, not from solver-layer infeasibility determinations.
+
+`Failed` status is returned only when `allowPartialSolution=false` and solve fails; when `allowPartialSolution=true` (default), `Partial` is returned. Neither throws an exception.
+
+Stable KPI field names are exposed by `Csp1dKpiKeys`. Stable scalar keys include plan counts, demand counts, usage counts, `solutionStatus`, `finalMilpStatus`, `partialSolutionAvailable`, `lpFailureMessage`, column-generation iteration/pricing keys, initial-generation statistics keys, and pricing-generation statistics keys. Dynamic detail keys should be built through helper methods such as `materialUsageBatchCount(...)`, `machineCapacityUsed(...)`, `underProduction(...)`, `overProduction(...)`, `materialCost(...)`, `assignedLength(...)`, and `overLength(...)`.
 
 ## Generation Semantics
 

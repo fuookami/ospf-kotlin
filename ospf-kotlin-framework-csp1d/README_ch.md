@@ -64,12 +64,16 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 - `kpi`：选中方案数、车次数、满足/未满足需求数、使用条目数、生成方案数、Top-K 数量、增强结果计数和可序列化 KPI 明细
 - `render`：面向 UI 或序列化的稳定 DTO 边界
 - `status`：`Feasible`、`Partial`、`NoInitialPlans` 或 `Failed`
-- `failureMessage`：可用时回填失败原因
+- `failureMessage`：可用时回填失败原因；LP 失败信息与 MILP 失败信息以分号合并
 - `topPlans`：可选 Top-K 方案列表
 
-`Csp1dColumnGenerationTrace` 记录终止原因、每轮 LP 目标值、新增定价方案数、初始生成统计、最终 MILP 状态、是否存在部分结果和失败信息。
+`Csp1dColumnGenerationTrace` 记录终止原因（`PricingConverged`、`IterationLimitReached`、`LpInfeasible`、`LpSolveFailed`、`AllDuplicates`、`NoInitialPlans`）、每轮 LP 目标值、新增定价方案数、初始和 pricing 生成统计、最终 MILP 状态、是否存在部分结果、失败信息和 LP 失败详细消息。
 
-稳定 KPI 字段名通过 `Csp1dKpiKeys` 暴露。稳定标量 key 包括方案数量、需求数量、使用数量、`solutionStatus`、`finalMilpStatus`、`partialSolutionAvailable`、列生成迭代/定价 key 和初始生成统计 key。动态明细 key 应通过 `materialUsageBatchCount(...)`、`machineCapacityUsed(...)`、`underProduction(...)`、`overProduction(...)`、`materialCost(...)`、`assignedLength(...)`、`overLength(...)` 等 helper 构造。
+`LpInfeasible` 表示首次 LP 求解即失败（推测 LP 松弛不可行）；`LpSolveFailed` 表示有前序有效 LP 结果后 LP 求解失败。两者均基于 LP null 返回推断，非 solver 层确定判定。
+
+`Failed` 状态仅在 `allowPartialSolution=false` 且求解失败时返回；`allowPartialSolution=true`（默认）时返回 `Partial`。两者均不抛异常。
+
+稳定 KPI 字段名通过 `Csp1dKpiKeys` 暴露。稳定标量 key 包括方案数量、需求数量、使用数量、`solutionStatus`、`finalMilpStatus`、`partialSolutionAvailable`、`lpFailureMessage`、列生成迭代/定价 key、初始生成统计 key 和 pricing 生成统计 key。动态明细 key 应通过 `materialUsageBatchCount(...)`、`machineCapacityUsed(...)`、`underProduction(...)`、`overProduction(...)`、`materialCost(...)`、`assignedLength(...)`、`overLength(...)` 等 helper 构造。
 
 ## 生成语义
 
