@@ -73,11 +73,13 @@ Stable KPI field names are exposed by `Csp1dKpiKeys`. Stable scalar keys include
 
 ## Generation Semantics
 
-The generation context provides DFS, N-Same, N-Sum, FullSum, and reduced-cost pricing generators. Generators share timeout, max plan, canonical deduplication, feasibility filtering, statistics reporting, and `GenerationConstraints.parallelism` for material-level coroutine parallel generation.
+The generation context provides DFS, N-Same, N-Sum, FullSum, and reduced-cost pricing generators. Generators share timeout, max plan, canonical deduplication, feasibility filtering, statistics reporting, width-bound pruning statistics, and `GenerationConstraints.parallelism` for material-level coroutine parallel generation.
+
+DFS, N-Sum, and FullSum deduplicate demand width entries by product, width, width unit, and demand unit, then reuse a suffix minimum-width index to skip search branches whose remaining width cannot fit any later product width. The pruned node count is reported as `widthBoundPrunedNodes` and exposed through `Csp1dKpiKeys.InitialGenerationWidthBoundPrunedNodes` / `Csp1dKpiKeys.InitialWidthBoundPrunedNodes`.
 
 `GenerationConstraints.enableDominancePruning` enables opt-in same-contribution dominance pruning. For candidates with the same material, machine, capacity consumption, and demand contribution vector, the generator keeps the candidate with smaller remaining width and records the filtered count in `dominatedCandidates`.
 
-The medium-scale baseline test now covers DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, elapsed milliseconds, and stop reason.
+The medium-scale baseline test now covers DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, width-bound pruned nodes, elapsed milliseconds, and stop reason.
 
 `Costar` is a filler for remaining width. It can appear in slices and render output, but it does not create demand contribution.
 
@@ -85,7 +87,9 @@ For dynamic-length products, generation-stage demand contribution uses the produ
 
 ## Recovery
 
-`Csp1dRecovery` keeps the simple `solve(problem, solveConfig)` API and also provides `solveWithTrace(Csp1dRecoveryInput<V>)`. The trace records recovery status, warm start status, attempt count, and message. Empty warm starts are marked as `Ignored`; compatible warm starts are marked as `AdapterUnsupported` because current MILP adapters do not consume them directly; incompatible warm starts are marked as `Invalid`. When `retryWithoutWarmStart` is disabled, recovery throws `Csp1dRecoveryFallbackDisabledException` with trace. Solver failures are wrapped by `Csp1dRecoverySolveException` with trace.
+`Csp1dRecovery` keeps the simple `solve(problem, solveConfig)` API and also provides `solveWithTrace(Csp1dRecoveryInput<V>)`. The trace records recovery status, warm start status, attempt count, warm-start plan count, applied plan count, and message. Empty warm starts are marked as `Ignored`; compatible warm starts use the configured `Csp1dWarmStartAdapter`; incompatible warm starts are marked as `Invalid`.
+
+The default adapter is `AdapterUnsupported` and falls back to normal solving when `retryWithoutWarmStart` is enabled. `Csp1dWarmStartPlanPoolAdapter` can be passed explicitly to apply compatible warm-start cutting plans as the initial plan pool, optionally appending the normal fallback generator. When `retryWithoutWarmStart` is disabled, recovery throws `Csp1dRecoveryFallbackDisabledException` with trace. Solver failures are wrapped by `Csp1dRecoverySolveException` with trace.
 
 ## Demo
 
@@ -100,7 +104,7 @@ The demo uses `Csp1dProblem<Flt64>`, framework generators, `ReducedCostPricingGe
 Focused CSP1D tests:
 
 ```powershell
-mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
 Gurobi profile compile gate:

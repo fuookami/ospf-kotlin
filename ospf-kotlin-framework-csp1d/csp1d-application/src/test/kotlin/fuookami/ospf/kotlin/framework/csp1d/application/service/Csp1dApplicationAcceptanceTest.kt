@@ -1009,6 +1009,67 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dRecoveryStatus.RetriedWithoutWarmStart, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, result.trace.warmStartStatus)
         assertEquals(1, result.trace.attemptCount)
+        assertEquals(1, result.trace.warmStartPlanCount)
+        assertEquals(0, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证显式方案池 adapter 会消费 warm start 方案作为初始方案池 /
+     * Verify explicit plan-pool adapter consumes warm-start plans as the initial plan pool
+     */
+    @Test
+    fun recoveryShouldApplyWarmStartPlanPoolAdapter(): Unit = runBlocking {
+        val product = product(
+            id = "p-recovery-apply",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-apply",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        ).copy(id = "warm-start-plan")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = fakeSolver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    cuttingPlans = listOf(warmStartPlan)
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.warmStartPlanCount)
+        assertEquals(1, result.trace.appliedWarmStartPlanCount)
+        assertTrue(result.solution.generatedPlans.any { it.id == warmStartPlan.id })
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 

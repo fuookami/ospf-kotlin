@@ -57,6 +57,7 @@ enum class CuttingPlanGenerationStopReason {
  * @property infeasibleCandidates 被基础可行性拒绝的候选数 / Candidate count rejected by basic feasibility
  * @property duplicateCandidates 被结构化去重过滤的候选数 / Candidate count filtered by structural deduplication
  * @property dominatedCandidates 被 dominance 剪枝过滤的候选数 / Candidate count filtered by dominance pruning
+ * @property widthBoundPrunedNodes 被剩余宽度上界剪枝的搜索节点数 / Search node count pruned by remaining-width upper bound
  * @property elapsedMilliseconds 生成耗时毫秒数 / Generation elapsed time in milliseconds
  * @property stopReason 终止原因 / Stop reason
  */
@@ -67,6 +68,7 @@ data class CuttingPlanGenerationStatistics(
     val infeasibleCandidates: Long = 0L,
     val duplicateCandidates: Long = 0L,
     val dominatedCandidates: Long = 0L,
+    val widthBoundPrunedNodes: Long = 0L,
     val elapsedMilliseconds: Long = 0L,
     val stopReason: CuttingPlanGenerationStopReason = CuttingPlanGenerationStopReason.Exhausted
 )

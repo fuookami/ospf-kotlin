@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationReport
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
@@ -24,6 +23,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private var infeasibleCandidates = 0L
     private var duplicateCandidates = 0L
     private var dominatedCandidates = 0L
+    private var widthBoundPrunedNodes = 0L
     private var visitedNodes = 0L
     private var timedOut = false
 
@@ -31,6 +31,10 @@ internal class GenerationCollector<V : RealNumber<V>>(
 
     fun visitNode() {
         ++visitedNodes
+    }
+
+    fun recordWidthBoundPrunedNode() {
+        ++widthBoundPrunedNodes
     }
 
     fun shouldStop(): Boolean {
@@ -96,6 +100,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
                 infeasibleCandidates = infeasibleCandidates,
                 duplicateCandidates = duplicateCandidates,
                 dominatedCandidates = dominatedCandidates,
+                widthBoundPrunedNodes = widthBoundPrunedNodes,
                 elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L,
                 stopReason = stopReason()
             )
@@ -171,10 +176,6 @@ internal class GenerationCollector<V : RealNumber<V>>(
                     .thenBy { it.quantityValue }
             )
         )
-    }
-
-    private fun PhysicalUnit.canonicalUnitKey(): String {
-        return symbol ?: name ?: toString()
     }
 
     private enum class DominanceComparison {

@@ -73,11 +73,13 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 
 ## 生成语义
 
-generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告和 `GenerationConstraints.parallelism` 按物料协程并行开关。
+generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricing 生成器。生成器共享 timeout、最大方案数、canonical 去重、基础可行性过滤、统计报告、宽度上界剪枝统计和 `GenerationConstraints.parallelism` 按物料协程并行开关。
+
+DFS、N-Sum 和 FullSum 会按产品、宽度、宽度单位和需求单位去重需求宽度入口，并复用 suffix 最小宽度索引跳过剩余宽度无法容纳后续产品宽度的搜索分支。剪枝节点数记录为 `widthBoundPrunedNodes`，并通过 `Csp1dKpiKeys.InitialGenerationWidthBoundPrunedNodes` / `Csp1dKpiKeys.InitialWidthBoundPrunedNodes` 暴露。
 
 `GenerationConstraints.enableDominancePruning` 用于开启同贡献候选 dominance 剪枝。对于物料、设备、产能消耗和需求贡献向量相同的候选，生成器保留余宽更小的方案，并把过滤数量记录到 `dominatedCandidates`。
 
-中等规模 baseline 测试已覆盖 DFS、N-Sum、N-Same 和 FullSum，统一记录访问节点数、候选数量、接受方案数、不可行候选数、重复候选数、dominance 剪枝数、耗时和停止原因。
+中等规模 baseline 测试已覆盖 DFS、N-Sum、N-Same 和 FullSum，统一记录访问节点数、候选数量、接受方案数、不可行候选数、重复候选数、dominance 剪枝数、宽度上界剪枝节点数、耗时和停止原因。
 
 `Costar` 是余宽 filler。它可以出现在切片和 render 输出中，但不会产生 demand contribution。
 
@@ -85,7 +87,9 @@ generation context 提供 DFS、N-Same、N-Sum、FullSum 和 reduced-cost pricin
 
 ## 恢复
 
-`Csp1dRecovery` 保留简单的 `solve(problem, solveConfig)` API，同时提供 `solveWithTrace(Csp1dRecoveryInput<V>)`。trace 会记录恢复状态、warm start 状态、尝试次数和说明。空 warm start 标记为 `Ignored`；兼容 warm start 因当前 MILP adapter 暂不直接消费而标记为 `AdapterUnsupported`；不兼容 warm start 标记为 `Invalid`。禁用 `retryWithoutWarmStart` 时抛出带 trace 的 `Csp1dRecoveryFallbackDisabledException`；solver 失败时抛出带 trace 的 `Csp1dRecoverySolveException`。
+`Csp1dRecovery` 保留简单的 `solve(problem, solveConfig)` API，同时提供 `solveWithTrace(Csp1dRecoveryInput<V>)`。trace 会记录恢复状态、warm start 状态、尝试次数、warm start 方案数、已应用方案数和说明。空 warm start 标记为 `Ignored`；兼容 warm start 交给配置的 `Csp1dWarmStartAdapter` 处理；不兼容 warm start 标记为 `Invalid`。
+
+默认 adapter 为 `AdapterUnsupported`，在 `retryWithoutWarmStart` 启用时退回普通求解。显式传入 `Csp1dWarmStartPlanPoolAdapter` 后，可以把兼容的 warm start 切割方案作为初始方案池应用，并可选择是否追加普通初始方案生成器。禁用 `retryWithoutWarmStart` 时抛出带 trace 的 `Csp1dRecoveryFallbackDisabledException`；solver 失败时抛出带 trace 的 `Csp1dRecoverySolveException`。
 
 ## Demo
 
@@ -100,7 +104,7 @@ framework 示例位于：
 CSP1D 窄测试：
 
 ```powershell
-mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
 Gurobi profile 编译门禁：

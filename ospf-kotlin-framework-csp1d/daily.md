@@ -97,10 +97,14 @@
 33. 已完成 KPI key 稳定化第一阶段：`Csp1dKpiKeys` 覆盖标量、列生成、初始生成和动态明细 key，README 已形成 public 字段入口。
 34. 已完成 recovery 分类深化第一阶段：区分 ignored、adapter unsupported、invalid、fallback disabled 和 solver failure，并用带 trace 的异常表达不可恢复场景。
 35. 已完成四类生成器中等规模 baseline 第一阶段：DFS、NSum、NSame、FullSum 共用统计验收口径，覆盖候选数量、去重、dominance 和停止原因。
+36. 已完成生成器宽度索引第一阶段：需求宽度入口按产品、宽度和需求单位去重，DFS、NSum、FullSum 复用剩余宽度上界剪枝并透传 `widthBoundPrunedNodes`。
+37. 已完成 warm start adapter 落点第一阶段：恢复流程可显式应用兼容切割方案池作为初始方案池，同时保留默认 unsupported 与 fallback 语义。
+38. 已完成生成统计 KPI/render 同步第一阶段：新增宽度上界剪枝统计 key，并纳入 solution KPI 明细与 render KPI。
+39. 已完成 public 文档同步第一阶段：README/README_ch 已说明宽度剪枝统计、warm start plan-pool adapter 和当前验证命令。
 
 ## 3. 需要修正的事项
 
-当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是更细粒度生成剪枝、恢复能力深化、KPI 口径稳定化和验证收口。
+当前没有已确认的建模偏差需要立即修正。剩余工作转入未完成事项，主要是生成算法性能深化、solver 原生 warm start、benchmark 稳定输出、Gurobi 端到端验证和 public API 收口。
 
 ## 4. 未完成事项
 
@@ -145,13 +149,13 @@
 
 #### 事项
 
-1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、基础剪枝、按物料并行、同贡献 dominance 和四算法中等规模基线已完成第一阶段。
-2. 单位长度、更细粒度长度约束、跨 material/demand unit 缓存和更强 dominance 剪枝仍待深化。
+1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、宽度索引剪枝、按物料并行、同贡献 dominance 和四算法中等规模基线已完成第一阶段。
+2. 单位长度、更细粒度长度约束、跨场景 benchmark 缓存和更强 dominance 剪枝仍待深化。
 3. 缺陷、分段、onSide/inMiddle、`unitBatch` 等 POIT 语义暂不属于当前实体边界；只有当 material model 增加通用实体后再纳入。
 
 #### 计划
 
-1. 继续扩展 width combination 的上界估计、跨 material/demand unit 缓存和更强 dominance 剪枝。
+1. 继续扩展 width combination 的上界估计、组合 dominance、物料等价场景复用和更细长度边界剪枝。
 2. 将中等规模 baseline 的统计快照沉淀为更稳定的 benchmark 输出，避免只做非零断言。
 3. 将生成报告在 application KPI 与 render 边界持续固化，避免调用方只能读 trace。
 4. 将暂不建模的 POIT 语义集中放入“延后能力”清单，不在当前代码中留半成品字段。
@@ -169,7 +173,7 @@
 
 1. 所有生成器支持统一 timeout、候选上限和统计信息。
 2. 并行开关不改变结果集合的 canonical form，并持续覆盖回归测试。
-3. 中等规模样例生成耗时、候选数量、重复过滤、dominance 剪枝和基础可行性拒绝有基线记录。
+3. 中等规模样例生成耗时、候选数量、重复过滤、dominance 剪枝、宽度上界剪枝和基础可行性拒绝有基线记录。
 4. 延后能力清单不影响当前 material-context 边界内的编译和求解。
 
 ### 4.3 Application API、KPI 和恢复能力
@@ -181,13 +185,13 @@
 #### 事项
 
 1. `Csp1dProblem<V>`、`Csp1dSolution<V>`、KPI、Top-K、render 输出、builder、README 和 demo3 示例已完成统一入口第一阶段。
-2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构、状态分类和 trace 异常已完成第一阶段。
-3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，KPI key 已有稳定 public 入口；后续需要继续收口真实 solver warm start 落点和更细结果分类。
+2. 列生成 trace 已覆盖基础终止原因、LP 失败、重复列收敛、最终 MILP 状态、部分成功结果和收敛 KPI 明细；恢复与 warm start 输入输出结构、状态分类、trace 异常和 plan-pool adapter 已完成第一阶段。
+3. 增强配置已通过一站式 `Csp1dSolveConfig` 聚合，KPI key 已有稳定 public 入口；后续需要继续收口 solver 原生 warm start adapter、恢复结果分类和端到端稳定性。
 
 #### 计划
 
 1. 继续明确异常和部分成功结果：最终 MILP 不可行、恢复失败、warm start 失效、fallback 禁用和局部可用解。
-2. 在不引入业务 DTO 的前提下，为真正 solver warm start adapter 预留落点。
+2. 在不引入业务 DTO 的前提下，推进 solver 原生 warm start adapter，保留 plan-pool adapter 作为 framework 级 fallback。
 3. 将 KPI key 的单位表达和动态 key helper 随新增指标持续补齐，避免下游依赖临时字符串。
 4. 将 public README 与 acceptance test 随 API 变化同步维护。
 
@@ -204,7 +208,7 @@
 
 1. 调用方可以通过一个稳定配置对象完成普通 MILP 和列生成求解。
 2. solution 中的 KPI 与 solver 回填值一致，并覆盖空解、部分解和完整解。
-3. trace 能解释终止原因、每轮 LP 目标值、新列数量、初始生成统计和最终 MILP 状态。
+3. trace 能解释终止原因、每轮 LP 目标值、新列数量、初始生成统计、warm start 应用结果和最终 MILP 状态。
 4. 不引入 POIT DTO、运行参数、公式语言或 solver 插件选择逻辑。
 
 ## 5. 下一轮执行计划
@@ -213,22 +217,24 @@
 
 #### 目标
 
-下一轮尽量以一次宽范围迭代完成更强生成剪枝、跨场景缓存、真实 warm start 落点、benchmark 输出和验证收口，减少反复切换上下文。
+下一轮尽量以一次宽范围迭代完成生成算法性能深化、solver 原生 warm start、稳定 benchmark 输出、application public 使用面收口和 Gurobi 端到端验证，减少反复切换上下文。
 
 #### 事项
 
-1. 在已完成 public key、KPI 明细、trace 最终 MILP 状态、部分成功结果和 recovery 异常分类的基础上，继续收口真实 solver warm start 预留接口。
-2. 在已完成数量缓存、基础剪枝、并行开关、同贡献 dominance 和四算法中等规模 baseline 的基础上，推进更强剪枝与缓存复用。
+1. 在已完成 public key、KPI 明细、trace 最终 MILP 状态、部分成功结果、recovery 异常分类和 plan-pool adapter 的基础上，继续收口 solver 原生 warm start。
+2. 在已完成数量缓存、宽度索引剪枝、并行开关、同贡献 dominance 和四算法中等规模 baseline 的基础上，推进组合 dominance、物料等价复用和更细长度剪枝。
 3. 将生成统计继续沉淀到 application KPI/render 边界，并把 benchmark 输出做成可比较的稳定快照。
-4. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令。
+4. 扩展 application acceptance 与 demo3 覆盖，确保 public builder、solveConfig、recovery、Top-K、部分解和 render KPI 的使用面稳定。
+5. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令，并在环境允许时执行 Gurobi 端到端目标测试。
 
 #### 计划
 
-1. 第一段：实现 width combination 上界估计、需求单位分组缓存和更强 dominance 剪枝，保证 canonical 结果集合稳定。
-2. 第二段：将四算法中等规模 baseline 升级为可比较 benchmark 快照，并明确哪些统计只做趋势观察。
-3. 第三段：为 solver warm start adapter 预留真正消费方案池或上一轮解的接口，不把业务 DTO 带入 framework。
-4. 第四段：继续把新增生成统计、recovery 状态和 warm start 处理结果沉淀到 KPI/render 或 trace 稳定边界。
-5. 第五段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
+1. 第一段：深化生成算法剪枝，覆盖组合 dominance、物料等价复用、长度边界剪枝和结果 canonical 稳定性。
+2. 第二段：将四算法中等规模 baseline 升级为可比较 benchmark 快照，明确耗时类统计与数量类统计的验收口径。
+3. 第三段：对接 solver 原生 warm start adapter 能力；若 solver 层能力不足，保留接口和失败 trace，不把业务 DTO 带入 framework。
+4. 第四段：继续把新增生成统计、recovery 状态、warm start 处理结果和 partial solution 语义沉淀到 KPI/render 或 trace 稳定边界。
+5. 第五段：扩展 demo3 和 README 的 public 使用示例，确保示例仍只依赖 framework API。
+6. 第六段：执行目标测试、Gurobi profile 编译或端到端验证、门禁搜索和 `git diff --check`。
 
 #### 修改清单
 
@@ -240,16 +246,20 @@
 6. `ospf-kotlin-framework-csp1d/csp1d-domain-wasting-minimization-context`
 7. `ospf-kotlin-framework-csp1d/csp1d-application`
 8. `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/framework_demo/demo3`
+9. `ospf-kotlin-framework-csp1d/README.md`
+10. `ospf-kotlin-framework-csp1d/README_ch.md`
+11. `ospf-kotlin-framework-csp1d/daily.md`
 
 #### 验收标准
 
 1. 更强剪枝与缓存不改变四类生成器的 canonical 结果集合。
-2. fake solver 测试覆盖 generation、application API、recovery 和 demo3 入口的新增行为。
-3. benchmark 快照能比较 DFS、NSum、NSame、FullSum 的候选数量、耗时、重复过滤、dominance 剪枝和基础可行性拒绝。
-4. Gurobi profile 至少完成 `test-compile`；环境可用时执行端到端目标测试。
-5. demo3 示例不再维护手写 RMP/SP。
-6. CSP1D 门禁搜索、`git diff --check -- ospf-kotlin-framework-csp1d` 通过。
-7. `daily.md` 继续只保留阶段摘要和下一轮计划，不恢复历史流水。
+2. fake solver 测试覆盖 generation、application API、recovery、warm start adapter 和 demo3 入口的新增行为。
+3. benchmark 快照能比较 DFS、NSum、NSame、FullSum 的候选数量、耗时、重复过滤、dominance 剪枝、宽度上界剪枝和基础可行性拒绝。
+4. solver 原生 warm start 能力有明确支持、降级或失败 trace，不引入业务 DTO。
+5. Gurobi profile 至少完成 `test-compile`；环境可用时执行端到端目标测试。
+6. demo3 示例不再维护手写 RMP/SP。
+7. CSP1D 门禁搜索、`git diff --check -- ospf-kotlin-framework-csp1d` 通过。
+8. `daily.md` 继续只保留阶段摘要和下一轮计划，不恢复历史流水。
 
 ### 5.2 验证基线
 

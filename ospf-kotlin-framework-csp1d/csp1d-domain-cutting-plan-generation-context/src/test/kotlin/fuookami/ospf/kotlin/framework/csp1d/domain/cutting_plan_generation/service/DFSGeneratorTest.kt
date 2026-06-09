@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -138,5 +139,31 @@ class DFSGeneratorTest {
         for (plan in plans) {
             assertTrue(plan.slices.all { it.production.id == "p1" })
         }
+    }
+
+    @Test
+    fun duplicateSameUnitDemandShouldNotInflateWidthCombinationSpace() {
+        val p = product("p1", listOf(Quantity(Flt64(0.5), Meter)))
+        val m = material()
+        val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
+        val singleInput = CuttingPlanGenerationInput(
+            products = listOf(p),
+            materials = listOf(m),
+            machines = emptyList(),
+            costars = emptyList(),
+            demands = listOf(demand)
+        )
+        val duplicatedInput = singleInput.copy(
+            demands = listOf(
+                demand,
+                ProductDemand.roll(p, Quantity(Flt64(7.0), RollCountUnit))
+            )
+        )
+
+        val generator = DFSGenerator(arithmetic = arithmetic)
+        val singleKeys = generator.generate(singleInput).map { it.canonicalKey() }.toSet()
+        val duplicatedKeys = generator.generate(duplicatedInput).map { it.canonicalKey() }.toSet()
+
+        assertEquals(singleKeys, duplicatedKeys)
     }
 }

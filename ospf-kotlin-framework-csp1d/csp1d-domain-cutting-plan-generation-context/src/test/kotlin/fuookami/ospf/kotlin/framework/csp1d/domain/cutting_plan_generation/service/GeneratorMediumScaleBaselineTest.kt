@@ -90,9 +90,19 @@ class GeneratorMediumScaleBaselineTest {
             )
         )
 
+        val snapshots = LinkedHashMap<String, GeneratorBaselineSnapshot>()
         for (case in generatorCases) {
             val report = case.generator.generateWithReport(input)
             val baseline = report.statistics
+            snapshots[case.name] = GeneratorBaselineSnapshot(
+                generatedCandidates = baseline.generatedCandidates,
+                acceptedPlans = baseline.acceptedPlans,
+                infeasibleCandidates = baseline.infeasibleCandidates,
+                duplicateCandidates = baseline.duplicateCandidates,
+                dominatedCandidates = baseline.dominatedCandidates,
+                widthBoundPrunedNodes = baseline.widthBoundPrunedNodes,
+                stopReason = baseline.stopReason
+            )
 
             assertMediumScaleBaseline(
                 name = case.name,
@@ -101,11 +111,23 @@ class GeneratorMediumScaleBaselineTest {
             assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans")
             assertTrue(report.plans.size <= 512, "${case.name} should respect maxPlans")
         }
+        assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
+        assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
     }
 
     private data class GeneratorCase(
         val name: String,
         val generator: Csp1dInitialCuttingPlanGenerator<Flt64>
+    )
+
+    private data class GeneratorBaselineSnapshot(
+        val generatedCandidates: Long,
+        val acceptedPlans: Int,
+        val infeasibleCandidates: Long,
+        val duplicateCandidates: Long,
+        val dominatedCandidates: Long,
+        val widthBoundPrunedNodes: Long,
+        val stopReason: CuttingPlanGenerationStopReason
     )
 
     private fun assertMediumScaleBaseline(
@@ -121,6 +143,7 @@ class GeneratorMediumScaleBaselineTest {
         )
         assertTrue(statistics.duplicateCandidates >= 0L, "$name duplicate count should be non-negative")
         assertTrue(statistics.dominatedCandidates >= 0L, "$name dominance count should be non-negative")
+        assertTrue(statistics.widthBoundPrunedNodes >= 0L, "$name width-bound pruning count should be non-negative")
         assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||

@@ -16,11 +16,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSli
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
@@ -61,12 +59,6 @@ class FullSumGenerator<V : RealNumber<V>>(
         enableDominancePruning = constraints.enableDominancePruning
     )
 
-    private data class WidthEntry<V : RealNumber<V>>(
-        val product: Product<V>,
-        val width: Quantity<V>,
-        val demandUnit: PhysicalUnit
-    )
-
     private val pruningConstraints = constraints.filter { it.isPruning }
     private val leafConstraints = constraints.filter { !it.isPruning }
     private val maxKnifeCount = constraints.filterIsInstance<MaxKnifeCountConstraint<V>>().firstOrNull()?.value
@@ -86,8 +78,8 @@ class FullSumGenerator<V : RealNumber<V>>(
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
 
-        val entries = buildWidthEntries(input.demands)
-        if (entries.isEmpty()) return collector.report()
+        val widthIndex = GenerationWidthIndex.fromDemands(input.demands)
+        if (widthIndex.isEmpty) return collector.report()
 
         if (parallelism > 1 && input.materials.size > 1) {
             val reports = runGenerationTasks(
@@ -99,11 +91,11 @@ class FullSumGenerator<V : RealNumber<V>>(
                             deadline = deadline,
                             enableDominancePruning = enableDominancePruning
                         )
-                        val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
-                        if (materialEntries.isNotEmpty()) {
+                        val materialWidthIndex = widthIndex.filter { material.widthRange.canCut(it.width) }
+                        if (!materialWidthIndex.isEmpty) {
                             fullSumSearch(
                                 material = material,
-                                entries = materialEntries,
+                                widthIndex = materialWidthIndex,
                                 machines = input.machines,
                                 planIndex = planIndex,
                                 collector = localCollector,
@@ -123,12 +115,12 @@ class FullSumGenerator<V : RealNumber<V>>(
         }
 
         for (material in input.materials) {
-            val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
-            if (materialEntries.isEmpty()) continue
+            val materialWidthIndex = widthIndex.filter { material.widthRange.canCut(it.width) }
+            if (materialWidthIndex.isEmpty) continue
 
             fullSumSearch(
                 material = material,
-                entries = materialEntries,
+                widthIndex = materialWidthIndex,
                 machines = input.machines,
                 planIndex = planIndex,
                 collector = collector,
@@ -143,12 +135,13 @@ class FullSumGenerator<V : RealNumber<V>>(
 
     private fun fullSumSearch(
         material: Material<V>,
-        entries: List<WidthEntry<V>>,
+        widthIndex: GenerationWidthIndex<V>,
         machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         collector: GenerationCollector<V>,
         quantityCache: GenerationQuantityCache<V>
     ) {
+        val entries = widthIndex.entries
         val upperBound = material.widthRange.upperBound
         val stack = ArrayDeque<MutableList<CuttingPlanSlice<V>>>()
         val widthStack = ArrayDeque<Quantity<V>>()
@@ -169,22 +162,25 @@ class FullSumGenerator<V : RealNumber<V>>(
             val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
             val currentCuts = currentSlices.fold(UInt64.zero) { acc, slice -> acc + slice.amount }
             val canAddKnife = maxKnifeCount == null || currentCuts < maxKnifeCount
+            val noFittableRemainingEntry = !widthIndex.hasFittableFrom(
+                startIndex = currentIndex,
+                remainingWidth = remainingWidth
+            )
 
             if (
                 currentIndex >= entries.size ||
                 !canAddKnife ||
-                !hasFittableRemainingEntry(
-                    entries = entries,
-                    startIndex = currentIndex,
-                    remainingWidth = remainingWidth
-                )
+                noFittableRemainingEntry
             ) {
+                if (noFittableRemainingEntry && currentSlices.isEmpty()) {
+                    collector.recordWidthBoundPrunedNode()
+                }
                 // 叶节点或无法继续扩展：产出方案 / Leaf node or no extensible entry: emit plan
                 if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
                     val plan = buildPlan(
                         material = material,
                         slices = currentSlices,
-                        entries = entries,
+                        widthIndex = widthIndex,
                         planId = "fullsum-${material.id}-${planIndex.getAndIncrement()}"
                     )
                     collector.record(
@@ -244,19 +240,6 @@ class FullSumGenerator<V : RealNumber<V>>(
         }
     }
 
-    private fun hasFittableRemainingEntry(
-        entries: List<WidthEntry<V>>,
-        startIndex: Int,
-        remainingWidth: Quantity<V>
-    ): Boolean {
-        for (index in startIndex until entries.size) {
-            if ((remainingWidth.value partialOrd entries[index].width.value) !is Order.Less) {
-                return true
-            }
-        }
-        return false
-    }
-
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -282,14 +265,15 @@ class FullSumGenerator<V : RealNumber<V>>(
     private fun buildPlan(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,
-        entries: List<WidthEntry<V>>,
+        widthIndex: GenerationWidthIndex<V>,
         planId: String
     ): CuttingPlan<V> {
         val contributions = slices.map { slice ->
             val product = slice.production as Product<V>
-            val demandUnit = entries.firstOrNull {
-                it.product == slice.production && it.width == slice.width
-            }?.demandUnit ?: slice.width.unit
+            val demandUnit = widthIndex.demandUnitFor(
+                product = product,
+                width = slice.width
+            ) ?: slice.width.unit
             CuttingPlanDemandContribution(
                 product = product,
                 quantity = CuttingPlanDemandContribution.quantityOf(
@@ -313,22 +297,6 @@ class FullSumGenerator<V : RealNumber<V>>(
             demandContributions = contributions,
             arithmetic = arithmetic
         )
-    }
-
-    private fun buildWidthEntries(demands: List<ProductDemand<V>>): List<WidthEntry<V>> {
-        val entries = ArrayList<WidthEntry<V>>()
-        for (demand in demands) {
-            for (width in demand.product.width) {
-                entries.add(
-                    WidthEntry(
-                        product = demand.product,
-                        width = width,
-                        demandUnit = demand.quantity.unit
-                    )
-                )
-            }
-        }
-        return entries
     }
 
 }

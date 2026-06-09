@@ -15,12 +15,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSli
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
  * DFS 方案生成器，栈式深度优先搜索枚举多产品组合方案 / DFS generator: stack-based depth-first search for multi-product combination plans
@@ -56,12 +52,6 @@ class DFSGenerator<V : RealNumber<V>>(
         enableDominancePruning = constraints.enableDominancePruning
     )
 
-    private data class ProductWidthEntry<V : RealNumber<V>>(
-        val product: Product<V>,
-        val width: Quantity<V>,
-        val demandUnit: PhysicalUnit
-    )
-
     private val pruningConstraints = constraints.filter { it.isPruning }
     private val leafConstraints = constraints.filter { !it.isPruning }
 
@@ -80,8 +70,8 @@ class DFSGenerator<V : RealNumber<V>>(
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
 
-        val entries = buildProductWidthEntries(input.demands)
-        if (entries.isEmpty()) return collector.report()
+        val widthIndex = GenerationWidthIndex.fromDemands(input.demands)
+        if (widthIndex.isEmpty) return collector.report()
 
         if (parallelism > 1 && input.materials.size > 1) {
             val reports = runGenerationTasks(
@@ -93,11 +83,11 @@ class DFSGenerator<V : RealNumber<V>>(
                             deadline = deadline,
                             enableDominancePruning = enableDominancePruning
                         )
-                        val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
-                        if (materialEntries.isNotEmpty()) {
+                        val materialWidthIndex = widthIndex.filter { material.widthRange.canCut(it.width) }
+                        if (!materialWidthIndex.isEmpty) {
                             dfsSearch(
                                 material = material,
-                                entries = materialEntries,
+                                widthIndex = materialWidthIndex,
                                 machines = input.machines,
                                 planIndex = planIndex,
                                 collector = localCollector,
@@ -117,12 +107,12 @@ class DFSGenerator<V : RealNumber<V>>(
         }
 
         for (material in input.materials) {
-            val materialEntries = entries.filter { material.widthRange.canCut(it.width) }
-            if (materialEntries.isEmpty()) continue
+            val materialWidthIndex = widthIndex.filter { material.widthRange.canCut(it.width) }
+            if (materialWidthIndex.isEmpty) continue
 
             dfsSearch(
                 material = material,
-                entries = materialEntries,
+                widthIndex = materialWidthIndex,
                 machines = input.machines,
                 planIndex = planIndex,
                 collector = collector,
@@ -137,12 +127,13 @@ class DFSGenerator<V : RealNumber<V>>(
 
     private fun dfsSearch(
         material: Material<V>,
-        entries: List<ProductWidthEntry<V>>,
+        widthIndex: GenerationWidthIndex<V>,
         machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         collector: GenerationCollector<V>,
         quantityCache: GenerationQuantityCache<V>
     ) {
+        val entries = widthIndex.entries
         val upperBound = material.widthRange.upperBound
         val stack = ArrayDeque<MutableList<CuttingPlanSlice<V>>>()
         val widthStack = ArrayDeque<Quantity<V>>()
@@ -161,21 +152,24 @@ class DFSGenerator<V : RealNumber<V>>(
             val currentWidth = widthStack.removeLast()
             val currentIndex = indexStack.removeLast()
             val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
+            val noFittableRemainingEntry = !widthIndex.hasFittableFrom(
+                startIndex = currentIndex,
+                remainingWidth = remainingWidth
+            )
 
             if (
                 currentIndex >= entries.size ||
-                !hasFittableRemainingEntry(
-                    entries = entries,
-                    startIndex = currentIndex,
-                    remainingWidth = remainingWidth
-                )
+                noFittableRemainingEntry
             ) {
+                if (noFittableRemainingEntry && currentSlices.isEmpty()) {
+                    collector.recordWidthBoundPrunedNode()
+                }
                 // 叶节点或无法继续扩展：构造方案 / Leaf node or no extensible entry: build plan
                 if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
                     val plan = buildPlan(
                         material = material,
                         slices = currentSlices,
-                        entries = entries,
+                        widthIndex = widthIndex,
                         planId = "dfs-${material.id}-${planIndex.getAndIncrement()}"
                     )
                     collector.record(
@@ -225,19 +219,6 @@ class DFSGenerator<V : RealNumber<V>>(
         }
     }
 
-    private fun hasFittableRemainingEntry(
-        entries: List<ProductWidthEntry<V>>,
-        startIndex: Int,
-        remainingWidth: Quantity<V>
-    ): Boolean {
-        for (index in startIndex until entries.size) {
-            if ((remainingWidth.value partialOrd entries[index].width.value) !is Order.Less) {
-                return true
-            }
-        }
-        return false
-    }
-
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -263,14 +244,15 @@ class DFSGenerator<V : RealNumber<V>>(
     private fun buildPlan(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,
-        entries: List<ProductWidthEntry<V>>,
+        widthIndex: GenerationWidthIndex<V>,
         planId: String
     ): CuttingPlan<V> {
         val contributions = slices.map { slice ->
             val product = slice.production as Product<V>
-            val demandUnit = entries.firstOrNull {
-                it.product == slice.production && it.width == slice.width
-            }?.demandUnit ?: slice.width.unit
+            val demandUnit = widthIndex.demandUnitFor(
+                product = product,
+                width = slice.width
+            ) ?: slice.width.unit
 
             CuttingPlanDemandContribution(
                 product = product,
@@ -295,22 +277,6 @@ class DFSGenerator<V : RealNumber<V>>(
             demandContributions = contributions,
             arithmetic = arithmetic
         )
-    }
-
-    private fun buildProductWidthEntries(demands: List<ProductDemand<V>>): List<ProductWidthEntry<V>> {
-        val entries = ArrayList<ProductWidthEntry<V>>()
-        for (demand in demands) {
-            for (width in demand.product.width) {
-                entries.add(
-                    ProductWidthEntry(
-                        product = demand.product,
-                        width = width,
-                        demandUnit = demand.quantity.unit
-                    )
-                )
-            }
-        }
-        return entries
     }
 
 }

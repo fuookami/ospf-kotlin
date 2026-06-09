@@ -43,6 +43,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
     val plans = ArrayList<CuttingPlan<V>>()
     var duplicateCandidates = reports.sumOf { it.statistics.duplicateCandidates }
     val dominatedCandidates = reports.sumOf { it.statistics.dominatedCandidates }
+    val widthBoundPrunedNodes = reports.sumOf { it.statistics.widthBoundPrunedNodes }
 
     for (report in reports) {
         for (plan in report.plans) {
@@ -78,6 +79,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             infeasibleCandidates = reports.sumOf { it.statistics.infeasibleCandidates },
             duplicateCandidates = duplicateCandidates,
             dominatedCandidates = dominatedCandidates,
+            widthBoundPrunedNodes = widthBoundPrunedNodes,
             elapsedMilliseconds = (System.nanoTime() - startedAt) / 1_000_000L,
             stopReason = stopReason
         )
