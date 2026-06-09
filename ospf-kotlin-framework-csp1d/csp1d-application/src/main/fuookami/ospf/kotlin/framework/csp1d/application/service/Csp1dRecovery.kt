@@ -3,13 +3,19 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionAnalyzer
+import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSolutionAnalyzer
 
 /**
  * 恢复求解状态 / Recovery solve status
@@ -278,53 +284,27 @@ class Csp1dRecovery<V : RealNumber<V>>(
      * @return 恢复结果 / Recovery result
      */
     suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Csp1dRecoveryResult<V> {
-        val warmStart = input.warmStart
-        val warmStartPlanSelection = warmStartPlanSelection(input)
-        val warmStartPlans = warmStartPlanSelection.plans
-        val initialWarmStartStatus = warmStartStatus(
+        val warmStart = csp1dResolveWarmStart(
             input = input,
-            plans = warmStartPlans,
-            selectedStatus = warmStartPlanSelection.status
+            warmStartAdapter = warmStartAdapter
         )
-        val adapterResult = if (initialWarmStartStatus == Csp1dWarmStartStatus.AdapterUnsupported && warmStart != null) {
-            warmStartAdapter.apply(
-                Csp1dWarmStartAdapterInput(
-                    problem = input.problem,
-                    solveConfig = input.solveConfig,
-                    warmStart = warmStart,
-                    cuttingPlans = warmStartPlans
-                )
-            )
-        } else {
-            null
-        }
-        val warmStartStatus = if (adapterResult?.initialGenerator != null) {
-            Csp1dWarmStartStatus.Applied
-        } else {
-            initialWarmStartStatus
-        }
-        if (requiresFallback(warmStartStatus) && !input.options.retryWithoutWarmStart) {
-            val trace = Csp1dRecoveryTrace(
-                status = Csp1dRecoveryStatus.FallbackDisabled,
-                warmStartStatus = warmStartStatus,
-                attemptCount = 0,
-                warmStartPlanCount = warmStartPlans.size,
-                appliedWarmStartPlanCount = 0,
-                appliedWarmStartUsageCount = 0,
-                message = fallbackDisabledMessage(warmStartStatus)
+        if (csp1dRequiresFallback(warmStart.status) && !input.options.retryWithoutWarmStart) {
+            val trace = csp1dFallbackDisabledTrace(
+                status = warmStart.status,
+                planCount = warmStart.plans.size
             )
             throw Csp1dRecoveryFallbackDisabledException(
-                message = "Warm start cannot be applied and fallback is disabled: $warmStartStatus",
+                message = "Warm start cannot be applied and fallback is disabled: ${warmStart.status}",
                 trace = trace
             )
         }
 
         val solution = try {
-            val activeMilp = adapterResult?.initialGenerator?.let { initialGenerator ->
+            val activeMilp = warmStart.adapterResult?.initialGenerator?.let { initialGenerator ->
                 Csp1dMilp(
                     solver = solver,
                     initialGenerator = initialGenerator,
-                    warmStartPlanUsages = adapterResult.initialPlanUsages
+                    warmStartPlanUsages = warmStart.adapterResult.initialPlanUsages
                 )
             } ?: milp
             activeMilp.solve(
@@ -334,11 +314,11 @@ class Csp1dRecovery<V : RealNumber<V>>(
         } catch (error: Exception) {
             val trace = Csp1dRecoveryTrace(
                 status = Csp1dRecoveryStatus.SolveFailed,
-                warmStartStatus = warmStartStatus,
+                warmStartStatus = warmStart.status,
                 attemptCount = 1,
-                warmStartPlanCount = warmStartPlans.size,
-                appliedWarmStartPlanCount = adapterResult?.appliedPlanCount ?: 0,
-                appliedWarmStartUsageCount = adapterResult?.appliedUsageCount ?: 0,
+                warmStartPlanCount = warmStart.plans.size,
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
                 message = error.message ?: "Recovery solve failed"
             )
             throw Csp1dRecoverySolveException(
@@ -347,7 +327,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 cause = error
             )
         }
-        val status = if (requiresFallback(warmStartStatus)) {
+        val status = if (csp1dRequiresFallback(warmStart.status)) {
             Csp1dRecoveryStatus.RetriedWithoutWarmStart
         } else {
             Csp1dRecoveryStatus.Solved
@@ -356,116 +336,300 @@ class Csp1dRecovery<V : RealNumber<V>>(
             solution = solution,
             trace = Csp1dRecoveryTrace(
                 status = status,
-                warmStartStatus = warmStartStatus,
+                warmStartStatus = warmStart.status,
                 attemptCount = 1,
-                warmStartPlanCount = warmStartPlans.size,
-                appliedWarmStartPlanCount = adapterResult?.appliedPlanCount ?: 0,
-                appliedWarmStartUsageCount = adapterResult?.appliedUsageCount ?: 0,
-                message = adapterResult?.message ?: warmStartMessage(warmStartStatus)
+                warmStartPlanCount = warmStart.plans.size,
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                message = warmStart.adapterResult?.message ?: csp1dWarmStartMessage(warmStart.status)
             )
         )
     }
+}
 
-    private fun warmStartStatus(
-        input: Csp1dRecoveryInput<V>,
-        plans: List<CuttingPlan<V>>,
-        selectedStatus: Csp1dWarmStartStatus?
-    ): Csp1dWarmStartStatus {
-        if (selectedStatus != null) {
-            return selectedStatus
-        }
-        if (input.warmStart == null) {
-            return Csp1dWarmStartStatus.NotProvided
-        }
-        if (plans.isEmpty()) {
-            return Csp1dWarmStartStatus.Ignored
-        }
-        if (!isWarmStartCompatible(plans, input.problem)) {
-            return Csp1dWarmStartStatus.Invalid
-        }
-        return Csp1dWarmStartStatus.AdapterUnsupported
+/**
+ * CSP1D 列生成恢复求解入口 / CSP1D column-generation recovery entry point
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property solver 求解器 / Solver
+ * @property initialGenerator 默认初始方案生成器 / Default initial plan generator
+ * @property pricingGenerator pricing 生成器 / Pricing generator
+ * @property analyzer 解分析器 / Solution analyzer
+ * @property yieldConfig 默认 yield 建模配置 / Default yield modeling config
+ * @property wasteConfig 默认 waste 建模配置 / Default waste modeling config
+ * @property lengthConfig 默认 length 建模配置 / Default length modeling config
+ * @property warmStartAdapter warm start adapter / Warm start adapter
+ */
+class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
+    private val solver: ColumnGenerationSolver,
+    private val initialGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
+    private val pricingGenerator: Csp1dPricingGenerator<V> = ReducedCostPricingGenerator(initialGenerator),
+    private val analyzer: Csp1dSolutionAnalyzer<V> = DefaultCsp1dSolutionAnalyzer(),
+    private val yieldConfig: YieldModelingConfig<V>? = null,
+    private val wasteConfig: WasteMinimizationConfig<V>? = null,
+    private val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
+    private val warmStartAdapter: Csp1dWarmStartAdapter<V> = Csp1dWarmStartAdapter.unsupported()
+) {
+    private val columnGeneration = Csp1dColumnGeneration(
+        solver = solver,
+        initialGenerator = initialGenerator,
+        pricingGenerator = pricingGenerator,
+        analyzer = analyzer,
+        yieldConfig = yieldConfig,
+        wasteConfig = wasteConfig,
+        lengthConfig = lengthConfig
+    )
+
+    /**
+     * 在异常恢复场景下用列生成重新求解 / Re-solve with column generation for recovery scenarios
+     *
+     * @param problem 问题定义 / Problem definition
+     * @param solveConfig 显式求解配置 / Explicit solve configuration
+     * @return 求解结果 / Solution
+     */
+    suspend fun solve(
+        problem: Csp1dProblem<V>,
+        solveConfig: Csp1dSolveConfig<V>? = null
+    ): Csp1dSolution<V> {
+        return solveWithTrace(
+            input = Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = solveConfig
+            )
+        ).solution
     }
 
-    private fun warmStartPlanSelection(
-        input: Csp1dRecoveryInput<V>
-    ): WarmStartPlanSelection<V> {
-        val warmStart = input.warmStart ?: return WarmStartPlanSelection(
-            plans = emptyList(),
-            status = Csp1dWarmStartStatus.NotProvided
+    /**
+     * 带恢复追踪的列生成求解 / Solve with recovery trace through column generation
+     *
+     * @param input 恢复输入 / Recovery input
+     * @return 恢复结果 / Recovery result
+     */
+    suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Csp1dRecoveryResult<V> {
+        val warmStart = csp1dResolveWarmStart(
+            input = input,
+            warmStartAdapter = warmStartAdapter
         )
-        if (warmStart.cuttingPlans.isNotEmpty()) {
-            if (!isWarmStartCompatible(warmStart.cuttingPlans, input.problem)) {
-                return WarmStartPlanSelection(
-                    plans = warmStart.cuttingPlans,
-                    status = Csp1dWarmStartStatus.Invalid
+        if (csp1dRequiresFallback(warmStart.status) && !input.options.retryWithoutWarmStart) {
+            val trace = csp1dFallbackDisabledTrace(
+                status = warmStart.status,
+                planCount = warmStart.plans.size
+            )
+            throw Csp1dRecoveryFallbackDisabledException(
+                message = "Warm start cannot be applied and fallback is disabled: ${warmStart.status}",
+                trace = trace
+            )
+        }
+
+        val solution = try {
+            val activeColumnGeneration = warmStart.adapterResult?.initialGenerator?.let { initialGenerator ->
+                Csp1dColumnGeneration(
+                    solver = solver,
+                    initialGenerator = initialGenerator,
+                    pricingGenerator = pricingGenerator,
+                    analyzer = analyzer,
+                    yieldConfig = yieldConfig,
+                    wasteConfig = wasteConfig,
+                    lengthConfig = lengthConfig,
+                    warmStartPlanUsages = warmStart.adapterResult.initialPlanUsages
                 )
-            }
-            return WarmStartPlanSelection(
-                plans = warmStart.cuttingPlans
+            } ?: columnGeneration
+            activeColumnGeneration.solve(
+                problem = input.problem,
+                solveConfig = input.solveConfig
+            )
+        } catch (error: Exception) {
+            val trace = Csp1dRecoveryTrace(
+                status = Csp1dRecoveryStatus.SolveFailed,
+                warmStartStatus = warmStart.status,
+                attemptCount = 1,
+                warmStartPlanCount = warmStart.plans.size,
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                message = error.message ?: "Column generation recovery solve failed"
+            )
+            throw Csp1dRecoverySolveException(
+                message = trace.message ?: "Column generation recovery solve failed",
+                trace = trace,
+                cause = error
             )
         }
-        val compatiblePlans = warmStart.previousSolution
-            ?.generatedPlans
-            ?.filter { plan -> isWarmStartCompatible(plan, input.problem) }
-            .orEmpty()
-        return WarmStartPlanSelection(
-            plans = compatiblePlans
+        val status = if (csp1dRequiresFallback(warmStart.status)) {
+            Csp1dRecoveryStatus.RetriedWithoutWarmStart
+        } else {
+            Csp1dRecoveryStatus.Solved
+        }
+        return Csp1dRecoveryResult(
+            solution = solution,
+            trace = Csp1dRecoveryTrace(
+                status = status,
+                warmStartStatus = warmStart.status,
+                attemptCount = 1,
+                warmStartPlanCount = warmStart.plans.size,
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                message = warmStart.adapterResult?.message ?: csp1dWarmStartMessage(warmStart.status)
+            )
         )
     }
+}
 
-    private fun isWarmStartCompatible(
-        plans: List<CuttingPlan<V>>,
-        problem: Csp1dProblem<V>
-    ): Boolean {
-        return plans.all { plan -> isWarmStartCompatible(plan, problem) }
+private fun <V : RealNumber<V>> csp1dResolveWarmStart(
+    input: Csp1dRecoveryInput<V>,
+    warmStartAdapter: Csp1dWarmStartAdapter<V>
+): Csp1dWarmStartResolution<V> {
+    val warmStartPlanSelection = csp1dWarmStartPlanSelection(input)
+    val warmStartPlans = warmStartPlanSelection.plans
+    val initialWarmStartStatus = csp1dWarmStartStatus(
+        input = input,
+        plans = warmStartPlans,
+        selectedStatus = warmStartPlanSelection.status
+    )
+    val warmStart = input.warmStart
+    val adapterResult = if (initialWarmStartStatus == Csp1dWarmStartStatus.AdapterUnsupported && warmStart != null) {
+        warmStartAdapter.apply(
+            Csp1dWarmStartAdapterInput(
+                problem = input.problem,
+                solveConfig = input.solveConfig,
+                warmStart = warmStart,
+                cuttingPlans = warmStartPlans
+            )
+        )
+    } else {
+        null
     }
-
-    private fun isWarmStartCompatible(
-        plan: CuttingPlan<V>,
-        problem: Csp1dProblem<V>
-    ): Boolean {
-        val materialById = problem.materials.associateBy { it.id }
-        val machineIds = problem.machines.map { it.id }.toSet()
-        val productIds = problem.products.map { it.id }.toSet()
-        val material = materialById[plan.material.id] ?: return false
-        if (!material.enabled(plan, problem.machines)) {
-            return false
-        }
-        val machineId = plan.machineId
-        if (machineId != null && machineIds.isNotEmpty() && machineId !in machineIds) {
-            return false
-        }
-        if (plan.demandContributions.any { it.product.id !in productIds }) {
-            return false
-        }
-        return true
+    val status = if (adapterResult?.initialGenerator != null) {
+        Csp1dWarmStartStatus.Applied
+    } else {
+        initialWarmStartStatus
     }
-
-    private fun requiresFallback(status: Csp1dWarmStartStatus): Boolean {
-        return status == Csp1dWarmStartStatus.Invalid ||
-                status == Csp1dWarmStartStatus.AdapterUnsupported
-    }
-
-    private fun warmStartMessage(status: Csp1dWarmStartStatus): String? {
-        return when (status) {
-            Csp1dWarmStartStatus.NotProvided -> null
-            Csp1dWarmStartStatus.Ignored -> "Warm start was provided without reusable cutting plans; normal solve was used"
-            Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current MILP adapter does not support applying it; normal solve was used"
-            Csp1dWarmStartStatus.Applied -> "Warm start was applied by adapter"
-            Csp1dWarmStartStatus.Invalid -> "Warm start is incompatible with current problem; normal solve was used"
-        }
-    }
-
-    private fun fallbackDisabledMessage(status: Csp1dWarmStartStatus): String {
-        return when (status) {
-            Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current MILP adapter does not support applying it; fallback is disabled"
-            Csp1dWarmStartStatus.Invalid -> "Warm start is incompatible with current problem; fallback is disabled"
-            else -> "Warm start cannot be applied and fallback is disabled"
-        }
-    }
-
-    private data class WarmStartPlanSelection<V : RealNumber<V>>(
-        val plans: List<CuttingPlan<V>>,
-        val status: Csp1dWarmStartStatus? = null
+    return Csp1dWarmStartResolution(
+        plans = warmStartPlans,
+        status = status,
+        adapterResult = adapterResult
     )
 }
+
+private fun <V : RealNumber<V>> csp1dWarmStartStatus(
+    input: Csp1dRecoveryInput<V>,
+    plans: List<CuttingPlan<V>>,
+    selectedStatus: Csp1dWarmStartStatus?
+): Csp1dWarmStartStatus {
+    if (selectedStatus != null) {
+        return selectedStatus
+    }
+    if (input.warmStart == null) {
+        return Csp1dWarmStartStatus.NotProvided
+    }
+    if (plans.isEmpty()) {
+        return Csp1dWarmStartStatus.Ignored
+    }
+    if (!csp1dIsWarmStartCompatible(plans, input.problem)) {
+        return Csp1dWarmStartStatus.Invalid
+    }
+    return Csp1dWarmStartStatus.AdapterUnsupported
+}
+
+private fun <V : RealNumber<V>> csp1dWarmStartPlanSelection(
+    input: Csp1dRecoveryInput<V>
+): Csp1dWarmStartPlanSelection<V> {
+    val warmStart = input.warmStart ?: return Csp1dWarmStartPlanSelection(
+        plans = emptyList(),
+        status = Csp1dWarmStartStatus.NotProvided
+    )
+    if (warmStart.cuttingPlans.isNotEmpty()) {
+        if (!csp1dIsWarmStartCompatible(warmStart.cuttingPlans, input.problem)) {
+            return Csp1dWarmStartPlanSelection(
+                plans = warmStart.cuttingPlans,
+                status = Csp1dWarmStartStatus.Invalid
+            )
+        }
+        return Csp1dWarmStartPlanSelection(
+            plans = warmStart.cuttingPlans
+        )
+    }
+    val compatiblePlans = warmStart.previousSolution
+        ?.generatedPlans
+        ?.filter { plan -> csp1dIsWarmStartCompatible(plan, input.problem) }
+        .orEmpty()
+    return Csp1dWarmStartPlanSelection(
+        plans = compatiblePlans
+    )
+}
+
+private fun <V : RealNumber<V>> csp1dIsWarmStartCompatible(
+    plans: List<CuttingPlan<V>>,
+    problem: Csp1dProblem<V>
+): Boolean {
+    return plans.all { plan -> csp1dIsWarmStartCompatible(plan, problem) }
+}
+
+private fun <V : RealNumber<V>> csp1dIsWarmStartCompatible(
+    plan: CuttingPlan<V>,
+    problem: Csp1dProblem<V>
+): Boolean {
+    val materialById = problem.materials.associateBy { it.id }
+    val machineIds = problem.machines.map { it.id }.toSet()
+    val productIds = problem.products.map { it.id }.toSet()
+    val material = materialById[plan.material.id] ?: return false
+    if (!material.enabled(plan, problem.machines)) {
+        return false
+    }
+    val machineId = plan.machineId
+    if (machineId != null && machineIds.isNotEmpty() && machineId !in machineIds) {
+        return false
+    }
+    if (plan.demandContributions.any { it.product.id !in productIds }) {
+        return false
+    }
+    return true
+}
+
+private fun csp1dRequiresFallback(status: Csp1dWarmStartStatus): Boolean {
+    return status == Csp1dWarmStartStatus.Invalid ||
+            status == Csp1dWarmStartStatus.AdapterUnsupported
+}
+
+private fun csp1dWarmStartMessage(status: Csp1dWarmStartStatus): String? {
+    return when (status) {
+        Csp1dWarmStartStatus.NotProvided -> null
+        Csp1dWarmStartStatus.Ignored -> "Warm start was provided without reusable cutting plans; normal solve was used"
+        Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current adapter does not support applying it; normal solve was used"
+        Csp1dWarmStartStatus.Applied -> "Warm start was applied by adapter"
+        Csp1dWarmStartStatus.Invalid -> "Warm start is incompatible with current problem; normal solve was used"
+    }
+}
+
+private fun csp1dFallbackDisabledTrace(
+    status: Csp1dWarmStartStatus,
+    planCount: Int
+): Csp1dRecoveryTrace {
+    return Csp1dRecoveryTrace(
+        status = Csp1dRecoveryStatus.FallbackDisabled,
+        warmStartStatus = status,
+        attemptCount = 0,
+        warmStartPlanCount = planCount,
+        appliedWarmStartPlanCount = 0,
+        appliedWarmStartUsageCount = 0,
+        message = csp1dFallbackDisabledMessage(status)
+    )
+}
+
+private fun csp1dFallbackDisabledMessage(status: Csp1dWarmStartStatus): String {
+    return when (status) {
+        Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current adapter does not support applying it; fallback is disabled"
+        Csp1dWarmStartStatus.Invalid -> "Warm start is incompatible with current problem; fallback is disabled"
+        else -> "Warm start cannot be applied and fallback is disabled"
+    }
+}
+
+private data class Csp1dWarmStartResolution<V : RealNumber<V>>(
+    val plans: List<CuttingPlan<V>>,
+    val status: Csp1dWarmStartStatus,
+    val adapterResult: Csp1dWarmStartAdapterResult<V>?
+)
+
+private data class Csp1dWarmStartPlanSelection<V : RealNumber<V>>(
+    val plans: List<CuttingPlan<V>>,
+    val status: Csp1dWarmStartStatus? = null
+)

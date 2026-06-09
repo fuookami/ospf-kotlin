@@ -1543,6 +1543,239 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
+     * 验证列生成恢复入口会从上一轮解消费 warm start 使用量 /
+     * Verify column-generation recovery consumes warm-start usages from previous solution
+     */
+    @Test
+    fun columnGenerationRecoveryShouldApplyPreviousSolutionWarmStart(): Unit = runBlocking {
+        val product = product(
+            id = "p-cg-recovery-native",
+            width = 0.5
+        )
+        val material = material(
+            id = "m-cg-recovery-native",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val singlePlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        ).copy(id = "cg-recovery-single")
+        val packedPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64(3.0)
+        ).copy(id = "cg-recovery-packed")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(3.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(singlePlan, packedPlan)
+            }
+        ).solve(problem)
+        val solver = Csp1dInitialResultCapturingSolver()
+
+        val result = Csp1dColumnGenerationRecovery<Flt64>(
+            solver = solver,
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() },
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(2, result.trace.warmStartPlanCount)
+        assertEquals(2, result.trace.appliedWarmStartPlanCount)
+        assertEquals(2, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertEquals(Flt64.one, solver.lastInitialResults["x_1"])
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证列生成恢复结果可以再次作为 previousSolution 进入下一轮 warm start /
+     * Verify column-generation recovery result can be reused as next-round previousSolution warm start
+     */
+    @Test
+    fun columnGenerationRecoveryShouldReuseRecoveredSolutionAsNextWarmStart(): Unit = runBlocking {
+        val product = product(
+            id = "p-cg-recovery-round",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-cg-recovery-round",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        ).copy(id = "cg-recovery-round-plan")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val seedSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(warmStartPlan)
+            }
+        ).solve(problem)
+        val firstResult = Csp1dColumnGenerationRecovery<Flt64>(
+            solver = fakeSolver,
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() },
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = seedSolution
+                )
+            )
+        )
+        val solver = Csp1dInitialResultCapturingSolver()
+
+        val secondResult = Csp1dColumnGenerationRecovery<Flt64>(
+            solver = solver,
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() },
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = firstResult.solution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, firstResult.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, firstResult.trace.warmStartStatus)
+        assertEquals(Csp1dRecoveryStatus.Solved, secondResult.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, secondResult.trace.warmStartStatus)
+        assertEquals(1, secondResult.trace.appliedWarmStartPlanCount)
+        assertEquals(1, secondResult.trace.appliedWarmStartUsageCount)
+        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertEquals(Csp1dSolutionStatus.Feasible, secondResult.solution.status)
+    }
+
+    /**
+     * 验证列生成恢复在最终 MILP 失败时保留部分解语义 /
+     * Verify column-generation recovery keeps partial-solution semantics when final MILP fails
+     */
+    @Test
+    fun columnGenerationRecoveryShouldReturnPartialSolutionWhenFinalMilpFails(): Unit = runBlocking {
+        val product = product(
+            id = "p-cg-recovery-partial",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-cg-recovery-partial",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        ).copy(id = "cg-recovery-partial-plan")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(warmStartPlan)
+            }
+        ).solve(problem)
+
+        val result = Csp1dColumnGenerationRecovery<Flt64>(
+            solver = Csp1dFailingMilpSolver(),
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() },
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = Csp1dSolveConfig(
+                    columnGeneration = problem.configuration,
+                    topKPlanLimit = 1,
+                    allowPartialSolution = true
+                ),
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.appliedWarmStartPlanCount)
+        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Csp1dSolutionStatus.Partial, result.solution.status)
+        assertTrue(result.solution.failureMessage?.contains("forced final MILP failure") == true)
+        assertTrue(result.solution.generatedPlans.any { it.id == warmStartPlan.id })
+        assertTrue(result.solution.produce.cuttingPlans.isEmpty())
+        assertEquals("Partial", result.solution.render.kpi[Csp1dKpiKeys.SolutionStatus])
+        assertEquals("Failed", result.solution.render.kpi[Csp1dKpiKeys.FinalMilpStatus])
+        assertEquals("true", result.solution.render.kpi[Csp1dKpiKeys.PartialSolutionAvailable])
+    }
+
+    /**
      * 验证空 warm start 输入会被记录为 ignored 并完成普通求解 /
      * Verify empty warm start input is recorded as ignored and normal solve completes
      */
