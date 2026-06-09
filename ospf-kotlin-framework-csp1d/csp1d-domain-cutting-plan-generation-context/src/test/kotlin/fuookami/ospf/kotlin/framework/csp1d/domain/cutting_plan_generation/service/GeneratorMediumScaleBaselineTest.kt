@@ -56,41 +56,10 @@ class GeneratorMediumScaleBaselineTest {
             parallelism = 2,
             enableDominancePruning = true
         )
-        val generatorCases = listOf(
-            GeneratorCase(
-                name = "DFS",
-                generator = DFSGenerator(
-                    constraints = constraints,
-                    arithmetic = arithmetic,
-                    maxPlans = 512
-                )
-            ),
-            GeneratorCase(
-                name = "NSum",
-                generator = NSumGenerator(
-                    constraints = constraints,
-                    arithmetic = arithmetic,
-                    maxDepth = UInt64(5UL),
-                    maxPlans = 512
-                )
-            ),
-            GeneratorCase(
-                name = "NSame",
-                generator = NSameGenerator(
-                    constraints = constraints,
-                    arithmetic = arithmetic,
-                    allAmount = true,
-                    maxPlans = 512
-                )
-            ),
-            GeneratorCase(
-                name = "FullSum",
-                generator = FullSumGenerator(
-                    constraints = constraints,
-                    arithmetic = arithmetic,
-                    maxPlans = 512
-                )
-            )
+        val generatorCases = generatorCases(
+            constraints = constraints,
+            maxPlans = 512,
+            nSumDepth = UInt64(5UL)
         )
 
         val snapshots = LinkedHashMap<String, CuttingPlanGenerationBenchmarkSnapshot>()

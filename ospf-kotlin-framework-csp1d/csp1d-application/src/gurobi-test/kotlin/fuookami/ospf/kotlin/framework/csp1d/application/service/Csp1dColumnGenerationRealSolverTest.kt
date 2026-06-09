@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
@@ -319,6 +320,81 @@ class Csp1dColumnGenerationRealSolverTest {
             it.plan.id == packedPlan.id
         }
         assertNotNull(packedUsage, "Packed warm-start plan should be selected by the real solver")
+        assertEquals(UInt64(2UL), packedUsage.amount)
+    }
+
+    /**
+     * 验证 recovery previousSolution 会通过 plan-pool adapter 注入 Gurobi native warm start /
+     * Verify recovery previousSolution injects Gurobi native warm start through the plan-pool adapter
+     */
+    @Test
+    fun recoveryPreviousSolutionWarmStartWorksOnRealSolver() = runBlocking {
+        val product = product(
+            id = "p_recovery_warm_start",
+            width = 0.5
+        )
+        val material = material(
+            id = "m_recovery_warm_start",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val singlePlan = cuttingPlan(
+            id = "plan_recovery_warm_start_single",
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val packedPlan = cuttingPlan(
+            id = "plan_recovery_warm_start_packed",
+            product = product,
+            material = material,
+            rollContribution = Flt64(3.0)
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(6.0)
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = solver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(singlePlan, packedPlan)
+            }
+        ).solve(problem)
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = solver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(2, result.trace.appliedWarmStartPlanCount)
+        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        val packedUsage = result.solution.produce.cuttingPlans.firstOrNull {
+            it.plan.id == packedPlan.id
+        }
+        assertNotNull(packedUsage, "Packed previous-solution plan should be selected by the real solver")
         assertEquals(UInt64(2UL), packedUsage.amount)
     }
 
