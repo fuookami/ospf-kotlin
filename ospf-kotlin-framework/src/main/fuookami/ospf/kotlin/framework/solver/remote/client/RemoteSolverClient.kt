@@ -92,7 +92,9 @@ class RemoteSolverClient(
                 }
             }
         } finally {
-            executionPort.stop(handle)
+            runCatching {
+                executionPort.stop(handle)
+            }
         }
 
         return finalResult ?: throw RemoteSolverException(

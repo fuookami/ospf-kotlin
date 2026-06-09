@@ -5,25 +5,40 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig as CoreSolverConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
 import fuookami.ospf.kotlin.framework.solver.remote.port.SolverExecutionPort
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.functional.Ret
 
 class RemoteSolverClientTest {
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
+
     @Test
     fun solveStartsAndBuildsFallbackResult() = runBlocking {
         val port = RecordingExecutionPort(
@@ -172,7 +187,7 @@ class RemoteSolverClientTest {
         )
 
         assertEquals(TargetTypeName.of("linear"), port.startedPayload?.taskMeta?.targetType)
-        assertEquals(listOf(321.milliseconds), port.quantum)
+        assertEquals(listOf(4000.milliseconds), port.quantum)
     }
 
     @Test
@@ -203,7 +218,7 @@ class RemoteSolverClientTest {
         )
 
         assertEquals(TargetTypeName.of("quadratic"), port.startedPayload?.taskMeta?.targetType)
-        assertEquals(listOf(654.milliseconds), port.quantum)
+        assertEquals(listOf(4000.milliseconds), port.quantum)
     }
 
     @Test
@@ -244,6 +259,130 @@ class RemoteSolverClientTest {
         assertNotNull(result.resultRef)
     }
 
+    @Test
+    fun solveDoesNotLetStopFailureCoverCompletedResult() = runBlocking {
+        val port = RecordingExecutionPort(
+            sliceResults = mutableListOf(
+                SliceResult(
+                    sliceId = SliceId.of("slice-1"),
+                    completed = true,
+                    feasible = true,
+                    objectiveValue = Flt64(5.0),
+                    gap = Flt64.zero,
+                    elapsed = 5.milliseconds
+                )
+            ),
+            stopFailure = IllegalStateException("stop failed")
+        )
+        val client = RemoteSolverClient(port)
+
+        val result = client.solve(
+            payload = payload(),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-1"),
+            quantum = 100.milliseconds
+        )
+
+        assertEquals(Flt64(5.0), result.objectiveValue)
+        assertEquals(1, port.stopCalls)
+    }
+
+    @Test
+    fun remoteLinearSolverInvokeUsesRemoteExecution() = runBlocking {
+        val resultRef = ObjectRef.of(path = "results/empty")
+        val storage = RecordingObjectStoragePort()
+        storage.objects[resultRef.path] = json.encodeToString(
+            SerializedSolution(
+                feasible = true,
+                optimal = true,
+                objectiveValue = Flt64.zero,
+                gap = Flt64.zero,
+                variableValues = emptyList(),
+                elapsed = 7.milliseconds,
+                solverStatus = "OPTIMAL"
+            )
+        ).encodeToByteArray()
+        val port = RecordingExecutionPort(
+            sliceResults = mutableListOf(
+                SliceResult(
+                    sliceId = SliceId.of("slice-1"),
+                    completed = true,
+                    feasible = true,
+                    objectiveValue = Flt64.zero,
+                    gap = Flt64.zero,
+                    elapsed = 7.milliseconds
+                )
+            ),
+            finalResult = SolveResult(
+                feasible = true,
+                optimal = true,
+                objectiveValue = Flt64.zero,
+                gap = Flt64.zero,
+                elapsed = 7.milliseconds,
+                resultRef = resultRef
+            )
+        )
+        val solver = RemoteLinearSolver(
+            delegate = StubLinearSolver(),
+            executionPort = port,
+            resultStoragePort = storage,
+            runtimeConfig = RemoteSolverRuntimeConfig(
+                tenantId = TenantId.of("tenant-1"),
+                nodeId = NodeId.of("node-1"),
+                taskIdProvider = { TaskId.of("task-1") },
+                sliceIdProvider = { SliceId.of("slice-1") }
+            )
+        )
+
+        val result = solver.invoke(emptyLinearModel())
+
+        check(result is Ok)
+        assertEquals(Flt64.zero, result.value.obj)
+        assertEquals(emptyList<Flt64>(), result.value.solution)
+        assertEquals(1, port.startCalls)
+    }
+
+    @Test
+    fun remoteLinearSolverInvokeCanMapEmptyModelWithoutResultObject() = runBlocking {
+        val port = RecordingExecutionPort(
+            sliceResults = mutableListOf(
+                SliceResult(
+                    sliceId = SliceId.of("slice-1"),
+                    completed = true,
+                    feasible = true,
+                    objectiveValue = Flt64.zero,
+                    gap = Flt64.zero,
+                    elapsed = 7.milliseconds
+                )
+            ),
+            finalResult = SolveResult(
+                feasible = true,
+                optimal = true,
+                objectiveValue = Flt64.zero,
+                gap = Flt64.zero,
+                elapsed = 7.milliseconds
+            )
+        )
+        val solver = RemoteLinearSolver(
+            delegate = StubLinearSolver(),
+            executionPort = port,
+            runtimeConfig = RemoteSolverRuntimeConfig(
+                tenantId = TenantId.of("tenant-1"),
+                nodeId = NodeId.of("node-1"),
+                taskIdProvider = { TaskId.of("task-1") },
+                sliceIdProvider = { SliceId.of("slice-1") }
+            )
+        )
+
+        val result = solver.invoke(emptyLinearModel())
+
+        check(result is Ok)
+        assertEquals(Flt64.zero, result.value.obj)
+        assertEquals(emptyList<Flt64>(), result.value.solution)
+    }
+
     private fun payload(
         taskMeta: TaskMeta = TaskMeta(),
         snapshotRef: ObjectRef? = null
@@ -255,10 +394,32 @@ class RemoteSolverClientTest {
         )
     }
 
+    private fun emptyLinearModel(): LinearTriadModel {
+        return LinearTriadModel(
+            impl = BasicLinearTriadModel(
+                variables = emptyList(),
+                constraints = LinearConstraintBatch(
+                    sparseLhs = SparseMatrix(),
+                    signs = emptyList(),
+                    rhs = emptyList(),
+                    names = emptyList(),
+                    sources = emptyList()
+                ),
+                name = "empty"
+            ),
+            tokensInSolver = emptyList(),
+            objective = LinearObjective(
+                category = ObjectCategory.Minimum,
+                objective = emptyList()
+            )
+        )
+    }
+
     private class RecordingExecutionPort(
         private val sliceResults: MutableList<SliceResult>,
         private val finalResult: SolveResult? = null,
-        private val checkpoints: MutableList<ObjectRef?> = mutableListOf()
+        private val checkpoints: MutableList<ObjectRef?> = mutableListOf(),
+        private val stopFailure: RuntimeException? = null
     ) : SolverExecutionPort {
         var startCalls = 0
         var resumeCalls = 0
@@ -315,6 +476,7 @@ class RemoteSolverClientTest {
 
         override suspend fun stop(handle: ExecutionHandle): Boolean {
             stopCalls += 1
+            stopFailure?.let { throw it }
             return true
         }
     }
@@ -356,6 +518,31 @@ class RemoteSolverClientTest {
             solvingStatusCallBack: SolvingStatusCallBack?
         ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
             throw UnsupportedOperationException("Local solve is not used in remote wrapper tests.")
+        }
+    }
+
+    private class RecordingObjectStoragePort : ObjectStoragePort {
+        val objects = mutableMapOf<ObjectPath, ByteArray>()
+
+        override suspend fun put(
+            path: ObjectPath,
+            bytes: ByteArray,
+            metadata: Map<String, String>
+        ): ObjectRef {
+            objects[path] = bytes
+            return ObjectRef(path = path)
+        }
+
+        override suspend fun get(ref: ObjectRef): ByteArray? {
+            return objects[ref.path]
+        }
+
+        override suspend fun delete(ref: ObjectRef): Boolean {
+            return objects.remove(ref.path) != null
+        }
+
+        override suspend fun exists(ref: ObjectRef): Boolean {
+            return objects.containsKey(ref.path)
         }
     }
 }

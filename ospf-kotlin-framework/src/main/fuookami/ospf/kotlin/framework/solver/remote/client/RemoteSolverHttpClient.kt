@@ -5,13 +5,19 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
+import kotlinx.coroutines.delay
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
+import fuookami.ospf.kotlin.framework.solver.remote.port.SolverExecutionPort
 
 /**
  * 远程求解 HTTP 客户端。
@@ -22,6 +28,11 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * @property json JSON 编解码器 / JSON codec
  * @property tenantId 默认租户 ID / Default tenant ID
  * @property traceIdProvider trace ID 提供器 / Trace ID provider
+ * @property objectStoragePort 载荷与结果对象存储 / Payload and result object storage
+ * @property payloadPathProvider 载荷对象路径生成器 / Payload object path provider
+ * @property requestIdProvider 请求 ID 生成器 / Request ID provider
+ * @property resumeMode HTTP 恢复模式 / HTTP resume mode
+ * @property pollInterval 任务轮询间隔 / Task poll interval
  */
 class RemoteSolverHttpClient(
     private val baseUrl: String,
@@ -31,8 +42,17 @@ class RemoteSolverHttpClient(
         isLenient = true
     },
     private val tenantId: TenantId? = null,
-    private val traceIdProvider: () -> TraceId? = { null }
-) {
+    private val traceIdProvider: () -> TraceId? = { null },
+    private val objectStoragePort: ObjectStoragePort? = null,
+    private val payloadPathProvider: (TaskId, SliceId, TenantId) -> ObjectPath = { taskId, sliceId, tenantId ->
+        ObjectPath.of("payloads/${tenantId.value}/${taskId.value}/${sliceId.value}.json")
+    },
+    private val requestIdProvider: (TaskId, SliceId, TenantId) -> RequestId = { taskId, _, _ ->
+        RequestId.of(taskId.value)
+    },
+    private val resumeMode: RemoteSolverHttpResumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT,
+    private val pollInterval: Duration = 200.milliseconds
+) : SolverExecutionPort {
     private val normalizedBaseUrl = baseUrl.trim().trimEnd('/')
 
     /**
@@ -45,6 +65,11 @@ class RemoteSolverHttpClient(
      * @param json JSON 编解码器 / JSON codec
      * @param tenantId 默认租户 ID / Default tenant ID
      * @param traceIdProvider trace ID 提供器 / Trace ID provider
+     * @param objectStoragePort 载荷与结果对象存储 / Payload and result object storage
+     * @param payloadPathProvider 载荷对象路径生成器 / Payload object path provider
+     * @param requestIdProvider 请求 ID 生成器 / Request ID provider
+     * @param resumeMode HTTP 恢复模式 / HTTP resume mode
+     * @param pollInterval 任务轮询间隔 / Task poll interval
      */
     constructor(
         baseUrl: String,
@@ -55,17 +80,169 @@ class RemoteSolverHttpClient(
             isLenient = true
         },
         tenantId: TenantId? = null,
-        traceIdProvider: () -> TraceId? = { null }
+        traceIdProvider: () -> TraceId? = { null },
+        objectStoragePort: ObjectStoragePort? = null,
+        payloadPathProvider: (TaskId, SliceId, TenantId) -> ObjectPath = { taskId, sliceId, tenantId ->
+            ObjectPath.of("payloads/${tenantId.value}/${taskId.value}/${sliceId.value}.json")
+        },
+        requestIdProvider: (TaskId, SliceId, TenantId) -> RequestId = { taskId, _, _ ->
+            RequestId.of(taskId.value)
+        },
+        resumeMode: RemoteSolverHttpResumeMode = RemoteSolverHttpResumeMode.SERVER_TASK_LATEST_CHECKPOINT,
+        pollInterval: Duration = 200.milliseconds
     ) : this(
         baseUrl = baseUrl,
         transport = transportPlugin.create(transportConfig),
         json = json,
         tenantId = tenantId,
-        traceIdProvider = traceIdProvider
+        traceIdProvider = traceIdProvider,
+        objectStoragePort = objectStoragePort,
+        payloadPathProvider = payloadPathProvider,
+        requestIdProvider = requestIdProvider,
+        resumeMode = resumeMode,
+        pollInterval = pollInterval
     )
 
     init {
         require(normalizedBaseUrl.isNotBlank()) { "baseUrl must not be blank." }
+    }
+
+    override suspend fun start(
+        payload: SolvePayload,
+        taskId: TaskId,
+        sliceId: SliceId,
+        nodeId: NodeId,
+        tenantId: TenantId
+    ): ExecutionHandle {
+        val payloadRef = putPayload(
+            payload = payload,
+            taskId = taskId,
+            sliceId = sliceId,
+            tenantId = tenantId
+        )
+        val response = submit(
+            RemoteTaskSubmitRequest(
+                payloadRef = payloadRef.path,
+                requestId = requestIdProvider(taskId, sliceId, tenantId),
+                tenantId = tenantId
+            )
+        )
+        return ExecutionHandle(
+            handleId = HandleId.of(response.taskId.value),
+            taskId = response.taskId,
+            sliceId = sliceId,
+            nodeId = nodeId,
+            startedAt = Clock.System.now()
+        )
+    }
+
+    override suspend fun resume(
+        payload: SolvePayload,
+        checkpoint: ObjectRef,
+        taskId: TaskId,
+        sliceId: SliceId,
+        nodeId: NodeId,
+        tenantId: TenantId
+    ): ExecutionHandle {
+        if (resumeMode == RemoteSolverHttpResumeMode.STRICT_CHECKPOINT) {
+            throw RemoteSolverException(
+                code = RemoteSolverErrorCode.INVALID_ARGUMENT,
+                message = "HTTP task resume API does not support checkpoint-specific resume.",
+                metadata = mapOf(
+                    "taskId" to taskId.value,
+                    "checkpointPath" to checkpoint.path.value
+                )
+            )
+        }
+        resume(taskId = taskId)
+        return ExecutionHandle(
+            handleId = HandleId.of(taskId.value),
+            taskId = taskId,
+            sliceId = sliceId,
+            nodeId = nodeId,
+            startedAt = Clock.System.now()
+        )
+    }
+
+    override suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): SliceResult {
+        require(quantum > Duration.ZERO) { "quantum must be positive." }
+        var elapsed = Duration.ZERO
+        while (elapsed < quantum) {
+            val view = get(handle.taskId) ?: throw RemoteSolverException(
+                code = RemoteSolverErrorCode.TASK_FAILED,
+                message = "Remote task is not found: ${handle.taskId}.",
+                metadata = mapOf("taskId" to handle.taskId.value)
+            )
+            when (view.status) {
+                TaskStatus.COMPLETED -> {
+                    val result = fetchFinalResult(handle)
+                    return SliceResult(
+                        sliceId = handle.sliceId,
+                        completed = true,
+                        feasible = result?.feasible ?: true,
+                        objectiveValue = result?.objectiveValue,
+                        gap = result?.gap,
+                        elapsed = result?.elapsed ?: elapsed,
+                        message = result?.message
+                    )
+                }
+
+                TaskStatus.FAILED, TaskStatus.STOPPED -> {
+                    return SliceResult(
+                        sliceId = handle.sliceId,
+                        completed = true,
+                        feasible = false,
+                        objectiveValue = null,
+                        gap = null,
+                        elapsed = elapsed,
+                        message = "Remote task ended with status ${view.status}."
+                    )
+                }
+
+                else -> {}
+            }
+            val wait = minOf(pollInterval, quantum - elapsed)
+            delay(wait)
+            elapsed += wait
+        }
+        return SliceResult(
+            sliceId = handle.sliceId,
+            completed = false,
+            feasible = false,
+            objectiveValue = null,
+            gap = null,
+            elapsed = quantum
+        )
+    }
+
+    override suspend fun exportCheckpoint(handle: ExecutionHandle): ObjectRef? {
+        return get(handle.taskId)?.latestCheckpointRef
+    }
+
+    override suspend fun fetchFinalResult(handle: ExecutionHandle): SolveResult? {
+        val view = get(handle.taskId) ?: return null
+        val resultRef = view.latestResultRef ?: return null
+        val storage = objectStoragePort ?: return null
+        val bytes = storage.get(resultRef) ?: return null
+        val solution = json.decodeFromString(
+            SerializedSolution.serializer(),
+            bytes.decodeToString()
+        )
+        return SolveResult(
+            feasible = solution.feasible,
+            optimal = solution.optimal,
+            objectiveValue = solution.objectiveValue,
+            gap = solution.gap,
+            elapsed = solution.elapsed,
+            checkpointRef = view.latestCheckpointRef,
+            resultRef = resultRef,
+            message = solution.message
+        )
+    }
+
+    override suspend fun stop(handle: ExecutionHandle): Boolean {
+        val action = stop(taskId = handle.taskId)
+        return action.status != TaskStatus.FAILED
     }
 
     /**
@@ -235,6 +412,40 @@ class RemoteSolverHttpClient(
         return runCatching { RemoteSolverErrorCode.valueOf(this) }
             .getOrDefault(RemoteSolverErrorCode.INTERNAL_ERROR)
     }
+
+    private suspend fun putPayload(
+        payload: SolvePayload,
+        taskId: TaskId,
+        sliceId: SliceId,
+        tenantId: TenantId
+    ): ObjectRef {
+        val storage = objectStoragePort ?: throw RemoteSolverException(
+            code = RemoteSolverErrorCode.INVALID_ARGUMENT,
+            message = "objectStoragePort is required when RemoteSolverHttpClient is used as SolverExecutionPort.",
+            metadata = mapOf("taskId" to taskId.value)
+        )
+        return storage.put(
+            path = payloadPathProvider(taskId, sliceId, tenantId),
+            bytes = json.encodeToString(SolvePayload.serializer(), payload).encodeToByteArray(),
+            metadata = mapOf(
+                "taskId" to taskId.value,
+                "sliceId" to sliceId.value,
+                "tenantId" to tenantId.value
+            )
+        )
+    }
+}
+
+/**
+ * HTTP 恢复模式。
+ * HTTP resume mode.
+ */
+enum class RemoteSolverHttpResumeMode {
+    /** 恢复服务端任务的最新检查点 / Resume server task from its latest checkpoint */
+    SERVER_TASK_LATEST_CHECKPOINT,
+
+    /** 严格要求按指定检查点恢复，当前 HTTP API 不支持 / Require checkpoint-specific resume, unsupported by current HTTP API */
+    STRICT_CHECKPOINT
 }
 
 /**

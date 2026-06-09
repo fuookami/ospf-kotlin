@@ -2,6 +2,9 @@
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import kotlin.time.Instant
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -9,8 +12,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
 
 class RemoteSolverHttpClientTest {
     private val json = Json {
@@ -255,6 +259,94 @@ class RemoteSolverHttpClientTest {
         assertEquals(true, RemoteSolverHttpTransportPlugins.names().contains("unit-registry"))
     }
 
+    @Test
+    fun httpClientCanBridgeSolverExecutionPort() = runBlocking {
+        val storage = RecordingObjectStoragePort()
+        storage.objects[ObjectPath.of("results/latest")] = json.encodeToString(
+            SerializedSolution(
+                feasible = true,
+                optimal = true,
+                objectiveValue = Flt64(2.0),
+                gap = Flt64.zero,
+                variableValues = listOf(Flt64.one),
+                elapsed = 12.milliseconds,
+                solverStatus = "OPTIMAL"
+            )
+        ).encodeToByteArray()
+        val http = QueueHttpHandler(
+            mutableListOf(
+                RemoteSolverHttpResponse(
+                    statusCode = 200,
+                    body =
+                    """
+                    {
+                      "code": "OK",
+                      "message": "success",
+                      "data": {
+                        "taskId": "task-1",
+                        "accepted": true,
+                        "status": "ACCEPTED",
+                        "message": "accepted"
+                      }
+                    }
+                    """.trimIndent()
+                ),
+                RemoteSolverHttpResponse(statusCode = 200, body = taskViewEnvelope("COMPLETED")),
+                RemoteSolverHttpResponse(statusCode = 200, body = taskViewEnvelope("COMPLETED"))
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http,
+            objectStoragePort = storage,
+            requestIdProvider = { _, sliceId, _ -> RequestId.of("request-${sliceId.value}") }
+        )
+
+        val handle = client.start(
+            payload = SolvePayload(SerializedLinearModel.empty()),
+            taskId = TaskId.of("task-1"),
+            sliceId = SliceId.of("slice-1"),
+            nodeId = NodeId.of("node-1"),
+            tenantId = TenantId.of("tenant-a")
+        )
+        val slice = client.awaitSliceEnd(handle, 100.milliseconds)
+
+        assertEquals(TaskId.of("task-1"), handle.taskId)
+        assertEquals(true, slice.completed)
+        assertEquals(true, slice.feasible)
+        assertEquals(Flt64(2.0), slice.objectiveValue)
+        assertEquals(ObjectPath.of("payloads/tenant-a/task-1/slice-1.json"), storage.putPaths.single())
+        assertEquals("POST", http.requests[0].method)
+        assertEquals("GET", http.requests[1].method)
+        val body = json.parseToJsonElement(http.requests[0].body ?: "").jsonObject
+        assertEquals("request-slice-1", body.getValue("requestId").jsonPrimitive.content)
+    }
+
+    @Test
+    fun strictCheckpointResumeFailsExplicitly() {
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = RecordingHttpHandler(RemoteSolverHttpResponse(statusCode = 200, body = actionEnvelope("QUEUED"))),
+            resumeMode = RemoteSolverHttpResumeMode.STRICT_CHECKPOINT
+        )
+
+        val error = assertThrows(RemoteSolverException::class.java) {
+            runBlocking {
+                client.resume(
+                    payload = SolvePayload(SerializedLinearModel.empty()),
+                    checkpoint = ObjectRef.of(path = "checkpoints/specific"),
+                    taskId = TaskId.of("task-1"),
+                    sliceId = SliceId.of("slice-1"),
+                    nodeId = NodeId.of("node-1"),
+                    tenantId = TenantId.of("tenant-a")
+                )
+            }
+        }
+
+        assertEquals(RemoteSolverErrorCode.INVALID_ARGUMENT, error.code)
+        assertEquals("checkpoints/specific", error.metadata["checkpointPath"])
+    }
+
     private fun actionEnvelope(status: String): String {
         return """
             {
@@ -263,6 +355,24 @@ class RemoteSolverHttpClientTest {
               "data": {
                 "taskId": "task-1",
                 "status": "$status"
+              }
+            }
+        """.trimIndent()
+    }
+
+    private fun taskViewEnvelope(status: String): String {
+        return """
+            {
+              "code": "OK",
+              "message": "success",
+              "data": {
+                "taskId": "task-1",
+                "tenantId": "tenant-a",
+                "status": "$status",
+                "currentNodeId": "node-1",
+                "latestCheckpointPath": "checkpoints/latest",
+                "latestResultPath": "results/latest",
+                "consumedCost": 1.5
               }
             }
         """.trimIndent()
@@ -287,6 +397,33 @@ class RemoteSolverHttpClientTest {
         override fun send(request: RemoteSolverHttpRequest): RemoteSolverHttpResponse {
             requests.add(request)
             return responses.removeFirst()
+        }
+    }
+
+    private class RecordingObjectStoragePort : ObjectStoragePort {
+        val objects = mutableMapOf<ObjectPath, ByteArray>()
+        val putPaths = mutableListOf<ObjectPath>()
+
+        override suspend fun put(
+            path: ObjectPath,
+            bytes: ByteArray,
+            metadata: Map<String, String>
+        ): ObjectRef {
+            objects[path] = bytes
+            putPaths.add(path)
+            return ObjectRef(path = path)
+        }
+
+        override suspend fun get(ref: ObjectRef): ByteArray? {
+            return objects[ref.path]
+        }
+
+        override suspend fun delete(ref: ObjectRef): Boolean {
+            return objects.remove(ref.path) != null
+        }
+
+        override suspend fun exists(ref: ObjectRef): Boolean {
+            return objects.containsKey(ref.path)
         }
     }
 }
