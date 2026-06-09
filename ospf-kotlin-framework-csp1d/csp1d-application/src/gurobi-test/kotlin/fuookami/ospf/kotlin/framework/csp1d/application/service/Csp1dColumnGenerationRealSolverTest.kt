@@ -30,6 +30,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
@@ -263,6 +264,62 @@ class Csp1dColumnGenerationRealSolverTest {
 
         assertTrue(solution.produce.cuttingPlans.isNotEmpty(), "Should select cutting plans")
         assertTrue(solution.produce.unmetDemands.isEmpty(), "Should meet all demands")
+    }
+
+    /**
+     * 验证 CSP1D native warm start 初始解可进入 Gurobi 真实 solver 求解路径 /
+     * Verify CSP1D native warm-start initial solution enters the Gurobi real solver path
+     */
+    @Test
+    fun milpWarmStartInitialSolutionWorksOnRealSolver() = runBlocking {
+        val product = product(
+            id = "p_milp_warm_start",
+            width = 0.5
+        )
+        val material = material(
+            id = "m_milp_warm_start",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val singlePlan = cuttingPlan(
+            id = "plan_milp_warm_start_single",
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val packedPlan = cuttingPlan(
+            id = "plan_milp_warm_start_packed",
+            product = product,
+            material = material,
+            rollContribution = Flt64(3.0)
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(singlePlan, packedPlan),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64(6.0)
+                )
+            ),
+            materials = listOf(material),
+            machines = emptyList(),
+            warmStartPlanUsages = listOf(
+                CuttingPlanUsage(
+                    plan = packedPlan,
+                    amount = UInt64(2UL)
+                )
+            )
+        )
+
+        val milpResult = Csp1dMilpSolver(solver).solve(input)
+
+        assertNotNull(milpResult, "MILP result should not be null")
+        assertTrue(milpResult.produce.unmetDemands.isEmpty(), "Warm-started MILP should meet demand")
+        val packedUsage = milpResult.produce.cuttingPlans.firstOrNull {
+            it.plan.id == packedPlan.id
+        }
+        assertNotNull(packedUsage, "Packed warm-start plan should be selected by the real solver")
+        assertEquals(UInt64(2UL), packedUsage.amount)
     }
 
     /**

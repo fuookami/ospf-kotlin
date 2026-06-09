@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 
 class GeneratorMediumScaleBaselineTest {
@@ -121,10 +122,133 @@ class GeneratorMediumScaleBaselineTest {
         )
     }
 
+    @Test
+    fun generatorsShouldReportMixedUnitBenchmarkStatistics() {
+        val rollNarrow = product(id = "p-roll-060", width = 0.60)
+        val rollWide = product(id = "p-roll-075", width = 0.75)
+        val sheetNarrow = product(id = "p-sheet-025", width = 0.25)
+        val sheetWide = product(id = "p-sheet-050", width = 0.50)
+        val products = listOf(
+            rollNarrow,
+            rollWide,
+            sheetNarrow,
+            sheetWide
+        )
+        val materials = listOf(
+            material(id = "m-mixed-100", upperBound = 1.00),
+            material(id = "m-mixed-125", upperBound = 1.25),
+            material(id = "m-mixed-150", upperBound = 1.50)
+        )
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = materials,
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.roll(
+                    product = rollNarrow,
+                    quantity = Quantity(Flt64(8.0), RollCountUnit)
+                ),
+                ProductDemand.roll(
+                    product = rollWide,
+                    quantity = Quantity(Flt64(6.0), RollCountUnit)
+                ),
+                ProductDemand.sheet(
+                    product = sheetNarrow,
+                    quantity = Quantity(Flt64(20.0), SheetCountUnit)
+                ),
+                ProductDemand.sheet(
+                    product = sheetWide,
+                    quantity = Quantity(Flt64(12.0), SheetCountUnit)
+                )
+            )
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(4UL),
+            parallelism = 2,
+            enableDominancePruning = true
+        )
+        val generatorCases = generatorCases(
+            constraints = constraints,
+            maxPlans = 384,
+            nSumDepth = UInt64(4UL)
+        )
+
+        val snapshots = LinkedHashMap<String, CuttingPlanGenerationBenchmarkSnapshot>()
+        for (case in generatorCases) {
+            val report = case.generator.generateWithReport(input)
+            val baseline = report.statistics
+            snapshots[case.name] = CuttingPlanGenerationBenchmarkSnapshot.from(
+                generatorName = case.name,
+                statistics = baseline
+            )
+
+            assertMediumScaleBaseline(
+                name = case.name,
+                statistics = baseline
+            )
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans")
+            assertTrue(report.plans.size <= 384, "${case.name} should respect maxPlans")
+        }
+        assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
+        assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
+        assertEquals(
+            listOf(
+                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted"
+            ),
+            snapshots.values.map { it.toStableLine() }
+        )
+    }
+
     private data class GeneratorCase(
         val name: String,
         val generator: Csp1dInitialCuttingPlanGenerator<Flt64>
     )
+
+    private fun generatorCases(
+        constraints: GenerationConstraints<Flt64>,
+        maxPlans: Int,
+        nSumDepth: UInt64
+    ): List<GeneratorCase> {
+        return listOf(
+            GeneratorCase(
+                name = "DFS",
+                generator = DFSGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    maxPlans = maxPlans
+                )
+            ),
+            GeneratorCase(
+                name = "NSum",
+                generator = NSumGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    maxDepth = nSumDepth,
+                    maxPlans = maxPlans
+                )
+            ),
+            GeneratorCase(
+                name = "NSame",
+                generator = NSameGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    allAmount = true,
+                    maxPlans = maxPlans
+                )
+            ),
+            GeneratorCase(
+                name = "FullSum",
+                generator = FullSumGenerator(
+                    constraints = constraints,
+                    arithmetic = arithmetic,
+                    maxPlans = maxPlans
+                )
+            )
+        )
+    }
 
     private fun assertMediumScaleBaseline(
         name: String,

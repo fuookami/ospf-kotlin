@@ -79,7 +79,7 @@ DFS, N-Sum, and FullSum deduplicate demand width entries by product, width, widt
 
 `GenerationConstraints.enableDominancePruning` enables opt-in same-contribution dominance pruning. For candidates with the same material, machine, capacity consumption, and demand contribution vector, the generator keeps the candidate with smaller remaining width and records the filtered count in `dominatedCandidates`.
 
-The medium-scale baseline test now covers DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, width-bound pruned nodes, elapsed milliseconds, and stop reason. `CuttingPlanGenerationBenchmarkSnapshot` keeps deterministic count fields and renders `toStableLine()` for comparable benchmark snapshots; elapsed time remains in raw statistics for trend observation.
+The medium-scale and mixed-unit baseline tests now cover DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, width-bound pruned nodes, elapsed milliseconds, and stop reason. `CuttingPlanGenerationBenchmarkSnapshot` keeps deterministic count fields and renders `toStableLine()` for comparable benchmark snapshots; elapsed time remains in raw statistics for trend observation.
 
 `Costar` is a filler for remaining width. It can appear in slices and render output, but it does not create demand contribution.
 
@@ -89,7 +89,7 @@ For dynamic-length products, generation-stage demand contribution uses the produ
 
 `Csp1dRecovery` keeps the simple `solve(problem, solveConfig)` API and also provides `solveWithTrace(Csp1dRecoveryInput<V>)`. The trace records recovery status, warm start status, attempt count, warm-start plan count, applied plan count, applied usage count, and message. Empty warm starts are marked as `Ignored`; compatible warm starts use the configured `Csp1dWarmStartAdapter`; incompatible warm starts are marked as `Invalid`.
 
-The default adapter is `AdapterUnsupported` and falls back to normal solving when `retryWithoutWarmStart` is enabled. `Csp1dWarmStartPlanPoolAdapter` can be passed explicitly to apply compatible warm-start cutting plans as the initial plan pool, optionally appending the normal fallback generator. When a compatible `previousSolution` is provided, selected plan usages are matched by canonical plan key and written into the MILP model as native initial assignment values. When `retryWithoutWarmStart` is disabled, recovery throws `Csp1dRecoveryFallbackDisabledException` with trace. Solver failures are wrapped by `Csp1dRecoverySolveException` with trace.
+The default adapter is `AdapterUnsupported` and falls back to normal solving when `retryWithoutWarmStart` is enabled. `Csp1dWarmStartPlanPoolAdapter` can be passed explicitly to apply compatible warm-start cutting plans as the initial plan pool, optionally appending the normal fallback generator. When a compatible `previousSolution` is provided, selected plan usages are matched by canonical plan key and written into the MILP model as native initial assignment values. The Gurobi profile includes a real-solver smoke test for this native initial-solution path. When `retryWithoutWarmStart` is disabled, recovery throws `Csp1dRecoveryFallbackDisabledException` with trace. Solver failures are wrapped by `Csp1dRecoverySolveException` with trace.
 
 ## Demo
 
@@ -111,6 +111,12 @@ Gurobi profile compile gate:
 
 ```powershell
 mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application -Pgurobi-cg-test -DskipTests test-compile
+```
+
+Gurobi native warm-start smoke:
+
+```powershell
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application -Pgurobi-cg-test "-Dcsp1d.gurobi.cg.test.enabled=true" "-Dtest=Csp1dColumnGenerationRealSolverTest#milpWarmStartInitialSolutionWorksOnRealSolver" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
 Demo3 compile gate:
