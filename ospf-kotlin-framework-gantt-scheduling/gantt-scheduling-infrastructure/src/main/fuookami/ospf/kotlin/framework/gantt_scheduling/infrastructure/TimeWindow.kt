@@ -1,9 +1,4 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/**
- * 时间窗口及相关工具函数 / Time window and related utility functions
- */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.math.ceil
@@ -12,6 +7,7 @@ import kotlin.math.max
 import kotlin.math.round
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import kotlin.time.Instant
 import kotlin.time.toDuration
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.max
