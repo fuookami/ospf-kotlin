@@ -511,7 +511,7 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
-    fun packingAnalyzerShouldExposeContinuousRadiusSolverPrototypeKpi() = runBlocking {
+    fun packingAnalyzerShouldExposeContinuousRadiusSolverPrototypeAndRegistrationPlanKpi() = runBlocking {
         val material = Material(
             no = MaterialNo("M-CG-RADIUS-KPI"),
             type = MaterialType.RawMaterial,
@@ -541,6 +541,27 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(
             prototype.variableName,
             snapshot.schema.kpi["continuous_radius_solver_prototype_variables"]
+        )
+        assertEquals("1", snapshot.schema.kpi["continuous_radius_solver_registration_plan_count"])
+        assertEquals(
+            prototype.variableName,
+            snapshot.schema.kpi["continuous_radius_solver_registration_plan_variables"]
+        )
+        assertTrue(
+            snapshot.schema.kpi["continuous_radius_solver_registration_plan_selected_radii"]
+                ?.contains(prototype.variableName) == true
+        )
+        assertEquals(
+            prototype.variableName,
+            snapshot.schema.kpi["continuous_radius_solver_registration_plan_production_ready_variables"]
+        )
+        assertEquals(
+            prototype.variableName,
+            snapshot.schema.kpi["continuous_radius_solver_model_registration_blocked_variables"]
+        )
+        assertTrue(
+            snapshot.schema.kpi["continuous_radius_solver_model_registration_blocked_reason"]
+                ?.contains("core token-bound support") == true
         )
     }
 
