@@ -47,6 +47,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
     val knifeBoundPrunedNodes = reports.sumOf { it.statistics.knifeBoundPrunedNodes }
     val lengthBoundPrunedEntries = reports.sumOf { it.statistics.lengthBoundPrunedEntries }
     val materialWidthIndexCacheHits = reports.sumOf { it.statistics.materialWidthIndexCacheHits }
+    val materialSliceTemplateCacheHits = reports.sumOf { it.statistics.materialSliceTemplateCacheHits }
 
     for (report in reports) {
         for (plan in report.plans) {
@@ -86,6 +87,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             knifeBoundPrunedNodes = knifeBoundPrunedNodes,
             lengthBoundPrunedEntries = lengthBoundPrunedEntries,
             materialWidthIndexCacheHits = materialWidthIndexCacheHits,
+            materialSliceTemplateCacheHits = materialSliceTemplateCacheHits,
             elapsedMilliseconds = (System.nanoTime() - startedAt) / 1_000_000L,
             stopReason = stopReason
         )

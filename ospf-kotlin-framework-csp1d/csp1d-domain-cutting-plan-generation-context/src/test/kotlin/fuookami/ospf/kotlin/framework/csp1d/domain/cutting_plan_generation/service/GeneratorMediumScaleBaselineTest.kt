@@ -82,10 +82,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -162,10 +162,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -231,10 +231,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=2181;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=117;generatedCandidates=82;acceptedPlans=82;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=2181;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=117;generatedCandidates=82;acceptedPlans=82;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -337,11 +337,22 @@ class GeneratorMediumScaleBaselineTest {
             } else {
                 1L
             }
+            val materialIds = report.plans.map { it.material.id }.toSet()
 
             assertEquals(
                 expected = expectedCacheHits,
                 actual = report.statistics.materialWidthIndexCacheHits,
                 message = "${case.name} material-equivalent cache hit count should match"
+            )
+            assertEquals(
+                expected = expectedCacheHits,
+                actual = report.statistics.materialSliceTemplateCacheHits,
+                message = "${case.name} material-equivalent slice-template cache hit count should match"
+            )
+            assertEquals(
+                expected = setOf("m-eq-a", "m-eq-b"),
+                actual = materialIds,
+                message = "${case.name} should rebuild plans for both materials"
             )
             assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans")
         }
@@ -460,6 +471,7 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(statistics.knifeBoundPrunedNodes >= 0L, "$name knife-bound pruning count should be non-negative")
         assertTrue(statistics.lengthBoundPrunedEntries >= 0L, "$name length-bound pruning count should be non-negative")
         assertTrue(statistics.materialWidthIndexCacheHits >= 0L, "$name width-index cache hit count should be non-negative")
+        assertTrue(statistics.materialSliceTemplateCacheHits >= 0L, "$name slice-template cache hit count should be non-negative")
         assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||

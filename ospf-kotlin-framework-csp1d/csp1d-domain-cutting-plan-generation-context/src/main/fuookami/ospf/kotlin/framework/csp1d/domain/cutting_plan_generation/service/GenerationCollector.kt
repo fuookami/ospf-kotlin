@@ -27,6 +27,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private var knifeBoundPrunedNodes = 0L
     private var lengthBoundPrunedEntries = 0L
     private var materialWidthIndexCacheHits = 0L
+    private var materialSliceTemplateCacheHits = 0L
     private var visitedNodes = 0L
     private var timedOut = false
 
@@ -50,6 +51,10 @@ internal class GenerationCollector<V : RealNumber<V>>(
 
     fun recordMaterialWidthIndexCacheHit() {
         ++materialWidthIndexCacheHits
+    }
+
+    fun recordMaterialSliceTemplateCacheHit() {
+        ++materialSliceTemplateCacheHits
     }
 
     fun shouldStop(): Boolean {
@@ -119,6 +124,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
                 knifeBoundPrunedNodes = knifeBoundPrunedNodes,
                 lengthBoundPrunedEntries = lengthBoundPrunedEntries,
                 materialWidthIndexCacheHits = materialWidthIndexCacheHits,
+                materialSliceTemplateCacheHits = materialSliceTemplateCacheHits,
                 elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L,
                 stopReason = stopReason()
             )

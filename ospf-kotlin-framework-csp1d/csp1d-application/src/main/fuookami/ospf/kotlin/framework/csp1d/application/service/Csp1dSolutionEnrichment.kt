@@ -76,6 +76,8 @@ internal fun <V : RealNumber<V>> enrichSolution(
             initialGenerationStatistics.lengthBoundPrunedEntries.toString()
         renderKpi[Csp1dKpiKeys.InitialMaterialWidthIndexCacheHits] =
             initialGenerationStatistics.materialWidthIndexCacheHits.toString()
+        renderKpi[Csp1dKpiKeys.InitialMaterialSliceTemplateCacheHits] =
+            initialGenerationStatistics.materialSliceTemplateCacheHits.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationElapsedMillisecondsRender] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationStopReasonRender] = initialGenerationStatistics.stopReason.name
@@ -143,6 +145,8 @@ private fun <V : RealNumber<V>> kpiDetails(
             initialGenerationStatistics.lengthBoundPrunedEntries.toString()
         details[Csp1dKpiKeys.InitialGenerationMaterialWidthIndexCacheHits] =
             initialGenerationStatistics.materialWidthIndexCacheHits.toString()
+        details[Csp1dKpiKeys.InitialGenerationMaterialSliceTemplateCacheHits] =
+            initialGenerationStatistics.materialSliceTemplateCacheHits.toString()
         details[Csp1dKpiKeys.InitialGenerationElapsedMilliseconds] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         details[Csp1dKpiKeys.InitialGenerationStopReason] = initialGenerationStatistics.stopReason.name

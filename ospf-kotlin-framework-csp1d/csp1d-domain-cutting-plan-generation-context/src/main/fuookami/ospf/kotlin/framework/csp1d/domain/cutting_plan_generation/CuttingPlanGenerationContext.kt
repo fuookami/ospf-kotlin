@@ -61,6 +61,7 @@ enum class CuttingPlanGenerationStopReason {
  * @property knifeBoundPrunedNodes 被刀数下界可达性剪枝的搜索节点数 / Search node count pruned by knife-count reachability
  * @property lengthBoundPrunedEntries 被长度上界剪枝的搜索入口数 / Search entry count pruned by length upper bound
  * @property materialWidthIndexCacheHits 物料等价宽度入口缓存命中数 / Material-equivalent width-entry cache hit count
+ * @property materialSliceTemplateCacheHits 物料等价切片模板缓存命中数 / Material-equivalent slice-template cache hit count
  * @property elapsedMilliseconds 生成耗时毫秒数 / Generation elapsed time in milliseconds
  * @property stopReason 终止原因 / Stop reason
  */
@@ -75,6 +76,7 @@ data class CuttingPlanGenerationStatistics(
     val knifeBoundPrunedNodes: Long = 0L,
     val lengthBoundPrunedEntries: Long = 0L,
     val materialWidthIndexCacheHits: Long = 0L,
+    val materialSliceTemplateCacheHits: Long = 0L,
     val elapsedMilliseconds: Long = 0L,
     val stopReason: CuttingPlanGenerationStopReason = CuttingPlanGenerationStopReason.Exhausted
 )
@@ -97,6 +99,7 @@ data class CuttingPlanGenerationStatistics(
  * @property knifeBoundPrunedNodes 被刀数下界可达性剪枝的搜索节点数 / Search node count pruned by knife-count reachability
  * @property lengthBoundPrunedEntries 被长度上界剪枝的搜索入口数 / Search entry count pruned by length upper bound
  * @property materialWidthIndexCacheHits 物料等价宽度入口缓存命中数 / Material-equivalent width-entry cache hit count
+ * @property materialSliceTemplateCacheHits 物料等价切片模板缓存命中数 / Material-equivalent slice-template cache hit count
  * @property stopReason 终止原因 / Stop reason
  */
 data class CuttingPlanGenerationBenchmarkSnapshot(
@@ -111,6 +114,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
     val knifeBoundPrunedNodes: Long,
     val lengthBoundPrunedEntries: Long,
     val materialWidthIndexCacheHits: Long,
+    val materialSliceTemplateCacheHits: Long,
     val stopReason: CuttingPlanGenerationStopReason
 ) {
     /**
@@ -131,6 +135,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
             "knifeBoundPrunedNodes=$knifeBoundPrunedNodes",
             "lengthBoundPrunedEntries=$lengthBoundPrunedEntries",
             "materialWidthIndexCacheHits=$materialWidthIndexCacheHits",
+            "materialSliceTemplateCacheHits=$materialSliceTemplateCacheHits",
             "stopReason=${stopReason.name}"
         ).joinToString(";")
     }
@@ -159,6 +164,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
                 knifeBoundPrunedNodes = statistics.knifeBoundPrunedNodes,
                 lengthBoundPrunedEntries = statistics.lengthBoundPrunedEntries,
                 materialWidthIndexCacheHits = statistics.materialWidthIndexCacheHits,
+                materialSliceTemplateCacheHits = statistics.materialSliceTemplateCacheHits,
                 stopReason = statistics.stopReason
             )
         }

@@ -87,6 +87,11 @@ class FullSumGenerator<V : RealNumber<V>>(
             baseIndex = widthIndex,
             maxOverProduceLength = maxOverProduceLength
         )
+        val materialSliceTemplateCache = if (parallelism == 1 && canReuseMaterialSliceTemplates(constraints)) {
+            GenerationMaterialSliceTemplateCache<V>()
+        } else {
+            null
+        }
 
         if (parallelism > 1 && input.materials.size > 1) {
             val reports = runGenerationTasks(
@@ -131,14 +136,37 @@ class FullSumGenerator<V : RealNumber<V>>(
             )
             if (materialWidthIndex.isEmpty) continue
 
-            fullSumSearch(
+            val templates = materialSliceTemplateCache?.get(
                 material = material,
-                widthIndex = materialWidthIndex,
-                machines = input.machines,
-                planIndex = planIndex,
-                collector = collector,
-                quantityCache = quantityCache
+                collector = collector
             )
+            if (templates != null) {
+                emitTemplates(
+                    material = material,
+                    widthIndex = materialWidthIndex,
+                    machines = input.machines,
+                    planIndex = planIndex,
+                    collector = collector,
+                    templates = templates
+                )
+            } else {
+                val templateRecorder = materialSliceTemplateCache?.let { GenerationSliceTemplateRecorder<V>() }
+                fullSumSearch(
+                    material = material,
+                    widthIndex = materialWidthIndex,
+                    machines = input.machines,
+                    planIndex = planIndex,
+                    collector = collector,
+                    quantityCache = quantityCache,
+                    templateRecorder = templateRecorder
+                )
+                if (!collector.shouldStop() && templateRecorder != null) {
+                    materialSliceTemplateCache.put(
+                        material = material,
+                        templates = templateRecorder.templates
+                    )
+                }
+            }
 
             if (collector.shouldStop()) break
         }
@@ -152,7 +180,8 @@ class FullSumGenerator<V : RealNumber<V>>(
         machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         collector: GenerationCollector<V>,
-        quantityCache: GenerationQuantityCache<V>
+        quantityCache: GenerationQuantityCache<V>,
+        templateRecorder: GenerationSliceTemplateRecorder<V>? = null
     ) {
         val entries = widthIndex.entries
         val upperBound = material.widthRange.upperBound
@@ -207,6 +236,7 @@ class FullSumGenerator<V : RealNumber<V>>(
                 }
                 // 叶节点或无法继续扩展：产出方案 / Leaf node or no extensible entry: emit plan
                 if (currentSlices.isNotEmpty() && satisfiesLeafConstraints(currentSlices, currentWidth, upperBound, material)) {
+                    templateRecorder?.record(currentSlices)
                     val plan = buildPlan(
                         material = material,
                         slices = currentSlices,
@@ -267,6 +297,29 @@ class FullSumGenerator<V : RealNumber<V>>(
                 indexStack.addLast(currentIndex + 1)
                 amount += UInt64.one
             }
+        }
+    }
+
+    private fun emitTemplates(
+        material: Material<V>,
+        widthIndex: GenerationWidthIndex<V>,
+        machines: List<Machine<V>>,
+        planIndex: java.util.concurrent.atomic.AtomicInteger,
+        collector: GenerationCollector<V>,
+        templates: List<List<CuttingPlanSlice<V>>>
+    ) {
+        for (slices in templates) {
+            if (collector.shouldStop()) break
+            val plan = buildPlan(
+                material = material,
+                slices = slices,
+                widthIndex = widthIndex,
+                planId = "fullsum-${material.id}-${planIndex.getAndIncrement()}"
+            )
+            collector.record(
+                plan = plan,
+                feasible = material.enabled(plan, machines)
+            )
         }
     }
 
