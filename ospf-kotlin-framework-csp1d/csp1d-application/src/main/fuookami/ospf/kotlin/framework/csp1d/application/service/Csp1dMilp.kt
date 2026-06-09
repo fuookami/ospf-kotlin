@@ -82,7 +82,7 @@ class Csp1dMilp<V : RealNumber<V>>(
         )
         val solutionStatus = when (milpResult.status) {
             Csp1dFinalMilpStatus.Solved -> Csp1dSolutionStatus.Feasible
-            Csp1dFinalMilpStatus.Failed -> Csp1dSolutionStatus.Partial
+            Csp1dFinalMilpStatus.Failed -> if (resolvedConfig.allowPartialSolution) Csp1dSolutionStatus.Partial else Csp1dSolutionStatus.Failed
             Csp1dFinalMilpStatus.NotAttempted -> Csp1dSolutionStatus.Partial
         }
         val baseSolution = analyzer.analyze(
@@ -157,9 +157,6 @@ class Csp1dMilp<V : RealNumber<V>>(
                 lengthConfig = solveConfig.lengthConfig
             )
         } catch (error: Exception) {
-            if (!solveConfig.allowPartialSolution) {
-                throw error
-            }
             return MilpSolveResult(
                 status = Csp1dFinalMilpStatus.Failed,
                 result = null,
@@ -176,9 +173,6 @@ class Csp1dMilp<V : RealNumber<V>>(
         }
 
         val failureMessage = "MILP returned no solution"
-        if (!solveConfig.allowPartialSolution) {
-            throw IllegalStateException(failureMessage)
-        }
         return MilpSolveResult(
             status = Csp1dFinalMilpStatus.Failed,
             result = null,

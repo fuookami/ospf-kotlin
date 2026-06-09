@@ -33,8 +33,10 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSoluti
 enum class Csp1dTerminationReason {
     /** 达到迭代上限 / Iteration limit reached */
     IterationLimitReached,
-    /** LP 求解失败 / LP solve failed */
+    /** LP 求解失败（异常、超时等） / LP solve failed (exception, timeout, etc.) */
     LpSolveFailed,
+    /** LP 松弛不可行 / LP relaxation is infeasible */
+    LpInfeasible,
     /** 无负 reduced cost 新列，自然收敛 / No negative reduced cost columns, natural convergence */
     PricingConverged,
     /** 新列全部重复，无增量 / All new plans are duplicates, no improvement */
@@ -72,6 +74,8 @@ data class Csp1dIterationRecord(
  * @property finalMilpStatus 最终 MILP 状态 / Final MILP status
  * @property partialSolutionAvailable 是否存在部分解 / Whether partial solution is available
  * @property failureMessage 失败信息 / Failure message
+ * @property pricingGenerationStatistics pricing 生成统计 / Pricing generation statistics
+ * @property lpFailureMessage LP 失败的详细错误信息 / LP failure detail message
  */
 data class Csp1dColumnGenerationTrace(
     val initialPlanCount: UInt64,
@@ -82,7 +86,9 @@ data class Csp1dColumnGenerationTrace(
     val initialGenerationStatistics: CuttingPlanGenerationStatistics? = null,
     val finalMilpStatus: Csp1dFinalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
     val partialSolutionAvailable: Boolean = false,
-    val failureMessage: String? = null
+    val failureMessage: String? = null,
+    val pricingGenerationStatistics: CuttingPlanGenerationStatistics? = null,
+    val lpFailureMessage: String? = null
 )
 
 class Csp1dColumnGeneration<V : RealNumber<V>>(
@@ -160,6 +166,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val pricedPlanCounts = ArrayList<UInt64>()
         val iterationRecords = ArrayList<Csp1dIterationRecord>()
         var terminationReason: Csp1dTerminationReason = Csp1dTerminationReason.PricingConverged
+        var lpFailureMessage: String? = null
+        var pricingGenerationStatistics: CuttingPlanGenerationStatistics? = null
 
         for (iteration in 0 until columnConfig.iterationLimit) {
             val planCountBefore = currentPlans.size
@@ -183,6 +191,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     )
                 )
                 terminationReason = Csp1dTerminationReason.LpSolveFailed
+                lpFailureMessage = "LP solve returned null at iteration $iteration"
                 break
             }
 
@@ -202,7 +211,12 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 maxGeneratedPlans = UInt64(columnConfig.maxPricingPlans.coerceAtLeast(0)),
                 objectiveConfig = pricingObjectiveConfig(resolvedConfig)
             )
-            val newPlans = pricingGenerator.generate(pricingInput)
+            val pricingReport = pricingGenerator.generateWithReport(pricingInput)
+            pricingGenerationStatistics = mergeGenerationStatistics(
+                left = pricingGenerationStatistics,
+                right = pricingReport.statistics
+            )
+            val newPlans = pricingReport.plans
 
             if (newPlans.isEmpty()) {
                 pricedPlanCounts.add(UInt64.zero)
@@ -269,7 +283,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
         val solutionStatus = when (finalMilp.status) {
             Csp1dFinalMilpStatus.Solved -> Csp1dSolutionStatus.Feasible
-            Csp1dFinalMilpStatus.Failed -> Csp1dSolutionStatus.Partial
+            Csp1dFinalMilpStatus.Failed -> if (resolvedConfig.allowPartialSolution) Csp1dSolutionStatus.Partial else Csp1dSolutionStatus.Failed
             Csp1dFinalMilpStatus.NotAttempted -> Csp1dSolutionStatus.Partial
         }
         val solution = enrichSolution(
@@ -298,7 +312,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 initialGenerationStatistics = initialPlanPool.statistics,
                 finalMilpStatus = finalMilp.status,
                 partialSolutionAvailable = finalMilp.status == Csp1dFinalMilpStatus.Failed,
-                failureMessage = finalMilp.failureMessage
+                failureMessage = finalMilp.failureMessage,
+                pricingGenerationStatistics = pricingGenerationStatistics,
+                lpFailureMessage = lpFailureMessage
             )
         )
     }
@@ -333,6 +349,38 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val plans: List<CuttingPlan<V>>,
         val statistics: CuttingPlanGenerationStatistics?
     )
+
+    private fun mergeGenerationStatistics(
+        left: CuttingPlanGenerationStatistics?,
+        right: CuttingPlanGenerationStatistics
+    ): CuttingPlanGenerationStatistics {
+        if (left == null) {
+            return right
+        }
+        return CuttingPlanGenerationStatistics(
+            visitedNodes = left.visitedNodes + right.visitedNodes,
+            generatedCandidates = left.generatedCandidates + right.generatedCandidates,
+            acceptedPlans = left.acceptedPlans + right.acceptedPlans,
+            infeasibleCandidates = left.infeasibleCandidates + right.infeasibleCandidates,
+            duplicateCandidates = left.duplicateCandidates + right.duplicateCandidates,
+            dominatedCandidates = left.dominatedCandidates + right.dominatedCandidates,
+            widthBoundPrunedNodes = left.widthBoundPrunedNodes + right.widthBoundPrunedNodes,
+            knifeBoundPrunedNodes = left.knifeBoundPrunedNodes + right.knifeBoundPrunedNodes,
+            lengthBoundPrunedEntries = left.lengthBoundPrunedEntries + right.lengthBoundPrunedEntries,
+            materialWidthIndexCacheHits = left.materialWidthIndexCacheHits + right.materialWidthIndexCacheHits,
+            materialSliceTemplateCacheHits =
+                left.materialSliceTemplateCacheHits + right.materialSliceTemplateCacheHits,
+            quantityCacheHits = left.quantityCacheHits + right.quantityCacheHits,
+            quantityCacheMisses = left.quantityCacheMisses + right.quantityCacheMisses,
+            materialSliceTemplateCacheMisses =
+                left.materialSliceTemplateCacheMisses + right.materialSliceTemplateCacheMisses,
+            crossWorkerDuplicateCandidates =
+                left.crossWorkerDuplicateCandidates + right.crossWorkerDuplicateCandidates,
+            crossContributionDominated = left.crossContributionDominated + right.crossContributionDominated,
+            elapsedMilliseconds = left.elapsedMilliseconds + right.elapsedMilliseconds,
+            stopReason = right.stopReason
+        )
+    }
 
     private fun deduplicatePlans(
         existing: List<CuttingPlan<V>>,
@@ -387,9 +435,6 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 lengthConfig = solveConfig.lengthConfig
             )
         } catch (error: Exception) {
-            if (!solveConfig.allowPartialSolution) {
-                throw error
-            }
             return FinalMilpSolveResult(
                 status = Csp1dFinalMilpStatus.Failed,
                 milpResult = null,
@@ -406,9 +451,6 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
 
         val failureMessage = "Final MILP returned no solution"
-        if (!solveConfig.allowPartialSolution) {
-            throw IllegalStateException(failureMessage)
-        }
         return FinalMilpSolveResult(
             status = Csp1dFinalMilpStatus.Failed,
             milpResult = null,

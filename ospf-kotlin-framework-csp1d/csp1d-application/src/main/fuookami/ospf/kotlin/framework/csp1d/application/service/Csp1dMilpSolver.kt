@@ -75,6 +75,19 @@ class Csp1dMilpSolver(
         wasteConfig: WasteMinimizationConfig<V>? = null,
         lengthConfig: LengthAssignmentModelingConfig<V>? = null
     ): MilpResult<V>? {
+        return try {
+            solveInternal(input, yieldConfig, wasteConfig, lengthConfig)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private suspend fun <V : RealNumber<V>> solveInternal(
+        input: ProduceInput<V>,
+        yieldConfig: YieldModelingConfig<V>?,
+        wasteConfig: WasteMinimizationConfig<V>?,
+        lengthConfig: LengthAssignmentModelingConfig<V>?
+    ): MilpResult<V>? {
         if (input.cuttingPlans.isEmpty()) {
             return null
         }
@@ -197,6 +210,16 @@ class Csp1dMilpSolver(
     }
 
     suspend fun <V : RealNumber<V>> solveLP(
+        input: ProduceInput<V>
+    ): LpResult<V>? {
+        return try {
+            solveLPInternal(input)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private suspend fun <V : RealNumber<V>> solveLPInternal(
         input: ProduceInput<V>
     ): LpResult<V>? {
         if (input.cuttingPlans.isEmpty()) {

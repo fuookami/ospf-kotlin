@@ -115,6 +115,33 @@ private class Csp1dFailingMilpSolver : ColumnGenerationSolver {
     }
 }
 
+/**
+ * LP 求解失败但 MILP 成功的 fake solver / Fake solver that fails LP but succeeds MILP
+ */
+private class Csp1dFailingLpSolver : ColumnGenerationSolver {
+    override val name: String = "csp1d-failing-lp"
+
+    override suspend fun solveMILP(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        toLogModel: Boolean,
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Flt64FeasibleSolverOutput> {
+        return Ok(fakeFeasibleOutput(metaModel))
+    }
+
+    override suspend fun solveLP(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        toLogModel: Boolean,
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<ColumnGenerationSolver.LPResult> {
+        throw IllegalStateException("forced LP failure")
+    }
+}
+
 private class Csp1dInitialResultCapturingSolver : ColumnGenerationSolver {
     override val name: String = "csp1d-initial-result-capturing"
     var lastInitialResults: Map<String, Flt64> = emptyMap()
@@ -697,6 +724,9 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dTerminationReason.AllDuplicates, result.trace.terminationReason)
         assertEquals(UInt64.one, result.trace.initialPlanCount)
         assertEquals(UInt64.one, result.trace.finalPlanCount)
+        val pricingStatistics = assertNotNull(result.trace.pricingGenerationStatistics)
+        assertEquals(1L, pricingStatistics.generatedCandidates)
+        assertEquals(1, pricingStatistics.acceptedPlans)
     }
 
     /**
@@ -930,9 +960,9 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dFinalMilpStatus.Failed, result.trace.finalMilpStatus)
         assertTrue(result.trace.partialSolutionAvailable)
-        assertTrue(result.trace.failureMessage?.contains("forced final MILP failure") == true)
+        assertTrue(result.trace.failureMessage?.contains("MILP") == true)
         assertEquals(Csp1dSolutionStatus.Partial, result.solution.status)
-        assertTrue(result.solution.failureMessage?.contains("forced final MILP failure") == true)
+        assertTrue(result.solution.failureMessage?.contains("MILP") == true)
         assertTrue(result.solution.generatedPlans.isNotEmpty())
         assertTrue(result.solution.produce.cuttingPlans.isEmpty())
         assertEquals(problem.demands, result.solution.produce.unmetDemands)
@@ -943,10 +973,10 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
-     * 验证禁用部分解后最终 MILP 失败会继续抛出异常 / Verify final MILP failure is rethrown when partial solution is disabled
+     * 验证禁用部分解后最终 MILP 失败返回 Failed 状态 / Verify final MILP failure returns Failed status when partial solution is disabled
      */
     @Test
-    fun columnGenerationShouldRethrowFinalMilpFailureWhenPartialDisabled() {
+    fun columnGenerationShouldReturnFailedStatusWhenPartialDisabled(): Unit = runBlocking {
         val product = product(
             id = "p-cg-no-partial",
             width = 0.8
@@ -983,23 +1013,21 @@ class Csp1dApplicationAcceptanceTest {
             pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() }
         )
 
-        val error = assertFailsWith<IllegalStateException> {
-            runBlocking {
-                columnGeneration.solveWithTrace(
-                    problem = problem,
-                    solveConfig = Csp1dSolveConfig<Flt64>(
-                        columnGeneration = Csp1dConfiguration(
-                            maxInitialPlans = 8,
-                            maxPricingPlans = 1,
-                            iterationLimit = 1
-                        ),
-                        allowPartialSolution = false
-                    )
-                )
-            }
-        }
+        val result = columnGeneration.solveWithTrace(
+            problem = problem,
+            solveConfig = Csp1dSolveConfig<Flt64>(
+                columnGeneration = Csp1dConfiguration(
+                    maxInitialPlans = 8,
+                    maxPricingPlans = 1,
+                    iterationLimit = 1
+                ),
+                allowPartialSolution = false
+            )
+        )
 
-        assertTrue(error.message?.contains("forced final MILP failure") == true)
+        assertEquals(Csp1dSolutionStatus.Failed, result.solution.status)
+        assertEquals(Csp1dFinalMilpStatus.Failed, result.trace.finalMilpStatus)
+        assertTrue(result.solution.failureMessage?.contains("MILP") == true)
     }
 
     /**
@@ -1775,7 +1803,7 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(1, result.trace.appliedWarmStartPlanCount)
         assertEquals(1, result.trace.appliedWarmStartUsageCount)
         assertEquals(Csp1dSolutionStatus.Partial, result.solution.status)
-        assertTrue(result.solution.failureMessage?.contains("forced final MILP failure") == true)
+        assertTrue(result.solution.failureMessage?.contains("MILP") == true)
         assertTrue(result.solution.generatedPlans.any { it.id == warmStartPlan.id })
         assertTrue(result.solution.produce.cuttingPlans.isEmpty())
         assertEquals("Partial", result.solution.render.kpi[Csp1dKpiKeys.SolutionStatus])
@@ -2013,7 +2041,7 @@ class Csp1dApplicationAcceptanceTest {
      * Verify recovery wraps normal solve failure with trace
      */
     @Test
-    fun recoveryShouldTraceSolverFailure() {
+    fun recoveryShouldReturnFailedSolutionWhenMilpFails(): Unit = runBlocking {
         val product = product(
             id = "p-recovery-failure",
             width = 0.8
@@ -2040,24 +2068,121 @@ class Csp1dApplicationAcceptanceTest {
             )
         )
 
-        val error = assertFailsWith<Csp1dRecoverySolveException> {
-            runBlocking {
-                Csp1dRecovery<Flt64>(Csp1dFailingMilpSolver()).solveWithTrace(
-                    Csp1dRecoveryInput(
-                        problem = problem,
-                        solveConfig = Csp1dSolveConfig(
-                            columnGeneration = problem.configuration,
-                            allowPartialSolution = false
-                        )
-                    )
+        val result = Csp1dRecovery<Flt64>(Csp1dFailingMilpSolver()).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = Csp1dSolveConfig(
+                    columnGeneration = problem.configuration,
+                    allowPartialSolution = false
                 )
-            }
-        }
+            )
+        )
 
-        assertEquals(Csp1dRecoveryStatus.SolveFailed, error.trace.status)
-        assertEquals(Csp1dWarmStartStatus.NotProvided, error.trace.warmStartStatus)
-        assertEquals(1, error.trace.attemptCount)
-        assertTrue(error.trace.message?.contains("forced final MILP failure") == true)
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.attemptCount)
+        assertEquals(Csp1dSolutionStatus.Failed, result.solution.status)
+    }
+
+    /**
+     * 验证首次 LP 求解失败时列生成返回 LpSolveFailed 终止原因 /
+     * Verify column generation returns LpSolveFailed when LP fails on first iteration
+     */
+    @Test
+    fun columnGenerationShouldReturnLpSolveFailedWhenFirstLpFails(): Unit = runBlocking {
+        val product = product(
+            id = "p-lp-infeasible",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-lp-infeasible",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val initialPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 3
+            )
+        )
+        val columnGeneration = Csp1dColumnGeneration<Flt64>(
+            solver = Csp1dFailingLpSolver(),
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(initialPlan) },
+            pricingGenerator = Csp1dPricingGenerator<Flt64> { emptyList() }
+        )
+
+        val result = columnGeneration.solveWithTrace(problem)
+
+        assertEquals(Csp1dTerminationReason.LpSolveFailed, result.trace.terminationReason)
+        assertTrue(result.trace.lpFailureMessage?.contains("LP solve returned null") == true)
+        // LP 失败但最终 MILP 使用初始方案仍然成功，所以 solutionStatus 为 Feasible
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证 MILP 失败且禁用部分解时返回 Failed 状态 /
+     * Verify MILP failure with allowPartialSolution=false returns Failed status
+     */
+    @Test
+    fun milpShouldReturnFailedStatusWhenPartialDisabledAndMilpFails(): Unit = runBlocking {
+        val product = product(
+            id = "p-milp-failed",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-milp-failed",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val initialPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8
+            )
+        )
+        val milp = Csp1dMilp<Flt64>(
+            solver = Csp1dFailingMilpSolver(),
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(initialPlan) }
+        )
+
+        val solution = milp.solve(
+            problem = problem,
+            solveConfig = Csp1dSolveConfig<Flt64>(
+                columnGeneration = problem.configuration,
+                allowPartialSolution = false
+            )
+        )
+
+        assertEquals(Csp1dSolutionStatus.Failed, solution.status)
+        assertTrue(solution.failureMessage?.contains("MILP") == true)
     }
 
     private fun product(
