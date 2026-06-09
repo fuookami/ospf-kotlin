@@ -172,6 +172,75 @@ class GeneratorMediumScaleBaselineTest {
     }
 
     @Test
+    fun generatorsShouldReportExpandedScaleBenchmarkStatistics() {
+        val products = listOf(
+            product(id = "p-expanded-018", width = 0.18),
+            product(id = "p-expanded-023", width = 0.23),
+            product(id = "p-expanded-031", width = 0.31),
+            product(id = "p-expanded-037", width = 0.37),
+            product(id = "p-expanded-044", width = 0.44),
+            product(id = "p-expanded-052", width = 0.52),
+            product(id = "p-expanded-067", width = 0.67)
+        )
+        val materials = listOf(
+            material(id = "m-expanded-095", upperBound = 0.95),
+            material(id = "m-expanded-115", upperBound = 1.15),
+            material(id = "m-expanded-135", upperBound = 1.35),
+            material(id = "m-expanded-160", upperBound = 1.60),
+            material(id = "m-expanded-185", upperBound = 1.85)
+        )
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = materials,
+            machines = emptyList(),
+            demands = products.mapIndexed { index, product ->
+                ProductDemand.roll(
+                    product = product,
+                    quantity = Quantity(Flt64(12.0 + index), RollCountUnit)
+                )
+            }
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            maxKnifeCount = UInt64(5UL),
+            minKnifeCount = UInt64(2UL),
+            parallelism = 3,
+            enableDominancePruning = true
+        )
+        val generatorCases = generatorCases(
+            constraints = constraints,
+            maxPlans = 8192,
+            nSumDepth = UInt64(5UL)
+        )
+
+        val snapshots = LinkedHashMap<String, CuttingPlanGenerationBenchmarkSnapshot>()
+        for (case in generatorCases) {
+            val report = case.generator.generateWithReport(input)
+            val baseline = report.statistics
+            snapshots[case.name] = CuttingPlanGenerationBenchmarkSnapshot.from(
+                generatorName = case.name,
+                statistics = baseline
+            )
+
+            assertMediumScaleBaseline(
+                name = case.name,
+                statistics = baseline
+            )
+            assertTrue(report.plans.isNotEmpty(), "${case.name} should generate expanded-scale plans")
+            assertTrue(report.plans.size <= 8192, "${case.name} should respect expanded maxPlans")
+        }
+        assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
+        assertEquals(
+            listOf(
+                "generator=DFS;visitedNodes=2181;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=117;generatedCandidates=82;acceptedPlans=82;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=2031;generatedCandidates=1162;acceptedPlans=1162;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=37;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
+            ),
+            snapshots.values.map { it.toStableLine() }
+        )
+    }
+
+    @Test
     fun generatorsShouldReportLengthBoundPruning() {
         val shortProduct = product(
             id = "p-short",

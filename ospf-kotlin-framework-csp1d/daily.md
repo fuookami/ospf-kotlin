@@ -123,6 +123,8 @@
 59. 已完成生成器物料等价宽度入口复用第一阶段：DFS、NSum、FullSum 可按等价幅宽轮廓复用过滤后的产品-宽度入口索引，新增 `materialWidthIndexCacheHits` 统计、benchmark 快照字段、KPI/render key 和等价物料验收覆盖。
 60. 已完成生成器刀数下界可达性剪枝第一阶段：DFS、NSum、FullSum 可提前剪掉无法达到 `minKnifeCount` 的组合分支，新增 `knifeBoundPrunedNodes` 统计、benchmark 快照字段、KPI/render key 和最小刀数不可达验收覆盖。
 61. 已完成当前验证基线刷新：CSP1D 聚焦测试集合、Gurobi profile `test-compile`、CSP1D 门禁搜索和 `git diff --check` 均已通过。
+62. 已完成生成器扩展规模 benchmark 快照第一阶段：新增更大物料池、更多宽度分布和更高候选上限的四算法稳定快照，覆盖宽度上界、刀数下界、长度上界、物料等价入口缓存和基础可行性统计口径。
+63. 已完成当前验证基线刷新：CSP1D 聚焦测试集合、Gurobi profile `test-compile`、CSP1D 门禁搜索和 `git diff --check` 均已通过。
 
 ## 3. 需要修正的事项
 
@@ -171,14 +173,14 @@
 
 #### 事项
 
-1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、宽度索引剪枝、长度上界剪枝、刀数下界可达性剪枝、物料等价宽度入口复用、按物料并行、同贡献 dominance、四算法中等规模基线、多场景稳定快照已完成第一阶段。
+1. DFS/NSum/NSame/FullSum 已可用，基础贡献构造、可行性入口、统一候选上限、统计报告、数量缓存、宽度索引剪枝、长度上界剪枝、刀数下界可达性剪枝、物料等价宽度入口复用、按物料并行、同贡献 dominance、四算法中等规模基线、混合单位和扩展规模稳定快照已完成第一阶段。
 2. 单位长度、更细粒度动态长度边界、更大规模 benchmark、更深层跨物料方案模板复用和更强 dominance 剪枝仍待深化。
 3. 缺陷、分段、onSide/inMiddle、`unitBatch` 等 POIT 语义暂不属于当前实体边界；只有当 material model 增加通用实体后再纳入。
 
 #### 计划
 
 1. 继续扩展 width combination 的上界估计、组合 dominance、更深层跨物料方案模板复用和更细动态长度边界剪枝。
-2. 将稳定 benchmark 快照继续扩展到更大物料池、更多宽度分布和更高候选上限场景，耗时类指标只作为趋势观察。
+2. 将稳定 benchmark 快照继续扩展到更多约束组合、设备可行性场景和更高候选上限场景，耗时类指标只作为趋势观察。
 3. 将生成报告在 application KPI 与 render 边界持续固化，避免调用方只能读 trace。
 4. 将暂不建模的 POIT 语义集中放入“延后能力”清单，不在当前代码中留半成品字段。
 
@@ -245,14 +247,14 @@
 
 1. 在已完成 public key、KPI 明细、trace 最终 MILP 状态、部分成功结果、recovery 异常分类、plan-pool adapter、native initial solution 落点、direct MILP Gurobi smoke、列生成最终 MILP Gurobi smoke、recovery previousSolution Gurobi smoke、问题变化兼容子集过滤、设备产能 + yield recovery Gurobi smoke、列生成 recovery fake 验收和列生成 recovery Gurobi smoke 的基础上，继续深化真实 solver failure/partial 边界验证。
 2. 在已完成数量缓存、宽度索引剪枝、长度上界剪枝、刀数下界可达性剪枝、物料等价宽度入口复用、并行开关、同贡献 dominance、四算法中等规模 baseline 和多场景稳定快照的基础上，推进组合 dominance、更深层跨物料方案模板复用和更细动态长度剪枝。
-3. 将生成统计继续沉淀到 application KPI/render 边界，并把 benchmark 快照扩展到更大规模可比较基线。
+3. 将生成统计继续沉淀到 application KPI/render 边界，并把 benchmark 快照继续扩展到更多约束组合和设备可行性基线。
 4. 扩展 application acceptance 与 demo3 覆盖，确保 public builder、solveConfig、recovery、Top-K、部分解和 render KPI 的使用面稳定。
 5. 固化当前受上游 framework 未跟踪改动影响时的 CSP1D 局部验证命令，并在环境允许时执行 Gurobi 端到端目标测试。
 
 #### 计划
 
 1. 第一段：深化生成算法剪枝，覆盖组合 dominance、更深层跨物料方案模板复用、动态长度边界剪枝和结果 canonical 稳定性。
-2. 第二段：将四算法 benchmark 快照扩展为更大规模基线，明确耗时类统计与数量类统计的验收口径。
+2. 第二段：将四算法 benchmark 快照继续扩展到更多约束组合和设备可行性基线，明确耗时类统计与数量类统计的验收口径。
 3. 第三段：继续验证真实 solver 在不可行、求解失败或无解返回时的 recovery trace 与 partial solution 语义；若 solver 层能力不足，保留接口和失败 trace，不把业务 DTO 带入 framework。
 4. 第四段：继续把新增生成统计、recovery 状态、warm start 处理结果和 partial solution 语义沉淀到 KPI/render 或 trace 稳定边界。
 5. 第五段：扩展 demo3 和 README 的 public 使用示例，确保示例仍只依赖 framework API。
