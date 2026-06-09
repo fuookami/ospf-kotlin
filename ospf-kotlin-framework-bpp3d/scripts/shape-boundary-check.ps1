@@ -58,7 +58,7 @@ $fixHints = @{
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must require radiusWeightFunctionKey production use to carry a concrete selected radius."
     ContinuousCylinderRadiusSelectionResultGuardMissing = "Continuous-radius production must expose an explicit selected-radius result object, not just a metadata string."
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must require concrete radius metadata before generating candidates."
-    HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
+    HorizontalCylinderGeneratedStackSupportGuardMissing = "CirclePackingLayerGenerator must keep horizontal cylinder generated stacking/hanging limited to verified cuboid support candidates with single/multi/heterogeneous axis coverage, 3D geometry, and stacking policy checks."
     HorizontalCylinderStackingSupportGuardMissing = "ItemPlacement3.enabledStackingOn must keep horizontal cylinder automatic support limited to verified floor or cuboid support coverage."
     HorizontalCylinderSupportCoverageSharedGuardMissing = "Item stacking and final packing guards must use the shared horizontal-cylinder cuboid support coverage helper."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
@@ -455,8 +455,8 @@ Add-RequiredPatternViolation `
 Add-RequiredPatternViolation `
     -Check "HorizontalCylinderGeneratedStackSupportGuardMissing" `
     -FilePath $layerGenerationContextPath `
-    -Pattern "horizontalCylinderSupportedStackCandidates\s*\([\s\S]*?canFullySupportHorizontalCylinder\s*\([\s\S]*?horizontalCylinderSingleHangingSupportPlacements\s*\([\s\S]*?circle-packing-horizontal-hanging-support[\s\S]*?horizontalCylinderRepeatedSupportCount\s*\([\s\S]*?horizontalCylinderHeterogeneousSupportPlacements\s*\([\s\S]*?circlePackingStackedLayerIsGeometryValid\s*\([\s\S]*?enabledStackingOn\s*\([\s\S]*?circle-packing-horizontal-supported-stack-heterogeneous" `
-    -MissingText "CirclePackingLayerGenerator must keep generated horizontal cylinder stacking/hanging behind single/hanging/multi/heterogeneous support coverage, 3D geometry, and stacking-policy checks."
+    -Pattern "horizontalCylinderSupportedStackCandidates\s*\([\s\S]*?canFullySupportHorizontalCylinder\s*\([\s\S]*?horizontalCylinderSingleHangingSupportPlacements\s*\([\s\S]*?circle-packing-horizontal-hanging-support[\s\S]*?horizontalCylinderRepeatedHangingSupportCount\s*\([\s\S]*?circle-packing-horizontal-hanging-support-multi[\s\S]*?horizontalCylinderRepeatedSupportCount\s*\([\s\S]*?horizontalCylinderHeterogeneousSupportPlacements\s*\([\s\S]*?circlePackingStackedLayerIsGeometryValid\s*\([\s\S]*?enabledStackingOn\s*\([\s\S]*?circle-packing-horizontal-supported-stack-heterogeneous" `
+    -MissingText "CirclePackingLayerGenerator must keep generated horizontal cylinder stacking/hanging behind single/multi hanging/multi stack/heterogeneous support coverage, 3D geometry, and stacking-policy checks."
 
 $itemPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt"
 Add-RequiredPatternViolation `

@@ -9,7 +9,7 @@
 
 1. 长方体装箱基线能力。
 2. 竖直圆柱 MVP（`Axis3.Y`）及 shape-aware 几何判定。
-3. `Axis3.X` / `Axis3.Z` 横向圆柱固定半径/离散半径可通过 axis-aware circle-packing grid 和保守的单支撑/窄支撑线 hanging/同类重复多支撑/异构多支撑 supported-stack 生成候选，并进入 column generation。
+3. `Axis3.X` / `Axis3.Z` 横向圆柱固定半径/离散半径可通过 axis-aware circle-packing grid 和保守的单支撑/单条或重复窄支撑线 hanging/同类重复多支撑/异构多支撑 supported-stack 生成候选，并进入 column generation。
 4. 在最终坐标已确定的已知坐标装箱/渲染路径中，通过真实几何 guard 支持 `Axis3.X` / `Axis3.Z` 横向圆柱。
 5. 横向圆柱在贴地或下方长方体支撑区间覆盖完整轴向及底部支撑线时，可通过保守的 3D stacking/hanging 支撑检查。
 
@@ -17,7 +17,7 @@
 
 当前 MVP 的语义约束：
 
-1. 固定半径和离散半径的 `Axis3.X` / `Axis3.Z` 横向圆柱可进入 axis-aware circle-packing 网格生成候选路径，以及保守的长方体 supported-stack/hanging 路径，包括单个全长支撑、同类重复多支撑、异构支撑区间和窄长方体支撑线 hanging 覆盖完整轴向。其它候选生成、block loading、无坐标 hanging 和 pile 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
+1. 固定半径和离散半径的 `Axis3.X` / `Axis3.Z` 横向圆柱可进入 axis-aware circle-packing 网格生成候选路径，以及保守的长方体 supported-stack/hanging 路径，包括单个全长支撑、同类重复多支撑、异构支撑区间，以及单条或同类重复窄长方体支撑线 hanging 覆盖完整轴向。其它候选生成、block loading、无坐标 hanging 和 pile 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
 2. 最终装箱转换/渲染路径和泛型已知坐标分析入口可以接受通过生成候选或已知坐标进入的 `Axis3.X` / `Axis3.Z` 横向圆柱，并由 `PackingGeometryGuard` 执行真实轴对齐圆柱几何校验。
 3. 横向圆柱必须贴在箱底，或由下方长方体支撑区间覆盖完整圆柱轴向及底部支撑线；无支撑或局部支撑的横向圆柱会在最终校验和 3D stacking 支撑检查中被拒绝。
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
@@ -39,8 +39,8 @@
 | 轴向 | 含义 | 当前状态 |
 | --- | --- | --- |
 | `Axis3.Y` | 竖直圆柱；装载平面上的 footprint 为圆。 | 已在带门禁的竖直圆柱路径支持，并使用真实 footprint 校验。 |
-| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 支持固定/离散半径的 axis-aware circle-packing 网格候选、保守的单支撑、窄支撑线 hanging、同类重复多支撑或异构多支撑轴向覆盖 generated supported-stack/hanging 候选、已知坐标最终装箱/渲染路径，以及贴地/长方体支撑覆盖下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
-| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 支持固定/离散半径的 axis-aware circle-packing 网格候选、保守的单支撑、窄支撑线 hanging、同类重复多支撑或异构多支撑轴向覆盖 generated supported-stack/hanging 候选、已知坐标最终装箱/渲染路径，以及贴地/长方体支撑覆盖下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
+| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 支持固定/离散半径的 axis-aware circle-packing 网格候选、保守的单支撑、同类重复窄支撑线 hanging、同类重复多支撑或异构多支撑轴向覆盖 generated supported-stack/hanging 候选、已知坐标最终装箱/渲染路径，以及贴地/长方体支撑覆盖下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
+| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 支持固定/离散半径的 axis-aware circle-packing 网格候选、保守的单支撑、同类重复窄支撑线 hanging、同类重复多支撑或异构多支撑轴向覆盖 generated supported-stack/hanging 候选、已知坐标最终装箱/渲染路径，以及贴地/长方体支撑覆盖下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
 
 ## Shape 路径支持矩阵
 
@@ -53,7 +53,7 @@ strict generic 边界脚本会拒绝已删除的固定数值别名、material pa
 | 显式 final bins / 已知坐标装箱 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或长方体支撑区间覆盖完整轴向 |
 | 泛型已知坐标分析 | 支持，可选 depth boundary 最终校验 | 支持，并使用真实几何 guard 与可选 depth boundary 最终校验 | 支持，并使用真实几何 guard，要求贴地或长方体支撑区间覆盖完整轴向，可选 depth boundary 最终校验 |
 | 默认生成候选的 layer placement adapter | 支持 | 支持 | 仅支持已验证的 axis-aware 生成候选；手工伪造候选会被拒绝 |
-| layer generation fallback / circle packing / pile | 支持 | 支持竖直圆柱候选；pile 支撑仅限直立 `Axis3.Y` 圆柱 | circle packing 支持固定/离散半径的 axis-aware 横向网格候选和保守的单支撑/窄支撑线 hanging/同类重复多支撑/异构多支撑轴向覆盖 supported-stack/hanging 候选；fallback 和 pile 仍不支持 |
+| layer generation fallback / circle packing / pile | 支持 | 支持竖直圆柱候选；pile 支撑仅限直立 `Axis3.Y` 圆柱 | circle packing 支持固定/离散半径的 axis-aware 横向网格候选和保守的单支撑/同类重复窄支撑线 hanging/同类重复多支撑/异构多支撑轴向覆盖 supported-stack/hanging 候选；fallback 和 pile 仍不支持 |
 | BLA placement | 支持当前已生成 layer | 仅通过已验证的竖直圆柱生成层支持 | 仅通过已验证的 axis-aware circle-packing 生成层支持 |
 | simple block generation | 支持 | 仅支持直立 `Axis3.Y` 圆柱 | 不支持 |
 | DFS / MLHS space splitting | 支持 cuboid-only 路径 | 不支持 | 不支持 |
@@ -81,7 +81,7 @@ strict generic 边界脚本会拒绝已删除的固定数值别名、material pa
 
 圆柱行至少需要提供 `radius_meter`、`radius_min` 或 `diameter_min` 之一。`axis = X` / `Z` 是固定/离散半径 axis-aware circle-packing 候选生成的生产输入，也可用于已知坐标最终装箱/渲染路径；两者都必须通过真实 3D 几何校验。material-width-amount CSV 中，X/Z 行的 `width` 会解释为圆柱轴向长度。除 3D 贴地/长方体支撑覆盖检查外，其它支撑路径仍保持门禁。
 
-grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack seed layer 可以验证单支撑、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
+grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack / hanging seed layer 可以验证单支撑、同类重复窄支撑线、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
 
 动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius`，且在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量以及 key + 离散 step 组合会被拒绝，不能静默按固定半径求解。
 
@@ -138,6 +138,7 @@ schema 门禁规则：
 3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
 4. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-multisupport-sample.csv`
 5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
+6. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-hanging-multisupport-sample.csv`
 
 ### 物料宽度数量 CSV
 

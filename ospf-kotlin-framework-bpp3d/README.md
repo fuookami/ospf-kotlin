@@ -9,7 +9,7 @@ This repository currently focuses on:
 
 1. Cuboid packing baseline.
 2. Vertical cylinder MVP (`Axis3.Y`) with shape-aware geometry.
-3. Guarded fixed/discrete-radius horizontal cylinder candidates (`Axis3.X` / `Axis3.Z`) through axis-aware circle-packing grids, conservative single/repeated/heterogeneous cuboid supported-stack candidates, verified narrow-support hanging candidates, and column generation.
+3. Guarded fixed/discrete-radius horizontal cylinder candidates (`Axis3.X` / `Axis3.Z`) through axis-aware circle-packing grids, conservative single/repeated/heterogeneous cuboid supported-stack candidates, verified single/repeated narrow-support hanging candidates, and column generation.
 4. Guarded horizontal cylinder known-coordinate packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
 5. Conservative 3D stacking/hanging support for horizontal cylinders only when they are on the floor or on cuboid support intervals that cover the full cylinder axis and the bottom support line.
 
@@ -17,7 +17,7 @@ This repository currently focuses on:
 
 For the current MVP:
 
-1. Fixed-radius and discrete-radius `Axis3.X` / `Axis3.Z` horizontal cylinders can enter the axis-aware circle-packing generated grid path and the conservative cuboid supported-stack/hanging path, including single full-length support, repeated same-shape multi-support intervals, heterogeneous support intervals, and narrow cuboid support-line hanging that cover the cylinder axis. Other candidate generation, block loading, coordinate-less hanging, and pile support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
+1. Fixed-radius and discrete-radius `Axis3.X` / `Axis3.Z` horizontal cylinders can enter the axis-aware circle-packing generated grid path and the conservative cuboid supported-stack/hanging path, including single full-length support, repeated same-shape multi-support intervals, heterogeneous support intervals, and single or repeated narrow cuboid support-line hanging that cover the cylinder axis. Other candidate generation, block loading, coordinate-less hanging, and pile support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
 2. Final packing conversion/rendering and generic known-coordinate analysis can accept `Axis3.X` / `Axis3.Z` horizontal cylinders when generated candidates or known coordinates pass `PackingGeometryGuard` real axis-aligned cylinder geometry validation.
 3. Horizontal cylinders must be on the bin floor or have cuboid support intervals underneath that cover the full cylinder axis and the bottom support line; unsupported or partially supported horizontal cylinders are rejected in final validation and in the 3D stacking support checker.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
@@ -39,8 +39,8 @@ See detailed progress in [refactor.md](./refactor.md).
 | Axis | Meaning | Current status |
 | --- | --- | --- |
 | `Axis3.Y` | Vertical cylinder; circular footprint on the loading plane. | Supported in guarded vertical-cylinder paths with real footprint checks. |
-| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported for fixed/discrete-radius axis-aware circle-packing grid candidates, conservative generated cuboid supported-stack/hanging candidates with single, narrow-line hanging, repeated, or heterogeneous support axis coverage, known-coordinate final packing/rendering paths, and 3D stacking checks with floor/cuboid support coverage; coordinate-less hanging and cuboid-only generated paths remain unsupported. |
-| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported for fixed/discrete-radius axis-aware circle-packing grid candidates, conservative generated cuboid supported-stack/hanging candidates with single, narrow-line hanging, repeated, or heterogeneous support axis coverage, known-coordinate final packing/rendering paths, and 3D stacking checks with floor/cuboid support coverage; coordinate-less hanging and cuboid-only generated paths remain unsupported. |
+| `Axis3.X` | Horizontal cylinder along X; circular cross-section on the YZ plane. | Supported for fixed/discrete-radius axis-aware circle-packing grid candidates, conservative generated cuboid supported-stack/hanging candidates with single, repeated narrow-line hanging, repeated same-shape support, or heterogeneous support axis coverage, known-coordinate final packing/rendering paths, and 3D stacking checks with floor/cuboid support coverage; coordinate-less hanging and cuboid-only generated paths remain unsupported. |
+| `Axis3.Z` | Horizontal cylinder along Z; circular cross-section on the XY plane. | Supported for fixed/discrete-radius axis-aware circle-packing grid candidates, conservative generated cuboid supported-stack/hanging candidates with single, repeated narrow-line hanging, repeated same-shape support, or heterogeneous support axis coverage, known-coordinate final packing/rendering paths, and 3D stacking checks with floor/cuboid support coverage; coordinate-less hanging and cuboid-only generated paths remain unsupported. |
 
 ## Shape Path Support Matrix
 
@@ -53,7 +53,7 @@ Strict generic boundary checks reject stale fixed-number aliases, material-packi
 | Explicit final bins / known-coordinate packing | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or cuboid support axis coverage required |
 | Generic known-coordinate analysis | Supported; optional depth boundary final validation | Supported with real geometry guard and optional depth boundary final validation | Supported with real geometry guard, floor or cuboid support axis coverage required, and optional depth boundary final validation |
 | Default layer placement adapter for generated candidates | Supported | Supported | Supported only for verified axis-aware generated candidates; manual impostors are rejected |
-| Layer generation fallback / circle packing / pile | Supported | Supported as vertical-cylinder candidates; pile support is limited to upright `Axis3.Y` cylinders | Circle packing supports fixed/discrete-radius axis-aware horizontal grid candidates and conservative cuboid supported-stack/hanging candidates with single/narrow-line hanging/repeated/heterogeneous support axis coverage; fallback and pile remain unsupported |
+| Layer generation fallback / circle packing / pile | Supported | Supported as vertical-cylinder candidates; pile support is limited to upright `Axis3.Y` cylinders | Circle packing supports fixed/discrete-radius axis-aware horizontal grid candidates and conservative cuboid supported-stack/hanging candidates with single/repeated narrow-line hanging/repeated same-shape/heterogeneous support axis coverage; fallback and pile remain unsupported |
 | BLA placement | Supported for current generated layers | Supported only through verified vertical-cylinder generated layers | Supported only through verified axis-aware circle-packing generated layers |
 | Simple block generation | Supported | Supported only for upright `Axis3.Y` cylinders | Unsupported |
 | DFS / MLHS space splitting | Supported cuboid-only path | Unsupported | Unsupported |
@@ -81,7 +81,7 @@ Optional shape metadata columns:
 
 For cylinder rows, at least one of `radius_meter`, `radius_min`, or `diameter_min` must be available. `axis = X` / `Z` is a production input for fixed/discrete-radius axis-aware circle-packing candidate generation and for known-coordinate final packing/rendering after real 3D geometry validation. In the material-width-amount CSV, `width` is interpreted as the cylinder axis length for X/Z rows. Support paths remain guarded except for the 3D floor/cuboid support coverage checker.
 
-Grouped-layer Gurobi test datasets may use `width_meter`, `height_meter`, and `depth_meter` to express explicit item dimensions, so horizontal cylinder supported-stack seed layers can validate single, repeated, or heterogeneous cuboid support coverage without changing the material-width-amount `width` axis-length contract.
+Grouped-layer Gurobi test datasets may use `width_meter`, `height_meter`, and `depth_meter` to express explicit item dimensions, so horizontal cylinder supported-stack and hanging seed layers can validate single, repeated narrow-line, repeated same-shape, or heterogeneous cuboid support coverage without changing the material-width-amount `width` axis-length contract.
 
 Dynamic radius/diameter support is discrete: interval columns expand to fixed candidate radii, and circle-packing outputs a concrete radius, concrete placement, and concrete `actualVolume`. `radiusWeightFunctionKey` is a selected-radius production marker only when a concrete `radius_meter` / `radius` is present, and the selected radius is represented by a typed result contract before production shape emission; interval-only continuous radius variables and key + discrete-step combinations are rejected, so they cannot silently run as fixed-radius solves.
 
@@ -138,6 +138,7 @@ Sample files:
 3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
 4. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-multisupport-sample.csv`
 5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
+6. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-hanging-multisupport-sample.csv`
 
 ### Material-Width-Amount CSV
 

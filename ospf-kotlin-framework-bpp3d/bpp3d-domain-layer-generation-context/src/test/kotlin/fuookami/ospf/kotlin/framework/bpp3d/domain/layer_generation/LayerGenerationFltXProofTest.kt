@@ -1500,6 +1500,86 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
+    fun circlePackingLayerGeneratorShouldGenerateHorizontalCylinderMultiHangingSupport() = runBlocking {
+        val support = cuboidItem(
+            id = "item-circle-horizontal-multi-hanging-support",
+            widthValue = 0.4,
+            heightValue = 0.2,
+            depthValue = 0.2
+        )
+        val cylinder = cylinderItem(
+            id = "item-circle-horizontal-multi-hanging-cylinder",
+            axis = Axis3.X,
+            radiusValue = 0.5
+        )
+        val bin = BinType(
+            width = infraScalar(1.2) * Meter,
+            height = infraScalar(1.5) * Meter,
+            depth = infraScalar(1.0) * Meter,
+            capacity = infraScalar(10.0) * Kilogram,
+            longitudinalBalance = null,
+            lateralBalance = null,
+            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-HANGING"
+        )
+
+        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+            Bpp3dLayerGenerationRequest(
+                iteration = 0,
+                bin = bin,
+                items = listOf(support, cylinder),
+                maxCandidates = 16
+            )
+        )
+
+        val hanging = generated.first { result ->
+            result.source == "circle-packing-horizontal-hanging-support-multi-axis=x"
+        }
+        assertEquals(4, hanging.layer.units.size)
+        assertStackedLayerGeometry(hanging.layer)
+
+        val supportPlacements = hanging.layer.units.filter { placement ->
+            placement.resolvedPackingShape() !is CylinderPackingShape3
+        }.map { placement ->
+            placement.toItemPlacementOrNull() ?: throw IllegalStateException("missing support item placement")
+        }
+        val cylinderPlacement = hanging.layer.units.first { placement ->
+            val shape = placement.resolvedPackingShape()
+            shape is CylinderPackingShape3 && shape.axis == Axis3.X
+        }.toItemPlacementOrNull() ?: throw IllegalStateException("missing cylinder item placement")
+        assertEquals(3, supportPlacements.size)
+        assertEquals(supportPlacements.first().height.toDouble(), cylinderPlacement.absoluteY.toDouble(), 1e-9)
+        assertTrue(supportPlacements.all { placement -> placement.absoluteZ.toDouble() > 0.0 })
+        assertTrue(
+            cylinderPlacement.enabledStackingOn(
+                bottomItems = supportPlacements,
+                space = hanging.layer.shape
+            )
+        )
+
+        val packedBin = PackedBin(
+            name = "bin-horizontal-multi-hanging-support",
+            type = bin,
+            items = hanging.layer.items.map { placement ->
+                PackedItem(
+                    placement = placement,
+                    loadingOrder = UInt64.zero
+                )
+            }
+        )
+        val renderedItems = PackingRendererAdapter().toSchema(
+            PackingResult(
+                aggregation = PackingAggregation(listOf(packedBin))
+            )
+        ).loadingPlans.single().items
+        assertEquals(4, renderedItems.size)
+        assertTrue(
+            renderedItems.any { item ->
+                item.algorithmShapeType.name == "HorizontalCylinderX" && item.axis?.name == "X"
+            }
+        )
+    }
+
+    @Test
     fun circlePackingLayerGeneratorShouldGenerateZAxisHorizontalCylinderHangingSupport() = runBlocking {
         val support = cuboidItem(
             id = "item-circle-horizontal-z-hanging-support",

@@ -287,6 +287,8 @@ class GurobiColumnGenerationTest {
             .singleOrNull()
             ?: return null
         val sources = listOf(
+            "circle-packing-horizontal-hanging-support-multi-axis=${axis.name.lowercase()}",
+            "circle-packing-horizontal-hanging-support-axis=${axis.name.lowercase()}",
             "circle-packing-horizontal-supported-stack-heterogeneous-axis=${axis.name.lowercase()}",
             "circle-packing-horizontal-supported-stack-multi-axis=${axis.name.lowercase()}",
             "circle-packing-horizontal-supported-stack-axis=${axis.name.lowercase()}"
@@ -1697,10 +1699,43 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
+    fun groupedLayerHorizontalMultiHangingSupportSampleFileShouldGenerateHangingSeedLayer() {
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-horizontal-hanging-multisupport-sample.csv")
+        val layer = scenario.initialColumns.single()
+
+        assertEquals(1, scenario.groupCount)
+        assertEquals(4, scenario.totalItemCount)
+        assertEquals(CirclePackingLayerGenerator::class, layer.from)
+        assertEquals(4, layer.units.size)
+        assertTrue(
+            layer.units.any { placement ->
+                val shape = placement.resolvedPackingShape() as? CylinderPackingShape3
+                shape?.axis == Axis3.X
+            }
+        )
+        val supportPlacements = layer.units.filter { placement ->
+            placement.resolvedPackingShape() !is CylinderPackingShape3
+        }
+        assertEquals(3, supportPlacements.size)
+        assertTrue(supportPlacements.all { placement -> placement.absoluteZ.value.toDouble() > 0.0 })
+        val supportIds = supportPlacements
+            .map { placement -> (placement.view.unit as ActualItem).id }
+            .toSet()
+        assertEquals(
+            setOf(
+                "item-horizontal-hanging-multi-support-a",
+                "item-horizontal-hanging-multi-support-b",
+                "item-horizontal-hanging-multi-support-c"
+            ),
+            supportIds
+        )
+    }
+
+    @Test
     fun groupedLayerCsvShouldRejectPartialHorizontalSupportFallback() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis,width_meter,height_meter,depth_meter
-            0,0,item-horizontal-partial-support,MAT-HPS,Material-HPS,1.0,cuboid,,,0.4,0.2,0.4
+            0,0,item-horizontal-partial-support,MAT-HPS,Material-HPS,1.0,cuboid,,,0.05,0.2,0.4
             0,0,item-horizontal-cylinder-x,MAT-HCX,Material-HCX,1.0,vertical_cylinder,0.5,X,1.0,1.0,1.0
         """.trimIndent()
 

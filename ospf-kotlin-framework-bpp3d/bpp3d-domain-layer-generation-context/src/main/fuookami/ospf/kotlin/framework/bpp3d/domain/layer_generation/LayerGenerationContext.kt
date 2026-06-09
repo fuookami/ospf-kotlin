@@ -763,6 +763,182 @@ private fun horizontalCylinderSingleHangingSupportPlacements(
     )
 }
 
+private fun horizontalCylinderRepeatedHangingSupportCount(
+    supportView: ItemView,
+    cylinderView: ItemView,
+    axis: Axis3
+): Int? {
+    if (axis == Axis3.Y) {
+        return null
+    }
+
+    val supportRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = supportView,
+        axis = axis
+    ).value.toDouble()
+    val cylinderRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = cylinderView,
+        axis = axis
+    ).value.toDouble()
+    if (supportRadialSpan <= 0.0 || supportRadialSpan + 1e-7 >= cylinderRadialSpan) {
+        return null
+    }
+
+    val supportAxisSpan = horizontalCylinderSupportAxisSpan(
+        view = supportView,
+        axis = axis
+    ).value.toDouble()
+    val cylinderAxisSpan = horizontalCylinderSupportAxisSpan(
+        view = cylinderView,
+        axis = axis
+    ).value.toDouble()
+    if (supportAxisSpan <= 0.0 || cylinderAxisSpan <= 0.0) {
+        return null
+    }
+
+    val count = ceil(cylinderAxisSpan / supportAxisSpan).toInt()
+    if (count <= 1 || count > 16) {
+        return null
+    }
+    return count
+}
+
+private fun horizontalCylinderRepeatedHangingSupportPlacements(
+    supportView: ItemView,
+    cylinderView: ItemView,
+    supportCount: Int,
+    axis: Axis3
+): List<ItemPlacement3> {
+    val supportRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = supportView,
+        axis = axis
+    )
+    val cylinderRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = cylinderView,
+        axis = axis
+    )
+    val supportAxisSpan = horizontalCylinderSupportAxisSpan(
+        view = supportView,
+        axis = axis
+    )
+    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * infraScalar(0.5)
+    val placements = ArrayList<ItemPlacement3>(supportCount + 1)
+    for (index in 0 until supportCount) {
+        val axisOffset = supportAxisSpan * infraScalar(index.toDouble())
+        val position = when (axis) {
+            Axis3.X -> point3(x = axisOffset, z = radialOffset)
+            Axis3.Y -> point3()
+            Axis3.Z -> point3(x = radialOffset, z = axisOffset)
+        }
+        placements.add(
+            ItemPlacement3(
+                view = supportView,
+                position = position
+            )
+        )
+    }
+    placements.add(
+        ItemPlacement3(
+            view = cylinderView,
+            position = point3(y = supportView.height)
+        )
+    )
+    return placements
+}
+
+private fun horizontalCylinderRepeatedHangingSupportPlacements(
+    supportViews: List<ItemView>,
+    cylinderView: ItemView,
+    axis: Axis3
+): List<ItemPlacement3>? {
+    if (axis == Axis3.Y) {
+        return null
+    }
+
+    val cylinderAxisSpan = horizontalCylinderSupportAxisSpan(
+        view = cylinderView,
+        axis = axis
+    )
+    val cylinderRadialSpan = horizontalCylinderSupportRadialSpan(
+        view = cylinderView,
+        axis = axis
+    )
+    val cylinderAxisSpanValue = cylinderAxisSpan.value.toDouble()
+    val cylinderRadialSpanValue = cylinderRadialSpan.value.toDouble()
+    if (cylinderAxisSpanValue <= 0.0 || cylinderRadialSpanValue <= 0.0) {
+        return null
+    }
+
+    for (heightReference in supportViews) {
+        val heightValue = heightReference.height.value.toDouble()
+        val referenceAxisSpan = horizontalCylinderSupportAxisSpan(
+            view = heightReference,
+            axis = axis
+        )
+        val referenceRadialSpan = horizontalCylinderSupportRadialSpan(
+            view = heightReference,
+            axis = axis
+        )
+        val referenceAxisSpanValue = referenceAxisSpan.value.toDouble()
+        val referenceRadialSpanValue = referenceRadialSpan.value.toDouble()
+        if (referenceAxisSpanValue <= 0.0
+            || referenceRadialSpanValue <= 0.0
+            || referenceRadialSpanValue + 1e-7 >= cylinderRadialSpanValue
+        ) {
+            continue
+        }
+
+        val supportCount = ceil(cylinderAxisSpanValue / referenceAxisSpanValue).toInt()
+        if (supportCount <= 1 || supportCount > 16) {
+            continue
+        }
+        val eligibleSupports = supportViews
+            .filter { supportView ->
+                val supportAxisSpanValue = horizontalCylinderSupportAxisSpan(
+                    view = supportView,
+                    axis = axis
+                ).value.toDouble()
+                val supportRadialSpanValue = horizontalCylinderSupportRadialSpan(
+                    view = supportView,
+                    axis = axis
+                ).value.toDouble()
+                abs(supportView.height.value.toDouble() - heightValue) <= 1e-7
+                        && abs(supportAxisSpanValue - referenceAxisSpanValue) <= 1e-7
+                        && abs(supportRadialSpanValue - referenceRadialSpanValue) <= 1e-7
+            }
+            .distinctBy { supportView -> supportView.unit }
+        if (eligibleSupports.size < supportCount) {
+            continue
+        }
+
+        val radialOffset = (cylinderRadialSpan - referenceRadialSpan) * infraScalar(0.5)
+        val placements = ArrayList<ItemPlacement3>(supportCount + 1)
+        var axisOffset = cylinderAxisSpan * infraScalar(0.0)
+        for (supportView in eligibleSupports.take(supportCount)) {
+            val position = when (axis) {
+                Axis3.X -> point3(x = axisOffset, z = radialOffset)
+                Axis3.Y -> point3()
+                Axis3.Z -> point3(x = radialOffset, z = axisOffset)
+            }
+            placements.add(
+                ItemPlacement3(
+                    view = supportView,
+                    position = position
+                )
+            )
+            axisOffset += referenceAxisSpan
+        }
+        placements.add(
+            ItemPlacement3(
+                view = cylinderView,
+                position = point3(y = heightReference.height)
+            )
+        )
+        return placements
+    }
+    return null
+}
+
 private fun horizontalCylinderSupportAxisSpan(
     view: ItemView,
     axis: Axis3
@@ -976,6 +1152,43 @@ private suspend fun horizontalCylinderSupportedStackCandidates(
             supportItem != cylinderItem && supportItem.packingShape !is CylinderPackingShape3
         }
         .flatMap { supportItem -> circlePackingItemCandidates(supportItem, bin) }
+    val distinctRepeatedHangingSupportPlacements = horizontalCylinderRepeatedHangingSupportPlacements(
+        supportViews = supportCandidates.map { supportCandidate -> supportCandidate.view },
+        cylinderView = cylinderCandidate.view,
+        axis = cylinderShape.axis
+    )
+    if (distinctRepeatedHangingSupportPlacements != null
+        && circlePackingStackedLayerIsGeometryValid(
+            binShape = binShape,
+            placements = distinctRepeatedHangingSupportPlacements
+        )
+    ) {
+        val distinctRepeatedHangingCylinderPlacement = distinctRepeatedHangingSupportPlacements.last()
+        if (distinctRepeatedHangingCylinderPlacement.enabledStackingOn(
+                bottomItems = distinctRepeatedHangingSupportPlacements.dropLast(1),
+                space = binShape
+            )
+        ) {
+            candidates.add(
+                CirclePackingLayerCandidate(
+                    layer = BinLayer(
+                        iteration = iteration,
+                        from = sourceClass.kotlin,
+                        bin = bin,
+                        shape = binShape,
+                        units = distinctRepeatedHangingSupportPlacements
+                    ),
+                    source = circlePackingSource(
+                        pattern = "circle-packing-horizontal-hanging-support-multi",
+                        candidate = cylinderCandidate,
+                        axis = cylinderShape.axis
+                    ),
+                    packed = distinctRepeatedHangingSupportPlacements.size,
+                    volume = circlePackingVolume(distinctRepeatedHangingSupportPlacements)
+                )
+            )
+        }
+    }
     for (supportCandidate in supportCandidates) {
         val supportView = supportCandidate.view
         if (canFullySupportHorizontalCylinder(
@@ -1057,6 +1270,51 @@ private suspend fun horizontalCylinderSupportedStackCandidates(
                         volume = circlePackingVolume(hangingSupportPlacements)
                     )
                 )
+            }
+        }
+
+        val repeatedHangingSupportCount = horizontalCylinderRepeatedHangingSupportCount(
+            supportView = supportView,
+            cylinderView = cylinderCandidate.view,
+            axis = cylinderShape.axis
+        )
+        if (repeatedHangingSupportCount != null) {
+            val multiHangingSupportPlacements = horizontalCylinderRepeatedHangingSupportPlacements(
+                supportView = supportView,
+                cylinderView = cylinderCandidate.view,
+                supportCount = repeatedHangingSupportCount,
+                axis = cylinderShape.axis
+            )
+            if (circlePackingStackedLayerIsGeometryValid(
+                    binShape = binShape,
+                    placements = multiHangingSupportPlacements
+                )
+            ) {
+                val multiHangingCylinderPlacement = multiHangingSupportPlacements.last()
+                if (multiHangingCylinderPlacement.enabledStackingOn(
+                        bottomItems = multiHangingSupportPlacements.dropLast(1),
+                        space = binShape
+                    )
+                ) {
+                    candidates.add(
+                        CirclePackingLayerCandidate(
+                            layer = BinLayer(
+                                iteration = iteration,
+                                from = sourceClass.kotlin,
+                                bin = bin,
+                                shape = binShape,
+                                units = multiHangingSupportPlacements
+                            ),
+                            source = circlePackingSource(
+                                pattern = "circle-packing-horizontal-hanging-support-multi",
+                                candidate = cylinderCandidate,
+                                axis = cylinderShape.axis
+                            ),
+                            packed = multiHangingSupportPlacements.size,
+                            volume = circlePackingVolume(multiHangingSupportPlacements)
+                        )
+                    )
+                }
             }
         }
 
