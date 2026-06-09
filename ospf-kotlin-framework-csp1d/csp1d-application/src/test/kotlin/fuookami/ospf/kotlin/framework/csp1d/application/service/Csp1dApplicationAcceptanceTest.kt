@@ -43,6 +43,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
@@ -96,6 +97,39 @@ private class Csp1dFailingMilpSolver : ColumnGenerationSolver {
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Flt64FeasibleSolverOutput> {
         throw IllegalStateException("forced final MILP failure")
+    }
+
+    override suspend fun solveLP(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        toLogModel: Boolean,
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<ColumnGenerationSolver.LPResult> {
+        return Ok(
+            ColumnGenerationSolver.LPResult(
+                result = fakeFeasibleOutput(metaModel),
+                dualSolution = emptyMap()
+            )
+        )
+    }
+}
+
+private class Csp1dInitialResultCapturingSolver : ColumnGenerationSolver {
+    override val name: String = "csp1d-initial-result-capturing"
+    var lastInitialResults: Map<String, Flt64> = emptyMap()
+
+    override suspend fun solveMILP(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        toLogModel: Boolean,
+        registrationStatusCallBack: RegistrationStatusCallBack?,
+        solvingStatusCallBack: SolvingStatusCallBack?
+    ): Ret<Flt64FeasibleSolverOutput> {
+        lastInitialResults = metaModel.tokens.tokensInSolver.mapNotNull { token ->
+            token.resultFlt64?.let { value -> token.name to value }
+        }.toMap()
+        return Ok(fakeFeasibleOutput(metaModel))
     }
 
     override suspend fun solveLP(
@@ -1069,7 +1103,127 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
         assertEquals(1, result.trace.warmStartPlanCount)
         assertEquals(1, result.trace.appliedWarmStartPlanCount)
+        assertEquals(0, result.trace.appliedWarmStartUsageCount)
         assertTrue(result.solution.generatedPlans.any { it.id == warmStartPlan.id })
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
+     * 验证 MILP 会把 warm start 使用量写入 assignment 初始解 /
+     * Verify MILP writes warm-start usages into assignment initial values
+     */
+    @Test
+    fun milpSolverShouldInjectWarmStartPlanUsagesAsInitialValues(): Unit = runBlocking {
+        val product = product(
+            id = "p-native-warm",
+            width = 0.8
+        )
+        val firstMaterial = material(
+            id = "m-native-warm-1",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val secondMaterial = material(
+            id = "m-native-warm-2",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val firstPlan = simpleCuttingPlan(
+            product = product,
+            material = firstMaterial,
+            rollContribution = Flt64.one
+        )
+        val secondPlan = simpleCuttingPlan(
+            product = product,
+            material = secondMaterial,
+            rollContribution = Flt64.one
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(firstPlan, secondPlan),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            materials = listOf(firstMaterial, secondMaterial),
+            warmStartPlanUsages = listOf(
+                CuttingPlanUsage(
+                    plan = secondPlan,
+                    amount = UInt64(3UL)
+                )
+            )
+        )
+        val solver = Csp1dInitialResultCapturingSolver()
+
+        val milpResult = Csp1dMilpSolver(solver).solve(input)
+
+        assertNotNull(milpResult)
+        assertTrue("x_0" !in solver.lastInitialResults)
+        assertEquals(Flt64(3.0), solver.lastInitialResults["x_1"])
+    }
+
+    /**
+     * 验证 previousSolution 的选中方案使用量会经 recovery 注入 native warm start /
+     * Verify selected usages from previousSolution are injected as native warm start through recovery
+     */
+    @Test
+    fun recoveryShouldApplyPreviousSolutionUsagesAsNativeWarmStart(): Unit = runBlocking {
+        val product = product(
+            id = "p-recovery-native",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-native",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        ).copy(id = "native-warm-start-plan")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator { listOf(warmStartPlan) }
+        ).solve(problem)
+        val solver = Csp1dInitialResultCapturingSolver()
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = solver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.appliedWarmStartPlanCount)
+        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 

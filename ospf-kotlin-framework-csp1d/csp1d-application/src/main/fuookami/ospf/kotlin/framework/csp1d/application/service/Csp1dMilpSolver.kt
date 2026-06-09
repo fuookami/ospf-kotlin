@@ -19,8 +19,11 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
@@ -141,6 +144,11 @@ class Csp1dMilpSolver(
             lengthSlackVars = lengthSlackVars,
             model = model
         )
+        applyWarmStartInitialSolution(
+            input = input,
+            assignment = assignment,
+            model = model
+        )
 
         val output = ensureRet(
             result = solver.solveMILP(
@@ -245,6 +253,47 @@ class Csp1dMilpSolver(
             assignment = assignment,
             lpOutput = lpResult
         )
+    }
+
+    /**
+     * 将 warm start 方案使用量写入模型初始解 / Write warm-start plan usages into model initial solution
+     */
+    private fun <V : RealNumber<V>> applyWarmStartInitialSolution(
+        input: ProduceInput<V>,
+        assignment: Csp1dAssignment,
+        model: LinearMetaModel<Flt64>
+    ) {
+        if (input.warmStartPlanUsages.isEmpty()) {
+            return
+        }
+        val usageByKey = warmStartUsageByKey(input.warmStartPlanUsages)
+        if (usageByKey.isEmpty()) {
+            return
+        }
+        val initialSolution = LinkedHashMap<AbstractVariableItem<*, *>, Flt64>()
+        for ((index, plan) in input.cuttingPlans.withIndex()) {
+            val usage = usageByKey[plan.canonicalKey()] ?: continue
+            if (usage > UInt64.zero) {
+                initialSolution[assignment[index]] = usage.toFlt64()
+            }
+        }
+        if (initialSolution.isNotEmpty()) {
+            model.setSolution(initialSolution)
+        }
+    }
+
+    private fun <V : RealNumber<V>> warmStartUsageByKey(
+        usages: List<CuttingPlanUsage<V>>
+    ): Map<CuttingPlanCanonicalKey, UInt64> {
+        val result = LinkedHashMap<CuttingPlanCanonicalKey, UInt64>()
+        for (usage in usages) {
+            if (usage.amount <= UInt64.zero) {
+                continue
+            }
+            val key = usage.plan.canonicalKey()
+            result[key] = (result[key] ?: UInt64.zero) + usage.amount
+        }
+        return result
     }
 
     /**

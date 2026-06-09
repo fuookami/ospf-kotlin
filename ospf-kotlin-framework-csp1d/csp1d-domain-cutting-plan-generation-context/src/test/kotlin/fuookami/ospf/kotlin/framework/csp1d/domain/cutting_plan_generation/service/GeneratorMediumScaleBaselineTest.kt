@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -7,6 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationBenchmarkSnapshot
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
@@ -90,18 +92,13 @@ class GeneratorMediumScaleBaselineTest {
             )
         )
 
-        val snapshots = LinkedHashMap<String, GeneratorBaselineSnapshot>()
+        val snapshots = LinkedHashMap<String, CuttingPlanGenerationBenchmarkSnapshot>()
         for (case in generatorCases) {
             val report = case.generator.generateWithReport(input)
             val baseline = report.statistics
-            snapshots[case.name] = GeneratorBaselineSnapshot(
-                generatedCandidates = baseline.generatedCandidates,
-                acceptedPlans = baseline.acceptedPlans,
-                infeasibleCandidates = baseline.infeasibleCandidates,
-                duplicateCandidates = baseline.duplicateCandidates,
-                dominatedCandidates = baseline.dominatedCandidates,
-                widthBoundPrunedNodes = baseline.widthBoundPrunedNodes,
-                stopReason = baseline.stopReason
+            snapshots[case.name] = CuttingPlanGenerationBenchmarkSnapshot.from(
+                generatorName = case.name,
+                statistics = baseline
             )
 
             assertMediumScaleBaseline(
@@ -113,21 +110,20 @@ class GeneratorMediumScaleBaselineTest {
         }
         assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
+        assertEquals(
+            listOf(
+                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;stopReason=Exhausted"
+            ),
+            snapshots.values.map { it.toStableLine() }
+        )
     }
 
     private data class GeneratorCase(
         val name: String,
         val generator: Csp1dInitialCuttingPlanGenerator<Flt64>
-    )
-
-    private data class GeneratorBaselineSnapshot(
-        val generatedCandidates: Long,
-        val acceptedPlans: Int,
-        val infeasibleCandidates: Long,
-        val duplicateCandidates: Long,
-        val dominatedCandidates: Long,
-        val widthBoundPrunedNodes: Long,
-        val stopReason: CuttingPlanGenerationStopReason
     )
 
     private fun assertMediumScaleBaseline(

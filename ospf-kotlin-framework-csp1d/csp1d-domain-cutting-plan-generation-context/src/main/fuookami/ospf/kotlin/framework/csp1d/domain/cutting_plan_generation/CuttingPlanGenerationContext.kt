@@ -74,6 +74,80 @@ data class CuttingPlanGenerationStatistics(
 )
 
 /**
+ * 切割方案生成 benchmark 快照 / Cutting plan generation benchmark snapshot
+ *
+ * 该快照只包含确定性的数量类统计，适合测试和文档中做稳定比较；耗时仍保留在原始 statistics 中作为趋势观察。
+ * This snapshot only contains deterministic count statistics for stable comparison in tests and docs;
+ * elapsed time remains in the raw statistics for trend observation.
+ *
+ * @property generatorName 生成器名称 / Generator name
+ * @property visitedNodes 搜索访问节点数 / Visited search nodes
+ * @property generatedCandidates 产出的候选方案数 / Generated candidate plan count
+ * @property acceptedPlans 接受的方案数 / Accepted plan count
+ * @property infeasibleCandidates 被基础可行性拒绝的候选数 / Candidate count rejected by basic feasibility
+ * @property duplicateCandidates 被结构化去重过滤的候选数 / Candidate count filtered by structural deduplication
+ * @property dominatedCandidates 被 dominance 剪枝过滤的候选数 / Candidate count filtered by dominance pruning
+ * @property widthBoundPrunedNodes 被剩余宽度上界剪枝的搜索节点数 / Search node count pruned by remaining-width upper bound
+ * @property stopReason 终止原因 / Stop reason
+ */
+data class CuttingPlanGenerationBenchmarkSnapshot(
+    val generatorName: String,
+    val visitedNodes: Long,
+    val generatedCandidates: Long,
+    val acceptedPlans: Int,
+    val infeasibleCandidates: Long,
+    val duplicateCandidates: Long,
+    val dominatedCandidates: Long,
+    val widthBoundPrunedNodes: Long,
+    val stopReason: CuttingPlanGenerationStopReason
+) {
+    /**
+     * 输出稳定文本行 / Render stable text line
+     *
+     * @return 可比较的稳定文本行 / Comparable stable text line
+     */
+    fun toStableLine(): String {
+        return listOf(
+            "generator=$generatorName",
+            "visitedNodes=$visitedNodes",
+            "generatedCandidates=$generatedCandidates",
+            "acceptedPlans=$acceptedPlans",
+            "infeasibleCandidates=$infeasibleCandidates",
+            "duplicateCandidates=$duplicateCandidates",
+            "dominatedCandidates=$dominatedCandidates",
+            "widthBoundPrunedNodes=$widthBoundPrunedNodes",
+            "stopReason=${stopReason.name}"
+        ).joinToString(";")
+    }
+
+    companion object {
+        /**
+         * 从生成统计构造快照 / Build snapshot from generation statistics
+         *
+         * @param generatorName 生成器名称 / Generator name
+         * @param statistics 生成统计 / Generation statistics
+         * @return benchmark 快照 / Benchmark snapshot
+         */
+        fun from(
+            generatorName: String,
+            statistics: CuttingPlanGenerationStatistics
+        ): CuttingPlanGenerationBenchmarkSnapshot {
+            return CuttingPlanGenerationBenchmarkSnapshot(
+                generatorName = generatorName,
+                visitedNodes = statistics.visitedNodes,
+                generatedCandidates = statistics.generatedCandidates,
+                acceptedPlans = statistics.acceptedPlans,
+                infeasibleCandidates = statistics.infeasibleCandidates,
+                duplicateCandidates = statistics.duplicateCandidates,
+                dominatedCandidates = statistics.dominatedCandidates,
+                widthBoundPrunedNodes = statistics.widthBoundPrunedNodes,
+                stopReason = statistics.stopReason
+            )
+        }
+    }
+}
+
+/**
  * 切割方案生成报告 / Cutting plan generation report
  *
  * @param V 数值类型 / Numeric value type

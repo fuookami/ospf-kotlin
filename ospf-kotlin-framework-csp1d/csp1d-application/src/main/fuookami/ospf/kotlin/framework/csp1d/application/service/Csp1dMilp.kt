@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
@@ -30,7 +31,8 @@ class Csp1dMilp<V : RealNumber<V>>(
     private val analyzer: Csp1dSolutionAnalyzer<V> = DefaultCsp1dSolutionAnalyzer(),
     private val yieldConfig: YieldModelingConfig<V>? = null,
     private val wasteConfig: WasteMinimizationConfig<V>? = null,
-    private val lengthConfig: LengthAssignmentModelingConfig<V>? = null
+    private val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
+    private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList()
 ) {
     /**
      * 生成初始方案并求解最终 MILP / Generate initial plans and solve final MILP
@@ -147,7 +149,8 @@ class Csp1dMilp<V : RealNumber<V>>(
                     cuttingPlans = cuttingPlans,
                     demands = problem.demands,
                     materials = problem.materials,
-                    machines = problem.machines
+                    machines = problem.machines,
+                    warmStartPlanUsages = warmStartPlanUsages
                 ),
                 yieldConfig = solveConfig.yieldConfig,
                 wasteConfig = solveConfig.wasteConfig,

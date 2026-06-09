@@ -4,7 +4,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
@@ -84,6 +86,7 @@ data class Csp1dRecoveryInput<V : RealNumber<V>>(
  * @property attemptCount 求解尝试次数 / Solve attempt count
  * @property warmStartPlanCount warm start 方案数 / Warm-start plan count
  * @property appliedWarmStartPlanCount 已应用 warm start 方案数 / Applied warm-start plan count
+ * @property appliedWarmStartUsageCount 已应用 warm start 使用量条目数 / Applied warm-start usage entry count
  * @property message 补充说明 / Additional message
  */
 data class Csp1dRecoveryTrace(
@@ -92,6 +95,7 @@ data class Csp1dRecoveryTrace(
     val attemptCount: Int,
     val warmStartPlanCount: Int = 0,
     val appliedWarmStartPlanCount: Int = 0,
+    val appliedWarmStartUsageCount: Int = 0,
     val message: String? = null
 )
 
@@ -128,12 +132,16 @@ data class Csp1dWarmStartAdapterInput<V : RealNumber<V>>(
  *
  * @param V 数值类型 / Numeric value type
  * @property initialGenerator 应用 warm start 后的初始方案生成器 / Initial plan generator after applying warm start
+ * @property initialPlanUsages 应用 warm start 后的初始方案使用量 / Initial plan usages after applying warm start
  * @property appliedPlanCount 已应用方案数 / Applied plan count
+ * @property appliedUsageCount 已应用使用量条目数 / Applied usage entry count
  * @property message 补充说明 / Additional message
  */
 data class Csp1dWarmStartAdapterResult<V : RealNumber<V>>(
     val initialGenerator: Csp1dInitialCuttingPlanGenerator<V>?,
+    val initialPlanUsages: List<CuttingPlanUsage<V>> = emptyList(),
     val appliedPlanCount: Int = 0,
+    val appliedUsageCount: Int = initialPlanUsages.size,
     val message: String? = null
 )
 
@@ -162,7 +170,9 @@ fun interface Csp1dWarmStartAdapter<V : RealNumber<V>> {
             return Csp1dWarmStartAdapter {
                 Csp1dWarmStartAdapterResult(
                     initialGenerator = null,
+                    initialPlanUsages = emptyList(),
                     appliedPlanCount = 0,
+                    appliedUsageCount = 0,
                     message = "Warm start adapter is not configured"
                 )
             }
@@ -182,6 +192,7 @@ class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
     private val appendFallbackPlans: Boolean = true
 ) : Csp1dWarmStartAdapter<V> {
     override fun apply(input: Csp1dWarmStartAdapterInput<V>): Csp1dWarmStartAdapterResult<V> {
+        val initialPlanUsages = warmStartPlanUsages(input)
         return Csp1dWarmStartAdapterResult(
             initialGenerator = Csp1dInitialCuttingPlanGenerator { generationInput ->
                 val fallbackPlans = if (appendFallbackPlans) {
@@ -191,9 +202,19 @@ class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
                 }
                 input.cuttingPlans + fallbackPlans
             },
+            initialPlanUsages = initialPlanUsages,
             appliedPlanCount = input.cuttingPlans.size,
+            appliedUsageCount = initialPlanUsages.size,
             message = "Warm start cutting plan pool was applied as initial plan pool"
         )
+    }
+
+    private fun warmStartPlanUsages(input: Csp1dWarmStartAdapterInput<V>): List<CuttingPlanUsage<V>> {
+        val previousSolution = input.warmStart.previousSolution ?: return emptyList()
+        val compatiblePlanKeys = input.cuttingPlans.map { it.canonicalKey() }.toSet()
+        return previousSolution.produce.cuttingPlans.filter { usage ->
+            usage.plan.canonicalKey() in compatiblePlanKeys
+        }
     }
 }
 
@@ -287,6 +308,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 attemptCount = 0,
                 warmStartPlanCount = warmStartPlans.size,
                 appliedWarmStartPlanCount = 0,
+                appliedWarmStartUsageCount = 0,
                 message = fallbackDisabledMessage(warmStartStatus)
             )
             throw Csp1dRecoveryFallbackDisabledException(
@@ -299,7 +321,8 @@ class Csp1dRecovery<V : RealNumber<V>>(
             val activeMilp = adapterResult?.initialGenerator?.let { initialGenerator ->
                 Csp1dMilp(
                     solver = solver,
-                    initialGenerator = initialGenerator
+                    initialGenerator = initialGenerator,
+                    warmStartPlanUsages = adapterResult.initialPlanUsages
                 )
             } ?: milp
             activeMilp.solve(
@@ -313,6 +336,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 attemptCount = 1,
                 warmStartPlanCount = warmStartPlans.size,
                 appliedWarmStartPlanCount = adapterResult?.appliedPlanCount ?: 0,
+                appliedWarmStartUsageCount = adapterResult?.appliedUsageCount ?: 0,
                 message = error.message ?: "Recovery solve failed"
             )
             throw Csp1dRecoverySolveException(
@@ -334,6 +358,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 attemptCount = 1,
                 warmStartPlanCount = warmStartPlans.size,
                 appliedWarmStartPlanCount = adapterResult?.appliedPlanCount ?: 0,
+                appliedWarmStartUsageCount = adapterResult?.appliedUsageCount ?: 0,
                 message = adapterResult?.message ?: warmStartMessage(warmStartStatus)
             )
         )
