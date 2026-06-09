@@ -79,11 +79,13 @@ DFS, N-Sum, and FullSum deduplicate demand width entries by product, width, widt
 
 When `GenerationConstraints.maxOverProduceLength` is configured, DFS, N-Sum, N-Same, and FullSum filter over-length product entries before combination search or single-product enumeration. The pruned entry count is reported as `lengthBoundPrunedEntries` and exposed through `Csp1dKpiKeys.InitialGenerationLengthBoundPrunedEntries` / `Csp1dKpiKeys.InitialLengthBoundPrunedEntries`.
 
+When `GenerationConstraints.minKnifeCount` is configured, DFS, N-Sum, and FullSum prune combination branches that cannot reach the minimum knife count even after filling the remaining width with the narrowest available later entry. The pruned node count is reported as `knifeBoundPrunedNodes` and exposed through `Csp1dKpiKeys.InitialGenerationKnifeBoundPrunedNodes` / `Csp1dKpiKeys.InitialKnifeBoundPrunedNodes`.
+
 DFS, N-Sum, and FullSum also reuse the filtered product-width entry index for materials with equivalent width-range profiles. This only reuses the search entry index; generated plans are still built per material, so material identity and canonical output remain stable. Cache hits are reported as `materialWidthIndexCacheHits` and exposed through `Csp1dKpiKeys.InitialGenerationMaterialWidthIndexCacheHits` / `Csp1dKpiKeys.InitialMaterialWidthIndexCacheHits`.
 
 `GenerationConstraints.enableDominancePruning` enables opt-in same-contribution dominance pruning. For candidates with the same material, machine, capacity consumption, and demand contribution vector, the generator keeps the candidate with smaller remaining width and records the filtered count in `dominatedCandidates`.
 
-The medium-scale and mixed-unit baseline tests now cover DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, width-bound pruned nodes, length-bound pruned entries, material width-index cache hits, elapsed milliseconds, and stop reason. `CuttingPlanGenerationBenchmarkSnapshot` keeps deterministic count fields and renders `toStableLine()` for comparable benchmark snapshots; elapsed time remains in raw statistics for trend observation.
+The medium-scale and mixed-unit baseline tests now cover DFS, N-Sum, N-Same, and FullSum with the same statistics contract: visited nodes, generated candidates, accepted plans, infeasible candidates, duplicate candidates, dominated candidates, width-bound pruned nodes, knife-bound pruned nodes, length-bound pruned entries, material width-index cache hits, elapsed milliseconds, and stop reason. `CuttingPlanGenerationBenchmarkSnapshot` keeps deterministic count fields and renders `toStableLine()` for comparable benchmark snapshots; elapsed time remains in raw statistics for trend observation.
 
 `Costar` is a filler for remaining width. It can appear in slices and render output, but it does not create demand contribution.
 

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -35,6 +36,18 @@ internal class GenerationWidthIndex<V : RealNumber<V>> private constructor(
         }
         val minWidth = suffixMinWidthByUnit[startIndex][remainingWidth.unit.canonicalUnitKey()] ?: return false
         return (remainingWidth.value partialOrd minWidth.value) !is Order.Less
+    }
+
+    fun maxRepeatableFrom(
+        startIndex: Int,
+        remainingWidth: Quantity<V>,
+        quantityCache: GenerationQuantityCache<V>
+    ): UInt64 {
+        if (startIndex >= entries.size) {
+            return UInt64.zero
+        }
+        val minWidth = suffixMinWidthByUnit[startIndex][remainingWidth.unit.canonicalUnitKey()] ?: return UInt64.zero
+        return quantityCache.maxRepeatCount(minWidth, remainingWidth)
     }
 
     fun demandUnitFor(

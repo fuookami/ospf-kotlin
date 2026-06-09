@@ -24,6 +24,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private var duplicateCandidates = 0L
     private var dominatedCandidates = 0L
     private var widthBoundPrunedNodes = 0L
+    private var knifeBoundPrunedNodes = 0L
     private var lengthBoundPrunedEntries = 0L
     private var materialWidthIndexCacheHits = 0L
     private var visitedNodes = 0L
@@ -37,6 +38,10 @@ internal class GenerationCollector<V : RealNumber<V>>(
 
     fun recordWidthBoundPrunedNode() {
         ++widthBoundPrunedNodes
+    }
+
+    fun recordKnifeBoundPrunedNode() {
+        ++knifeBoundPrunedNodes
     }
 
     fun recordLengthBoundPrunedEntries(count: Long = 1L) {
@@ -111,6 +116,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
                 duplicateCandidates = duplicateCandidates,
                 dominatedCandidates = dominatedCandidates,
                 widthBoundPrunedNodes = widthBoundPrunedNodes,
+                knifeBoundPrunedNodes = knifeBoundPrunedNodes,
                 lengthBoundPrunedEntries = lengthBoundPrunedEntries,
                 materialWidthIndexCacheHits = materialWidthIndexCacheHits,
                 elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L,

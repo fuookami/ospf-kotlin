@@ -58,6 +58,7 @@ enum class CuttingPlanGenerationStopReason {
  * @property duplicateCandidates 被结构化去重过滤的候选数 / Candidate count filtered by structural deduplication
  * @property dominatedCandidates 被 dominance 剪枝过滤的候选数 / Candidate count filtered by dominance pruning
  * @property widthBoundPrunedNodes 被剩余宽度上界剪枝的搜索节点数 / Search node count pruned by remaining-width upper bound
+ * @property knifeBoundPrunedNodes 被刀数下界可达性剪枝的搜索节点数 / Search node count pruned by knife-count reachability
  * @property lengthBoundPrunedEntries 被长度上界剪枝的搜索入口数 / Search entry count pruned by length upper bound
  * @property materialWidthIndexCacheHits 物料等价宽度入口缓存命中数 / Material-equivalent width-entry cache hit count
  * @property elapsedMilliseconds 生成耗时毫秒数 / Generation elapsed time in milliseconds
@@ -71,6 +72,7 @@ data class CuttingPlanGenerationStatistics(
     val duplicateCandidates: Long = 0L,
     val dominatedCandidates: Long = 0L,
     val widthBoundPrunedNodes: Long = 0L,
+    val knifeBoundPrunedNodes: Long = 0L,
     val lengthBoundPrunedEntries: Long = 0L,
     val materialWidthIndexCacheHits: Long = 0L,
     val elapsedMilliseconds: Long = 0L,
@@ -92,6 +94,7 @@ data class CuttingPlanGenerationStatistics(
  * @property duplicateCandidates 被结构化去重过滤的候选数 / Candidate count filtered by structural deduplication
  * @property dominatedCandidates 被 dominance 剪枝过滤的候选数 / Candidate count filtered by dominance pruning
  * @property widthBoundPrunedNodes 被剩余宽度上界剪枝的搜索节点数 / Search node count pruned by remaining-width upper bound
+ * @property knifeBoundPrunedNodes 被刀数下界可达性剪枝的搜索节点数 / Search node count pruned by knife-count reachability
  * @property lengthBoundPrunedEntries 被长度上界剪枝的搜索入口数 / Search entry count pruned by length upper bound
  * @property materialWidthIndexCacheHits 物料等价宽度入口缓存命中数 / Material-equivalent width-entry cache hit count
  * @property stopReason 终止原因 / Stop reason
@@ -105,6 +108,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
     val duplicateCandidates: Long,
     val dominatedCandidates: Long,
     val widthBoundPrunedNodes: Long,
+    val knifeBoundPrunedNodes: Long,
     val lengthBoundPrunedEntries: Long,
     val materialWidthIndexCacheHits: Long,
     val stopReason: CuttingPlanGenerationStopReason
@@ -124,6 +128,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
             "duplicateCandidates=$duplicateCandidates",
             "dominatedCandidates=$dominatedCandidates",
             "widthBoundPrunedNodes=$widthBoundPrunedNodes",
+            "knifeBoundPrunedNodes=$knifeBoundPrunedNodes",
             "lengthBoundPrunedEntries=$lengthBoundPrunedEntries",
             "materialWidthIndexCacheHits=$materialWidthIndexCacheHits",
             "stopReason=${stopReason.name}"
@@ -151,6 +156,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
                 duplicateCandidates = statistics.duplicateCandidates,
                 dominatedCandidates = statistics.dominatedCandidates,
                 widthBoundPrunedNodes = statistics.widthBoundPrunedNodes,
+                knifeBoundPrunedNodes = statistics.knifeBoundPrunedNodes,
                 lengthBoundPrunedEntries = statistics.lengthBoundPrunedEntries,
                 materialWidthIndexCacheHits = statistics.materialWidthIndexCacheHits,
                 stopReason = statistics.stopReason

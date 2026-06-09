@@ -82,10 +82,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=60;generatedCandidates=60;acceptedPlans=60;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=683;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -162,10 +162,10 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
         assertEquals(
             listOf(
-                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
-                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
+                "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=NSame;visitedNodes=28;generatedCandidates=28;acceptedPlans=28;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=0;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted",
+                "generator=FullSum;visitedNodes=99;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;stopReason=Exhausted"
             ),
             snapshots.values.map { it.toStableLine() }
         )
@@ -278,6 +278,54 @@ class GeneratorMediumScaleBaselineTest {
         }
     }
 
+    @Test
+    fun generatorsShouldReportMinKnifeReachabilityPruning() {
+        val products = listOf(
+            product(id = "p-min-060", width = 0.60),
+            product(id = "p-min-070", width = 0.70)
+        )
+        val input = CuttingPlanGenerationInput(
+            products = products,
+            materials = listOf(
+                material(
+                    id = "m-min-100",
+                    upperBound = 1.00
+                )
+            ),
+            machines = emptyList(),
+            demands = products.map { product ->
+                ProductDemand.roll(
+                    product = product,
+                    quantity = Quantity(Flt64(5.0), RollCountUnit)
+                )
+            }
+        )
+        val constraints = GenerationConstraints<Flt64>(
+            minKnifeCount = UInt64(2UL),
+            enableDominancePruning = true
+        )
+
+        for (case in generatorCases(
+            constraints = constraints,
+            maxPlans = 64,
+            nSumDepth = UInt64(4UL)
+        )) {
+            val report = case.generator.generateWithReport(input)
+            val expectedPrunedNodes = if (case.name == "NSame") {
+                0L
+            } else {
+                1L
+            }
+
+            assertEquals(
+                expected = expectedPrunedNodes,
+                actual = report.statistics.knifeBoundPrunedNodes,
+                message = "${case.name} min-knife reachability pruning count should match"
+            )
+            assertTrue(report.plans.isEmpty(), "${case.name} should not emit under-min-knife plans")
+        }
+    }
+
     private data class GeneratorCase(
         val name: String,
         val generator: Csp1dInitialCuttingPlanGenerator<Flt64>
@@ -340,6 +388,7 @@ class GeneratorMediumScaleBaselineTest {
         assertTrue(statistics.duplicateCandidates >= 0L, "$name duplicate count should be non-negative")
         assertTrue(statistics.dominatedCandidates >= 0L, "$name dominance count should be non-negative")
         assertTrue(statistics.widthBoundPrunedNodes >= 0L, "$name width-bound pruning count should be non-negative")
+        assertTrue(statistics.knifeBoundPrunedNodes >= 0L, "$name knife-bound pruning count should be non-negative")
         assertTrue(statistics.lengthBoundPrunedEntries >= 0L, "$name length-bound pruning count should be non-negative")
         assertTrue(statistics.materialWidthIndexCacheHits >= 0L, "$name width-index cache hit count should be non-negative")
         assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")

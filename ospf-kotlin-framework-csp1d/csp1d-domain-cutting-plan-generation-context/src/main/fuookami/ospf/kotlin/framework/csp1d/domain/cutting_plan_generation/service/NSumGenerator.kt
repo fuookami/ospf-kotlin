@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraintContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MaxKnifeCountConstraint
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.MinKnifeCountConstraint
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
@@ -58,6 +60,8 @@ class NSumGenerator<V : RealNumber<V>>(
 
     private val pruningConstraints = constraints.filter { it.isPruning }
     private val leafConstraints = constraints.filter { !it.isPruning }
+    private val maxKnifeCount = constraints.filterIsInstance<MaxKnifeCountConstraint<V>>().firstOrNull()?.value
+    private val minKnifeCount = constraints.filterIsInstance<MinKnifeCountConstraint<V>>().firstOrNull()?.value
     private val maxOverProduceLength = generationMaxOverProduceLength(constraints)
 
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
@@ -174,6 +178,24 @@ class NSumGenerator<V : RealNumber<V>>(
                 startIndex = currentIndex,
                 remainingWidth = remainingWidth
             )
+            val cannotReachMinKnifeCount = isMinKnifeCountUnreachable(
+                minKnifeCount = minKnifeCount,
+                currentCuts = currentCuts,
+                startIndex = currentIndex,
+                remainingWidth = remainingWidth,
+                widthIndex = widthIndex,
+                quantityCache = quantityCache,
+                remainingCutCapacity = remainingGenerationCutCapacity(
+                    maxKnifeCount = maxKnifeCount,
+                    currentCuts = currentCuts,
+                    searchCutCapacity = remainingDepth
+                )
+            )
+
+            if (cannotReachMinKnifeCount) {
+                collector.recordKnifeBoundPrunedNode()
+                continue
+            }
 
             if (
                 currentIndex >= entries.size ||
