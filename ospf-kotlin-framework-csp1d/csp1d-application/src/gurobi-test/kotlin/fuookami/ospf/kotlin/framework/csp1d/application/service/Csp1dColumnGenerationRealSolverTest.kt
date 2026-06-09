@@ -38,6 +38,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResu
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 
 /**
  * CSP1D 列生成真实 solver 收敛验证 / CSP1D column generation real solver convergence verification
@@ -464,6 +465,106 @@ class Csp1dColumnGenerationRealSolverTest {
         }
         assertNotNull(packedUsage, "Packed previous-solution plan should be selected by the real solver")
         assertEquals(UInt64(2UL), packedUsage.amount)
+    }
+
+    /**
+     * 验证 recovery warm start 在设备产能和 yield 配置下可通过真实 solver 稳定求解 /
+     * Verify recovery warm start solves stably on real solver with machine capacity and yield config
+     */
+    @Test
+    fun recoveryWarmStartWithMachineCapacityAndYieldWorksOnRealSolver() = runBlocking {
+        val product = product(
+            id = "p_recovery_capacity_yield",
+            width = 0.8
+        )
+        val material = material(
+            id = "m_recovery_capacity_yield",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            machineId = "machine_recovery_capacity_yield"
+        )
+        val machine = machine(
+            id = "machine_recovery_capacity_yield",
+            capacity = 120.0,
+            maxBatchCount = UInt64(10UL)
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val plan = cuttingPlan(
+            id = "plan_recovery_capacity_yield",
+            product = product,
+            material = material,
+            rollContribution = Flt64.one,
+            machineId = machine.id,
+            capacityConsumption = 80.0
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = listOf(machine),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            yieldConfig = YieldModelingConfig(
+                underProductionPenalty = mapOf(demandKey to Flt64(100.0))
+            )
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = solver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(plan)
+            }
+        ).solve(
+            problem = problem,
+            solveConfig = solveConfig
+        )
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = solver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = solveConfig,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.appliedWarmStartPlanCount)
+        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        val usage = result.solution.produce.cuttingPlans.firstOrNull {
+            it.plan.id == plan.id
+        }
+        assertNotNull(usage, "Capacity-constrained warm-start plan should be selected")
+        assertEquals(UInt64.one, usage.amount)
+        val machineUsage = result.solution.produce.machineUsages.firstOrNull {
+            it.machine.id == machine.id
+        }?.used
+        assertNotNull(machineUsage, "Machine capacity usage should be extracted")
+        assertTrue(machineUsage eq Quantity(Flt64(80.0), Kilogram))
+        val underProduction = result.solution.yieldResult?.underProductions?.firstOrNull {
+            it.productId == product.id
+        }
+        assertNotNull(underProduction, "Yield under-production should be extracted")
+        assertEquals(Flt64(2.0), underProduction.amount)
     }
 
     /**

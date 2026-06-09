@@ -1228,6 +1228,117 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     /**
+     * 验证 previousSolution warm start 与设备产能和增强配置组合时仍会写入初始解并回填 KPI /
+     * Verify previousSolution warm start writes initial values and fills KPI with machine capacity and enhanced configs
+     */
+    @Test
+    fun recoveryShouldApplyPreviousSolutionWarmStartWithMachineCapacityAndEnhancements(): Unit = runBlocking {
+        val product = dynamicProduct(
+            id = "p-recovery-enhanced",
+            width = 0.8,
+            maxOverProduceLength = 2.0
+        )
+        val material = material(
+            id = "m-recovery-enhanced",
+            lowerWidth = 0.5,
+            upperWidth = 1.5,
+            machineId = "machine-recovery-enhanced",
+            length = 100.0
+        )
+        val machine = machine(
+            id = "machine-recovery-enhanced",
+            capacity = 120.0,
+            maxBatchCount = UInt64(3UL)
+        )
+        val demand = ProductDemand.legacyRoll(
+            product = product,
+            rollAmount = Flt64(3.0)
+        )
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.name ?: demand.quantity.unit.toString()
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one,
+            machineId = machine.id,
+            capacityConsumption = 80.0
+        ).copy(id = "enhanced-warm-start-plan")
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = listOf(machine),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            yieldConfig = YieldModelingConfig(
+                underProductionPenalty = mapOf(demandKey to Flt64(10.0)),
+                overProductionPenalty = mapOf(demandKey to Flt64(5.0))
+            ),
+            wasteConfig = WasteMinimizationConfig(
+                trimWidthPenalty = Flt64(2.0),
+                overProductionAreaPenalty = Flt64.one
+            ),
+            lengthConfig = LengthAssignmentModelingConfig(
+                dynamicProductIds = setOf(product.id),
+                overLengthPenalty = mapOf(product.id to Flt64(3.0))
+            ),
+            topKPlanLimit = 1
+        )
+        val previousSolution = Csp1dMilp<Flt64>(
+            solver = fakeSolver,
+            initialGenerator = Csp1dInitialCuttingPlanGenerator {
+                listOf(warmStartPlan)
+            }
+        ).solve(
+            problem = problem,
+            solveConfig = solveConfig
+        )
+        val solver = Csp1dInitialResultCapturingSolver()
+
+        val result = Csp1dRecovery<Flt64>(
+            solver = solver,
+            warmStartAdapter = Csp1dWarmStartPlanPoolAdapter(
+                appendFallbackPlans = false
+            )
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = solveConfig,
+                warmStart = Csp1dWarmStart(
+                    previousSolution = previousSolution
+                )
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
+        assertEquals(1, result.trace.appliedWarmStartPlanCount)
+        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        val machineUsage = assertNotNull(
+            result.solution.produce.machineUsages.firstOrNull { usage -> usage.machine.id == machine.id }?.used,
+            "Machine capacity usage should be backfilled"
+        )
+        assertTrue(machineUsage eq Quantity(Flt64(80.0), Kilogram))
+        assertNotNull(result.solution.yieldResult, "Yield result should be backfilled")
+        assertNotNull(result.solution.wasteResult, "Waste result should be backfilled")
+        assertNotNull(result.solution.lengthResult, "Length result should be backfilled")
+        assertEquals(UInt64.one, result.solution.kpi.topPlanCount)
+        assertTrue(Csp1dKpiKeys.machineCapacityUsed(machine.id) in result.solution.kpi.details)
+        assertTrue(Csp1dKpiKeys.underProduction(product.id, demandKey.unitSymbol) in result.solution.kpi.details)
+        assertTrue(Csp1dKpiKeys.assignedLength(product.id) in result.solution.kpi.details)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+    }
+
+    /**
      * 验证 previousSolution 只复用当前问题兼容的方案和使用量 /
      * Verify previousSolution reuses only plans and usages compatible with the current problem
      */
@@ -1594,6 +1705,66 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
         assertEquals(Csp1dWarmStartStatus.Invalid, error.trace.warmStartStatus)
         assertEquals(0, error.trace.attemptCount)
+    }
+
+    /**
+     * 验证兼容 warm start 在 adapter 未配置且禁用 fallback 时会直接失败 /
+     * Verify compatible warm start fails when adapter is unsupported and fallback is disabled
+     */
+    @Test
+    fun recoveryShouldRejectCompatibleWarmStartWhenAdapterUnsupportedAndFallbackDisabled() {
+        val product = product(
+            id = "p-recovery-unsupported",
+            width = 0.8
+        )
+        val material = material(
+            id = "m-recovery-unsupported",
+            lowerWidth = 0.5,
+            upperWidth = 1.5
+        )
+        val warmStartPlan = simpleCuttingPlan(
+            product = product,
+            material = material,
+            rollContribution = Flt64.one
+        )
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(
+                ProductDemand.legacyRoll(
+                    product = product,
+                    rollAmount = Flt64.one
+                )
+            ),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+
+        val error = assertFailsWith<Csp1dRecoveryFallbackDisabledException> {
+            runBlocking {
+                Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+                    Csp1dRecoveryInput(
+                        problem = problem,
+                        warmStart = Csp1dWarmStart(
+                            cuttingPlans = listOf(warmStartPlan)
+                        ),
+                        options = Csp1dRecoveryOptions(
+                            retryWithoutWarmStart = false
+                        )
+                    )
+                )
+            }
+        }
+
+        assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
+        assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, error.trace.warmStartStatus)
+        assertEquals(0, error.trace.attemptCount)
+        assertEquals(1, error.trace.warmStartPlanCount)
+        assertEquals(0, error.trace.appliedWarmStartPlanCount)
     }
 
     /**
