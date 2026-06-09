@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -74,7 +75,7 @@ class BunchCapacitySchedulingProduce<
                     continue
                 }
                 for ((slotIndex, _) in slots.withIndex()) {
-                    quantity[product].asMutable() += LinearMonomial(unitProduce.solverMaterialQuantity(), compilation.operationTime[actionIndex, slotIndex])
+                    quantity[product].asMutable() += LinearMonomial(unitProduce.toSolverValue(), compilation.operationTime[actionIndex, slotIndex])
                 }
             }
         }

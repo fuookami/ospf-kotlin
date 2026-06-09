@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
@@ -75,21 +76,6 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
     val quantityRangeValue: ResourceQuantityRange<V>
     val lessQuantityValue: ResourceQuantity<V>? get() = null
     val overQuantityValue: ResourceQuantity<V>? get() = null
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("quantityRangeValue.value")
-    )
-    val quantity: ValueRange<V> get() = quantityRangeValue.value
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("lessQuantityValue?.value")
-    )
-    val lessQuantity: V? get() = lessQuantityValue?.value
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("overQuantityValue?.value")
-    )
-    val overQuantity: V? get() = overQuantityValue?.value
     val interval: Duration
     val name: String? get() = null
     val lessEnabled: Boolean get() = lessQuantityValue != null
@@ -144,26 +130,6 @@ open class ResourceCapacity<V>(
     override val interval: Duration = Duration.INFINITE,
     override val name: String? = null
 ) : AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("ResourceCapacity(time, Quantity(quantity, NoneUnit), lessQuantity?.let { Quantity(it, NoneUnit) }, overQuantity?.let { Quantity(it, NoneUnit) }, interval, name)")
-    )
-    constructor(
-        time: TimeRange,
-        quantity: ValueRange<V>,
-        lessQuantity: V? = null,
-        overQuantity: V? = null,
-        interval: Duration = Duration.INFINITE,
-        name: String? = null
-    ) : this(
-        time = time,
-        quantityRangeValue = Quantity(quantity, NoneUnit),
-        lessQuantityValue = lessQuantity?.let { Quantity(it, NoneUnit) },
-        overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) },
-        interval = interval,
-        name = name
-    )
-
     override fun toString() = name ?: "${quantityRangeValue.value}_${interval}"
 }
 
@@ -174,17 +140,42 @@ open class ResourceCapacity<V>(
  * @property id 资源ID / Resource ID
  * @property name 资源名称 / Resource name
  * @property capacities 容量列表 / List of capacities
- * @property initialQuantity 初始数量 / Initial quantity
+ * @property initialQuantityValue 初始数量裸值 / Initial quantity raw value
  */
 abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapacity<V>, V : RealNumber<V>, V : NumberField<V> {
     abstract val id: String
     abstract val name: String
     abstract val capacities: List<C>
+
+    /**
+     * 初始数量裸值 / Initial quantity raw value
+     *
+     * 子类应 override 此属性提供初始数量裸值 / Subclasses should override this property to provide the initial quantity raw value
+     */
+    abstract val initialQuantityValue: V
+
     @Deprecated(
         message = "Use initialQuantity(unit) returning Quantity instead",
         replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
     )
-    abstract val initialQuantity: V
+    val initialQuantity: V get() = initialQuantityValue
+
+    /**
+     * 计算使用量物理量 / Calculate used quantity as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param bunch 任务束 / Task bunch
+     * @param time 时间范围 / Time range
+     * @param unit 数量单位 / Quantity unit
+     * @return 使用量物理量 / Used quantity
+     */
+    abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
+        bunch: AbstractTaskBunch<T, E, A, V>,
+        time: TimeRange,
+        unit: PhysicalUnit = NoneUnit
+    ): ResourceQuantity<V>
 
     /**
      * 计算使用量 / Calculate used quantity
@@ -200,10 +191,10 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
         message = "Use usedQuantityQuantity returning Quantity instead",
         replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
     )
-    abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
-    ): V
+    ): V = usedQuantityQuantity(bunch, time).value
 
     /**
      * 初始数量物理量 / Initial quantity as a physical quantity
@@ -211,29 +202,8 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      * @param unit 数量单位 / Quantity unit
      * @return 初始数量物理量 / Initial quantity
      */
-    @Suppress("DEPRECATION")
     fun initialQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V> {
-        return Quantity(initialQuantity, unit)
-    }
-
-    /**
-     * 使用量物理量 / Used quantity as a physical quantity
-     *
-     * @param T 任务类型 / Task type
-     * @param E 执行器类型 / Executor type
-     * @param A 分配策略类型 / Assignment policy type
-     * @param bunch 任务束 / Task bunch
-     * @param time 时间范围 / Time range
-     * @param unit 数量单位 / Quantity unit
-     * @return 使用量物理量 / Used quantity
-     */
-    @Suppress("DEPRECATION")
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
-        bunch: AbstractTaskBunch<T, E, A, V>,
-        time: TimeRange,
-        unit: PhysicalUnit = NoneUnit
-    ): ResourceQuantity<V> {
-        return Quantity(usedQuantity(bunch, time), unit)
+        return Quantity(initialQuantityValue, unit)
     }
 }
 
@@ -266,7 +236,7 @@ interface ResourceTimeSlot<
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
     ): V {
-        return resource.initialQuantity().value.constants.zero
+        return resource.initialQuantityValue.constants.zero
     }
 
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
@@ -378,7 +348,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantity
 ): ResourceQuantity<V>? {
     val value = (this as IntermediateSymbol<Flt64>).evaluate(
         tokenTable = model.tokens,
-        converter = resourceSolverValueAdapter,
+        converter = schedulingSolverValueAdapter,
         zeroIfNone = true
     ) ?: toLinearPolynomial().constant
     return Quantity(adapter.intoValue(value), unit)

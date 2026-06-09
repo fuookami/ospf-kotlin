@@ -143,11 +143,3 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
         return actions.indexOf(action)
     }
 }
-
-// ── Flt64 向后兼容 typealias ──
-
-@Deprecated(
-    message = "Use CapacitySchedulingAggregation<Flt64, A> directly",
-    replaceWith = ReplaceWith("CapacitySchedulingAggregation<Flt64, A>")
-)
-typealias Flt64CapacitySchedulingAggregation<A> = CapacitySchedulingAggregation<Flt64, A>

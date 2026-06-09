@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
@@ -258,17 +257,3 @@ class TaskReverse<
         return rightMapper[flightTask.key] ?: emptyList()
     }
 }
-
-/** 向后兼容 typealias — Flt64 task reverse builder / Backward compat typealias */
-@Deprecated(
-    message = "Use TaskReverseBuilderV<B, Flt64, T, E, A> directly",
-    replaceWith = ReplaceWith("TaskReverseBuilderV<B, Flt64, T, E, A>")
-)
-typealias TaskReverseBuilder<B, T, E, A> = TaskReverseBuilderV<B, Flt64, T, E, A>
-
-/** 向后兼容 typealias — Flt64 task reverse builder / Backward compat typealias */
-@Deprecated(
-    message = "Use TaskReverseBuilderV<B, Flt64, T, E, A> directly",
-    replaceWith = ReplaceWith("TaskReverseBuilderV<B, Flt64, T, E, A>")
-)
-typealias Flt64TaskReverseBuilder<B, T, E, A> = TaskReverseBuilderV<B, Flt64, T, E, A>

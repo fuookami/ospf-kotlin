@@ -1,7 +1,4 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.time.Duration.Companion.hours
@@ -1147,4 +1144,3 @@ class WorkingCalendarTest {
         assert(thrown) { "Expected IllegalArgumentException for inconsistent material unitYield units" }
     }
 }
-

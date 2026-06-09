@@ -201,7 +201,7 @@ class Flow(
     id = id,
     name = "${airport}_flow",
     capacities = capacities,
-    initialQuantity = Flt64.zero,
+    initialQuantityValue = Flt64.zero,
 ) {
     init {
         assert(capacities.all { it.airport == airport && it.scene == scene })

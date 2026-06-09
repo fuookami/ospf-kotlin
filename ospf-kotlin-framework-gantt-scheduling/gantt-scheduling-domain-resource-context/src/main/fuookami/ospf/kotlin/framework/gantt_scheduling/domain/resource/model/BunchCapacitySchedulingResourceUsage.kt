@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
@@ -140,7 +141,7 @@ class BunchCapacitySchedulingResourceUsage<
             for ((actionIndex, action) in actions.withIndex()) {
                 val unitUsage = slot.resource.usedBy(action, slot.time)
                 if (unitUsage neq unitUsage.constants.zero) {
-                    quantity[slot].asMutable() += LinearMonomial(unitUsage.solverResourceQuantity(), compilation.operationTime[actionIndex, slotIndex])
+                    quantity[slot].asMutable() += LinearMonomial(unitUsage.toSolverValue(), compilation.operationTime[actionIndex, slotIndex])
                 }
             }
         }

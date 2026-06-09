@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Mate
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.consumptionV
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.produceV
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverMaterialQuantity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -57,9 +57,9 @@ class ProduceGenericFltXTest {
             lessQuantityValue = Quantity(FltX("5.0"), NoneUnit),
             overQuantityValue = Quantity(FltX("3.0"), NoneUnit)
         )
-        val solverUpperBound = demand.quantityRangeValue.value.upperBound.value.unwrap().solverMaterialQuantity()
+        val solverUpperBound = demand.quantityRangeValue.value.upperBound.value.unwrap().toSolverValue()
         assertTrue(solverUpperBound eq Flt64(100.0))
-        val solverLessQuantity = demand.lessQuantityValue!!.value.solverMaterialQuantity()
+        val solverLessQuantity = demand.lessQuantityValue!!.value.toSolverValue()
         assertTrue(solverLessQuantity eq Flt64(5.0))
     }
 
@@ -72,9 +72,9 @@ class ProduceGenericFltXTest {
             quantityRangeValue = Quantity(range, NoneUnit),
             overQuantityValue = Quantity(FltX("15.0"), NoneUnit)
         )
-        val solverLowerBound = reserves.quantityRangeValue.value.lowerBound.value.unwrap().solverMaterialQuantity()
+        val solverLowerBound = reserves.quantityRangeValue.value.lowerBound.value.unwrap().toSolverValue()
         assertTrue(solverLowerBound eq Flt64(10.0))
-        val solverOverQuantity = reserves.overQuantityValue!!.value.solverMaterialQuantity()
+        val solverOverQuantity = reserves.overQuantityValue!!.value.toSolverValue()
         assertTrue(solverOverQuantity eq Flt64(15.0))
     }
 

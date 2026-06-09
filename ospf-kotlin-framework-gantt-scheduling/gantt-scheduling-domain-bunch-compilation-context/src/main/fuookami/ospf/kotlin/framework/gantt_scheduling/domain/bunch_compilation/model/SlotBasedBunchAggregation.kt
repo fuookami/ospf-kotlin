@@ -2,7 +2,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -31,17 +30,3 @@ open class SlotBasedBunchAggregationV<
             && this.slot == other.slot
     }
 }
-
-/** 向后兼容 typealias — Flt64 slot-based bunch aggregation / Backward compat typealias */
-@Deprecated(
-    message = "Use SlotBasedBunchAggregationV<B, Flt64, T, E, A> directly",
-    replaceWith = ReplaceWith("SlotBasedBunchAggregationV<B, Flt64, T, E, A>")
-)
-typealias SlotBasedBunchAggregation<B, T, E, A> = SlotBasedBunchAggregationV<B, Flt64, T, E, A>
-
-/** 向后兼容 typealias — Flt64 slot-based bunch aggregation / Backward compat typealias */
-@Deprecated(
-    message = "Use SlotBasedBunchAggregationV<B, Flt64, T, E, A> directly",
-    replaceWith = ReplaceWith("SlotBasedBunchAggregationV<B, Flt64, T, E, A>")
-)
-typealias Flt64SlotBasedBunchAggregation<B, T, E, A> = SlotBasedBunchAggregationV<B, Flt64, T, E, A>

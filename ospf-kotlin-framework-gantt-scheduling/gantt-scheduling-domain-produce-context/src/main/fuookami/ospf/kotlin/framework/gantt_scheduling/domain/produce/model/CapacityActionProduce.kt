@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverFlt64
 
 /**
  * 支持 ProductionAction 的产出消耗接口。
@@ -32,15 +33,6 @@ interface CapacityActionProduce<
      */
     val consumption: Map<C, V>
 }
-
-/** Flt64 生产动作产出消耗类型别名 / Flt64 production action produce-consumption type alias */
-@Deprecated(
-    message = "Use CapacityActionProduce<P, C, Flt64> directly",
-    replaceWith = ReplaceWith("CapacityActionProduce<P, C, Flt64>")
-)
-typealias Flt64CapacityActionProduce<P, C> = CapacityActionProduce<P, C, Flt64>
-
-private fun UInt64.solverAmount(): Flt64 = Flt64(toLong().toDouble())
 
 /**
  * 按产品方向读取生产动作的单位产量映射。
@@ -123,7 +115,7 @@ fun <E : Executor, A : ProductionAction, C : AbstractMaterial, V : RealNumber<V>
  */
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.produce(product: P): Flt64 {
-    return produceV(product) { it.solverAmount() }
+    return produceV(product) { it.toSolverFlt64() }
 }
 
 /**
@@ -135,5 +127,5 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
  */
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.consumption(material: C): Flt64 {
-    return consumptionV(material) { it.solverAmount() }
+    return consumptionV(material) { it.toSolverFlt64() }
 }

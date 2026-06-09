@@ -9,10 +9,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -38,20 +41,16 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
  * @param id 资源ID / Resource ID
  * @param name 资源名称 / Resource name
  * @param capacities 容量列表 / List of capacities
- * @param initialQuantity 初始数量 / Initial quantity
+ * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
  */
 abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
-    @Deprecated(
-        message = "Use initialQuantity(unit) returning Quantity instead",
-        replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
-    )
-    override val initialQuantity: V = resourceQuantityZero(capacities)
+    override val initialQuantityValue: V = resourceQuantityZero(capacities)
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     open fun fixedCostIn(time: Duration): V {
-        return initialQuantity().value.constants.zero
+        return initialQuantityValue.constants.zero
     }
 
     open fun fixedCostIn(time: TimeRange): V {
@@ -72,7 +71,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     }
 
     open fun fixedSupplyIn(time: Duration): V {
-        return initialQuantity().value.constants.zero
+        return initialQuantityValue.constants.zero
     }
 
     open fun fixedSupplyIn(time: TimeRange): V {
@@ -103,7 +102,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
     ): V {
-        var sum = initialQuantity().value.constants.zero
+        var sum = initialQuantityValue.constants.zero
         for (i in bunch.tasks.indices) {
             sum += costBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
@@ -121,7 +120,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
     ): V {
-        var sum = initialQuantity().value.constants.zero
+        var sum = initialQuantityValue.constants.zero
         for (i in bunch.tasks.indices) {
             sum += supplyBy(bunch.tasks[i], time)
             when (val currentTime = bunch.tasks[i].time) {
@@ -135,15 +134,12 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
         return sum
     }
 
-    @Deprecated(
-        message = "Use usedQuantityQuantity returning Quantity instead",
-        replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
-    )
-    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
-        time: TimeRange
-    ): V {
-        return supplyBy(bunch, time) - costBy(bunch, time)
+        time: TimeRange,
+        unit: PhysicalUnit
+    ): ResourceQuantity<V> {
+        return Quantity(supplyBy(bunch, time) - costBy(bunch, time), unit)
     }
 }
 
@@ -185,7 +181,7 @@ data class StorageResourceTimeSlot<
         return if (task != null) {
             supplyBy(task) - costBy(task)
         } else {
-            resource.initialQuantity().value.constants.zero
+            resource.initialQuantityValue.constants.zero
         }
     }
 
@@ -307,7 +303,7 @@ abstract class AbstractStorageResourceUsage<
                     acc + (elem as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()
                 }
                 LinearExpressionSymbol(
-                    polynomial = LinearPolynomial(emptyList(), fixedSupply.solverResourceQuantity()) + executorSum,
+                    polynomial = LinearPolynomial(emptyList(), fixedSupply.toSolverValue()) + executorSum,
                     name = "${name}_supply_${resource}_${slot}"
                 )
             }
@@ -551,7 +547,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                 val time = TimeRange(timeWindow.start, slot.end)
                 val fixedCost = resource.fixedCostIn(time)
                 LinearExpressionSymbol(
-                    constant = fixedCost.solverResourceQuantity(),
+                    constant = fixedCost.toSolverValue(),
                     name = "${name}_cost_${resource}_${slot}"
                 )
             }
@@ -603,7 +599,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                             if (thisTasks.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((task, supplyQuantity) in thisTasks) {
-                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.solverResourceQuantity(), xi[task])
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.toSolverValue(), xi[task])
                                 }
                             }
                         }
@@ -627,7 +623,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                         if (thisTasks.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((task, costQuantity) in thisTasks) {
-                                cost[r, t].asMutable() += LinearMonomial(costQuantity.solverResourceQuantity(), xi[task])
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity.toSolverValue(), xi[task])
                             }
                         }
                     }
@@ -743,7 +739,7 @@ class BunchSchedulingStorageResourceUsage<
                 val time = TimeRange(timeWindow.start, slot.end)
                 val fixedCost = resource.fixedCostIn(time)
                 LinearExpressionSymbol(
-                    constant = fixedCost.solverResourceQuantity(),
+                    constant = fixedCost.toSolverValue(),
                     name = "${name}_cost_${resource}_${slot}"
                 )
             }
@@ -800,7 +796,7 @@ class BunchSchedulingStorageResourceUsage<
                             if (thisBunches.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((bunch, supplyQuantity) in thisBunches) {
-                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.solverResourceQuantity(), xi[bunch])
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity.toSolverValue(), xi[bunch])
                                 }
                             }
                         }
@@ -825,7 +821,7 @@ class BunchSchedulingStorageResourceUsage<
                         if (thisBunches.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((bunch, costQuantity) in thisBunches) {
-                                cost[r, t].asMutable() += LinearMonomial(costQuantity.solverResourceQuantity(), xi[bunch])
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity.toSolverValue(), xi[bunch])
                             }
                         }
                     }

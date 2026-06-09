@@ -11,9 +11,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -33,36 +37,29 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
  * @param id 资源ID / Resource ID
  * @param name 资源名称 / Resource name
  * @param capacities 容量列表 / List of capacities
- * @param initialQuantity 初始数量 / Initial quantity
+ * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
  */
 abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
-    @Deprecated(
-        message = "Use initialQuantity(unit) returning Quantity instead",
-        replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
-    )
-    override val initialQuantity: V = resourceQuantityZero(capacities)
+    override val initialQuantityValue: V = resourceQuantityZero(capacities)
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     abstract fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         task: AbstractTask<E, A>,
         time: TimeRange
     ): V
 
-    @Deprecated(
-        message = "Use usedQuantityQuantity returning Quantity instead",
-        replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
-    )
-    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
+    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
-        time: TimeRange
-    ): V {
-        var counter = initialQuantity().value.constants.zero
+        time: TimeRange,
+        unit: PhysicalUnit
+    ): ResourceQuantity<V> {
+        var counter = initialQuantityValue.constants.zero
         for (task in bunch.tasks) {
             counter += usedBy(task, time)
         }
-        return counter
+        return Quantity(counter, unit)
     }
 }
 
@@ -98,7 +95,7 @@ data class ExecutionResourceTimeSlot<
         return if (task != null) {
             usedBy(task)
         } else {
-            resource.initialQuantity().value.constants.zero
+            resource.initialQuantityValue.constants.zero
         }
     }
 
@@ -382,7 +379,7 @@ class BunchSchedulingExecutionResourceUsage<
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
                     quantity[slot].asMutable() += LinearMonomial(
-                        slot.resource.usedQuantityQuantity(bunch, slot.time).value.solverResourceQuantity(),
+                        slot.resource.usedQuantityQuantity(bunch, slot.time).value.toSolverValue(),
                         xi[bunch]
                     )
                 }

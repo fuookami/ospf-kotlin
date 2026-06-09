@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -8,8 +7,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -47,35 +44,6 @@ data class MaterialDemand<V>(
     val lessQuantityValue: MaterialQuantity<V>? = null,
     val overQuantityValue: MaterialQuantity<V>? = null
 ) where V : RealNumber<V>, V : NumberField<V> {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("MaterialDemand(Quantity(quantity, NoneUnit), lessQuantity?.let { Quantity(it, NoneUnit) }, overQuantity?.let { Quantity(it, NoneUnit) })")
-    )
-    constructor(
-        quantity: ValueRange<V>,
-        lessQuantity: V? = null,
-        overQuantity: V? = null
-    ) : this(
-        quantityRangeValue = Quantity(quantity, NoneUnit),
-        lessQuantityValue = lessQuantity?.let { Quantity(it, NoneUnit) },
-        overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) }
-    )
-
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("quantityRangeValue.value")
-    )
-    val quantity: ValueRange<V> get() = quantityRangeValue.value
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("lessQuantityValue?.value")
-    )
-    val lessQuantity: V? get() = lessQuantityValue?.value
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("overQuantityValue?.value")
-    )
-    val overQuantity: V? get() = overQuantityValue?.value
     val lessEnabled: Boolean get() = lessQuantityValue != null
     val overEnabled: Boolean get() = overQuantityValue != null
 
@@ -109,13 +77,6 @@ data class MaterialDemand<V>(
         return overQuantityValue?.let { Quantity(it.value, unit) }
     }
 }
-
-/** Flt64 材料需求类型别名 / Flt64 material demand type alias */
-@Deprecated(
-    message = "Use MaterialDemand<Flt64> directly",
-    replaceWith = ReplaceWith("MaterialDemand<Flt64>")
-)
-typealias Flt64MaterialDemand = MaterialDemand<Flt64>
 
 /**
  * 材料储备 / Material reserves
@@ -129,35 +90,6 @@ open class MaterialReserves<V>(
     val lessQuantityValue: MaterialQuantity<V>? = null,
     val overQuantityValue: MaterialQuantity<V>? = null,
 ) where V : RealNumber<V>, V : NumberField<V> {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("MaterialReserves(Quantity(quantity, NoneUnit), lessQuantity?.let { Quantity(it, NoneUnit) }, overQuantity?.let { Quantity(it, NoneUnit) })")
-    )
-    constructor(
-        quantity: ValueRange<V>,
-        lessQuantity: V? = null,
-        overQuantity: V? = null
-    ) : this(
-        quantityRangeValue = Quantity(quantity, NoneUnit),
-        lessQuantityValue = lessQuantity?.let { Quantity(it, NoneUnit) },
-        overQuantityValue = overQuantity?.let { Quantity(it, NoneUnit) }
-    )
-
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("quantityRangeValue.value")
-    )
-    val quantity: ValueRange<V> get() = quantityRangeValue.value
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("lessQuantityValue?.value")
-    )
-    val lessQuantity: V? get() = lessQuantityValue?.value
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("overQuantityValue?.value")
-    )
-    val overQuantity: V? get() = overQuantityValue?.value
     val lessEnabled: Boolean get() = lessQuantityValue != null
     val overEnabled: Boolean get() = overQuantityValue != null
 
@@ -191,13 +123,6 @@ open class MaterialReserves<V>(
         return overQuantityValue?.let { Quantity(it.value, unit) }
     }
 }
-
-/** Flt64 材料储备类型别名 / Flt64 material reserves type alias */
-@Deprecated(
-    message = "Use MaterialReserves<Flt64> directly",
-    replaceWith = ReplaceWith("MaterialReserves<Flt64>")
-)
-typealias Flt64MaterialReserves = MaterialReserves<Flt64>
 
 /**
  * 生产任务接口 / Production task interface
@@ -218,6 +143,12 @@ interface ProductionTask<
         C : AbstractMaterial,
         V : RealNumber<V>
         > : AbstractTask<E, A> {
+    /** 生产量物理量映射 / Produce quantity map with units */
+    val produceQuantityByProduct: Map<P, MaterialQuantity<V>>
+
+    /** 消耗量物理量映射 / Consumption quantity map with units */
+    val consumptionQuantityByMaterial: Map<C, MaterialQuantity<V>>
+
     @Deprecated(
         message = "Use the Quantity-typed property instead",
         replaceWith = ReplaceWith("produceQuantityByProduct")
@@ -230,14 +161,6 @@ interface ProductionTask<
     )
     val consumption: Map<C, V>
         get() = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.value }
-
-    /** 生产量物理量映射 / Produce quantity map with units */
-    val produceQuantityByProduct: Map<P, MaterialQuantity<V>>
-        get() = produce.mapValues { (_, value) -> Quantity(value, NoneUnit) }
-
-    /** 消耗量物理量映射 / Consumption quantity map with units */
-    val consumptionQuantityByMaterial: Map<C, MaterialQuantity<V>>
-        get() = consumption.mapValues { (_, value) -> Quantity(value, NoneUnit) }
 
     /**
      * 生产量物理量 / Produce quantity as a physical quantity
@@ -261,13 +184,6 @@ interface ProductionTask<
         return consumptionQuantityByMaterial[material]?.let { Quantity(it.value, unit) }
     }
 }
-
-/** Flt64 生产任务类型别名 / Flt64 production task type alias */
-@Deprecated(
-    message = "Use ProductionTask<E, A, P, C, Flt64> directly",
-    replaceWith = ReplaceWith("ProductionTask<E, A, P, C, Flt64>")
-)
-typealias Flt64ProductionTask<E, A, P, C> = ProductionTask<E, A, P, C, Flt64>
 
 private fun <V : RealNumber<V>> AbstractTaskBunch<*, *, *, V>.quantityZero(): V {
     for (task in tasks) {
@@ -332,29 +248,6 @@ fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroConsumptionMater
 }
 
 /**
- * 计算任务束的生产量 / Calculate bunch produce quantity
- *
- * @param T 任务类型 / Task type
- * @param E 执行器类型 / Executor type
- * @param A 分配策略类型 / Assignment policy type
- * @param P 生产材料类型 / Production material type
- * @param product 产品 / Product
- * @return 生产量 / Produce quantity
- */
-@Deprecated(
-    message = "Use produceV or produceQuantityV instead",
-    replaceWith = ReplaceWith("produceV(product)")
-)
-fun <
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>,
-        P : AbstractMaterial
-        > AbstractTaskBunch<T, E, A, Flt64>.produce(product: P): Flt64 {
-    return produceV(product)
-}
-
-/**
  * 计算任务束的生产量（泛型版本）/ Calculate bunch produce quantity (generic version)
  *
  * @param T 任务类型 / Task type
@@ -408,29 +301,6 @@ fun <
     unit: PhysicalUnit = NoneUnit
 ): MaterialQuantity<V> {
     return Quantity(produceV(product), unit)
-}
-
-/**
- * 计算任务束的消耗量 / Calculate bunch consumption quantity
- *
- * @param T 任务类型 / Task type
- * @param E 执行器类型 / Executor type
- * @param A 分配策略类型 / Assignment policy type
- * @param C 消耗材料类型 / Consumption material type
- * @param material 材料 / Material
- * @return 消耗量 / Consumption quantity
- */
-@Deprecated(
-    message = "Use consumptionV or consumptionQuantityV instead",
-    replaceWith = ReplaceWith("consumptionV(material)")
-)
-fun <
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>,
-        C : AbstractMaterial
-        > AbstractTaskBunch<T, E, A, Flt64>.consumption(material: C): Flt64 {
-    return consumptionV(material)
 }
 
 /**

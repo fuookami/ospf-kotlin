@@ -16,13 +16,6 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 /** 成本物理量 / Cost quantity */
 typealias CostQuantity<V> = Quantity<V>
 
-/** Flt64 成本物理量兼容类型 / Flt64 cost quantity compatibility type */
-@Deprecated(
-    message = "Use CostQuantity<Flt64> directly",
-    replaceWith = ReplaceWith("CostQuantity<Flt64>")
-)
-typealias Flt64CostQuantity = CostQuantity<Flt64>
-
 /**
  * 成本项，包含标签、值和消息 / Cost item containing tag, value, and message
  *
@@ -291,29 +284,3 @@ data class ImmutableCost<V : RealNumber<V>>(
         )
     }
 }
-
-// ── Flt64 向后兼容 typealias ──
-
-@Deprecated(
-    message = "Use CostItem<Flt64> directly",
-    replaceWith = ReplaceWith("CostItem<Flt64>")
-)
-typealias Flt64CostItem = CostItem<Flt64>
-
-@Deprecated(
-    message = "Use Cost<Flt64> directly",
-    replaceWith = ReplaceWith("Cost<Flt64>")
-)
-typealias Flt64Cost = Cost<Flt64>
-
-@Deprecated(
-    message = "Use MutableCost<Flt64> directly",
-    replaceWith = ReplaceWith("MutableCost<Flt64>")
-)
-typealias Flt64MutableCost = MutableCost<Flt64>
-
-@Deprecated(
-    message = "Use ImmutableCost<Flt64> directly",
-    replaceWith = ReplaceWith("ImmutableCost<Flt64>")
-)
-typealias Flt64ImmutableCost = ImmutableCost<Flt64>

@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Exe
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResourceTimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZero
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.solverResourceQuantity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -163,7 +163,7 @@ class ResourceGenericFltXTest {
             id = "quantity-exec",
             name = "Quantity Exec",
             capacities = listOf(cap),
-            initialQuantity = FltX("12.5")
+            initialQuantityValue = FltX("12.5")
         ) {
             override fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
                 task: AbstractTask<E, A>,
@@ -300,13 +300,13 @@ class ResourceGenericFltXTest {
             overQuantityValue = Quantity(FltX("10.0"), NoneUnit)
         )
 
-        val solverUpperBound = cap.quantityRangeValue.value.upperBound.value.unwrap().solverResourceQuantity()
+        val solverUpperBound = cap.quantityRangeValue.value.upperBound.value.unwrap().toSolverValue()
         assertTrue(solverUpperBound eq Flt64(100.0))
-        val solverLowerBound = cap.quantityRangeValue.value.lowerBound.value.unwrap().solverResourceQuantity()
+        val solverLowerBound = cap.quantityRangeValue.value.lowerBound.value.unwrap().toSolverValue()
         assertTrue(solverLowerBound eq Flt64(0.0))
-        val solverLessQuantity = cap.lessQuantityValue!!.value.solverResourceQuantity()
+        val solverLessQuantity = cap.lessQuantityValue!!.value.toSolverValue()
         assertTrue(solverLessQuantity eq Flt64(5.0))
-        val solverOverQuantity = cap.overQuantityValue!!.value.solverResourceQuantity()
+        val solverOverQuantity = cap.overQuantityValue!!.value.toSolverValue()
         assertTrue(solverOverQuantity eq Flt64(10.0))
     }
 

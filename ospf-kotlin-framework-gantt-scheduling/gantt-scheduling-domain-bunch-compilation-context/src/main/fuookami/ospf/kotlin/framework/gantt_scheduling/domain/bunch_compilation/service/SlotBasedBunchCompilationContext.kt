@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64SlotConstraints
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -59,7 +59,7 @@ interface SlotBasedBunchCompilationContextV<
      * 产能中间值（预求解后填充）
      * Capacity intermediate values (populated after pre-solving)
      */
-    val intermediateValues: Flt64CapacityIntermediateValues<Action, M, R>?
+    val intermediateValues: CapacityIntermediateValues<Action, M, R, Flt64>?
 
     /**
      * 执行产能预求解
@@ -75,7 +75,7 @@ interface SlotBasedBunchCompilationContextV<
     suspend fun preSolveCapacity(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver
-    ): Ret<Flt64CapacityIntermediateValues<Action, M, R>>
+    ): Ret<CapacityIntermediateValues<Action, M, R, Flt64>>
 
     /**
      * 获取指定时隙的约束
@@ -85,7 +85,7 @@ interface SlotBasedBunchCompilationContextV<
      * @param tolerance Tolerance for constraint bounds / 约束边界的容差
      * @return Slot constraints / 时隙约束
      */
-    fun slotConstraints(slot: TimeSlot, tolerance: Flt64 = Flt64.zero): Flt64SlotConstraints<M, R>? {
+    fun slotConstraints(slot: TimeSlot, tolerance: Flt64 = Flt64.zero): SlotConstraints<M, R, Flt64>? {
         return intermediateValues?.slotConstraints(slot, tolerance)
     }
 
@@ -96,7 +96,7 @@ interface SlotBasedBunchCompilationContextV<
      * @param tolerance Tolerance for constraint bounds / 约束边界的容差
      * @return Map of slot to constraints / 时隙到约束的映射
      */
-    fun allSlotConstraints(tolerance: Flt64 = Flt64.zero): Map<TimeSlot, Flt64SlotConstraints<M, R>> {
+    fun allSlotConstraints(tolerance: Flt64 = Flt64.zero): Map<TimeSlot, SlotConstraints<M, R, Flt64>> {
         return slots.mapNotNull { slot ->
             intermediateValues?.slotConstraints(slot, tolerance)?.let { slot to it }
         }.toMap()
@@ -126,19 +126,3 @@ interface SlotBasedBunchCompilationContextV<
      */
     fun bunchesInSlot(slot: TimeSlot): List<B>
 }
-
-/** 向后兼容 typealias — Flt64 slot-based bunch compilation context / Backward compat typealias */
-@Deprecated(
-    message = "Use SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R> directly",
-    replaceWith = ReplaceWith("SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>")
-)
-typealias SlotBasedBunchCompilationContext<Args, B, T, E, A, Action, M, R> =
-    SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>
-
-/** 向后兼容 typealias — Flt64 slot-based bunch compilation context / Backward compat typealias */
-@Deprecated(
-    message = "Use SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R> directly",
-    replaceWith = ReplaceWith("SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>")
-)
-typealias Flt64SlotBasedBunchCompilationContext<Args, B, T, E, A, Action, M, R> =
-    SlotBasedBunchCompilationContextV<Args, B, Flt64, T, E, A, Action, M, R>

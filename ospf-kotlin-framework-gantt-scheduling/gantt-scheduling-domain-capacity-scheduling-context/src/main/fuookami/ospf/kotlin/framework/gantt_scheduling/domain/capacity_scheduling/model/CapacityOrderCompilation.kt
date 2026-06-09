@@ -11,6 +11,8 @@ import fuookami.ospf.kotlin.core.symbol.flatMap
 import fuookami.ospf.kotlin.core.variable.BinVariable3
 import fuookami.ospf.kotlin.core.variable.UIntVariable3
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
@@ -131,7 +133,7 @@ class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
                 for ((s, slot) in slots.withIndex()) {
                     val unitCost = action.unitCost(slot.time.start)
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        costPoly += LinearMonomial(unitCost.solverCapacityCoefficient(), x[a, s, o])
+                        costPoly += LinearMonomial(unitCost.toSolverValue(), x[a, s, o])
                     }
                 }
             }
@@ -160,7 +162,7 @@ class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
                     }
                     val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        poly += LinearMonomial(unitOperationTime.solverCapacityCoefficient(), x[a, s, o])
+                        poly += LinearMonomial(unitOperationTime.toSolverValue(), x[a, s, o])
                     }
                     poly.toLinearPolynomial()
                 }
@@ -236,7 +238,7 @@ class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
         val executorCapacities = mutableListOf<ExecutorCapacityResult>()
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
-                val capValue = capacity[e, s].evaluate(model.tokens, capacitySolverValueAdapter)
+                val capValue = capacity[e, s].evaluate(model.tokens, schedulingSolverValueAdapter)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
                     timeWindow.durationOf(timeWindow.fromDouble(capValue.toDouble()))
                 } else {

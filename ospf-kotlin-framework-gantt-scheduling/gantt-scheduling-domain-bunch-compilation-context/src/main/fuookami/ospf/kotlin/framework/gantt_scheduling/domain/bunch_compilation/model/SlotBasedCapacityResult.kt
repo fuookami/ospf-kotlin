@@ -21,20 +21,6 @@ typealias SlotCostQuantity<V> = Quantity<V>
 /** 时隙数量物理量 / Slot quantity */
 typealias SlotQuantity<V> = Quantity<V>
 
-/** Flt64 时隙成本物理量兼容类型 / Flt64 slot cost quantity compatibility type */
-@Deprecated(
-    message = "Use SlotCostQuantity<Flt64> directly",
-    replaceWith = ReplaceWith("SlotCostQuantity<Flt64>")
-)
-typealias Flt64SlotCostQuantity = SlotCostQuantity<Flt64>
-
-/** Flt64 时隙数量物理量兼容类型 / Flt64 slot quantity compatibility type */
-@Deprecated(
-    message = "Use SlotQuantity<Flt64> directly",
-    replaceWith = ReplaceWith("SlotQuantity<Flt64>")
-)
-typealias Flt64SlotQuantity = SlotQuantity<Flt64>
-
 /**
  * 分时隙产能结果
  * Slot-based capacity result
@@ -513,26 +499,6 @@ data class SlotConstraints<M, R, V>(
         }
     }
 }
-
-// ── Flt64 向后兼容 typealias ──
-
-@Deprecated(
-    message = "Use SlotBasedCapacityResult<A, M, R, Flt64> directly",
-    replaceWith = ReplaceWith("SlotBasedCapacityResult<A, M, R, Flt64>")
-)
-typealias Flt64SlotBasedCapacityResult<A, M, R> = SlotBasedCapacityResult<A, M, R, Flt64>
-
-@Deprecated(
-    message = "Use CapacityIntermediateValues<A, M, R, Flt64> directly",
-    replaceWith = ReplaceWith("CapacityIntermediateValues<A, M, R, Flt64>")
-)
-typealias Flt64CapacityIntermediateValues<A, M, R> = CapacityIntermediateValues<A, M, R, Flt64>
-
-@Deprecated(
-    message = "Use SlotConstraints<M, R, Flt64> directly",
-    replaceWith = ReplaceWith("SlotConstraints<M, R, Flt64>")
-)
-typealias Flt64SlotConstraints<M, R> = SlotConstraints<M, R, Flt64>
 
 private fun <V : RealNumber<V>> Quantity<Flt64>.toGeneric(
     adapter: SchedulingSolverValueAdapter<V>

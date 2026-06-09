@@ -4,9 +4,9 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.service
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64SlotConstraints
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
@@ -67,7 +68,7 @@ interface SlotBasedBunchGenerator<
     suspend fun generate(
         iteration: UInt64,
         slot: TimeSlot,
-        constraints: Flt64SlotConstraints<M, R>,
+        constraints: SlotConstraints<M, R, Flt64>,
         shadowPrices: Map<T, V>
     ): Ret<List<B>>
 
@@ -82,7 +83,7 @@ interface SlotBasedBunchGenerator<
      */
     suspend fun generateAll(
         iteration: UInt64,
-        intermediateValues: Flt64CapacityIntermediateValues<Action, M, R>,
+        intermediateValues: CapacityIntermediateValues<Action, M, R, Flt64>,
         shadowPrices: Map<T, V>
     ): Ret<List<B>> {
         val allBunches = mutableListOf<B>()

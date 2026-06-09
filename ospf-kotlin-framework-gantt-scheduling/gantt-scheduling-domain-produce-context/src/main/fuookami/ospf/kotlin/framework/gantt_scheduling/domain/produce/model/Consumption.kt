@@ -18,6 +18,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.functional.*
@@ -123,7 +125,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.materialQuantity
 ): MaterialQuantity<V>? {
     val value = (this as IntermediateSymbol<Flt64>).evaluate(
         tokenTable = model.tokens,
-        converter = produceSolverValueAdapter,
+        converter = schedulingSolverValueAdapter,
         zeroIfNone = true
     ) ?: toLinearPolynomial().constant
     return Quantity(adapter.intoValue(value), unit)
@@ -439,7 +441,7 @@ class BunchSchedulingConsumption<
                 quantity[material].flush()
                 for ((bunch, consumptionQuantity) in thisBunches) {
                     quantity[material].asMutable() += LinearMonomial(
-                        consumptionQuantity.solverMaterialQuantity(),
+                        consumptionQuantity.toSolverValue(),
                         xi[bunch]
                     )
                 }

@@ -78,3 +78,13 @@ class GenericSolverValueAdapter<V : RealNumber<V>>(
     override fun floorToUInt64(value: Flt64): UInt64 = value.round().toUInt64()
     override fun floorValue(value: Flt64): Flt64 = value.floor()
 }
+
+/**
+ * solver 边界：UInt64 到 Flt64 的集中转换。
+ */
+fun UInt64.toSolverFlt64(): Flt64 = Flt64(toLong().toDouble())
+
+/**
+ * solver 边界：泛型域值 V 到 Flt64 的集中转换。
+ */
+fun <V : RealNumber<V>> V.toSolverValue(): Flt64 = toFlt64()

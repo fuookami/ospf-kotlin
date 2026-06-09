@@ -803,10 +803,3 @@ data class TimeWindow<V : RealNumber<V>>(
         )
     }
 }
-
-/** Flt64 时间窗口兼容别名 / Flt64 time window compatibility alias */
-@Deprecated(
-    message = "Use TimeWindow with an explicit numeric type directly",
-    replaceWith = ReplaceWith("TimeWindow<Flt64>")
-)
-typealias Flt64TimeWindow = TimeWindow<Flt64>

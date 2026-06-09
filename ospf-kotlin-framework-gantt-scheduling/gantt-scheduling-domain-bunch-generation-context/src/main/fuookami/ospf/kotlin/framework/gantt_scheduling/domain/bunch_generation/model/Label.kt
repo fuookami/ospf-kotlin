@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 
 import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -15,15 +14,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param V 数值类型 / Numeric type
  */
 typealias TotalCostCalculatorV<T, E, V> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost<V>?
-
-/**
- * 向后兼容 Flt64 总成本计算器 / Backward compat Flt64 total cost calculator
- */
-@Deprecated(
-    message = "Use TotalCostCalculatorV<T, E, Flt64> directly",
-    replaceWith = ReplaceWith("TotalCostCalculatorV<T, E, Flt64>")
-)
-typealias TotalCostCalculator<T, E> = TotalCostCalculatorV<T, E, Flt64>
 
 /**
  * 生成任务束（泛型版本）/ Generate bunch (generic version)
@@ -263,17 +253,3 @@ open class LabelV<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>,
         )
     }
 }
-
-/** 向后兼容 typealias — Flt64 label / Backward compat typealias */
-@Deprecated(
-    message = "Use LabelV<T, E, A, Flt64> directly",
-    replaceWith = ReplaceWith("LabelV<T, E, A, Flt64>")
-)
-typealias Label<T, E, A> = LabelV<T, E, A, Flt64>
-
-/** 向后兼容 typealias — Flt64 label / Backward compat typealias */
-@Deprecated(
-    message = "Use LabelV<T, E, A, Flt64> directly",
-    replaceWith = ReplaceWith("LabelV<T, E, A, Flt64>")
-)
-typealias Flt64Label<T, E, A> = LabelV<T, E, A, Flt64>

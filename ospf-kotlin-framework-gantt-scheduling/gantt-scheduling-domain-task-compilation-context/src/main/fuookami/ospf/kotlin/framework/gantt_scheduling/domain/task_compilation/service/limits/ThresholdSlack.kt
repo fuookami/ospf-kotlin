@@ -6,11 +6,8 @@ import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.VariableTypeKind
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
-internal fun UInt64.solverThresholdValue() = Flt64(toLong().toDouble())
 
 /**
  * 创建阈值松弛函数 / Create a threshold slack function

@@ -73,7 +73,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -115,7 +115,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -151,7 +151,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -202,7 +202,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -255,7 +255,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -303,7 +303,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.HOURS,
             interval = 1.toDuration(DurationUnit.HOURS),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -340,7 +340,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -380,7 +380,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -420,7 +420,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -462,7 +462,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -502,7 +502,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -542,7 +542,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -590,7 +590,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -654,7 +654,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.SECONDS,
             interval = 10.toDuration(DurationUnit.SECONDS),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -697,7 +697,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -734,7 +734,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -774,7 +774,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -826,7 +826,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -874,7 +874,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.SECONDS,
             interval = 1.toDuration(DurationUnit.SECONDS),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -910,7 +910,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MINUTES,
             interval = 30.toDuration(DurationUnit.MINUTES),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 
@@ -961,7 +961,7 @@ class TimeWindowTest {
             ),
             durationUnit = DurationUnit.MILLISECONDS,
             interval = 1.toDuration(DurationUnit.MILLISECONDS),
-            fromDouble = { Flt64(it) },
+            fromDouble = { FltX(it.toString()) },
             toDouble = { it.toDouble() }
         )
 

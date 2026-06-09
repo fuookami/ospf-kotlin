@@ -119,46 +119,6 @@ interface ProductionAction {
     }
 
     /**
-     * 泛型单位产能 / Generic unit capacity
-     *
-     * 默认实现：先调用 Flt64 版本，再通过 TimeWindow.fromDouble 转换回 V。
-     * Default: delegates to Flt64 version, converts back via TimeWindow.fromDouble.
-     *
-     * @param V 数值类型 / Numeric type
-     * @param timeWindow Time window / 时间窗口
-     * @return Unit capacity as V / 单位产能 (V)
-     */
-    @Deprecated(
-        message = "Use the Quantity-typed method instead",
-        replaceWith = ReplaceWith("unitCapacityQuantity(timeWindow).value")
-    )
-    fun <V : RealNumber<V>> unitCapacityV(timeWindow: TimeWindow<V>): V {
-        return unitCapacityValue(timeWindow)
-    }
-
-    /**
-     * 泛型单位成本 / Generic unit cost
-     *
-     * 默认实现：先调用 Flt64 版本，再通过 fromDouble 转换回 V。
-     * Default: delegates to Flt64 version, converts back via fromDouble.
-     *
-     * 由于 unitCost 无 TimeWindow 上下文，需调用方提供 fromDouble 转换函数。
-     * Since unitCost has no TimeWindow context, caller must provide fromDouble converter.
-     *
-     * @param V 数值类型 / Numeric type
-     * @param time Time instant / 时间点
-     * @param fromDouble Double 到 V 的转换函数 / Double to V converter
-     * @return Unit cost as V / 单位成本 (V)
-     */
-    @Deprecated(
-        message = "Use the Quantity-typed method instead",
-        replaceWith = ReplaceWith("unitCostQuantity(time, fromDouble).value")
-    )
-    fun <V : RealNumber<V>> unitCostV(time: Instant, fromDouble: (Double) -> V): V {
-        return fromDouble(unitCost(time).toDouble())
-    }
-
-    /**
      * 泛型单位产能物理量 / Generic unit capacity quantity
      *
      * @param V 数值类型 / Numeric type
@@ -206,7 +166,7 @@ interface ProductionAction {
     }
 
     // 注意: unitCost 的 Flt64 版本继续保留作为 solver 边界入口。
-    // 调用方可通过 unitCostV + fromDouble 获取 V 类型成本，或通过 SchedulingSolverValueAdapter 转换。
+    // 调用方可通过 unitCostQuantity + fromDouble 获取 V 类型成本，或通过 SchedulingSolverValueAdapter 转换。
     // Note: unitCost Flt64 version is retained as solver boundary entry.
-    // Callers can use unitCostV + fromDouble for V-typed cost, or SchedulingSolverValueAdapter for conversion.
+    // Callers can use unitCostQuantity + fromDouble for V-typed cost, or SchedulingSolverValueAdapter for conversion.
 }

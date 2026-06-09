@@ -55,7 +55,7 @@ class TaskNotOnTimeMinimization<
         } else {
             val slack = thresholdSlack(
                 x = sum(taskTime.notOnTime[_a].map { it.toLinearPolynomial() }),
-                threshold = threshold.solverThresholdValue(),
+                threshold = threshold.toSolverFlt64(),
                 type = UInteger,
                 name = "task_not_on_time_threshold"
             )

@@ -7,8 +7,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.Flt64SlotBasedCapacityResult
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.toGeneric
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
@@ -18,6 +17,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
@@ -32,8 +32,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
-
-private fun UInt64.solverAllocationAmount() = Flt64(toLong().toDouble())
 
 /**
  * 将 wildcard 错误收敛为 ErrorCode 错误。
@@ -274,7 +272,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver,
         initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A, Flt64>>> = emptyMap()
-    ): Ret<Flt64CapacityIntermediateValues<A, M, R>> {
+    ): Ret<CapacityIntermediateValues<A, M, R, Flt64>> {
         if (useColumnGeneration && initialColumnsByIteration.isNotEmpty()) {
             val initialColumnEntries = initialColumnsByIteration.entries.sortedBy { it.key }
             for ((iteration, columns) in initialColumnEntries) {
@@ -346,8 +344,8 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      */
     fun extractIntermediateValues(
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<Flt64CapacityIntermediateValues<A, M, R>> {
-        val results = HashMap<TimeSlot, Flt64SlotBasedCapacityResult<A, M, R>>()
+    ): Ret<CapacityIntermediateValues<A, M, R, Flt64>> {
+        val results = HashMap<TimeSlot, SlotBasedCapacityResult<A, M, R, Flt64>>()
 
         // Extract capacity solution
         // 提取产能�?
@@ -372,7 +370,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
             // Calculate total cost for this slot
             // 计算该时隙的总成�?
             val totalCost = allocations.fold(Flt64.zero) { acc, alloc ->
-                acc + alloc.action.unitCost(alloc.slot.time.start) * alloc.amount.solverAllocationAmount()
+                acc + alloc.action.unitCost(alloc.slot.time.start) * alloc.amount.toSolverFlt64()
             }
 
             // Calculate produce and consumption by material
@@ -413,7 +411,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
                 }
             }
 
-            results[slot] = Flt64SlotBasedCapacityResult(
+            results[slot] = SlotBasedCapacityResult(
                 slot = slot,
                 slotIndex = slotIndex,
                 actionAllocations = allocations,
@@ -424,7 +422,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
             )
         }
 
-        return Ok(Flt64CapacityIntermediateValues(slots, results))
+        return Ok(CapacityIntermediateValues(slots, results))
     }
 
     /**

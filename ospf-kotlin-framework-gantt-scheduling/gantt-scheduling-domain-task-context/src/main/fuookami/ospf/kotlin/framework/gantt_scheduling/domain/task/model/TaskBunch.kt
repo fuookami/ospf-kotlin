@@ -213,10 +213,3 @@ open class AbstractTaskBunch<
         return true
     }
 }
-
-/** 任务束类型别名 / Task bunch type alias */
-@Deprecated(
-    message = "Use AbstractTaskBunch<Task<*, E>, E, A, Flt64> directly",
-    replaceWith = ReplaceWith("AbstractTaskBunch<Task<*, E>, E, A, Flt64>")
-)
-typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A, Flt64>

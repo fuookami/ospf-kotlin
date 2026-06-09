@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
@@ -186,7 +187,7 @@ class ResourceCapacityConstraint<
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
                     usage.timeSlots.sumOf {
-                        it.relationTo(null, args.task).solverResourceQuantity() *
+                        it.relationTo(null, args.task).toSolverValue() *
                                 (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                     }
                 }
@@ -194,7 +195,7 @@ class ResourceCapacityConstraint<
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     if (args.task != null) {
                         usage.timeSlots.sumOf {
-                            it.relationTo(null, args.task).solverResourceQuantity() *
+                            it.relationTo(null, args.task).toSolverValue() *
                                     (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                         }
                     } else {

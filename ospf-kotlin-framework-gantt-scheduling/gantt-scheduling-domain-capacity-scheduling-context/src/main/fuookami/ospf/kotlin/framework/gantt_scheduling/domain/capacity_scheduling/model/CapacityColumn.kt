@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
@@ -33,31 +32,6 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
     val allocations: Map<A, UInt64>,
     val columnCost: CapacityCostQuantity<V>
 ) {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("CapacityColumn(executor, slotIndex, order, allocations, Quantity(cost, NoneUnit))")
-    )
-    constructor(
-        executor: E,
-        slotIndex: Int,
-        order: Int,
-        allocations: Map<A, UInt64>,
-        cost: V
-    ) : this(
-        executor = executor,
-        slotIndex = slotIndex,
-        order = order,
-        allocations = allocations,
-        columnCost = Quantity(cost, NoneUnit)
-    )
-
-    /** 列成本裸值兼容属性 / Raw column cost compatibility property */
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("columnCost.value")
-    )
-    val cost: V get() = columnCost.value
-
     /**
      * 获取指定动作的分配数量
      * Get allocation amount for a specific action
@@ -90,11 +64,3 @@ data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>
         return Quantity(columnCost.value, unit)
     }
 }
-
-// ── Flt64 向后兼容 typealias ──
-
-@Deprecated(
-    message = "Use CapacityColumn<E, A, Flt64> directly",
-    replaceWith = ReplaceWith("CapacityColumn<E, A, Flt64>")
-)
-typealias Flt64CapacityColumn<E, A> = CapacityColumn<E, A, Flt64>

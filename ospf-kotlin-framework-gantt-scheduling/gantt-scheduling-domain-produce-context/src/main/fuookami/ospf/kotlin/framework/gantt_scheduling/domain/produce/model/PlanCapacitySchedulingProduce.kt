@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -48,7 +49,7 @@ class PlanCapacitySchedulingProduce<
                     for ((s, _) in slots.withIndex()) {
                         val actionIndex = actions.indexOf(action)
                         if (actionIndex >= 0) {
-                            quantity[product].asMutable() += LinearMonomial(unitProduce.solverMaterialQuantity(), compilation.operationTime[actionIndex, s])
+                            quantity[product].asMutable() += LinearMonomial(unitProduce.toSolverValue(), compilation.operationTime[actionIndex, s])
                         }
                     }
                 }

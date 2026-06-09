@@ -28,8 +28,6 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
 
-private val solverValueAdapter = schedulingSolverValueAdapter
-
 /** 编译接口 / Compilation interface */
 interface Compilation {
     val taskCancelEnabled: Boolean
@@ -247,7 +245,7 @@ class TaskCompilation<
                 val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
                 val or = OrFunction(
                     polynomials = orPolynomials,
-                    converter = solverValueAdapter,
+                    converter = schedulingSolverValueAdapter,
                     name = "executor_compilation_or_${executors[i]}"
                 )
                 orFunctions.add(or)
@@ -262,7 +260,7 @@ class TaskCompilation<
                 )
             }
             for (or in orFunctions) {
-                when (val result = model.add(LinearFunctionSymbolAdapter(or, solverValueAdapter))) {
+                when (val result = model.add(LinearFunctionSymbolAdapter(or, schedulingSolverValueAdapter))) {
                     is Ok -> {}
 
                     is Failed -> {

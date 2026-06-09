@@ -44,8 +44,6 @@ import kotlin.time.Duration
 /** 任务时间物理量 / Task time quantity */
 typealias TaskTimeQuantity<V> = Quantity<V>
 
-private val solverValueAdapter = schedulingSolverValueAdapter
-
 /**
  * 松弛符号构建 / Slack symbol construction
  *
@@ -72,10 +70,10 @@ private fun slackSymbol(
             type = type,
             withNegative = withNegative,
             withPositive = withPositive,
-            converter = solverValueAdapter,
+            converter = schedulingSolverValueAdapter,
             name = name
         ),
-        converter = solverValueAdapter
+        converter = schedulingSolverValueAdapter
     )
 }
 
@@ -366,7 +364,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.quantityOf(
 ): TaskTimeQuantity<V>? {
     val value = (this as IntermediateSymbol<Flt64>).evaluate(
         tokenTable = model.tokens,
-        converter = solverValueAdapter,
+        converter = schedulingSolverValueAdapter,
         zeroIfNone = true
     ) ?: toLinearPolynomial().constant
     return Quantity(adapter.intoValue(value), unit)
@@ -430,7 +428,7 @@ abstract class TaskTimeImpl<
                         MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
                             mask = compilation.taskCompilation[task],
-                            converter = solverValueAdapter,
+                            converter = schedulingSolverValueAdapter,
                             name = "delay_time_${task}"
                         )
                     } else {
@@ -494,7 +492,7 @@ abstract class TaskTimeImpl<
                         MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
                             mask = compilation.taskCompilation[task],
-                            converter = solverValueAdapter,
+                            converter = schedulingSolverValueAdapter,
                             name = "advance_time_${task}"
                         )
                     } else {
@@ -591,7 +589,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = solverValueAdapter,
+                                            converter = schedulingSolverValueAdapter,
                                             name = "over_max_delay_time_${task}"
                                         )
                                     } else {
@@ -686,7 +684,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = solverValueAdapter,
+                                            converter = schedulingSolverValueAdapter,
                                             name = "over_max_advance_time_${task}"
                                         )
                                     } else {
@@ -781,7 +779,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = solverValueAdapter,
+                                            converter = schedulingSolverValueAdapter,
                                             name = "delay_last_end_time_${task}"
                                         )
                                     } else {
@@ -872,7 +870,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
-                                            converter = solverValueAdapter,
+                                            converter = schedulingSolverValueAdapter,
                                             name = "advance_earliest_end_time_${task}"
                                         )
                                     } else {
@@ -942,11 +940,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq timeBoundary.valueOf(lastEndTime),
-                                        converter = solverValueAdapter,
+                                        converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = solverValueAdapter,
+                                    converter = schedulingSolverValueAdapter,
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -992,11 +990,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq timeBoundary.valueOf(earliestEndTime),
-                                        converter = solverValueAdapter,
+                                        converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = solverValueAdapter,
+                                    converter = schedulingSolverValueAdapter,
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -1076,11 +1074,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq timeBoundary.afterWindowDurationValue(lastEndTime),
-                                        converter = solverValueAdapter,
+                                        converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = solverValueAdapter,
+                                    converter = schedulingSolverValueAdapter,
                                     name = "not_on_last_end_time_${task}"
                                 )
                             }
@@ -1126,11 +1124,11 @@ abstract class TaskTimeImpl<
                                 IfThenFunction.from(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq timeBoundary.beforeWindowDurationValue(earliestEndTime),
-                                        converter = solverValueAdapter,
+                                        converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
                                     ),
-                                    converter = solverValueAdapter,
+                                    converter = schedulingSolverValueAdapter,
                                     name = "not_on_earliest_end_time_${task}"
                                 )
                             }
