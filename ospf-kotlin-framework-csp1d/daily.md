@@ -47,7 +47,9 @@
 2. ~~produce-context 缺少 surefire 报告~~：已确认该模块无测试源码，无需 surefire 报告。
 3. ~~Gurobi 端到端 smoke 未执行~~：当前 Gurobi 10 环境下已执行目标真实 solver smoke，7/7 通过。
 4. ~~文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充~~：已在 README/README_ch 的 Basic Use / 基本使用 章节补充 `yieldConfig` DSL 示例（含 `underProductionPenalty`、`overProductionPenalty`、`overProductionUpperBound`）和 `warmStartPlanUsages` 构造参数示例（含 `CuttingPlanUsage` 配对）。
-5. 延后能力边界已验证：缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、公式语言、训练平台、历史样本服务等关键词在 CSP1D 主路径源码中无命中。## 5. 下一轮目标
+5. ~~延后能力边界仍需复核~~：已移除 render DTO 中未使用的 `DefectCostar` 残留，缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、公式语言、训练平台、历史样本服务等延后能力不进入当前领域主路径。
+
+## 5. 下一轮目标
 
 在不扩大到 POIT 业务 DTO 和未建模实体的前提下，完成 CSP1D framework 的最终交付验收：跑通当前源码对应的验证基线，确认真实 solver 边界，复核 public API、README/README_ch、demo3 和 trace/KPI/render 输出一致性，并确保 CSP1D 范围与非 CSP1D 工作区改动清晰隔离。
 
@@ -175,7 +177,7 @@
 - README/README_ch 与当前 public API 基本一致。
 - 关键语义准确：failure/partial/LpInfeasible 描述、生成统计字段、recovery/warm start 能力。
 - 无废弃 API 引用（ProduceSolver、candidatePlans、业务 DTO 均未出现）。
-- 轻微文档完整性建议：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数可在后续版本补充。
+- 文档完整性建议已处理：README/README_ch 已补充 `yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数示例。
 - demo3 使用 `Csp1dProblem<Flt64>`、framework generators、`ReducedCostPricingGenerator`、`Csp1dColumnGeneration`，无手写 RMP/SP，与 README 描述一致。
 
 ### 遗留问题
@@ -184,4 +186,4 @@
 2. ~~produce-context 缺少 surefire 报告~~：已确认该模块无测试源码，`No tests to run`，无需 surefire 报告。
 3. ~~Gurobi 端到端 smoke 未执行~~：当前 Gurobi 10 环境下已执行目标真实 solver smoke，7/7 通过。
 4. ~~文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充~~：已在 README/README_ch 补充。
-5. 延后能力边界已验证：主路径源码无延后能力关键词命中。
+5. ~~延后能力边界仍需复核~~：已移除 render DTO 中未使用的 `DefectCostar` 残留，当前领域主路径不引入缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、公式语言、训练平台或历史样本服务。

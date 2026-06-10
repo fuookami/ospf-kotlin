@@ -9,9 +9,7 @@ enum class RenderProductionType {
     /** 产品 / Product */
     Product,
     /** 联副产品 / Co-product */
-    Costar,
-    /** 缺陷联副产品 / Defect co-product */
-    DefectCostar
+    Costar
 }
 
 /** 渲染切割方案生产项DTO / Render cutting plan production DTO */
