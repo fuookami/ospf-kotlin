@@ -1,10 +1,5 @@
 @file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
-/**
- * 工作日历及相关工具类 / Working calendar and related utility classes
- */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.math.ceil

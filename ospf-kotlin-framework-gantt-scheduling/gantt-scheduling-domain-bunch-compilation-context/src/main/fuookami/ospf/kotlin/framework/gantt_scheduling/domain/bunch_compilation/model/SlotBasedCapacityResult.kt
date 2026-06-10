@@ -193,7 +193,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
      */
     @Deprecated("Use produceQuantity instead", replaceWith = ReplaceWith("produceQuantity(slot, product)?.value"))
     fun produce(slot: TimeSlot, product: M): V? {
-        return results[slot]?.produceByProduct?.get(product)
+        return results[slot]?.produceQuantityByProduct?.get(product)?.value
     }
 
     /**
@@ -218,7 +218,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
      */
     @Deprecated("Use consumptionQuantity instead", replaceWith = ReplaceWith("consumptionQuantity(slot, material)?.value"))
     fun consumption(slot: TimeSlot, material: M): V? {
-        return results[slot]?.consumptionByMaterial?.get(material)
+        return results[slot]?.consumptionQuantityByMaterial?.get(material)?.value
     }
 
     /**
@@ -243,7 +243,7 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
      */
     @Deprecated("Use resourceUsageQuantity instead", replaceWith = ReplaceWith("resourceUsageQuantity(slot, resource)?.value"))
     fun resourceUsage(slot: TimeSlot, resource: R): V? {
-        return results[slot]?.resourceUsageByResource?.get(resource)
+        return results[slot]?.resourceUsageQuantityByResource?.get(resource)?.value
     }
 
     /**

@@ -1,4 +1,3 @@
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.test.assertEquals
@@ -20,8 +19,6 @@ class CostQuantityAlternativeTest {
         assertNotNull(item.costQuantity)
         assertTrue(item.costQuantity!!.value eq FltX("12.50"))
         assertEquals(NoneUnit, item.costQuantity!!.unit)
-        // deprecated value still accessible
-        assertTrue(item.value!! eq FltX("12.50"))
     }
 
     @Test
@@ -31,7 +28,6 @@ class CostQuantityAlternativeTest {
             costQuantity = null
         )
         assertNull(item.costQuantity)
-        assertNull(item.value)
     }
 
     @Test
@@ -48,8 +44,6 @@ class CostQuantityAlternativeTest {
         assertTrue(cost.costSum!!.value eq FltX("3.0"))
         assertEquals(NoneUnit, cost.costSum!!.unit)
         assertTrue(cost.valid)
-        // deprecated sum still accessible
-        assertTrue(cost.sum!! eq FltX("3.0"))
     }
 
     @Test
@@ -62,7 +56,6 @@ class CostQuantityAlternativeTest {
             costSum = null
         )
         assertNull(cost.costSum)
-        assertNull(cost.sum)
         assertTrue(!cost.valid)
     }
 
@@ -76,6 +69,5 @@ class CostQuantityAlternativeTest {
         assertNotNull(mc.costSum)
         assertTrue(mc.costSum!!.value eq FltX("10.0"))
         assertTrue(mc.valid)
-        assertTrue(mc.sum!! eq FltX("10.0"))
     }
 }
