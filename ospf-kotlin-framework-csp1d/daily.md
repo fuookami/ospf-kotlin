@@ -34,13 +34,19 @@
 
 ## 4. 需要修正的事项
 
-当前没有已确认的 material-context 建模偏差。下一轮主要处理以下交付风险：
+当前没有已确认的 material-context 建模偏差。以下交付风险已在本轮验证中确认：
 
-1. `LpInfeasible` 当前基于首次 LP null 返回推断，不是 solver 层确定不可行状态；文档已说明该边界，下一轮需避免测试、README 或 trace 口径把它描述成确定判定。
-2. 当前 generation benchmark 源码已包含新增目标测试，但当前源码对应的测试报告仍需重新生成。
-3. 完整 CSP1D reactor、Gurobi profile 编译或 smoke 仍未形成可信验收记录。
-4. 工作区存在大量非 CSP1D 改动；下一轮需要先界定验收范围，避免混入无关模块。
-5. demo3 与 README/README_ch 已完成主路径和 public 语义同步，但仍需在最终验收时复核示例、文档和当前 API 是否完全一致。
+1. ~~`LpInfeasible` 当前基于首次 LP null 返回推断，不是 solver 层确定不可行状态~~：文档已说明该边界，README 口径与测试和 trace 输出一致，已验收。
+2. ~~当前 generation benchmark 源码已包含新增目标测试，但当前源码对应的测试报告仍需重新生成~~：本轮已重新执行全部 58 个 generation 测试和 50 个 application acceptance 测试，均通过。
+3. ~~完整 CSP1D reactor、Gurobi profile 编译或 smoke 仍未形成可信验收记录~~：Gurobi profile `test-compile` 已通过，Gurobi 10 环境下真实 solver smoke 已通过。
+4. ~~工作区存在大量非 CSP1D 改动~~：已审计，CSP1D 96 文件变更均在修改清单范围内，非 CSP1D 变更不纳入验收。
+5. ~~demo3 与 README/README_ch 需复核~~：已复核，demo3 使用 framework API，无手写 RMP/SP，与 README 描述一致。
+
+剩余风险（按优先级）：
+1. ~~Maven 本地仓库缓存导致 application acceptance surefire 12 个 error~~：已修复，清理旧 artifact 并 `mvn install -am` 后重跑，50/50 通过。
+2. ~~produce-context 缺少 surefire 报告~~：已确认该模块无测试源码，无需 surefire 报告。
+3. ~~Gurobi 端到端 smoke 未执行~~：当前 Gurobi 10 环境下已执行目标真实 solver smoke，7/7 通过。
+4. 文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充。
 
 ## 5. 下一轮目标
 
@@ -108,3 +114,74 @@
    - `rg -n "candidatePlans" ospf-kotlin-framework-csp1d -g "*.kt"`
    - `rg -n "println\\(" ospf-kotlin-framework-csp1d -g "*.kt"`
    - `git diff --check -- ospf-kotlin-framework-csp1d`
+
+## 11. 验证结果（2026-06-10）
+
+### 工作区范围收口
+
+- CSP1D 变更文件：96 个，全部在修改清单范围内。
+- 非 CSP1D 变更文件：1983 个，不纳入 CSP1D 验收。
+- demo3 变更：`Main.kt` 1 个文件，在修改清单范围内。
+
+### 生成器验证收口
+
+- `GeneratorMediumScaleBaselineTest`：8 测试通过，0 失败。
+- 全部 generation context 测试：58 测试通过，0 失败。
+  - ConstraintsTest: 8 通过
+  - CuttingPlanCanonicalKeyTest: 3 通过
+  - CostarFillerTest: 4 通过
+  - DFSGeneratorTest: 5 通过
+  - FullSumGeneratorTest: 5 通过
+  - GeneratorMediumScaleBaselineTest: 8 通过
+  - GeneratorParallelismTest: 1 通过
+  - NSameGeneratorTest: 10 通过
+  - NSumGeneratorTest: 3 通过
+  - ReducedCostPricingGeneratorTest: 11 通过
+- 缓存、剪枝、并行、dominance 和 benchmark 快照不改变 canonical 结果集合。
+
+### application 验证收口
+
+- 首轮 Maven surefire：`Tests run: 50, Failures: 0, Errors: 12`，12 个 error 均为 `NoSuchMethodError: Csp1dPricingGenerator.generateWithReport(Csp1dPricingInput)`。
+- 错误原因：本地 Maven 仓库中 generation-context JAR 为旧版本；清理旧 artifact 并执行 `mvn install -am -Dgpg.skip=true` 后重跑。
+- **修复后 Maven surefire：`Tests run: 50, Failures: 0, Errors: 0, Skipped: 0`，全部通过 ✅**
+- failure/partial、LP null 推断、recovery/warm start、trace/KPI/render 语义与 README 口径一致。
+
+### 其他 CSP1D 子模块测试
+
+- `csp1d-domain-material-context`：17 测试通过（surefire 报告确认）。
+- `csp1d-domain-produce-context`：该模块无测试源码（`src/test` 为空），Maven 报告 `No tests to run`，无需 surefire 报告。
+- `csp1d-domain-yield-context`：6 测试通过（surefire 报告确认）。
+- `csp1d-domain-length-assignment-context`：4 测试通过（surefire 报告确认）。
+- `csp1d-domain-wasting-minimization-context`：3 测试通过（surefire 报告确认）。
+
+### 真实后端路径收口
+
+- Gurobi profile `test-compile`：通过（`-Pgurobi-cg-test -DskipTests test-compile` 成功）。
+- Gurobi 真实 solver smoke：当前 Gurobi 10 环境下执行 `Csp1dColumnGenerationRealSolverTest` 目标 7 个用例，`Tests run: 7, Failures: 0, Errors: 0, Skipped: 0`，reactor `BUILD SUCCESS`。
+- Maven surefire 输出 `Corrupted channel by directly writing to native stream in forked JVM` warning，并生成 dumpstream 文件；测试结果和 reactor 构建均为通过，作为非阻塞提示记录。
+
+### 门禁搜索
+
+| 检查项 | 结果 |
+|--------|------|
+| `com.poit\|framework.bpp3d` | 无命中 ✅ |
+| `rollDemand\|weightDemand\|sheetDemand` | 仅 gurobi-test 目录命中（使用 `legacyRoll`/`legacySheet` 工厂方法，属于允许的测试范围）✅ |
+| `ProduceSolver\|SimpleProduceSolver` | 无命中 ✅ |
+| `candidatePlans` | 无命中 ✅ |
+| `println(` | 无命中 ✅ |
+| `git diff --check` | 通过 ✅ |
+
+### public API 与文档复核
+
+- README/README_ch 与当前 public API 基本一致。
+- 关键语义准确：failure/partial/LpInfeasible 描述、生成统计字段、recovery/warm start 能力。
+- 无废弃 API 引用（ProduceSolver、candidatePlans、业务 DTO 均未出现）。
+- 轻微文档完整性建议：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数可在后续版本补充。
+- demo3 使用 `Csp1dProblem<Flt64>`、framework generators、`ReducedCostPricingGenerator`、`Csp1dColumnGeneration`，无手写 RMP/SP，与 README 描述一致。
+
+### 遗留问题
+
+1. ~~Maven 本地仓库缓存导致 application acceptance surefire 12 个 error~~：已修复，清理旧 artifact 并 `mvn install -am` 后重跑，50/50 通过。
+2. ~~produce-context 缺少 surefire 报告~~：已确认该模块无测试源码，`No tests to run`，无需 surefire 报告。
+3. ~~Gurobi 端到端 smoke 未执行~~：当前 Gurobi 10 环境下已执行目标真实 solver smoke，7/7 通过。
+4. 文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充。
