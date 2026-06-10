@@ -1,95 +1,56 @@
-# BPP3D 形状泛型化与圆柱支持重构计划
+# BPP3D 下一轮交接
 
-日期：2026-05-31
-最近更新：2026-06-10（renderer 原生圆柱验收 + BoundingCuboid 兼容映射移除验收轮）
+日期：2026-06-10
 
-本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的当前状态与下一轮计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，将 BPP3D 从 cuboid-only 业务模型收敛到 fully generic shape 生产模型，完成连续半径优化与横向圆柱 stacking/hanging 自动支撑能力，并最终移除所有仅为兼容旧 cuboid-only 抽象而保留的兼容层，不保留兼容层。
+## 1. 总目标
 
-## 1. 已完成事项摘要
+在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，将 BPP3D 从 cuboid-only 业务模型收敛到 fully generic shape 生产模型，完成连续半径优化与横向圆柱 stacking/hanging 自动支撑能力，并最终移除所有仅为兼容旧 cuboid-only 抽象而保留的兼容层，不保留兼容层。
 
-1. 已完成竖直圆柱、X/Z 轴对齐横向圆柱、固定/离散半径、已选择连续半径结果的主要生产闭环。
+所有生产入口必须以 shape-generic API、真实几何、明确支撑合同和一致 metadata 为边界；不能开放的能力必须以统一 guarded contract、负例测试、文档说明和脚本门禁收口。
+
+## 2. 已完成事项摘要
+
+1. 已完成长方体、竖直圆柱、X/Z 横向圆柱、固定半径、离散半径和已选择连续半径结果的主要生产闭环。
 2. 已完成 shape metadata、CSV/Gurobi、program demand、material packing、depth boundary、final geometry、renderer metadata、README 和边界脚本的基础收口。
-3. 已完成横向圆柱贴地、supported-stack、hanging、多支撑区间覆盖、unsupported fallback 和真实几何校验的主要闭环。
-4. 已完成连续半径未开放路径的类型化缺口合同、solver 变量原型、solver 上下文承载、共享注册计划、边界校验和诊断闭环。
-5. 已完成连续半径 solver-native 变量注册闭环：production-ready 变量注册为 `RealVar` solver 变量，使用约束式上下界（constraint-based bounds）和目标等式约束，solver 选出值在 RMP/final info 中以 `continuous_radius_solver_selected_*` 键暴露；interval-only 变量仍通过类型化缺口合同保持 guarded。
-6. 已完成多批旧 cuboid-only 兼容别名、低风险入口和 stale allowlist 删除，并加脚本门禁防止回流。
-7. 已完成 focused tests、完整 BPP3D 测试、触发式 Gurobi focused、Gurobi dataset suite、文档和边界脚本验收。
-8. 已完成连续半径 solver-selected radius renderer 回写闭环：solver 选出的半径从 `ColumnGenerationResult.continuousRadiusSolverResults` 传递到 `ColumnGenerationPackingAnalyzer`，经 `buildContinuousRadiusSelectionResults` 转换为 `CylinderRadiusSelectionResult`，再传入 `PackingRendererAdapter.toSchema(result, continuousRadiusSelectionResults)` 重载，renderer adapter 对有 solver 选出半径的圆柱 item 用其计算 `actualVolume` 和 `radius`/`diameter` DTO 字段。
-9. 已完成第二批 cuboid-only compat 扩展属性删除（16 个 `ItemCuboid`/`Projection`/`AnyPlacement` 的 `packageType`/`packageCategory`/`bottomOnly`/`topFlat` compat 扩展属性），保留 `Projection<*,*>.bottomOnly` 作为 shape-generic 属性（因 BLA 算法依赖）；删除 `ItemProjection<*>.bottomOnly` 消除与 `Projection<*,*>.bottomOnly` 的 overload resolution 歧义。
-10. 已完成边界脚本新增 deleted cuboid-only compat alias reflux 检测、continuous-radius solver result writeback 检测和 propagation 检测。
-11. 已完成兼容层全量审计：无删除候选（所有兼容层均有明确调用方）；2 处 `QuantityPlacement3<*>` 迁移为 `AnyPlacement3`/`ItemPlacement3` domain alias；16 处 `HorizontalCylinderAxisInGenerationOutOfAllowList` 已注册 allowlist 且 guard 已就位。
-12. 已完成横向圆柱支撑 11 维度正负例审计确认：单支撑、多支撑、重复窄支撑线、异构支撑、局部支撑拒绝、底部圆柱支撑拒绝、径向支撑错位、overlap、outside bin、axis mismatch、provenance guard 均已有正负例测试覆盖。
-13. 已完成 Gurobi dataset suite 覆盖确认：竖直圆柱固定半径、离散半径、连续半径、横向 X/Z 支撑、横向 X/Z hanging、混合形状、深度边界和生产级数据集均已覆盖。
-14. 已完成外部 renderer 原生圆柱验收：renderer 支持 `Cylinder`、X/Y/Z 轴向、`radius`/`diameter`、`actualVolume`、bounding dimensions、metadata 面板和兼容 `BoundingCuboid` 样例展示，且 `npm run build`、`npx vue-tsc --noEmit`、`cargo check`、`cargo test` 已通过。
-15. 已进入 BPP3D `BoundingCuboid` renderer DTO 兼容映射移除验收，`RenderAlgorithmShapeTypeDTO` 不再保留 `BoundingCuboid` 输出枚举，横向圆柱 renderer metadata 使用原生 `HorizontalCylinderX` / `HorizontalCylinderZ`。
+3. 已完成横向圆柱贴地、supported-stack、hanging、多支撑覆盖、unsupported fallback 和真实几何校验的主要闭环。
+4. 已完成连续半径 guarded contract、solver 原型、solver 上下文、注册计划、诊断信息、边界校验和 renderer actual-radius 回写主链路。
+5. 已完成 cuboid-only 兼容层多轮删除、剩余兼容层审计、调用方确认和回流门禁。
+6. 已完成横向圆柱支撑正负例覆盖确认、Gurobi dataset suite 覆盖确认、完整 BPP3D 测试和边界脚本阶段性验收。
+7. 已完成外部 renderer 原生圆柱支持、BPP3D `BoundingCuboid` renderer DTO 兼容映射移除、Tauri release 构建和人工视觉联调验收。
 
-## 2. 总目标与边界
+## 3. 当前边界
 
-### 2.1 总目标
+1. 已开放路径不得退化为 cuboid-only fallback 或外接长方体近似。
+2. 连续半径 production-ready 路径已有 solver selection 和 renderer actual-radius 回写；真正 interval-only 连续半径仍保持 guarded。
+3. 横向圆柱 generated supported-stack/hanging 已覆盖当前验证子集，仍必须保留 provenance、真实坐标、支撑线/区间和 final validation。
+4. 无坐标 hanging、局部径向支撑、底部圆柱支撑、隐式混轴同层生成和任意 3D 旋转仍不是当前开放范围。
+5. renderer 阻断已解除；BPP3D 不再需要为了外部显示将圆柱降级为 `BoundingCuboid`。
+6. interval-only 连续半径不能改走离散化候选生成；下一轮应保持连续变量语义，采用保守分段线性近似方案。
 
-最终目标是在尽可能少的后续迭代内完成 BPP3D fully generic shape 生产契约的跨层收口。所有生产入口必须以 shape-generic API、真实几何、明确支撑合同和一致 metadata 为边界；所有 cuboid-only 兼容层必须迁移或删除，最终不保留兼容层。
+## 4. 剩余工作量
 
-### 2.2 当前生产范围
+距离总目标约剩余 <1%。剩余工作集中在 solver-native interval-only 连续半径的可生产近似闭环。
 
-1. 长方体生产链路保持兼容，但不能作为新 shape 能力的降级路径。
-2. `Axis3.Y` 竖直圆柱和 `Axis3.X` / `Axis3.Z` 轴对齐横向圆柱的固定/离散半径路径已开放。
-3. 横向圆柱支持可验证的 generated supported-stack/hanging 子集、known-coordinate final path 和 renderer path。
-4. `radiusWeightFunctionKey` 仅在具备类型化 selected-radius 结果、具体半径、边界校验和 actual-radius 回写时开放。
-5. solver-native interval-only 连续半径变量仍保持 guarded，不能静默降级为固定半径或离散半径。
-6. 任意 3D 旋转、隐式混轴同层生成、局部径向支撑、底部圆柱支撑和无坐标 hanging 面积入口不是当前目标。
+该问题的核心不是 DTO 或 renderer，而是半径 `r` 作为 solver 连续变量后会影响 `r^2` 体积、footprint、bounding size、支撑覆盖、碰撞和最终校验。现有 LP/MILP 链路不能直接表达这些非线性几何关系；下一轮目标是实现保守分段线性近似，而不是新增离散化计算模块。
 
-### 2.3 剩余工作量
+## 5. 下一轮目标
 
-距离总目标仍约剩余 <1%。剩余工作主要是 solver-native interval-only 连续半径变量的完整闭环（需要 core 支持 per-instance bound 或 explicit constant registration，属于外部阻断）。renderer 原生圆柱支持已完成，BPP3D 不再需要为外部显示保留 `BoundingCuboid` 兼容映射；renderer `actualVolume` 的 solver-selected radius 回写路径已完成。兼容层审计确认无删除候选，所有保留项均有明确调用方和 allowlist 注册。
+下一轮目标是开放或准开放 `interval-only continuous radius v1`：使用真实连续半径 solver 变量 `r`，用分段线性近似表达 `r^2` 和体积相关项，用 `r_max` 保守 envelope 保障几何安全，并将 solver-selected radius 回写到 final validation、packing snapshot、Gurobi result 和 renderer `actualVolume`。
 
-## 3. 下一轮扩大收口事项
+若分段线性近似无法在当前 core/model API 下完整落地，必须保持 typed gap、guard、负例测试、诊断信息和文档说明，不允许静默降级为固定半径、离散半径或 cuboid-only 外接盒近似。
 
-下一轮按“连续半径 solver-native 闭环 + 横向自动支撑扩展 + cuboid-only 兼容层归零推进 + Gurobi/renderer/docs 一次性验收”的范围执行。优先交付生产可开放闭环；不能开放的能力必须收敛为统一 guarded contract、负例测试、文档说明和脚本门禁。
+## 6. 下一轮事项
 
-### 3.1 完全泛型化与兼容层归零推进
+1. **PWL contract 定义**：定义 interval-only 连续半径 v1 的分段线性近似合同，明确 `r`、`d = 2r`、`q ~= r^2`、`actualVolume ~= pi * h * q` 的变量、单位、误差和 metadata 口径。
+2. **breakpoint 策略**：设计 breakpoint 生成规则、最大段数、误差上限、CSV/Gurobi 参数入口和默认策略；禁止把该策略实现为现有离散半径候选生成的替代入口。
+3. **solver 注册实现**：注册连续半径变量、PWL/lambda/SOS2 或等价线性约束、上下界、目标函数接入、互斥协议和 solver-selected radius 提取。
+4. **保守几何 envelope**：用 `r_max` 建模 placement footprint、bounding dimensions、支撑覆盖和碰撞安全边界；final validation 用 solver-selected `r` 计算真实圆柱 metadata 和 actual volume。
+5. **结果回写闭环**：将 solver-selected `r`、`d`、近似/真实 volume、PWL 误差和 envelope 信息写入 RMP/final solve info、packing snapshot、Gurobi result、renderer DTO 和 schema KPI。
+6. **互斥与诊断**：复核固定半径、离散半径、selected continuous radius、interval-only PWL continuous radius 的优先级、互斥协议、错误信息和 typed gap。
+7. **测试与数据集**：补齐 PWL 正负例、边界半径、误差上限、unsupported bypass、final validation、renderer actualVolume 和 Gurobi dataset suite。
+8. **文档与门禁**：同步 README、README_ch、refactor.md、daily.md 和边界脚本，明确 interval-only v1 是 conservative PWL approximation，并禁止 silent downgrade。
 
-1. 全量审计 BPP3D 内仍保留的 cuboid-only 类型、外接长方体近似入口、旧 placement/projection/bin 兼容构造、测试 fixture 和脚本 allowlist。
-2. 迁移 application、domain、CSV/Gurobi、program demand、material packing、final packing、renderer adapter 和测试 helper 到 shape-generic API。
-3. 删除下一批 cuboid-only 兼容层，优先处理无调用入口、只为旧测试保留的 fixture、可由 typed/generic API 替代的构造和 stale allowlist。
-4. 对确实无法本轮删除的入口建立最终保留清单，记录调用方、阻断原因、删除条件和目标删除批次。
-5. 收紧边界脚本，禁止新增 cuboid-only 生产入口、外接长方体近似绕过真实 shape 几何、已删除别名回流和未登记 allowlist。
-
-### 3.2 连续半径优化生产闭环
-
-1. 解除或绕过当前 core `Flt64` bound / 显式常量注册阻断，注册真实连续半径 solver 变量。
-2. 定义连续半径变量的上下界、命名、目标函数、权重函数、互斥协议、selection 结果和回写位置。
-3. 将 solver 选出的 actual radius 接入 final validation、renderer `actualVolume`、packing snapshot、Gurobi result 和 dataset suite。
-4. 打通固定半径、离散半径、selected continuous radius、interval-only continuous radius 四类 metadata 的优先级和冲突诊断。
-5. 若 solver-native 连续半径仍无法完整开放，至少完成一个可运行的大闭环：真实变量注册入模型，或 solver selection 回写 selected-radius 生产结果。
-6. 保留 interval-only guard、typed gap、solver prototype、solver context、registration plan、blocked reason、negative tests 和脚本门禁。
-
-### 3.3 横向圆柱 stacking/hanging 自动支撑扩展
-
-1. 扩展 X/Z generated supported-stack/hanging 可验证子集，继续要求真实坐标、支撑线/支撑区间、明确 provenance、final validation 和 renderer metadata 同时存在。
-2. 补齐单支撑、多支撑、重复窄支撑线、异构支撑、局部支撑拒绝、底部圆柱支撑拒绝、径向支撑错位、overlap、outside bin、axis mismatch 和 provenance guard。
-3. 将自动支撑结果贯通 layer placement、final packing、renderer fixture、Gurobi CSV/dataset suite 和 application focused tests。
-4. 对不能完整表达的 hanging 输入保持明确 guard，不允许用面积近似、外接长方体或无坐标入口降级。
-
-### 3.4 Gurobi、renderer、文档与样例收口
-
-1. 扩展 Gurobi focused 和 dataset suite，覆盖连续半径、横向自动支撑、shape-generic DTO、unsupported metadata 和 final validation 失败场景。
-2. 若 renderer DTO、fixture、adapter 或显示语义变化，同步外部 renderer build、typecheck、Rust 检查和视觉验收。
-3. 同步 README、README_ch、refactor.md、CSV/Gurobi 协议、生产范围、unsupported 范围、兼容层删除清单和验收入口。
-4. 删除或合并过时迁移文档，避免多个计划文档并行维护。
-
-## 4. 下一轮执行计划
-
-1. 先做兼容层全量扫描和 allowlist 清点，输出“删除、本轮迁移、最终保留、外部阻断”四类清单。
-2. 按低风险到高风险删除 cuboid-only 兼容层，并同步迁移调用方、测试 helper、README 和边界脚本。
-3. 推进 continuous radius solver-native 闭环，优先完成变量注册和 selection 回写中可落地的一条主路径。
-4. 扩展横向圆柱 generated/final hanging 与 supported-stack 子集，并补齐正负例。
-5. 扩展 CSV/Gurobi、application、program/material packing、final validation、renderer fixture 和 dataset suite。
-6. 收紧 generic/shape/geometry 边界脚本，新增对 deleted alias、cuboid-only fallback、unsupported bypass 和 continuous-radius silent downgrade 的检测。
-7. 更新 README、README_ch 和本文档，确保总目标、当前生产范围、剩余工作量、下一轮验收口径一致。
-8. 跑完整 BPP3D 门禁、触发式 Gurobi 验收，以及必要的外部 renderer 验收。
-9. 只提交 BPP3D 本轮改动；非 BPP3D 或未触发的外部 renderer 改动不混入。
-
-## 5. 修改清单
+## 7. 修改清单
 
 下一轮允许修改范围：
 
@@ -112,26 +73,29 @@
 17. `README.md`
 18. `README_ch.md`
 19. `refactor.md`
-20. 外部工程 `E:\workspace\ospf\framework\bpp3d-interface-renderer`，仅在 renderer DTO、fixture、adapter 或显示语义变化时修改。
+20. `daily.md`
 
-## 6. 验收标准
+外部工程 `E:\workspace\ospf\framework\bpp3d-interface-renderer` 已完成原生圆柱支持并提交；下一轮仅在 renderer DTO、fixture、adapter 或显示语义确实变化时修改。
+
+## 8. 验收标准
 
 1. 已开放的长方体、竖直圆柱、X/Z 横向圆柱生产路径不回退。
-2. 新开放能力必须具备真实几何、支撑、solver、renderer、CSV/Gurobi、文档和测试闭环。
-3. cuboid-only 兼容层继续减少，已删除入口不得回流；最终保留项必须有调用方、阻断原因和删除条件。
-4. 连续半径若开放 solver-native 路径，必须具备真实变量注册、目标函数、selection 回写、actual radius 校验和 renderer `actualVolume`。
-5. 连续半径若仍未完整开放，必须保持 typed gap、solver prototype、solver context、registration plan、blocked reason、negative tests 和脚本门禁。
-6. 横向圆柱 supported-stack/hanging 扩展不得绕过 generated provenance、真实支撑线/区间和 final validation。
-7. 无坐标 hanging、局部支撑、底部圆柱支撑、混轴同层生成和任意 3D 旋转必须明确拒绝或保持 guarded。
-8. CSV、application DTO、program demand、material packing、Gurobi result、final packing 和 renderer metadata 解释一致。
-9. Gurobi dataset suite 覆盖新增开放能力和仍保留 unsupported 的关键入口。
-10. README、README_ch、refactor.md 与代码能力口径一致，并明确下一轮后剩余工作量。
-11. BPP3D 必跑门禁全部通过。
-12. 触发式 Gurobi 验收全部通过或明确记录环境性 skip 条件。
-13. 修改 renderer DTO、fixture、adapter 或显示语义时，外部 renderer build/typecheck/Rust/视觉验收全部完成并记录。
-14. BPP3D 改动独立提交，不混入非 BPP3D 或未触发的外部 renderer 改动。
+2. BPP3D 不再依赖 `BoundingCuboid` 作为 renderer 显示兼容映射。
+3. interval-only continuous radius v1 若开放，必须使用真实连续半径 solver 变量，不得改为离散半径候选生成。
+4. PWL 近似必须明确 breakpoint、误差上限、变量注册、目标函数、selection 回写和诊断信息。
+5. 几何 envelope 必须保守，placement、碰撞、支撑覆盖不得因 solver-selected radius 变大而失效。
+6. final validation 必须用 solver-selected radius 计算真实 radius、diameter、actualVolume 和 renderer metadata。
+7. 固定半径、离散半径、selected continuous radius、interval-only PWL continuous radius 的 metadata 优先级和互斥协议必须清晰。
+8. 若 interval-only PWL 路径仍未开放，必须保持 typed gap、solver prototype、solver context、registration plan、blocked reason、negative tests 和脚本门禁。
+9. unsupported 范围必须明确拒绝或 guarded，不允许静默降级。
+10. CSV、application DTO、program demand、material packing、Gurobi result、final packing 和 renderer metadata 解释一致。
+11. README、README_ch、refactor.md、daily.md 与代码能力口径一致。
+12. BPP3D 必跑门禁全部通过。
+13. 触发式 Gurobi 验收全部通过，或明确记录环境性 skip 条件。
+14. 修改外部 renderer 时，外部 renderer build、typecheck、Rust 检查、Tauri build 和必要视觉验收全部完成并记录。
+15. BPP3D 改动独立提交，不混入非 BPP3D 或未触发的外部 renderer 改动。
 
-## 7. 必跑门禁
+## 9. 必跑门禁
 
 ```powershell
 pwsh.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ospf-kotlin-framework-bpp3d/scripts/generic-boundary-check.ps1 -ProjectRoot ospf-kotlin-framework-bpp3d
@@ -142,7 +106,7 @@ git diff --check -- ospf-kotlin-framework-bpp3d
 mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true
 ```
 
-## 8. 触发式完整验收
+## 10. 触发式验收
 
 修改 application、CSV、shape spec、depth boundary 或 solver 相关代码时执行：
 
@@ -160,13 +124,20 @@ npm run build
 npx vue-tsc --noEmit
 cargo check
 cargo test
+npx tauri build
 ```
 
-## 9. 完成定义
+## 11. 本轮验收记录
 
-1. 第 3 节事项完成、明确延后或明确阻断，没有未分类状态。
-2. 当前生产范围内的开放路径具备真实几何、支撑、solver、renderer、文档和测试闭环。
-3. 保留 unsupported 的路径具备统一错误信息、negative tests 和门禁保护。
-4. 必跑门禁与被触发的完整验收全部通过。
-5. README、README_ch、refactor.md 与代码能力口径一致。
-6. BPP3D 改动独立提交，非 BPP3D 改动和外部 renderer 改动不混入。
+1. BPP3D 自动验收已通过：generic boundary、shape boundary、geometry boundary、geometry module dry-run、`git diff --check -- ospf-kotlin-framework-bpp3d`、`mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml test -Dgpg.skip=true`。
+2. renderer 自动验收已通过：`npm run build`、`npx vue-tsc --noEmit`、`cargo check`、`cargo test`、`npx tauri build`。
+3. renderer 人工视觉联调已通过：混合长方体/圆柱、unsupported/BoundingCuboid 兼容样例、legacy cuboid 样例均正常。
+4. 保留 warning：geometry module dry-run 的 internal baseline warning、BPP3D 既有 Kotlin/JVM warning、renderer Vite chunk size warning、Rust resolver/static mut warning。
+
+## 12. 下一会话启动建议
+
+1. 先执行 `git status --short`，确认 BPP3D 与非目标模块改动边界。
+2. 读取 `refactor.md` 和 `daily.md`，以本文件的 interval-only PWL approximation 目标为准。
+3. 优先做 PWL contract 和 breakpoint 策略，不要从离散半径候选生成模块复制语义。
+4. 每开放一段能力，都同步负例、脚本门禁、README/README_ch 和 Gurobi/renderer 验收记录。
+5. 结束前更新 `refactor.md`、`daily.md`，记录实际完成项、剩余工作量和验收结果。
