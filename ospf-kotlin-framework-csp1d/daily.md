@@ -29,39 +29,39 @@
 6. 已完成 demo3 示例主路径迁移，示例不再维护手写 RMP/SP。
 7. 已完成当前模型与 POIT CSP1D 边界复核，延后能力继续作为下游适配或未来 material model 扩展能力。
 8. 已完成 application failure/partial 边界收口，异常安全、失败状态、LP failure trace、pricing 统计 trace 和 render KPI 已进入 public 输出口径。
-9. 已完成 README/README_ch 对 public API、failure/partial 语义、`LpInfeasible` 推断语义、pricing KPI key 和 `lpFailureMessage` 的同步说明。
-10. 已完成 application acceptance 的本轮通过记录、CSP1D 门禁搜索和 `git diff --check` 基线检查；完整 reactor 与 Gurobi profile 仍需下一轮确认。
+9. 已完成 README/README_ch 对 public API、能力边界、failure/partial 语义、`LpInfeasible` 推断语义和新增 KPI key 的同步说明。
+10. 已完成 application acceptance、CSP1D 门禁搜索和 `git diff --check` 的阶段性验证；完整 reactor、当前 generation 目标测试和 Gurobi profile 仍需最终验收。
 
 ## 4. 需要修正的事项
 
 当前没有已确认的 material-context 建模偏差。下一轮主要处理以下交付风险：
 
 1. `LpInfeasible` 当前基于首次 LP null 返回推断，不是 solver 层确定不可行状态；文档已说明该边界，下一轮需避免测试、README 或 trace 口径把它描述成确定判定。
-2. 当前只确认 application acceptance 本轮通过；完整 CSP1D reactor、生成器目标测试和 Gurobi profile 仍未形成可信验收记录。
-3. 工作区仍有 CSP1D generation 相关未提交改动和大量非 CSP1D 改动；下一轮需要先界定验收范围，避免混入无关模块。
-4. demo3 与 README/README_ch 已完成主路径和 public 语义同步，但仍需在最终验收时复核示例、文档和当前 API 是否完全一致。
+2. 当前 generation benchmark 源码已包含新增目标测试，但当前源码对应的测试报告仍需重新生成。
+3. 完整 CSP1D reactor、Gurobi profile 编译或 smoke 仍未形成可信验收记录。
+4. 工作区存在大量非 CSP1D 改动；下一轮需要先界定验收范围，避免混入无关模块。
+5. demo3 与 README/README_ch 已完成主路径和 public 语义同步，但仍需在最终验收时复核示例、文档和当前 API 是否完全一致。
 
 ## 5. 下一轮目标
 
-在不扩大到 POIT 业务 DTO 和未建模实体的前提下，完成 CSP1D framework 的最终交付验收：收口当前未提交的 generation 变更，跑通可复用验证基线，确认真实 solver 边界，复核 public API、README/README_ch、demo3 和 trace/KPI/render 输出一致性。
+在不扩大到 POIT 业务 DTO 和未建模实体的前提下，完成 CSP1D framework 的最终交付验收：跑通当前源码对应的验证基线，确认真实 solver 边界，复核 public API、README/README_ch、demo3 和 trace/KPI/render 输出一致性，并确保 CSP1D 范围与非 CSP1D 工作区改动清晰隔离。
 
 ## 6. 下一轮事项
 
-1. **工作区范围收口**：先审计当前 CSP1D generation 未提交改动，确认哪些属于本轮目标，哪些应延后或拆分；非 CSP1D 改动只记录不混入 CSP1D 验收。
-2. **生成器正确性与性能收口**：验证缓存、剪枝、并行、dominance 和 benchmark 快照不改变 canonical 结果集合，并记录稳定数量类统计。
-3. **验证环境收口**：重新执行 CSP1D 局部 reactor 测试、application acceptance、生成器目标测试和 Gurobi profile 编译；所有结论以本轮实际输出为准。
-4. **真实后端路径收口**：Gurobi 可用时补真实 solver smoke；不可用时至少保留 profile 编译结果、fake solver 覆盖和不可用原因记录。
-5. **failure/partial 语义复核**：确认普通 MILP、列生成、recovery、warm start 在失败、部分解、LP null、fallback 禁用和无初始列场景下的状态、trace、failureMessage 与 README 口径一致。
-6. **trace/KPI/render 与文档复核**：确认 initial/pricing 生成统计、终止原因、partial/failed 状态、LP failure message 和 enhancement 结果在 solution、render、trace、README/README_ch 中一致。
-7. **延后能力边界维护**：缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、训练平台、历史样本服务和业务 DTO 继续只出现在边界说明中，不进入当前领域主路径。
+1. **工作区范围收口**：审计当前 diff，区分 CSP1D 验收范围和非 CSP1D 改动，确保提交、验证和结论不混入无关模块。
+2. **生成器验证收口**：重新执行当前 `GeneratorMediumScaleBaselineTest` 和 generation 目标测试，确认缓存、剪枝、并行、dominance 和 benchmark 快照不改变 canonical 结果集合。
+3. **application 验证收口**：重新执行 application acceptance，确认 failure/partial、LP null 推断、recovery/warm start、trace/KPI/render 与 README 口径一致。
+4. **真实后端路径收口**：执行 Gurobi profile `test-compile`；环境允许时补真实 solver smoke，不可用时记录明确原因。
+5. **public API 与文档复核**：复核 README/README_ch、demo3 和最小使用样例，确保仅依赖 CSP1D framework API，不恢复业务 DTO 或手写 RMP/SP。
+6. **延后能力边界维护**：缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、训练平台、历史样本服务和业务 DTO 继续只出现在边界说明中，不进入当前领域主路径。
 
 ## 7. 下一轮计划
 
-1. 先读取当前 diff，按 CSP1D generation、CSP1D application/docs、非 CSP1D 三类拆分风险。
-2. 对 generation 未提交改动执行源码审计和目标测试，必要时补最小回归测试。
-3. 对 application failure/partial 相关路径做一次只读复核，重点检查 README 语义、trace/KPI/render 和测试断言一致。
-4. 跑 CSP1D 局部 reactor、application acceptance、generation 测试和 Gurobi profile；如果 Maven 仍异常，记录具体失败点和可替代验证。
-5. 最后执行门禁搜索、`git diff --check`，将实际验证结果写回本文件。
+1. 读取当前 diff，先确认 CSP1D 范围是否干净，非 CSP1D 改动只记录不处理。
+2. 运行当前 generation 目标测试和 benchmark 快照测试，失败时优先修正统计口径或快照。
+3. 运行 application acceptance，失败时优先修正 failure/partial、trace/KPI/render 或 README 口径。
+4. 运行 CSP1D 局部 reactor 和 Gurobi profile；若 Maven 或 Gurobi 环境阻塞，记录命令、失败原因和替代验证。
+5. 执行门禁搜索和 `git diff --check`，将实际验证结果写回本文件。
 
 ## 8. 修改清单
 
@@ -108,39 +108,3 @@
    - `rg -n "candidatePlans" ospf-kotlin-framework-csp1d -g "*.kt"`
    - `rg -n "println\\(" ospf-kotlin-framework-csp1d -g "*.kt"`
    - `git diff --check -- ospf-kotlin-framework-csp1d`
-
-## 11. 本轮验证结果（2026-06-10）
-
-### 生成器目标测试
-
-- `GeneratorMediumScaleBaselineTest` 全部 8 个测试通过：DFS/NSum/NSame/FullSum canonical 结果集合不变，benchmark 快照已更新为包含 quantityCacheHits/Misses、materialSliceTemplateCacheMisses、crossWorkerDuplicateCandidates、crossContributionDominated 的新值。
-- `assertMediumScaleBaseline` 断言已覆盖全部新增统计字段的非负校验。
-
-### application acceptance 测试
-
-- `Csp1dApplicationAcceptanceTest` 全部通过，包括 MILP、列生成、Top-K、KPI/render、recovery、warm start、partial/failed 状态、LP 不可行和 MILP 失败返回 Failed 状态。
-
-### Gurobi profile
-
-- 未执行。Maven 本地安装需要先 install 全部上游模块（GPG 签名和环境问题未解决）。IDE 编译和测试路径已验证。
-- 替代验证：IDE 构建成功、CSP1D 全部测试通过、门禁搜索通过。
-
-### 门禁搜索
-
-全部 6 项通过，0 命中：
-
-1. `rg -n "com\\.poit|framework\\.bpp3d" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
-2. `rg -n "rollDemand|weightDemand|sheetDemand" ospf-kotlin-framework-csp1d -g "*.kt" -g "!**/src/test/**" -g "!**/src/gurobi-test/**"` → 0 命中
-3. `rg -n "ProduceSolver|SimpleProduceSolver" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
-4. `rg -n "candidatePlans" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
-5. `rg -n "println\\(" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
-6. `git diff --check -- ospf-kotlin-framework-csp1d` → 通过（仅有 LF/CRLF 行尾警告）
-
-### trace/KPI/render 同步
-
-- `Csp1dKpiKeys` 新增 5 个 generation round 2 统计 key：`InitialGenerationQuantityCacheHits`、`InitialGenerationQuantityCacheMisses`、`InitialGenerationMaterialSliceTemplateCacheMisses`、`InitialGenerationCrossWorkerDuplicateCandidates`、`InitialGenerationCrossContributionDominated`。
-- `Csp1dSolutionEnrichment.kt` 的 `enrichSolution` 和 `kpiDetails` 已同步输出新字段到 render KPI 和 KPI details。
-
-### README/README_ch 同步
-
-- README.md 和 README_ch.md 已补充 `DominanceStrategy`、数量缓存、切片模板缓存未命中、跨 worker 重复候选和 benchmark 统计字段的说明。
