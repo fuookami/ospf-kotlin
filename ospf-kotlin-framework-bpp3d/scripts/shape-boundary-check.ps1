@@ -67,6 +67,9 @@ $fixHints = @{
     HorizontalCylinderSupportCoverageSharedGuardMissing = "Item stacking and final packing guards must use the shared horizontal-cylinder cuboid support coverage helper."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
+    DeletedCuboidCompatAliasReflux = "Do not re-introduce deleted ItemCuboid.packageType/packageCategory/bottomOnly/topFlat compat extensions or Projection/AnyPlacement compat extension aliases; use shape-generic ItemProjection/ItemPlacement domain APIs instead."
+    ContinuousRadiusSolverResultWritebackMissing = "PackingRendererAdapter.toSchema must support solver-selected radius writeback for continuous-radius cylinders so actualVolume uses the solver-optimized radius."
+    ContinuousRadiusSolverResultPropagationMissing = "ColumnGenerationPackingAnalyzer.analyze must propagate solver-selected radius results to the renderer adapter so actualVolume reflects the optimized radius."
 }
 
 function Get-AllowListKey {
@@ -592,6 +595,64 @@ if (Test-Path $rendererAdapterPath) {
         File = $rendererAdapterPath.Replace("\", "/")
         Line = 1
         Text = "PackingRendererAdapter.kt was not found, so renderer geometry guard cannot be verified."
+    }
+}
+
+# --- Deleted cuboid-only compat alias reflux detection ---
+$itemPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt"
+if (Test-Path $itemPath) {
+    $itemSource = Get-Content -Path $itemPath -Raw
+    $deletedCompatPatterns = @(
+        @{ Pattern = "val\s+ItemCuboid\.packageType"; Name = "ItemCuboid.packageType" },
+        @{ Pattern = "val\s+ItemCuboid\.packageCategory"; Name = "ItemCuboid.packageCategory" },
+        @{ Pattern = "val\s+ItemCuboid\.bottomOnly"; Name = "ItemCuboid.bottomOnly" },
+        @{ Pattern = "val\s+ItemCuboid\.topFlat"; Name = "ItemCuboid.topFlat" },
+        @{ Pattern = "val\s+Projection<\*,\s*\*>\.packageType"; Name = "Projection<*,*>.packageType" },
+        @{ Pattern = "val\s+AnyPlacement2<\*>\.packageType"; Name = "AnyPlacement2<*>.packageType" },
+        @{ Pattern = "val\s+AnyPlacement3\.packageType"; Name = "AnyPlacement3.packageType" },
+        @{ Pattern = "val\s+Projection<\*,\s*\*>\.packageCategory"; Name = "Projection<*,*>.packageCategory" },
+        @{ Pattern = "val\s+AnyPlacement2<\*>\.packageCategory"; Name = "AnyPlacement2<*>.packageCategory" },
+        @{ Pattern = "val\s+AnyPlacement3\.packageCategory"; Name = "AnyPlacement3.packageCategory" },
+        @{ Pattern = "val\s+Projection<\*,\s*\*>\.topFlat"; Name = "Projection<*,*>.topFlat" },
+        @{ Pattern = "val\s+AnyPlacement2<\*>\.topFlat"; Name = "AnyPlacement2<*>.topFlat" },
+        @{ Pattern = "val\s+AnyPlacement3\.topFlat"; Name = "AnyPlacement3.topFlat" }
+    )
+    foreach ($check in $deletedCompatPatterns) {
+        if ([regex]::IsMatch($itemSource, $check.Pattern)) {
+            $violations += [PSCustomObject]@{
+                Check = "DeletedCuboidCompatAliasReflux"
+                File = $itemPath.Replace("\", "/")
+                Line = 1
+                Text = "Deleted compat extension $($check.Name) must not be re-introduced; use shape-generic ItemProjection/ItemPlacement domain APIs instead."
+            }
+        }
+    }
+}
+
+# --- Continuous-radius solver result writeback detection ---
+$rendererAdapterPath = Join-Path $scanRoot "bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingRendererAdapter.kt"
+if (Test-Path $rendererAdapterPath) {
+    $rendererAdapterSource = Get-Content -Path $rendererAdapterPath -Raw
+    if (-not [regex]::IsMatch($rendererAdapterSource, "continuousRadiusSelectionResults|solverRadiusByKey|solverResult")) {
+        $violations += [PSCustomObject]@{
+            Check = "ContinuousRadiusSolverResultWritebackMissing"
+            File = $rendererAdapterPath.Replace("\", "/")
+            Line = 1
+            Text = "PackingRendererAdapter.toSchema must support solver-selected radius writeback for continuous-radius cylinders."
+        }
+    }
+}
+
+$packingAnalyzerPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationPackingAnalyzer.kt"
+if (Test-Path $packingAnalyzerPath) {
+    $packingAnalyzerSource = Get-Content -Path $packingAnalyzerPath -Raw
+    if (-not [regex]::IsMatch($packingAnalyzerSource, "continuousRadiusSelectionResults|buildContinuousRadiusSelectionResults")) {
+        $violations += [PSCustomObject]@{
+            Check = "ContinuousRadiusSolverResultPropagationMissing"
+            File = $packingAnalyzerPath.Replace("\", "/")
+            Line = 1
+            Text = "ColumnGenerationPackingAnalyzer.analyze must propagate solver-selected radius results to the renderer adapter."
+        }
     }
 }
 

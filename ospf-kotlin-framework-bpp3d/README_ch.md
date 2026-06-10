@@ -114,7 +114,7 @@ schema 门禁规则：
 5. CSV 重复列会被显式拒绝。
 6. grouped-layer 或 material-width-amount schema 之外的未知 CSV 列会被显式拒绝。
 7. 可变半径/直径区间必须是离散区间。`*_min` + `*_max` 但缺少 `*_step` 时会被拒绝，除非 `radius_meter` 已给出固定的具体半径。
-8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，已选择半径必须满足声明的半径/直径边界，且不能与 `radius_step` 或 `diameter_step` 混用；solver 原生区间型连续半径变量仍不支持，会在诊断中输出类型化 solver 原型和注册计划，并通过共享类型化缺口合同拒绝。
+8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，已选择半径必须满足声明的半径/直径边界，且不能与 `radius_step` 或 `diameter_step` 混用；solver 原生区间型连续半径变量仍不支持，通过共享类型化缺口合同拒绝；具备生产级回写闭环的连续半径变量（有具体选择半径且无缺口）现在注册为 `RealVar` solver 变量，使用约束式上下界和目标等式约束，其 solver 选出值在 RMP/final info 中以 `continuous_radius_solver_selected_*` 键暴露，渲染适配器在有 solver 选出半径时将其回写到 `actualVolume` 和 `radius`/`diameter` DTO 字段。
 9. 在 dataset suite 模式下，文件名可声明场景类型：
    `grouped-layer` / `grouped_layer` => 分组分层 CSV，
    `material-width-amount` / `material_width_amount` => 物料宽度数量 CSV。
@@ -140,6 +140,7 @@ schema 门禁规则：
 5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
 6. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-hanging-multisupport-sample.csv`
 7. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-hanging-multisupport-sample.csv`
+8. `bpp3d-application/src/test/resources/gurobi/grouped-layer-continuous-radius-sample.csv`
 
 ### 物料宽度数量 CSV
 
@@ -160,6 +161,7 @@ schema 门禁规则：
 
 1. `bpp3d-application/src/test/resources/gurobi/material-width-amount-cylinder-sample.csv`
 2. `bpp3d-application/src/test/resources/gurobi/material-width-amount-dynamic-diameter-sample.csv`
+3. `bpp3d-application/src/test/resources/gurobi/material-width-amount-continuous-radius-sample.csv`
 
 ## 示例：固定半径竖直圆柱输入
 

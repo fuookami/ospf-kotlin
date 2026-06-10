@@ -114,7 +114,7 @@ Schema guard rules:
 5. Duplicate CSV columns are rejected explicitly.
 6. Unsupported CSV columns outside the declared grouped-layer or material-width-amount schema are rejected explicitly.
 7. Variable radius/diameter intervals must be discrete. `*_min` + `*_max` without `*_step` is rejected unless `radius_meter` provides a fixed concrete radius.
-8. `radius_weight_function_key` requires `radius_meter` as the concrete selected radius, the selected radius must satisfy declared radius/diameter bounds, and it cannot be combined with `radius_step` or `diameter_step`; solver-native interval-only continuous radius variables remain unsupported, emit a typed solver prototype plus registration-plan diagnostics, and are rejected through the shared typed gap contract.
+8. `radius_weight_function_key` requires `radius_meter` as the concrete selected radius, the selected radius must satisfy declared radius/diameter bounds, and it cannot be combined with `radius_step` or `diameter_step`; solver-native interval-only continuous radius variables remain unsupported and are rejected through the shared typed gap contract; production-ready continuous radius variables (with a concrete selected radius and no gaps) are registered as `RealVar` solver variables with constraint-based bounds and a target equality constraint, their solver-selected values are exposed in RMP/final info as `continuous_radius_solver_selected_*` keys, and the renderer adapter applies solver-selected radius to `actualVolume` and `radius`/`diameter` DTO fields when available.
 9. In dataset suite mode, file name can declare scenario kind:
    `grouped-layer` / `grouped_layer` => grouped layer CSV,
    `material-width-amount` / `material_width_amount` => material-width-amount CSV.
@@ -140,6 +140,7 @@ Sample files:
 5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
 6. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-hanging-multisupport-sample.csv`
 7. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-hanging-multisupport-sample.csv`
+8. `bpp3d-application/src/test/resources/gurobi/grouped-layer-continuous-radius-sample.csv`
 
 ### Material-Width-Amount CSV
 
@@ -160,6 +161,7 @@ Sample file:
 
 1. `bpp3d-application/src/test/resources/gurobi/material-width-amount-cylinder-sample.csv`
 2. `bpp3d-application/src/test/resources/gurobi/material-width-amount-dynamic-diameter-sample.csv`
+3. `bpp3d-application/src/test/resources/gurobi/material-width-amount-continuous-radius-sample.csv`
 
 ## Example: Fixed-Radius Vertical Cylinder Input
 

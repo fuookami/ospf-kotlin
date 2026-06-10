@@ -1,7 +1,7 @@
 # BPP3D 形状泛型化与圆柱支持重构计划
 
 日期：2026-05-31
-最近更新：2026-06-09
+最近更新：2026-06-10（连续半径 renderer 回写 + cuboid-only compat 删除收口轮）
 
 本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的当前状态与下一轮计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，将 BPP3D 从 cuboid-only 业务模型收敛到 fully generic shape 生产模型，完成连续半径优化与横向圆柱 stacking/hanging 自动支撑能力，并最终移除所有仅为兼容旧 cuboid-only 抽象而保留的兼容层，不保留兼容层。
 
@@ -11,8 +11,12 @@
 2. 已完成 shape metadata、CSV/Gurobi、program demand、material packing、depth boundary、final geometry、renderer metadata、README 和边界脚本的基础收口。
 3. 已完成横向圆柱贴地、supported-stack、hanging、多支撑区间覆盖、unsupported fallback 和真实几何校验的主要闭环。
 4. 已完成连续半径未开放路径的类型化缺口合同、solver 变量原型、solver 上下文承载、共享注册计划、边界校验和诊断闭环。
-5. 已完成多批旧 cuboid-only 兼容别名、低风险入口和 stale allowlist 删除，并加脚本门禁防止回流。
-6. 已完成 focused tests、完整 BPP3D 测试、触发式 Gurobi focused、Gurobi dataset suite、文档和边界脚本验收。
+5. 已完成连续半径 solver-native 变量注册闭环：production-ready 变量注册为 `RealVar` solver 变量，使用约束式上下界（constraint-based bounds）和目标等式约束，solver 选出值在 RMP/final info 中以 `continuous_radius_solver_selected_*` 键暴露；interval-only 变量仍通过类型化缺口合同保持 guarded。
+6. 已完成多批旧 cuboid-only 兼容别名、低风险入口和 stale allowlist 删除，并加脚本门禁防止回流。
+7. 已完成 focused tests、完整 BPP3D 测试、触发式 Gurobi focused、Gurobi dataset suite、文档和边界脚本验收。
+8. 已完成连续半径 solver-selected radius renderer 回写闭环：solver 选出的半径从 `ColumnGenerationResult.continuousRadiusSolverResults` 传递到 `ColumnGenerationPackingAnalyzer`，经 `buildContinuousRadiusSelectionResults` 转换为 `CylinderRadiusSelectionResult`，再传入 `PackingRendererAdapter.toSchema(result, continuousRadiusSelectionResults)` 重载，renderer adapter 对有 solver 选出半径的圆柱 item 用其计算 `actualVolume` 和 `radius`/`diameter` DTO 字段。
+9. 已完成第二批 cuboid-only compat 扩展属性删除（16 个 `ItemCuboid`/`Projection`/`AnyPlacement` 的 `packageType`/`packageCategory`/`bottomOnly`/`topFlat` compat 扩展属性），保留 `Projection<*,*>.bottomOnly` 作为 shape-generic 属性（因 BLA 算法依赖）；删除 `ItemProjection<*>.bottomOnly` 消除与 `Projection<*,*>.bottomOnly` 的 overload resolution 歧义。
+10. 已完成边界脚本新增 deleted cuboid-only compat alias reflux 检测、continuous-radius solver result writeback 检测和 propagation 检测。
 
 ## 2. 总目标与边界
 
@@ -31,7 +35,7 @@
 
 ### 2.3 剩余工作量
 
-距离总目标仍约剩余 4%-5%。下一轮应作为大收口轮推进，目标是把剩余工作压缩到 1%-2%，并只留下明确阻断或必须由上游 core/renderer 配合的事项。
+距离总目标仍约剩余 1%。剩余工作主要是：solver-native interval-only 连续半径变量的完整闭环（需要 core 支持 per-instance bound 或 explicit constant registration）、以及外部 renderer 构建验收。renderer `actualVolume` 的 solver-selected radius 回写路径已在本轮完成。
 
 ## 3. 下一轮扩大收口事项
 

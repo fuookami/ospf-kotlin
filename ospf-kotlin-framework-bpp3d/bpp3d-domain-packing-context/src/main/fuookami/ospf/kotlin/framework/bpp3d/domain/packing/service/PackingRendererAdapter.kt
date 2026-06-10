@@ -6,6 +6,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
+import kotlin.math.PI
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverSource
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
@@ -17,9 +23,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlan
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanItemDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderShapeTypeDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.quantity.times
 
 /**
  * 装箱渲染适配器，将装箱结果转换为渲染 DTO。
@@ -51,6 +59,24 @@ class PackingRendererAdapter {
         }
     }
 
+    private fun solverRadiusSelectionResult(
+        item: Item,
+        solverRadiusByVariableName: Map<String, CylinderRadiusSelectionResult>,
+        solverRadiusByUniqueKey: Map<String, CylinderRadiusSelectionResult>
+    ): CylinderRadiusSelectionResult? {
+        val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder ?: return null
+        val key = spec.radiusWeightFunctionKey ?: return null
+        val prototype = spec.continuousRadiusSolverPrototype(
+            source = continuousCylinderRadiusSolverSource(item)
+        )
+        prototype?.variableName?.let { variableName ->
+            solverRadiusByVariableName[variableName]?.let {
+                return it
+            }
+        }
+        return solverRadiusByUniqueKey[key]
+    }
+
     /**
      * 将装箱结果转换为渲染方案 DTO。
      * Convert packing result to rendering schema DTO.
@@ -59,6 +85,28 @@ class PackingRendererAdapter {
      * @return 渲染方案 DTO / rendering schema DTO
      */
     fun toSchema(result: PackingResult): SchemaDTO {
+        return toSchema(result, emptyList())
+    }
+
+    /**
+     * 将装箱结果转换为渲染方案 DTO，支持 solver 选出半径回写。
+     * Convert packing result to rendering schema DTO with solver-selected radius writeback.
+     *
+     * @param result 装箱结果 / packing result
+     * @param continuousRadiusSelectionResults 连续半径已选择结果列表 / continuous-radius selection results
+     * @return 渲染方案 DTO / rendering schema DTO
+     */
+    fun toSchema(
+        result: PackingResult,
+        continuousRadiusSelectionResults: List<CylinderRadiusSelectionResult>
+    ): SchemaDTO {
+        val solverRadiusByVariableName = continuousRadiusSelectionResults.mapNotNull { result ->
+            result.variableName?.let { variableName -> variableName to result }
+        }.toMap()
+        val solverRadiusByUniqueKey = continuousRadiusSelectionResults
+            .groupBy { it.key }
+            .filterValues { it.size == 1 }
+            .mapValues { (_, results) -> results.single() }
         val loadingPlans = result.aggregation.bins.map { bin ->
             requirePackedBinShapeGeometry(
                 bin = bin,
@@ -68,6 +116,36 @@ class PackingRendererAdapter {
                 val placement = packed.placement
                 val shape = placement.resolvedPackingShape()
                 val renderShapeType = shape.shapeType.toRenderShapeType()
+                val cylinderShape = shape as? CylinderPackingShape3
+                val itemUnit = placement.unit
+                val solverResult = (itemUnit as? Item)?.let { item ->
+                    solverRadiusSelectionResult(
+                        item = item,
+                        solverRadiusByVariableName = solverRadiusByVariableName,
+                        solverRadiusByUniqueKey = solverRadiusByUniqueKey
+                    )
+                }
+
+                // 使用 solver 选出半径计算真实体积；没有回写结果时使用形状自身体积。
+                // Use solver-selected radius for actual volume; fall back to the shape volume when absent.
+                val actualVolume: FltX = if (cylinderShape != null && solverResult != null) {
+                    val solverRadius = solverResult.selectedRadius
+                    (infraScalar(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
+                } else {
+                    shape.actualVolume.value.toFltX()
+                }
+
+                val radius: FltX? = if (cylinderShape != null && solverResult != null) {
+                    solverResult.selectedRadius.value.toFltX()
+                } else {
+                    cylinderShape?.radius?.value?.toFltX()
+                }
+                val diameter: FltX? = if (cylinderShape != null && solverResult != null) {
+                    (solverResult.selectedRadius * infraScalar(2.0)).value.toFltX()
+                } else {
+                    cylinderShape?.diameter?.value?.toFltX()
+                }
+
                 RenderLoadingPlanItemDTO(
                     name = placement.unit.toString(),
                     packageType = placement.unit.packageType.name,
@@ -82,13 +160,13 @@ class PackingRendererAdapter {
                     shapeType = renderShapeType,
                     renderShapeType = renderShapeType,
                     algorithmShapeType = shape.algorithmShapeType.toRenderAlgorithmShapeType(),
-                    radius = (shape as? CylinderPackingShape3)?.radius?.value?.toFltX(),
-                    diameter = (shape as? CylinderPackingShape3)?.diameter?.value?.toFltX(),
+                    radius = radius,
+                    diameter = diameter,
                     axis = shape.axis?.toRenderAxis3(),
                     boundingWidth = shape.boundingWidth.value.toFltX(),
                     boundingHeight = shape.boundingHeight.value.toFltX(),
                     boundingDepth = shape.boundingDepth.value.toFltX(),
-                    actualVolume = shape.actualVolume.value.toFltX()
+                    actualVolume = actualVolume
                 )
             }
 

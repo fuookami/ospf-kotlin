@@ -467,7 +467,7 @@ class ColumnGenerationAlgorithmTest {
             items = listOf(item),
             config = ColumnGenerationConfig(iterationLimit = 1)
         )
-        val expectedVariable = "cylinder_radius_ColumnGenerationState_item_0_cg_radius_key_Y"
+        val expectedVariable = continuousRadiusSolverPrototypesFromItems(listOf(item)).single().variableName
 
         assertEquals(listOf(expectedVariable), rmpVariables)
         assertEquals(listOf(expectedVariable), requestBuilderVariables)
@@ -555,13 +555,15 @@ class ColumnGenerationAlgorithmTest {
             prototype.variableName,
             snapshot.schema.kpi["continuous_radius_solver_registration_plan_production_ready_variables"]
         )
+        // Production-ready variables are no longer blocked (solver-registerable)
         assertEquals(
-            prototype.variableName,
+            "",
             snapshot.schema.kpi["continuous_radius_solver_model_registration_blocked_variables"]
         )
-        assertTrue(
+        // Blocked reason is empty when no variables are blocked
+        assertEquals(
+            "",
             snapshot.schema.kpi["continuous_radius_solver_model_registration_blocked_reason"]
-                ?.contains("core token-bound support") == true
         )
     }
 
@@ -676,8 +678,9 @@ class ColumnGenerationAlgorithmTest {
         val result = algorithm.solve(items = listOf(item))
         val selectedRadiusValue = assertNotNull(prototype.initialRadius).value.toDouble()
 
-        assertTrue(lpRadiusTokens.isEmpty())
-        assertTrue(milpRadiusTokens.isEmpty())
+        // Production-ready variables are now registered into the solver model
+        assertTrue(lpRadiusTokens.contains(prototype.variableName))
+        assertTrue(milpRadiusTokens.contains(prototype.variableName))
         assertEquals("1", result.lpInfos.single()["continuous_radius_solver_registration_plan_count"])
         assertEquals(
             prototype.variableName,
@@ -691,19 +694,25 @@ class ColumnGenerationAlgorithmTest {
             prototype.variableName,
             result.lpInfos.single()["continuous_radius_solver_registration_plan_production_ready_variables"]
         )
+        // Production-ready variables are no longer blocked
         assertEquals(
-            prototype.variableName,
+            "",
             result.lpInfos.single()["continuous_radius_solver_model_registration_blocked_variables"]
         )
-        assertTrue(
+        // Blocked reason is empty when no variables are blocked
+        assertEquals(
+            "",
             result.lpInfos.single()["continuous_radius_solver_model_registration_blocked_reason"]
-                ?.contains("core token-bound support") == true
         )
+        // Solver-selected radius is exposed in LP info
+        assertNotNull(result.lpInfos.single()["continuous_radius_solver_selected_${prototype.variableName}"])
         assertEquals("1", result.finalInfo["continuous_radius_solver_registration_plan_count"])
         assertEquals(
             prototype.variableName,
             result.finalInfo["continuous_radius_solver_registration_plan_production_ready_variables"]
         )
+        // Solver-selected radius is exposed in final info
+        assertNotNull(result.finalInfo["continuous_radius_solver_selected_${prototype.variableName}"])
     }
 
     @Test

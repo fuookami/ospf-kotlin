@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverSource
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
@@ -58,7 +59,8 @@ data class ColumnGenerationState<V>(
     val columns: List<BinLayer>,
     val bins: List<LayerBin> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList()
+    val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList(),
+    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap()
 )
 
 /**
@@ -72,14 +74,35 @@ fun continuousRadiusSolverPrototypesFromItems(
     items: List<Item>
 ): List<ContinuousCylinderRadiusSolverPrototype> {
     val prototypes = LinkedHashMap<String, ContinuousCylinderRadiusSolverPrototype>()
-    for ((index, item) in items.withIndex()) {
+    for (item in items) {
         val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder ?: continue
         val prototype = spec.continuousRadiusSolverPrototype(
-            source = "ColumnGenerationState.item.${index}"
+            source = continuousCylinderRadiusSolverSource(item)
         ) ?: continue
         prototypes.putIfAbsent(prototype.variableName, prototype)
     }
     return prototypes.values.toList()
+}
+
+/**
+ * 从 info 映射中提取连续半径 solver 选出结果。
+ * Extract continuous-radius solver-selected results from info map.
+ *
+ * @param info 信息映射 / info map
+ * @return solver 选出半径映射 / solver-selected radius map
+ */
+fun extractContinuousRadiusSolverResultsFromInfo(
+    info: Map<String, String>
+): Map<String, InfraNumber> {
+    val prefix = "continuous_radius_solver_selected_"
+    val results = LinkedHashMap<String, InfraNumber>()
+    for ((key, value) in info) {
+        if (key.startsWith(prefix)) {
+            val variableName = key.removePrefix(prefix)
+            results[variableName] = InfraNumber(value.toDouble())
+        }
+    }
+    return results
 }
 
 /**
@@ -142,7 +165,8 @@ data class ColumnGenerationResult<V>(
     val finalObjective: V?,
     val elapsed: Duration = Duration.ZERO,
     val lpInfos: List<Map<String, String>> = emptyList(),
-    val finalInfo: Map<String, String> = emptyMap()
+    val finalInfo: Map<String, String> = emptyMap(),
+    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap()
 )
 
 /**
@@ -385,9 +409,11 @@ class ColumnGenerationAlgorithm<V>(
                 columns = deduplicateColumns(finalResult.columns)
                 finalObjective = finalResult.objective
                 finalInfo = finalResult.info
+                val solverResults = extractContinuousRadiusSolverResultsFromInfo(finalResult.info)
                 finalState = finalState.copy(
                     columns = columns,
-                    bins = finalResult.bins
+                    bins = finalResult.bins,
+                    continuousRadiusSolverResults = solverResults
                 )
             } else {
                 solveFinalMilp(finalState)
@@ -408,7 +434,8 @@ class ColumnGenerationAlgorithm<V>(
             finalObjective = finalObjective,
             elapsed = startedAt.elapsedNow(),
             lpInfos = lpInfos,
-            finalInfo = finalInfo
+            finalInfo = finalInfo,
+            continuousRadiusSolverResults = finalState.continuousRadiusSolverResults
         )
     }
 }

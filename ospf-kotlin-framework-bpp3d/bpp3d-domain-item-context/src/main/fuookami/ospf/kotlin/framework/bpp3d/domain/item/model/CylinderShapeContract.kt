@@ -446,6 +446,12 @@ data class ContinuousCylinderRadiusSolverPrototype(
     /** 是否已经具备生产级回写闭环。 / Whether the production selection closure is available. */
     val isProductionReady: Boolean get() = initialRadius != null && gaps.isEmpty()
 
+    /** 是否可以注册到 solver model（允许 solver 自由选择半径范围内的最优值）。 / Whether the variable can be registered into the solver model (solver may freely choose the optimal value within bounds). */
+    val isSolverRegisterable: Boolean get() = gaps.none {
+        it == ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported
+                || it == ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported
+    }
+
     /**
      * 转为错误信息后缀。
      * Convert to error message suffix.
@@ -536,6 +542,8 @@ fun continuousCylinderRadiusSolverPrototype(
  * Selected continuous-radius result.
  *
  * @property key 半径权重函数键 / radius weight function key
+ * @property variableName solver 半径变量名（可选） / solver radius variable name (optional)
+ * @property source solver 原型来源（可选） / solver prototype source (optional)
  * @property selectedRadius 已选择半径 / selected radius
  * @property axis 圆柱轴向 / cylinder axis
  * @property radiusMin 半径下界（可选） / radius lower bound (optional)
@@ -546,16 +554,47 @@ data class CylinderRadiusSelectionResult(
     val selectedRadius: Quantity<InfraNumber>,
     val axis: Axis3,
     val radiusMin: Quantity<InfraNumber>? = null,
-    val radiusMax: Quantity<InfraNumber>? = null
+    val radiusMax: Quantity<InfraNumber>? = null,
+    val variableName: String? = null,
+    val source: String? = null
 ) {
     init {
         require(key.isNotBlank()) {
             "Cylinder radius selection key must not be blank."
         }
+        variableName?.let {
+            require(it.isNotBlank()) {
+                "Cylinder radius selection variable name must not be blank."
+            }
+        }
+        source?.let {
+            require(it.isNotBlank()) {
+                "Cylinder radius selection source must not be blank."
+            }
+        }
         require(selectedRadius.value.toDouble() > 0.0) {
             "Cylinder selected radius must be positive."
         }
     }
+}
+
+/**
+ * 构建连续半径 solver 原型的稳定 item 来源。
+ * Build a stable item source for continuous-radius solver prototypes.
+ *
+ * @param item 货物 / item
+ * @return solver 原型来源 / solver prototype source
+ */
+fun continuousCylinderRadiusSolverSource(item: Item): String {
+    val itemId = when (item) {
+        is ActualItem -> item.id
+        else -> if (item.indexed) {
+            "indexed_${item.index}"
+        } else {
+            item.toString()
+        }
+    }
+    return "ColumnGenerationState.item.$itemId"
 }
 
 /**
@@ -837,5 +876,30 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
         items = items,
         source = path.source,
         pathPredicate = path.pathPredicate
+    )
+}
+
+/**
+ * 从 solver 结果构建连续半径已选择结果。
+ * Build selected continuous-radius result from solver output.
+ *
+ * @receiver 连续半径 solver 原生变量原型 / continuous-radius solver variable prototype
+ * @param solverRadius solver 选出的半径 / solver-selected radius
+ * @return 已选择半径结果 / selected radius result
+ */
+fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
+    solverRadius: Quantity<InfraNumber>
+): CylinderRadiusSelectionResult {
+    require(radiusWeightFunctionKey != null) {
+        "Continuous cylinder radius solver prototype must have a radius weight function key to build a selection result."
+    }
+    return CylinderRadiusSelectionResult(
+        key = radiusWeightFunctionKey,
+        variableName = variableName,
+        source = source,
+        selectedRadius = solverRadius,
+        axis = axis,
+        radiusMin = radiusLowerBound,
+        radiusMax = radiusUpperBound
     )
 }

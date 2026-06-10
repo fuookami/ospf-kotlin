@@ -51,6 +51,10 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -261,6 +265,9 @@ class ColumnGenerationStandardExecutors(
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 ) + artifacts.continuousRadiusVariablePlan.info()
+                    + extractContinuousRadiusSolverResults(artifacts.model, artifacts.continuousRadiusVariables)
+                        .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
+                        .mapValues { (_, value) -> value.toString() }
             )
         }
     }
@@ -288,8 +295,12 @@ class ColumnGenerationStandardExecutors(
             }
 
             val model = newModel("${config.finalSolveNamePrefix}-${state.iteration}")
-            val continuousRadiusVariablePlan = continuousRadiusSolverVariableRegistrationPlan(
+            val finalContinuousRadiusVariables = continuousRadiusSolverVariables(
                 prototypes = state.continuousRadiusSolverPrototypes
+            )
+            val continuousRadiusVariablePlan = continuousRadiusSolverVariableRegistrationPlan(
+                prototypes = state.continuousRadiusSolverPrototypes,
+                solverVariables = finalContinuousRadiusVariables
             )
             val assignment = PreciseAssignment(
                 bins = bins,
@@ -347,6 +358,8 @@ class ColumnGenerationStandardExecutors(
                 "build final objective"
             )
 
+            registerContinuousRadiusVariables(model, finalContinuousRadiusVariables)
+
             val solved = ensureRet(
                 solver.solveMILPV(
                 name = "${config.finalSolveNamePrefix}-${state.iteration}",
@@ -379,6 +392,9 @@ class ColumnGenerationStandardExecutors(
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 ) + continuousRadiusVariablePlan.info()
+                    + extractContinuousRadiusSolverResults(model, finalContinuousRadiusVariables)
+                        .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
+                        .mapValues { (_, value) -> value.toString() }
             )
         }
     }
@@ -419,7 +435,8 @@ class ColumnGenerationStandardExecutors(
     private data class RmpArtifacts(
         val model: LinearMetaModel<InfraNumber>,
         val demandConstraint: ItemDemandConstraint,
-        val continuousRadiusVariablePlan: ContinuousRadiusSolverVariableRegistrationPlan
+        val continuousRadiusVariablePlan: ContinuousRadiusSolverVariableRegistrationPlan,
+        val continuousRadiusVariables: List<ContinuousRadiusSolverVariable>
     )
 
     private suspend fun buildRmpArtifacts(
@@ -476,15 +493,101 @@ class ColumnGenerationStandardExecutors(
         volumeMinimization.register(model)
         ensureTry(volumeMinimization.invoke(model), "build rmp objective")
 
-        val continuousRadiusVariablePlan = continuousRadiusSolverVariableRegistrationPlan(
+        val continuousRadiusVariables = continuousRadiusSolverVariables(
             prototypes = state.continuousRadiusSolverPrototypes
+        )
+        registerContinuousRadiusVariables(model, continuousRadiusVariables)
+
+        val continuousRadiusVariablePlan = continuousRadiusSolverVariableRegistrationPlan(
+            prototypes = state.continuousRadiusSolverPrototypes,
+            solverVariables = continuousRadiusVariables
         )
 
         return RmpArtifacts(
             model = model,
             demandConstraint = demandConstraint,
-            continuousRadiusVariablePlan = continuousRadiusVariablePlan
+            continuousRadiusVariablePlan = continuousRadiusVariablePlan,
+            continuousRadiusVariables = continuousRadiusVariables
         )
+    }
+
+    /**
+     * 注册连续半径 solver 变量及其约束到模型。
+     * Register continuous-radius solver variables and their constraints into the model.
+     */
+    private fun registerContinuousRadiusVariables(
+        model: LinearMetaModel<InfraNumber>,
+        solverVariables: List<ContinuousRadiusSolverVariable>
+    ) {
+        for (solverVar in solverVariables) {
+            val proto = solverVar.prototype
+            model.add(solverVar.variable)
+            // Lower bound: 1*x >= lowerBound
+            proto.radiusLowerBound?.let { lb ->
+                val lhs = LinearPolynomial(
+                    listOf(LinearMonomial(InfraNumber.one, solverVar.variable)),
+                    InfraNumber.zero
+                )
+                val rhs = LinearPolynomial(emptyList(), lb.value)
+                ensureTry(
+                    model.addConstraint(
+                        relation = LinearInequality(lhs, rhs, Comparison.GE),
+                        name = "${proto.variableName}_lb"
+                    ),
+                    "register continuous radius lower bound for ${proto.variableName}"
+                )
+            }
+            // Upper bound: 1*x <= upperBound
+            proto.radiusUpperBound?.let { ub ->
+                val lhs = LinearPolynomial(
+                    listOf(LinearMonomial(InfraNumber.one, solverVar.variable)),
+                    InfraNumber.zero
+                )
+                val rhs = LinearPolynomial(emptyList(), ub.value)
+                ensureTry(
+                    model.addConstraint(
+                        relation = LinearInequality(lhs, rhs, Comparison.LE),
+                        name = "${proto.variableName}_ub"
+                    ),
+                    "register continuous radius upper bound for ${proto.variableName}"
+                )
+            }
+            // Target: 1*x == initialRadius (for production-ready variables with a concrete selected radius)
+            if (proto.isProductionReady) {
+                proto.initialRadius?.let { ir ->
+                    val lhs = LinearPolynomial(
+                        listOf(LinearMonomial(InfraNumber.one, solverVar.variable)),
+                        InfraNumber.zero
+                    )
+                    val rhs = LinearPolynomial(emptyList(), ir.value)
+                    ensureTry(
+                        model.addConstraint(
+                            relation = LinearInequality(lhs, rhs, Comparison.EQ),
+                            name = "${proto.variableName}_target"
+                        ),
+                        "register continuous radius target for ${proto.variableName}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * 从模型中提取连续半径 solver 变量的求解结果。
+     * Extract continuous-radius solver variable results from the model.
+     */
+    private fun extractContinuousRadiusSolverResults(
+        model: LinearMetaModel<InfraNumber>,
+        solverVariables: List<ContinuousRadiusSolverVariable>
+    ): Map<String, InfraNumber> {
+        val results = LinkedHashMap<String, InfraNumber>()
+        for (solverVar in solverVariables) {
+            val proto = solverVar.prototype
+            val token = model.tokens.find(solverVar.variable) ?: continue
+            val value = token.doubleResult?.let { InfraNumber(it) } ?: continue
+            results[proto.variableName] = value
+        }
+        return results
     }
 
     private fun collectSelectedColumns(

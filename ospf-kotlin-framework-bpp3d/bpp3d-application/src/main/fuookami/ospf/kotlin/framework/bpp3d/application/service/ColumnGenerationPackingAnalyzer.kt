@@ -14,12 +14,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.withSolverSelectedRadius
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
@@ -123,7 +125,11 @@ class ColumnGenerationPackingAnalyzer(
             bins = bins,
             context = contextBuilder(state)
         )
-        val schema = rendererAdapter.toSchema(packingResult)
+        val continuousRadiusSelectionResults = buildContinuousRadiusSelectionResults(
+            prototypes = state.continuousRadiusSolverPrototypes,
+            solverResults = state.continuousRadiusSolverResults
+        )
+        val schema = rendererAdapter.toSchema(packingResult, continuousRadiusSelectionResults)
         val demandModeShadowPriceTotals = LinkedHashMap<String, InfraNumber>()
         val demandModeShadowPriceEntryCounts = LinkedHashMap<String, Int>()
         for ((key, value) in state.shadowPrices) {
@@ -139,6 +145,9 @@ class ColumnGenerationPackingAnalyzer(
                 prototypes = state.continuousRadiusSolverPrototypes
             ).info()
         )
+        for ((variableName, solverValue) in state.continuousRadiusSolverResults) {
+            schemaKpi["continuous_radius_solver_selected_$variableName"] = solverValue.toString()
+        }
         for ((mode, total) in demandModeShadowPriceTotals) {
             schemaKpi["shadow_price_mode_${mode}_total"] = total.toString()
         }
@@ -153,6 +162,30 @@ class ColumnGenerationPackingAnalyzer(
             demandModeShadowPriceEntryCounts = demandModeShadowPriceEntryCounts
         )
     }
+}
+
+/**
+ * 从 solver 变量原型和选出结果构建连续半径已选择结果列表。
+ * Build continuous-radius selection results from solver prototypes and solver-selected values.
+ *
+ * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
+ * @param solverResults solver 选出半径映射 / solver-selected radius map
+ * @return 连续半径已选择结果列表 / continuous-radius selection result list
+ */
+private fun buildContinuousRadiusSelectionResults(
+    prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
+    solverResults: Map<String, InfraNumber>
+): List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult> {
+    if (solverResults.isEmpty()) return emptyList()
+    val results = ArrayList<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult>()
+    for (prototype in prototypes) {
+        val solverValue = solverResults[prototype.variableName] ?: continue
+        val selectionResult = prototype.withSolverSelectedRadius(
+            solverRadius = fuookami.ospf.kotlin.quantities.quantity.Quantity(solverValue, fuookami.ospf.kotlin.quantities.unit.Meter)
+        )
+        results.add(selectionResult)
+    }
+    return results
 }
 
 /**

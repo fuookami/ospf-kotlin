@@ -15,9 +15,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverSource
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.withSolverSelectedRadius
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
@@ -44,6 +47,7 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class PackerAndRendererAdapterTest {
@@ -98,7 +102,8 @@ class PackerAndRendererAdapterTest {
         material: Material<InfraNumber>,
         axis: Axis3 = Axis3.Y,
         radiusValue: Double = 0.5,
-        lengthValue: Double = 1.2
+        lengthValue: Double = 1.2,
+        radiusWeightFunctionKey: String? = null
     ): ActualItem {
         val radius = infraScalar(radiusValue) * Meter
         val height = infraScalar(lengthValue) * Meter
@@ -142,7 +147,8 @@ class PackerAndRendererAdapterTest {
             packageAttribute = packageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
-                axis = axis
+                axis = axis,
+                radiusWeightFunctionKey = radiusWeightFunctionKey
             )
         )
     }
@@ -233,6 +239,53 @@ class PackerAndRendererAdapterTest {
             shape = binType,
             units = layerPlacements
         )
+    }
+
+    @Test
+    fun rendererAdapterShouldUseVariableNameWhenContinuousRadiusKeysAreShared() = runBlocking {
+        val material = Material(
+            no = MaterialNo("M-CYL-SHARED-RADIUS-KEY"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CYL-SHARED-RADIUS-KEY",
+            weight = infraScalar(0.5) * Kilogram
+        )
+        val itemA = cylinderItem(
+            id = "cyl-shared-key-a",
+            material = material,
+            radiusWeightFunctionKey = "shared-radius-key"
+        )
+        val itemB = cylinderItem(
+            id = "cyl-shared-key-b",
+            material = material,
+            radiusWeightFunctionKey = "shared-radius-key"
+        )
+        val result = toPackingResult(
+            layerBin(
+                items = listOf(itemA, itemB),
+                positions = listOf(Pair(0.0, 0.0), Pair(1.0, 0.0))
+            )
+        )
+        fun selectedRadius(item: ActualItem, radiusValue: Double) =
+            assertNotNull(
+                (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).continuousRadiusSolverPrototype(
+                    source = continuousCylinderRadiusSolverSource(item)
+                )
+            ).withSolverSelectedRadius(
+                solverRadius = infraScalar(radiusValue) * Meter
+            )
+
+        val schema = PackingRendererAdapter().toSchema(
+            result = result,
+            continuousRadiusSelectionResults = listOf(
+                selectedRadius(itemA, 0.3),
+                selectedRadius(itemB, 0.4)
+            )
+        )
+        val renderedByName = schema.loadingPlans.first().items.associateBy { it.name }
+
+        assertEquals(0.3, assertNotNull(renderedByName[itemA.name]?.radius).toDouble(), 1e-10)
+        assertEquals(0.4, assertNotNull(renderedByName[itemB.name]?.radius).toDouble(), 1e-10)
     }
 
     @Test
