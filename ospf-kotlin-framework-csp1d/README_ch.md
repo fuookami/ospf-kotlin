@@ -38,6 +38,19 @@ val problem = csp1dProblem<Flt64> {
             maxPricingPlans = 32,
             iterationLimit = 16
         )
+        yieldConfig(
+            YieldModelingConfig(
+                underProductionPenalty = mapOf(
+                    ProductDemandShadowPriceKey(productId = "p1", unitSymbol = "m") to Flt64(100.0)
+                ),
+                overProductionPenalty = mapOf(
+                    ProductDemandShadowPriceKey(productId = "p1", unitSymbol = "m") to Flt64(10.0)
+                ),
+                overProductionUpperBound = mapOf(
+                    ProductDemandShadowPriceKey(productId = "p1", unitSymbol = "m") to Flt64(50.0)
+                )
+            )
+        )
         lengthConfig(lengthConfig)
         wasteConfig(wasteConfig)
         topKPlanLimit(10)
@@ -54,6 +67,18 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 ```
 
 `solveConfig` 可以作为 `solve(...)` 参数显式传入，也可以挂在 `problem.solveConfig`，还可以从 solver 入口构造参数提供默认增强配置。显式方法参数优先级最高。
+
+`Csp1dColumnGeneration` 也接受 `yieldConfig`、`wasteConfig`、`lengthConfig` 和 `warmStartPlanUsages` 作为构造参数。`warmStartPlanUsages` 接受 `List<CuttingPlanUsage<V>>`，每个元素将一个 `CuttingPlan` 与 `UInt64` 使用量配对；这些配对会作为原生 assignment 初始值写入最终 MILP 模型：
+
+```kotlin
+val solver = Csp1dColumnGeneration<Flt64>(
+    solver = columnGenerationSolver,
+    yieldConfig = yieldConfig,
+    warmStartPlanUsages = listOf(
+        CuttingPlanUsage(plan = cuttingPlan, amount = UInt64(3))
+    )
+)
+```
 
 ## 输出
 

@@ -38,6 +38,19 @@ val problem = csp1dProblem<Flt64> {
             maxPricingPlans = 32,
             iterationLimit = 16
         )
+        yieldConfig(
+            YieldModelingConfig(
+                underProductionPenalty = mapOf(
+                    ProductDemandShadowPriceKey(productId = "p1", unitSymbol = "m") to Flt64(100.0)
+                ),
+                overProductionPenalty = mapOf(
+                    ProductDemandShadowPriceKey(productId = "p1", unitSymbol = "m") to Flt64(10.0)
+                ),
+                overProductionUpperBound = mapOf(
+                    ProductDemandShadowPriceKey(productId = "p1", unitSymbol = "m") to Flt64(50.0)
+                )
+            )
+        )
         lengthConfig(lengthConfig)
         wasteConfig(wasteConfig)
         topKPlanLimit(10)
@@ -54,6 +67,18 @@ val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(problem)
 ```
 
 `solveConfig` can be passed directly to `solve(...)`, stored in `problem.solveConfig`, or supplied through constructor-level default configs. Explicit method arguments have the highest priority.
+
+`Csp1dColumnGeneration` also accepts `yieldConfig`, `wasteConfig`, `lengthConfig`, and `warmStartPlanUsages` as constructor parameters. `warmStartPlanUsages` takes a `List<CuttingPlanUsage<V>>` where each element pairs a `CuttingPlan` with a `UInt64` usage amount; these are written as native initial assignment values into the final MILP model:
+
+```kotlin
+val solver = Csp1dColumnGeneration<Flt64>(
+    solver = columnGenerationSolver,
+    yieldConfig = yieldConfig,
+    warmStartPlanUsages = listOf(
+        CuttingPlanUsage(plan = cuttingPlan, amount = UInt64(3))
+    )
+)
+```
 
 ## Outputs
 

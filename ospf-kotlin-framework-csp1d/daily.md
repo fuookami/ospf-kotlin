@@ -46,9 +46,8 @@
 1. ~~Maven 本地仓库缓存导致 application acceptance surefire 12 个 error~~：已修复，清理旧 artifact 并 `mvn install -am` 后重跑，50/50 通过。
 2. ~~produce-context 缺少 surefire 报告~~：已确认该模块无测试源码，无需 surefire 报告。
 3. ~~Gurobi 端到端 smoke 未执行~~：当前 Gurobi 10 环境下已执行目标真实 solver smoke，7/7 通过。
-4. 文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充。
-
-## 5. 下一轮目标
+4. ~~文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充~~：已在 README/README_ch 的 Basic Use / 基本使用 章节补充 `yieldConfig` DSL 示例（含 `underProductionPenalty`、`overProductionPenalty`、`overProductionUpperBound`）和 `warmStartPlanUsages` 构造参数示例（含 `CuttingPlanUsage` 配对）。
+5. 延后能力边界已验证：缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、公式语言、训练平台、历史样本服务等关键词在 CSP1D 主路径源码中无命中。## 5. 下一轮目标
 
 在不扩大到 POIT 业务 DTO 和未建模实体的前提下，完成 CSP1D framework 的最终交付验收：跑通当前源码对应的验证基线，确认真实 solver 边界，复核 public API、README/README_ch、demo3 和 trace/KPI/render 输出一致性，并确保 CSP1D 范围与非 CSP1D 工作区改动清晰隔离。
 
@@ -184,4 +183,5 @@
 1. ~~Maven 本地仓库缓存导致 application acceptance surefire 12 个 error~~：已修复，清理旧 artifact 并 `mvn install -am` 后重跑，50/50 通过。
 2. ~~produce-context 缺少 surefire 报告~~：已确认该模块无测试源码，`No tests to run`，无需 surefire 报告。
 3. ~~Gurobi 端到端 smoke 未执行~~：当前 Gurobi 10 环境下已执行目标真实 solver smoke，7/7 通过。
-4. 文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充。
+4. ~~文档完整性：`yieldConfig` DSL 示例和 `warmStartPlanUsages` 构造参数文档可后续补充~~：已在 README/README_ch 补充。
+5. 延后能力边界已验证：主路径源码无延后能力关键词命中。
