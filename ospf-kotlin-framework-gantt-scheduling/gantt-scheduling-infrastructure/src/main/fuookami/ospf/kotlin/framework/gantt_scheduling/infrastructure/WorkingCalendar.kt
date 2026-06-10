@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
@@ -2306,6 +2305,7 @@ open class ContinuousProductivityCalendar<P, T, U>(
          * @param unavailableTimes 不可用时间列表 / The list of unavailable times
          * @return 连续生产力日历 / The continuous productivity calendar
          */
+        @Suppress("DEPRECATION")
         operator fun <V : RealNumber<V>, P, T, U> invoke(
             timeWindow: TimeWindow<V>,
             productivity: List<P>,
