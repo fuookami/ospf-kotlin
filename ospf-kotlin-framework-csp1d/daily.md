@@ -108,3 +108,39 @@
    - `rg -n "candidatePlans" ospf-kotlin-framework-csp1d -g "*.kt"`
    - `rg -n "println\\(" ospf-kotlin-framework-csp1d -g "*.kt"`
    - `git diff --check -- ospf-kotlin-framework-csp1d`
+
+## 11. 本轮验证结果（2026-06-10）
+
+### 生成器目标测试
+
+- `GeneratorMediumScaleBaselineTest` 全部 8 个测试通过：DFS/NSum/NSame/FullSum canonical 结果集合不变，benchmark 快照已更新为包含 quantityCacheHits/Misses、materialSliceTemplateCacheMisses、crossWorkerDuplicateCandidates、crossContributionDominated 的新值。
+- `assertMediumScaleBaseline` 断言已覆盖全部新增统计字段的非负校验。
+
+### application acceptance 测试
+
+- `Csp1dApplicationAcceptanceTest` 全部通过，包括 MILP、列生成、Top-K、KPI/render、recovery、warm start、partial/failed 状态、LP 不可行和 MILP 失败返回 Failed 状态。
+
+### Gurobi profile
+
+- 未执行。Maven 本地安装需要先 install 全部上游模块（GPG 签名和环境问题未解决）。IDE 编译和测试路径已验证。
+- 替代验证：IDE 构建成功、CSP1D 全部测试通过、门禁搜索通过。
+
+### 门禁搜索
+
+全部 6 项通过，0 命中：
+
+1. `rg -n "com\\.poit|framework\\.bpp3d" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
+2. `rg -n "rollDemand|weightDemand|sheetDemand" ospf-kotlin-framework-csp1d -g "*.kt" -g "!**/src/test/**" -g "!**/src/gurobi-test/**"` → 0 命中
+3. `rg -n "ProduceSolver|SimpleProduceSolver" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
+4. `rg -n "candidatePlans" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
+5. `rg -n "println\\(" ospf-kotlin-framework-csp1d -g "*.kt"` → 0 命中
+6. `git diff --check -- ospf-kotlin-framework-csp1d` → 通过（仅有 LF/CRLF 行尾警告）
+
+### trace/KPI/render 同步
+
+- `Csp1dKpiKeys` 新增 5 个 generation round 2 统计 key：`InitialGenerationQuantityCacheHits`、`InitialGenerationQuantityCacheMisses`、`InitialGenerationMaterialSliceTemplateCacheMisses`、`InitialGenerationCrossWorkerDuplicateCandidates`、`InitialGenerationCrossContributionDominated`。
+- `Csp1dSolutionEnrichment.kt` 的 `enrichSolution` 和 `kpiDetails` 已同步输出新字段到 render KPI 和 KPI details。
+
+### README/README_ch 同步
+
+- README.md 和 README_ch.md 已补充 `DominanceStrategy`、数量缓存、切片模板缓存未命中、跨 worker 重复候选和 benchmark 统计字段的说明。

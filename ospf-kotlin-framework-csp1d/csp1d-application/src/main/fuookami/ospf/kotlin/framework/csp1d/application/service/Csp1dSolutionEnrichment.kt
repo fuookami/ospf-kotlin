@@ -80,6 +80,16 @@ internal fun <V : RealNumber<V>> enrichSolution(
             initialGenerationStatistics.materialWidthIndexCacheHits.toString()
         renderKpi[Csp1dKpiKeys.InitialMaterialSliceTemplateCacheHits] =
             initialGenerationStatistics.materialSliceTemplateCacheHits.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationQuantityCacheHits] =
+            initialGenerationStatistics.quantityCacheHits.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationQuantityCacheMisses] =
+            initialGenerationStatistics.quantityCacheMisses.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationMaterialSliceTemplateCacheMisses] =
+            initialGenerationStatistics.materialSliceTemplateCacheMisses.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationCrossWorkerDuplicateCandidates] =
+            initialGenerationStatistics.crossWorkerDuplicateCandidates.toString()
+        renderKpi[Csp1dKpiKeys.InitialGenerationCrossContributionDominated] =
+            initialGenerationStatistics.crossContributionDominated.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationElapsedMillisecondsRender] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         renderKpi[Csp1dKpiKeys.InitialGenerationStopReasonRender] = initialGenerationStatistics.stopReason.name
@@ -164,6 +174,16 @@ private fun <V : RealNumber<V>> kpiDetails(
             initialGenerationStatistics.materialWidthIndexCacheHits.toString()
         details[Csp1dKpiKeys.InitialGenerationMaterialSliceTemplateCacheHits] =
             initialGenerationStatistics.materialSliceTemplateCacheHits.toString()
+        details[Csp1dKpiKeys.InitialGenerationQuantityCacheHits] =
+            initialGenerationStatistics.quantityCacheHits.toString()
+        details[Csp1dKpiKeys.InitialGenerationQuantityCacheMisses] =
+            initialGenerationStatistics.quantityCacheMisses.toString()
+        details[Csp1dKpiKeys.InitialGenerationMaterialSliceTemplateCacheMisses] =
+            initialGenerationStatistics.materialSliceTemplateCacheMisses.toString()
+        details[Csp1dKpiKeys.InitialGenerationCrossWorkerDuplicateCandidates] =
+            initialGenerationStatistics.crossWorkerDuplicateCandidates.toString()
+        details[Csp1dKpiKeys.InitialGenerationCrossContributionDominated] =
+            initialGenerationStatistics.crossContributionDominated.toString()
         details[Csp1dKpiKeys.InitialGenerationElapsedMilliseconds] =
             initialGenerationStatistics.elapsedMilliseconds.toString()
         details[Csp1dKpiKeys.InitialGenerationStopReason] = initialGenerationStatistics.stopReason.name
