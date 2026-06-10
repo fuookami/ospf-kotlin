@@ -23,7 +23,7 @@ class MaterialDemandReducedCostTest {
 
     private data class ReducedCostContainer(
         override val shape: Container3Shape,
-        override val units: List<QuantityPlacement3<*>>
+        override val units: List<AnyPlacement3>
     ) : Container3<ReducedCostContainer> {
         override fun copy(): ReducedCostContainer {
             return ReducedCostContainer(shape = shape, units = units)
@@ -69,7 +69,7 @@ class MaterialDemandReducedCostTest {
         x: Double = 0.0,
         y: Double = 0.0,
         z: Double = 0.0
-    ): QuantityPlacement3<Item> {
+    ): ItemPlacement3 {
         return itemPlacement3Of(
             view = item.view(Orientation.Upright),
             position = point3(

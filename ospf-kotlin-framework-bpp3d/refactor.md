@@ -1,7 +1,7 @@
 # BPP3D 形状泛型化与圆柱支持重构计划
 
 日期：2026-05-31
-最近更新：2026-06-10（连续半径 renderer 回写 + cuboid-only compat 删除收口轮）
+最近更新：2026-06-10（兼容层归零审计 + 横向支撑正负例补齐 + Gurobi dataset suite 收口轮）
 
 本文档记录 BPP3D “形状泛型化 + 圆柱支持”重构的当前状态与下一轮计划。总目标保持不变：在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，将 BPP3D 从 cuboid-only 业务模型收敛到 fully generic shape 生产模型，完成连续半径优化与横向圆柱 stacking/hanging 自动支撑能力，并最终移除所有仅为兼容旧 cuboid-only 抽象而保留的兼容层，不保留兼容层。
 
@@ -17,6 +17,9 @@
 8. 已完成连续半径 solver-selected radius renderer 回写闭环：solver 选出的半径从 `ColumnGenerationResult.continuousRadiusSolverResults` 传递到 `ColumnGenerationPackingAnalyzer`，经 `buildContinuousRadiusSelectionResults` 转换为 `CylinderRadiusSelectionResult`，再传入 `PackingRendererAdapter.toSchema(result, continuousRadiusSelectionResults)` 重载，renderer adapter 对有 solver 选出半径的圆柱 item 用其计算 `actualVolume` 和 `radius`/`diameter` DTO 字段。
 9. 已完成第二批 cuboid-only compat 扩展属性删除（16 个 `ItemCuboid`/`Projection`/`AnyPlacement` 的 `packageType`/`packageCategory`/`bottomOnly`/`topFlat` compat 扩展属性），保留 `Projection<*,*>.bottomOnly` 作为 shape-generic 属性（因 BLA 算法依赖）；删除 `ItemProjection<*>.bottomOnly` 消除与 `Projection<*,*>.bottomOnly` 的 overload resolution 歧义。
 10. 已完成边界脚本新增 deleted cuboid-only compat alias reflux 检测、continuous-radius solver result writeback 检测和 propagation 检测。
+11. 已完成兼容层全量审计：无删除候选（所有兼容层均有明确调用方）；2 处 `QuantityPlacement3<*>` 迁移为 `AnyPlacement3`/`ItemPlacement3` domain alias；16 处 `HorizontalCylinderAxisInGenerationOutOfAllowList` 已注册 allowlist 且 guard 已就位；`BoundingCuboid` renderer DTO 需等待外部 renderer 升级。
+12. 已完成横向圆柱支撑 11 维度正负例审计确认：单支撑、多支撑、重复窄支撑线、异构支撑、局部支撑拒绝、底部圆柱支撑拒绝、径向支撑错位、overlap、outside bin、axis mismatch、provenance guard 均已有正负例测试覆盖。
+13. 已完成 Gurobi dataset suite 覆盖确认：竖直圆柱固定半径、离散半径、连续半径、横向 X/Z 支撑、横向 X/Z hanging、混合形状、深度边界和生产级数据集均已覆盖。renderer DTO 无新增字段，不需触发外部 renderer build 验收。
 
 ## 2. 总目标与边界
 
@@ -35,7 +38,7 @@
 
 ### 2.3 剩余工作量
 
-距离总目标仍约剩余 1%。剩余工作主要是：solver-native interval-only 连续半径变量的完整闭环（需要 core 支持 per-instance bound 或 explicit constant registration）、以及外部 renderer 构建验收。renderer `actualVolume` 的 solver-selected radius 回写路径已在本轮完成。
+距离总目标仍约剩余 <1%。剩余工作主要是：solver-native interval-only 连续半径变量的完整闭环（需要 core 支持 per-instance bound 或 explicit constant registration，属于外部阻断）、以及外部 renderer 构建验收（需等待 renderer 升级支持圆柱 shape type 后移除 `BoundingCuboid` 兼容映射）。renderer `actualVolume` 的 solver-selected radius 回写路径已在本轮完成。兼容层审计确认无删除候选，所有保留项均有明确调用方和 allowlist 注册。
 
 ## 3. 下一轮扩大收口事项
 
