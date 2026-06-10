@@ -32,7 +32,6 @@ $fixHints = @{
     QuantityCuboid3OutOfAllowList = "Keep QuantityCuboid3 in infrastructure geometry only; business code should use ItemCuboid or shape-domain APIs."
     QuantityRectangle2OutOfAllowList = "Keep QuantityRectangle2 in infrastructure projection only; business code should use placement/projection domain aliases."
     LayerAssignmentGenericLimitCuboidBound = "Keep generic layer-assignment limit cuboid bounds only behind protected base constructors and item-specific public factories."
-    BoundingCuboidOutOfRendererDto = "BoundingCuboid should remain renderer/shape metadata, not a business geometry fallback."
     QuantityPlacementTypeOutOfAllowList = "Use ItemPlacement2/3, BlockPlacement2/3, BinLayerPlacement, or ItemContainerPlacement aliases."
     DirectQuantityPlacementConstructorOutOfFactory = "Create placements through placement2Of/placement3Of or narrower domain factories; do not call QuantityPlacement constructors directly."
     DirectQuantityPlacementConstructorInBusinessTest = "Business tests should create placements through itemPlacement2/3Of, blockPlacement2/3Of, binLayerPlacementOf, or other typed factories; keep direct QuantityPlacement constructor coverage in infrastructure tests only."
@@ -281,12 +280,6 @@ Add-TokenViolation -Check "QuantityRectangle2OutOfAllowList" -Pattern "\bQuantit
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityGeometrySpike.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/ProjectivePlaneGeometryMapping.kt"
-)
-
-Add-TokenViolation -Check "BoundingCuboidOutOfRendererDto" -Pattern "\bBoundingCuboid\b" -AllowSuffixes @(
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/dto/RendererDTO.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/PackingShape.kt",
-    "/bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/service/PackingRendererAdapter.kt"
 )
 
 Add-TokenViolation -Check "QuantityPlacementTypeOutOfAllowList" -Pattern "\bQuantityPlacement[23]\s*<" -AllowSuffixes @(

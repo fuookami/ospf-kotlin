@@ -23,14 +23,14 @@ For the current MVP:
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
 6. `radiusWeightFunctionKey` can enter production only with a typed selected-radius result and a concrete selected `radius` that satisfies declared radius/diameter bounds and is carried through final validation and renderer `actualVolume`; interval-only continuous radius variables now expose a typed solver-variable prototype and shared RMP/final/analyzer registration plan for diagnostics, but production solving remains unsupported and is reported through a typed gap contract. Fixed and discrete radius candidates remain supported.
-7. Loading rate in renderer output uses `actualVolume` (not only bounding cuboid volume).
+7. Loading rate in renderer output uses `actualVolume` (not bounding cuboid volume); `BoundingCuboid` compat mapping has been removed — horizontal cylinders use native `HorizontalCylinderX`/`HorizontalCylinderZ` algorithm shape types.
 
 Explicit non-goals and remaining work:
 
 1. Arbitrary 3D cylinder rotation is not a target.
 2. Fully shape-generic migration for all legacy cuboid algorithms is still in progress.
 3. Full solver-native continuous radius optimization is still in progress; the current column-generation model selects concrete generated `BinLayer` columns. Continuous-radius metadata has a typed solver-variable prototype carried through `ColumnGenerationState`, RMP/final solve info, packing snapshot KPI, and a shared solver registration plan with variable bounds, selected-radius bound validation, and blocked model-registration diagnostics. Symbolic radius variables are not yet registered into the solver model or wired into footprint, volume, support coverage, final MILP selection, and renderer `actualVolume`.
-4. Renderer source code is not part of this repository; this module emits shape metadata for external renderer validation.
+4. Renderer source code is not part of this repository; this module emits shape metadata consumed by the external renderer, which now supports native X/Y/Z cylinders and `actualVolume` display semantics.
 
 See detailed progress in [refactor.md](./refactor.md).
 
@@ -223,4 +223,4 @@ A renderer coordinate fixture covering `Axis3.X`, `Axis3.Y`, and `Axis3.Z` cylin
 `bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json`.
 It follows the external renderer coordinate guide: `x` / `y` / `z` are the bounding-box minimum corner, X/Z horizontal cylinders use `boundingHeight = diameter`, and `y = 0` means floor contact.
 
-External renderer source code is kept outside this repository. Build/type-check or visual validation results for that project should be recorded only after running the external renderer commands and, for visual consistency, opening one of the fixtures or an actual solver output.
+External renderer source code is kept outside this repository. The renderer project has passed `npm run build`, `npx vue-tsc --noEmit`, `cargo check`, and `cargo test` for native X/Y/Z cylinder rendering; visual consistency should still be checked with one of the fixtures or an actual solver output when changing geometry semantics.

@@ -23,14 +23,14 @@
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
 5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
 6. `radiusWeightFunctionKey` 只有在同时具备类型化的已选择半径结果、确定的 `radius` 且该半径满足声明的半径/直径边界时才能进入生产，并继续回写 final validation 和 renderer `actualVolume`；仅区间型连续半径变量已经具备类型化 solver 变量原型和 RMP/final/analyzer 共享注册计划用于诊断，但生产求解仍不支持，并通过类型化缺口合同报告。固定半径和离散半径候选仍保持支持。
-7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积。
+7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积；`BoundingCuboid` 兼容映射已移除，横向圆柱使用原生 `HorizontalCylinderX`/`HorizontalCylinderZ` 算法形状类型。
 
 明确非目标与剩余工作：
 
 1. 圆柱任意三维旋转不是当前目标。
 2. 全主链 legacy 长方体算法的 shape-generic 迁移仍在推进。
 3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，并已进入 `ColumnGenerationState`、RMP/final solve info、packing snapshot KPI，以及带变量上下界、已选择半径边界校验和模型注册阻断诊断的共享 solver 注册计划。符号半径变量还没有注册到 solver 模型，也没有接入 footprint、volume、支撑覆盖、final MILP 选择和 renderer `actualVolume`。
-4. 外部 renderer 源码不属于本仓；本模块负责输出用于外部 renderer 验收的 shape metadata。
+4. 外部 renderer 源码不属于本仓；本模块负责输出外部 renderer 消费的 shape metadata，且外部 renderer 现在已支持原生 X/Y/Z 圆柱和 `actualVolume` 展示语义。
 
 重构进度请查看 [refactor.md](./refactor.md)。
 
@@ -223,4 +223,4 @@ val cylinderItem = ActualItem(
 `bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json`。
 该 fixture 遵循外部 renderer 的坐标指南：`x` / `y` / `z` 表示外接盒最小角点，X/Z 横向圆柱使用 `boundingHeight = diameter`，且 `y = 0` 表示贴地。
 
-外部 renderer 源码不纳入本仓。该工程的构建、类型检查或显示一致性结果，只有在实际执行外部 renderer 命令并打开本仓 fixture 或实际求解输出核对后，才能记录为通过。
+外部 renderer 源码不纳入本仓。renderer 工程已针对原生 X/Y/Z 圆柱渲染通过 `npm run build`、`npx vue-tsc --noEmit`、`cargo check` 和 `cargo test`；后续修改几何语义时，仍应打开本仓 fixture 或实际求解输出核对视觉一致性。

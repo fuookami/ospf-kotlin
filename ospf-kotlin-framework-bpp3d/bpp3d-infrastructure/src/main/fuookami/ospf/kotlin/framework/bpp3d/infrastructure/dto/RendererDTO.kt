@@ -40,9 +40,7 @@ enum class RenderAlgorithmShapeTypeDTO {
     /** X轴横向圆柱 / X-axis horizontal cylinder */
     HorizontalCylinderX,
     /** Z轴横向圆柱 / Z-axis horizontal cylinder */
-    HorizontalCylinderZ,
-    /** 兼容外接长方体 / Compatibility bounding cuboid */
-    BoundingCuboid
+    HorizontalCylinderZ
 }
 
 @Serializable

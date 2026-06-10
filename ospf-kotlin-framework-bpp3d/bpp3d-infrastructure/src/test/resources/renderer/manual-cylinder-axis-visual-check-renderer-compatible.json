@@ -52,7 +52,7 @@
           "loadingOrder": 1,
           "shapeType": "Cylinder",
           "renderShapeType": "Cylinder",
-          "algorithmShapeType": "BoundingCuboid",
+          "algorithmShapeType": "HorizontalCylinderX",
           "radius": 120,
           "diameter": 240,
           "axis": "X",
@@ -102,7 +102,7 @@
           "loadingOrder": 3,
           "shapeType": "Cylinder",
           "renderShapeType": "Cylinder",
-          "algorithmShapeType": "BoundingCuboid",
+          "algorithmShapeType": "HorizontalCylinderZ",
           "radius": 120,
           "diameter": 240,
           "axis": "Z",
@@ -139,7 +139,7 @@
       ],
       "info": {
         "source": "ospf-kotlin manual renderer confirmation",
-        "compatibility": "Horizontal X/Z cylinders use algorithmShapeType=BoundingCuboid because current external renderer Rust DTO does not accept HorizontalCylinderX or HorizontalCylinderZ."
+        "compatibility": "Horizontal X/Z cylinders now use native HorizontalCylinderX/HorizontalCylinderZ algorithm shape types; BoundingCuboid compat mapping has been removed."
       }
     }
   ]

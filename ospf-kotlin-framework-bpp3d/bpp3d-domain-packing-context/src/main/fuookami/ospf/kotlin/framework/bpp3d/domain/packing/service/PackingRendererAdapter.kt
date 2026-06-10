@@ -47,7 +47,6 @@ class PackingRendererAdapter {
             PackingAlgorithmShapeType.VerticalCylinder -> RenderAlgorithmShapeTypeDTO.VerticalCylinder
             PackingAlgorithmShapeType.HorizontalCylinderX -> RenderAlgorithmShapeTypeDTO.HorizontalCylinderX
             PackingAlgorithmShapeType.HorizontalCylinderZ -> RenderAlgorithmShapeTypeDTO.HorizontalCylinderZ
-            PackingAlgorithmShapeType.BoundingCuboid -> RenderAlgorithmShapeTypeDTO.BoundingCuboid
         }
     }
 

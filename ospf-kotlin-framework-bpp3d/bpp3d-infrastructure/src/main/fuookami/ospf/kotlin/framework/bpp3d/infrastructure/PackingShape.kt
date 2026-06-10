@@ -20,8 +20,7 @@ enum class PackingAlgorithmShapeType {
     Cuboid,
     VerticalCylinder,
     HorizontalCylinderX,
-    HorizontalCylinderZ,
-    BoundingCuboid
+    HorizontalCylinderZ
 }
 
 enum class PackingAxis3 {

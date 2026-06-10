@@ -83,7 +83,7 @@ class PackingShapeTest {
     }
 
     @Test
-    fun horizontalCylinderXShouldExposeBoundingCuboidMetadata() {
+    fun horizontalCylinderXShouldExposeShapeMetadata() {
         val cylinder = Column(
             radius = infraScalar(2.0) * Meter,
             height = infraScalar(6.0) * Meter,
@@ -108,7 +108,7 @@ class PackingShapeTest {
     }
 
     @Test
-    fun horizontalCylinderZShouldExposeBoundingCuboidMetadata() {
+    fun horizontalCylinderZShouldExposeShapeMetadata() {
         val cylinder = Column(
             radius = infraScalar(2.0) * Meter,
             height = infraScalar(6.0) * Meter,
