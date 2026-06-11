@@ -60,7 +60,9 @@ data class ColumnGenerationState<V>(
     val bins: List<LayerBin> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
     val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList(),
-    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap()
+    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap(),
+    // PWL results stored as opaque Map for public API - internal types remain internal
+    val pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>> = emptyMap()
 )
 
 /**
@@ -134,7 +136,9 @@ data class ColumnGenerationFinalResult<V>(
     val columns: List<BinLayer>,
     val bins: List<LayerBin> = emptyList(),
     val objective: V? = null,
-    val info: Map<String, String> = emptyMap()
+    val info: Map<String, String> = emptyMap(),
+    // PWL results stored as opaque Map for public API - internal types remain internal
+    val pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>> = emptyMap()
 )
 
 /**
@@ -166,7 +170,9 @@ data class ColumnGenerationResult<V>(
     val elapsed: Duration = Duration.ZERO,
     val lpInfos: List<Map<String, String>> = emptyList(),
     val finalInfo: Map<String, String> = emptyMap(),
-    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap()
+    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap(),
+    // PWL results stored as opaque Map for public API - internal types remain internal
+    val pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>> = emptyMap()
 )
 
 /**
@@ -413,7 +419,8 @@ class ColumnGenerationAlgorithm<V>(
                 finalState = finalState.copy(
                     columns = columns,
                     bins = finalResult.bins,
-                    continuousRadiusSolverResults = solverResults
+                    continuousRadiusSolverResults = solverResults,
+                    pwlContinuousRadiusResults = finalResult.pwlContinuousRadiusResults
                 )
             } else {
                 solveFinalMilp(finalState)
@@ -435,7 +442,8 @@ class ColumnGenerationAlgorithm<V>(
             elapsed = startedAt.elapsedNow(),
             lpInfos = lpInfos,
             finalInfo = finalInfo,
-            continuousRadiusSolverResults = finalState.continuousRadiusSolverResults
+            continuousRadiusSolverResults = finalState.continuousRadiusSolverResults,
+            pwlContinuousRadiusResults = finalState.pwlContinuousRadiusResults
         )
     }
 }

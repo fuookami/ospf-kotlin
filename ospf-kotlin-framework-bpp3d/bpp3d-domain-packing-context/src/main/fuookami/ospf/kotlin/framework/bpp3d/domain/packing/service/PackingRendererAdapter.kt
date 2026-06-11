@@ -125,11 +125,23 @@ class PackingRendererAdapter {
                     )
                 }
 
-                // 使用 solver 选出半径计算真实体积；没有回写结果时使用形状自身体积。
-                // Use solver-selected radius for actual volume; fall back to the shape volume when absent.
+                // 使用 solver 选出半径计算真实体积；PWL 路径使用 actualRadiusSquared 消除近似误差。
+                // Use solver-selected radius for actual volume; PWL path uses actualRadiusSquared to eliminate approximation error.
                 val actualVolume: FltX = if (cylinderShape != null && solverResult != null) {
-                    val solverRadius = solverResult.selectedRadius
-                    (infraScalar(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
+                    val pwlMetadata = solverResult.pwlMetadata
+                    if (pwlMetadata != null) {
+                        // PWL 路径：使用 actualRadiusSquared (r²) 计算真实体积，而非 solverRadiusSquared (q ≈ r²)。
+                        // PWL path: use actualRadiusSquared (r²) for true volume, not solverRadiusSquared (q ≈ r²).
+                        pwlMetadata.actualVolume(
+                            height = cylinderShape.cylinder.height.value,
+                            pi = infraScalar(PI)
+                        ).toFltX()
+                    } else {
+                        // 非 PWL 路径：直接使用 solver 选出的半径。
+                        // Non-PWL path: use solver-selected radius directly.
+                        val solverRadius = solverResult.selectedRadius
+                        (infraScalar(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
+                    }
                 } else {
                     shape.actualVolume.value.toFltX()
                 }
@@ -143,6 +155,26 @@ class PackingRendererAdapter {
                     (solverResult.selectedRadius * infraScalar(2.0)).value.toFltX()
                 } else {
                     cylinderShape?.diameter?.value?.toFltX()
+                }
+
+                // 构建 PWL 诊断信息（仅 PWL 路径时附加）。
+                // Build PWL diagnostic info (attached only for PWL path).
+                val pwlInfo: Map<String, String> = if (cylinderShape != null && solverResult?.pwlMetadata != null) {
+                    val pwl = solverResult.pwlMetadata!!
+                    mapOf(
+                        "pwl_volume" to pwl.pwlVolume(
+                            height = cylinderShape.cylinder.height.value,
+                            pi = infraScalar(PI)
+                        ).toDouble().toString(),
+                        "pwl_absolute_error" to pwl.pwlAbsoluteError.toDouble().toString(),
+                        "pwl_relative_error" to pwl.pwlRelativeError.toDouble().toString(),
+                        "pwl_max_relative_error" to pwl.maxPWLRelativeError.toDouble().toString(),
+                        "pwl_num_segments" to pwl.numSegments.toString(),
+                        "pwl_within_envelope" to pwl.isWithinEnvelope.toString(),
+                        "pwl_selection_source" to pwl.selectionSource
+                    )
+                } else {
+                    emptyMap()
                 }
 
                 RenderLoadingPlanItemDTO(
@@ -165,7 +197,8 @@ class PackingRendererAdapter {
                     boundingWidth = shape.boundingWidth.value.toFltX(),
                     boundingHeight = shape.boundingHeight.value.toFltX(),
                     boundingDepth = shape.boundingDepth.value.toFltX(),
-                    actualVolume = actualVolume
+                    actualVolume = actualVolume,
+                    info = pwlInfo
                 )
             }
 

@@ -22,7 +22,7 @@
 3. 横向圆柱必须贴在箱底，或由下方长方体支撑区间覆盖完整圆柱轴向及底部支撑线；无支撑或局部支撑的横向圆柱会在最终校验和 3D stacking 支撑检查中被拒绝。
 4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
 5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
-6. `radiusWeightFunctionKey` 只有在同时具备类型化的已选择半径结果、确定的 `radius` 且该半径满足声明的半径/直径边界时才能进入生产，并继续回写 final validation 和 renderer `actualVolume`；仅区间型连续半径变量已经具备类型化 solver 变量原型和 RMP/final/analyzer 共享注册计划用于诊断，但生产求解仍不支持，并通过类型化缺口合同报告。固定半径和离散半径候选仍保持支持。
+6. `radiusWeightFunctionKey` 只有在同时具备类型化的已选择半径结果、确定的 `radius` 且该半径满足声明的半径/直径边界时才能进入生产，并继续回写 final validation 和 renderer `actualVolume`；仅区间型连续半径变量已经具备类型化 solver 变量原型和 RMP/final/analyzer 共享注册计划用于诊断，isSolverRegisterable 的变量直接注册为 `RealVar` solver 变量，isPWLRegisterable 的变量通过 PWL 近似路径注册（连续 `r` 变量 + 分段线性 `q ≈ r²` 约束 + Big-M + 二值选择变量（基于 core `UnivariateLinearPiecewiseFunction`） + `rMax` 保守 envelope + `PWLRadiusSelectionMetadata` 回写真实 `π·r²·h` 体积和 PWL 诊断信息），其余通过类型化缺口合同报告拒绝。固定半径和离散半径候选仍保持支持。
 7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积；`BoundingCuboid` 兼容映射已移除，横向圆柱使用原生 `HorizontalCylinderX`/`HorizontalCylinderZ` 算法形状类型。
 
 明确非目标与剩余工作：
@@ -83,7 +83,7 @@ strict generic 边界脚本会拒绝已删除的固定数值别名、material pa
 
 grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack / hanging seed layer 可以验证单支撑、同类重复窄支撑线、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
 
-动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius` 且该半径落在声明的半径/直径边界内，并在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量会在诊断中给出 `ContinuousCylinderRadiusSolverPrototype`，已选择半径原型会进入列生成 solver 上下文，RMP/final solve info 与 packing snapshot KPI 会暴露共享注册计划和模型注册阻断原因。interval-only 输入仍通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，因此 grouped-layer 和 material-width-amount 两类 CSV 都不能静默按固定半径求解。
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius` 且该半径落在声明的半径/直径边界内，并在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量会在诊断中给出 `ContinuousCylinderRadiusSolverPrototype`，已选择半径原型会进入列生成 solver 上下文，RMP/final solve info 与 packing snapshot KPI 会暴露共享注册计划和模型注册阻断原因。interval-only 输入仍通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，除非满足 PWL 近似路径条件（isPWLRegisterable），该路径注册连续 `r` 变量和分段线性 `q ≈ r²` 约束（Big-M + 二值选择变量，基于 core `UnivariateLinearPiecewiseFunction`），使用 `rMax` 保守 envelope 保障几何安全，并将 solver 选出的 `r` 通过 `PWLRadiusSelectionMetadata` 回写，包含 PWL 误差、真实体积（`π·r²·h`）、PWL 近似体积（`π·q·h`）和 envelope 验证信息。
 
 ### 深度边界层策略列
 
@@ -114,7 +114,7 @@ schema 门禁规则：
 5. CSV 重复列会被显式拒绝。
 6. grouped-layer 或 material-width-amount schema 之外的未知 CSV 列会被显式拒绝。
 7. 可变半径/直径区间必须是离散区间。`*_min` + `*_max` 但缺少 `*_step` 时会被拒绝，除非 `radius_meter` 已给出固定的具体半径。
-8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，已选择半径必须满足声明的半径/直径边界，且不能与 `radius_step` 或 `diameter_step` 混用；solver 原生区间型连续半径变量仍不支持，通过共享类型化缺口合同拒绝；具备生产级回写闭环的连续半径变量（有具体选择半径且无缺口）现在注册为 `RealVar` solver 变量，使用约束式上下界和目标等式约束，其 solver 选出值在 RMP/final info 中以 `continuous_radius_solver_selected_*` 键暴露，渲染适配器在有 solver 选出半径时将其回写到 `actualVolume` 和 `radius`/`diameter` DTO 字段。
+8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，已选择半径必须满足声明的半径/直径边界，且不能与 `radius_step` 或 `diameter_step` 混用；isSolverRegisterable 的区间型连续半径变量直接注册为 `RealVar` solver 变量；isPWLRegisterable（但非 isSolverRegisterable）的区间型连续半径变量通过 PWL 近似路径注册，包含连续 `r` 和 `q ≈ r²` 变量、基于 core `UnivariateLinearPiecewiseFunction` 的 Big-M + 二值选择变量约束和 `rMax` 保守 envelope；其余区间型变量通过共享类型化缺口合同拒绝；具备生产级回写闭环的连续半径变量（有具体选择半径且无缺口）注册为 `RealVar` solver 变量，使用约束式上下界和目标等式约束，其 solver 选出值在 RMP/final info 中以 `continuous_radius_solver_selected_*` 键暴露，渲染适配器在有 solver 选出半径时将其回写到 `actualVolume` 和 `radius`/`diameter` DTO 字段；PWL 路径的 `actualVolume` 使用真实 `π·r²·h`（而非近似 `π·q·h`），PWL 诊断信息（pwl_volume、pwl_error、pwl_segments、pwl_within_envelope）写入 renderer item info；注册计划在 RMP/final info 中暴露互斥分类（native、pwl、productionReady、blocked）和 PWL 诊断信息（段数、最大相对误差）。
 9. 在 dataset suite 模式下，文件名可声明场景类型：
    `grouped-layer` / `grouped_layer` => 分组分层 CSV，
    `material-width-amount` / `material_width_amount` => 物料宽度数量 CSV。

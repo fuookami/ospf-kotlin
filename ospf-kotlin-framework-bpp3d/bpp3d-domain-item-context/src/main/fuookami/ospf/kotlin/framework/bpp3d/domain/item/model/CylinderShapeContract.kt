@@ -452,6 +452,12 @@ data class ContinuousCylinderRadiusSolverPrototype(
                 || it == ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported
     }
 
+    /** 是否可以通过 PWL 近似路径注册到 solver model（interval-only 变量使用分段线性近似表达 r²）。 / Whether the variable can be registered into the solver model via the PWL approximation path (interval-only variables use piecewise linear approximation for r²). */
+    val isPWLRegisterable: Boolean get() = gaps.all {
+        it == ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported
+                || it == ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported
+    } && radiusLowerBound != null && radiusUpperBound != null && initialRadius == null
+
     /**
      * 转为错误信息后缀。
      * Convert to error message suffix.
@@ -538,6 +544,54 @@ fun continuousCylinderRadiusSolverPrototype(
 }
 
 /**
+ * PWL 半径选择元数据。
+ * PWL radius selection metadata.
+ *
+ * 记录 solver 通过 PWL 近似路径选择半径时的诊断信息。
+ * Records diagnostic information when the solver selects a radius via the PWL approximation path.
+ *
+ * @property solverRadiusSquared solver 的近似 r² 值 q / solver's approximate r² value q
+ * @property actualRadiusSquared 真实 r² 值 / actual r² value
+ * @property pwlAbsoluteError PWL 绝对误差 |q - r²| / PWL absolute error
+ * @property pwlRelativeError PWL 相对误差 |q - r²| / r² / PWL relative error
+ * @property maxPWLRelativeError PWL 函数的最大相对误差 / maximum relative error of the PWL function
+ * @property numSegments PWL 分段数 / number of PWL segments
+ * @property isWithinEnvelope 是否在保守 envelope 范围内 / whether within conservative envelope range
+ * @property selectionSource 选择来源（"pwl"）/ selection source ("pwl")
+ */
+data class PWLRadiusSelectionMetadata(
+    val solverRadiusSquared: InfraNumber,
+    val actualRadiusSquared: InfraNumber,
+    val pwlAbsoluteError: InfraNumber,
+    val pwlRelativeError: InfraNumber,
+    val maxPWLRelativeError: InfraNumber,
+    val numSegments: Int,
+    val isWithinEnvelope: Boolean,
+    val selectionSource: String = "pwl"
+) {
+    init {
+        require(numSegments >= 1) { "numSegments must be at least 1" }
+        require(selectionSource.isNotBlank()) { "selectionSource must not be blank" }
+    }
+
+    /**
+     * 计算真实圆柱体积（使用 solver 选择的半径）。
+     * Compute actual cylinder volume using solver-selected radius.
+     */
+    fun actualVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
+        return pi * actualRadiusSquared * height
+    }
+
+    /**
+     * 计算 PWL 近似体积（使用 q ≈ r²）。
+     * Compute PWL approximate volume using q ≈ r².
+     */
+    fun pwlVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
+        return pi * solverRadiusSquared * height
+    }
+}
+
+/**
  * 连续半径已选择结果。
  * Selected continuous-radius result.
  *
@@ -556,7 +610,9 @@ data class CylinderRadiusSelectionResult(
     val radiusMin: Quantity<InfraNumber>? = null,
     val radiusMax: Quantity<InfraNumber>? = null,
     val variableName: String? = null,
-    val source: String? = null
+    val source: String? = null,
+    /** PWL 近似元数据（仅当通过 PWL 路径选择半径时非空） / PWL approximation metadata (non-null only when radius is selected via PWL path) */
+    val pwlMetadata: PWLRadiusSelectionMetadata? = null
 ) {
     init {
         require(key.isNotBlank()) {
@@ -901,5 +957,33 @@ fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
         axis = axis,
         radiusMin = radiusLowerBound,
         radiusMax = radiusUpperBound
+    )
+}
+
+/**
+ * 从 PWL solver 结果构建连续半径已选择结果。
+ * Build selected continuous-radius result from PWL solver output.
+ *
+ * @receiver 连续半径 solver 原生变量原型 / continuous-radius solver variable prototype
+ * @param solverRadius solver 选出的半径 r / solver-selected radius r
+ * @param pwlMetadata PWL 近似元数据 / PWL approximation metadata
+ * @return 已选择半径结果（包含 PWL 元数据）/ selected radius result (with PWL metadata)
+ */
+fun ContinuousCylinderRadiusSolverPrototype.withPWLSolverSelectedRadius(
+    solverRadius: Quantity<InfraNumber>,
+    pwlMetadata: PWLRadiusSelectionMetadata
+): CylinderRadiusSelectionResult {
+    require(radiusWeightFunctionKey != null) {
+        "Continuous cylinder radius solver prototype must have a radius weight function key to build a selection result."
+    }
+    return CylinderRadiusSelectionResult(
+        key = radiusWeightFunctionKey,
+        variableName = variableName,
+        source = source,
+        selectedRadius = solverRadius,
+        axis = axis,
+        radiusMin = radiusLowerBound,
+        radiusMax = radiusUpperBound,
+        pwlMetadata = pwlMetadata
     )
 }

@@ -18,8 +18,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
 
 /**
- * 创建泛型二维放置，仅供 BLA 泛型投影搜索和 typed factory 内部复用。
- * Create a generic 2D placement only for BLA generic projection search and typed factory internals.
+ * 创建泛型二维放置，仅供 BLA 泛型投影搜索和 generic factory 内部复用。
+ * Create a generic 2D placement only for BLA generic projection search and generic factory internals.
  *
  * 业务调用侧应优先使用 `itemPlacement2Of` 或 `blockPlacement2Of`，避免直接暴露底层 Cuboid 泛型。
  * Business callers should prefer `itemPlacement2Of` or `blockPlacement2Of` to avoid exposing the underlying Cuboid generic.

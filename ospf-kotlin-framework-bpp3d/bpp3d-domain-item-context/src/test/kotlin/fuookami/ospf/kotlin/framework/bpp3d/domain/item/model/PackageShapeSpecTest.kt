@@ -204,7 +204,7 @@ class PackageShapeSpecTest {
     }
 
     @Test
-    fun intervalOnlyContinuousRadiusShouldExposeTypedOptimizationGap() {
+    fun intervalOnlyContinuousRadiusShouldExposeSolverOptimizationGap() {
         val report = assertNotNull(
             continuousCylinderRadiusOptimizationGapReport(
                 source = "test",
