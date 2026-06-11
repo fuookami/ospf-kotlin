@@ -1050,4 +1050,63 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 3. **ContinuousRadiusSolverRegistrationPlan.kt 重导出清理**：application 层仅剩重导出，可考虑在所有调用方迁移到直接 import domain 类型后删除。
 4. **Gurobi 触发式验收**：本轮修改了 application、solver registration 和 PWL extraction，按计划应执行 Gurobi focused test，但需要 Gurobi license 环境。
 
+### 8.12 续会话执行记录
+
+日期：2026-06-11
+
+#### 死代码清理
+
+1. 删除 `PWLContinuousRadiusRegistration.kt`（309 行）：所有调用已迁移到 `ContinuousRadiusModelComponent.kt`，文件无任何外部引用。
+2. 删除 `ContinuousRadiusSolverRegistrationPlan.kt`（17 行）：仅剩重导出，所有调用方已直接 import domain 类型。
+3. 更新 `shape-boundary-check.ps1`：移除 `PWLContinuousRadiusRegistration.kt` 的白名单项。
+
+#### isPWLRegisterable 门禁加强
+
+`CylinderShapeContract.isPWLRegisterable` 新增 `radiusWeightFunctionKey != null` 条件：
+
+- 有 key 的 interval-only 原型 → `isPWLRegisterable=true` → PWL 路径注册。
+- 无 key 的 interval-only 原型 → `isPWLRegisterable=false` → blocked。
+
+此改动确保 PWL 路径只处理有生产回写 key 的原型，与 Gurobi CSV 加载层的门禁逻辑一致。
+
+#### 测试更新
+
+1. `standardExecutorsShouldKeepIntervalContinuousRadiusRegistrationPlanGuarded` → 重命名为 `standardExecutorsShouldRegisterIntervalContinuousRadiusViaPWLPath`，更新断言验证 PWL 注册而非 blocked。
+2. 新增 `standardExecutorsShouldBlockIntervalContinuousRadiusWithoutWeightFunctionKey`：验证无 key 的 interval-only 原型仍被 blocked。
+3. Gurobi 测试更新（上一个会话已准备）：interval-only 测试从"拒绝"改为"接受"，新增无 key 拒绝测试。
+
+#### Gurobi dataset 增强
+
+新增 4 个 CSV dataset 文件：
+
+| 文件 | 内容 |
+|------|------|
+| `grouped-layer-pwl-interval-only-sample.csv` | 单 interval-only PWL 圆柱 + 长方体 |
+| `grouped-layer-pwl-mixed-shape-sample.csv` | PWL 圆柱 + 2 个长方体 |
+| `grouped-layer-pwl-multi-interval-sample.csv` | 3 个不同区间 PWL 圆柱 + 长方体 |
+| `material-width-amount-pwl-interval-only-sample.csv` | material-width-amount 格式，2 个 PWL 圆柱 + 1 长方体 |
+
+#### 验收结果
+
+1. BPP3D 全模块 BUILD SUCCESS（9/9 模块，56 个测试全部通过）。
+2. 4 个边界脚本全部通过（`SHAPE_BOUNDARY_PASS`、`STRICT_GENERIC_BOUNDARY_PASS`、`GEOMETRY_BOUNDARY_PASS`、`GEOMETRY_MODULE_DRY_RUN_PASS`）。
+3. `git diff --check -- ospf-kotlin-framework-bpp3d` 无错误。
+
+#### 本轮全部完成汇总
+
+| Commit | Header | 阶段 | 状态 |
+|--------|--------|------|------|
+| 1 | `chore(bpp3d): document PWL modeling architecture boundary` | 零+一+二 | 已提交 |
+| 2 | `refactor(bpp3d): move PWL radius modeling into domain component` | 三+四 | 已提交 |
+| 3 | `test(bpp3d): cover PWL radius extension boundaries` | 五+六 | 已提交 |
+| 4 | `feat(bpp3d): add PWL radius accuracy and performance diagnostics` | 七 | 已提交 |
+| 5 | `refactor(bpp3d): clean up dead code and strengthen PWL key guard` | 续会话 | 待提交 |
+| 6 | `test(bpp3d): expand PWL continuous radius datasets` | 续会话 | 待提交 |
+
+#### Gurobi 触发式验收结果
+
+- Gurobi focused test: 51 tests, 0 failures, 1 skip (environmental) — BUILD SUCCESS
+- Gurobi dataset suite: 51 tests, 0 failures, 0 skips — BUILD SUCCESS
+- 4 个边界脚本全部通过
+- `git diff --check` 无错误
 

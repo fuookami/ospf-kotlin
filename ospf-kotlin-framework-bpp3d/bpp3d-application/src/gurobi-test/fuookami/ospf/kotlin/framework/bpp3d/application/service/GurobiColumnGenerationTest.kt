@@ -1399,20 +1399,26 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun groupedLayerCsvShouldRejectContinuousRadiusIntervalWithoutStep() {
+    fun groupedLayerCsvShouldAcceptPWLIntervalOnlyContinuousRadius() {
+        // Interval-only continuous radius (no radius_meter, no radius_step) is now accepted
+        // via the PWL approximation path. Previously rejected as unsupported, now handled
+        // by ContinuousRadiusModelComponent's PWL registration.
+        // 仅区间连续半径（无 radius_meter、无 radius_step）现在通过 PWL 近似路径被接受。
+        // 之前作为 unsupported 被拒绝，现在由 ContinuousRadiusModelComponent 的 PWL 注册处理。
         val csv = """
-            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,axis
-            0,0,item-continuous-radius,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,Y
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis
+            0,0,item-pwl-interval,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,cylinder_pwl_a,Y
         """.trimIndent()
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
-            loadCsvDrivenScenarioFromCsvText(csv)
-        }
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val item = scenario.itemDemands.single().first
+        val cylinderSpec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
 
-        assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
-        assertTrue(exception.message?.contains("radius_step") == true)
-        assertTrue(exception.message?.contains("solverPrototype") == true)
-        assertTrue(exception.message?.contains("cylinder_radius_Gurobi_CSV_anonymous_Y") == true)
+        assertNotNull(cylinderSpec)
+        assertEquals("cylinder_pwl_a", cylinderSpec.radiusWeightFunctionKey)
+        // PWL path uses interval bounds, not a fixed selected radius
+        // PWL 路径使用区间边界，而非固定选择半径
+        assertNotNull(cylinderSpec.radius)
     }
 
     @Test
@@ -1450,20 +1456,22 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun groupedLayerCsvShouldRejectContinuousRadiusWeightFunctionKeyWithoutSelectedRadius() {
+    fun groupedLayerCsvShouldAcceptPWLIntervalWithWeightFunctionKey() {
+        // Interval-only radius with radius_weight_function_key is now accepted via PWL path.
+        // The solver will select the optimal radius through piecewise-linear approximation.
+        // 有 radius_weight_function_key 的仅区间半径现在通过 PWL 路径被接受。
+        // solver 将通过分段线性近似选择最优半径。
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis
             0,0,item-continuous-radius-key,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,prefer-large-radius,Y
         """.trimIndent()
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
-            loadCsvDrivenScenarioFromCsvText(csv)
-        }
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val item = scenario.itemDemands.single().first
+        val cylinderSpec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
 
-        assertTrue(exception.message?.contains("Unsupported continuous cylinder radius optimization") == true)
-        assertTrue(exception.message?.contains("radius_weight_function_key") == true)
-        assertTrue(exception.message?.contains("solverPrototype") == true)
-        assertTrue(exception.message?.contains("cylinder_radius_Gurobi_CSV_prefer_large_radius_Y") == true)
+        assertNotNull(cylinderSpec)
+        assertEquals("prefer-large-radius", cylinderSpec.radiusWeightFunctionKey)
     }
 
     @Test
@@ -1501,21 +1509,22 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun materialWidthAmountCsvShouldRejectContinuousRadiusWeightFunctionKeyWithoutSelectedRadius() {
+    fun materialWidthAmountCsvShouldAcceptPWLIntervalWithWeightFunctionKey() {
+        // material-width-amount format with interval-only radius and key is now accepted via PWL path.
+        // The solver will select the optimal radius through piecewise-linear approximation.
+        // material-width-amount 格式的仅区间半径和 key 现在通过 PWL 路径被接受。
+        // solver 将通过分段线性近似选择最优半径。
         val csv = """
             material,width,amount,shape_type,radius_min,radius_max,radius_weight_function_key,axis
             MAT-A,1000,1,vertical_cylinder,0.15,0.18,prefer-large-radius,Y
         """.trimIndent()
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
-            loadCsvDrivenScenarioFromCsvText(csv)
-        }
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val item = scenario.itemDemands.single().first
+        val cylinderSpec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
 
-        assertTrue(exception.message?.contains("field=radius_weight_function_key requires radius_meter") == true)
-        assertTrue(exception.message?.contains("radius_weight_function_key") == true)
-        assertTrue(exception.message?.contains("continuous radius interval is unsupported") == true)
-        assertTrue(exception.message?.contains("solverPrototype") == true)
-        assertTrue(exception.message?.contains("cylinder_radius_Gurobi_CSV_prefer_large_radius_Y") == true)
+        assertNotNull(cylinderSpec)
+        assertEquals("prefer-large-radius", cylinderSpec.radiusWeightFunctionKey)
     }
 
     @Test
@@ -1533,18 +1542,40 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun materialWidthAmountCsvShouldRejectContinuousDiameterIntervalWithoutStep() {
+    fun materialWidthAmountCsvShouldAcceptPWLDiameterIntervalOnly() {
+        // Interval-only continuous diameter (no diameter_meter, no diameter_step) is now accepted
+        // via the PWL approximation path, when radius_weight_function_key is provided.
+        // 仅区间连续直径（无 diameter_meter、无 diameter_step）现在在提供
+        // radius_weight_function_key 时通过 PWL 近似路径被接受。
         val csv = """
-            material,width,amount,shape_type,diameter_min,diameter_max,axis
-            MAT-A,1000,1,vertical_cylinder,0.30,0.36,Y
+            material,width,amount,material_no,material_name,material_weight_kg,shape_type,diameter_min,diameter_max,radius_weight_function_key,axis
+            MAT-A,1000,1,MAT-A,Material-A,1.0,vertical_cylinder,0.30,0.36,cylinder_pwl_diameter,Y
+        """.trimIndent()
+
+        val scenario = loadCsvDrivenScenarioFromCsvText(csv)
+        val item = scenario.itemDemands.single().first
+        val cylinderSpec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+
+        assertNotNull(cylinderSpec)
+        assertEquals("cylinder_pwl_diameter", cylinderSpec.radiusWeightFunctionKey)
+    }
+
+    @Test
+    fun groupedLayerCsvShouldRejectIntervalWithoutWeightFunctionKey() {
+        // Interval-only radius without radius_weight_function_key is still rejected
+        // because PWL-registerable prototype requires a weight function key for production writeback.
+        // 无 radius_weight_function_key 的仅区间半径仍被拒绝，
+        // 因为 PWL 可注册原型需要权重函数键才能进行生产回写。
+        val csv = """
+            group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,axis
+            0,0,item-no-key,MAT-A,Material-A,1.0,vertical_cylinder,0.15,0.18,Y
         """.trimIndent()
 
         val exception = kotlin.test.assertFailsWith<IllegalStateException> {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
-
-        assertTrue(exception.message?.contains("continuous diameter interval is unsupported") == true)
-        assertTrue(exception.message?.contains("diameter_step") == true)
+        // PWL-registerable but without key → still blocked by gap report
+        assertTrue(exception.message?.contains("unsupported") == true || exception.message?.contains("MissingSelectedRadius") == true)
     }
 
     @Test
@@ -2278,7 +2309,21 @@ class GurobiColumnGenerationTest {
                     && diameterStepMeter == null
         )
         if (gapReport != null) {
-            throw IllegalStateException(gapReport.message(rowDescription) + (solverPrototype?.messageSuffix() ?: ""))
+            // 允许 PWL 可注册原型通过（interval-only 连续半径可通过 PWL 近似处理），
+            // 但必须提供 radius_weight_function_key 以确保生产回写路径可用。
+            // PWL 路径允许 MissingSelectedRadius gap（因为 PWL 就是由 solver 选择半径）。
+            //
+            // Allow PWL-registerable prototypes to pass (interval-only continuous radius
+            // can be handled via PWL approximation), but require radius_weight_function_key
+            // to ensure the production writeback path is available.
+            // PWL path allows MissingSelectedRadius gap (since PWL is exactly about
+            // letting the solver choose the radius).
+            val isPWLRegisterableWithKey = solverPrototype != null
+                    && solverPrototype.isPWLRegisterable
+                    && solverPrototype.radiusWeightFunctionKey != null
+            if (!isPWLRegisterableWithKey) {
+                throw IllegalStateException(gapReport.message(rowDescription) + (solverPrototype?.messageSuffix() ?: ""))
+            }
         }
     }
 
