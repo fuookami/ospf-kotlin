@@ -360,8 +360,8 @@ data class LinearInequalityConstraint<V>(
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
         @Suppress("UNCHECKED_CAST")
-        val typedFlattenData = flattenData as LinearFlattenData<V1>
-        val lhsValue = evaluateFlattenDataWithResults(typedFlattenData, solution, tokenTable, zeroIfNone)
+        val targetFlattenData = flattenData as LinearFlattenData<V1>
+        val lhsValue = evaluateFlattenDataWithResults(targetFlattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue.toFlt64(), Flt64.zero)
     }
@@ -405,8 +405,8 @@ data class QuadraticInequalityConstraint<V>(
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
         @Suppress("UNCHECKED_CAST")
-        val typedFlattenData = flattenData as QuadraticFlattenData<V1>
-        val lhsValue = evaluateQuadraticFlattenDataWithResults(typedFlattenData, solution, tokenTable, zeroIfNone)
+        val targetFlattenData = flattenData as QuadraticFlattenData<V1>
+        val lhsValue = evaluateQuadraticFlattenDataWithResults(targetFlattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue.toFlt64(), Flt64.zero)
     }

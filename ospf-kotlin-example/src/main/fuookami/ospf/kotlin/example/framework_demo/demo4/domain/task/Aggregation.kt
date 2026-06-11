@@ -3,11 +3,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 class Aggregation(
-    val timeWindow: TimeWindow<Flt64>,
+    val timeWindow: TimeWindow<*>,
     val airports: List<Airport>,
     val aircrafts: List<Aircraft>,
     val aircraftUsability: Map<Aircraft, AircraftUsability>,

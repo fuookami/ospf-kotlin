@@ -37,7 +37,7 @@ operator fun ShadowPriceMap.invoke(
 fun ShadowPriceMap.reducedCost(
     bunch: FlightTaskBunch
 ): Flt64 {
-    var ret = bunch.cost.costSum!!.value
+    var ret = bunch.cost.costSum!!.value.toFlt64()
     if (bunch.executor.indexed) {
         ret -= this(bunch.executor)
         for ((index, task) in bunch.tasks.withIndex()) {

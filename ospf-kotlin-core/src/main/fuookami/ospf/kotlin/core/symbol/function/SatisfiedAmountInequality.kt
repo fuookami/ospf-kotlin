@@ -56,7 +56,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property inputs 要检查的约束输入列表 / list of constraint inputs to check
  * @property amount 可选的满足数量范围；若为 null，返回原始计数 / optional range of satisfied count; if null, returns raw count
  * @property epsilon 边界检查的容差 / tolerance for boundary checks
- * @property converter V 类型常量和 Flt64 <-> V 转换的值类型转换器 / value type converter for V-typed constants and Flt64 <-> V conversion
+ * @property converter V 类型常量和 Flt64 <-> V 转换的值类型转换器 / value type converter for V-type constants and Flt64 <-> V conversion
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  */

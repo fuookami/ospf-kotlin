@@ -255,7 +255,7 @@ internal fun <V> toFlt64FixedVariables(
 
 /**
  * 将类型化 MechanismModel<V> 转换为 Flt64 求解器边界模型。
- * Convert a typed MechanismModel<V> to the Flt64 solver-boundary model.
+ * Convert a generic MechanismModel<V> to the Flt64 solver-boundary model.
  *
  * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。
  * Validates concrete mechanism-model subclasses and returns Failed for unexpected types.

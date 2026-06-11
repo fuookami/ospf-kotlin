@@ -78,11 +78,11 @@ private fun <V> expandLinearPolynomial(poly: LinearPolynomial<V>): Result<Pair<L
     return Result.success(Pair(expanded, totalConstant))
 }
 
-// ========== Converter-based flatten: V-typed inequality -> V-typed flatten data ==========
+// ========== Converter-based flatten: V-generic inequality -> V-generic flatten data ==========
 
 /**
  * 将 V 类型 [LinearInequality] 扁平化为 [LinearFlattenData]<V>（恒等扁平化，无转换）。
- * Flatten a V-typed [LinearInequality] into [LinearFlattenData]<V> (identity flatten, no conversion).
+ * Flatten a V-generic [LinearInequality] into [LinearFlattenData]<V> (identity flatten, no conversion).
  *
  * 中间符号 ([LinearIntermediateSymbol]) 在合并前递归展开为变量单项式。
  * 不支持的符号类型会产生 [Failed] 结果而非 [ClassCastException]。
@@ -127,7 +127,7 @@ internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlatten
 /**
  * 将 V 类型 [QuadraticInequalityOf] 扁平化为 [QuadraticFlattenData]<V>（恒等扁平化，无转换）。
  * 将 lhs - rhs 转换为单一二次形式。
- * Flatten a V-typed [QuadraticInequalityOf] into [QuadraticFlattenData]<V> (identity flatten, no conversion).
+ * Flatten a V-generic [QuadraticInequalityOf] into [QuadraticFlattenData]<V> (identity flatten, no conversion).
  * Converts lhs - rhs into a single quadratic form.
  */
 internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFlattenData<V>
@@ -166,11 +166,11 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
     )
 }
 
-// ========== Converter-based flatten: V-typed inequality -> Flt64 flatten data ==========
+// ========== Converter-based flatten: V-generic inequality -> Flt64 flatten data ==========
 
 /**
  * 使用显式转换器将 V 类型 [LinearInequality] 扁平化为 [LinearFlattenData]<Flt64>。
- * Flatten a V-typed [LinearInequality] into [LinearFlattenData]<Flt64> using an explicit converter.
+ * Flatten a V-generic [LinearInequality] into [LinearFlattenData]<Flt64> using an explicit converter.
  *
  * 中间符号在合并前递归展开。不支持的符号类型会产生 [Failed] 结果。
  * Intermediate symbols are recursively expanded before merging.
@@ -215,7 +215,7 @@ internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoVal
 
 /**
  * 使用显式转换器将 V 类型 [QuadraticInequalityOf] 扁平化为 [QuadraticFlattenData]<Flt64>。
- * Flatten a V-typed [QuadraticInequalityOf] into [QuadraticFlattenData]<Flt64> using an explicit converter.
+ * Flatten a V-generic [QuadraticInequalityOf] into [QuadraticFlattenData]<Flt64> using an explicit converter.
  *
  * 将 lhs - rhs 转换为单一二次形式。/ Converts lhs - rhs into a single quadratic form.
  */
@@ -257,7 +257,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
     )
 }
 
-// ========== Flt64-specific flatten extensions (for Flt64-typed inequalities) ==========
+// ========== Flt64-specific flatten extensions (for Flt64 inequalities) ==========
 
 /** 比较类型的别名，对应旧的 Relation.sign 属性 / Alias for comparison, matching the old Relation.sign property */
 internal val LinearInequality<Flt64>.sign: Comparison get() = comparison

@@ -35,7 +35,7 @@ class SwitchTimeMinimization<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<*>,
     private val tasks: List<T>,
     private val switch: Switch,
     private val threshold: Extractor<Duration?, Pair<T, T>> = { Duration.ZERO },
@@ -68,7 +68,7 @@ class SwitchTimeMinimization<
         name = name
     )
 
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val cost = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)

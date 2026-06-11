@@ -72,7 +72,7 @@ fun <C : AbstractMaterial, V : RealNumber<V>> unitConsumptionMapOf(
  * @return 产量 / Produce amount
  */
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial, V : RealNumber<V>>
-        CapacityColumn<E, A, V>.produceV(
+        CapacityColumn<E, A, V>.produce(
     product: P,
     amountValue: (UInt64) -> V
 ): V {
@@ -93,7 +93,7 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial, V : RealNumber<V>
  * @return 消耗量 / Consumption amount
  */
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial, V : RealNumber<V>>
-        CapacityColumn<E, A, V>.consumptionV(
+        CapacityColumn<E, A, V>.consumption(
     material: C,
     amountValue: (UInt64) -> V
 ): V {
@@ -114,7 +114,7 @@ fun <E : Executor, A : ProductionAction, C : AbstractMaterial, V : RealNumber<V>
  */
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.produce(product: P): Flt64 {
-    return produceV(product) { it.toSolverFlt64() }
+    return produce(product) { it.toSolverFlt64() }
 }
 
 /**
@@ -126,5 +126,5 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
  */
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.consumption(material: C): Flt64 {
-    return consumptionV(material) { it.toSolverFlt64() }
+    return consumption(material) { it.toSolverFlt64() }
 }

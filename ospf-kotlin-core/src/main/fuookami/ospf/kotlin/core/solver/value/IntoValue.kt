@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * 还提供 V 类型常量（零、一）和反向转换（fromValue），
  * 以消除不安全的 `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` 强制转换。
- * Also provides V-typed constants (zero, one) and reverse conversion (fromValue)
+ * Also provides V-type constants (zero, one) and reverse conversion (fromValue)
  * to eliminate unsafe `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` casts.
  */
 interface IntoValue<V : RealNumber<V>> {

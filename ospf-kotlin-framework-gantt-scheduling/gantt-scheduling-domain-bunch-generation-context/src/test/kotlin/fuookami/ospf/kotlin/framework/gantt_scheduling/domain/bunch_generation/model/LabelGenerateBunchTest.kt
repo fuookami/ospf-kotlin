@@ -30,7 +30,7 @@ class LabelGenerateBunchTest {
     private val start = Instant.parse("2024-01-01T08:00:00Z")
 
     @Test
-    fun labelVShouldGenerateBunchFromTraceTasksWithSolverValue() {
+    fun labelShouldGenerateBunchFromTraceTasksWithSolverValue() {
         val first = task(
             id = "task-1",
             start = start
@@ -110,25 +110,25 @@ class LabelGenerateBunchTest {
     private fun solverEndLabel(
         first: TestTask,
         second: TestTask
-    ): LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64> {
-        val root = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
+    ): Label<TestTask, Executor, AssignmentPolicy<Executor>, Flt64> {
+        val root = Label<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
             cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             node = RootNode
         )
-        val firstLabel = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
+        val firstLabel = Label<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
             cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             prevLabel = root,
             task = first
         )
-        val secondLabel = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
+        val secondLabel = Label<TestTask, Executor, AssignmentPolicy<Executor>, Flt64>(
             cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             prevLabel = firstLabel,
             task = second
         )
-        return LabelV(
+        return Label(
             cost = solverCost(Flt64.zero),
             shadowPrice = Flt64.zero,
             prevLabel = secondLabel,
@@ -139,26 +139,26 @@ class LabelGenerateBunchTest {
     private fun fltXEndLabel(
         first: TestTask,
         second: TestTask
-    ): LabelV<TestTask, Executor, AssignmentPolicy<Executor>, FltX> {
+    ): Label<TestTask, Executor, AssignmentPolicy<Executor>, FltX> {
         val zero = FltX("0")
-        val root = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, FltX>(
+        val root = Label<TestTask, Executor, AssignmentPolicy<Executor>, FltX>(
             cost = fltXCost(zero),
             shadowPrice = zero,
             node = RootNode
         )
-        val firstLabel = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, FltX>(
+        val firstLabel = Label<TestTask, Executor, AssignmentPolicy<Executor>, FltX>(
             cost = fltXCost(zero),
             shadowPrice = zero,
             prevLabel = root,
             task = first
         )
-        val secondLabel = LabelV<TestTask, Executor, AssignmentPolicy<Executor>, FltX>(
+        val secondLabel = Label<TestTask, Executor, AssignmentPolicy<Executor>, FltX>(
             cost = fltXCost(zero),
             shadowPrice = zero,
             prevLabel = firstLabel,
             task = second
         )
-        return LabelV(
+        return Label(
             cost = fltXCost(zero),
             shadowPrice = zero,
             prevLabel = secondLabel,

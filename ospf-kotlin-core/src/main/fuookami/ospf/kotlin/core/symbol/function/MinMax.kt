@@ -82,7 +82,7 @@ class MinMaxFunction<V>(
 
         /**
          * 类型化符号工厂：将中间符号列表转换为线性多项式。
-         * Typed symbol factory: converts intermediate symbols to linear polynomials.
+         * Generic symbol factory: converts intermediate symbols to linear polynomials.
          */
         @JvmStatic
         @JvmName("fromSymbols")
@@ -164,7 +164,7 @@ class MaxMinFunction<V>(
 
         /**
          * 类型化符号工厂：将中间符号列表转换为线性多项式。
-         * Typed symbol factory: converts intermediate symbols to linear polynomials.
+         * Generic symbol factory: converts intermediate symbols to linear polynomials.
          */
         @JvmStatic
         @JvmName("fromSymbols")

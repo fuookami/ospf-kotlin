@@ -162,7 +162,7 @@ class SlackFunction<V>(
     companion object {
         /**
          * 通用 V 类型调用：使用 x 和 y 多项式的主入口点。
-         * Generic V-typed invoke: primary entry point with x and y polynomials.
+         * Generic V-generic invoke: primary entry point with x and y polynomials.
          *
          * @param x 左侧多项式 / left-hand side polynomial
          * @param y 右侧多项式 / right-hand side polynomial
@@ -204,7 +204,7 @@ class SlackFunction<V>(
 
         /**
          * 使用 LinearIntermediateSymbol<V> 的通用 V 类型调用。
-         * Generic V-typed invoke with LinearIntermediateSymbol<V>.
+         * Generic V-generic invoke with LinearIntermediateSymbol<V>.
          *
          * @param x 左侧线性中间符号 / left-hand side linear intermediate symbol
          * @param y 右侧多项式 / right-hand side polynomial
@@ -246,7 +246,7 @@ class SlackFunction<V>(
 
         /**
          * 使用 ToLinearPolynomial<V> 的通用 V 类型调用。
-         * Generic V-typed invoke with ToLinearPolynomial<V>.
+         * Generic V-generic invoke with ToLinearPolynomial<V>.
          *
          * @param x 左侧可转换为线性多项式的对象 / left-hand side convertible to linear polynomial
          * @param y 右侧可转换为线性多项式的对象 / right-hand side convertible to linear polynomial

@@ -7,6 +7,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -27,11 +28,11 @@ private object FltXTestAction : ProductionAction {
     override val executor = fltXTestExecutor
     override val discrete = false
 
-    override fun unitCapacity(timeWindow: TimeWindow<Flt64>): Flt64 = Flt64(1.0)
+    override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V = timeWindow.fromDouble(1.0)
 
-    override fun unitCost(time: Instant): Flt64 = Flt64(10.5)
+    override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V = fromDouble(10.5)
 
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>): UInt64 = UInt64(3)
+    override fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 = UInt64(3)
 }
 
 private object FltXTestAction2 : ProductionAction {
@@ -40,11 +41,11 @@ private object FltXTestAction2 : ProductionAction {
     override val executor = fltXTestExecutor
     override val discrete = false
 
-    override fun unitCapacity(timeWindow: TimeWindow<Flt64>): Flt64 = Flt64(2.0)
+    override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V = timeWindow.fromDouble(2.0)
 
-    override fun unitCost(time: Instant): Flt64 = Flt64(5.0)
+    override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V = fromDouble(5.0)
 
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>): UInt64 = UInt64(4)
+    override fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 = UInt64(4)
 }
 
 private fun fltXTimeWindow(): TimeWindow<FltX> {
@@ -109,7 +110,7 @@ class AggregationFltXTest {
     }
 
     @Test
-    fun totalCapacityWithFltXShouldReturnVType() {
+    fun totalCapacityWithFltXShouldReturnTargetType() {
         val tw = fltXTimeWindow()
         val aggregation = CapacitySchedulingAggregation<FltX, ProductionAction>(
             actions = listOf(FltXTestAction),
@@ -117,7 +118,7 @@ class AggregationFltXTest {
             timeWindow = tw
         )
 
-        // 泛型容量和上界应保留 V 类型 / Generic capacity and upper bound should keep the V type.
+        // 泛型容量和上界应保留 目标类型 / Generic capacity and upper bound should keep the target type.
         val total = aggregation.totalCapacityQuantity()
         assertEquals(NoneUnit, total.unit)
         assertTrue(total.value eq FltX(3.0))
@@ -132,7 +133,7 @@ class AggregationFltXTest {
             timeWindow = tw
         )
 
-        // 多动作多时间槽总容量应按 V 类型累计 / Multi-action and multi-slot capacity should accumulate as V.
+        // 多动作多时间槽总容量应按 目标类型累计 / Multi-action and multi-slot capacity should accumulate as V.
         val total = aggregation.totalCapacityQuantity()
         assertTrue(total.value eq FltX(22.0))
     }
@@ -152,10 +153,10 @@ class AggregationFltXTest {
     }
 }
 
-class ProductionActionUnitCostVTest {
+class ProductionActionUnitCostTest {
 
     @Test
-    fun unitCostVShouldConvertFromSolverValueToFltX() {
+    fun unitCostQuantityShouldConvertFromSolverValueToFltX() {
         val time = Instant.parse("2026-06-07T00:00:00Z")
         val result = FltXTestAction.unitCostQuantity<FltX>(
             time = time,
@@ -166,7 +167,7 @@ class ProductionActionUnitCostVTest {
     }
 
     @Test
-    fun unitCapacityVShouldWorkWithFltX() {
+    fun unitCapacityQuantityShouldWorkWithFltX() {
         val tw = fltXTimeWindow()
         val result = FltXTestAction.unitCapacityQuantity(tw)
         assertEquals(NoneUnit, result.unit)
@@ -174,9 +175,9 @@ class ProductionActionUnitCostVTest {
     }
 
     @Test
-    fun upperBoundVShouldWorkWithFltX() {
+    fun upperBoundShouldWorkWithFltX() {
         val tw = fltXTimeWindow()
-        val result = FltXTestAction.upperBoundV<FltX>(slot1, tw)
+        val result = FltXTestAction.upperBound(slot1, tw)
         assertEquals(UInt64(3), result)
     }
 

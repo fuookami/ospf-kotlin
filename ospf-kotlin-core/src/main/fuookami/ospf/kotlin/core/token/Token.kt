@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.core.variable.*
  *
  * 双视图模式 / Dual-view pattern:
  *   - Flt64 视图：`resultFlt64`（求解器边界，内部）/ Flt64 view: `resultFlt64` (solver-boundary, internal)
- *   - V 类型视图：`result`（类型安全，公开 API）/ V-typed view: `result` (type-safe, public API)
+ *   - V 类型视图：`result`（类型安全，公开 API）/ V-type view: `result` (type-safe, public API)
  *
  * @param V 数值类型 / The number type
  * @property variable 关联的变量项 / Associated variable item
@@ -59,7 +59,7 @@ data class Token<V : RealNumber<V>>(
 
     /**
      * 结果的 V 类型视图（主要公开 API）
-     * V-typed view of result (primary public API)
+     * V-type view of result (primary public API)
      *
      * 设置 converter 时通过 IntoValue<V> 将 Flt64 转换为 V；
      * converter 为 null（V = Flt64）时通过 unchecked cast 返回 _result。
@@ -86,10 +86,10 @@ data class Token<V : RealNumber<V>>(
 
     /**
      * 通过给定转换器显式获取类型化结果
-     * Explicit typed result conversion through the supplied converter
+     * Explicit generic result conversion through the supplied converter
      *
      * @param converter 值转换器 / Value converter
-     * @return 类型化的结果值 / Typed result value
+     * @return 类型化的结果值 / Generic result value
      */
     fun result(converter: IntoValue<V>): V? = _result?.let { converter.intoValue(it) }
 
@@ -112,7 +112,7 @@ data class Token<V : RealNumber<V>>(
 
     /**
      * 检查 V 类型值是否在此 token 的边界范围内
-     * Check if a V-typed value is within this token's bounds
+     * Check if a V-type value is within this token's bounds
      *
      * 内部将 V 转换为 Flt64 进行范围检查。未设置边界时返回 true。
      * Converts V to Flt64 internally for range checking. Returns true if no bounds are set.
@@ -133,7 +133,7 @@ data class Token<V : RealNumber<V>>(
 
     /**
      * 获取下界的类型化视图
-     * Get typed view of lower bound
+     * Get generic view of lower bound
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的下界值 / Typed lower bound value
@@ -142,7 +142,7 @@ data class Token<V : RealNumber<V>>(
 
     /**
      * 获取上界的类型化视图
-     * Get typed view of upper bound
+     * Get generic view of upper bound
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的上界值 / Typed upper bound value

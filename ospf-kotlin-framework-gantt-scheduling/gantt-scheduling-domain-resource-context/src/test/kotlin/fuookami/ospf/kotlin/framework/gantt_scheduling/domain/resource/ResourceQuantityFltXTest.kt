@@ -31,10 +31,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
- * 验证资源模块的 V 泛型领域路径支持 FltX。
- * Tests verifying that the resource module's V-generic domain paths support FltX.
+ * 验证资源模块的数值领域路径支持 FltX。
+ * Tests verifying that the resource module's numeric domain paths support FltX.
  */
-class ResourceGenericFltXTest {
+class ResourceQuantityFltXTest {
 
     private val timeRange = TimeRange(
         start = Instant.parse("2024-01-01T08:00:00Z"),

@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols3
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -28,7 +29,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.WorkingCalendar
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.toGeneric
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.convertTo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ExecutorCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
@@ -140,20 +141,20 @@ object Demo4GenericQuantitySample {
         slotIndex = 0,
         totalDuration = 3.toDuration(DurationUnit.HOURS)
     ).totalDurationQuantity(timeWindow)
-    val slotIntermediateValues = CapacityIntermediateValues(
+    val slotIntermediateValues = CapacityIntermediateValues<ProductionAction, String, String, Flt64>(
         slots = listOf(time),
         results = mapOf(
-            time to SlotBasedCapacityResult(
+            time to SlotBasedCapacityResult<ProductionAction, String, String, Flt64>(
                 slot = time,
                 slotIndex = 0,
-                actionAllocations = emptyList(),
+                actionAllocations = emptyList<ActionAllocation<ProductionAction>>(),
                 totalCostQuantityValue = Quantity(Flt64(1.0), NoneUnit),
                 produceQuantityByProduct = mapOf("product" to Quantity(Flt64(2.0), NoneUnit)),
-                consumptionQuantityByMaterial = emptyMap<String, Quantity<Flt64>>(),
-                resourceUsageQuantityByResource = emptyMap<String, Quantity<Flt64>>()
+                consumptionQuantityByMaterial = emptyMap(),
+                resourceUsageQuantityByResource = emptyMap()
             )
         )
-    ).toGeneric(GenericSolverValueAdapter(FltX))
+    ).convertTo(GenericSolverValueAdapter(FltX))
     val slotProduceQuantity = slotIntermediateValues.produceQuantity(time, "product")
     val iterationSnapshot = Iteration<Demo4Task, Executor, AssignmentPolicy<Executor>>()
         .snapshot(GenericSolverValueAdapter(FltX))
@@ -380,17 +381,17 @@ private object Demo4Action : ProductionAction {
     override val executor: Executor = Executor("demo4-executor", "demo4-executor")
     override val discrete: Boolean = false
 
-    override fun unitCapacity(timeWindow: TimeWindow<Flt64>): Flt64 {
-        return Flt64.one
+    override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V {
+        return timeWindow.fromDouble(1.0)
     }
 
-    override fun unitCost(time: Instant): Flt64 {
-        return Flt64.one
+    override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V {
+        return fromDouble(1.0)
     }
 
-    override fun upperBound(
+    override fun <V : RealNumber<V>> upperBound(
         slot: TimeSlot,
-        timeWindow: TimeWindow<Flt64>
+        timeWindow: TimeWindow<V>
     ): UInt64 {
         return UInt64.one
     }

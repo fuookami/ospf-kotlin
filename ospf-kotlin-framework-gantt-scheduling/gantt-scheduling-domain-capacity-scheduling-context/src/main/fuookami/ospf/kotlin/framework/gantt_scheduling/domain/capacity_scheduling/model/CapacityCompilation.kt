@@ -38,7 +38,6 @@ class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
     private val timeWindow: TimeWindow<V>
 ) : Capacity<A> {
     override val executors: List<Executor> = actions.map { it.executor }.distinct()
-    private val actionTimeWindow = timeWindow.asFlt64TimeWindow()
 
     init {
         // Index actions if they implement ManualIndexed
@@ -83,7 +82,7 @@ class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
                     x[a, s].name = "x_${action.id}_$s"
-                    x[a, s].range.setUb(action.upperBound(slot, actionTimeWindow))
+                    x[a, s].range.setUb(action.upperBound(slot, timeWindow))
                 }
             }
         }
@@ -99,7 +98,7 @@ class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
             val costPoly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
-                    val unitCost = action.unitCost(slot.time.start)
+                    val unitCost = action.unitCostSolverValue(slot.time.start)
                     costPoly += LinearMonomial(unitCost.toSolverValue(), x[a, s])
                 }
             }

@@ -43,7 +43,7 @@ import kotlinx.coroutines.future.future
  *
  * @param converter 值转换器 / Value converter
  * @param V 目标数值类型 / Target number type
- * @return 转换后的线性不等式 / Converted linear inequality
+ * @return 转换后的线性不等式 / Linear inequality in target number type
  */
 private fun <V> LinearInequality<Flt64>.convertTo(converter: IntoValue<V>): LinearInequality<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -64,7 +64,7 @@ private fun <V> LinearInequality<Flt64>.convertTo(converter: IntoValue<V>): Line
  *
  * @param converter 值转换器 / Value converter
  * @param V 目标数值类型 / Target number type
- * @return 转换后的二次不等式 / Converted quadratic inequality
+ * @return 转换后的二次不等式 / Quadratic inequality in target number type
  */
 private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>): QuadraticInequalityOf<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -85,14 +85,14 @@ private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>):
  *
  * @param converter 值转换器 / Value converter
  * @param V 目标数值类型 / Target number type
- * @return 转换后的求解器输出 / Converted solver output
+ * @return 转换后的求解器输出 / Solver output in target number type
  */
 @Suppress("DEPRECATION")
 private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
         where V : RealNumber<V>, V : NumberField<V> {
     return when (this) {
         is FeasibleSolverOutput<*> -> {
-            val converted = solution.map { value ->
+            val targetValues = solution.map { value ->
                 if (value is Flt64) {
                     converter.intoValue(value)
                 } else {
@@ -101,7 +101,7 @@ private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
             }
             FeasibleSolverOutput(
                 obj = obj,
-                solution = converted,
+                solution = targetValues,
                 time = time,
                 possibleBestObj = possibleBestObj,
                 gap = gap,
@@ -382,9 +382,9 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -415,16 +415,16 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         name: String,
         metaModel: LinearMetaModel<V>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
-        return solveMasterV(
+        return solveMasterAs(
             name = name,
             metaModel = castLinearMetaModelForSolver(metaModel),
             converter = metaModel.converter,
@@ -442,14 +442,14 @@ interface LinearBendersDecompositionSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
-        return solveMasterV(
+        return solveMasterAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             converter = converter,
@@ -466,13 +466,13 @@ interface LinearBendersDecompositionSolver {
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
-        return solveMasterV(
+        return solveMasterAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             toLogModel = options.toLogModel,
@@ -492,9 +492,9 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -503,7 +503,7 @@ interface LinearBendersDecompositionSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 name = name,
                 metaModel = metaModel,
                 converter = converter,
@@ -522,15 +522,15 @@ interface LinearBendersDecompositionSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 metaModel = metaModel,
                 converter = converter,
                 options = options
@@ -548,9 +548,9 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         toLogModel: Boolean = false,
@@ -558,7 +558,7 @@ interface LinearBendersDecompositionSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 name = name,
                 metaModel = metaModel,
                 toLogModel = toLogModel,
@@ -575,14 +575,14 @@ interface LinearBendersDecompositionSolver {
      * @param metaModel 线性元模型（泛型数值类型） / Linear meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 metaModel = metaModel,
                 options = options
             )
@@ -594,9 +594,9 @@ interface LinearBendersDecompositionSolver {
      * Sealed interface for linear sub problem solving result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
-     * @property cuts 转换后的割平面列表 / Converted cut list
+     * @property cuts 转换后的割平面列表 / Cut list in target number type
      */
-    sealed interface LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+    sealed interface LinearSubResultOf<V> where V : RealNumber<V>, V : NumberField<V> {
         val cuts: List<LinearInequality<V>>?
     }
 
@@ -605,15 +605,15 @@ interface LinearBendersDecompositionSolver {
      * Linear feasible sub problem result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
-     * @property result 转换后的可行求解器输出 / Converted feasible solver output
+     * @property result 转换后的可行求解器输出 / Feasible solver output in target number type
      * @property dualSolution 对偶解 / Dual solution
-     * @property cuts 转换后的割平面列表 / Converted cut list
+     * @property cuts 转换后的割平面列表 / Cut list in target number type
      */
-    data class LinearFeasibleResultV<V>(
+    data class LinearFeasibleResultOf<V>(
         val result: FeasibleSolverOutput<V>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<V>>?
-    ) : LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+    ) : LinearSubResultOf<V> where V : RealNumber<V>, V : NumberField<V> {
         val obj: Flt64 by result::obj
         val solution: List<V> by result::solution
         val time: Duration by result::time
@@ -627,12 +627,12 @@ interface LinearBendersDecompositionSolver {
      *
      * @param V 目标数值类型 / Target number type
      * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
-     * @property cuts 转换后的割平面列表 / Converted cut list
+     * @property cuts 转换后的割平面列表 / Cut list in target number type
      */
-    data class LinearInfeasibleResultV<V>(
+    data class LinearInfeasibleResultOf<V>(
         val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
         override val cuts: List<LinearInequality<V>>?
-    ) : LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V>
+    ) : LinearSubResultOf<V> where V : RealNumber<V>, V : NumberField<V>
 
     /**
      * 使用值转换器求解线性 Benders 子问题并转换输出值类型
@@ -647,9 +647,9 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -658,7 +658,7 @@ interface LinearBendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+    ): Ret<LinearSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
         return when (val result = solveSub(
             name = name,
             metaModel = metaModel,
@@ -672,7 +672,7 @@ interface LinearBendersDecompositionSolver {
                 when (val value = result.value) {
                     is LinearFeasibleResult -> {
                         Ok(
-                            LinearFeasibleResultV(
+                            LinearFeasibleResultOf(
                                 result = value.result.convertTo(converter),
                                 dualSolution = value.dualSolution,
                                 cuts = value.cuts?.map { it.convertTo(converter) }
@@ -682,7 +682,7 @@ interface LinearBendersDecompositionSolver {
 
                     is LinearInfeasibleResult -> {
                         Ok(
-                            LinearInfeasibleResultV(
+                            LinearInfeasibleResultOf(
                                 farkasDualSolution = value.farkasDualSolution,
                                 cuts = value.cuts?.map { it.convertTo(converter) }
                             )
@@ -708,9 +708,9 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         name: String,
         metaModel: LinearMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -718,8 +718,8 @@ interface LinearBendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
-        return solveSubV(
+    ): Ret<LinearSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubAs(
             name = name,
             metaModel = castLinearMetaModelForSolver(metaModel),
             objectVariable = objectVariable,
@@ -741,16 +741,16 @@ interface LinearBendersDecompositionSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
-        return solveSubV(
+    ): Ret<LinearSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             objectVariable = objectVariable,
@@ -771,15 +771,15 @@ interface LinearBendersDecompositionSolver {
      * @param fixedVariables 固定变量映射 / Fixed variables mapping
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         metaModel: LinearMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
-        return solveSubV(
+    ): Ret<LinearSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             objectVariable = objectVariable,
@@ -803,7 +803,7 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -812,9 +812,9 @@ interface LinearBendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<LinearSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 name = name,
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -837,17 +837,17 @@ interface LinearBendersDecompositionSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<LinearSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
                 fixedVariables = fixedVariables,
@@ -869,9 +869,9 @@ interface LinearBendersDecompositionSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -879,9 +879,9 @@ interface LinearBendersDecompositionSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<LinearSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 name = name,
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -902,16 +902,16 @@ interface LinearBendersDecompositionSolver {
      * @param fixedVariables 固定变量映射 / Fixed variables mapping
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         metaModel: LinearMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<LinearSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
                 fixedVariables = fixedVariables,
@@ -1185,9 +1185,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -1218,16 +1218,16 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
-        return solveMasterV(
+        return solveMasterAs(
             name = name,
             metaModel = castQuadraticMetaModelForSolver(metaModel),
             converter = metaModel.converter,
@@ -1245,14 +1245,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
-        return solveMasterV(
+        return solveMasterAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             converter = converter,
@@ -1269,13 +1269,13 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的求解结果 / Converted solve result
+     * @return 转换后的求解结果 / Solve result in target number type
      */
-    suspend fun <V> solveMasterV(
+    suspend fun <V> solveMasterAs(
         metaModel: QuadraticMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
-        return solveMasterV(
+        return solveMasterAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             toLogModel = options.toLogModel,
@@ -1295,9 +1295,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -1306,7 +1306,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 name = name,
                 metaModel = metaModel,
                 converter = converter,
@@ -1325,15 +1325,15 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 metaModel = metaModel,
                 converter = converter,
                 options = options
@@ -1351,9 +1351,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         toLogModel: Boolean = false,
@@ -1361,7 +1361,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 name = name,
                 metaModel = metaModel,
                 toLogModel = toLogModel,
@@ -1378,14 +1378,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param metaModel 二次元模型（泛型数值类型） / Quadratic meta model (generic number type)
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of converted solve result
+     * @return 转换后求解结果的 CompletableFuture / CompletableFuture of target-number-type solve result
      */
-    fun <V> solveMasterVAsync(
+    fun <V> solveMasterAsAsync(
         metaModel: QuadraticMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveMasterV(
+            return@future solveMasterAs(
                 metaModel = metaModel,
                 options = options
             )
@@ -1397,10 +1397,10 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * Sealed interface for quadratic sub problem solving result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
-     * @property linearCuts 转换后的线性割平面列表 / Converted linear cut list
-     * @property quadraticCuts 转换后的二次割平面列表 / Converted quadratic cut list
+     * @property linearCuts 转换后的线性割平面列表 / Linear cut list in target number type
+     * @property quadraticCuts 转换后的二次割平面列表 / Quadratic cut list in target number type
      */
-    sealed interface QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+    sealed interface QuadraticSubResultOf<V> where V : RealNumber<V>, V : NumberField<V> {
         val linearCuts: List<LinearInequality<V>>?
         val quadraticCuts: List<QuadraticInequalityOf<V>>?
     }
@@ -1410,17 +1410,17 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * Quadratic feasible sub problem result with value type conversion
      *
      * @param V 目标数值类型 / Target number type
-     * @property result 转换后的可行求解器输出 / Converted feasible solver output
+     * @property result 转换后的可行求解器输出 / Feasible solver output in target number type
      * @property dualSolution 对偶解 / Dual solution
-     * @property linearCuts 转换后的线性割平面列表 / Converted linear cut list
-     * @property quadraticCuts 转换后的二次割平面列表 / Converted quadratic cut list
+     * @property linearCuts 转换后的线性割平面列表 / Linear cut list in target number type
+     * @property quadraticCuts 转换后的二次割平面列表 / Quadratic cut list in target number type
      */
-    data class QuadraticFeasibleResultV<V>(
+    data class QuadraticFeasibleResultOf<V>(
         val result: FeasibleSolverOutput<V>,
         val dualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<V>>?,
         override val quadraticCuts: List<QuadraticInequalityOf<V>>?
-    ) : QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+    ) : QuadraticSubResultOf<V> where V : RealNumber<V>, V : NumberField<V> {
         val obj: Flt64 by result::obj
         val solution: List<V> by result::solution
         val time: Duration by result::time
@@ -1434,14 +1434,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      *
      * @param V 目标数值类型 / Target number type
      * @property farkasDualSolution Farkas 对偶解 / Farkas dual solution
-     * @property linearCuts 转换后的线性割平面列表 / Converted linear cut list
-     * @property quadraticCuts 转换后的二次割平面列表 / Converted quadratic cut list
+     * @property linearCuts 转换后的线性割平面列表 / Linear cut list in target number type
+     * @property quadraticCuts 转换后的二次割平面列表 / Quadratic cut list in target number type
      */
-    data class QuadraticInfeasibleResultV<V>(
+    data class QuadraticInfeasibleResultOf<V>(
         val farkasDualSolution: Map<Constraint<Flt64, Quadratic>, Flt64>,
         override val linearCuts: List<LinearInequality<V>>?,
         override val quadraticCuts: List<QuadraticInequalityOf<V>>?
-    ) : QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V>
+    ) : QuadraticSubResultOf<V> where V : RealNumber<V>, V : NumberField<V>
 
     /**
      * 使用值转换器求解二次 Benders 子问题并转换输出值类型
@@ -1456,9 +1456,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1467,7 +1467,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+    ): Ret<QuadraticSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
         return when (val result = solveSub(
             name = name,
             metaModel = metaModel,
@@ -1481,7 +1481,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
                 when (val value = result.value) {
                     is QuadraticFeasibleResult -> {
                         Ok(
-                            QuadraticFeasibleResultV(
+                            QuadraticFeasibleResultOf(
                                 result = value.result.convertTo(converter),
                                 dualSolution = value.dualSolution,
                                 linearCuts = value.linearCuts?.map { it.convertTo(converter) },
@@ -1492,7 +1492,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
                     is QuadraticInfeasibleResult -> {
                         Ok(
-                            QuadraticInfeasibleResultV(
+                            QuadraticInfeasibleResultOf(
                                 farkasDualSolution = value.farkasDualSolution,
                                 linearCuts = value.linearCuts?.map { it.convertTo(converter) },
                                 quadraticCuts = value.quadraticCuts?.map { it.convertTo(converter) }
@@ -1519,9 +1519,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1529,8 +1529,8 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
-        return solveSubV(
+    ): Ret<QuadraticSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubAs(
             name = name,
             metaModel = castQuadraticMetaModelForSolver(metaModel),
             objectVariable = objectVariable,
@@ -1552,16 +1552,16 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
-        return solveSubV(
+    ): Ret<QuadraticSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             objectVariable = objectVariable,
@@ -1582,15 +1582,15 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param fixedVariables 固定变量映射 / Fixed variables mapping
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后的子问题求解结果 / Converted sub problem solving result
+     * @return 转换后的子问题求解结果 / Sub problem solving result in target number type
      */
-    suspend fun <V> solveSubV(
+    suspend fun <V> solveSubAs(
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
-        return solveSubV(
+    ): Ret<QuadraticSubResultOf<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubAs(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             objectVariable = objectVariable,
@@ -1614,9 +1614,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1625,9 +1625,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<QuadraticSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 name = name,
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -1650,17 +1650,17 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<QuadraticSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
                 fixedVariables = fixedVariables,
@@ -1682,9 +1682,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1692,9 +1692,9 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<QuadraticSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 name = name,
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -1715,16 +1715,16 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * @param fixedVariables 固定变量映射 / Fixed variables mapping
      * @param options 框架求解选项 / Framework solve options
      * @param V 目标数值类型 / Target number type
-     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of converted sub problem result
+     * @return 转换后子问题结果的 CompletableFuture / CompletableFuture of target-number-type sub problem result
      */
-    fun <V> solveSubVAsync(
+    fun <V> solveSubAsAsync(
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    ): CompletableFuture<Ret<QuadraticSubResultOf<V>>> where V : RealNumber<V>, V : NumberField<V> {
         return frameworkAsyncScope.future {
-            return@future solveSubV(
+            return@future solveSubAs(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
                 fixedVariables = fixedVariables,

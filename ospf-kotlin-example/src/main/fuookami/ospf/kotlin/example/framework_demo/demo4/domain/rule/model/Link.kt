@@ -13,7 +13,7 @@ sealed class Link(
 ) : ManualIndexed() {
     abstract val prevTask: FlightTask
     abstract val succTask: FlightTask
-    abstract val splitCost: Flt64
+    abstract val splitCost: FltX
 
     override fun toString() = "${type}_${prevTask}_${succTask}"
 }
@@ -21,7 +21,7 @@ sealed class Link(
 data class ConnectingLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
-    override val splitCost: Flt64
+    override val splitCost: FltX
 ) : Link("connecting") {
     init {
         assert((prevTask is FlightLeg) && (!prevTask.recovered))
@@ -48,7 +48,7 @@ data class ConnectingLink(
 data class StopoverLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
-    override val splitCost: Flt64
+    override val splitCost: FltX
 ) : Link("stopover") {
     init {
         assert((prevTask is FlightLeg) && (!prevTask.recovered))
@@ -77,7 +77,7 @@ data class StopoverLink(
 data class ConnectionTimeIgnoringLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
-    override val splitCost: Flt64
+    override val splitCost: FltX
 ) : Link("connection_time_ignoring") {
     init {
         assert((prevTask is FlightLeg) && (!prevTask.recovered))

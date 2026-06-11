@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilati
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -20,24 +19,35 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
 
 class Aggregation(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<*>,
     val recoveryNeededAircrafts: List<Aircraft>,
     val recoveryNeededFlightTasks: List<FlightTask>,
     val originBunches: List<FlightTaskBunch>,
     val flows: List<Flow>,
     val links: LinkMap
-): BunchCompilationAggregation<FlightTaskBunch, Flt64, FlightTask, Aircraft, FlightTaskAssignment>(
+): BunchCompilationAggregation<FlightTaskBunch, FltX, FlightTask, Aircraft, FlightTaskAssignment>(
     tasks = recoveryNeededFlightTasks,
     executors = recoveryNeededAircrafts
 ) {
+    private val solverTimeWindow = timeWindow.toFlt64Boundary()
+    private val resourceTimeWindow = TimeWindow(
+        window = timeWindow.window,
+        continues = timeWindow.continues,
+        durationUnit = timeWindow.durationUnit,
+        dateOffset = timeWindow.dateOffset,
+        interval = timeWindow.interval,
+        fromDouble = { FltX(it) },
+        toDouble = { it.toDouble() }
+    )
+
     val taskTime = BunchSchedulingTaskTime(
-        timeWindow = timeWindow,
+        timeWindow = solverTimeWindow,
         tasks = recoveryNeededFlightTasks,
         compilation = compilation
     )
 
     val flow = BunchSchedulingConnectionResourceUsage(
-        timeWindow = timeWindow,
+        timeWindow = resourceTimeWindow,
         resources = flows,
         name = "flow"
     )
@@ -220,9 +230,6 @@ class Aggregation(
         return Ok(unduplicatedBunches)
     }
 }
-
-
-
 
 
 

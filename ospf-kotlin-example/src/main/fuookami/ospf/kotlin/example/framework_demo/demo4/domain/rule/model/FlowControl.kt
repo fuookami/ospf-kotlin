@@ -161,11 +161,11 @@ data class FlowControl(
     val scene: FlowControlScene,
     val capacity: FlowControlCapacity,
     override val name: String = "${airport.icao}_${scene}_${capacity}_${time.start.toShortString()}_${time.end.toShortString()}"
-) : AbstractResourceCapacity<Flt64> {
+) : AbstractResourceCapacity<FltX> {
     val closed by capacity::closed
 
     override val quantityRangeValue = Quantity(
-        ValueRange(Flt64.zero, capacity.amount.toFlt64()).value!!,
+        ValueRange(FltX.zero, capacity.amount.toFltX()).value!!,
         NoneUnit
     )
     override val interval by capacity::interval
@@ -197,11 +197,11 @@ class Flow(
     val airport: Airport,
     val scene: FlowControlScene,
     capacities: List<FlowControl>,
-) : ConnectionResource<FlowControl, Flt64>(
+) : ConnectionResource<FlowControl, FltX>(
     id = id,
     name = "${airport}_flow",
     capacities = capacities,
-    initialQuantityValue = Flt64.zero,
+    initialQuantityValue = FltX.zero,
 ) {
     init {
         assert(capacities.all { it.airport == airport && it.scene == scene })
@@ -211,8 +211,8 @@ class Flow(
         prevTask: T?,
         task: T?,
         time: TimeRange
-    ): Flt64 {
-        return Flt64(capacities.count {
+    ): FltX {
+        return FltX(capacities.count {
             scene(
                 prevTask = prevTask as FlightTask?,
                 task = task as FlightTask?,
@@ -220,6 +220,6 @@ class Flow(
                 time = time,
                 condition = it.condition
             )
-        })
+        }.toLong())
     }
 }

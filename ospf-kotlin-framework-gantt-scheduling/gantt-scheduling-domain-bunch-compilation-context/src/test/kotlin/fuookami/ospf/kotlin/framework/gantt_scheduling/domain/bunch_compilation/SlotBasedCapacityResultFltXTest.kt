@@ -7,6 +7,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -15,8 +16,8 @@ import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotConstraints
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.TaskReverseBuilderV
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.toGeneric
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.TaskReverseBuilder
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.convertTo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractPlannedTask
@@ -39,11 +40,11 @@ private object StubAction : ProductionAction {
     override val name = "stub"
     override val executor = Executor("e1", "executor-1")
     override val discrete = false
-    override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
+    override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V =
         throw UnsupportedOperationException("stub")
-    override fun unitCost(time: Instant) =
+    override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V =
         throw UnsupportedOperationException("stub")
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
+    override fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 =
         throw UnsupportedOperationException("stub")
 }
 
@@ -70,13 +71,13 @@ class SlotBasedCapacityResultFltXTest {
             results = mapOf(slot to result)
         )
 
-        val generic = intermediate.toGeneric(adapter)
+        val converted = intermediate.convertTo(adapter)
 
-        assertTrue(generic.results[slot]!!.totalCostQuantityValue.value eq FltX("12.5"))
-        assertTrue(generic.produceQuantity(slot, productA)!!.value eq FltX("100.0"))
-        assertTrue(generic.consumptionQuantity(slot, materialB)!!.value eq FltX("50.0"))
-        assertTrue(generic.resourceUsageQuantity(slot, resourceC)!!.value eq FltX("75.5"))
-        assertEquals(NoneUnit, generic.results[slot]!!.totalCostQuantityValue.unit)
+        assertTrue(converted.results[slot]!!.totalCostQuantityValue.value eq FltX("12.5"))
+        assertTrue(converted.produceQuantity(slot, productA)!!.value eq FltX("100.0"))
+        assertTrue(converted.consumptionQuantity(slot, materialB)!!.value eq FltX("50.0"))
+        assertTrue(converted.resourceUsageQuantity(slot, resourceC)!!.value eq FltX("75.5"))
+        assertEquals(NoneUnit, converted.results[slot]!!.totalCostQuantityValue.unit)
     }
 
     @Test
@@ -273,7 +274,7 @@ class SlotBasedCapacityResultFltXTest {
     @Test
     fun taskReverseBuilderCanBeInstantiatedWithFltX() {
         // 校验泛型实现接受 FltX 数值类型 / Verifies generic implementation accepts FltX as its V type.
-        class FltXTaskReverseBuilder : TaskReverseBuilderV<
+        class FltXTaskReverseBuilder : TaskReverseBuilder<
                 AbstractTaskBunch<AbstractPlannedTask<*, Executor, AssignmentPolicy<Executor>>, Executor, AssignmentPolicy<Executor>, FltX>,
                 FltX,
                 AbstractPlannedTask<*, Executor, AssignmentPolicy<Executor>>,

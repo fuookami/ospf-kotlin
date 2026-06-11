@@ -16,9 +16,9 @@ class FlightTaskBunch(
     val dep: Airport,
     val arr: Airport,
     tasks: List<FlightTask>,
-    cost: Cost<Flt64>,
+    cost: Cost<FltX>,
     iteration: Int64
-) : AbstractTaskBunch<FlightTask, Aircraft, FlightTaskAssignment, Flt64>(
+) : AbstractTaskBunch<FlightTask, Aircraft, FlightTaskAssignment, FltX>(
     executor = aircraft,
     initialUsability = aircraft.usability,
     tasks = tasks,
@@ -28,7 +28,7 @@ class FlightTaskBunch(
     val aircraftChange: UInt64 by lazy { UInt64(tasks.count { it.aircraftChanged }.toULong()) }
 
     constructor(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<*>,
         aircraft: Aircraft,
         airport: Airport,
         time: Instant,
@@ -40,14 +40,14 @@ class FlightTaskBunch(
         arr = airport,
         tasks = emptyList(),
         iteration = iteration,
-        cost = Cost(Flt64)
+        cost = Cost(FltX)
     )
 
     constructor(
         aircraft: Aircraft,
         tasks: List<FlightTask>,
         iteration: Int64,
-        cost: Cost<Flt64> = Cost(Flt64)
+        cost: Cost<FltX> = Cost(FltX)
     ) : this(
         aircraft = aircraft,
         time = TimeRange(tasks.first().time!!.start, tasks.last().time!!.end),

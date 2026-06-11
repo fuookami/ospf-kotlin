@@ -10,7 +10,7 @@ import kotlin.test.*
 
 class UnivariateLinearPiecewiseGenericEvaluateTest {
     @Test
-    fun evaluateShouldUseVTypedArithmeticForFourNumberTypes() {
+    fun evaluateShouldUseGenericArithmeticForFourNumberTypes() {
         runCase(GenericNumberCases.flt64)
         runCase(GenericNumberCases.fltX)
         runCase(GenericNumberCases.rtn64)

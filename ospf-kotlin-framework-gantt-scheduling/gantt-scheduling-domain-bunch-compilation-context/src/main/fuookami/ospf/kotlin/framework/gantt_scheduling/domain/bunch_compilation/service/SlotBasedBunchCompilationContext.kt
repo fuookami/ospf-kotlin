@@ -2,6 +2,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -23,16 +24,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
  *
  * 提供产能预求解功能，获取时隙级中间值。
  * Provides capacity pre-solving functionality to obtain slot-level intermediate values.
- *
- * 注意：capacityPreSolver / preSolveCapacity / slotConstraints 继续使用 Flt64，
- * 因为产能预求解器直接操作 solver 模型（solver boundary）。
- * Note: capacityPreSolver / preSolveCapacity / slotConstraints continue to use Flt64,
- * because the capacity pre-solver operates directly on the solver model (solver boundary).
  */
-interface SlotBasedBunchCompilationContextV<
+interface SlotBasedBunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         B,
-        V : RealNumber<V>,
+        V,
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>,
@@ -40,7 +36,7 @@ interface SlotBasedBunchCompilationContextV<
         M,
         R
         > : BunchCompilationContext<Args, B, V, T, E, A>
-        where B : AbstractTaskBunch<T, E, A, V>, B : SlotBasedBunch<T, E, A> {
+        where V : RealNumber<V>, V : PlusGroup<V>, B : AbstractTaskBunch<T, E, A, V>, B : SlotBasedBunch<T, E, A> {
 
     /**
      * 时隙列表
@@ -49,16 +45,16 @@ interface SlotBasedBunchCompilationContextV<
     val slots: List<TimeSlot>
 
     /**
-     * 产能预求解器 (solver boundary — Flt64)
+     * 产能预求解器
      * Capacity pre-solver
      */
-    val capacityPreSolver: SlotBasedCapacityPreSolver<E, Action, M, R>
+    val capacityPreSolver: SlotBasedCapacityPreSolver<V, E, Action, M, R>
 
     /**
      * 产能中间值（预求解后填充）
      * Capacity intermediate values (populated after pre-solving)
      */
-    val intermediateValues: CapacityIntermediateValues<Action, M, R, Flt64>?
+    val intermediateValues: CapacityIntermediateValues<Action, M, R, V>?
 
     /**
      * 执行产能预求解
@@ -74,7 +70,7 @@ interface SlotBasedBunchCompilationContextV<
     suspend fun preSolveCapacity(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver
-    ): Ret<CapacityIntermediateValues<Action, M, R, Flt64>>
+    ): Ret<CapacityIntermediateValues<Action, M, R, V>>
 
     /**
      * 获取指定时隙的约束
@@ -84,7 +80,7 @@ interface SlotBasedBunchCompilationContextV<
      * @param tolerance Tolerance for constraint bounds / 约束边界的容差
      * @return Slot constraints / 时隙约束
      */
-    fun slotConstraints(slot: TimeSlot, tolerance: Flt64 = Flt64.zero): SlotConstraints<M, R, Flt64>? {
+    fun slotConstraints(slot: TimeSlot, tolerance: V? = null): SlotConstraints<M, R, V>? {
         return intermediateValues?.slotConstraints(slot, tolerance)
     }
 
@@ -95,7 +91,7 @@ interface SlotBasedBunchCompilationContextV<
      * @param tolerance Tolerance for constraint bounds / 约束边界的容差
      * @return Map of slot to constraints / 时隙到约束的映射
      */
-    fun allSlotConstraints(tolerance: Flt64 = Flt64.zero): Map<TimeSlot, SlotConstraints<M, R, Flt64>> {
+    fun allSlotConstraints(tolerance: V? = null): Map<TimeSlot, SlotConstraints<M, R, V>> {
         return slots.mapNotNull { slot ->
             intermediateValues?.slotConstraints(slot, tolerance)?.let { slot to it }
         }.toMap()

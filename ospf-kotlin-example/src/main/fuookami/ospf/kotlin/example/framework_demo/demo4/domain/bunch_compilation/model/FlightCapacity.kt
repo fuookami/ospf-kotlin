@@ -128,8 +128,8 @@ class FlightCapacity(
                     val capacity = thisTask?.aircraft?.capacity?.let { capacity ->
                         when (capacity) {
                             is AircraftCapacity.Cargo -> {
-                                if (capacity.capacity neq Flt64.zero) {
-                                    capacity.capacity
+                                if (capacity.capacity neq FltX.zero) {
+                                    capacity.capacity.toFlt64()
                                 } else {
                                     null
                                 }
@@ -154,7 +154,6 @@ class FlightCapacity(
         return ok
     }
 }
-
 
 
 

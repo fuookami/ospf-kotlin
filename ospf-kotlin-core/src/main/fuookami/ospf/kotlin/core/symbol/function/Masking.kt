@@ -153,7 +153,7 @@ class MaskingFunction<V>(
 
         /**
          * 类型化符号工厂：将线性中间符号转换为线性多项式。
-         * Typed symbol factory: converts a linear intermediate symbol to a linear polynomial.
+         * Generic symbol factory: converts a linear intermediate symbol to a linear polynomial.
          *
          * @param x 线性中间符号 / linear intermediate symbol
          * @param mask 二值掩码变量 / binary mask variable
@@ -186,7 +186,7 @@ class MaskingFunction<V>(
 
         /**
          * 类型化多项式工厂：接受 input 与 mask 的线性多项式视图。
-         * Typed polynomial factory: accepts linear-polynomial views for input and mask.
+         * Generic polynomial factory: accepts linear-polynomial views for input and mask.
          *
          * @param x 输入的线性多项式视图 / linear polynomial view for input
          * @param mask 掩码的线性多项式视图 / linear polynomial view for mask
@@ -262,11 +262,11 @@ class MaskingWithPolyMaskFunction<V>(
 
     /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
-        return if (typedValues.isNullOrEmpty()) {
+        val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
+        return if (targetValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
-            evaluate(typedValues, tokenTable, converter, false)
+            evaluate(targetValues, tokenTable, converter, false)
         }
     }
     override fun toRawString(unfold: UInt64): String = name
@@ -283,7 +283,7 @@ class MaskingWithPolyMaskFunction<V>(
         return delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter))?.let { converter.fromValue(it) }
     }
 
-    // V-typed evaluate overrides / V 类型求值重写
+    // V-generic evaluate overrides / V 类型求值重写
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         return if (values.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
@@ -319,8 +319,8 @@ class MaskingWithPolyMaskFunction<V>(
     }
     /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedResults = results.map { converter.intoValue(it) }
-        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+        val targetResults = results.map { converter.intoValue(it) }
+        return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
     /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {

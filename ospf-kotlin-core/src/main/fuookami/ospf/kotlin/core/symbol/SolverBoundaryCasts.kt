@@ -416,8 +416,8 @@ internal object SolverBoundaryCasts {
      * @return Flt64 类型的表达式值域（可空） / Flt64 expression range (nullable)
      */
     fun rangeAsFlt64(symbol: Any): ExpressionRange<Flt64>? {
-        val typed = symbol as IntermediateSymbol<Flt64>
-        return typed.range as ExpressionRange<Flt64>?
+        val flt64Symbol = symbol as IntermediateSymbol<Flt64>
+        return flt64Symbol.range as ExpressionRange<Flt64>?
     }
 }
 

@@ -35,9 +35,9 @@ import fuookami.ospf.kotlin.core.variable.*
  * [registerAuxiliaryTokens] 与 [registerConstraints] 都在 V 类型边界上工作。
  * 实现会通过 [IntoValue]<V> 转换器，在内部构造约束时完成 V 与 Flt64 之间的转换。
  *
- * Both [registerAuxiliaryTokens] and [registerConstraints] operate on V-typed
+ * Both [registerAuxiliaryTokens] and [registerConstraints] operate on V-generic
  * boundaries. Implementations use their [IntoValue]<V> converter to convert
- * between V-typed data and Flt64 when constructing constraints internally.
+ * between V-generic data and Flt64 when constructing constraints internally.
  *
  * 运行时 token 集合与机制模型仍位于 Flt64 求解器边界，因此调用点会传入
  * `AddableTokenCollection<Flt64>` 与
@@ -46,7 +46,7 @@ import fuookami.ospf.kotlin.core.variable.*
  *
  * At runtime, the token collection and mechanism model are always Flt64-based
  * (solver boundary), so call sites pass `AddableTokenCollection<Flt64>` and
- * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-typed interfaces.
+ * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-generic interfaces.
  */
 interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
@@ -265,11 +265,11 @@ class LinearFunctionSymbolAdapter<V>(
      * @return 计算结果 / evaluation result
      */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
-        return if (typedValues.isNullOrEmpty()) {
+        val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
+        return if (targetValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
-            evaluate(typedValues, tokenTable, converter, false)
+            evaluate(targetValues, tokenTable, converter, false)
         }
     }
     override fun toRawString(unfold: UInt64): String = name
@@ -329,7 +329,7 @@ class LinearFunctionSymbolAdapter<V>(
         return converter.fromValue(v)
     }
 
-    // V-typed evaluate overrides (P4-5) - delegate to Flt64-boundary evaluate + converter
+    // V-generic evaluate overrides (P4-5) - delegate to Flt64-boundary evaluate + converter
     // V 类型求值重写 (P4-5) - 委托给 Flt64 边界求值 + 转换器
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         return if (values.isNullOrEmpty()) {
@@ -373,8 +373,8 @@ class LinearFunctionSymbolAdapter<V>(
      * @return 计算结果 / evaluation result
      */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedResults = results.map { converter.intoValue(it) }
-        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+        val targetResults = results.map { converter.intoValue(it) }
+        return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
     /**
      * 求解器符号值转换为 V 类型后求值 / Evaluate after converting solver symbol values to V type

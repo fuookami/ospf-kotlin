@@ -48,7 +48,7 @@ private fun <V> castSolverFlt64FallbackToValueOrThrow(fieldName: String, value: 
     if (solution.any { it !is Flt64 }) {
         throw IllegalArgumentException(
             "FeasibleSolverOutput.$fieldName default fallback only supports Flt64 solution. " +
-                    "Please provide explicit V-typed $fieldName."
+                    "Please provide explicit V-generic $fieldName."
         )
     }
     return value as V

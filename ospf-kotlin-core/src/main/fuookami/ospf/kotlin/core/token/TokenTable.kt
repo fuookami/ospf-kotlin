@@ -285,7 +285,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         return cache(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) }, value)
     }
 
-    // Generic cache methods (V-typed)
+    // Generic cache methods (V-generic)
 
     /**
      * 检查线性展开缓存是否已缓存 / Check if linear flatten is cached

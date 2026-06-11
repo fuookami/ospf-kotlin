@@ -10,7 +10,7 @@ import kotlin.test.*
 
 class MaxAndMaskingFunctionGenericEvaluateTest {
     @Test
-    fun maxAndMinEvaluateShouldUseVTypedComparisonForFourNumberTypes() {
+    fun maxAndMinEvaluateShouldUseGenericComparisonForFourNumberTypes() {
         runMaxMinCase(GenericNumberCases.flt64)
         runMaxMinCase(GenericNumberCases.fltX)
         runMaxMinCase(GenericNumberCases.rtn64)
@@ -18,7 +18,7 @@ class MaxAndMaskingFunctionGenericEvaluateTest {
     }
 
     @Test
-    fun maskingFunctionsEvaluateShouldUseVTypedArithmeticForFourNumberTypes() {
+    fun maskingFunctionsEvaluateShouldUseGenericArithmeticForFourNumberTypes() {
         runMaskingCase(GenericNumberCases.flt64)
         runMaskingCase(GenericNumberCases.fltX)
         runMaskingCase(GenericNumberCases.rtn64)

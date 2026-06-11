@@ -283,16 +283,16 @@ class SCAPolicy<ObjValue, V>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun typedPopulation(population: List<Individual<*, *>>): List<Individual<ObjValue, V>> {
+    private fun targetPopulation(population: List<Individual<*, *>>): List<Individual<ObjValue, V>> {
         // 策略 update 回调链路中的 population 来自同一算法实例，元素类型与当前 ObjValue/V 一致。
         // In this policy update flow, population is produced by the same algorithm instance and matches ObjValue/V.
         return population as List<Individual<ObjValue, V>>
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun typedIndividual(individual: Individual<*, *>): Individual<ObjValue, V> {
+    private fun targetIndividual(individual: Individual<*, *>): Individual<ObjValue, V> {
         // best 个体来自当前 population 的同源排序结果，类型约束与 population 保持一致。
-        // The best individual comes from the same typed population ordering, so its type matches population constraints.
+        // The best individual comes from the same target population ordering, so its type matches population constraints.
         return individual as Individual<ObjValue, V>
     }
 
@@ -312,7 +312,7 @@ class SCAPolicy<ObjValue, V>(
     private fun calculateDensity(
         population: List<Individual<*, *>>
     ): Flt64 {
-        val safePopulation = typedPopulation(population)
+        val safePopulation = targetPopulation(population)
         val flt64Solutions = safePopulation.map { ind -> ind.solution.map { converter.fromValue(it) } }
         val center = flt64Solutions.flatMap { it }.average()
         return flt64Solutions.sumOf { solution ->
@@ -334,9 +334,9 @@ class SCAPolicy<ObjValue, V>(
         best: Individual<*, *>,
         model: AbstractCallBackModelInterface<*, *, *>
     ): Flt64 {
-        val safePopulation = typedPopulation(population)
-        val typedBest = typedIndividual(best)
-        val bestFlt64 = typedBest.solution.map { converter.fromValue(it) }
+        val safePopulation = targetPopulation(population)
+        val targetBest = targetIndividual(best)
+        val bestFlt64 = targetBest.solution.map { converter.fromValue(it) }
         val maxDistance = model.tokens.tokens.sumOf {
             val upper = converter.fromValue(unwrapBoundValue(it.upperBound!!.value.unwrap()))
             val lower = converter.fromValue(unwrapBoundValue(it.lowerBound!!.value.unwrap()))

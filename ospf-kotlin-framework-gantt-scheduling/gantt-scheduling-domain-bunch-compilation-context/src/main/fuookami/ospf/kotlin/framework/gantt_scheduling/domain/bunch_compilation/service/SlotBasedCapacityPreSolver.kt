@@ -18,7 +18,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.toGeneric
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
@@ -26,9 +25,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverFlt64
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
 
@@ -71,12 +68,13 @@ private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
  * 中间值用于给 bunch 生成器提供时隙约束�?
  * Intermediate values are used to provide slot constraints to bunch generators.
  *
+ * @param V 业务数值类型 / Business numeric type
  * @param E 执行器类�?/ Executor type
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
  */
-class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
+class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     /**
      * 生产动作列表
      * List of production actions
@@ -99,13 +97,13 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * 时间窗口
      * Time window
      */
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<V>,
 
     /**
      * 产品列表及其需求量
      * Products with their demand quantities
      */
-    private val products: List<Pair<M, Flt64>> = emptyList(),
+    private val products: List<Pair<M, Quantity<V>>> = emptyList(),
 
     /**
      * 资源容量列表
@@ -123,67 +121,27 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * 计算动作单位操作时间的产品产�?
      * Calculate product produce per unit operation time for action
      */
-    private val unitProduceOfAction: ((A, M) -> Flt64)? = null,
+    private val unitProduceOfAction: ((A, M) -> V)? = null,
 
     /**
      * 计算动作单位操作时间的原料消�?
      * Calculate material consumption per unit operation time for action
      */
-    private val unitConsumptionOfAction: ((A, M) -> Flt64)? = null,
+    private val unitConsumptionOfAction: ((A, M) -> V)? = null,
 
     /**
      * 计算动作在时隙内单位操作时间的资源使用量
      * Calculate resource usage per unit operation time for action in slot
      */
-    private val unitResourceUsageOfAction: ((A, R, TimeSlot) -> Flt64)? = null,
+    private val unitResourceUsageOfAction: ((A, R, TimeSlot) -> V)? = null,
 
     /**
      * 原料列表
      * Material list
      */
     private val materials: List<M> = emptyList()
-) {
-    /**
-     * 通过 solver 时间窗口边界创建分时隙产能预求解服务 /
-     * Create slot-based capacity pre-solving service from a solver time-window boundary
-     *
-     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
-     * @param actions 生产动作列表 / List of production actions
-     * @param executors 执行器列表 / List of executors
-     * @param slots 时隙列表 / List of time slots
-     * @param products 产品列表及其需求量 / Products with demand quantities
-     * @param resourceCapacities 资源容量列表 / List of resource capacities
-     * @param useColumnGeneration 是否使用列生成 / Whether to use column generation
-     * @param unitProduceOfAction 动作单位操作时间产品产量 / Product production per unit operation time
-     * @param unitConsumptionOfAction 动作单位操作时间原料消耗 / Material consumption per unit operation time
-     * @param unitResourceUsageOfAction 动作在时隙内单位操作时间资源使用量 / Resource usage per unit operation time in slot
-     * @param materials 原料列表 / Material list
-     */
-    constructor(
-        timeBoundary: SolverTimeWindowBoundary,
-        actions: List<A>,
-        executors: List<E>,
-        slots: List<TimeSlot>,
-        products: List<Pair<M, Flt64>> = emptyList(),
-        resourceCapacities: List<R> = emptyList(),
-        useColumnGeneration: Boolean = false,
-        unitProduceOfAction: ((A, M) -> Flt64)? = null,
-        unitConsumptionOfAction: ((A, M) -> Flt64)? = null,
-        unitResourceUsageOfAction: ((A, R, TimeSlot) -> Flt64)? = null,
-        materials: List<M> = emptyList()
-    ) : this(
-        actions = actions,
-        executors = executors,
-        slots = slots,
-        timeWindow = timeBoundary.source,
-        products = products,
-        resourceCapacities = resourceCapacities,
-        useColumnGeneration = useColumnGeneration,
-        unitProduceOfAction = unitProduceOfAction,
-        unitConsumptionOfAction = unitConsumptionOfAction,
-        unitResourceUsageOfAction = unitResourceUsageOfAction,
-        materials = materials
-    )
+) where V : RealNumber<V>, V : PlusGroup<V> {
+    private val solverTimeWindow = timeWindow.toFlt64Boundary()
 
     /**
      * 产能编译对象
@@ -193,7 +151,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         CapacityCompilation(
             actions = actions,
             slots = slots,
-            timeWindow = timeWindow
+            timeWindow = solverTimeWindow
         )
     } else {
         null
@@ -204,7 +162,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
             executors = executors,
             actions = actions,
             slots = slots,
-            timeWindow = timeWindow
+            timeWindow = solverTimeWindow
         )
     } else {
         null
@@ -271,7 +229,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver,
         initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A, Flt64>>> = emptyMap()
-    ): Ret<CapacityIntermediateValues<A, M, R, Flt64>> {
+    ): Ret<CapacityIntermediateValues<A, M, R, V>> {
         if (useColumnGeneration && initialColumnsByIteration.isNotEmpty()) {
             val initialColumnEntries = initialColumnsByIteration.entries.sortedBy { it.key }
             for ((iteration, columns) in initialColumnEntries) {
@@ -297,41 +255,6 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
-     * 执行预求解并转换为泛型物理量结果 / Execute pre-solving and convert to generic quantity results
-     *
-     * @param V 目标数值类型 / Target numeric type
-     * @param model 线性元模型 / Linear meta model
-     * @param solver 求解器 / Solver
-     * @param adapter solver 数值适配器 / Solver value adapter
-     * @param initialColumnsByIteration 按迭代分组的初始列 / Initial columns grouped by iteration
-     * @return 泛型产能中间值 / Generic capacity intermediate values
-     */
-    suspend fun <V> solveGeneric(
-        model: AbstractLinearMetaModel<Flt64>,
-        solver: CapacityPreSolveSolver,
-        adapter: SchedulingSolverValueAdapter<V>,
-        initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A, Flt64>>> = emptyMap()
-    ): Ret<CapacityIntermediateValues<A, M, R, V>> where V : RealNumber<V>, V : PlusGroup<V> {
-        return when (val result = solve(
-            model = model,
-            solver = solver,
-            initialColumnsByIteration = initialColumnsByIteration
-        )) {
-            is Ok -> {
-                Ok(result.value.toGeneric(adapter))
-            }
-
-            is Failed -> {
-                Failed(result.error)
-            }
-
-            is Fatal -> {
-                Fatal(result.errors)
-            }
-        }
-    }
-
-    /**
      * 提取中间�?
      * Extract intermediate values
      *
@@ -343,8 +266,9 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      */
     fun extractIntermediateValues(
         model: AbstractLinearMetaModel<Flt64>
-    ): Ret<CapacityIntermediateValues<A, M, R, Flt64>> {
-        val results = HashMap<TimeSlot, SlotBasedCapacityResult<A, M, R, Flt64>>()
+    ): Ret<CapacityIntermediateValues<A, M, R, V>> {
+        val results = HashMap<TimeSlot, SlotBasedCapacityResult<A, M, R, V>>()
+        val zero = timeWindow.fromDouble(0.0)
 
         // Extract capacity solution
         // 提取产能�?
@@ -368,15 +292,18 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
 
             // Calculate total cost for this slot
             // 计算该时隙的总成�?
-            val totalCost = allocations.fold(Flt64.zero) { acc, alloc ->
-                acc + alloc.action.unitCost(alloc.slot.time.start) * alloc.amount.toSolverFlt64()
+            val totalCost = allocations.fold(zero) { acc, alloc ->
+                acc + alloc.action.unitCost(
+                    time = alloc.slot.time.start,
+                    fromDouble = timeWindow.fromDouble
+                ) * timeWindow.fromDouble(alloc.amount.toSolverFlt64().toDouble())
             }
 
             // Calculate produce and consumption by material
             // 计算按物料分组的产量和消耗量
-            val produceByProduct = HashMap<M, Flt64>()
-            val consumptionByMaterial = HashMap<M, Flt64>()
-            val resourceUsageByResource = HashMap<R, Flt64>()
+            val produceByProduct = HashMap<M, V>()
+            val consumptionByMaterial = HashMap<M, V>()
+            val resourceUsageByResource = HashMap<R, V>()
 
             val productSet = products.map { it.first }.toSet()
             val materialSet = if (materials.isNotEmpty()) {
@@ -389,23 +316,23 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
                 val operationTime = timeWindow.valueOf(allocation.duration)
 
                 for (product in productSet) {
-                    val unitProduce = unitProduceOfAction?.invoke(allocation.action, product) ?: Flt64.zero
-                    if (unitProduce neq Flt64.zero) {
-                        produceByProduct[product] = (produceByProduct[product] ?: Flt64.zero) + (unitProduce * operationTime)
+                    val unitProduce = unitProduceOfAction?.invoke(allocation.action, product) ?: zero
+                    if (unitProduce neq zero) {
+                        produceByProduct[product] = (produceByProduct[product] ?: zero) + (unitProduce * operationTime)
                     }
                 }
 
                 for (material in materialSet) {
-                    val unitConsumption = unitConsumptionOfAction?.invoke(allocation.action, material) ?: Flt64.zero
-                    if (unitConsumption neq Flt64.zero) {
-                        consumptionByMaterial[material] = (consumptionByMaterial[material] ?: Flt64.zero) + (unitConsumption * operationTime)
+                    val unitConsumption = unitConsumptionOfAction?.invoke(allocation.action, material) ?: zero
+                    if (unitConsumption neq zero) {
+                        consumptionByMaterial[material] = (consumptionByMaterial[material] ?: zero) + (unitConsumption * operationTime)
                     }
                 }
 
                 for (resource in resourceCapacities) {
-                    val unitUsage = unitResourceUsageOfAction?.invoke(allocation.action, resource, slot) ?: Flt64.zero
-                    if (unitUsage neq Flt64.zero) {
-                        resourceUsageByResource[resource] = (resourceUsageByResource[resource] ?: Flt64.zero) + (unitUsage * operationTime)
+                    val unitUsage = unitResourceUsageOfAction?.invoke(allocation.action, resource, slot) ?: zero
+                    if (unitUsage neq zero) {
+                        resourceUsageByResource[resource] = (resourceUsageByResource[resource] ?: zero) + (unitUsage * operationTime)
                     }
                 }
             }
@@ -422,33 +349,6 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         }
 
         return Ok(CapacityIntermediateValues(slots, results))
-    }
-
-    /**
-     * 提取中间值并转换为泛型物理量结果 / Extract intermediate values and convert to generic quantity results
-     *
-     * @param V 目标数值类型 / Target numeric type
-     * @param model 已求解的线性元模型 / Solved linear meta model
-     * @param adapter solver 数值适配器 / Solver value adapter
-     * @return 泛型产能中间值 / Generic capacity intermediate values
-     */
-    fun <V> extractIntermediateValuesGeneric(
-        model: AbstractLinearMetaModel<Flt64>,
-        adapter: SchedulingSolverValueAdapter<V>
-    ): Ret<CapacityIntermediateValues<A, M, R, V>> where V : RealNumber<V>, V : PlusGroup<V> {
-        return when (val result = extractIntermediateValues(model)) {
-            is Ok -> {
-                Ok(result.value.toGeneric(adapter))
-            }
-
-            is Failed -> {
-                Failed(result.error)
-            }
-
-            is Fatal -> {
-                Fatal(result.errors)
-            }
-        }
     }
 }
 

@@ -346,7 +346,7 @@ private fun ParsedInequality.toCanonicalInequality(
  * @return 规范多项式 / Canonical polynomial
  * @throws DirectParseError 若解析失败 / If parsing fails
  */
-fun parseCanonical(
+fun parseCanonicalFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
@@ -364,11 +364,11 @@ fun parseCanonical(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 线性多项式，若表达式非线性则返回 null / Linear polynomial, or null if expression is not linear
  */
-fun parseLinear(
+fun parseLinearFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): LinearPolynomial<Flt64>? {
-    return parseCanonical(input, symbolOf).toLinearPolynomialOrNull()
+    return parseCanonicalFlt64(input, symbolOf).toLinearPolynomialOrNull()
 }
 
 /**
@@ -380,12 +380,12 @@ fun parseLinear(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次多项式，若表达式非二次则返回 null / Quadratic polynomial, or null if expression is not quadratic
  */
-fun parseQuadratic(
+fun parseQuadraticFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {
-    return parseCanonical(input, symbolOf, symbolComparator).toQuadraticPolynomialOrNull(symbolComparator)
+    return parseCanonicalFlt64(input, symbolOf, symbolComparator).toQuadraticPolynomialOrNull(symbolComparator)
 }
 
 /**
@@ -396,7 +396,7 @@ fun parseQuadratic(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
  */
-fun parseLinearInequality(
+fun parseLinearInequalityFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): LinearInequality<Flt64>? {
@@ -414,7 +414,7 @@ fun parseLinearInequality(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次不等式，若不可转换则返回 null / Quadratic inequality, or null if not convertible
  */
-fun parseQuadraticInequality(
+fun parseQuadraticInequalityFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
@@ -433,7 +433,7 @@ fun parseQuadraticInequality(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范不等式 / Canonical inequality
  */
-fun parseCanonicalInequality(
+fun parseCanonicalInequalityFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
@@ -542,12 +542,12 @@ private inline fun <T> wrapRet(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
  */
-fun parseCanonicalRet(
+fun parseCanonicalRetFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<CanonicalPolynomial<Flt64>> {
-    return wrapRet(input) { parseCanonical(input, symbolOf, symbolComparator) }
+    return wrapRet(input) { parseCanonicalFlt64(input, symbolOf, symbolComparator) }
 }
 
 /**
@@ -558,12 +558,12 @@ fun parseCanonicalRet(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 解析结果 / Parse result
  */
-fun parseLinearRet(
+fun parseLinearRetFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): ParseResult<LinearPolynomial<Flt64>> {
     return wrapRet(input) {
-        parseLinear(input, symbolOf)
+        parseLinearFlt64(input, symbolOf)
             ?: throw IllegalArgumentException("Expression is not linear polynomial.")
     }
 }
@@ -577,13 +577,13 @@ fun parseLinearRet(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
  */
-fun parseQuadraticRet(
+fun parseQuadraticRetFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticPolynomial<Flt64>> {
     return wrapRet(input) {
-        parseQuadratic(input, symbolOf, symbolComparator)
+        parseQuadraticFlt64(input, symbolOf, symbolComparator)
             ?: throw IllegalArgumentException("Expression is not quadratic polynomial.")
     }
 }
@@ -597,12 +597,12 @@ fun parseQuadraticRet(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
  */
-fun parseCanonicalInequalityRet(
+fun parseCanonicalInequalityRetFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<CanonicalInequality<Flt64>> {
-    return wrapRet(input) { parseCanonicalInequality(input, symbolOf, symbolComparator) }
+    return wrapRet(input) { parseCanonicalInequalityFlt64(input, symbolOf, symbolComparator) }
 }
 
 /**
@@ -613,12 +613,12 @@ fun parseCanonicalInequalityRet(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 解析结果 / Parse result
  */
-fun parseLinearInequalityRet(
+fun parseLinearInequalityRetFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): ParseResult<LinearInequality<Flt64>> {
     return wrapRet(input) {
-        parseLinearInequality(input, symbolOf)
+        parseLinearInequalityFlt64(input, symbolOf)
             ?: throw IllegalArgumentException("Inequality is not linear.")
     }
 }
@@ -632,13 +632,13 @@ fun parseLinearInequalityRet(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
  */
-fun parseQuadraticInequalityRet(
+fun parseQuadraticInequalityRetFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticInequalityOf<Flt64>> {
     return wrapRet(input) {
-        parseQuadraticInequality(input, symbolOf, symbolComparator)
+        parseQuadraticInequalityFlt64(input, symbolOf, symbolComparator)
             ?: throw IllegalArgumentException("Inequality is not quadratic.")
     }
 }

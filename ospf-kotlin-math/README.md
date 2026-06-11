@@ -352,7 +352,7 @@ val expr = path("a").gt(5) and path("b").isNotNull()
 
 ### Geometric Primitives
 
-All geometric types are dimension-generic. Use factory functions `point2`/`point3` and `vector2`/`vector3` to create Flt64-typed points and vectors:
+All geometric types are dimension-generic. Use factory functions `point2`/`point3` and `vector2`/`vector3` to create Flt64 points and vectors:
 
 ```kotlin
 import fuookami.ospf.kotlin.math.geometry.*

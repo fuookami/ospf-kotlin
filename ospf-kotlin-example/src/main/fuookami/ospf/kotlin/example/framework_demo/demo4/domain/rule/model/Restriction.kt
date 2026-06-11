@@ -58,8 +58,8 @@ class RelationRestriction(
     val dep: Airport,
     val arr: Airport,
     val aircrafts: Set<Aircraft>,
-    val weight: Flt64 = Flt64.one,
-    val cost: Flt64? = null
+    val weight: FltX = FltX.one,
+    val cost: FltX? = null
 ) : Restriction {
     override fun related(aircraft: Aircraft): Boolean {
         return aircrafts.contains(aircraft)
@@ -182,8 +182,8 @@ class GeneralRestriction(
     condition: AbstractGeneralRestrictionCondition? = null,
     val enabledAircrafts: Set<Aircraft>? = null,
     val disabledAircrafts: Set<Aircraft>? = null,
-    val weight: Flt64 = Flt64.one,
-    val cost: Flt64? = null
+    val weight: FltX = FltX.one,
+    val cost: FltX? = null
 ) : Restriction {
     val condition by lazy {
         val condition1 = if (enabledAircrafts != null) {

@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class Aggregation(
-    val timeWindow: TimeWindow<Flt64>,
+    val timeWindow: TimeWindow<*>,
     val flights: List<FlightTask>,
     val passengers: List<FlightPassenger>,
     val time: TaskTime,
@@ -76,7 +76,6 @@ class Aggregation(
         return ok
     }
 }
-
 
 
 

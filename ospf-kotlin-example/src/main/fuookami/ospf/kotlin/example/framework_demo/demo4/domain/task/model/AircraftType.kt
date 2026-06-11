@@ -41,7 +41,7 @@ operator fun Map<Route, Duration>.get(dep: Airport, arr: Airport): Duration? {
 data class AircraftMinorType(
     val type: AircraftType,
     val code: AircraftMinorTypeCode,
-    val costPerHour: Flt64,
+    val costPerHour: FltX,
     val routeFlyTime: Map<Route, Duration>,
     val connectionTime: Map<Airport, Duration>,
     val maxFlyTime: Duration? = null

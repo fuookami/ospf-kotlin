@@ -5,6 +5,7 @@ import kotlin.test.assertTrue
 import kotlin.test.assertEquals
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -19,8 +20,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Mate
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.consumptionV
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.produceV
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.consumption
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.produce
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -29,10 +30,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
- * 补充覆盖 FltX 泛型路径与 solver 转换边界。
- * Additional FltX tests covering V-generic paths and solver conversion boundaries.
+ * 补充覆盖 FltX 数值路径与 solver 转换边界。
+ * Additional FltX tests covering numeric paths and solver conversion boundaries.
  */
-class ProduceGenericFltXTest {
+class ProduceQuantityFltXTest {
 
     // 简单测试物料实现 / Simple test material implementation
     private class TestMaterial(override val index: Int, val label: String) : Material {
@@ -254,13 +255,13 @@ class ProduceGenericFltXTest {
             override val produce = mapOf<Material, FltX>(productA to FltX("2.5"))
             override val consumption = mapOf<Material, FltX>(productB to FltX("1.25"))
 
-            override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
+            override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V =
                 throw UnsupportedOperationException("stub")
 
-            override fun unitCost(time: Instant) =
+            override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V =
                 throw UnsupportedOperationException("stub")
 
-            override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
+            override fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 =
                 throw UnsupportedOperationException("stub")
         }
         val column = CapacityColumn<Executor, ProductionAction, FltX>(
@@ -271,8 +272,8 @@ class ProduceGenericFltXTest {
             columnCost = Quantity(FltX("0"), NoneUnit)
         )
 
-        val produce = column.produceV(productA) { FltX(it.toLong()) }
-        val consumption = column.consumptionV(productB) { FltX(it.toLong()) }
+        val produce = column.produce(productA) { FltX(it.toLong()) }
+        val consumption = column.consumption(productB) { FltX(it.toLong()) }
 
         assertTrue(produce eq FltX("10.0"))
         assertTrue(consumption eq FltX("5.00"))

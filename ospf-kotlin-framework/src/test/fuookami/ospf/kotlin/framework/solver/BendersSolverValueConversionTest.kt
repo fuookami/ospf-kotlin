@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class BendersSolverVBridgeTest {
+class BendersSolverValueConversionTest {
     private class StubBendersSolver : QuadraticBendersDecompositionSolver {
         override val name: String = "stub-benders"
         val linearMasterNames = mutableListOf<String>()
@@ -156,43 +156,43 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveSubVConvertsSolutionAndCuts() = runBlocking {
+    fun linearSolveSubAsConvertsSolutionAndCuts() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveSubV(
+        val result = solver.solveSubAs(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap(),
             converter = IntoValue.Identity
         )
-        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultV<Flt64>
+        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultOf<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(listOf(Flt64(5.0), Flt64(7.0)), value.solution)
         assertEquals(Flt64(3.0), value.cuts!!.first().lhs.constant)
     }
 
     @Test
-    fun linearSolveSubVSupportsGenericMetaModelInput() = runBlocking {
+    fun linearSolveSubAsSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveSubV(
+        val result = solver.solveSubAs(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap()
         )
-        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultV<Flt64>
+        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultOf<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(Flt64(3.0), value.cuts!!.first().lhs.constant)
     }
 
     @Test
-    fun quadraticSolveSubVConvertsSolutionAndCuts() = runBlocking {
+    fun quadraticSolveSubAsConvertsSolutionAndCuts() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveSubV(
+        val result = solver.solveSubAs(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap(),
             converter = IntoValue.Identity
         )
-        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
+        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultOf<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(listOf(Flt64(5.0), Flt64(7.0)), value.solution)
         assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
@@ -200,76 +200,76 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveSubVSupportsGenericMetaModelInput() = runBlocking {
+    fun quadraticSolveSubAsSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveSubV(
+        val result = solver.solveSubAs(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap()
         )
-        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
+        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultOf<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
         assertEquals(Flt64(4.0), value.quadraticCuts!!.first().lhs.constant)
     }
 
     @Test
-    fun linearSolveSubVAsyncSupportsGenericMetaModelInput() {
+    fun linearSolveSubAsAsyncSupportsGenericMetaModelInput() {
         val solver = StubBendersSolver()
-        val result = solver.solveSubVAsync(
+        val result = solver.solveSubAsAsync(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap()
         ).get()
-        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultV<Flt64>
+        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultOf<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(Flt64(3.0), value.cuts!!.first().lhs.constant)
     }
 
     @Test
-    fun linearSolveSubVAsyncUsesConverterPipeline() {
+    fun linearSolveSubAsAsyncUsesConverterPipeline() {
         val solver = StubBendersSolver()
-        val result = solver.solveSubVAsync(
+        val result = solver.solveSubAsAsync(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap(),
             converter = plusOneConverter
         ).get()
-        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultV<Flt64>
+        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultOf<Flt64>
         assertEquals(listOf(Flt64(6.0), Flt64(8.0)), value.solution)
     }
 
     @Test
-    fun quadraticSolveSubVAsyncSupportsGenericMetaModelInput() {
+    fun quadraticSolveSubAsAsyncSupportsGenericMetaModelInput() {
         val solver = StubBendersSolver()
-        val result = solver.solveSubVAsync(
+        val result = solver.solveSubAsAsync(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap()
         ).get()
-        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
+        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultOf<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
         assertEquals(Flt64(4.0), value.quadraticCuts!!.first().lhs.constant)
     }
 
     @Test
-    fun quadraticSolveSubVAsyncUsesConverterPipeline() {
+    fun quadraticSolveSubAsAsyncUsesConverterPipeline() {
         val solver = StubBendersSolver()
-        val result = solver.solveSubVAsync(
+        val result = solver.solveSubAsAsync(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap(),
             converter = plusOneConverter
         ).get()
-        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
+        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultOf<Flt64>
         assertEquals(listOf(Flt64(6.0), Flt64(8.0)), value.solution)
     }
 
     @Test
-    fun linearSolveMasterVConvertsFeasibleOutput() = runBlocking {
+    fun linearSolveMasterAsConvertsFeasibleOutput() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterV(
+        val result = solver.solveMasterAs(
             metaModel = linearModel(),
             converter = plusOneConverter
         )
@@ -283,9 +283,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveMasterVSupportsGenericMetaModelInput() = runBlocking {
+    fun linearSolveMasterAsSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterV(metaModel = linearModel())
+        val result = solver.solveMasterAs(metaModel = linearModel())
         val output = (result as Ok).value
         assertTrue(output is FeasibleSolverOutput<*>)
         val feasible = output as FeasibleSolverOutput<*>
@@ -294,9 +294,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveMasterVAsyncSupportsGenericMetaModelInput() {
+    fun linearSolveMasterAsAsyncSupportsGenericMetaModelInput() {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterVAsync(metaModel = linearModel()).get()
+        val result = solver.solveMasterAsAsync(metaModel = linearModel()).get()
         val output = (result as Ok).value
         assertTrue(output is FeasibleSolverOutput<*>)
         val feasible = output as FeasibleSolverOutput<*>
@@ -305,9 +305,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveMasterVAsyncUsesConverterPipeline() {
+    fun linearSolveMasterAsAsyncUsesConverterPipeline() {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterVAsync(
+        val result = solver.solveMasterAsAsync(
             metaModel = linearModel(),
             converter = plusOneConverter
         ).get()
@@ -319,19 +319,19 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveMasterVAsyncUsesNameFromOptions() {
+    fun linearSolveMasterAsAsyncUsesNameFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveMasterVAsync(
+        solver.solveMasterAsAsync(
             metaModel = linearModel(),
-            options = FrameworkSolveOptions(name = "linear-master-v-async-options")
+            options = FrameworkSolveOptions(name = "linear-master-as-async-options")
         ).get()
-        assertEquals("linear-master-v-async-options", solver.linearMasterNames.last())
+        assertEquals("linear-master-as-async-options", solver.linearMasterNames.last())
     }
 
     @Test
-    fun linearSolveMasterVAsyncForwardsToLogModelFromOptions() {
+    fun linearSolveMasterAsAsyncForwardsToLogModelFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveMasterVAsync(
+        solver.solveMasterAsAsync(
             metaModel = linearModel(),
             options = FrameworkSolveOptions(toLogModel = true)
         ).get()
@@ -339,11 +339,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveMasterVAsyncForwardsCallbacksFromOptions() {
+    fun linearSolveMasterAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMasterVAsync(
+        solver.solveMasterAsAsync(
             metaModel = linearModel(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -355,11 +355,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveMasterVForwardsCallbacksFromOptions() = runBlocking {
+    fun linearSolveMasterAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMasterV(
+        solver.solveMasterAs(
             metaModel = linearModel(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -371,9 +371,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVConvertsFeasibleOutput() = runBlocking {
+    fun quadraticSolveMasterAsConvertsFeasibleOutput() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterV(
+        val result = solver.solveMasterAs(
             metaModel = quadraticModel(),
             converter = plusOneConverter
         )
@@ -387,9 +387,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVSupportsGenericMetaModelInput() = runBlocking {
+    fun quadraticSolveMasterAsSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterV(metaModel = quadraticModel())
+        val result = solver.solveMasterAs(metaModel = quadraticModel())
         val output = (result as Ok).value
         assertTrue(output is FeasibleSolverOutput<*>)
         val feasible = output as FeasibleSolverOutput<*>
@@ -398,9 +398,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVAsyncSupportsGenericMetaModelInput() {
+    fun quadraticSolveMasterAsAsyncSupportsGenericMetaModelInput() {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterVAsync(metaModel = quadraticModel()).get()
+        val result = solver.solveMasterAsAsync(metaModel = quadraticModel()).get()
         val output = (result as Ok).value
         assertTrue(output is FeasibleSolverOutput<*>)
         val feasible = output as FeasibleSolverOutput<*>
@@ -409,9 +409,9 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVAsyncUsesConverterPipeline() {
+    fun quadraticSolveMasterAsAsyncUsesConverterPipeline() {
         val solver = StubBendersSolver()
-        val result = solver.solveMasterVAsync(
+        val result = solver.solveMasterAsAsync(
             metaModel = quadraticModel(),
             converter = plusOneConverter
         ).get()
@@ -423,19 +423,19 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVAsyncUsesNameFromOptions() {
+    fun quadraticSolveMasterAsAsyncUsesNameFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveMasterVAsync(
+        solver.solveMasterAsAsync(
             metaModel = quadraticModel(),
-            options = FrameworkSolveOptions(name = "quadratic-master-v-async-options")
+            options = FrameworkSolveOptions(name = "quadratic-master-as-async-options")
         ).get()
-        assertEquals("quadratic-master-v-async-options", solver.quadraticMasterNames.last())
+        assertEquals("quadratic-master-as-async-options", solver.quadraticMasterNames.last())
     }
 
     @Test
-    fun quadraticSolveMasterVAsyncForwardsToLogModelFromOptions() {
+    fun quadraticSolveMasterAsAsyncForwardsToLogModelFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveMasterVAsync(
+        solver.solveMasterAsAsync(
             metaModel = quadraticModel(),
             options = FrameworkSolveOptions(toLogModel = true)
         ).get()
@@ -443,11 +443,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVAsyncForwardsCallbacksFromOptions() {
+    fun quadraticSolveMasterAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMasterVAsync(
+        solver.solveMasterAsAsync(
             metaModel = quadraticModel(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -459,11 +459,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveMasterVForwardsCallbacksFromOptions() = runBlocking {
+    fun quadraticSolveMasterAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMasterV(
+        solver.solveMasterAs(
             metaModel = quadraticModel(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -475,21 +475,21 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveSubVAsyncUsesNameFromOptions() {
+    fun linearSolveSubAsAsyncUsesNameFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveSubVAsync(
+        solver.solveSubAsAsync(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap(),
-            options = FrameworkSolveOptions(name = "linear-sub-v-async-options")
+            options = FrameworkSolveOptions(name = "linear-sub-as-async-options")
         ).get()
-        assertEquals("linear-sub-v-async-options", solver.linearSubNames.last())
+        assertEquals("linear-sub-as-async-options", solver.linearSubNames.last())
     }
 
     @Test
-    fun linearSolveSubVAsyncForwardsToLogModelFromOptions() {
+    fun linearSolveSubAsAsyncForwardsToLogModelFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveSubVAsync(
+        solver.solveSubAsAsync(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap(),
@@ -499,11 +499,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveSubVAsyncForwardsCallbacksFromOptions() {
+    fun linearSolveSubAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveSubVAsync(
+        solver.solveSubAsAsync(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap(),
@@ -517,11 +517,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun linearSolveSubVForwardsCallbacksFromOptions() = runBlocking {
+    fun linearSolveSubAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveSubV(
+        solver.solveSubAs(
             metaModel = linearModel(),
             objectVariable = RealVar("x"),
             fixedVariables = emptyMap(),
@@ -535,21 +535,21 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveSubVAsyncUsesNameFromOptions() {
+    fun quadraticSolveSubAsAsyncUsesNameFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveSubVAsync(
+        solver.solveSubAsAsync(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap(),
-            options = FrameworkSolveOptions(name = "quadratic-sub-v-async-options")
+            options = FrameworkSolveOptions(name = "quadratic-sub-as-async-options")
         ).get()
-        assertEquals("quadratic-sub-v-async-options", solver.quadraticSubNames.last())
+        assertEquals("quadratic-sub-as-async-options", solver.quadraticSubNames.last())
     }
 
     @Test
-    fun quadraticSolveSubVAsyncForwardsToLogModelFromOptions() {
+    fun quadraticSolveSubAsAsyncForwardsToLogModelFromOptions() {
         val solver = StubBendersSolver()
-        solver.solveSubVAsync(
+        solver.solveSubAsAsync(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap(),
@@ -559,11 +559,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveSubVAsyncForwardsCallbacksFromOptions() {
+    fun quadraticSolveSubAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveSubVAsync(
+        solver.solveSubAsAsync(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap(),
@@ -577,11 +577,11 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveSubVForwardsCallbacksFromOptions() = runBlocking {
+    fun quadraticSolveSubAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubBendersSolver()
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveSubV(
+        solver.solveSubAs(
             metaModel = quadraticModel(),
             objectVariable = RealVar("y"),
             fixedVariables = emptyMap(),

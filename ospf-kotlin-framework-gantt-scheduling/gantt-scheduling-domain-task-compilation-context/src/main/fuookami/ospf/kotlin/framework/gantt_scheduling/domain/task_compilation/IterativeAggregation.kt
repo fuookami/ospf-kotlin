@@ -457,7 +457,7 @@ open class IterativeTaskCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<*>,
     tasks: List<T>,
     executors: List<E>,
     override val policy: Policy<IT, V, E, A>,
@@ -469,7 +469,7 @@ open class IterativeTaskCompilationAggregationWithTime<
     executors = executors,
     lockedCancelTasks = lockCancelTasks
 ) {
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     val taskTime: IterativeTaskSchedulingTaskTime<IT, T, E, A> = IterativeTaskSchedulingTaskTime(
         timeBoundary = timeBoundary,

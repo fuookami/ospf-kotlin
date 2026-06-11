@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduli
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
@@ -28,20 +29,6 @@ class ExecutorCapacityConstraint<V : RealNumber<V>, A : ProductionAction>(
     val name: String = "executor_capacity"
 ) {
     /**
-     * solver 边界使用的 Flt64 时间窗口
-     * Flt64 time window for solver boundary
-     */
-    private val flt64TimeWindow: TimeWindow<Flt64> = TimeWindow(
-        window = timeWindow.window,
-        continues = timeWindow.continues,
-        durationUnit = timeWindow.durationUnit,
-        dateOffset = timeWindow.dateOffset,
-        interval = timeWindow.interval,
-        fromDouble = { Flt64(it) },
-        toDouble = { it.toDouble() }
-    )
-
-    /**
      * 应用约束到模型
      * Apply constraint to model
      */
@@ -50,7 +37,7 @@ class ExecutorCapacityConstraint<V : RealNumber<V>, A : ProductionAction>(
             for ((s, slot) in slots.withIndex()) {
                 // capacity[executor, slot] <= availableDuration
                 // capacity[executor, slot] <= 可用时长
-                val availableDuration = flt64TimeWindow.valueOf(slot.duration)
+                val availableDuration = timeWindow.valueOf(slot.duration).toSolverValue()
                 val constraint = capacity.capacity[e, s].polynomial leq availableDuration
                 when (val result = model.addConstraint(constraint, name = "${name}_${executor.id}_$s")) {
                     is Ok -> {}

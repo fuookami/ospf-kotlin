@@ -46,7 +46,7 @@ class TaskOverMaxAdvanceTimeConstraint<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<*>,
     tasks: List<AbstractTask<E, A>>,
     private val taskTime: TaskTime,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
@@ -76,7 +76,7 @@ class TaskOverMaxAdvanceTimeConstraint<
         name = name
     )
 
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     private val tasks = if (taskTime.overMaxAdvanceEnabled) {
         tasks.filter { !it.advanceEnabled && it.maxAdvance != null }

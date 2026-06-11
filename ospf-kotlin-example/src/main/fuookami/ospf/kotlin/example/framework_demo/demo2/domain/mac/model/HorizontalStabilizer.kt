@@ -152,13 +152,12 @@ class HorizontalStabilizer(
 
     private fun pointsOf(tow: Quantity<Flt64>): List<Pair<MAC, Flt64>> {
         val eps = Equal<Flt64, Flt64>(Flt64(1e-5))
-        val towV = tow.to(aircraftModel.weightUnit)!!.value
-        val sameTowPoints = points.filter { eps(it.tow.to(aircraftModel.weightUnit)!!.value, towV) }
+        val towValue = tow.to(aircraftModel.weightUnit)!!.value
+        val sameTowPoints = points.filter { eps(it.tow.to(aircraftModel.weightUnit)!!.value, towValue) }
         val source = if (sameTowPoints.isNotEmpty()) sameTowPoints else points
         return source.map { it.mac to it.trim }.sortedBy { it.first.mac }
     }
 }
-
 
 
 

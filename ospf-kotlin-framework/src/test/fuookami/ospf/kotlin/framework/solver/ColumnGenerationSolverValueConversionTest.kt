@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration
 
-class ColumnGenerationSolverVBridgeTest {
+class ColumnGenerationSolverValueConversionTest {
     private class StubSolver(
         private val output: Flt64FeasibleSolverOutput
     ) : ColumnGenerationSolver {
@@ -100,9 +100,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVUsesConverterPipeline() = runBlocking {
+    fun solveMilpAsUsesConverterPipeline() = runBlocking {
         val solver = StubSolver(output())
-        val result = solver.solveMILPV(
+        val result = solver.solveMILPAs(
             metaModel = model(),
             converter = IntoValue.Identity
         )
@@ -112,27 +112,27 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVSupportsGenericMetaModelInput() = runBlocking {
+    fun solveMilpAsSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubSolver(output())
-        val result = solver.solveMILPV(metaModel = model())
+        val result = solver.solveMILPAs(metaModel = model())
         val value = (result as Ok).value
         assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.solution)
         assertEquals(Flt64(10.0), value.obj)
     }
 
     @Test
-    fun solveMilpVAsyncSupportsGenericMetaModelInput() {
+    fun solveMilpAsAsyncSupportsGenericMetaModelInput() {
         val solver = StubSolver(output())
-        val result = solver.solveMILPVAsync(metaModel = model()).get()
+        val result = solver.solveMILPAsAsync(metaModel = model()).get()
         val value = (result as Ok).value
         assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.solution)
         assertEquals(Flt64(10.0), value.obj)
     }
 
     @Test
-    fun solveMilpVAsyncUsesConverterPipeline() {
+    fun solveMilpAsAsyncUsesConverterPipeline() {
         val solver = StubSolver(output())
-        val result = solver.solveMILPVAsync(
+        val result = solver.solveMILPAsAsync(
             metaModel = model(),
             converter = plusOneConverter
         ).get()
@@ -141,19 +141,19 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVAsyncUsesNameFromOptions() {
+    fun solveMilpAsAsyncUsesNameFromOptions() {
         val solver = StubSolver(output())
-        solver.solveMILPVAsync(
+        solver.solveMILPAsAsync(
             metaModel = model(),
-            options = FrameworkSolveOptions(name = "milp-v-async-options")
+            options = FrameworkSolveOptions(name = "milp-as-async-options")
         ).get()
-        assertEquals("milp-v-async-options", solver.milpNames.last())
+        assertEquals("milp-as-async-options", solver.milpNames.last())
     }
 
     @Test
-    fun solveMilpVAsyncForwardsToLogModelFromOptions() {
+    fun solveMilpAsAsyncForwardsToLogModelFromOptions() {
         val solver = StubSolver(output())
-        solver.solveMILPVAsync(
+        solver.solveMILPAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(toLogModel = true)
         ).get()
@@ -161,11 +161,11 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVAsyncForwardsCallbacksFromOptions() {
+    fun solveMilpAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubSolver(output())
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMILPVAsync(
+        solver.solveMILPAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -177,11 +177,11 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVForwardsCallbacksFromOptions() = runBlocking {
+    fun solveMilpAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubSolver(output())
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMILPV(
+        solver.solveMILPAs(
             metaModel = model(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -193,9 +193,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveLpVUsesConverterPipeline() = runBlocking {
+    fun solveLpAsUsesConverterPipeline() = runBlocking {
         val solver = StubSolver(output())
-        val result = solver.solveLPV(
+        val result = solver.solveLPAs(
             metaModel = model(),
             converter = IntoValue.Identity
         )
@@ -205,27 +205,27 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveLpVSupportsGenericMetaModelInput() = runBlocking {
+    fun solveLpAsSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubSolver(output())
-        val result = solver.solveLPV(metaModel = model())
+        val result = solver.solveLPAs(metaModel = model())
         val value = (result as Ok).value
         assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.solution)
         assertEquals(Flt64(10.0), value.obj)
     }
 
     @Test
-    fun solveLpVAsyncSupportsGenericMetaModelInput() {
+    fun solveLpAsAsyncSupportsGenericMetaModelInput() {
         val solver = StubSolver(output())
-        val result = solver.solveLPVAsync(metaModel = model()).get()
+        val result = solver.solveLPAsAsync(metaModel = model()).get()
         val value = (result as Ok).value
         assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.solution)
         assertEquals(Flt64(10.0), value.obj)
     }
 
     @Test
-    fun solveLpVAsyncUsesConverterPipeline() {
+    fun solveLpAsAsyncUsesConverterPipeline() {
         val solver = StubSolver(output())
-        val result = solver.solveLPVAsync(
+        val result = solver.solveLPAsAsync(
             metaModel = model(),
             converter = plusOneConverter
         ).get()
@@ -234,19 +234,19 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveLpVAsyncUsesNameFromOptions() {
+    fun solveLpAsAsyncUsesNameFromOptions() {
         val solver = StubSolver(output())
-        solver.solveLPVAsync(
+        solver.solveLPAsAsync(
             metaModel = model(),
-            options = FrameworkSolveOptions(name = "lp-v-async-options")
+            options = FrameworkSolveOptions(name = "lp-as-async-options")
         ).get()
-        assertEquals("lp-v-async-options", solver.lpNames.last())
+        assertEquals("lp-as-async-options", solver.lpNames.last())
     }
 
     @Test
-    fun solveLpVAsyncForwardsToLogModelFromOptions() {
+    fun solveLpAsAsyncForwardsToLogModelFromOptions() {
         val solver = StubSolver(output())
-        solver.solveLPVAsync(
+        solver.solveLPAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(toLogModel = true)
         ).get()
@@ -254,11 +254,11 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveLpVAsyncForwardsCallbacksFromOptions() {
+    fun solveLpAsAsyncForwardsCallbacksFromOptions() {
         val solver = StubSolver(output())
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveLPVAsync(
+        solver.solveLPAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -270,11 +270,11 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveLpVForwardsCallbacksFromOptions() = runBlocking {
+    fun solveLpAsForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubSolver(output())
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveLPV(
+        solver.solveLPAs(
             metaModel = model(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -286,9 +286,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolUsesConverterPipeline() = runBlocking {
+    fun solveMilpAsPoolUsesConverterPipeline() = runBlocking {
         val solver = StubSolver(output())
-        val result = solver.solveMILPVWithSolutionPool(
+        val result = solver.solveMILPWithSolutionPoolAs(
             metaModel = model(),
             converter = IntoValue.Identity,
             options = FrameworkSolveOptions(solutionAmount = UInt64.one)
@@ -300,9 +300,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolSupportsGenericMetaModelInput() = runBlocking {
+    fun solveMilpAsPoolSupportsGenericMetaModelInput() = runBlocking {
         val solver = StubSolver(output())
-        val result = solver.solveMILPVWithSolutionPool(
+        val result = solver.solveMILPWithSolutionPoolAs(
             metaModel = model(),
             options = FrameworkSolveOptions(solutionAmount = UInt64.one)
         )
@@ -313,9 +313,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolAsyncSupportsGenericMetaModelInput() {
+    fun solveMilpAsPoolAsyncSupportsGenericMetaModelInput() {
         val solver = StubSolver(output())
-        val result = solver.solveMILPVWithSolutionPoolAsync(
+        val result = solver.solveMILPWithSolutionPoolAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(solutionAmount = UInt64.one)
         ).get()
@@ -326,9 +326,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolAsyncUsesConverterPipeline() {
+    fun solveMilpAsPoolAsyncUsesConverterPipeline() {
         val solver = StubSolver(output())
-        val result = solver.solveMILPVWithSolutionPoolAsync(
+        val result = solver.solveMILPWithSolutionPoolAsAsync(
             metaModel = model(),
             converter = plusOneConverter,
             options = FrameworkSolveOptions(solutionAmount = UInt64.one)
@@ -340,9 +340,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolUsesDefaultSolutionAmountWhenOptionMissing() = runBlocking {
+    fun solveMilpAsPoolUsesDefaultSolutionAmountWhenOptionMissing() = runBlocking {
         val solver = StubSolver(output())
-        solver.solveMILPVWithSolutionPool(
+        solver.solveMILPWithSolutionPoolAs(
             metaModel = model(),
             options = FrameworkSolveOptions()
         )
@@ -350,10 +350,10 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolAsyncForwardsConfiguredSolutionAmount() {
+    fun solveMilpAsPoolAsyncForwardsConfiguredSolutionAmount() {
         val solver = StubSolver(output())
         val solutionAmount = UInt64(3)
-        solver.solveMILPVWithSolutionPoolAsync(
+        solver.solveMILPWithSolutionPoolAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(solutionAmount = solutionAmount)
         ).get()
@@ -361,9 +361,9 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolAsyncForwardsToLogModelFromOptions() {
+    fun solveMilpAsPoolAsyncForwardsToLogModelFromOptions() {
         val solver = StubSolver(output())
-        solver.solveMILPVWithSolutionPoolAsync(
+        solver.solveMILPWithSolutionPoolAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(toLogModel = true)
         ).get()
@@ -371,11 +371,11 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolAsyncForwardsCallbacksFromOptions() {
+    fun solveMilpAsPoolAsyncForwardsCallbacksFromOptions() {
         val solver = StubSolver(output())
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMILPVWithSolutionPoolAsync(
+        solver.solveMILPWithSolutionPoolAsAsync(
             metaModel = model(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -387,11 +387,11 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
-    fun solveMilpVPoolForwardsCallbacksFromOptions() = runBlocking {
+    fun solveMilpAsPoolForwardsCallbacksFromOptions() = runBlocking {
         val solver = StubSolver(output())
         val registrationStatusCallBack: RegistrationStatusCallBack = { _ -> ok }
         val solvingStatusCallBack: SolvingStatusCallBack = { _ -> ok }
-        solver.solveMILPVWithSolutionPool(
+        solver.solveMILPWithSolutionPoolAs(
             metaModel = model(),
             options = FrameworkSolveOptions(
                 registrationStatusCallBack = registrationStatusCallBack,

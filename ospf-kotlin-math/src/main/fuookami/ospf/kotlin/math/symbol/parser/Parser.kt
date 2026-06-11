@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 /**
  * 解析字符串为规范多项式（泛型类型版本）
- * Parses a string into a canonical polynomial (generic typed version)
+ * Parses a string into a canonical polynomial (generic number type version)
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 解析后的规范多项式 / Parsed canonical polynomial
  */
-fun <T> parseTyped(
+fun <T> parse(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -36,7 +36,7 @@ fun <T> parseTyped(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<T> where T : Ring<T> {
-    return parseCanonicalTyped(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
+    return parseCanonical(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
 }
 
 /**
@@ -51,7 +51,7 @@ fun <T> parseTyped(
  * @param isZero 零值判断函数 / Zero-check function
  * @return 线性多项式或 null / Linear polynomial or null
  */
-fun <T> parseLinearPolynomialTypedOrNull(
+fun <T> parseLinearPolynomialOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -59,7 +59,7 @@ fun <T> parseLinearPolynomialTypedOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): LinearPolynomial<T>? where T : Ring<T> {
-    return parseLinearTypedOrNull(input, numberParser, zero, one, symbolOf, isZero)
+    return parseLinearOrNull(input, numberParser, zero, one, symbolOf, isZero)
 }
 
 /**
@@ -75,7 +75,7 @@ fun <T> parseLinearPolynomialTypedOrNull(
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 二次多项式或 null / Quadratic polynomial or null
  */
-fun <T> parseQuadraticPolynomialTypedOrNull(
+fun <T> parseQuadraticPolynomialOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -84,5 +84,5 @@ fun <T> parseQuadraticPolynomialTypedOrNull(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<T>? where T : Ring<T> {
-    return parseQuadraticTypedOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
+    return parseQuadraticOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
 }

@@ -144,13 +144,13 @@ import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 val symbolOf = ::symbolOfSerializedIdentifier
 
 // Parse linear polynomial
-val lp = parseLinearTypedOrNull("2*x + 3*y + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
+val lp = parseLinearOrNull("2*x + 3*y + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 
 // Parse quadratic polynomial
-val qp = parseQuadraticTypedOrNull("x^2 + 2*x + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
+val qp = parseQuadraticOrNull("x^2 + 2*x + 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 
 // Parse linear inequality
-val ineq = parseLinearInequalityTypedOrNull("2*x + 3*y <= 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
+val ineq = parseLinearInequalityOrNull("2*x + 3*y <= 1", Flt64.numberParser, Flt64.zero, Flt64.one, symbolOf)
 ```
 
 ### Serialization

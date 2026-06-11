@@ -194,8 +194,8 @@ class LinearMechanismModel<V>(
         /**
          * V 类型工厂方法：从 LinearMetaModel<V> 创建 LinearMechanismModel<V>。
          * 使用 V 类型 SubObject 伴随对象重载和 IntoValue<V> 转换器。
-         * V-typed factory: create LinearMechanismModel<V> from LinearMetaModel<V>.
-         * Uses the V-typed SubObject companion overload with IntoValue<V> converter.
+         * V-generic factory: create LinearMechanismModel<V> from LinearMetaModel<V>.
+         * Uses the V-generic SubObject companion overload with IntoValue<V> converter.
          */
         suspend operator fun <V> invoke(
             metaModel: LinearMetaModel<V>,
@@ -529,12 +529,12 @@ class LinearMechanismModel<V>(
      *
      * 基于 Flt64 类型对偶解生成最优性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateOptimalCut]，
      * 返回值也转换为 Flt64。
-     * Generates optimality cuts from Flt64-typed dual solution. Converts dual values from solver
+     * Generates optimality cuts from Flt64 dual solution. Converts dual values from solver
      * raw Flt64 type, delegates to [generateOptimalCut], and converts the result back to Flt64.
      *
      * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
-     * @param dualSolution Flt64 类型对偶解 / Flt64-typed dual solution mapping from constraint to dual value
+     * @param dualSolution Flt64 类型对偶解 / Flt64 dual solution mapping from constraint to dual value
      * @return Flt64 线性不等式列表 / List of Flt64 linear inequalities representing the cut
      */
     fun generateFlt64OptimalCut(
@@ -545,8 +545,8 @@ class LinearMechanismModel<V>(
         // 求解器边界：对偶解来自求解器原生类型。 / Solver boundary: dual solution from solver raw type.
         val dualByConstraint: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
         for (constraint in linearConstraints) {
-            val typed = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
-            val dual = dualSolution[typed] ?: continue
+            val flt64Constraint = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
+            val dual = dualSolution[flt64Constraint] ?: continue
             if (dual neq Flt64.zero) {
                 dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
@@ -564,11 +564,11 @@ class LinearMechanismModel<V>(
      *
      * 基于 Flt64 类型 Farkas 对偶解生成可行性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateFeasibleCut]，
      * 返回值也转换为 Flt64。
-     * Generates feasibility cuts from Flt64-typed Farkas dual solution. Converts dual values from
+     * Generates feasibility cuts from Flt64 Farkas dual solution. Converts dual values from
      * solver raw Flt64 type, delegates to [generateFeasibleCut], and converts the result back to Flt64.
      *
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
-     * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64-typed Farkas dual solution mapping from constraint to dual value
+     * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64 Farkas dual solution mapping from constraint to dual value
      * @return Flt64 线性不等式列表 / List of Flt64 linear inequalities representing the cut
      */
     fun generateFlt64FeasibleCut(
@@ -578,8 +578,8 @@ class LinearMechanismModel<V>(
         // 求解器边界：Farkas 对偶解来自求解器原生类型。 / Solver boundary: Farkas dual solution from solver raw type.
         val dualByConstraint: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
         for (constraint in linearConstraints) {
-            val typed = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
-            val dual = farkasDualSolution[typed] ?: continue
+            val flt64Constraint = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
+            val dual = farkasDualSolution[flt64Constraint] ?: continue
             if (dual neq Flt64.zero) {
                 dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
@@ -703,8 +703,8 @@ class QuadraticMechanismModel<V>(
         /**
          * V 类型工厂方法：从 QuadraticMetaModel<V> 创建 QuadraticMechanismModel<V>。
          * 使用 V 类型 SubObject 伴随对象重载和 IntoValue<V> 转换器。
-         * V-typed factory: create QuadraticMechanismModel<V> from QuadraticMetaModel<V>.
-         * Uses the V-typed SubObject companion overload with IntoValue<V> converter.
+         * V-generic factory: create QuadraticMechanismModel<V> from QuadraticMetaModel<V>.
+         * Uses the V-generic SubObject companion overload with IntoValue<V> converter.
          */
         suspend operator fun <V> invoke(
             metaModel: QuadraticMetaModel<V>,
@@ -1085,12 +1085,12 @@ class QuadraticMechanismModel<V>(
      *
      * 基于 Flt64 类型对偶解生成最优性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateOptimalCut]，
      * 返回值也转换为 Flt64。
-     * Generates optimality cuts from Flt64-typed dual solution. Converts dual values from solver
+     * Generates optimality cuts from Flt64 dual solution. Converts dual values from solver
      * raw Flt64 type, delegates to [generateOptimalCut], and converts the result back to Flt64.
      *
      * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
-     * @param dualSolution Flt64 类型对偶解 / Flt64-typed dual solution mapping from constraint to dual value
+     * @param dualSolution Flt64 类型对偶解 / Flt64 dual solution mapping from constraint to dual value
      * @return Flt64 割平面列表 / List of Flt64 cuts (linear or quadratic inequalities)
      */
     fun generateFlt64OptimalCut(
@@ -1100,8 +1100,8 @@ class QuadraticMechanismModel<V>(
     ): Ret<List<Any>> {
         val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
-            val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
-            val dual = dualSolution[typed] ?: continue
+            val flt64Constraint = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
+            val dual = dualSolution[flt64Constraint] ?: continue
             if (dual neq Flt64.zero) {
                 dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
@@ -1120,11 +1120,11 @@ class QuadraticMechanismModel<V>(
      *
      * 基于 Flt64 类型 Farkas 对偶解生成可行性割平面。对偶值从求解器原生 Flt64 类型转换后委托给 [generateFeasibleCut]，
      * 返回值也转换为 Flt64。
-     * Generates feasibility cuts from Flt64-typed Farkas dual solution. Converts dual values from
+     * Generates feasibility cuts from Flt64 Farkas dual solution. Converts dual values from
      * solver raw Flt64 type, delegates to [generateFeasibleCut], and converts the result back to Flt64.
      *
      * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
-     * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64-typed Farkas dual solution mapping from constraint to dual value
+     * @param farkasDualSolution Flt64 类型 Farkas 对偶解 / Flt64 Farkas dual solution mapping from constraint to dual value
      * @return Flt64 割平面列表 / List of Flt64 cuts (linear or quadratic inequalities)
      */
     fun generateFlt64FeasibleCut(
@@ -1133,8 +1133,8 @@ class QuadraticMechanismModel<V>(
     ): Ret<List<Any>> {
         val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
-            val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
-            val dual = farkasDualSolution[typed] ?: continue
+            val flt64Constraint = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
+            val dual = farkasDualSolution[flt64Constraint] ?: continue
             if (dual neq Flt64.zero) {
                 dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }

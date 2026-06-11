@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  */
-open class TaskReverseBuilderV<
+open class TaskReverseBuilder<
         out B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
         out T : AbstractPlannedTask<*, E, A>,

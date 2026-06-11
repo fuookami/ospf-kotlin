@@ -25,8 +25,8 @@ typealias CalendarDurationQuantity<V> = Quantity<V>
  * @property timeWindow 时间窗口 / The time window
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  */
-open class WorkingCalendar(
-    val timeWindow: TimeWindow<Flt64>,
+open class WorkingCalendar<V : RealNumber<V>>(
+    val timeWindow: TimeWindow<V>,
     unavailableTimes: List<TimeRange> = emptyList()
 ) {
     /**
@@ -203,25 +203,6 @@ open class WorkingCalendar(
     }
 
     companion object {
-        /**
-         * 通过泛型时间窗口创建工作日历，并在日历内部集中转换到数值边界 /
-         * Create a working calendar from a generic time window and centralize conversion to the numeric boundary
-         *
-         * @param V 时间窗口数值类型 / The time-window numeric type
-         * @param timeWindow 时间窗口 / The time window
-         * @param unavailableTimes 不可用时间列表 / The list of unavailable times
-         * @return 工作日历 / The working calendar
-         */
-        operator fun <V : RealNumber<V>> invoke(
-            timeWindow: TimeWindow<V>,
-            unavailableTimes: List<TimeRange> = emptyList()
-        ): WorkingCalendar {
-            return WorkingCalendar(
-                timeWindow = timeWindow.toFlt64Boundary(),
-                unavailableTimes = unavailableTimes
-            )
-        }
-
         /**
          * 查找在指定时间之前或之时结束的最后一个时间范围的索引 / Find the index of the last time range ended before or at the specified time
          *
@@ -1446,21 +1427,21 @@ open class Productivity<Q, T, U>(
  * @param div 除法运算 / The division operation
  * @param floor 向下取整运算 / The floor operation
  */
-sealed class ProductivityCalendar<Q, P, T, U>(
-    timeWindow: TimeWindow<Flt64>,
+sealed class ProductivityCalendar<W, Q, P, T, U>(
+    timeWindow: TimeWindow<W>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null,
     private val constants: RealNumberConstants<Q>,
-    private val mul: (TimeWindow<Flt64>, Q, Duration) -> Q,
-    private val div: (TimeWindow<Flt64>, Q, Duration) -> Q,
+    private val mul: (TimeWindow<W>, Q, Duration) -> Q,
+    private val div: (TimeWindow<W>, Q, Duration) -> Q,
     private val floor: Extractor<Q, Flt64>
-) : WorkingCalendar(timeWindow) where P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q : TimesGroup<Q> {
+) : WorkingCalendar<W>(timeWindow) where W : RealNumber<W>, P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q : TimesGroup<Q> {
     /**
      * 在拆分时间窗时恢复同构建路径的具体 Productivity 子类型。
      * 日历中的 productivity 实例由同一 P 类型构造路径产生，cast 仅恢复泛型擦除隐藏的具体类型。
      *
      * Restores the concrete Productivity subtype when splitting time windows.
-     * Productivity instances in this calendar are produced by the same P-typed construction path,
+     * Productivity instances in this calendar are produced by the same P-generic construction path,
      * and this cast only restores the concrete type hidden by generic erasure.
      */
     @Suppress("UNCHECKED_CAST")
@@ -1470,13 +1451,23 @@ sealed class ProductivityCalendar<Q, P, T, U>(
 
     private fun calendarValueOf(quantity: Q): Flt64 = quantity.toFlt64()
 
+    private fun calendarValueOf(duration: Duration): Flt64 = timeWindow.valueOf(duration).toFlt64()
+
+    private fun calendarDurationOf(value: Flt64): Duration {
+        return timeWindow.durationOf(timeWindow.fromDouble(value.toDouble()))
+    }
+
+    private fun calendarCeilDurationOf(value: Flt64): Duration {
+        return timeWindow.ceil(calendarDurationOf(value))
+    }
+
     private fun productivityRateOf(
         productivity: Productivity<Q, T, U>,
         material: T
     ): Flt64? {
         return productivity.unitYieldOf(material)?.let { calendarValueOf(it) }
             ?: productivity.capacityOf(material)
-                ?.let { Flt64.one / with(timeWindow) { it.value } }
+                ?.let { Flt64.one / calendarValueOf(it) }
     }
 
     /** 生产力列表（已处理不可用时间）/ Productivity list (with unavailable times processed) */
@@ -1502,10 +1493,13 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                     it.timeWindow.duration to capacity
                 }
             }
-            timeWindow.durationOf(
-                thisProductivity.sumOf { timeWindow.valueOf(it.first) * timeWindow.valueOf(it.second) }
-                        / thisProductivity.sumOf { timeWindow.valueOf(it.first) }
-            )
+            val totalWeighted = thisProductivity.fold(Flt64.zero) { acc, (duration, capacity) ->
+                acc + calendarValueOf(duration) * calendarValueOf(capacity)
+            }
+            val totalDuration = thisProductivity.fold(Flt64.zero) { acc, (duration, _) ->
+                acc + calendarValueOf(duration)
+            }
+            calendarDurationOf(totalWeighted / totalDuration)
         }
     }
 
@@ -1578,9 +1572,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                 breakTime = breakTime
             )
             for (produceTime in validTimes.times) {
-                val thisQuantity = with(timeWindow) {
-                    produceTime.duration.value * currentProductivity
-                }
+                val thisQuantity = calendarValueOf(produceTime.duration) * currentProductivity
                 if (thisQuantity gr calendarValueOf(constants.zero)) {
                     return produceTime.start
                 }
@@ -2016,9 +2008,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
         val quantityValue = calendarValueOf(quantity)
         for (calendar in productivityCalendar) {
             val currentProductivity = productivityRateOf(calendar, material) ?: continue
-            val maxDuration = with(timeWindow) {
-                durationOf((quantityValue - produceQuantity) / currentProductivity).ceil
-            }
+            val maxDuration = calendarCeilDurationOf((quantityValue - produceQuantity) / currentProductivity)
 
             val validTimes = validTimes(
                 time = calendar.timeWindow.intersectionWith(TimeRange(start = currentTime)) ?: continue,
@@ -2039,9 +2029,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
             breakTimes.addAll(validTimes.breakTimes)
             connectionTimes.addAll(validTimes.connectionTimes)
             for (produceTime in validTimes.times) {
-                val thisQuantity = with(timeWindow) {
-                    produceTime.duration.value * currentProductivity
-                }
+                val thisQuantity = calendarValueOf(produceTime.duration) * currentProductivity
                 produceQuantity += min(
                     quantityValue - produceQuantity,
                     thisQuantity
@@ -2101,9 +2089,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
         val quantityValue = calendarValueOf(quantity)
         for (calendar in productivityCalendar) {
             val currentProductivity = productivityRateOf(calendar, material) ?: continue
-            val maxDuration = with(timeWindow) {
-                durationOf((quantityValue - produceQuantity) / currentProductivity).ceil
-            }
+            val maxDuration = calendarCeilDurationOf((quantityValue - produceQuantity) / currentProductivity)
 
             val validTimes = reversedValidTimes(
                 time = calendar.timeWindow.intersectionWith(TimeRange(end = currentTime)) ?: continue,
@@ -2119,9 +2105,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
             breakTimes.addAll(validTimes.breakTimes)
             connectionTimes.addAll(validTimes.connectionTimes)
             for (produceTime in validTimes.times) {
-                val thisQuantity = with(timeWindow) {
-                    produceTime.duration.value * currentProductivity
-                }
+                val thisQuantity = calendarValueOf(produceTime.duration) * currentProductivity
                 produceQuantity += min(
                     quantityValue - produceQuantity,
                     thisQuantity
@@ -2195,9 +2179,7 @@ sealed class ProductivityCalendar<Q, P, T, U>(
 
                 val produceTime = validTime.intersectionWith(calendar.timeWindow)?.duration ?: continue
                 val currentProductivity = productivityRateOf(calendar, material) ?: Flt64.zero
-                quantity += with(timeWindow) {
-                    floor(produceTime.value * currentProductivity)
-                }
+                quantity += floor(calendarValueOf(produceTime) * currentProductivity)
             }
         }
         return quantity
@@ -2216,23 +2198,23 @@ private fun UInt64.calendarValueOf(): Flt64 = Flt64(toLong().toDouble())
  * @param productivity 生产力列表 / The list of productivities
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  */
-open class DiscreteProductivityCalendar<P, T, U>(
-    timeWindow: TimeWindow<Flt64>,
+open class DiscreteProductivityCalendar<W, P, T, U>(
+    timeWindow: TimeWindow<W>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null
-) : ProductivityCalendar<UInt64, P, T, U>(
+) : ProductivityCalendar<W, UInt64, P, T, U>(
     timeWindow = timeWindow,
     productivity = productivity,
     unavailableTimes = unavailableTimes,
     constants = UInt64,
     mul = { timeWindow, quantity, duration ->
-        (quantity.calendarValueOf() * timeWindow.valueOf(duration)).floor().toUInt64()
+        (quantity.calendarValueOf() * timeWindow.valueOf(duration).toFlt64()).floor().toUInt64()
     },
     div = { timeWindow, quantity, duration ->
-        (quantity.calendarValueOf() / timeWindow.valueOf(duration)).floor().toUInt64()
+        (quantity.calendarValueOf() / timeWindow.valueOf(duration).toFlt64()).floor().toUInt64()
     },
     floor = { it.floor().toUInt64() }
-) where P : Productivity<UInt64, T, U> {
+) where W : RealNumber<W>, P : Productivity<UInt64, T, U> {
     companion object {
         /**
          * 通过泛型时间窗口创建离散生产力日历，并集中转换到日历数值边界 /
@@ -2251,68 +2233,9 @@ open class DiscreteProductivityCalendar<P, T, U>(
             timeWindow: TimeWindow<V>,
             productivity: List<P>,
             unavailableTimes: List<TimeRange>? = null
-        ): DiscreteProductivityCalendar<P, T, U> where P : Productivity<UInt64, T, U> {
+        ): DiscreteProductivityCalendar<V, P, T, U> where P : Productivity<UInt64, T, U> {
             return DiscreteProductivityCalendar(
-                timeWindow = timeWindow.toFlt64Boundary(),
-                productivity = productivity,
-                unavailableTimes = unavailableTimes
-            )
-        }
-    }
-}
-
-/**
- * 连续生产力日历，使用 Flt64 作为产量类型 / Continuous productivity calendar using Flt64 as quantity type
- *
- * @param P 生产力类型 / The productivity type
- * @param T 材料类型 / The material type
- * @param U 键类型 / The key type
- * @param timeWindow 时间窗口 / The time window
- * @param productivity 生产力列表 / The list of productivities
- * @param unavailableTimes 不可用时间列表 / The list of unavailable times
- */
-@Deprecated(
-    message = "Use ContinuousQuantityProductivityCalendar with QuantityProductivity"
-)
-open class ContinuousProductivityCalendar<P, T, U>(
-    timeWindow: TimeWindow<Flt64>,
-    productivity: List<P>,
-    unavailableTimes: List<TimeRange>? = null
-) : ProductivityCalendar<Flt64, P, T, U>(
-    timeWindow = timeWindow,
-    productivity = productivity,
-    unavailableTimes = unavailableTimes,
-    constants = Flt64,
-    mul = { timeWindow, quantity, duration ->
-        quantity * timeWindow.valueOf(duration)
-    },
-    div = { timeWindow, quantity, duration ->
-        quantity / timeWindow.valueOf(duration)
-    },
-    floor = { it }
-) where P : Productivity<Flt64, T, U> {
-    companion object {
-        /**
-         * 通过泛型时间窗口创建连续生产力日历，并集中转换到日历数值边界 /
-         * Create a continuous productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
-         *
-         * @param V 时间窗口数值类型 / The time-window numeric type
-         * @param P 生产力类型 / The productivity type
-         * @param T 材料类型 / The material type
-         * @param U 键类型 / The key type
-         * @param timeWindow 时间窗口 / The time window
-         * @param productivity 生产力列表 / The list of productivities
-         * @param unavailableTimes 不可用时间列表 / The list of unavailable times
-         * @return 连续生产力日历 / The continuous productivity calendar
-         */
-        @Suppress("DEPRECATION")
-        operator fun <V : RealNumber<V>, P, T, U> invoke(
-            timeWindow: TimeWindow<V>,
-            productivity: List<P>,
-            unavailableTimes: List<TimeRange>? = null
-        ): ContinuousProductivityCalendar<P, T, U> where P : Productivity<Flt64, T, U> {
-            return ContinuousProductivityCalendar(
-                timeWindow = timeWindow.toFlt64Boundary(),
+                timeWindow = timeWindow,
                 productivity = productivity,
                 unavailableTimes = unavailableTimes
             )
@@ -2525,14 +2448,14 @@ open class QuantityProductivity<V, T, U>(
  * @param constants 数值常量 / The numeric constants
  * @param quantityFloor 物理量向下取整运算 / The floor operation for quantities
  */
-sealed class QuantityProductivityCalendar<V, P, T, U>(
-    timeWindow: TimeWindow<Flt64>,
+sealed class QuantityProductivityCalendar<W, V, P, T, U>(
+    timeWindow: TimeWindow<W>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null,
     private val quantityUnit: PhysicalUnit,
     private val constants: RealNumberConstants<V>,
     private val quantityFloor: (Flt64) -> Quantity<V>
-) : WorkingCalendar(timeWindow) where P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
+) : WorkingCalendar<W>(timeWindow) where W : RealNumber<W>, P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
 
     /**
      * 按材料解析产出数量的期望单位。
@@ -2586,13 +2509,23 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
 
     private fun calendarValueOf(value: V): Flt64 = value.toFlt64()
 
+    private fun calendarValueOf(duration: Duration): Flt64 = timeWindow.valueOf(duration).toFlt64()
+
+    private fun calendarDurationOf(value: Flt64): Duration {
+        return timeWindow.durationOf(timeWindow.fromDouble(value.toDouble()))
+    }
+
+    private fun calendarCeilDurationOf(value: Flt64): Duration {
+        return timeWindow.ceil(calendarDurationOf(value))
+    }
+
     private fun productivityRateOf(
         productivity: QuantityProductivity<V, T, U>,
         material: T
     ): Flt64? {
         return productivity.unitYieldOf(material)?.let { calendarValueOf(it) }
             ?: productivity.capacityOf(material)
-                ?.let { Flt64.one / with(timeWindow) { it.value } }
+                ?.let { Flt64.one / calendarValueOf(it) }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -2623,10 +2556,13 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
                     it.timeWindow.duration to capacity
                 }
             }
-            timeWindow.durationOf(
-                thisProductivity.sumOf { timeWindow.valueOf(it.first) * timeWindow.valueOf(it.second) }
-                        / thisProductivity.sumOf { timeWindow.valueOf(it.first) }
-            )
+            val totalWeighted = thisProductivity.fold(Flt64.zero) { acc, (duration, capacity) ->
+                acc + calendarValueOf(duration) * calendarValueOf(capacity)
+            }
+            val totalDuration = thisProductivity.fold(Flt64.zero) { acc, (duration, _) ->
+                acc + calendarValueOf(duration)
+            }
+            calendarDurationOf(totalWeighted / totalDuration)
         }
     }
 
@@ -2649,10 +2585,10 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
                 }
                 val yieldUnit = units.single()
                 val totalWeighted = entries.fold(Flt64.zero) { acc, (dur, qty) ->
-                    acc + calendarValueOf(qty) * timeWindow.valueOf(dur)
+                    acc + calendarValueOf(qty) * calendarValueOf(dur)
                 }
                 val totalDuration = entries.fold(Duration.ZERO) { acc, (dur, _) -> acc + dur }
-                val avgValue = totalWeighted / timeWindow.valueOf(totalDuration)
+                val avgValue = totalWeighted / calendarValueOf(totalDuration)
                 val floored = quantityFloor(avgValue)
                 Quantity(floored.value, yieldUnit)
             }
@@ -2711,9 +2647,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
                 breakTime = breakTime
             )
             for (produceTime in validTimes.times) {
-                val thisQuantity = with(timeWindow) {
-                    produceTime.duration.value * currentProductivity
-                }
+                val thisQuantity = calendarValueOf(produceTime.duration) * currentProductivity
                 if (thisQuantity gr calendarValueOf(constants.zero)) {
                     return produceTime.start
                 }
@@ -3066,7 +3000,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         )
     }
 
-    // -- Internal computation: same logic as ProductivityCalendar, operating on V values through the calendar numeric boundary --
+    // -- 内部计算：沿用 ProductivityCalendar 逻辑，通过日历数值边界操作 V 值 / Internal computation: same logic as ProductivityCalendar, operating on V values through the calendar numeric boundary --
 
     private fun actualTimeFromInternal(
         material: T,
@@ -3094,9 +3028,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         val quantityValue = calendarValueOf(quantity)
         for (calendar in productivityCalendar) {
             val currentProductivity = productivityRateOf(calendar, material) ?: continue
-            val maxDuration = with(timeWindow) {
-                durationOf((quantityValue - produceQuantity) / currentProductivity).ceil
-            }
+            val maxDuration = calendarCeilDurationOf((quantityValue - produceQuantity) / currentProductivity)
 
             val validTimes = validTimes(
                 time = calendar.timeWindow.intersectionWith(TimeRange(start = currentTime)) ?: continue,
@@ -3113,9 +3045,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
             breakTimes.addAll(validTimes.breakTimes)
             connectionTimes.addAll(validTimes.connectionTimes)
             for (produceTime in validTimes.times) {
-                val thisQuantity = with(timeWindow) {
-                    produceTime.duration.value * currentProductivity
-                }
+                val thisQuantity = calendarValueOf(produceTime.duration) * currentProductivity
                 produceQuantity += min(
                     quantityValue - produceQuantity,
                     thisQuantity
@@ -3166,9 +3096,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
         val quantityValue = calendarValueOf(quantity)
         for (calendar in productivityCalendar) {
             val currentProductivity = productivityRateOf(calendar, material) ?: continue
-            val maxDuration = with(timeWindow) {
-                durationOf((quantityValue - produceQuantity) / currentProductivity).ceil
-            }
+            val maxDuration = calendarCeilDurationOf((quantityValue - produceQuantity) / currentProductivity)
 
             val validTimes = reversedValidTimes(
                 time = calendar.timeWindow.intersectionWith(TimeRange(end = currentTime)) ?: continue,
@@ -3184,9 +3112,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
             breakTimes.addAll(validTimes.breakTimes)
             connectionTimes.addAll(validTimes.connectionTimes)
             for (produceTime in validTimes.times) {
-                val thisQuantity = with(timeWindow) {
-                    produceTime.duration.value * currentProductivity
-                }
+                val thisQuantity = calendarValueOf(produceTime.duration) * currentProductivity
                 produceQuantity += min(
                     quantityValue - produceQuantity,
                     thisQuantity
@@ -3250,9 +3176,7 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
 
                 val produceTime = validTime.intersectionWith(calendar.timeWindow)?.duration ?: continue
                 val currentProductivity = productivityRateOf(calendar, material) ?: Flt64.zero
-                totalFlt64 += with(timeWindow) {
-                    produceTime.value * currentProductivity
-                }
+                totalFlt64 += calendarValueOf(produceTime) * currentProductivity
             }
         }
         val floored = quantityFloor(totalFlt64)
@@ -3272,19 +3196,19 @@ sealed class QuantityProductivityCalendar<V, P, T, U>(
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  * @param quantityUnit 产出数量的默认单位 / The default unit for production quantities
  */
-open class DiscreteQuantityProductivityCalendar<P, T, U>(
-    timeWindow: TimeWindow<Flt64>,
+open class DiscreteQuantityProductivityCalendar<W, P, T, U>(
+    timeWindow: TimeWindow<W>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null,
     quantityUnit: PhysicalUnit = NoneUnit
-) : QuantityProductivityCalendar<UInt64, P, T, U>(
+) : QuantityProductivityCalendar<W, UInt64, P, T, U>(
     timeWindow = timeWindow,
     productivity = productivity,
     unavailableTimes = unavailableTimes,
     quantityUnit = quantityUnit,
     constants = UInt64,
     quantityFloor = { value -> Quantity(value.floor().toUInt64(), quantityUnit) }
-) where P : QuantityProductivity<UInt64, T, U> {
+) where W : RealNumber<W>, P : QuantityProductivity<UInt64, T, U> {
     companion object {
         /**
          * 通过泛型时间窗口创建离散物理量生产力日历，并集中转换到日历数值边界 /
@@ -3305,9 +3229,9 @@ open class DiscreteQuantityProductivityCalendar<P, T, U>(
             productivity: List<P>,
             unavailableTimes: List<TimeRange>? = null,
             quantityUnit: PhysicalUnit = NoneUnit
-        ): DiscreteQuantityProductivityCalendar<P, T, U> where P : QuantityProductivity<UInt64, T, U> {
+        ): DiscreteQuantityProductivityCalendar<V, P, T, U> where P : QuantityProductivity<UInt64, T, U> {
             return DiscreteQuantityProductivityCalendar(
-                timeWindow = timeWindow.toFlt64Boundary(),
+                timeWindow = timeWindow,
                 productivity = productivity,
                 unavailableTimes = unavailableTimes,
                 quantityUnit = quantityUnit
@@ -3317,9 +3241,10 @@ open class DiscreteQuantityProductivityCalendar<P, T, U>(
 }
 
 /**
- * 连续物理量生产力日历，使用 Flt64 作为产量数值类型 /
- * Continuous quantity-based productivity calendar using Flt64 as the quantity value type.
+ * 连续物理量生产力日历，产量数值类型由调用方提供 /
+ * Continuous quantity-based productivity calendar with caller-provided quantity value type.
  *
+ * @param V 产量数值类型 / The quantity value type
  * @param P 生产力类型 / The productivity type
  * @param T 材料类型 / The material type
  * @param U 键类型 / The key type
@@ -3327,26 +3252,31 @@ open class DiscreteQuantityProductivityCalendar<P, T, U>(
  * @param productivity 生产力列表 / The list of productivities
  * @param unavailableTimes 不可用时间列表 / The list of unavailable times
  * @param quantityUnit 产出数量的默认单位 / The default unit for production quantities
+ * @param constants 数值常量 / The numeric constants
+ * @param quantityValueOf 从日历内部数值边界转换为产量数值 / Conversion from calendar internal numeric boundary to quantity value
  */
-open class ContinuousQuantityProductivityCalendar<P, T, U>(
-    timeWindow: TimeWindow<Flt64>,
+open class ContinuousQuantityProductivityCalendar<W, V, P, T, U>(
+    timeWindow: TimeWindow<W>,
     productivity: List<P>,
     unavailableTimes: List<TimeRange>? = null,
-    quantityUnit: PhysicalUnit = NoneUnit
-) : QuantityProductivityCalendar<Flt64, P, T, U>(
+    quantityUnit: PhysicalUnit = NoneUnit,
+    constants: RealNumberConstants<V>,
+    quantityValueOf: (Flt64) -> V
+) : QuantityProductivityCalendar<W, V, P, T, U>(
     timeWindow = timeWindow,
     productivity = productivity,
     unavailableTimes = unavailableTimes,
     quantityUnit = quantityUnit,
-    constants = Flt64,
-    quantityFloor = { value -> Quantity(value, quantityUnit) }
-) where P : QuantityProductivity<Flt64, T, U> {
+    constants = constants,
+    quantityFloor = { value -> Quantity(quantityValueOf(value), quantityUnit) }
+) where W : RealNumber<W>, P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
     companion object {
         /**
          * 通过泛型时间窗口创建连续物理量生产力日历，并集中转换到日历数值边界 /
          * Create a continuous quantity productivity calendar from a generic time window and centralize conversion to the calendar numeric boundary
          *
-         * @param V 时间窗口数值类型 / The time-window numeric type
+         * @param W 时间窗口数值类型 / The time-window numeric type
+         * @param V 产量数值类型 / The quantity value type
          * @param P 生产力类型 / The productivity type
          * @param T 材料类型 / The material type
          * @param U 键类型 / The key type
@@ -3354,19 +3284,25 @@ open class ContinuousQuantityProductivityCalendar<P, T, U>(
          * @param productivity 生产力列表 / The list of productivities
          * @param unavailableTimes 不可用时间列表 / The list of unavailable times
          * @param quantityUnit 产出数量的默认单位 / The default unit for production quantities
+         * @param constants 数值常量 / The numeric constants
+         * @param quantityValueOf 从日历内部数值边界转换为产量数值 / Conversion from calendar internal numeric boundary to quantity value
          * @return 连续物理量生产力日历 / The continuous quantity productivity calendar
          */
-        operator fun <V : RealNumber<V>, P, T, U> invoke(
-            timeWindow: TimeWindow<V>,
+        operator fun <W, V, P, T, U> invoke(
+            timeWindow: TimeWindow<W>,
             productivity: List<P>,
             unavailableTimes: List<TimeRange>? = null,
-            quantityUnit: PhysicalUnit = NoneUnit
-        ): ContinuousQuantityProductivityCalendar<P, T, U> where P : QuantityProductivity<Flt64, T, U> {
+            quantityUnit: PhysicalUnit = NoneUnit,
+            constants: RealNumberConstants<V>,
+            quantityValueOf: (Flt64) -> V
+        ): ContinuousQuantityProductivityCalendar<W, V, P, T, U> where W : RealNumber<W>, P : QuantityProductivity<V, T, U>, V : RealNumber<V>, V : PlusGroup<V>, V : TimesGroup<V> {
             return ContinuousQuantityProductivityCalendar(
-                timeWindow = timeWindow.toFlt64Boundary(),
+                timeWindow = timeWindow,
                 productivity = productivity,
                 unavailableTimes = unavailableTimes,
-                quantityUnit = quantityUnit
+                quantityUnit = quantityUnit,
+                constants = constants,
+                quantityValueOf = quantityValueOf
             )
         }
     }

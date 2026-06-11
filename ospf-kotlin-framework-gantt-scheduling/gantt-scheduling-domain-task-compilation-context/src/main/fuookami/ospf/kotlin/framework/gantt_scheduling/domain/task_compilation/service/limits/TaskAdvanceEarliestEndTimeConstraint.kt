@@ -47,7 +47,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<*>,
     tasks: List<AbstractTask<E, A>>,
     private val taskTime: TaskTime,
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
@@ -77,7 +77,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
         name = name
     )
 
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     private val tasks = if (taskTime.advanceEarliestEndTimeEnabled) {
         tasks.filter { !it.advanceEnabled && it.earliestEndTime != null }

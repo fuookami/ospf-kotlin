@@ -496,7 +496,7 @@ open class BunchCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<*>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
@@ -509,7 +509,7 @@ open class BunchCompilationAggregationWithTime<
     lockCancelTasks = lockCancelTasks,
     withExecutorLeisure = withExecutorLeisure
 ) {
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     val taskTime: BunchSchedulingTaskTime<B, V, T, E, A> = BunchSchedulingTaskTime(
         timeBoundary = timeBoundary,

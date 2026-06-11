@@ -35,7 +35,7 @@ class TaskAdvanceTimeMinimization<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<*>,
     tasks: List<T>,
     private val taskTime: TaskTime,
     private val threshold: Extractor<Duration?, T> = { Duration.ZERO },
@@ -68,7 +68,7 @@ class TaskAdvanceTimeMinimization<
         name = name
     )
 
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     private val tasks = if (taskTime.advanceEnabled) {
         tasks.filter { it.advanceEnabled && it.scheduledTime != null }

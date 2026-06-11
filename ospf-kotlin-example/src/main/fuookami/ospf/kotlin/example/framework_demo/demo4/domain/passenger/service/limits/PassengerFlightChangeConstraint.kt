@@ -29,12 +29,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
     }
 
 class PassengerFlightChangeConstraint(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<*>,
     private val passengers: List<FlightPassenger>,
     private val time: TaskTime,
     private val change: PassengerChange,
     override val name: String = "passenger_flight_change_constraint"
 ) : CGPipeline {
+    private val solverTimeWindow = timeWindow.toFlt64Boundary()
+
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (passenger in passengers) {
             if (passenger.prev != null) {
@@ -44,7 +46,7 @@ class PassengerFlightChangeConstraint(
                             LinearMonomial(Flt64.one, time.estimateEndTime[passenger.prev.flight]),
                             LinearMonomial(Flt64(-1.0), time.estimateStartTime[passenger.flight])
                         ),
-                        timeWindow.valueOf(passenger.prev.flight.arr.passengerTransferTime)
+                        solverTimeWindow.valueOf(passenger.prev.flight.arr.passengerTransferTime)
                     )
                     val estCondition = IfFunction(
                         condition = -earliestStartTime,
@@ -105,7 +107,7 @@ class PassengerFlightChangeConstraint(
                             LinearMonomial(Flt64.one, time.estimateEndTime[passenger.flight]),
                             LinearMonomial(Flt64(-1.0), time.estimateStartTime[next.flight])
                         ),
-                        timeWindow.valueOf(next.flight.dep.passengerTransferTime)
+                        solverTimeWindow.valueOf(next.flight.dep.passengerTransferTime)
                     )
                     val eetCondition = IfFunction(
                         condition = -lastestEndTime,
@@ -162,7 +164,6 @@ class PassengerFlightChangeConstraint(
         return ok
     }
 }
-
 
 
 

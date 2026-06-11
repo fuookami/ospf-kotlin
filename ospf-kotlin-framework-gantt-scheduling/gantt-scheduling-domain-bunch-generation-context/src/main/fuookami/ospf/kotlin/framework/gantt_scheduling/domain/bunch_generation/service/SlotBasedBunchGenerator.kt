@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
@@ -46,8 +46,8 @@ interface SlotBasedBunchGenerator<
         Action : ProductionAction,
         M,
         R,
-        V : RealNumber<V>
-        > {
+        V
+        > where V : RealNumber<V>, V : PlusGroup<V> {
     /**
      * 支持的执行器列表
      * List of supported executors
@@ -67,7 +67,7 @@ interface SlotBasedBunchGenerator<
     suspend fun generate(
         iteration: UInt64,
         slot: TimeSlot,
-        constraints: SlotConstraints<M, R, Flt64>,
+        constraints: SlotConstraints<M, R, V>,
         shadowPrices: Map<T, V>
     ): Ret<List<B>>
 
@@ -82,7 +82,7 @@ interface SlotBasedBunchGenerator<
      */
     suspend fun generateAll(
         iteration: UInt64,
-        intermediateValues: CapacityIntermediateValues<Action, M, R, Flt64>,
+        intermediateValues: CapacityIntermediateValues<Action, M, R, V>,
         shadowPrices: Map<T, V>
     ): Ret<List<B>> {
         val allBunches = mutableListOf<B>()
@@ -136,8 +136,8 @@ interface SlotBasedBunchGeneratorFactory<
         Action : ProductionAction,
         M,
         R,
-        V : RealNumber<V>
-        > {
+        V
+        > where V : RealNumber<V>, V : PlusGroup<V> {
     /**
      * 创建指定执行器的生成�?
      * Create generator for specified executor

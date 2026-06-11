@@ -29,21 +29,21 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testConstant() {
-        val result = parseCanonical("42", symbolOf)
+        val result = parseCanonicalFlt64("42", symbolOf)
         assertEquals(Flt64(42.0), result.constant)
         assertTrue(result.monomials.isEmpty())
     }
 
     @Test
     fun testNegativeConstant() {
-        val result = parseCanonical("-3", symbolOf)
+        val result = parseCanonicalFlt64("-3", symbolOf)
         assertEquals(Flt64(-3.0), result.constant)
         assertTrue(result.monomials.isEmpty())
     }
 
     @Test
     fun testSingleVariable() {
-        val result = parseCanonical("x", symbolOf)
+        val result = parseCanonicalFlt64("x", symbolOf)
         assertEquals<Flt64>(Flt64.zero, result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64.one, result.monomials[0].coefficient)
@@ -52,7 +52,7 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testVariablePlusConstant() {
-        val result = parseCanonical("x + 5", symbolOf)
+        val result = parseCanonicalFlt64("x + 5", symbolOf)
         assertEquals(Flt64(5.0), result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64.one, result.monomials[0].coefficient)
@@ -60,7 +60,7 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testVariableMinusConstant() {
-        val result = parseCanonical("x - 3", symbolOf)
+        val result = parseCanonicalFlt64("x - 3", symbolOf)
         assertEquals(Flt64(-3.0), result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64.one, result.monomials[0].coefficient)
@@ -68,7 +68,7 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testScaledVariable() {
-        val result = parseCanonical("2 * x", symbolOf)
+        val result = parseCanonicalFlt64("2 * x", symbolOf)
         assertEquals<Flt64>(Flt64.zero, result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64(2.0), result.monomials[0].coefficient)
@@ -76,14 +76,14 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testLinearCombination() {
-        val result = parseCanonical("3 * x + 2 * y + 1", symbolOf)
+        val result = parseCanonicalFlt64("3 * x + 2 * y + 1", symbolOf)
         assertEquals(Flt64(1.0), result.constant)
         assertEquals(2, result.monomials.size)
     }
 
     @Test
     fun testQuadraticTerm() {
-        val result = parseCanonical("x * y", symbolOf)
+        val result = parseCanonicalFlt64("x * y", symbolOf)
         assertEquals<Flt64>(Flt64.zero, result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64.one, result.monomials[0].coefficient)
@@ -92,7 +92,7 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testParentheses() {
-        val result = parseCanonical("(x + 1) * 2", symbolOf)
+        val result = parseCanonicalFlt64("(x + 1) * 2", symbolOf)
         assertEquals(Flt64(2.0), result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64(2.0), result.monomials[0].coefficient)
@@ -100,39 +100,39 @@ class DirectPolynomialParserTest {
 
     @Test
     fun testParseLinear() {
-        val result = parseLinear("3 * x + 2 * y + 1", symbolOf)
+        val result = parseLinearFlt64("3 * x + 2 * y + 1", symbolOf)
         assertNotNull(result)
         assertEquals(Flt64(1.0), result.constant)
     }
 
     @Test
     fun testParseLinearRejectsQuadratic() {
-        val result = parseLinear("x * y", symbolOf)
+        val result = parseLinearFlt64("x * y", symbolOf)
         assertNull(result)
     }
 
     @Test
     fun testParseQuadratic() {
-        val result = parseQuadratic("x * y + 3 * x + 1", symbolOf)
+        val result = parseQuadraticFlt64("x * y + 3 * x + 1", symbolOf)
         assertNotNull(result)
     }
 
     @Test
     fun testParseCanonicalInequality() {
-        val result = parseCanonicalInequality("x + 1 <= 5", symbolOf)
+        val result = parseCanonicalInequalityFlt64("x + 1 <= 5", symbolOf)
         assertNotNull(result)
         assertEquals(Comparison.LE, result.comparison)
     }
 
     @Test
     fun testParseLinearInequality() {
-        val result = parseLinearInequality("3 * x + 2 <= 10", symbolOf)
+        val result = parseLinearInequalityFlt64("3 * x + 2 <= 10", symbolOf)
         assertNotNull(result)
     }
 
     @Test
     fun testParseQuadraticInequality() {
-        val result = parseQuadraticInequality("x * y + 3 * x <= 10", symbolOf)
+        val result = parseQuadraticInequalityFlt64("x * y + 3 * x <= 10", symbolOf)
         assertNotNull(result)
     }
 
@@ -146,7 +146,7 @@ class DirectPolynomialParserTest {
             "x >= 1" to Comparison.GE,
             "x > 1" to Comparison.GT
         )) {
-            val result = parseCanonicalInequality(input, symbolOf)
+            val result = parseCanonicalInequalityFlt64(input, symbolOf)
             assertEquals(expected, result.comparison, "Failed for input: $input")
         }
     }

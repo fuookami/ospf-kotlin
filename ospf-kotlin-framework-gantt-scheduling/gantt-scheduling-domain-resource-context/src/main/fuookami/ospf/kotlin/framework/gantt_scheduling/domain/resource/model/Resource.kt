@@ -154,12 +154,6 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      */
     abstract val initialQuantityValue: V
 
-    @Deprecated(
-        message = "Use initialQuantity(unit) returning Quantity instead",
-        replaceWith = ReplaceWith("initialQuantity(NoneUnit).value")
-    )
-    val initialQuantity: V get() = initialQuantityValue
-
     /**
      * 计算使用量物理量 / Calculate used quantity as a physical quantity
      *
@@ -176,25 +170,6 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
         time: TimeRange,
         unit: PhysicalUnit = NoneUnit
     ): ResourceQuantity<V>
-
-    /**
-     * 计算使用量 / Calculate used quantity
-     *
-     * @param T 任务类型 / Task type
-     * @param E 执行器类型 / Executor type
-     * @param A 分配策略类型 / Assignment policy type
-     * @param bunch 任务束 / Task bunch
-     * @param time 时间范围 / Time range
-     * @return 使用量 / Used quantity
-     */
-    @Deprecated(
-        message = "Use usedQuantityQuantity returning Quantity instead",
-        replaceWith = ReplaceWith("usedQuantityQuantity(bunch, time).value")
-    )
-    fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        bunch: AbstractTaskBunch<T, E, A, V>,
-        time: TimeRange
-    ): V = usedQuantityQuantity(bunch, time).value
 
     /**
      * 初始数量物理量 / Initial quantity as a physical quantity

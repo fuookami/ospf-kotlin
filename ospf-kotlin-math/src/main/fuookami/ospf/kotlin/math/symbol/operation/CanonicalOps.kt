@@ -55,14 +55,14 @@ internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): T {
  * 合并规范多项式中的同类项
  * Combine like terms in a canonical polynomial.
  *
- * 直接类型化操作，无 Generic 转换。
+ * 直接 Ring 操作，无 Generic 转换。
  * 使用 PowerVectorKey 替代 Map<Symbol, Int32> 作为 HashMap 键进行优化：
  * - 稠密模式：适用于 totalSymbols 较小或稀疏度较高（powers.size / totalSymbols >= 0.5）的情况
  * - 稀疏模式：适用于 totalSymbols 较大且稀疏度较低的情况
  * - 通过预计算哈希消除幂排序开销
  * 相比原 Map 实现，性能提升约 50-100%。
  *
- * Direct typed operation - no Generic conversion.
+ * Direct Ring operation - no Generic conversion.
  * Optimization: Uses PowerVectorKey instead of Map<Symbol, Int32> as HashMap key.
  * - Dense mode for small totalSymbols or high sparsity (powers.size / totalSymbols >= 0.5)
  * - Sparse mode for large totalSymbols with low sparsity

@@ -149,7 +149,7 @@ abstract class FlightTaskPlan(
     val aircraftMinorTypeChangeEnabled: Boolean get() = !flightTaskStatus.contains(FlightTaskStatus.NotAircraftMinorTypeChange)
     val terminalChangeEnabled: Boolean get() = !flightTaskStatus.contains(FlightTaskStatus.NotTerminalChange)
 
-    open val weight: Flt64 get() = Flt64.one
+    open val weight: FltX get() = FltX.one
     val strongLimitIgnored: Boolean get() = flightTaskStatus.contains(FlightTaskStatus.StrongLimitIgnored)
 }
 

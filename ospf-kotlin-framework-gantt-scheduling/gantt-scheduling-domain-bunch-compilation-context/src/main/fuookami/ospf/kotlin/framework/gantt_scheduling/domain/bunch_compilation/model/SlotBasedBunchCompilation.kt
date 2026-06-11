@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  */
-open class SlotBasedBunchCompilationV<
+open class SlotBasedBunchCompilation<
         B,
         V : RealNumber<V>,
         T : AbstractTask<E, A>,
@@ -49,7 +49,7 @@ open class SlotBasedBunchCompilationV<
     executors = executors,
     lockCancelTasks = lockCancelTasks,
     withExecutorLeisure = withExecutorLeisure,
-    bunchAggregation = SlotBasedBunchAggregationV()
+    bunchAggregation = SlotBasedBunchAggregation()
 )
         where B : AbstractTaskBunch<T, E, A, V>, B : SlotBasedBunch<T, E, A> {
 

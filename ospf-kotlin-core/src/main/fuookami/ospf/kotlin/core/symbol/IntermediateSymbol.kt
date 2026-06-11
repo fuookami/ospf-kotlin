@@ -73,7 +73,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     val upperBound: Bound<V>? get() = range.upperBound
     val fixedValue: V? get() = range.fixedValue
 
-    // --- V-typed primary path (abstract) ---
+    // --- V-generic primary path (abstract) ---
 
     /**
      * 准备符号值，根据固定值和令牌表进行求值。

@@ -105,7 +105,7 @@ The `IntoValue<V>` interface is the core conversion mechanism at the solver boun
 
 - `intoValue(Flt64) → V` — Convert Flt64 to generic value type
 - `fromValue(V) → Flt64` — Convert generic value type back to Flt64
-- `zero` / `one` — V-typed constants
+- `zero` / `one` — Constants in the target value type V
 - `IntoValue.Identity` — Flt64 identity converter
 
 ### Solver Configuration (`config/`)

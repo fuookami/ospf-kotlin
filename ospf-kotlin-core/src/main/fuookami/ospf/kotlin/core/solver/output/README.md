@@ -28,7 +28,7 @@ Sealed interface hierarchy for solver outputs:
 - **`QuadraticSolverOutput`** — Quadratic solver output marker
 
 **`FeasibleSolverOutput<V>`** — Feasible solution output containing:
-- `obj` / `objValue` — Objective value (Flt64 and V-typed dual view)
+- `obj` / `objValue` — Objective value (Flt64 and generic V dual view)
 - `solution` — Solution vector
 - `time` — Solve time
 - `gap` — Optimality gap

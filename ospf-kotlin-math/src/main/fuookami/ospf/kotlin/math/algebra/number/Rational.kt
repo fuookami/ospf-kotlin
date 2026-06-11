@@ -359,7 +359,7 @@ data class Rtn8 internal constructor(
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             val negative = (num < Int8.zero) xor (den < Int8.zero);
             return if (negative) {
                 Rtn8(-num.abs() / divisor, den.abs() / divisor)
@@ -459,7 +459,7 @@ data class Rtn16 internal constructor(
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return Rtn16(num / divisor, den / divisor)
         }
     }
@@ -554,7 +554,7 @@ data class Rtn32 internal constructor(
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return Rtn32(num / divisor, den / divisor)
         }
     }
@@ -649,7 +649,7 @@ data class Rtn64 internal constructor(
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64), Flt64ValueConverter<Rtn64> {
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return Rtn64(num / divisor, den / divisor)
         }
 
@@ -753,7 +753,7 @@ data class RtnX internal constructor(
 
         operator fun invoke(num: IntX, den: IntX): RtnX {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return RtnX(num / divisor, den / divisor)
         }
 
@@ -856,7 +856,7 @@ data class URtn8 internal constructor(
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return URtn8(num / divisor, den / divisor)
         }
     }
@@ -951,7 +951,7 @@ data class URtn16 internal constructor(
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return URtn16(num / divisor, den / divisor)
         }
     }
@@ -1046,7 +1046,7 @@ data class URtn32 internal constructor(
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return URtn32(num / divisor, den / divisor)
         }
     }
@@ -1141,7 +1141,7 @@ data class URtn64 internal constructor(
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return URtn64(num / divisor, den / divisor)
         }
 
@@ -1240,7 +1240,7 @@ data class URtnX internal constructor(
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         operator fun invoke(num: UIntX, den: UIntX): URtnX {
             ensureNonZeroDenominator(den)
-            val divisor = gcd(num.abs(), den.abs())
+            val divisor = gcdMod(num.abs(), den.abs())
             return URtnX(num / divisor, den / divisor)
         }
     }

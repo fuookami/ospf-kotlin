@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -23,11 +24,11 @@ private object TestAction : ProductionAction {
     override val name = "Drilling"
     override val executor = testExecutor
     override val discrete = true
-    override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
+    override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V =
         throw UnsupportedOperationException("stub")
-    override fun unitCost(time: Instant) =
+    override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V =
         throw UnsupportedOperationException("stub")
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
+    override fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 =
         throw UnsupportedOperationException("stub")
 }
 
@@ -36,11 +37,11 @@ private object TestAction2 : ProductionAction {
     override val name = "Milling"
     override val executor = testExecutor
     override val discrete = false
-    override fun unitCapacity(timeWindow: TimeWindow<Flt64>) =
+    override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V =
         throw UnsupportedOperationException("stub")
-    override fun unitCost(time: Instant) =
+    override fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V =
         throw UnsupportedOperationException("stub")
-    override fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>) =
+    override fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 =
         throw UnsupportedOperationException("stub")
 }
 

@@ -221,17 +221,17 @@ class ProductFunction<V>(
 
     /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
-        val leftValue = if (typedValues.isNullOrEmpty()) {
+        val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
+        val leftValue = if (targetValues.isNullOrEmpty()) {
             evaluateLinear(left, tokenTable, false)
         } else {
-            evaluateLinearFromValues(left, typedValues, tokenTable, false)
+            evaluateLinearFromValues(left, targetValues, tokenTable, false)
         } ?: return null
 
-        val rightValue = if (typedValues.isNullOrEmpty()) {
+        val rightValue = if (targetValues.isNullOrEmpty()) {
             evaluateLinear(right, tokenTable, false)
         } else {
-            evaluateLinearFromValues(right, typedValues, tokenTable, false)
+            evaluateLinearFromValues(right, targetValues, tokenTable, false)
         } ?: return null
 
         return leftValue * rightValue
@@ -239,7 +239,7 @@ class ProductFunction<V>(
 
     /**
      * 将 left * right 展开为 V 类型二次多项式。
-     * Expand left * right into a V-typed quadratic polynomial.
+     * Expand left * right into a V-generic quadratic polynomial.
      */
     private fun expandedQuadraticPoly(): QuadraticPolynomial<V> {
         val leftC = left
@@ -312,13 +312,13 @@ class ProductFunction<V>(
     }
     /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedResults = results.map { converter.intoValue(it) }
-        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+        val targetResults = results.map { converter.intoValue(it) }
+        return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
     /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedValues = SolverBoundaryCasts.mapValues(values, converter)
-        return evaluate(typedValues, tokenTable, converter, zeroIfNone)
+        val targetValues = SolverBoundaryCasts.mapValues(values, converter)
+        return evaluate(targetValues, tokenTable, converter, zeroIfNone)
     }
 
     override fun toRawString(unfold: UInt64): String {

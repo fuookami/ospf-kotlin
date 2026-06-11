@@ -857,7 +857,9 @@ class WorkingCalendarTest {
                     capacities = mapOf(Pair(1, 1.minutes)),
                     unitYields = emptyMap()
                 )
-            )
+            ),
+            constants = Flt64,
+            quantityValueOf = { it }
         )
 
         val continuousQty = continuousCalendar.actualQuantity(

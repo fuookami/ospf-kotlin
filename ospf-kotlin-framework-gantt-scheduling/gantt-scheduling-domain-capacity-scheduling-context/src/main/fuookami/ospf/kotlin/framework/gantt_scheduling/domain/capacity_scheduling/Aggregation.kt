@@ -78,29 +78,12 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
         return actionsByExecutor[executorId] ?: emptyList()
     }
 
-    /**
-     * 计算总产能（所有动作的最大产能之和）
-     * Calculate total capacity (sum of max capacity for all actions)
-     *
-     * 使用泛型 V 的 unitCapacityV 和 upperBoundV 入口，避免 Flt64 转换。
-     * Uses generic V unitCapacityV and upperBoundV entries to avoid Flt64 conversion.
-     *
-     * @return Total capacity / 总产能
-     */
-    @Deprecated(
-        message = "Use the Quantity-typed method instead",
-        replaceWith = ReplaceWith("totalCapacityQuantity().value")
-    )
-    fun totalCapacity(): V {
-        return totalCapacityValue()
-    }
-
     private fun totalCapacityValue(): V {
         val zero = timeWindow.fromDouble(0.0)
         var total = zero
         for (action in actions) {
             for (slot in slots) {
-                val ub = action.upperBoundV(slot, timeWindow)
+                val ub = action.upperBound(slot, timeWindow)
                 val unitCap = action.unitCapacityQuantity(timeWindow).value
                 // Convert to Double for multiplication, then back to V
                 // unitCap is V (capacity per unit), ub is UInt64 (unit count)

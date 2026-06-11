@@ -7,16 +7,16 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 泛型总成本计算器类型别名 / Generic total cost calculator typealias
+ * 总成本计算器类型别名 / Total cost calculator typealias
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param V 数值类型 / Numeric type
  */
-typealias TotalCostCalculatorV<T, E, V> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost<V>?
+typealias TotalCostCalculator<T, E, V> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost<V>?
 
 /**
- * 生成任务束（泛型版本）/ Generate bunch (generic version)
+ * 生成任务束 / Generate bunch
  *
  * @param V 数值类型 / Numeric type
  * @param T 任务类型 / Task type
@@ -30,16 +30,16 @@ typealias TotalCostCalculatorV<T, E, V> = (executor: E, lastTask: T?, tasks: Lis
  * @return 任务束或null / Bunch or null
  */
 private fun <V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
-    label: LabelV<T, E, A, V>,
+    label: Label<T, E, A, V>,
     iteration: Int64,
     executor: E,
     executorUsability: ExecutorInitialUsability<T, E, A>,
-    totalCostCalculator: TotalCostCalculatorV<T, E, V>
+    totalCostCalculator: TotalCostCalculator<T, E, V>
 ): AbstractTaskBunch<T, E, A, V>? where V : RealNumber<V>, V : PlusGroup<V> {
     if (label.node !is EndNode) {
         return null
     }
-    val labels = ArrayList<LabelV<T, E, A, V>>()
+    val labels = ArrayList<Label<T, E, A, V>>()
     var currLabel = label.prevLabel
     while (currLabel!!.node !is RootNode) {
         labels.add(currLabel)
@@ -66,7 +66,7 @@ private fun <V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> g
 }
 
 /**
- * 生成自定义任务束（泛型版本）/ Generate custom bunch (generic version)
+ * 生成自定义任务束 / Generate custom bunch
  *
  * @param B 任务束类型 / Bunch type
  * @param V 数值类型 / Numeric type
@@ -82,17 +82,17 @@ private fun <V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> g
  * @return 任务束或null / Bunch or null
  */
 private fun <B : AbstractTaskBunch<T, E, A, V>, V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
-    label: LabelV<T, E, A, V>,
+    label: Label<T, E, A, V>,
     iteration: Int64,
     executor: E,
     executorUsability: ExecutorInitialUsability<T, E, A>,
-    totalCostCalculator: TotalCostCalculatorV<T, E, V>,
+    totalCostCalculator: TotalCostCalculator<T, E, V>,
     bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost<V>) -> B
 ): B? where V : RealNumber<V>, V : PlusGroup<V> {
     if (label.node !is EndNode) {
         return null
     }
-    val labels = ArrayList<LabelV<T, E, A, V>>()
+    val labels = ArrayList<Label<T, E, A, V>>()
     var currLabel = label.prevLabel
     while (currLabel!!.node !is RootNode) {
         labels.add(currLabel)
@@ -111,23 +111,23 @@ private fun <B : AbstractTaskBunch<T, E, A, V>, V, T : AbstractTask<E, A>, E : E
 }
 
 /**
- * 标签类（泛型版本）/ Label class (generic version)
+ * 标签类 / Label class
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  * @param V 数值类型 / Numeric type
  * @param cost 成本 / Cost
- * @param shadowPrice 影子价格 / Shadow price (V type; callers convert from solver Flt64)
+ * @param shadowPrice 影子价格 / Shadow price
  * @param prevLabel 前一个标签 / Previous label
  * @param node 节点 / Node
  * @param task 任务 / Task
  */
-open class LabelV<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V>(
+open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V>(
     val cost: Cost<V>,
     val shadowPrice: V,
 
-    val prevLabel: LabelV<T, E, A, V>? = null,
+    val prevLabel: Label<T, E, A, V>? = null,
     val node: Node? = null,
     val task: T? = null
 ) where V : RealNumber<V>, V : PlusGroup<V> {
@@ -214,7 +214,7 @@ open class LabelV<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>,
         iteration: Int64,
         executor: E,
         executorUsability: ExecutorInitialUsability<T, E, A>,
-        totalCostCalculator: TotalCostCalculatorV<T, E, V>
+        totalCostCalculator: TotalCostCalculator<T, E, V>
     ): AbstractTaskBunch<T, E, A, V>? {
         return generateBunch(
             label = this,
@@ -240,7 +240,7 @@ open class LabelV<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>,
         iteration: Int64,
         executor: E,
         executorUsability: ExecutorInitialUsability<T, E, A>,
-        totalCostCalculator: TotalCostCalculatorV<T, E, V>,
+        totalCostCalculator: TotalCostCalculator<T, E, V>,
         bunchCtor: (executor: E, ExecutorInitialUsability<T, E, A>, List<T>, Int64, Cost<V>) -> B
     ): B? {
         return generateBunch(

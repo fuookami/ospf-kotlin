@@ -29,25 +29,6 @@ data class CostItem<V : RealNumber<V>>(
     val costQuantity: CostQuantity<V>? = null,
     val message: String? = null
 ) : Copyable<CostItem<V>> {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("CostItem(tag, value?.let { Quantity(it, NoneUnit) }, message)")
-    )
-    constructor(
-        tag: String,
-        value: V?,
-        message: String? = null
-    ) : this(
-        tag = tag,
-        costQuantity = value?.let { Quantity(it, NoneUnit) },
-        message = message
-    )
-
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("costQuantity?.value")
-    )
-    val value: V? get() = costQuantity?.value
     val valid get() = costQuantity != null
 
     /**
@@ -76,25 +57,6 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
             return ImmutableCost(
                 items = cost.items.map { it.copy() },
                 costSum = cost.costSum
-            )
-        }
-
-        @Deprecated(
-            message = "Use the Quantity-typed factory instead",
-            replaceWith = ReplaceWith("Cost(items, costSum)")
-        )
-        operator fun <V : RealNumber<V>> invoke(
-            items: List<CostItem<V>>,
-            constants: RealNumberConstants<V>,
-            sums: V? = if (items.isNotEmpty() && items.all { it.costQuantity != null }) {
-                items.sumOf(constants) { it.costQuantity!!.value }
-            } else {
-                null
-            }
-        ): ImmutableCost<V> {
-            return ImmutableCost(
-                items = items,
-                costSum = sums?.let { Quantity(it, NoneUnit) }
             )
         }
 
@@ -131,11 +93,6 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
 
     val items: List<CostItem<V>>
     val costSum: CostQuantity<V>?
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("costSum?.value")
-    )
-    val sum: V? get() = costSum?.value
     val valid: Boolean get() = costSum != null
 
     /**
@@ -199,20 +156,6 @@ class MutableCost<V : RealNumber<V>>(
         null
     }
 ) : Cost<V> {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("MutableCost(constants, items, sum?.let { Quantity(it, NoneUnit) })")
-    )
-    constructor(
-        constants: RealNumberConstants<V>,
-        items: MutableList<CostItem<V>> = ArrayList(),
-        sum: V?
-    ) : this(
-        constants = constants,
-        items = items,
-        costSum = sum?.let { Quantity(it, NoneUnit) }
-    )
-
     operator fun plusAssign(rhs: CostItem<V>) {
         if (!rhs.valid || rhs.costQuantity!!.value neq constants.zero) {
             items.add(rhs)
@@ -265,18 +208,6 @@ data class ImmutableCost<V : RealNumber<V>>(
         null
     }
 ) : Cost<V> {
-    @Deprecated(
-        message = "Use the Quantity-typed primary constructor instead",
-        replaceWith = ReplaceWith("ImmutableCost(items, sum?.let { Quantity(it, NoneUnit) })")
-    )
-    constructor(
-        items: List<CostItem<V>>,
-        sum: V?
-    ) : this(
-        items = items,
-        costSum = sum?.let { Quantity(it, NoneUnit) }
-    )
-
     override fun copy(): ImmutableCost<V> {
         return ImmutableCost(
             items = items.map { it.copy() },

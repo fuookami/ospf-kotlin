@@ -25,11 +25,11 @@ sealed class AircraftCapacity {
     }
 
     class Cargo(
-        val capacity: Flt64
+        val capacity: FltX
     ) : AircraftCapacity() {
         override val category get() = AircraftCategory.Cargo
 
-        fun enabled(payload: Flt64) = capacity geq payload
+        fun enabled(payload: FltX) = capacity geq payload
     }
 
     abstract val category: AircraftCategory

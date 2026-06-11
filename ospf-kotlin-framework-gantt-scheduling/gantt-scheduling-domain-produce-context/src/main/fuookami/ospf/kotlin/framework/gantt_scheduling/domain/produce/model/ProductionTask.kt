@@ -149,19 +149,6 @@ interface ProductionTask<
     /** 消耗量物理量映射 / Consumption quantity map with units */
     val consumptionQuantityByMaterial: Map<C, MaterialQuantity<V>>
 
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("produceQuantityByProduct")
-    )
-    val produce: Map<P, V>
-        get() = produceQuantityByProduct.mapValues { (_, quantity) -> quantity.value }
-    @Deprecated(
-        message = "Use the Quantity-typed property instead",
-        replaceWith = ReplaceWith("consumptionQuantityByMaterial")
-    )
-    val consumption: Map<C, V>
-        get() = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.value }
-
     /**
      * 生产量物理量 / Produce quantity as a physical quantity
      *
@@ -248,7 +235,7 @@ fun <C : AbstractMaterial> ProductionTask<*, *, *, *, *>.nonZeroConsumptionMater
 }
 
 /**
- * 计算任务束的生产量（泛型版本）/ Calculate bunch produce quantity (generic version)
+ * 计算任务束的生产量 / Calculate bunch produce quantity
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
@@ -264,7 +251,7 @@ fun <
         A : AssignmentPolicy<E>,
         P : AbstractMaterial,
         V : RealNumber<V>
-        > AbstractTaskBunch<T, E, A, V>.produceV(product: P): V {
+        > AbstractTaskBunch<T, E, A, V>.produce(product: P): V {
     val quantities = tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *, *> -> {
@@ -296,15 +283,15 @@ fun <
         A : AssignmentPolicy<E>,
         P : AbstractMaterial,
         V : RealNumber<V>
-        > AbstractTaskBunch<T, E, A, V>.produceQuantityV(
+        > AbstractTaskBunch<T, E, A, V>.produceQuantity(
     product: P,
     unit: PhysicalUnit = NoneUnit
 ): MaterialQuantity<V> {
-    return Quantity(produceV(product), unit)
+    return Quantity(produce(product), unit)
 }
 
 /**
- * 计算任务束的消耗量（泛型版本）/ Calculate bunch consumption quantity (generic version)
+ * 计算任务束的消耗量 / Calculate bunch consumption quantity
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
@@ -320,7 +307,7 @@ fun <
         A : AssignmentPolicy<E>,
         C : AbstractMaterial,
         V : RealNumber<V>
-        > AbstractTaskBunch<T, E, A, V>.consumptionV(material: C): V {
+        > AbstractTaskBunch<T, E, A, V>.consumption(material: C): V {
     val quantities = tasks.mapNotNull {
         when (it) {
             is ProductionTask<*, *, *, *, *> -> {
@@ -352,9 +339,9 @@ fun <
         A : AssignmentPolicy<E>,
         C : AbstractMaterial,
         V : RealNumber<V>
-        > AbstractTaskBunch<T, E, A, V>.consumptionQuantityV(
+        > AbstractTaskBunch<T, E, A, V>.consumptionQuantity(
     material: C,
     unit: PhysicalUnit = NoneUnit
 ): MaterialQuantity<V> {
-    return Quantity(consumptionV(material), unit)
+    return Quantity(consumption(material), unit)
 }

@@ -4,7 +4,7 @@
  *
  * 将所有 VariableType 变体统一为单一类型参数 V，通过 IntoValue<V> 提供 V 类型的访问器。
  * Unifies all VariableType variants into a single type parameter V,
- * providing V-typed accessors via IntoValue<V> conversion.
+ * providing V-type accessors via IntoValue<V> conversion.
  */
 package fuookami.ospf.kotlin.core.variable
 
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
  * 在 Kotlin 中委托给 AbstractVariableItem 持有元数据，并通过 IntoValue<V> 转换提供 V 类型访问器。
  * Unifies all VariableTypeTrait variants into a single V-parametric type.
  * In Kotlin, delegates to AbstractVariableItem which holds all metadata,
- * and provides V-typed accessors via IntoValue<V> conversion.
+ * and provides V-type accessors via IntoValue<V> conversion.
  *
  * @param V 数值类型 / The number type
  * @property data 底层变量数据 / Underlying variable data
@@ -53,19 +53,19 @@ class AnyVariable<V : RealNumber<V>>(
 
     /**
      * 获取 V 类型下界
-     * Get V-typed lower bound
+     * Get V-type lower bound
      *
      * @param converter 值转换器 / Value converter
-     * @return V 类型下界，如果无界返回 null / V-typed lower bound, or null if unbounded
+     * @return V 类型下界，如果无界返回 null / V-type lower bound, or null if unbounded
      */
     fun lowerBound(converter: IntoValue<V>): V? = lowerBoundFlt64?.let { converter.intoValue(it) }
 
     /**
      * 获取 V 类型上界
-     * Get V-typed upper bound
+     * Get V-type upper bound
      *
      * @param converter 值转换器 / Value converter
-     * @return V 类型上界，如果无界返回 null / V-typed upper bound, or null if unbounded
+     * @return V 类型上界，如果无界返回 null / V-type upper bound, or null if unbounded
      */
     fun upperBound(converter: IntoValue<V>): V? = upperBoundFlt64?.let { converter.intoValue(it) }
 

@@ -81,48 +81,6 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R, V>(
      */
     val resourceUsageQuantityByResource: Map<R, SlotQuantity<V>>
 ) where V : RealNumber<V>, V : PlusGroup<V> {
-    @Deprecated(
-        message = "Use primary constructor with Quantity-typed fields",
-        replaceWith = ReplaceWith(
-            "SlotBasedCapacityResult(slot, slotIndex, actionAllocations, Quantity(totalCost, NoneUnit), produceByProduct.mapValues { (_, v) -> Quantity(v, NoneUnit) }, consumptionByMaterial.mapValues { (_, v) -> Quantity(v, NoneUnit) }, resourceUsageByResource.mapValues { (_, v) -> Quantity(v, NoneUnit) })",
-            "fuookami.ospf.kotlin.quantities.quantity.Quantity",
-            "fuookami.ospf.kotlin.quantities.unit.NoneUnit"
-        )
-    )
-    constructor(
-        slot: TimeSlot,
-        slotIndex: Int,
-        actionAllocations: List<ActionAllocation<A>>,
-        totalCost: V,
-        produceByProduct: Map<M, V>,
-        consumptionByMaterial: Map<M, V>,
-        resourceUsageByResource: Map<R, V>
-    ) : this(
-        slot = slot,
-        slotIndex = slotIndex,
-        actionAllocations = actionAllocations,
-        totalCostQuantityValue = Quantity(totalCost, NoneUnit),
-        produceQuantityByProduct = produceByProduct.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-        consumptionQuantityByMaterial = consumptionByMaterial.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-        resourceUsageQuantityByResource = resourceUsageByResource.mapValues { (_, value) -> Quantity(value, NoneUnit) }
-    )
-
-    /** 该时隙的总成本裸值兼容属性 / Raw total cost compatibility property */
-    @Deprecated("Use totalCostQuantityValue instead", replaceWith = ReplaceWith("totalCostQuantityValue.value"))
-    val totalCost: V get() = totalCostQuantityValue.value
-
-    /** 该时隙的产品产量裸值兼容映射 / Raw produce quantity compatibility map */
-    @Deprecated("Use produceQuantityByProduct instead", replaceWith = ReplaceWith("produceQuantityByProduct.mapValues { (_, q) -> q.value }"))
-    val produceByProduct: Map<M, V> get() = produceQuantityByProduct.mapValues { (_, quantity) -> quantity.value }
-
-    /** 该时隙的原料消耗裸值兼容映射 / Raw consumption quantity compatibility map */
-    @Deprecated("Use consumptionQuantityByMaterial instead", replaceWith = ReplaceWith("consumptionQuantityByMaterial.mapValues { (_, q) -> q.value }"))
-    val consumptionByMaterial: Map<M, V> get() = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.value }
-
-    /** 该时隙的资源使用量裸值兼容映射 / Raw resource usage quantity compatibility map */
-    @Deprecated("Use resourceUsageQuantityByResource instead", replaceWith = ReplaceWith("resourceUsageQuantityByResource.mapValues { (_, q) -> q.value }"))
-    val resourceUsageByResource: Map<R, V> get() = resourceUsageQuantityByResource.mapValues { (_, quantity) -> quantity.value }
-
     /**
      * 时隙总成本物理量 / Slot total cost quantity
      *
@@ -135,26 +93,26 @@ data class SlotBasedCapacityResult<A : ProductionAction, M, R, V>(
 }
 
 /**
- * 将 Flt64 时隙产能结果转换为泛型物理量结果 / Convert a Flt64 slot capacity result to a generic quantity result
+ * 将 Flt64 时隙产能结果转换为目标数值类型的物理量结果 / Convert a Flt64 slot capacity result to a target numeric quantity result
  *
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
  * @param V 目标数值类型 / Target numeric type
  * @param adapter solver 数值适配器 / Solver value adapter
- * @return 泛型时隙产能结果 / Generic slot capacity result
+ * @return 目标数值类型的时隙产能结果 / Target numeric slot capacity result
  */
-fun <A : ProductionAction, M, R, V> SlotBasedCapacityResult<A, M, R, Flt64>.toGeneric(
+fun <A : ProductionAction, M, R, V> SlotBasedCapacityResult<A, M, R, Flt64>.convertTo(
     adapter: SchedulingSolverValueAdapter<V>
 ): SlotBasedCapacityResult<A, M, R, V> where V : RealNumber<V>, V : PlusGroup<V> {
     return SlotBasedCapacityResult(
         slot = slot,
         slotIndex = slotIndex,
         actionAllocations = actionAllocations,
-        totalCostQuantityValue = totalCostQuantityValue.toGeneric(adapter),
-        produceQuantityByProduct = produceQuantityByProduct.mapValues { (_, quantity) -> quantity.toGeneric(adapter) },
-        consumptionQuantityByMaterial = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.toGeneric(adapter) },
-        resourceUsageQuantityByResource = resourceUsageQuantityByResource.mapValues { (_, quantity) -> quantity.toGeneric(adapter) }
+        totalCostQuantityValue = totalCostQuantityValue.convertTo(adapter),
+        produceQuantityByProduct = produceQuantityByProduct.mapValues { (_, quantity) -> quantity.convertTo(adapter) },
+        consumptionQuantityByMaterial = consumptionQuantityByMaterial.mapValues { (_, quantity) -> quantity.convertTo(adapter) },
+        resourceUsageQuantityByResource = resourceUsageQuantityByResource.mapValues { (_, quantity) -> quantity.convertTo(adapter) }
     )
 }
 
@@ -184,19 +142,6 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
     val results: Map<TimeSlot, SlotBasedCapacityResult<A, M, R, V>>
 ) where V : RealNumber<V>, V : PlusGroup<V> {
     /**
-     * 获取指定时隙的产品产量
-     * Get product production for specified slot
-     *
-     * @param slot The time slot / 时隙
-     * @param product The product / 产品
-     * @return Production amount / 产量
-     */
-    @Deprecated("Use produceQuantity instead", replaceWith = ReplaceWith("produceQuantity(slot, product)?.value"))
-    fun produce(slot: TimeSlot, product: M): V? {
-        return results[slot]?.produceQuantityByProduct?.get(product)?.value
-    }
-
-    /**
      * 获取指定时隙的产品产量物理量
      * Get product production quantity for specified slot
      *
@@ -209,19 +154,6 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
     }
 
     /**
-     * 获取指定时隙的原料消耗
-     * Get material consumption for specified slot
-     *
-     * @param slot The time slot / 时隙
-     * @param material The material / 原料
-     * @return Consumption amount / 消耗量
-     */
-    @Deprecated("Use consumptionQuantity instead", replaceWith = ReplaceWith("consumptionQuantity(slot, material)?.value"))
-    fun consumption(slot: TimeSlot, material: M): V? {
-        return results[slot]?.consumptionQuantityByMaterial?.get(material)?.value
-    }
-
-    /**
      * 获取指定时隙的原料消耗物理量
      * Get material consumption quantity for specified slot
      *
@@ -231,19 +163,6 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
      */
     fun consumptionQuantity(slot: TimeSlot, material: M): SlotQuantity<V>? {
         return results[slot]?.consumptionQuantityByMaterial?.get(material)
-    }
-
-    /**
-     * 获取指定时隙的资源使用量
-     * Get resource usage for specified slot
-     *
-     * @param slot The time slot / 时隙
-     * @param resource The resource capacity / 资源容量
-     * @return Resource usage amount / 资源使用量
-     */
-    @Deprecated("Use resourceUsageQuantity instead", replaceWith = ReplaceWith("resourceUsageQuantity(slot, resource)?.value"))
-    fun resourceUsage(slot: TimeSlot, resource: R): V? {
-        return results[slot]?.resourceUsageQuantityByResource?.get(resource)?.value
     }
 
     /**
@@ -273,21 +192,21 @@ class CapacityIntermediateValues<A : ProductionAction, M, R, V>(
 }
 
 /**
- * 将 Flt64 产能中间值集合转换为泛型物理量集合 / Convert Flt64 capacity intermediate values to generic quantity values
+ * 将 Flt64 产能中间值集合转换为目标数值类型的物理量集合 / Convert Flt64 capacity intermediate values to target numeric quantity values
  *
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
  * @param V 目标数值类型 / Target numeric type
  * @param adapter solver 数值适配器 / Solver value adapter
- * @return 泛型产能中间值集合 / Generic capacity intermediate values
+ * @return 目标数值类型的产能中间值集合 / Target numeric capacity intermediate values
  */
-fun <A : ProductionAction, M, R, V> CapacityIntermediateValues<A, M, R, Flt64>.toGeneric(
+fun <A : ProductionAction, M, R, V> CapacityIntermediateValues<A, M, R, Flt64>.convertTo(
     adapter: SchedulingSolverValueAdapter<V>
 ): CapacityIntermediateValues<A, M, R, V> where V : RealNumber<V>, V : PlusGroup<V> {
     return CapacityIntermediateValues(
         slots = slots,
-        results = results.mapValues { (_, result) -> result.toGeneric(adapter) }
+        results = results.mapValues { (_, result) -> result.convertTo(adapter) }
     )
 }
 
@@ -359,77 +278,7 @@ data class SlotConstraints<M, R, V>(
      */
     val minResourceUsageQuantity: Map<R, SlotQuantity<V>>
 ) where V : RealNumber<V>, V : PlusGroup<V> {
-    /** 产品产量上限裸值兼容映射 / Raw max produce compatibility map */
-    @Deprecated("Use maxProduceQuantity instead", replaceWith = ReplaceWith("maxProduceQuantity.mapValues { (_, q) -> q.value }"))
-    val maxProduce: Map<M, V> get() = maxProduceQuantity.mapValues { (_, quantity) -> quantity.value }
-
-    /** 产品产量下限裸值兼容映射 / Raw min produce compatibility map */
-    @Deprecated("Use minProduceQuantity instead", replaceWith = ReplaceWith("minProduceQuantity.mapValues { (_, q) -> q.value }"))
-    val minProduce: Map<M, V> get() = minProduceQuantity.mapValues { (_, quantity) -> quantity.value }
-
-    /** 原料消耗上限裸值兼容映射 / Raw max consumption compatibility map */
-    @Deprecated("Use maxConsumptionQuantity instead", replaceWith = ReplaceWith("maxConsumptionQuantity.mapValues { (_, q) -> q.value }"))
-    val maxConsumption: Map<M, V> get() = maxConsumptionQuantity.mapValues { (_, quantity) -> quantity.value }
-
-    /** 原料消耗下限裸值兼容映射 / Raw min consumption compatibility map */
-    @Deprecated("Use minConsumptionQuantity instead", replaceWith = ReplaceWith("minConsumptionQuantity.mapValues { (_, q) -> q.value }"))
-    val minConsumption: Map<M, V> get() = minConsumptionQuantity.mapValues { (_, quantity) -> quantity.value }
-
-    /** 资源使用量上限裸值兼容映射 / Raw max resource usage compatibility map */
-    @Deprecated("Use maxResourceUsageQuantity instead", replaceWith = ReplaceWith("maxResourceUsageQuantity.mapValues { (_, q) -> q.value }"))
-    val maxResourceUsage: Map<R, V> get() = maxResourceUsageQuantity.mapValues { (_, quantity) -> quantity.value }
-
-    /** 资源使用量下限裸值兼容映射 / Raw min resource usage compatibility map */
-    @Deprecated("Use minResourceUsageQuantity instead", replaceWith = ReplaceWith("minResourceUsageQuantity.mapValues { (_, q) -> q.value }"))
-    val minResourceUsage: Map<R, V> get() = minResourceUsageQuantity.mapValues { (_, quantity) -> quantity.value }
-
     companion object {
-        /**
-         * 通过裸值创建时隙约束 / Create slot constraints from raw values
-         *
-         * @param M 物料类型 / Material type
-         * @param R 资源容量类型 / Resource capacity type
-         * @param V 数值类型 / Numeric type
-         * @param slot 时隙 / Time slot
-         * @param slotIndex 时隙索引 / Slot index
-         * @param maxProduce 产品产量上限 / Maximum production by product
-         * @param minProduce 产品产量下限 / Minimum production by product
-         * @param maxConsumption 原料消耗上限 / Maximum consumption by material
-         * @param minConsumption 原料消耗下限 / Minimum consumption by material
-         * @param maxResourceUsage 资源使用量上限 / Maximum resource usage by resource
-         * @param minResourceUsage 资源使用量下限 / Minimum resource usage by resource
-         * @return 时隙约束 / Slot constraints
-         */
-        @Deprecated(
-            message = "Use primary constructor with Quantity-typed maps",
-            replaceWith = ReplaceWith(
-                "SlotConstraints(slot, slotIndex, maxProduce.mapValues { (_, v) -> Quantity(v, NoneUnit) }, minProduce.mapValues { (_, v) -> Quantity(v, NoneUnit) }, maxConsumption.mapValues { (_, v) -> Quantity(v, NoneUnit) }, minConsumption.mapValues { (_, v) -> Quantity(v, NoneUnit) }, maxResourceUsage.mapValues { (_, v) -> Quantity(v, NoneUnit) }, minResourceUsage.mapValues { (_, v) -> Quantity(v, NoneUnit) })",
-                "fuookami.ospf.kotlin.quantities.quantity.Quantity",
-                "fuookami.ospf.kotlin.quantities.unit.NoneUnit"
-            )
-        )
-        operator fun <M, R, V> invoke(
-            slot: TimeSlot,
-            slotIndex: Int,
-            maxProduce: Map<M, V>,
-            minProduce: Map<M, V>,
-            maxConsumption: Map<M, V>,
-            minConsumption: Map<M, V>,
-            maxResourceUsage: Map<R, V>,
-            minResourceUsage: Map<R, V>
-        ): SlotConstraints<M, R, V> where V : RealNumber<V>, V : PlusGroup<V> {
-            return SlotConstraints(
-                slot = slot,
-                slotIndex = slotIndex,
-                maxProduceQuantity = maxProduce.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-                minProduceQuantity = minProduce.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-                maxConsumptionQuantity = maxConsumption.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-                minConsumptionQuantity = minConsumption.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-                maxResourceUsageQuantity = maxResourceUsage.mapValues { (_, value) -> Quantity(value, NoneUnit) },
-                minResourceUsageQuantity = minResourceUsage.mapValues { (_, value) -> Quantity(value, NoneUnit) }
-            )
-        }
-
         /**
          * 从产能结果创建约束
          * Create constraints from capacity result
@@ -492,7 +341,7 @@ data class SlotConstraints<M, R, V>(
     }
 }
 
-private fun <V : RealNumber<V>> Quantity<Flt64>.toGeneric(
+private fun <V : RealNumber<V>> Quantity<Flt64>.convertTo(
     adapter: SchedulingSolverValueAdapter<V>
 ): Quantity<V> {
     return Quantity(adapter.intoValue(value), unit)

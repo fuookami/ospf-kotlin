@@ -35,14 +35,14 @@ abstract class AbstractTaskSchedulingAggregation<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<*>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
 ) {
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     val compilation: TaskCompilation<T, E, A> = TaskCompilation(
         tasks = tasks,
@@ -112,7 +112,7 @@ open class TaskCompilationAggregation<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<*>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
@@ -179,7 +179,7 @@ open class TaskCompilationAggregationWithTime<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    timeWindow: TimeWindow<Flt64>,
+    timeWindow: TimeWindow<*>,
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
@@ -201,7 +201,7 @@ open class TaskCompilationAggregationWithTime<
     taskCancelEnabled = taskCancelEnabled,
     withExecutorLeisure = withExecutorLeisure
 ) {
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     val taskTime: TaskSchedulingTaskTime<T, E, A> = TaskSchedulingTaskTime(
         timeBoundary = timeBoundary,

@@ -292,7 +292,7 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
 
 /**
  * 将 V 类型约束列表直接添加到 V 类型机制模型中。
- * Add a list of V-typed constraints directly to a V-typed MechanismModel.
+ * Add a list of V-generic constraints directly to a V-generic MechanismModel.
  * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
  */
@@ -309,7 +309,7 @@ internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constrai
 
 /**
  * 将 V 类型二次约束列表直接添加到 V 类型二次机制模型中。
- * Add a list of V-typed quadratic constraints directly to a V-typed QuadraticMechanismModel.
+ * Add a list of V-generic quadratic constraints directly to a V-generic QuadraticMechanismModel.
  * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
  */
@@ -337,7 +337,7 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
  *
  * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。
  * This avoids the V -> Flt64 -> V conversion round-trip and keeps
- * intermediate-symbol constraints typed as V inside generic paths.
+ * intermediate-symbol constraints parameterized as V inside generic paths.
  */
 fun <V> nonzeroIndicatorConstraints(
     poly: LinearPolynomial<V>,

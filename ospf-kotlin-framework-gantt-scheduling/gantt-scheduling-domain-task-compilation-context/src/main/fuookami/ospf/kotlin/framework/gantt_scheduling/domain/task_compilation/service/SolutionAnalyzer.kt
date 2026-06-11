@@ -104,7 +104,7 @@ data object SolutionAnalyzer {
             E : Executor,
             A : AssignmentPolicy<E>
             > invoke(
-        timeWindow: TimeWindow<Flt64>,
+        timeWindow: TimeWindow<*>,
         tasks: List<T>,
         executors: List<E>,
         compilation: TaskCompilation<T, E, A>,
@@ -115,7 +115,7 @@ data object SolutionAnalyzer {
         solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         return invoke(
-            timeBoundary = SolverTimeWindowBoundary(timeWindow),
+            timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary()),
             tasks = tasks,
             executors = executors,
             compilation = compilation,

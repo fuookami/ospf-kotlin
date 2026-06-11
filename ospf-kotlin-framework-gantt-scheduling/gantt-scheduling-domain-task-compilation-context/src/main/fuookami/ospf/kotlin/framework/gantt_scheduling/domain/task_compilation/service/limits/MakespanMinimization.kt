@@ -35,7 +35,7 @@ class MakespanMinimization<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow<Flt64>,
+    private val timeWindow: TimeWindow<*>,
     private val makespan: Makespan<*, E, A>,
     private val threshold: Instant = timeWindow.window.start,
     private val coefficient: Flt64 = Flt64.one,
@@ -64,7 +64,7 @@ class MakespanMinimization<
         name = name
     )
 
-    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
 
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val thresholdValue = timeBoundary.valueOf(threshold)

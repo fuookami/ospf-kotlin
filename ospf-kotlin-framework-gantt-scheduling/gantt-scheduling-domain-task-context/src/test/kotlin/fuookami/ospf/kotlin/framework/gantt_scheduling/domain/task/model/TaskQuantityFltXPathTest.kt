@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
-class GenericFltXPathTest {
+class TaskQuantityFltXPathTest {
     @Test
     fun costShouldSupportFltX() {
         val cost = Cost(

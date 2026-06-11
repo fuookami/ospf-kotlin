@@ -57,7 +57,7 @@ class FlightLegPlan(
     val actualTime: TimeRange?,
     val outTime: Instant?,
     flightTaskStatus: Set<FlightTaskStatus>,
-    override val weight: Flt64 = Flt64.one,
+    override val weight: FltX = FltX.one,
 ) : FlightTaskPlan(
     id = "${prefix}_${actualId}",
     name = "${no}_${date}",

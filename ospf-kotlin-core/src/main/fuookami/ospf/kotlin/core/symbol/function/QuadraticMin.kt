@@ -198,11 +198,11 @@ class QuadraticMinFunction<V>(
 
     /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
-        return if (typedValues.isNullOrEmpty()) {
+        val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
+        return if (targetValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
-            evaluate(typedValues, tokenTable, converter, false)
+            evaluate(targetValues, tokenTable, converter, false)
         }
     }
 
@@ -248,13 +248,13 @@ class QuadraticMinFunction<V>(
     }
     /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedResults = results.map { converter.intoValue(it) }
-        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+        val targetResults = results.map { converter.intoValue(it) }
+        return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
     /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedValues = SolverBoundaryCasts.mapValues(values, converter)
-        return evaluate(typedValues, tokenTable, converter, zeroIfNone)
+        val targetValues = SolverBoundaryCasts.mapValues(values, converter)
+        return evaluate(targetValues, tokenTable, converter, zeroIfNone)
     }
 
     override fun toRawString(unfold: UInt64): String = displayName ?: name

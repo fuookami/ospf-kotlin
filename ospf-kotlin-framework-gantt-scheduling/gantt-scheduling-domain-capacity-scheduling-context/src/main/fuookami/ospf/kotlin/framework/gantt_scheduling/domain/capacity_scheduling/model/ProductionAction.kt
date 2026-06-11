@@ -13,19 +13,6 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
-/** 转换为旧 ProductionAction API 使用的 Flt64 时间窗口 / Convert to the Flt64 time window used by legacy ProductionAction APIs */
-internal fun <V : RealNumber<V>> TimeWindow<V>.asFlt64TimeWindow(): TimeWindow<Flt64> {
-    return TimeWindow(
-        window = window,
-        continues = continues,
-        durationUnit = durationUnit,
-        dateOffset = dateOffset,
-        interval = interval,
-        fromDouble = { Flt64(it) },
-        toDouble = { it.toDouble() }
-    )
-}
-
 /**
  * 生产动作接口
  * Production Action Interface
@@ -84,18 +71,19 @@ interface ProductionAction {
      * Unit capacity per x value
      *
      * @param timeWindow Time window / 时间窗口
-     * @return Unit capacity as Flt64 / 单位产能
+     * @return Unit capacity / 单位产能
      */
-    fun unitCapacity(timeWindow: TimeWindow<Flt64>): Flt64
+    fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V
 
     /**
      * 单位成本
      * Unit cost
      *
      * @param time Time instant / 时间点
+     * @param fromDouble Double 到 V 的转换函数 / Double to V converter
      * @return Unit cost / 单位成本
      */
-    fun unitCost(time: Instant): Flt64
+    fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V
 
     /**
      * x 变量的上界
@@ -105,18 +93,7 @@ interface ProductionAction {
      * @param timeWindow Time window / 时间窗口
      * @return Upper bound value / 上界值
      */
-    fun upperBound(slot: TimeSlot, timeWindow: TimeWindow<Flt64>): UInt64
-
-    // ── 泛型 V 补充入口 / Generic V supplementary entries ──
-    // 默认实现委托到 Flt64 版本，通过 asFlt64TimeWindow() 隔离。
-    // Default implementations delegate to Flt64 versions via asFlt64TimeWindow().
-    // 新实现可直接覆盖泛型版本以避免 Flt64 转换。
-    // New implementations may override generic versions to avoid Flt64 conversion.
-
-    private fun <V : RealNumber<V>> unitCapacityValue(timeWindow: TimeWindow<V>): V {
-        val result = unitCapacity(timeWindow.asFlt64TimeWindow())
-        return timeWindow.fromDouble(result.toDouble())
-    }
+    fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64
 
     /**
      * 泛型单位产能物理量 / Generic unit capacity quantity
@@ -130,7 +107,7 @@ interface ProductionAction {
         timeWindow: TimeWindow<V>,
         unit: PhysicalUnit = NoneUnit
     ): CapacityQuantity<V> {
-        return Quantity(unitCapacityValue(timeWindow), unit)
+        return Quantity(unitCapacity(timeWindow), unit)
     }
 
     /**
@@ -147,26 +124,16 @@ interface ProductionAction {
         fromDouble: (Double) -> V,
         unit: PhysicalUnit = NoneUnit
     ): CapacityCostQuantity<V> {
-        return Quantity(fromDouble(unitCost(time).toDouble()), unit)
+        return Quantity(unitCost(time, fromDouble), unit)
     }
 
     /**
-     * 泛型上界 / Generic upper bound
+     * 求解器单位成本值 / Solver unit cost value
      *
-     * 默认实现：委托到 Flt64 版本（UInt64 不依赖 V）。
-     * Default: delegates to Flt64 version (UInt64 is V-independent).
-     *
-     * @param V 数值类型 / Numeric type
-     * @param slot Time slot / 时隙
-     * @param timeWindow Time window / 时间窗口
-     * @return Upper bound (UInt64, same as Flt64 version) / 上界
+     * @param time Time instant / 时间点
+     * @return Unit cost for solver / 求解器单位成本
      */
-    fun <V : RealNumber<V>> upperBoundV(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64 {
-        return upperBound(slot, timeWindow.asFlt64TimeWindow())
+    fun unitCostSolverValue(time: Instant): Flt64 {
+        return unitCost(time) { Flt64(it) }
     }
-
-    // 注意: unitCost 的 Flt64 版本继续保留作为 solver 边界入口。
-    // 调用方可通过 unitCostQuantity + fromDouble 获取 V 类型成本，或通过 SchedulingSolverValueAdapter 转换。
-    // Note: unitCost Flt64 version is retained as solver boundary entry.
-    // Callers can use unitCostQuantity + fromDouble for V-typed cost, or SchedulingSolverValueAdapter for conversion.
 }

@@ -20,12 +20,12 @@ import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 // ============================================================================
-// Generic typed parsing
+// Generic parsing
 // ============================================================================
 
 /**
  * 解析字符串为规范多项式（泛型类型版本）
- * Parses a string into a canonical polynomial (generic typed version)
+ * Parses a string into a canonical polynomial (generic number type version)
  *
  * @param input 输入字符串 / Input string
  * @param numberParser 数值解析器 / Number parser
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 解析后的规范多项式 / Parsed canonical polynomial
  */
-fun <T> parseCanonicalTyped(
+fun <T> parseCanonical(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -46,7 +46,7 @@ fun <T> parseCanonicalTyped(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<T> where T : Ring<T> {
     val tokens = PolynomialLexer(input).lex()
-    val parser = DirectTypedPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
+    val parser = DirectPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
     return parser.parsePolynomial().toCanonicalPolynomial(zero, isZero, symbolComparator)
 }
 
@@ -62,7 +62,7 @@ fun <T> parseCanonicalTyped(
  * @param isZero 零值判断函数 / Zero-check function
  * @return 线性多项式或 null / Linear polynomial or null
  */
-fun <T> parseLinearTypedOrNull(
+fun <T> parseLinearOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -70,7 +70,7 @@ fun <T> parseLinearTypedOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): LinearPolynomial<T>? where T : Ring<T> {
-    return parseCanonicalTyped(input, numberParser, zero, one, symbolOf, isZero).toLinearPolynomialOrNull(zero, isZero)
+    return parseCanonical(input, numberParser, zero, one, symbolOf, isZero).toLinearPolynomialOrNull(zero, isZero)
 }
 
 /**
@@ -86,7 +86,7 @@ fun <T> parseLinearTypedOrNull(
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 二次多项式或 null / Quadratic polynomial or null
  */
-fun <T> parseQuadraticTypedOrNull(
+fun <T> parseQuadraticOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -95,7 +95,7 @@ fun <T> parseQuadraticTypedOrNull(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<T>? where T : Ring<T> {
-    return parseCanonicalTyped(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
+    return parseCanonical(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
         .toQuadraticPolynomialOrNull(zero, isZero, symbolComparator)
 }
 
@@ -111,7 +111,7 @@ fun <T> parseQuadraticTypedOrNull(
  * @param isZero 零值判断函数 / Zero-check function
  * @return 线性不等式或 null / Linear inequality or null
  */
-fun <T> parseLinearInequalityTypedOrNull(
+fun <T> parseLinearInequalityOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -120,7 +120,7 @@ fun <T> parseLinearInequalityTypedOrNull(
     isZero: (T) -> Boolean = { it == zero }
 ): LinearInequality<T>? where T : Ring<T> {
     val tokens = PolynomialLexer(input).lex()
-    val parser = DirectTypedPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
+    val parser = DirectPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
     val parsed = parser.parseInequality()
     val lhs = parsed.lhs.toCanonicalPolynomial(zero, isZero).toLinearPolynomialOrNull(zero, isZero) ?: return null
     val rhs = parsed.rhs.toCanonicalPolynomial(zero, isZero).toLinearPolynomialOrNull(zero, isZero) ?: return null
@@ -128,26 +128,26 @@ fun <T> parseLinearInequalityTypedOrNull(
 }
 
 // ============================================================================
-// Internal typed polynomial term and parser
+// Internal polynomial term and parser
 // ============================================================================
 
-private data class TypedParsedTerm<T>(
+private data class ParsedTerm<T>(
     val coefficient: T,
     val powers: Map<Symbol, Int32>
 )
 
-private data class TypedParsedPolynomial<T>(
-    val terms: List<TypedParsedTerm<T>>,
+private data class ParsedPolynomial<T>(
+    val terms: List<ParsedTerm<T>>,
     val constant: T
 )
 
-private data class TypedParsedInequality<T>(
-    val lhs: TypedParsedPolynomial<T>,
-    val rhs: TypedParsedPolynomial<T>,
+private data class ParsedInequality<T>(
+    val lhs: ParsedPolynomial<T>,
+    val rhs: ParsedPolynomial<T>,
     val comparison: Comparison
 )
 
-private class DirectTypedPolynomialParser<T>(
+private class DirectPolynomialParser<T>(
     private val tokens: List<PolynomialToken>,
     private val numberParser: NumberParser<T>,
     private val zero: T,
@@ -157,13 +157,13 @@ private class DirectTypedPolynomialParser<T>(
 ) where T : Ring<T> {
     private var position: Int = 0
 
-    fun parsePolynomial(): TypedParsedPolynomial<T> {
+    fun parsePolynomial(): ParsedPolynomial<T> {
         val result = parseExpression()
         expect(PolynomialTokenType.End)
         return result
     }
 
-    fun parseInequality(): TypedParsedInequality<T> {
+    fun parseInequality(): ParsedInequality<T> {
         val lhs = parseExpression()
         val comparisonToken = current()
         val comparison = when (comparisonToken.type) {
@@ -178,11 +178,11 @@ private class DirectTypedPolynomialParser<T>(
         advance()
         val rhs = parseExpression()
         expect(PolynomialTokenType.End)
-        return TypedParsedInequality(lhs = lhs, rhs = rhs, comparison = comparison)
+        return ParsedInequality(lhs = lhs, rhs = rhs, comparison = comparison)
     }
 
     /** 解析加减法表达式 / Parse an addition/subtraction expression */
-    private fun parseExpression(): TypedParsedPolynomial<T> {
+    private fun parseExpression(): ParsedPolynomial<T> {
         var result = parseTerm()
         while (true) {
             val token = current()
@@ -190,13 +190,13 @@ private class DirectTypedPolynomialParser<T>(
                 PolynomialTokenType.Plus -> {
                     advance()
                     val right = parseTerm()
-                    result = addTyped(result, right)
+                    result = addParsed(result, right)
                 }
 
                 PolynomialTokenType.Minus -> {
                     advance()
                     val right = parseTerm()
-                    result = subtractTyped(result, right)
+                    result = subtractParsed(result, right)
                 }
 
                 else -> break
@@ -206,7 +206,7 @@ private class DirectTypedPolynomialParser<T>(
     }
 
     /** 解析乘法项 / Parse a multiplication term */
-    private fun parseTerm(): TypedParsedPolynomial<T> {
+    private fun parseTerm(): ParsedPolynomial<T> {
         var result = parsePower()
         while (true) {
             val token = current()
@@ -214,7 +214,7 @@ private class DirectTypedPolynomialParser<T>(
                 PolynomialTokenType.Star -> {
                     advance()
                     val right = parsePower()
-                    result = multiplyTyped(result, right, isZero)
+                    result = multiplyParsed(result, right, isZero)
                 }
 
                 else -> break
@@ -224,7 +224,7 @@ private class DirectTypedPolynomialParser<T>(
     }
 
     /** 解析幂运算 / Parse a power expression */
-    private fun parsePower(): TypedParsedPolynomial<T> {
+    private fun parsePower(): ParsedPolynomial<T> {
         var result = parseFactor()
         val token = current()
         if (token.type == PolynomialTokenType.Caret) {
@@ -239,9 +239,9 @@ private class DirectTypedPolynomialParser<T>(
             if (exponent < 0) {
                 throw DirectParseError("Negative exponent is not supported", exponentToken.position)
             }
-            var powered = TypedParsedPolynomial<T>(emptyList(), one)
+            var powered = ParsedPolynomial<T>(emptyList(), one)
             repeat(exponent) {
-                powered = multiplyTyped(powered, result, isZero)
+                powered = multiplyParsed(powered, result, isZero)
             }
             result = powered
         }
@@ -249,27 +249,27 @@ private class DirectTypedPolynomialParser<T>(
     }
 
     /** 解析因子（数字、标识符、括号表达式或取反） / Parse a factor (number, identifier, parenthesized expression, or negation) */
-    private fun parseFactor(): TypedParsedPolynomial<T> {
+    private fun parseFactor(): ParsedPolynomial<T> {
         val token = current()
         return when (token.type) {
             PolynomialTokenType.Minus -> {
                 advance()
                 val operand = parseFactor()
-                negateTyped(operand)
+                negateParsed(operand)
             }
 
             PolynomialTokenType.Number -> {
                 advance()
                 val value = numberParser.parse(token.text)
                     ?: throw DirectParseError("Invalid number '${token.text}' for target type", token.position)
-                TypedParsedPolynomial(emptyList(), value)
+                ParsedPolynomial(emptyList(), value)
             }
 
             PolynomialTokenType.Identifier -> {
                 advance()
                 val symbol = symbolOf(token.text)
-                TypedParsedPolynomial(
-                    terms = listOf(TypedParsedTerm(one, mapOf(symbol to Int32.one))),
+                ParsedPolynomial(
+                    terms = listOf(ParsedTerm(one, mapOf(symbol to Int32.one))),
                     constant = zero
                 )
             }
@@ -316,8 +316,8 @@ private class DirectTypedPolynomialParser<T>(
  * @param rhs 右操作数 / Right-hand operand
  * @return 相加后的多项式 / Sum polynomial
  */
-private fun <T> addTyped(lhs: TypedParsedPolynomial<T>, rhs: TypedParsedPolynomial<T>): TypedParsedPolynomial<T> where T : Ring<T> {
-    return TypedParsedPolynomial(lhs.terms + rhs.terms, lhs.constant + rhs.constant)
+private fun <T> addParsed(lhs: ParsedPolynomial<T>, rhs: ParsedPolynomial<T>): ParsedPolynomial<T> where T : Ring<T> {
+    return ParsedPolynomial(lhs.terms + rhs.terms, lhs.constant + rhs.constant)
 }
 
 /**
@@ -327,8 +327,8 @@ private fun <T> addTyped(lhs: TypedParsedPolynomial<T>, rhs: TypedParsedPolynomi
  * @param poly 要取反的多项式 / Polynomial to negate
  * @return 取反后的多项式 / Negated polynomial
  */
-private fun <T> negateTyped(poly: TypedParsedPolynomial<T>): TypedParsedPolynomial<T> where T : Ring<T> {
-    return TypedParsedPolynomial(poly.terms.map { it.copy(coefficient = -it.coefficient) }, -poly.constant)
+private fun <T> negateParsed(poly: ParsedPolynomial<T>): ParsedPolynomial<T> where T : Ring<T> {
+    return ParsedPolynomial(poly.terms.map { it.copy(coefficient = -it.coefficient) }, -poly.constant)
 }
 
 /**
@@ -339,8 +339,8 @@ private fun <T> negateTyped(poly: TypedParsedPolynomial<T>): TypedParsedPolynomi
  * @param rhs 右操作数 / Right-hand operand
  * @return 相减后的多项式 / Difference polynomial
  */
-private fun <T> subtractTyped(lhs: TypedParsedPolynomial<T>, rhs: TypedParsedPolynomial<T>): TypedParsedPolynomial<T> where T : Ring<T> {
-    return addTyped(lhs, negateTyped(rhs))
+private fun <T> subtractParsed(lhs: ParsedPolynomial<T>, rhs: ParsedPolynomial<T>): ParsedPolynomial<T> where T : Ring<T> {
+    return addParsed(lhs, negateParsed(rhs))
 }
 
 /**
@@ -352,29 +352,29 @@ private fun <T> subtractTyped(lhs: TypedParsedPolynomial<T>, rhs: TypedParsedPol
  * @param isZero 零值判断函数 / Zero-check function
  * @return 相乘后的多项式 / Product polynomial
  */
-private fun <T> multiplyTyped(
-    lhs: TypedParsedPolynomial<T>,
-    rhs: TypedParsedPolynomial<T>,
+private fun <T> multiplyParsed(
+    lhs: ParsedPolynomial<T>,
+    rhs: ParsedPolynomial<T>,
     isZero: (T) -> Boolean
-): TypedParsedPolynomial<T> where T : Ring<T> {
-    val terms = ArrayList<TypedParsedTerm<T>>(lhs.terms.size * rhs.terms.size + lhs.terms.size + rhs.terms.size)
+): ParsedPolynomial<T> where T : Ring<T> {
+    val terms = ArrayList<ParsedTerm<T>>(lhs.terms.size * rhs.terms.size + lhs.terms.size + rhs.terms.size)
     for (left in lhs.terms) {
         for (right in rhs.terms) {
             val mergedPowers = LinkedHashMap<Symbol, Int32>(left.powers.size + right.powers.size)
             for ((symbol, exp) in left.powers) mergedPowers[symbol] = exp
             for ((symbol, exp) in right.powers) mergedPowers[symbol] = (mergedPowers[symbol] ?: Int32.zero) + exp
-            terms.add(TypedParsedTerm(left.coefficient * right.coefficient, mergedPowers))
+            terms.add(ParsedTerm(left.coefficient * right.coefficient, mergedPowers))
         }
         if (!isZero(rhs.constant)) {
-            terms.add(TypedParsedTerm(left.coefficient * rhs.constant, left.powers))
+            terms.add(ParsedTerm(left.coefficient * rhs.constant, left.powers))
         }
     }
     for (right in rhs.terms) {
         if (!isZero(lhs.constant)) {
-            terms.add(TypedParsedTerm(right.coefficient * lhs.constant, right.powers))
+            terms.add(ParsedTerm(right.coefficient * lhs.constant, right.powers))
         }
     }
-    return TypedParsedPolynomial(terms, lhs.constant * rhs.constant)
+    return ParsedPolynomial(terms, lhs.constant * rhs.constant)
 }
 
 /**
@@ -386,7 +386,7 @@ private fun <T> multiplyTyped(
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 规范多项式 / Canonical polynomial
  */
-private fun <T> TypedParsedPolynomial<T>.toCanonicalPolynomial(
+private fun <T> ParsedPolynomial<T>.toCanonicalPolynomial(
     zero: T,
     isZero: (T) -> Boolean,
     symbolComparator: Comparator<Symbol>? = null
@@ -399,7 +399,7 @@ private fun <T> TypedParsedPolynomial<T>.toCanonicalPolynomial(
 }
 
 // ============================================================================
-// Ret-wrapped parsing API (generic typed)
+// Ret-wrapped parsing API (generic)
 // ============================================================================
 
 /**
@@ -505,7 +505,7 @@ private inline fun <T> wrapRet(
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 包装了规范多项式的解析结果 / Parse result wrapping a canonical polynomial
  */
-fun <T> parseCanonicalTypedRet(
+fun <T> parseCanonicalRet(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -514,7 +514,7 @@ fun <T> parseCanonicalTypedRet(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<CanonicalPolynomial<T>> where T : Ring<T> {
-    return wrapRet(input) { parseCanonicalTyped(input, numberParser, zero, one, symbolOf, isZero, symbolComparator) }
+    return wrapRet(input) { parseCanonical(input, numberParser, zero, one, symbolOf, isZero, symbolComparator) }
 }
 
 /**
@@ -529,7 +529,7 @@ fun <T> parseCanonicalTypedRet(
  * @param isZero 零值判断函数 / Zero-check function
  * @return 包装了线性多项式的解析结果 / Parse result wrapping a linear polynomial
  */
-fun <T> parseLinearTypedRetOrNull(
+fun <T> parseLinearRetOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -538,7 +538,7 @@ fun <T> parseLinearTypedRetOrNull(
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearPolynomial<T>> where T : Ring<T> {
     return wrapRet(input) {
-        parseLinearTypedOrNull(input, numberParser, zero, one, symbolOf, isZero)
+        parseLinearOrNull(input, numberParser, zero, one, symbolOf, isZero)
             ?: throw IllegalArgumentException("Expression is not linear polynomial.")
     }
 }
@@ -555,7 +555,7 @@ fun <T> parseLinearTypedRetOrNull(
  * @param isZero 零值判断函数 / Zero-check function
  * @return 包装了线性不等式的解析结果 / Parse result wrapping a linear inequality
  */
-fun <T> parseLinearInequalityTypedRetOrNull(
+fun <T> parseLinearInequalityRetOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -564,7 +564,7 @@ fun <T> parseLinearInequalityTypedRetOrNull(
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearInequality<T>> where T : Ring<T> {
     return wrapRet(input) {
-        parseLinearInequalityTypedOrNull(input, numberParser, zero, one, symbolOf, isZero)
+        parseLinearInequalityOrNull(input, numberParser, zero, one, symbolOf, isZero)
             ?: throw IllegalArgumentException("Inequality is not linear.")
     }
 }
@@ -582,7 +582,7 @@ fun <T> parseLinearInequalityTypedRetOrNull(
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 包装了二次多项式的解析结果 / Parse result wrapping a quadratic polynomial
  */
-fun <T> parseQuadraticTypedRetOrNull(
+fun <T> parseQuadraticRetOrNull(
     input: String,
     numberParser: NumberParser<T>,
     zero: T,
@@ -592,7 +592,7 @@ fun <T> parseQuadraticTypedRetOrNull(
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticPolynomial<T>> where T : Ring<T> {
     return wrapRet(input) {
-        parseQuadraticTypedOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
+        parseQuadraticOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
             ?: throw IllegalArgumentException("Expression is not quadratic polynomial.")
     }
 }

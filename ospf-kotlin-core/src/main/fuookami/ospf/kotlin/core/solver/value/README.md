@@ -24,8 +24,8 @@ The `IntoValue<V>` interface is the core conversion mechanism at the solver boun
 
 - `intoValue(Flt64) → V` — Convert Flt64 to generic value type V
 - `fromValue(V) → Flt64` — Convert generic value type V back to Flt64
-- `zero` / `one` — V-typed constants (eliminates unsafe `Flt64.zero as V` casts)
-- `negativeInfinity` / `infinity` — V-typed infinity values
+- `zero` / `one` — Constants in the target value type V (eliminates unsafe `Flt64.zero as V` casts)
+- `negativeInfinity` / `infinity` — Infinity values in the target value type V
 - `IntoValue.Identity` — Flt64 identity converter (no-op)
 
 Also provides adapter from `Flt64ValueConverter<V>` (math layer) to `IntoValue<V>` (core layer).
@@ -44,7 +44,7 @@ Validation utilities for checking solve value correctness and bounds.
 
 ## Relationships with Other Packages
 
-- **token** — `Token<V>` uses `IntoValue<V>` to provide the V-typed `result` view
+- **token** — `Token<V>` uses `IntoValue<V>` to provide the generic `result` view
 - **symbol** — Intermediate symbol evaluation uses `IntoValue<V>` for value conversion
 - **solver/output** — `FeasibleSolverOutput` provides `convertTo(converter)` using `IntoValue<V>`
 - **solver** — Solver `solve()` methods accept `IntoValue<V>` for generic solving

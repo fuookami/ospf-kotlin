@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * 与 core 层的 IntoValue<V> 接口语义完全对齐，但定义在 math 层以允许 companion 对象直接实现。
  *
  * Provides forward conversion from Flt64 to V (intoValue) and reverse conversion from V to Flt64 (fromValue),
- * along with V-typed zero and one constants.
+ * along with zero and one constants in the target value type V.
  * Semantically aligned with core's IntoValue<V> interface, but defined in the math layer
  * to allow companion objects to implement it directly.
  *
@@ -50,19 +50,19 @@ interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
      * @param value Flt64 源值
      *              The Flt64 source value
      * @return V 类型目标值
-     *         The V-typed target value
+     *         The target value of type V
      */
     fun intoValue(value: Flt64): V
 
     /**
      * 将 V 类型值转换为 Flt64
-     * Convert a V-typed value to Flt64
+     * Convert a value of type V to Flt64
      *
      * 默认实现使用 RealNumber 的 toFlt64() 方法。
      * Default implementation uses RealNumber's toFlt64() method.
      *
      * @param value V 类型源值
-     *              The V-typed source value
+     *              The source value of type V
      * @return Flt64 目标值
      *         The Flt64 target value
      */

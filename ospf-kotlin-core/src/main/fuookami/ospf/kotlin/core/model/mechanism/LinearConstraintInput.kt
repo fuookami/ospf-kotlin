@@ -290,7 +290,7 @@ data class Flt64LinearConstraintInput(
 
     /**
      * 判断约束是否满足（使用 V 类型求解结果和转换器）
-     * Check if constraint is satisfied (using V-typed solution results and converter)
+     * Check if constraint is satisfied (using V-generic solution results and converter)
      *
      * Converts V to Flt64 via converter, then delegates to Flt64 evaluation.
      *

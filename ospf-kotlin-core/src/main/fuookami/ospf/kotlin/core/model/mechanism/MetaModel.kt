@@ -1222,7 +1222,7 @@ class QuadraticMetaModel<V>(
      * 使用 QuadraticFlattenData 添加目标函数（新 API），
      * 使用转换器将 Flt64 系数转换为 V 类型。
      * Add objective using QuadraticFlattenData (new API).
-     * Converts Flt64 coefficients to V-typed using converter.
+     * Converts Flt64 coefficients to V values using converter.
      */
     override fun addObject(
         category: ObjectCategory,

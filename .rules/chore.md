@@ -171,3 +171,13 @@ fun create(input: MaterialCreateInput): Ret<Material> {
 
 - 每个重载（overload）都必须有独立的 KDoc，不得仅为一组重载的第一个添加 KDoc。
 - 每个 `typealias` 都必须有独立的 KDoc（允许单行）。
+
+### 1.7 泛型化命名规范
+
+对外 API 使用业务自然名表达稳定抽象，不使用迁移期技术命名。
+
+- 泛型化后的主接口、主模型、主服务占用自然名。
+- 不使用 `V`、`Typed`、`Generic` 作为迁移痕迹型前后缀。
+- 需要保留的 `Flt64` 专用接口、桥接接口或兼容入口，使用 `Flt64` 后缀显式标识。
+- `TypedValueRange`、`ClosedTypedValueRange`、`TypedPathBuilder` 等本身表达类型级抽象的稳定概念可以保留 `Typed`。
+- 内部变量、测试名、文档示例应尽量同步上述命名，避免保留迁移期表达。

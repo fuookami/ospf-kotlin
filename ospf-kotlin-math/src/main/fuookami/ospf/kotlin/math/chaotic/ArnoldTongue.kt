@@ -32,7 +32,7 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
     override operator fun invoke(x: V): V {
         val v = omega
         val pi2 = v.constants.pi * v.constants.two
-        val sinValue = castToV((pi2 * x).sin())
+        val sinValue = castToNumber((pi2 * x).sin())
         return x + omega - kappa / pi2 * sinValue
     }
 
@@ -44,7 +44,7 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
      * Safety invariant: V implements FloatingNumber<V>, and trigonometric operations return values from the same numeric family as the input.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun castToV(value: Any): V {
+    private fun castToNumber(value: Any): V {
         return value as V
     }
 
