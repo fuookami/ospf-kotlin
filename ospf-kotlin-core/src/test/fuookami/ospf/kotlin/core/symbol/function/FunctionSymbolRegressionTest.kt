@@ -200,4 +200,40 @@ class FunctionSymbolRegressionTest {
         val result = listOf<IntermediateSymbol<*>>(adapter).register(tokenTable)
         assertTrue(result is Ok, "register should support non-expression linear symbols")
     }
+
+    @Test
+    fun `token register keeps function adapters out of empty symbol fast path`() {
+        val x = RealVar("register_pwl_x")
+        val xPoly = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        val function = UnivariateLinearPiecewiseFunction(
+            x = xPoly,
+            breakpoints = listOf(Flt64.zero, Flt64.one, Flt64(2.0)),
+            slopes = listOf(Flt64.one, Flt64.two),
+            intercepts = listOf(Flt64.zero, -Flt64.one),
+            converter = flt64TestConverter,
+            name = "register_pwl"
+        )
+        val adapter = LinearFunctionSymbolAdapter(function, flt64TestConverter)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
+        tokenTable.add(listOf(x))
+        tokenTable.add(adapter)
+
+        val result = listOf<IntermediateSymbol<*>>(adapter).register(tokenTable)
+
+        assertTrue(result is Ok, "register should support function adapters with zero fallback value")
+        assertEquals(
+            listOf("register_pwl"),
+            tokenTable.copy().symbols.map { it.name },
+            "mutable token table copy should keep registered function symbols for mechanism lifecycle"
+        )
+        for (helperVar in function.helperVariables) {
+            assertNotNull(
+                tokenTable.find(helperVar),
+                "helper variable ${helperVar.name} should be registered by function lifecycle"
+            )
+        }
+    }
 }

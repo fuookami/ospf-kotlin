@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 
@@ -100,7 +101,7 @@ fun Collection<IntermediateSymbol<*>>.register(
     callBack: RegistrationStatusCallBack? = null
 ): Try {
     val (emptySymbols, notEmptySymbols) = this@register.partition {
-        it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
+        it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
             monomials.isEmpty() && constant eq Flt64.zero
         }
     }
@@ -187,7 +188,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
 ): Try {
     return coroutineScope {
         val (emptySymbols, notEmptySymbols) = this@register.partition {
-            it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
+            it !is MathFunctionSymbolBase<*> && it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
                 monomials.isEmpty() && constant eq Flt64.zero
             }
         }

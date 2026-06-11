@@ -577,8 +577,9 @@ sealed class ConcurrentMutableTokenTable<V>(
 class ConcurrentAutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
-    private val _tokenList: AutoTokenList<V>
-) : ConcurrentMutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    private val _tokenList: AutoTokenList<V>,
+    _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
+) : ConcurrentMutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
@@ -596,7 +597,8 @@ class ConcurrentAutoTokenTable<V>(
         return ConcurrentAutoTokenTable(
             category = category,
             checkTokenExists = checkTokenExists,
-            _tokenList = _tokenList.copy() as AutoTokenList<V>
+            _tokenList = _tokenList.copy() as AutoTokenList<V>,
+            _symbols = _symbols.toMutableList()
         )
     }
 }
@@ -613,8 +615,9 @@ class ConcurrentAutoTokenTable<V>(
 class ConcurrentManualAddTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
-    private val _tokenList: ManualTokenList<V>
-) : ConcurrentMutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    private val _tokenList: ManualTokenList<V>,
+    _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
+) : ConcurrentMutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
@@ -632,7 +635,8 @@ class ConcurrentManualAddTokenTable<V>(
         return ConcurrentManualAddTokenTable(
             category = category,
             checkTokenExists = checkTokenExists,
-            _tokenList = _tokenList.copy() as ManualTokenList<V>
+            _tokenList = _tokenList.copy() as ManualTokenList<V>,
+            _symbols = _symbols.toMutableList()
         )
     }
 }

@@ -655,29 +655,17 @@ if (Test-Path $packingAnalyzerPath) {
 
 # --- PWL application constraint registration reflux detection ---
 # PWL constraint registration must go through core symbol lifecycle (model.add(pwlSymbol)).
-# Application solver code should not directly register PWL constraints.
-# ContinuousRadiusModelComponent is allowed to call registerPWLFunctionConstraints
-# because core LinearMechanismModel constraint expansion only supports Flt64,
-# and BPP3D uses InfraNumber.
+# Application solver code must not directly register PWL constraints.
 # / PWL 约束注册必须通过 core symbol lifecycle（model.add(pwlSymbol)）。
-# Application solver 代码不应直接注册 PWL 约束。
-# ContinuousRadiusModelComponent 允许调用 registerPWLFunctionConstraints，
-# 因为 core LinearMechanismModel 约束展开仅支持 Flt64，而 BPP3D 使用 InfraNumber。
-Add-TokenViolation -Check "PWLApplicationConstraintRegistrationReflux" -Pattern "registerPWLContinuousRadiusVariables|registerPWLFunctionConstraints|extractPWLRadiusValues" -AllowSuffixes @(
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ContinuousRadiusModelComponent.kt"
-) -ScanGlob @($sourceGlob)
+# Application solver 代码不得直接注册 PWL 约束。
+Add-TokenViolation -Check "PWLApplicationConstraintRegistrationReflux" -Pattern "registerPWLContinuousRadiusVariables|registerPWLFunctionConstraints|extractPWLRadiusValues" -AllowSuffixes @() -ScanGlob @($sourceGlob)
 
 # --- PWL custom Big-M registration reflux detection ---
-# BPP3D must not hand-write PWL Big-M constraints outside ContinuousRadiusModelComponent.
-# The domain component is allowed to register helper variables and Big-M constraints
-# on LinearMetaModel because core LinearMechanismModel constraint expansion only
-# supports Flt64, and BPP3D uses InfraNumber.
-# / BPP3D 不应在 ContinuousRadiusModelComponent 之外手写 PWL Big-M 约束。
-# domain component 允许在 LinearMetaModel 上注册辅助变量和 Big-M 约束，
-# 因为 core LinearMechanismModel 约束展开仅支持 Flt64，而 BPP3D 使用 InfraNumber。
-Add-TokenViolation -Check "PWLCustomBigMRegistrationReflux" -Pattern "registerPWLFunctionConstraints|\.registerAuxiliaryTokens\(model\.tokens\)|for \(helperVar in pwlFunction\.helperVariables" -AllowSuffixes @(
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ContinuousRadiusModelComponent.kt"
-) -ScanGlob @($sourceGlob)
+# BPP3D must not hand-write PWL Big-M constraints or helper-token registration.
+# Function-symbol internals are expanded by the core mechanism model lifecycle.
+# / BPP3D 不得手写 PWL Big-M 约束或辅助 token 注册。
+# 函数符号内部约束由 core mechanism model 生命周期展开。
+Add-TokenViolation -Check "PWLCustomBigMRegistrationReflux" -Pattern "registerPWLFunctionConstraints|\.registerAuxiliaryTokens\(model\.tokens\)|for \(helperVar in pwlFunction\.helperVariables" -AllowSuffixes @() -ScanGlob @($sourceGlob)
 
 # --- PWL discrete fallback reflux detection ---
 # PWL continuous-radius path must not contain discrete candidate generation, fallback radius list, or silent downgrade.

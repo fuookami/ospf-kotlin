@@ -10,6 +10,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.runBlocking
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
@@ -23,6 +25,7 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.utils.functional.Ok
 
 class ContinuousRadiusModelComponentTest {
 
@@ -573,7 +576,7 @@ class ContinuousRadiusModelComponentTest {
     }
 
     @Test
-    fun shouldLetLinearMechanismModelExpandPWLFunctionConstraints() {
+    fun shouldLetLinearMechanismModelExpandPWLFunctionConstraints() = runBlocking {
         val prototypes = listOf(pwlPrototype())
         val component = ContinuousRadiusModelComponent(
             prototypes = prototypes,
@@ -587,12 +590,21 @@ class ContinuousRadiusModelComponentTest {
         val pwlSymbol = model.tokens.symbols.find { it.name == pwlFunctionName }
         assertNotNull(pwlSymbol, "PWL function symbol should be in tokens.symbols. Symbols: ${model.tokens.symbols.map { "${it.name}(${it::class.simpleName})" }}")
 
-        // Verify PWL constraints are registered on LinearMetaModel
-        // (BPP3D uses InfraNumber, so PWL constraints are registered on LinearMetaModel
-        // rather than relying on core mechanism model expansion which only supports Flt64)
-        val constraintNames = model.constraints.mapNotNull {
+        // PWL internals should not be mirrored on LinearMetaModel.
+        // PWL 内部约束不应镜像注册到 LinearMetaModel。
+        val metaConstraintNames = model.constraints.mapNotNull {
             (it as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<*>)?.name
         }
+        assertFalse(
+            metaConstraintNames.contains("${pwlFunctionName}_select_one"),
+            "PWL select_one should be expanded by LinearMechanismModel, not registered on LinearMetaModel"
+        )
+
+        val mechanismModel = when (val result = LinearMechanismModel.invoke(model)) {
+            is Ok -> result.value
+            else -> error("LinearMechanismModel construction should succeed: $result")
+        }
+        val constraintNames = mechanismModel.constraints.map { it.name }
         assertTrue(
             constraintNames.contains("${pwlFunctionName}_select_one"),
             "Should contain PWL select_one constraint. Actual: $constraintNames"
@@ -620,8 +632,8 @@ class ContinuousRadiusModelComponentTest {
 
         // Helper variables should be registered via core symbol lifecycle
         for (helperVar in pwlVar.pwlFunction.helperVariables) {
-            val token = model.tokens.find(helperVar)
-            assertNotNull(token, "Helper variable ${helperVar.name} should be registered in tokens via core lifecycle")
+            val token = mechanismModel.tokens.find(helperVar)
+            assertNotNull(token, "Helper variable ${helperVar.name} should be registered in mechanism tokens via core lifecycle")
         }
     }
 
@@ -646,14 +658,14 @@ class ContinuousRadiusModelComponentTest {
             )
         }
 
-        // Verify PWL constraints for both variables on LinearMetaModel
+        // PWL internals should not be mirrored on LinearMetaModel
         val constraintNames = model.constraints.mapNotNull {
             (it as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<*>)?.name
         }
         for (pwlVar in component.pwlVariables) {
-            assertTrue(
+            assertFalse(
                 constraintNames.contains("${pwlVar.pwlFunction.name}_select_one"),
-                "Should contain select_one for ${pwlVar.variableName}"
+                "PWL select_one for ${pwlVar.variableName} should not be registered on LinearMetaModel"
             )
         }
     }

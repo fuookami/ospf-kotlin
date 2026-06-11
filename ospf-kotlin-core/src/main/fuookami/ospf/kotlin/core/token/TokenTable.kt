@@ -1073,8 +1073,9 @@ sealed class MutableTokenTable<V>(
 class AutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean,
-    private val _tokenList: AutoTokenList<V>
-) : MutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    private val _tokenList: AutoTokenList<V>,
+    _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
+) : MutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
@@ -1092,7 +1093,8 @@ class AutoTokenTable<V>(
         return AutoTokenTable(
             category = category,
             checkTokenExists = checkTokenExists,
-            _tokenList = _tokenList.copy() as AutoTokenList<V>
+            _tokenList = _tokenList.copy() as AutoTokenList<V>,
+            _symbols = _symbols.toMutableList()
         )
     }
 }
@@ -1109,8 +1111,9 @@ class AutoTokenTable<V>(
 class ManualTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean,
-    private val _tokenList: ManualTokenList<V>
-) : MutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    private val _tokenList: ManualTokenList<V>,
+    _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
+) : MutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
@@ -1128,7 +1131,8 @@ class ManualTokenTable<V>(
         return ManualTokenTable(
             category = category,
             checkTokenExists = checkTokenExists,
-            _tokenList = _tokenList.copy() as ManualTokenList<V>
+            _tokenList = _tokenList.copy() as ManualTokenList<V>,
+            _symbols = _symbols.toMutableList()
         )
     }
 }
