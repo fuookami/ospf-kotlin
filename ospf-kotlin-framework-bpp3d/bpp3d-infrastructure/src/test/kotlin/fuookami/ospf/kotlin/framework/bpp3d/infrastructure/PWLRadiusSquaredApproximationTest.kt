@@ -375,4 +375,48 @@ class PWLRadiusSquaredApproximationTest {
             // Expected
         }
     }
+
+    // ===== Segment count derivation tests =====
+
+    @Test
+    fun testDeriveSegmentCountForWideInterval() {
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(1.0),
+            rMax = infraScalar(10.0),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 64
+        )
+        assertTrue(result.meetsTolerance, "Should meet 1% tolerance for [1, 10] within 64 segments")
+        assertTrue(result.recommendedSegments >= 2, "Wide interval should need multiple segments")
+        assertTrue(result.recommendedSegments <= 64, "Should not exceed maxSegments")
+        assertTrue(result.iterations > 0, "Should have at least 1 iteration")
+    }
+
+    @Test
+    fun testDeriveSegmentCountForNarrowInterval() {
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(5.0),
+            rMax = infraScalar(5.1),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 64
+        )
+        assertTrue(result.meetsTolerance, "Should meet 1% tolerance for [5, 5.1]")
+        // Narrow interval should need very few segments
+        assertTrue(result.recommendedSegments <= 2, "Narrow interval should need at most 2 segments: actual=${result.recommendedSegments}")
+    }
+
+    @Test
+    fun testDeriveSegmentCountInfo() {
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(2.0),
+            rMax = infraScalar(5.0),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 32
+        )
+        val info = result.info()
+        assertTrue(info.containsKey("pwl_derived_segments"))
+        assertTrue(info.containsKey("pwl_derived_achieved_max_rel_error"))
+        assertTrue(info.containsKey("pwl_derived_meets_tolerance"))
+        assertTrue(info.containsKey("pwl_derived_iterations"))
+    }
 }

@@ -5,6 +5,36 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 /**
+ * PWL 段数推导结果。
+ * PWL segment count derivation result.
+ *
+ * 从误差预算推导所需的段数，不静默放宽精度目标。
+ * Derive required segment count from error budget; never silently relax precision target.
+ *
+ * @property recommendedSegments 推荐段数 / recommended segment count
+ * @property achievedMaxRelativeError 达到的最大相对误差 / achieved maximum relative error
+ * @property meetsTolerance 是否满足误差容限 / whether tolerance is met
+ * @property iterations 推导迭代次数 / derivation iteration count
+ */
+data class SegmentCountDerivation(
+    val recommendedSegments: Int,
+    val achievedMaxRelativeError: InfraNumber,
+    val meetsTolerance: Boolean,
+    val iterations: Int
+) {
+    /**
+     * 转为诊断信息。
+     * Convert to diagnostic info.
+     */
+    fun info(): Map<String, String> = mapOf(
+        "pwl_derived_segments" to recommendedSegments.toString(),
+        "pwl_derived_achieved_max_rel_error" to achievedMaxRelativeError.toDouble().toString(),
+        "pwl_derived_meets_tolerance" to meetsTolerance.toString(),
+        "pwl_derived_iterations" to iterations.toString()
+    )
+}
+
+/**
  * PWL 半径平方近似函数：q ≈ r²。
  * PWL radius-squared approximation function: q ≈ r².
  *
@@ -37,6 +67,72 @@ data class PWLRadiusSquaredApproximation(
     val numSegments: Int get() = breakpoints.size - 1
 
     companion object {
+        /**
+         * 从误差预算推导所需段数。
+         * Derive required segment count from error budget.
+         *
+         * 从 1 段开始，逐步加倍直到满足 tolerance 或达到 maxSegments。
+         * 不静默放宽精度目标：若 maxSegments 内无法满足，返回 meetsTolerance=false。
+         *
+         * Start from 1 segment, double until tolerance is met or maxSegments reached.
+         * Never silently relax precision: if tolerance cannot be met within maxSegments,
+         * returns meetsTolerance=false with diagnostics.
+         *
+         * @param rMin 半径下界 / radius lower bound
+         * @param rMax 半径上界 / radius upper bound
+         * @param relativeErrorTolerance 目标相对误差容限 / target relative error tolerance
+         * @param maxSegments 最大段数 / maximum segment count
+         * @return 段数推导结果 / segment count derivation result
+         */
+        fun deriveSegmentCount(
+            rMin: InfraNumber,
+            rMax: InfraNumber,
+            relativeErrorTolerance: InfraNumber,
+            maxSegments: Int = 64
+        ): SegmentCountDerivation {
+            require(rMin > InfraNumber.zero) { "rMin must be positive" }
+            require(rMax > rMin) { "rMax must be greater than rMin" }
+            require(maxSegments >= 1) { "maxSegments must be at least 1" }
+
+            var segments = 1
+            var iterations = 0
+            while (segments <= maxSegments) {
+                val pwl = fromRadiusInterval(
+                    rMin = rMin,
+                    rMax = rMax,
+                    config = PWLRadiusApproximationConfig(
+                        maxSegments = segments,
+                        breakpointStrategy = PWLBreakpointStrategy.Uniform
+                    )
+                )
+                iterations++
+                if (pwl.maxRelativeError <= relativeErrorTolerance) {
+                    return SegmentCountDerivation(
+                        recommendedSegments = segments,
+                        achievedMaxRelativeError = pwl.maxRelativeError,
+                        meetsTolerance = true,
+                        iterations = iterations
+                    )
+                }
+                if (segments >= maxSegments) break
+                segments = minOf(segments * 2, maxSegments)
+            }
+            // Could not meet tolerance within maxSegments — report honestly
+            val finalPwl = fromRadiusInterval(
+                rMin = rMin,
+                rMax = rMax,
+                config = PWLRadiusApproximationConfig(
+                    maxSegments = maxSegments,
+                    breakpointStrategy = PWLBreakpointStrategy.Uniform
+                )
+            )
+            return SegmentCountDerivation(
+                recommendedSegments = maxSegments,
+                achievedMaxRelativeError = finalPwl.maxRelativeError,
+                meetsTolerance = false,
+                iterations = iterations
+            )
+        }
         /**
          * 从半径区间构建 PWL 近似函数。
          * Build PWL approximation from radius interval.

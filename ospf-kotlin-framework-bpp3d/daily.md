@@ -972,3 +972,52 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 
 边界脚本验证：4 个 BPP3D 边界脚本全部通过（`SHAPE_BOUNDARY_PASS`、`STRICT_GENERIC_BOUNDARY_PASS`、`GEOMETRY_BOUNDARY_PASS`、`GEOMETRY_MODULE_DRY_RUN_PASS`）。
 
+### 8.10 阶段七执行记录
+
+日期：2026-06-11
+
+#### 误差预算推导
+
+新增 `SegmentCountDerivation` 数据类和 `PWLRadiusSquaredApproximation.deriveSegmentCount()` 方法：
+
+1. 算法：从 1 段开始，逐步加倍直到满足 tolerance 或达到 maxSegments。
+2. 不静默放宽精度目标：若 maxSegments 内无法满足，返回 `meetsTolerance=false`。
+3. 诊断信息：`info()` 方法输出 `pwl_derived_segments`、`pwl_derived_achieved_max_rel_error`、`pwl_derived_meets_tolerance`、`pwl_derived_iterations`。
+
+修改文件：`PWLRadiusSquaredApproximation.kt`
+
+#### PWL 模型规模 KPI
+
+新增 `ContinuousRadiusModelComponent.modelScaleInfo()` 方法，输出 9 个 KPI：
+
+| Key | Content |
+|-----|---------|
+| `pwl_total_prototypes` | PWL 变量总数 |
+| `pwl_total_segments` | 所有变量段数之和 |
+| `pwl_total_selector_vars` | 二值选择变量总数 |
+| `pwl_total_helper_vars` | 辅助变量总数 |
+| `pwl_total_constraints` | PWL 约束总数（select-one + 4N per variable） |
+| `pwl_max_segments` | 单变量最大段数 |
+| `pwl_avg_segments` | 平均段数 |
+| `pwl_max_relative_error` | 最大相对误差 |
+| `pwl_avg_relative_error` | 平均最大相对误差 |
+
+修改文件：`ContinuousRadiusModelComponent.kt`
+
+#### 极端半径测试
+
+新增 6 个极端半径和误差预算测试：
+
+| Test | Edge Case |
+|------|-----------|
+| `testPWLWithVerySmallRMin` | rMin=0.01, rMax=1.0，验证 PWL 仍有效 |
+| `testPWLWithLargeRatio` | rMin=1.0, rMax=100.0，8 段相对误差超 10% |
+| `testPWLWithNarrowInterval` | rMin=5.0, rMax=5.01，1 段足够精确 |
+| `testDeriveSegmentCountMeetsTolerance` | 误差预算推导满足 tolerance |
+| `testDeriveSegmentCountExceedsMaxSegments` | maxSegments 内无法满足，返回 meetsTolerance=false |
+| `testDeriveSegmentCountDoesNotSilentlyRelax` | 不静默放宽误差目标 |
+
+新增 3 个 deriveSegmentCount 测试（`PWLRadiusSquaredApproximationTest.kt`）和 3 个 modelScaleInfo 测试（`ContinuousRadiusModelComponentTest.kt`）。
+
+验证：BPP3D 全模块 BUILD SUCCESS（9/9 模块），4 个边界脚本全部通过。
+

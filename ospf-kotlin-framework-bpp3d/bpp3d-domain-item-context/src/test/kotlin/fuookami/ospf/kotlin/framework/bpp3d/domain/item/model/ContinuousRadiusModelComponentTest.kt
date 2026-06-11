@@ -428,4 +428,64 @@ class ContinuousRadiusModelComponentTest {
             "Different ranges should produce different breakpoints"
         )
     }
+
+    // ===== 8. 模型规模 KPI 测试 / Model scale KPI tests =====
+
+    @Test
+    fun testModelScaleInfoWithPWLVariables() {
+        val prototypes = listOf(
+            pwlPrototype("pwl1", rMin = 2.0, rMax = 5.0),
+            pwlPrototype("pwl2", rMin = 1.0, rMax = 8.0)
+        )
+        val component = ContinuousRadiusModelComponent(
+            prototypes = prototypes,
+            config = PWLRadiusApproximationConfig(maxSegments = 4)
+        )
+        val kpi = component.modelScaleInfo()
+        assertEquals("2", kpi["pwl_total_prototypes"], "Should have 2 PWL prototypes")
+        // Each with 4 segments
+        assertEquals("8", kpi["pwl_total_segments"], "Should have 8 total segments (2*4)")
+        // Per variable: 4 selector vars + 1 select-one constraint + 4*4=16 segment constraints = 17 constraints
+        assertEquals("34", kpi["pwl_total_constraints"], "Should have 34 total constraints (2 * (1 + 4*4))")
+        assertEquals("4", kpi["pwl_max_segments"], "Max segments should be 4")
+        assertTrue(kpi.containsKey("pwl_total_selector_vars"), "Should contain selector var count")
+        assertTrue(kpi.containsKey("pwl_total_helper_vars"), "Should contain helper var count")
+        assertTrue(kpi.containsKey("pwl_max_relative_error"), "Should contain max relative error")
+        assertTrue(kpi.containsKey("pwl_avg_relative_error"), "Should contain avg relative error")
+    }
+
+    @Test
+    fun testModelScaleInfoWithEmptyPrototypes() {
+        val component = ContinuousRadiusModelComponent(
+            prototypes = emptyList(),
+            config = PWLRadiusApproximationConfig()
+        )
+        val kpi = component.modelScaleInfo()
+        assertEquals("0", kpi["pwl_total_prototypes"])
+        assertEquals("0", kpi["pwl_total_segments"])
+        assertEquals("0", kpi["pwl_total_selector_vars"])
+        assertEquals("0", kpi["pwl_total_helper_vars"])
+        assertEquals("0", kpi["pwl_total_constraints"])
+        assertEquals("0", kpi["pwl_max_segments"])
+        assertEquals("0.0", kpi["pwl_avg_segments"])
+    }
+
+    @Test
+    fun testModelScaleInfoWithMultiplePWLVariables() {
+        val prototypes = listOf(
+            pwlPrototype("pwl1", rMin = 1.0, rMax = 5.0),
+            pwlPrototype("pwl2", rMin = 2.0, rMax = 8.0),
+            pwlPrototype("pwl3", rMin = 0.5, rMax = 2.0)
+        )
+        val component = ContinuousRadiusModelComponent(
+            prototypes = prototypes,
+            config = PWLRadiusApproximationConfig(maxSegments = 8)
+        )
+        val kpi = component.modelScaleInfo()
+        assertEquals("3", kpi["pwl_total_prototypes"])
+        assertEquals("24", kpi["pwl_total_segments"], "Should have 24 total segments (3*8)")
+        // Each variable: 8 selector vars, 1 select-one + 4*8=32 segment constraints = 33 constraints
+        assertEquals("99", kpi["pwl_total_constraints"], "Should have 99 total constraints (3 * 33)")
+        assertEquals("8", kpi["pwl_max_segments"])
+    }
 }

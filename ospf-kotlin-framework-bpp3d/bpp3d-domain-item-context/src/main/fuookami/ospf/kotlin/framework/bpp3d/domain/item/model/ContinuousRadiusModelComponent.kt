@@ -596,6 +596,56 @@ class ContinuousRadiusModelComponent(
     fun info(): Map<String, String> = registrationPlan.info()
 
     /**
+     * 获取 PWL 模型规模诊断信息。
+     * Get PWL model scale diagnostic info.
+     *
+     * 包括所有 PWL 变量的段数、选择变量数、辅助变量数、约束数和误差统计汇总。
+     * Includes summary of segment counts, selector variables, helper variables,
+     * constraint counts, and error statistics across all PWL variables.
+     *
+     * @return 模型规模诊断信息 / model scale diagnostic info
+     */
+    fun modelScaleInfo(): Map<String, String> {
+        if (pwlVariables.isEmpty()) {
+            return mapOf(
+                "pwl_total_prototypes" to "0",
+                "pwl_total_segments" to "0",
+                "pwl_total_selector_vars" to "0",
+                "pwl_total_helper_vars" to "0",
+                "pwl_total_constraints" to "0",
+                "pwl_max_segments" to "0",
+                "pwl_avg_segments" to "0.0",
+                "pwl_max_relative_error" to "0.0",
+                "pwl_avg_relative_error" to "0.0"
+            )
+        }
+        val totalPrototypes = pwlVariables.size
+        val segmentCounts = pwlVariables.map { it.pwlApproximation.numSegments }
+        val totalSegments = segmentCounts.sum()
+        val totalSelectorVars = pwlVariables.sumOf { it.pwlFunction.selectorVars.size }
+        val totalHelperVars = pwlVariables.sumOf { it.pwlFunction.helperVariables.size }
+        // Per PWL variable: 1 select-one constraint + 4 Big-M constraints per segment
+        val totalConstraints = pwlVariables.sumOf { 1 + 4 * it.pwlApproximation.numSegments }
+        val maxSegments = segmentCounts.maxOrNull() ?: 0
+        val avgSegments = segmentCounts.average()
+        val relativeErrors = pwlVariables.map { it.pwlApproximation.maxRelativeError.toDouble() }
+        val maxRelError = relativeErrors.maxOrNull() ?: 0.0
+        val avgRelError = relativeErrors.average()
+
+        return mapOf(
+            "pwl_total_prototypes" to totalPrototypes.toString(),
+            "pwl_total_segments" to totalSegments.toString(),
+            "pwl_total_selector_vars" to totalSelectorVars.toString(),
+            "pwl_total_helper_vars" to totalHelperVars.toString(),
+            "pwl_total_constraints" to totalConstraints.toString(),
+            "pwl_max_segments" to maxSegments.toString(),
+            "pwl_avg_segments" to String.format("%.1f", avgSegments),
+            "pwl_max_relative_error" to String.format("%.4e", maxRelError),
+            "pwl_avg_relative_error" to String.format("%.4e", avgRelError)
+        )
+    }
+
+    /**
      * 将 UnivariateLinearPiecewiseFunction 的 Big-M 约束注册到 LinearMetaModel。
      * Register UnivariateLinearPiecewiseFunction's Big-M constraints into LinearMetaModel.
      *

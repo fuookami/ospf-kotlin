@@ -304,4 +304,125 @@ class PWLContinuousRadiusNegativeTest {
             )
         }
     }
+
+    // ===== 6. 极端半径测试 / Extreme radius tests =====
+
+    @Test
+    fun testPWLWithVerySmallRMin() {
+        // rMin 接近 0 但仍为正数，比例适中 / rMin close to 0 but still positive, moderate ratio
+        val rMin = infraScalar(0.01)
+        val rMax = infraScalar(1.0)
+        val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = rMin,
+            rMax = rMax,
+            config = PWLRadiusApproximationConfig(maxSegments = 8, breakpointStrategy = PWLBreakpointStrategy.Uniform)
+        )
+        // PWL 仍应有效 / PWL should still be valid
+        assertTrue(pwl.maxRelativeError.toDouble() > 0.0, "PWL should have non-zero error for [0.01, 1.0]")
+        // 断点在 rMin 和 rMax 处精确 / exact at breakpoints
+        assertEquals(rMin.toDouble() * rMin.toDouble(), pwl.evaluate(rMin).toDouble(), 1e-8,
+            "PWL should be exact at rMin")
+        assertEquals(rMax.toDouble() * rMax.toDouble(), pwl.evaluate(rMax).toDouble(), 1e-8,
+            "PWL should be exact at rMax")
+        // 大跨度下需要更多段才能达到低误差 / wide ratio needs more segments for low error
+        val pwlMoreSegments = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = rMin,
+            rMax = rMax,
+            config = PWLRadiusApproximationConfig(maxSegments = 32, breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
+                relativeErrorTolerance = infraScalar(0.01))
+        )
+        assertTrue(
+            pwlMoreSegments.maxRelativeError.toDouble() < pwl.maxRelativeError.toDouble(),
+            "More segments with error-driven strategy should reduce max relative error"
+        )
+    }
+
+    @Test
+    fun testPWLWithLargeRatio() {
+        // rMax / rMin 跨度大 / large rMax/rMin ratio
+        val rMin = infraScalar(1.0)
+        val rMax = infraScalar(100.0)
+        val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = rMin,
+            rMax = rMax,
+            config = PWLRadiusApproximationConfig(maxSegments = 8, breakpointStrategy = PWLBreakpointStrategy.Uniform)
+        )
+        // 大跨度下 8 段相对误差应较大 / 8 segments over [1, 100] should have significant relative error
+        assertTrue(
+            pwl.maxRelativeError.toDouble() > 0.1,
+            "With 8 uniform segments over [1, 100], max relative error should exceed 10%: actual=${pwl.maxRelativeError.toDouble()}"
+        )
+    }
+
+    @Test
+    fun testPWLWithNarrowInterval() {
+        // 极窄区间 / very narrow interval
+        val rMin = infraScalar(5.0)
+        val rMax = infraScalar(5.01)
+        val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = rMin,
+            rMax = rMax,
+            config = PWLRadiusApproximationConfig(maxSegments = 1, breakpointStrategy = PWLBreakpointStrategy.Uniform)
+        )
+        // 极窄区间下 1 段应足够精确 / 1 segment should be very accurate for narrow interval
+        assertTrue(
+            pwl.maxRelativeError.toDouble() < 0.001,
+            "With 1 segment over [5.0, 5.01], max relative error should be very small: actual=${pwl.maxRelativeError.toDouble()}"
+        )
+    }
+
+    // ===== 7. 误差预算推导测试 / Error budget derivation tests =====
+
+    @Test
+    fun testDeriveSegmentCountMeetsTolerance() {
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(2.0),
+            rMax = infraScalar(5.0),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 32
+        )
+        assertTrue(result.meetsTolerance, "Should meet 1% tolerance for [2, 5] within 32 segments")
+        assertTrue(result.recommendedSegments <= 32, "Should not exceed maxSegments")
+        assertTrue(
+            result.achievedMaxRelativeError.toDouble() <= 0.01,
+            "Achieved error should be <= tolerance: actual=${result.achievedMaxRelativeError.toDouble()}"
+        )
+    }
+
+    @Test
+    fun testDeriveSegmentCountExceedsMaxSegments() {
+        // 极严精度 + 极少段数 = 无法满足 / very strict tolerance + very few segments = cannot meet
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(1.0),
+            rMax = infraScalar(100.0),
+            relativeErrorTolerance = infraScalar(0.0001),
+            maxSegments = 4
+        )
+        assertFalse(result.meetsTolerance, "Should NOT meet 0.01% tolerance for [1, 100] with only 4 segments")
+        assertEquals(4, result.recommendedSegments, "Should return maxSegments as recommended")
+        // 诊断信息应包含 / diagnostics should contain
+        val info = result.info()
+        assertEquals("false", info["pwl_derived_meets_tolerance"])
+        assertTrue(info.containsKey("pwl_derived_achieved_max_rel_error"))
+    }
+
+    @Test
+    fun testDeriveSegmentCountDoesNotSilentlyRelax() {
+        // 验证 deriveSegmentCount 不会静默放宽误差 / verify no silent relaxation
+        val strictTolerance = infraScalar(0.0001)
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(1.0),
+            rMax = infraScalar(50.0),
+            relativeErrorTolerance = strictTolerance,
+            maxSegments = 4
+        )
+        // 若不满足，meetsTolerance 必须为 false，不应假装满足
+        // If not met, meetsTolerance must be false — must not pretend to satisfy
+        if (!result.meetsTolerance) {
+            assertTrue(
+                result.achievedMaxRelativeError.toDouble() > strictTolerance.toDouble(),
+                "If tolerance not met, achieved error must be > tolerance: achieved=${result.achievedMaxRelativeError.toDouble()}, tolerance=${strictTolerance.toDouble()}"
+            )
+        }
+    }
 }
