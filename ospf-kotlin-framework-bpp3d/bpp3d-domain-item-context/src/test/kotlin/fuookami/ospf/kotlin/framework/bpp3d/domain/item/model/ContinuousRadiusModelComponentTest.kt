@@ -10,15 +10,21 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ConservativeRadiusEnvelope
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLBreakpointStrategy
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusApproximationConfig
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusSquaredApproximation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import kotlinx.coroutines.runBlocking
 
 class ContinuousRadiusModelComponentTest {
 
@@ -487,5 +493,180 @@ class ContinuousRadiusModelComponentTest {
         // Each variable: 8 selector vars, 1 select-one + 4*8=32 segment constraints = 33 constraints
         assertEquals("99", kpi["pwl_total_constraints"], "Should have 99 total constraints (3 * 33)")
         assertEquals("8", kpi["pwl_max_segments"])
+    }
+
+    // ===== 9. Core symbol lifecycle 测试 / Core symbol lifecycle tests =====
+
+    /**
+     * 辅助方法：创建 LinearMetaModel 并注册组件。
+     * Helper: create LinearMetaModel and register the component.
+     */
+    private fun createModelAndRegister(
+        component: ContinuousRadiusModelComponent
+    ): LinearMetaModel<InfraNumber> {
+        val model = LinearMetaModel(
+            name = "test_pwl_lifecycle",
+            converter = IntoValue.fromConverter(FltX)
+        )
+        val errors = mutableListOf<String>()
+        val ensureTry: (fuookami.ospf.kotlin.utils.functional.Try, String) -> Unit = { result, msg ->
+            if (result !is fuookami.ospf.kotlin.utils.functional.Ok) {
+                errors.add(msg)
+            }
+        }
+        component.register(model, ensureTry)
+        assertTrue(errors.isEmpty(), "Registration should succeed without errors: $errors")
+        return model
+    }
+
+    @Test
+    fun shouldRegisterPWLFunctionAsIntermediateSymbol() {
+        val prototypes = listOf(pwlPrototype())
+        val component = ContinuousRadiusModelComponent(
+            prototypes = prototypes,
+            config = PWLRadiusApproximationConfig(maxSegments = 4)
+        )
+        val model = createModelAndRegister(component)
+
+        // The PWL function symbol should be in the model's token table symbols
+        val pwlVar = component.pwlVariables[0]
+        val pwlFunctionName = pwlVar.pwlFunction.name
+        val symbolNames = model.tokens.symbols.map { it.name }
+        assertTrue(
+            symbolNames.contains(pwlFunctionName),
+            "PWL function symbol '$pwlFunctionName' should be registered in tokens.symbols. Actual symbols: $symbolNames"
+        )
+
+        // The PWL function should be an IntermediateSymbol
+        val pwlSymbol = model.tokens.symbols.find { it.name == pwlFunctionName }
+        assertNotNull(pwlSymbol, "PWL symbol should be found in tokens.symbols")
+        assertTrue(
+            pwlSymbol is IntermediateSymbol<*>,
+            "PWL symbol should be an IntermediateSymbol"
+        )
+    }
+
+    @Test
+    fun shouldRegisterRadiusVariableAndBounds() {
+        val prototypes = listOf(pwlPrototype())
+        val component = ContinuousRadiusModelComponent(
+            prototypes = prototypes,
+            config = PWLRadiusApproximationConfig(maxSegments = 4)
+        )
+        val model = createModelAndRegister(component)
+
+        // Radius variable should be in the model
+        val pwlVar = component.pwlVariables[0]
+        val rToken = model.tokens.find(pwlVar.radiusVariable)
+        assertNotNull(rToken, "Radius variable should be registered in tokens")
+
+        // Radius bound constraints should exist
+        val constraintNames = model.constraints.mapNotNull {
+            (it as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<*>)?.name
+        }
+        assertTrue(
+            constraintNames.contains("${pwlVar.variableName}_pwl_r_lb"),
+            "Should have radius lower bound constraint"
+        )
+        assertTrue(
+            constraintNames.contains("${pwlVar.variableName}_pwl_r_ub"),
+            "Should have radius upper bound constraint"
+        )
+    }
+
+    @Test
+    fun shouldLetLinearMechanismModelExpandPWLFunctionConstraints() {
+        val prototypes = listOf(pwlPrototype())
+        val component = ContinuousRadiusModelComponent(
+            prototypes = prototypes,
+            config = PWLRadiusApproximationConfig(maxSegments = 4)
+        )
+        val model = createModelAndRegister(component)
+        val pwlVar = component.pwlVariables[0]
+        val pwlFunctionName = pwlVar.pwlFunction.name
+
+        // Build LinearMechanismModel which triggers core constraint expansion
+        val mechanismModel = runBlocking {
+            when (val result = LinearMechanismModel(model)) {
+                is fuookami.ospf.kotlin.utils.functional.Ok -> result.value
+                else -> throw AssertionError("LinearMechanismModel construction should succeed")
+            }
+        }
+
+        // Core should have expanded PWL function constraints
+        val mechanismConstraintNames = mechanismModel.constraints.map { it.name }
+
+        // Should contain select_one constraint
+        assertTrue(
+            mechanismConstraintNames.contains("${pwlFunctionName}_select_one"),
+            "Mechanism model should contain PWL select_one constraint. Actual: $mechanismConstraintNames"
+        )
+
+        // Should contain segment constraints for each segment
+        for (i in 0 until pwlVar.pwlApproximation.numSegments) {
+            assertTrue(
+                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_lb"),
+                "Mechanism model should contain segment $i lower bound constraint"
+            )
+            assertTrue(
+                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_ub"),
+                "Mechanism model should contain segment $i upper bound constraint"
+            )
+            assertTrue(
+                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_eq_ub"),
+                "Mechanism model should contain segment $i equality upper constraint"
+            )
+            assertTrue(
+                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_eq_lb"),
+                "Mechanism model should contain segment $i equality lower constraint"
+            )
+        }
+
+        // Helper variables should be in mechanism tokens
+        val mechanismTokenVars = mechanismModel.tokens.tokens.map { it.variable }
+        for (helperVar in pwlVar.pwlFunction.helperVariables) {
+            assertTrue(
+                mechanismTokenVars.contains(helperVar),
+                "Helper variable ${helperVar.name} should be in mechanism tokens"
+            )
+        }
+    }
+
+    @Test
+    fun shouldHandleMultiplePWLVariablesWithCoreLifecycle() {
+        val prototypes = listOf(
+            pwlPrototype("pwl1", rMin = 1.0, rMax = 3.0),
+            pwlPrototype("pwl2", rMin = 2.0, rMax = 8.0)
+        )
+        val component = ContinuousRadiusModelComponent(
+            prototypes = prototypes,
+            config = PWLRadiusApproximationConfig(maxSegments = 4)
+        )
+        val model = createModelAndRegister(component)
+
+        // Both PWL function symbols should be registered
+        for (pwlVar in component.pwlVariables) {
+            val symbolNames = model.tokens.symbols.map { it.name }
+            assertTrue(
+                symbolNames.contains(pwlVar.pwlFunction.name),
+                "PWL function symbol '${pwlVar.pwlFunction.name}' should be registered"
+            )
+        }
+
+        // Build mechanism model and verify constraints for both
+        val mechanismModel = runBlocking {
+            when (val result = LinearMechanismModel(model)) {
+                is fuookami.ospf.kotlin.utils.functional.Ok -> result.value
+                else -> throw AssertionError("LinearMechanismModel construction should succeed")
+            }
+        }
+        val mechanismConstraintNames = mechanismModel.constraints.map { it.name }
+
+        for (pwlVar in component.pwlVariables) {
+            assertTrue(
+                mechanismConstraintNames.contains("${pwlVar.pwlFunction.name}_select_one"),
+                "Mechanism model should contain select_one for ${pwlVar.variableName}"
+            )
+        }
     }
 }
