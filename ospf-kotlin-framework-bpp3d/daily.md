@@ -930,3 +930,45 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 
 全 BPP3D 父 POM 编译通过（9/9 模块 BUILD SUCCESS）。唯一警告为预存的 unchecked cast（`PWLContinuousRadiusRegistration.kt:82`）。
 
+### 8.9 阶段五至六执行记录
+
+日期：2026-06-11
+
+#### 阶段五：扩展点测试
+
+新增测试文件：
+
+1. `ContinuousRadiusModelComponentTest.kt`（431 行，20 个测试）：
+   - 组件注册测试：native 变量创建、PWL 变量创建、混合原型分类。
+   - 配置注入测试：不同 config 影响段数、断点、误差驱动策略和 debugInfo。
+   - 注册计划测试：四路径分类、互斥摘要、PWL 变量诊断。
+   - PWLExtractedRadius 值对象测试：体积计算、诊断信息。
+   - 四路径互斥测试：native/PWL/blocked/productionReady 属性。
+   - 空原型列表和多 PWL 原型测试。
+
+2. `ContinuousRadiusSelectionExtractorTest.kt`（359 行，14 个测试）：
+   - Native 选择结果构建测试：正常构建、跳过缺失值、空输入、无 PWL metadata。
+   - PWL 选择结果构建测试（opaque Map）：正常构建、跳过未知变量名、envelope 违规。
+   - PWL 选择结果构建测试（typed PWLExtractedRadius）：从提取结果直接构建、numSegments 来源、空输入。
+   - actualVolume 一致性测试：PWL 路径使用 r²（非 q）、typed 和 opaque 路径结果一致。
+
+测试验证结果：BPP3D 全模块 BUILD SUCCESS，9/9 模块通过。
+
+#### 阶段六：边界脚本硬化
+
+新增边界检查（`shape-boundary-check.ps1`）：
+
+1. **PWLApplicationConstraintRegistrationReflux**：检测 `registerPWLContinuousRadiusVariables`、`registerPWLFunctionConstraints`、`extractPWLRadiusValues` 出现在 application solver 代码中。PWL 注册应通过 `ContinuousRadiusModelComponent`。白名单包含死代码文件 `PWLContinuousRadiusRegistration.kt` 和正确的领域组件 `ContinuousRadiusModelComponent.kt`。
+
+2. **PWLDiscreteFallbackReflux**：检测 `discreteRadiusCandidate`、`fallbackRadiusList`、`silentDowngrade`、`DiscreteBreakpointStrategy` 等关键词出现在生产路径中。白名单包含 `CylinderShapeContract.kt`（其 guard 消息中引用 "discrete radius candidates"）。
+
+3. **ContinuousRadiusUnsupportedRegression**：检测 `isPWLRegisterable = false`、`PWL_PATH_DISABLED`、`pwl_registration_blocked` 等模式出现，防止已开放的 interval-only PWL 路径被重新标为 unsupported。
+
+修复的既有边界检查：
+
+1. **ContinuousCylinderRadiusSolverRegistrationPlanGuardMissing**：路径从 `ContinuousRadiusSolverRegistrationPlan.kt` 更新为 `ContinuousRadiusModelComponent.kt`（类型已迁移）。
+2. **ContinuousCylinderRadiusSolverFinalRegistrationPlanUsageMissing**：模式从 `continuousRadiusVariablePlan` 更新为 `continuousRadiusComponent`（executor 已改用组件）。
+3. **ContinuousCylinderRadiusSolverRmpRegistrationPlanUsageMissing**：同上。
+
+边界脚本验证：4 个 BPP3D 边界脚本全部通过（`SHAPE_BOUNDARY_PASS`、`STRICT_GENERIC_BOUNDARY_PASS`、`GEOMETRY_BOUNDARY_PASS`、`GEOMETRY_MODULE_DRY_RUN_PASS`）。
+

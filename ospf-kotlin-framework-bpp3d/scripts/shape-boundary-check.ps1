@@ -69,6 +69,9 @@ $fixHints = @{
     DeletedCuboidCompatAliasReflux = "Do not re-introduce deleted ItemCuboid.packageType/packageCategory/bottomOnly/topFlat compat extensions or Projection/AnyPlacement compat extension aliases; use shape-generic ItemProjection/ItemPlacement domain APIs instead."
     ContinuousRadiusSolverResultWritebackMissing = "PackingRendererAdapter.toSchema must support solver-selected radius writeback for continuous-radius cylinders so actualVolume uses the solver-optimized radius."
     ContinuousRadiusSolverResultPropagationMissing = "ColumnGenerationPackingAnalyzer.analyze must propagate solver-selected radius results to the renderer adapter so actualVolume reflects the optimized radius."
+    PWLApplicationConstraintRegistrationReflux = "PWL constraint registration (model.addConstraint + Big-M/segment/PWL keywords) must live in ContinuousRadiusModelComponent, not in application solver code. If new PWL registration is needed, extend the domain component instead."
+    PWLDiscreteFallbackReflux = "PWL continuous-radius path must not use discrete candidate, fallback radius list, or silent downgrade. Keep interval-only PWL as the only continuous-radius approximation strategy."
+    ContinuousRadiusUnsupportedRegression = "Interval-only PWL continuous-radius path must not be re-labeled as unsupported or gap-only. Once opened, the PWL registration path must remain available for interval-only prototypes."
 }
 
 function Get-AllowListKey {
@@ -483,24 +486,24 @@ Add-RequiredPatternViolation `
     -Pattern "continuous_radius_solver_prototype_count[\s\S]*?state\.continuousRadiusSolverPrototypes\.size[\s\S]*?continuous_radius_solver_prototype_variables[\s\S]*?state\.continuousRadiusSolverPrototypes\.joinToString[\s\S]*?continuous_radius_solver_prototype_count[\s\S]*?state\.continuousRadiusSolverPrototypes\.size[\s\S]*?continuous_radius_solver_prototype_variables[\s\S]*?state\.continuousRadiusSolverPrototypes\.joinToString" `
     -MissingText "ColumnGenerationStandardExecutors must expose continuous-radius solver prototype count and variables in both RMP and final MILP solve info."
 
-$continuousRadiusSolverRegistrationPlanPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ContinuousRadiusSolverRegistrationPlan.kt"
+$continuousRadiusSolverRegistrationPlanPath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ContinuousRadiusModelComponent.kt"
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverRegistrationPlanGuardMissing" `
     -FilePath $continuousRadiusSolverRegistrationPlanPath `
     -Pattern "data\s+class\s+ContinuousRadiusSolverVariableRegistrationPlan[\s\S]*?core token-bound support[\s\S]*?continuous_radius_solver_registration_plan_count[\s\S]*?continuous_radius_solver_registration_plan_variables[\s\S]*?continuous_radius_solver_registration_plan_bounds[\s\S]*?continuous_radius_solver_model_registration_blocked_variables[\s\S]*?continuous_radius_solver_model_registration_blocked_reason[\s\S]*?fun\s+continuousRadiusSolverVariableRegistrationPlan\s*\([\s\S]*?registrationBoundDescription" `
-    -MissingText "ContinuousRadiusSolverRegistrationPlan must expose the continuous-radius solver registration plan and blocked model-registration reason without adding unsupported symbolic radius variables to the solver model."
+    -MissingText "ContinuousRadiusModelComponent must expose the continuous-radius solver registration plan and blocked model-registration reason without adding unsupported symbolic radius variables to the solver model."
 
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverFinalRegistrationPlanUsageMissing" `
     -FilePath $columnGenerationStandardExecutorsPath `
-    -Pattern "val\s+continuousRadiusVariablePlan\s*=\s*continuousRadiusSolverVariableRegistrationPlan\s*\([\s\S]*?state\.continuousRadiusSolverPrototypes[\s\S]*?continuousRadiusVariablePlan\.info\s*\(\)" `
-    -MissingText "ColumnGenerationStandardExecutors must use the shared continuous-radius solver registration plan in final MILP solve info."
+    -Pattern "val\s+continuousRadiusComponent\s*=\s*ContinuousRadiusModelComponent\s*\([\s\S]*?state\.continuousRadiusSolverPrototypes[\s\S]*?continuousRadiusComponent\.info\s*\(\)" `
+    -MissingText "ColumnGenerationStandardExecutors must use ContinuousRadiusModelComponent.info() in final MILP solve info."
 
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverRmpRegistrationPlanUsageMissing" `
     -FilePath $columnGenerationStandardExecutorsPath `
-    -Pattern "artifacts\.continuousRadiusVariablePlan\.info\s*\(\)[\s\S]*?val\s+continuousRadiusVariablePlan:\s*ContinuousRadiusSolverVariableRegistrationPlan[\s\S]*?continuousRadiusSolverVariableRegistrationPlan\s*\([\s\S]*?state\.continuousRadiusSolverPrototypes" `
-    -MissingText "ColumnGenerationStandardExecutors must use the shared continuous-radius solver registration plan in RMP solve info."
+    -Pattern "artifacts\.continuousRadiusComponent\.info\s*\(\)[\s\S]*?val\s+continuousRadiusComponent:\s*ContinuousRadiusModelComponent[\s\S]*?ContinuousRadiusModelComponent\s*\([\s\S]*?state\.continuousRadiusSolverPrototypes" `
+    -MissingText "ColumnGenerationStandardExecutors must use ContinuousRadiusModelComponent.info() in RMP solve info."
 
 $columnGenerationPackingAnalyzerPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationPackingAnalyzer.kt"
 Add-RequiredPatternViolation `
@@ -648,6 +651,31 @@ if (Test-Path $packingAnalyzerPath) {
         }
     }
 }
+
+# --- PWL application constraint registration reflux detection ---
+# Application solver code should not directly register PWL constraints (Big-M, segment, select-one).
+# PWL registration must go through ContinuousRadiusModelComponent in domain-item-context.
+$pwlApplicationAllowSuffixes = @(
+    # PWLContinuousRadiusRegistration.kt is dead code (migration to domain component complete),
+    # but still present on disk. Allow it temporarily until cleanup.
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/PWLContinuousRadiusRegistration.kt",
+    # ContinuousRadiusModelComponent.kt is the correct location for PWL registration.
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ContinuousRadiusModelComponent.kt"
+)
+Add-TokenViolation -Check "PWLApplicationConstraintRegistrationReflux" -Pattern "registerPWLContinuousRadiusVariables|registerPWLFunctionConstraints|extractPWLRadiusValues" -AllowSuffixes $pwlApplicationAllowSuffixes -ScanGlob @($sourceGlob)
+
+# --- PWL discrete fallback reflux detection ---
+# PWL continuous-radius path must not contain discrete candidate generation, fallback radius list, or silent downgrade.
+# Note: CylinderShapeContract and its tests reference "discrete radius candidates" in guard/rejection messages;
+# these are part of the prevention mechanism, not actual discrete fallback. They are allowlisted.
+$pwlDiscreteFallbackAllowSuffixes = @(
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/CylinderShapeContract.kt"
+)
+Add-TokenViolation -Check "PWLDiscreteFallbackReflux" -Pattern "discreteRadiusCandidate|fallbackRadiusList|silentDowngrade|DiscreteBreakpointStrategy|discreteBreakpointStrategy|discrete_radius_candidate_generation|fallback_radius_list|discrete radius candidates" -AllowSuffixes $pwlDiscreteFallbackAllowSuffixes -ScanGlob @($sourceGlob)
+
+# --- Continuous-radius unsupported regression detection ---
+# Once the interval-only PWL path is opened, it must not be re-labeled as unsupported or gap-only.
+Add-TokenViolation -Check "ContinuousRadiusUnsupportedRegression" -Pattern "isPWLRegisterable\s*=\s*false|PWL_PATH_DISABLED|pwl_registration_blocked" -AllowSuffixes @() -ScanGlob @($sourceGlob)
 
 foreach ($entry in $allowlistEntries.Values) {
     if (-not $entry.Hit) {
