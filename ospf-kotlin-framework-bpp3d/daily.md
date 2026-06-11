@@ -1021,3 +1021,33 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 
 验证：BPP3D 全模块 BUILD SUCCESS（9/9 模块），4 个边界脚本全部通过。
 
+### 8.11 本轮完成汇总
+
+日期：2026-06-11
+
+#### 已完成 Commit
+
+| Commit | Header | 阶段 | 状态 |
+|--------|--------|------|------|
+| 1 | `chore(bpp3d): document PWL modeling architecture boundary` | 零+一+二 | 已完成 |
+| 2 | `refactor(bpp3d): move PWL radius modeling into domain component` | 三+四 | 已完成 |
+| 3 | `test(bpp3d): cover PWL radius extension boundaries` | 五+六 | 已完成 |
+| 4 | `feat(bpp3d): add PWL radius accuracy and performance diagnostics` | 七 | 已完成 |
+
+#### 验收结果
+
+1. BPP3D 全模块 BUILD SUCCESS（9/9 模块，所有测试通过）。
+2. 4 个边界脚本全部通过（`SHAPE_BOUNDARY_PASS`、`STRICT_GENERIC_BOUNDARY_PASS`、`GEOMETRY_BOUNDARY_PASS`、`GEOMETRY_MODULE_DRY_RUN_PASS`）。
+3. 新增 3 个边界检查：`PWLApplicationConstraintRegistrationReflux`、`PWLDiscreteFallbackReflux`、`ContinuousRadiusUnsupportedRegression`。
+4. 修复 3 个既有边界检查路径（迁移到 domain component）。
+5. 新增测试：`ContinuousRadiusModelComponentTest`（23 个测试）、`ContinuousRadiusSelectionExtractorTest`（14 个测试）、极端半径测试（6 个）、误差预算测试（3+3 个）、模型规模 KPI 测试（3 个）。
+6. 新增能力：`SegmentCountDerivation.deriveSegmentCount()`、`ContinuousRadiusModelComponent.modelScaleInfo()`。
+
+#### 未完成事项（留待下一轮或触发式执行）
+
+1. **Commit 5（Gurobi dataset 与 renderer fixture 增强）**：需要 Gurobi license，在 Gurobi focused test 环境中执行。
+2. **死代码清理**：`PWLContinuousRadiusRegistration.kt` 已成为死代码，应在确认无回流后删除。
+3. **ContinuousRadiusSolverRegistrationPlan.kt 重导出清理**：application 层仅剩重导出，可考虑在所有调用方迁移到直接 import domain 类型后删除。
+4. **Gurobi 触发式验收**：本轮修改了 application、solver registration 和 PWL extraction，按计划应执行 Gurobi focused test，但需要 Gurobi license 环境。
+
+
