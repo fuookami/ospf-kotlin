@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverVariableRegistrationPlan
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
@@ -63,10 +63,10 @@ private fun demandModeTag(mode: Bpp3dDemandMode): String {
 }
 
 /**
- * 为泛型已知坐标层构造分析用箱型。
- * Build an analysis bin type for generic known-coordinate layers.
+ * 为量纲已知坐标层构造分析用箱型。
+ * Build an analysis bin type for quantity known-coordinate layers.
  *
- * @param layer 泛型层转换后的模型层 / model layer converted from a generic layer
+ * @param layer 量纲层转换后的模型层 / model layer converted from a quantity layer
  * @param index 层序号 / layer index
  * @return 分析用箱型 / analysis bin type
  */
@@ -78,7 +78,7 @@ private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType {
         capacity = infraInfinity() * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
-        typeCode = "GENERIC-KNOWN-COORDINATE-${index + 1}"
+        typeCode = "QUANTITY-KNOWN-COORDINATE-${index + 1}"
     )
 }
 
@@ -172,26 +172,26 @@ class ColumnGenerationPackingAnalyzer(
 }
 
 /**
- * 使用泛型层列表执行装箱分析。
- * Execute packing analysis with generic layer list.
+ * 使用量纲层列表执行装箱分析。
+ * Execute packing analysis with quantity layer list.
  *
- * @param T 泛型数值类型 / generic numeric type
+ * @param T 量纲数值类型 / quantity numeric type
  * @param iteration 迭代序号 / iteration number
- * @param columns 泛型层列表 / generic layer list
+ * @param columns 量纲层列表 / quantity layer list
  * @param bins 最终箱子（可选） / final bins (optional)
  * @param depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @param shadowPrices 影子价格（可选） / shadow prices (optional)
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  */
-suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromGeneric(
+suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQuantity(
     iteration: Int,
-    columns: List<GenericBinLayer<T>>,
+    columns: List<QuantityBinLayer<T>>,
     bins: List<LayerBin> = emptyList(),
     depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     shadowPrices: Map<DemandModeKey, InfraNumber> = emptyMap(),
-    materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
-    itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ) {
     val modelColumns = columns.map { layer -> layer.toModel(materialCache, itemCache) }
     val resolvedBins = if (bins.isNotEmpty()) {
@@ -218,4 +218,3 @@ suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromG
         )
     )
 }
-

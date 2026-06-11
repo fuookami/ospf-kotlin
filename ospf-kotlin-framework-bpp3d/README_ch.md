@@ -28,7 +28,7 @@
 明确非目标与剩余工作：
 
 1. 圆柱任意三维旋转不是当前目标。
-2. 全主链 legacy 长方体算法的 shape-generic 迁移仍在推进。
+2. 全主链 legacy 长方体算法的 shape-polymorphic 迁移仍在推进。
 3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，并已进入 `ColumnGenerationState`、RMP/final solve info、packing snapshot KPI，以及带变量上下界、已选择半径边界校验和模型注册阻断诊断的共享 solver 注册计划。满足 PWL 近似路径条件的 interval-only 连续半径变量已注册到 solver 模型，并接入 `rMax` 保守 footprint、PWL/真实体积、final MILP 选择和 renderer `actualVolume`；其它 interval-only 符号半径变量仍通过缺口合同报告。
 4. 外部 renderer 源码不属于本仓；本模块负责输出外部 renderer 消费的 shape metadata，且外部 renderer 现在已支持原生 X/Y/Z 圆柱和 `actualVolume` 展示语义。
 
@@ -46,7 +46,7 @@
 
 生产路径标签和 unsupported 文案集中在 `CylinderCapabilityPath` / `CylinderShapeContract`。
 候选生成、cuboid-only search/merge、支撑检查、已知坐标终态校验、renderer 终态校验和 depth boundary 终态校验必须使用共享契约，不允许散落维护路径字符串。横向圆柱长方体支撑覆盖已集中到 infrastructure 合同，并由 generated stacking 检查和 final packing/rendering 几何门禁共同复用。
-strict generic 边界脚本会拒绝已删除的固定数值别名、material packing 数值别名、layer/depth-limit 兼容别名和兼容捷径回流，新代码应直接使用 shape-generic 或 solver-generic API。
+strict quantity 边界脚本会拒绝已删除的固定数值别名、material packing 数值别名、layer/depth-limit 兼容别名和兼容捷径回流，新代码应直接使用 shape-polymorphic 或 solver-polymorphic API。
 
 | 路径 | 长方体 | `Axis3.Y` 圆柱 | `Axis3.X` / `Axis3.Z` 圆柱 |
 | --- | --- | --- | --- |

@@ -1,17 +1,17 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBpp3dDemandKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBpp3dDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBpp3dDemandKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBpp3dDemandValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
@@ -55,25 +55,25 @@ class FltXDirectCompileProofTest {
 
     @Test
     fun fltXQuantityCanFlowThroughDomainAndSolverAdapterWithoutLegacyBridge() {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-1"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-1",
             weight = q(FltX(0.5), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.2), Meter),
             height = q(FltX(0.8), Meter),
             depth = q(FltX(0.6), Meter),
             weight = q(FltX(0.3), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val pack = GenericPackage.innerPackage(
+        val pack = QuantityPackage.innerPackage(
             shape = shape,
             materials = mapOf(material to UInt64(2))
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-1",
             name = "item-1",
             pack = pack,
@@ -82,14 +82,14 @@ class FltXDirectCompileProofTest {
             packageAttribute = defaultPackageAttribute()
         )
 
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = Int64.zero,
             from = FltXDirectCompileProofTest::class,
             width = q(FltX(5.0), Meter),
             height = q(FltX(5.0), Meter),
             depth = q(FltX(5.0), Meter),
             units = listOf(
-                GenericItemPlacement(
+                QuantityItemPlacement(
                     item = item,
                     x = q(FltX.zero, Meter),
                     y = q(FltX.zero, Meter),
@@ -110,20 +110,20 @@ class FltXDirectCompileProofTest {
             amount = UInt64(3)
         )
         val amountSolverValue = when (val amountValue = itemAmountStats.values.single()) {
-            is GenericBpp3dDemandValue.Amount -> adapter.amountToSolver(amountValue.value)
+            is QuantityBpp3dDemandValue.Amount -> adapter.amountToSolver(amountValue.value)
             else -> error("Unexpected amount statistics value: $amountValue")
         }
         assertEquals(InfraNumber(6.0), amountSolverValue)
 
         val layerWeightStats = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         val materialNo = when (val weightKey = layerWeightStats.keys.single()) {
-            is GenericBpp3dDemandKey.Material -> weightKey.material.no
+            is QuantityBpp3dDemandKey.Material -> weightKey.material.no
             else -> error("Unexpected weight statistics key: $weightKey")
         }
         assertEquals(MaterialNo("M-1"), materialNo)
 
         val weightSolverValue = when (val weightValue = layerWeightStats.values.single()) {
-            is GenericBpp3dDemandValue.Weight -> adapter.weightToSolver(toFlt64Quantity(weightValue.value))
+            is QuantityBpp3dDemandValue.Weight -> adapter.weightToSolver(toFlt64Quantity(weightValue.value))
             else -> error("Unexpected weight statistics value: $weightValue")
         }
         assertEquals(InfraNumber(10.0), weightSolverValue)

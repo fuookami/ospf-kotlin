@@ -32,8 +32,8 @@ private fun Quantity<*>.toInfraQuantityUnsafe(): Quantity<InfraNumber> {
     return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
 }
 
-sealed interface GenericPackageShapeSpec {
-    data object Cuboid : GenericPackageShapeSpec
+sealed interface QuantityPackageShapeSpec {
+    data object Cuboid : QuantityPackageShapeSpec
 
     data class VerticalCylinder<V : FloatingNumber<V>>(
         val radius: Quantity<V>,
@@ -46,13 +46,13 @@ sealed interface GenericPackageShapeSpec {
         val diameterMin: Quantity<V>? = null,
         val diameterMax: Quantity<V>? = null,
         val diameterStep: Quantity<V>? = null
-    ) : GenericPackageShapeSpec
+    ) : QuantityPackageShapeSpec
 }
 
-private fun GenericPackageShapeSpec.toModel(): PackageShapeSpec {
+private fun QuantityPackageShapeSpec.toModel(): PackageShapeSpec {
     return when (this) {
-        GenericPackageShapeSpec.Cuboid -> PackageShapeSpec.Cuboid
-        is GenericPackageShapeSpec.VerticalCylinder<*> -> {
+        QuantityPackageShapeSpec.Cuboid -> PackageShapeSpec.Cuboid
+        is QuantityPackageShapeSpec.VerticalCylinder<*> -> {
             PackageShapeSpec.VerticalCylinder(
                 radius = radius.toInfraQuantityUnsafe(),
                 axis = axis,
@@ -69,7 +69,7 @@ private fun GenericPackageShapeSpec.toModel(): PackageShapeSpec {
     }
 }
 
-data class GenericMaterial<V : FloatingNumber<V>>(
+data class QuantityMaterial<V : FloatingNumber<V>>(
     val no: MaterialNo,
     val type: MaterialType,
     val cargo: AbstractCargoAttribute,
@@ -93,13 +93,13 @@ data class GenericMaterial<V : FloatingNumber<V>>(
     }
 }
 
-data class GenericPackageShape<V : FloatingNumber<V>>(
+data class QuantityPackageShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val height: Quantity<V>,
     val depth: Quantity<V>,
     val weight: Quantity<V>,
     val packageType: fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType,
-    val shapeSpec: GenericPackageShapeSpec = GenericPackageShapeSpec.Cuboid
+    val shapeSpec: QuantityPackageShapeSpec = QuantityPackageShapeSpec.Cuboid
 ) {
     val volume: Quantity<V> = width * height * depth
 
@@ -115,12 +115,12 @@ data class GenericPackageShape<V : FloatingNumber<V>>(
     }
 }
 
-data class GenericPackage<V : FloatingNumber<V>>(
+data class QuantityPackage<V : FloatingNumber<V>>(
     val code: PackageCode? = null,
     val pattern: PackagePattern? = null,
-    val shape: GenericPackageShape<V>,
-    val packages: List<GenericPackage<V>>? = null,
-    val materials: Map<GenericMaterial<V>, UInt64>,
+    val shape: QuantityPackageShape<V>,
+    val packages: List<QuantityPackage<V>>? = null,
+    val materials: Map<QuantityMaterial<V>, UInt64>,
     val amount: UInt64 = UInt64.one,
     val pending: Boolean = false,
 ) {
@@ -128,18 +128,18 @@ data class GenericPackage<V : FloatingNumber<V>>(
         fun <V : FloatingNumber<V>> outerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            shape: GenericPackageShape<V>,
-            packages: List<GenericPackage<V>>,
+            shape: QuantityPackageShape<V>,
+            packages: List<QuantityPackage<V>>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): GenericPackage<V> {
-            val materials = LinkedHashMap<GenericMaterial<V>, UInt64>()
+        ): QuantityPackage<V> {
+            val materials = LinkedHashMap<QuantityMaterial<V>, UInt64>()
             for (pack in packages) {
                 for ((material, materialAmount) in pack.materials) {
                     materials[material] = (materials[material] ?: UInt64.zero) + materialAmount
                 }
             }
-            return GenericPackage(
+            return QuantityPackage(
                 code = code,
                 pattern = pattern,
                 shape = shape,
@@ -153,12 +153,12 @@ data class GenericPackage<V : FloatingNumber<V>>(
         fun <V : FloatingNumber<V>> innerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            shape: GenericPackageShape<V>,
-            materials: Map<GenericMaterial<V>, UInt64>,
+            shape: QuantityPackageShape<V>,
+            materials: Map<QuantityMaterial<V>, UInt64>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): GenericPackage<V> {
-            return GenericPackage(
+        ): QuantityPackage<V> {
+            return QuantityPackage(
                 code = code,
                 pattern = pattern,
                 shape = shape,
@@ -177,7 +177,7 @@ data class GenericPackage<V : FloatingNumber<V>>(
     val volume by shape::volume
 
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap()
+        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap()
     ): Package<InfraNumber> {
         return if (packages.isNullOrEmpty()) {
             Package.innerPackage(
@@ -204,11 +204,11 @@ data class GenericPackage<V : FloatingNumber<V>>(
     }
 }
 
-data class GenericItem<V : FloatingNumber<V>>(
+data class QuantityItem<V : FloatingNumber<V>>(
     val id: String,
     val name: String,
     val packageCode: PackageCode? = null,
-    val pack: GenericPackage<V>? = null,
+    val pack: QuantityPackage<V>? = null,
     val width: Quantity<V>,
     val height: Quantity<V>,
     val depth: Quantity<V>,
@@ -221,7 +221,7 @@ data class GenericItem<V : FloatingNumber<V>>(
     constructor(
         id: String,
         name: String,
-        pack: GenericPackage<V>,
+        pack: QuantityPackage<V>,
         enabledOrientations: List<Orientation>,
         batchNo: BatchNo? = null,
         warehouse: String? = null,
@@ -242,8 +242,8 @@ data class GenericItem<V : FloatingNumber<V>>(
     )
 
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
-        itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
+        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
+        itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): ActualItem {
         return itemCache.getOrPut(this) {
             val modelPack = pack?.toModel(materialCache)
@@ -265,16 +265,16 @@ data class GenericItem<V : FloatingNumber<V>>(
     }
 }
 
-data class GenericItemPlacement<V : FloatingNumber<V>>(
-    val item: GenericItem<V>,
+data class QuantityItemPlacement<V : FloatingNumber<V>>(
+    val item: QuantityItem<V>,
     val x: Quantity<V>,
     val y: Quantity<V>,
     val z: Quantity<V>,
     val orientation: Orientation = Orientation.Upright
 ) {
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
-        itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
+        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
+        itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): ItemPlacement3 {
         val modelItem = item.toModel(materialCache, itemCache)
         return itemPlacement3Of(
@@ -289,17 +289,17 @@ data class GenericItemPlacement<V : FloatingNumber<V>>(
     }
 }
 
-data class GenericBinLayer<V : FloatingNumber<V>>(
+data class QuantityBinLayer<V : FloatingNumber<V>>(
     val iteration: Int64,
     val from: KClass<*>,
     val width: Quantity<V>,
     val height: Quantity<V>,
     val depth: Quantity<V>,
-    val units: List<GenericItemPlacement<V>>
+    val units: List<QuantityItemPlacement<V>>
 ) {
     fun toModel(
-        materialCache: MutableMap<GenericMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
-        itemCache: MutableMap<GenericItem<V>, ActualItem> = LinkedHashMap()
+        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
+        itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): BinLayer {
         return BinLayer(
             iteration = iteration,

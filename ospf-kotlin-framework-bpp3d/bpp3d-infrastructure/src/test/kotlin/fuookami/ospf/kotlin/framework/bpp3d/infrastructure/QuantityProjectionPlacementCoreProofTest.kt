@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class GenericProjectionPlacementCoreProofTest {
+class QuantityProjectionPlacementCoreProofTest {
     private data class FltXBox(
         override val width: Quantity<FltX>,
         override val height: Quantity<FltX>,
         override val depth: Quantity<FltX>,
         override val weight: Quantity<FltX>,
         override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : GenericCuboid<FltXBox, FltX> {
+    ) : QuantityCuboid<FltXBox, FltX> {
         override val self: FltXBox
             get() = this
     }
@@ -37,18 +37,18 @@ class GenericProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun genericPileProjectionShouldStackByPlaneDistance() {
+    fun quantityPileProjectionShouldStackByPlaneDistance() {
         val box = FltXBox(
             width = Quantity(FltX(1.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(2.0), Meter),
             weight = Quantity(FltX(3.0), Kilogram)
         )
-        val planeProjection = GenericPlaneProjection(
+        val planeProjection = QuantityPlaneProjection(
             view = box.view(Orientation.Upright),
             plane = Bottom
         )
-        val pile = GenericPileProjection(
+        val pile = QuantityPileProjection(
             planeProjection = planeProjection,
             layer = UInt64(3)
         )
@@ -68,7 +68,7 @@ class GenericProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun projectivePlaneShouldReadGenericContainerShape() {
+    fun projectivePlaneShouldReadQuantityContainerGeometry() {
         val shape = QuantityContainer3Shape(
             width = Quantity(FltX(3.0), Meter),
             height = Quantity(FltX(5.0), Meter),
@@ -87,7 +87,7 @@ class GenericProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun legacyPlacementShouldBridgeToGenericPlacement() {
+    fun modelPlacementShouldAdaptToQuantityPlacement() {
         val box = LegacyBox(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(2.0) * Meter,
@@ -102,17 +102,17 @@ class GenericProjectionPlacementCoreProofTest {
                 z = infraScalar(7.0) * Meter
             )
         )
-        val genericPlacement = legacyPlacement.asGenericPlacement3()
+        val quantityPlacement = legacyPlacement.asQuantityCuboidPlacement3()
 
-        assertTrue(genericPlacement.x eq (infraScalar(5.0) * Meter))
-        assertTrue(genericPlacement.y eq (infraScalar(6.0) * Meter))
-        assertTrue(genericPlacement.z eq (infraScalar(7.0) * Meter))
-        assertTrue(genericPlacement.width eq box.width)
-        assertTrue(genericPlacement.depth eq box.depth)
+        assertTrue(quantityPlacement.x eq (infraScalar(5.0) * Meter))
+        assertTrue(quantityPlacement.y eq (infraScalar(6.0) * Meter))
+        assertTrue(quantityPlacement.z eq (infraScalar(7.0) * Meter))
+        assertTrue(quantityPlacement.width eq box.width)
+        assertTrue(quantityPlacement.depth eq box.depth)
     }
 
     @Test
-    fun legacyProjectionShouldBridgeToGenericProjection() {
+    fun modelProjectionShouldAdaptToQuantityProjection() {
         val box = LegacyBox(
             width = infraScalar(1.0) * Meter,
             height = infraScalar(2.0) * Meter,
@@ -123,8 +123,8 @@ class GenericProjectionPlacementCoreProofTest {
             plane = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
             layer = UInt64(2)
         )
-        val genericProjection = legacyProjection.asGenericProjection()
-        val placements = genericProjection.toPlacement3At(
+        val QuantityProjection = legacyProjection.asQuantityProjection()
+        val placements = QuantityProjection.toPlacement3At(
             QuantityPoint2G(
                 x = infraScalar(0.0) * Meter,
                 y = infraScalar(0.0) * Meter
@@ -132,27 +132,27 @@ class GenericProjectionPlacementCoreProofTest {
         )
 
         assertEquals(2, placements.size)
-        assertTrue(genericProjection.length eq legacyProjection.length)
-        assertTrue(genericProjection.width eq legacyProjection.width)
+        assertTrue(QuantityProjection.length eq legacyProjection.length)
+        assertTrue(QuantityProjection.width eq legacyProjection.width)
     }
 
     @Test
-    fun genericPlacementShouldSupportContainsAndIntersection() {
+    fun quantityPlacementShouldSupportContainsAndIntersection() {
         val box = FltXBox(
             width = Quantity(FltX(2.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(2.0), Meter),
             weight = Quantity(FltX(1.0), Kilogram)
         )
-        val left = GenericQuantityPlacement2(
-            projection = GenericPlaneProjection(box.view(Orientation.Upright), Bottom),
+        val left = QuantityProjectionPlacement2(
+            projection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom),
             position = QuantityPoint2G(
                 x = Quantity(FltX.zero, Meter),
                 y = Quantity(FltX.zero, Meter)
             )
         )
-        val right = GenericQuantityPlacement2(
-            projection = GenericPlaneProjection(box.view(Orientation.Upright), Bottom),
+        val right = QuantityProjectionPlacement2(
+            projection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom),
             position = QuantityPoint2G(
                 x = Quantity(FltX(1.0), Meter),
                 y = Quantity(FltX.zero, Meter)
@@ -172,19 +172,19 @@ class GenericProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun genericTopAndBottomPlacementsShouldBeComputable() {
+    fun quantityTopAndBottomPlacementsShouldBeComputable() {
         val box = FltXBox(
             width = Quantity(FltX(2.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(2.0), Meter),
             weight = Quantity(FltX(1.0), Kilogram)
         )
-        val pileProjection = GenericPileProjection(
-            planeProjection = GenericPlaneProjection(box.view(Orientation.Upright), Bottom),
+        val pileProjection = QuantityPileProjection(
+            planeProjection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom),
             layer = UInt64(2)
         )
         val placements = listOf(
-            GenericQuantityPlacement3(
+            QuantityCuboidPlacement3(
                 view = box.view(Orientation.Upright),
                 position = QuantityPoint3G(
                     x = Quantity(FltX.zero, Meter),
@@ -192,7 +192,7 @@ class GenericProjectionPlacementCoreProofTest {
                     z = Quantity(FltX.zero, Meter)
                 )
             ),
-            GenericQuantityPlacement3(
+            QuantityCuboidPlacement3(
                 view = box.view(Orientation.Upright),
                 position = QuantityPoint3G(
                     x = Quantity(FltX.zero, Meter),
@@ -200,7 +200,7 @@ class GenericProjectionPlacementCoreProofTest {
                     z = Quantity(FltX.zero, Meter)
                 )
             ),
-            GenericQuantityPlacement3(
+            QuantityCuboidPlacement3(
                 view = box.view(Orientation.Upright),
                 position = QuantityPoint3G(
                     x = Quantity(FltX(5.0), Meter),

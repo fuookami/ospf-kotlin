@@ -269,9 +269,9 @@ class ComplexBlock(
 
 /** 组合块视图别名，仅保留为 block 结构性投影兼容入口。Block view alias kept only for block structural projection compatibility. */
 typealias BlockView = CuboidView<Block>
-/** 组合块二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Block 2D placement alias that hides the underlying QuantityPlacement2 generic. */
+/** 组合块二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Block 2D placement alias that hides the underlying QuantityPlacement2 type parameter. */
 typealias BlockPlacement2<P> = QuantityPlacement2<Block, P>
-/** 组合块三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Block 3D placement alias that hides the underlying QuantityPlacement3 generic. */
+/** 组合块三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Block 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
 typealias BlockPlacement3 = QuantityPlacement3<Block>
 
 

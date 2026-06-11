@@ -22,8 +22,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousRadiusModelComponent
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -177,12 +177,12 @@ class ColumnGenerationStandardExecutors(
         }
 
         /**
-         * 从泛型需求条目创建执行器。
-         * Create executor from generic demand entries.
+         * 从量纲需求条目创建执行器。
+         * Create executor from quantity demand entries.
          *
-         * @param T 泛型数值类型 / generic numeric type
+         * @param T 量纲数值类型 / quantity numeric type
          * @param solver 列生成求解器 / column generation solver
-         * @param itemDemands 泛型货物需求 / generic item demands
+         * @param itemDemands 量纲货物需求 / quantity item demands
          * @param demandEntries 需求条目 / demand entries
          * @param finalBins 最终箱子 / final bins
          * @param config 执行器配置 / executor config
@@ -190,14 +190,14 @@ class ColumnGenerationStandardExecutors(
          * @param itemCache 货物缓存 / item cache
          * @return 执行器实例 / executor instance
          */
-        fun <T : FloatingNumber<T>> fromGenericDemandEntries(
+        fun <T : FloatingNumber<T>> fromQuantityDemandEntries(
             solver: ColumnGenerationSolver,
-            itemDemands: List<Pair<GenericItem<T>, UInt64>>,
+            itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
             demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
-            itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+            materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+            itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
         ): ColumnGenerationStandardExecutors {
             val modelItemDemands = itemDemands.map { (item, amount) ->
                 Pair(item.toModel(materialCache, itemCache), amount)
@@ -607,5 +607,4 @@ class ColumnGenerationStandardExecutors(
         }
     }
 }
-
 

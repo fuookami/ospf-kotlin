@@ -27,12 +27,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer as QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem as QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement as QuantityItemPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial as QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage as QuantityPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape as QuantityPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer as QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem as QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItemPlacement as QuantityItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial as QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackage as QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShape as QuantityPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
@@ -215,7 +215,7 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
-    fun algorithmShouldSupportGenericItemEntryPoint() = runBlocking {
+    fun algorithmShouldSupportQuantityItemEntryPoint() = runBlocking {
         val quantityMaterial = QuantityMaterial(
             no = MaterialNo("M-ALG-G"),
             type = MaterialType.RawMaterial,
@@ -248,7 +248,7 @@ class ColumnGenerationAlgorithmTest {
             }
         )
 
-        val result = algorithm.solveGeneric(
+        val result = algorithm.solveQuantity(
             items = listOf(quantityItem),
             config = ColumnGenerationConfig(finalMilpEnabled = false)
         )
@@ -1164,7 +1164,7 @@ class ColumnGenerationAlgorithmTest {
             )
         )
         val solver = object : ColumnGenerationSolver {
-            override val name = "stub-generic-factory-solver"
+            override val name = "stub-quantity-factory-solver"
 
             override suspend fun solveMILP(
                 name: String,
@@ -1197,7 +1197,7 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
-    fun standardExecutorsFactoryShouldSupportGenericItemDemands() {
+    fun standardExecutorsFactoryShouldSupportQuantityItemDemands() {
         val quantityMaterial = QuantityMaterial(
             no = MaterialNo("M-QG"),
             type = MaterialType.RawMaterial,
@@ -1235,7 +1235,7 @@ class ColumnGenerationAlgorithmTest {
             )
         )
         val solver = object : ColumnGenerationSolver {
-            override val name = "stub-generic-factory-entry-solver"
+            override val name = "stub-quantity-factory-entry-solver"
 
             override suspend fun solveMILP(
                 name: String,
@@ -1258,7 +1258,7 @@ class ColumnGenerationAlgorithmTest {
             }
         }
 
-        val executors = ColumnGenerationStandardExecutors.fromGenericDemandEntries(
+        val executors = ColumnGenerationStandardExecutors.fromQuantityDemandEntries(
             solver = solver,
             itemDemands = listOf(Pair(quantityItem, UInt64.one)),
             demandEntries = demandEntries
@@ -1310,7 +1310,7 @@ class ColumnGenerationAlgorithmTest {
             )
         )
 
-        val request = columnGenerationApplicationRequestFromGeneric(
+        val request = columnGenerationApplicationRequestFromQuantity(
             itemDemands = listOf(Pair(quantityItem, UInt64(3))),
             materialAmountDemands = listOf(Pair(quantityMaterial, UInt64(6))),
             materialWeightDemands = listOf(Pair(quantityMaterial, FltX(2.5) * Kilogram)),
@@ -1402,7 +1402,7 @@ class ColumnGenerationAlgorithmTest {
             }
         }
         val service = ColumnGenerationApplicationService(solver)
-        val request = ColumnGenerationGenericApplicationRequest(
+        val request = ColumnGenerationQuantityApplicationRequest(
             itemDemands = listOf(Pair(quantityItem, UInt64.one)),
             initialColumns = listOf(quantityInitialLayer),
             generators = listOf(

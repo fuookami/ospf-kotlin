@@ -114,7 +114,7 @@ $contentChecks = @(
         Pattern = "\bLegacyCuboid\b"
     },
     @{
-        Name = "LegacyCuboidGenericAdapterToken"
+        Name = "LegacyCuboidPolymorphicAdapterToken"
         Pattern = "\bLegacyCuboidGenericAdapter\b"
     },
     @{
@@ -158,11 +158,11 @@ $contentChecks = @(
         Pattern = "\bBPP3DCGPipelineList\b"
     },
     @{
-        Name = "GenericBPP3DShadowPriceExtractorCompatAlias"
+        Name = "OldBPP3DShadowPriceExtractorCompatAlias"
         Pattern = "\bGenericBPP3DShadowPriceExtractor\b"
     },
     @{
-        Name = "GenericBPP3DCGPipelineCompatAlias"
+        Name = "OldBPP3DCGPipelineCompatAlias"
         Pattern = "\bGenericBPP3DCGPipeline\b"
     },
     @{
@@ -178,7 +178,7 @@ $contentChecks = @(
         Pattern = "\bAbstractBPP3DCGPipeline\b"
     },
     @{
-        Name = "GenericBPP3DCGPipelineListCompatAlias"
+        Name = "OldBPP3DCGPipelineListCompatAlias"
         Pattern = "\bGenericBPP3DCGPipelineList\b"
     },
     @{
@@ -210,11 +210,11 @@ $contentChecks = @(
         Pattern = "\bPalletLayerPlacement\b"
     },
     @{
-        Name = "InfraNumberGenericDomainAliasToken"
+        Name = "InfraNumberQuantityDomainAliasToken"
         Pattern = "\bInfraNumber(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
     },
     @{
-        Name = "FltXGenericDomainAliasToken"
+        Name = "FltXQuantityDomainAliasToken"
         Pattern = "\bFltX(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
     },
     @{
@@ -337,11 +337,11 @@ foreach ($rawPath in $files) {
 }
 
 if ($violations.Count -eq 0) {
-    Write-Host "STRICT_GENERIC_BOUNDARY_PASS"
+    Write-Host "STRICT_QUANTITY_BOUNDARY_PASS"
     exit 0
 }
 
-Write-Host "STRICT_GENERIC_BOUNDARY_FAIL: $($violations.Count)"
+Write-Host "STRICT_QUANTITY_BOUNDARY_FAIL: $($violations.Count)"
 $violations |
     Sort-Object Check, File, Line |
     ForEach-Object {

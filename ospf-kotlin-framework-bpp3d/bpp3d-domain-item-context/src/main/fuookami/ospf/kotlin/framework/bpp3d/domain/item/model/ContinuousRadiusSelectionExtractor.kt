@@ -78,8 +78,8 @@ fun buildPWLContinuousRadiusSelectionResults(
 }
 
 /**
- * 从 PWL 提取结果列表直接构建连续半径已选择结果列表（类型化路径，无需 opaque Map）。
- * Build continuous-radius selection results directly from PWL extracted results (typed path, no opaque Map needed).
+ * 从 PWL 提取结果列表直接构建连续半径已选择结果列表（结构化路径，无需 opaque Map）。
+ * Build continuous-radius selection results directly from PWL extracted results (structured path, no opaque Map needed).
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param extractedResults PWL 提取结果列表 / PWL extracted results

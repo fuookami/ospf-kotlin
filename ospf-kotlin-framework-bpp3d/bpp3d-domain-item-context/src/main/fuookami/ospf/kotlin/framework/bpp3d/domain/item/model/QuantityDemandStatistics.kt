@@ -2,7 +2,7 @@
 
 /**
  * 泛型需求统计模型。
- * Generic demand statistics model.
+ * Quantity demand statistics model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -18,23 +18,23 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 
 /**
  * 泛型需求键。
- * Generic demand key.
+ * Quantity demand key.
  */
-sealed interface GenericBpp3dDemandKey<V : FloatingNumber<V>> {
-    data class Item<V : FloatingNumber<V>>(val item: GenericItem<V>) : GenericBpp3dDemandKey<V>
-    data class Material<V : FloatingNumber<V>>(val material: MaterialKey) : GenericBpp3dDemandKey<V>
+sealed interface QuantityBpp3dDemandKey<V : FloatingNumber<V>> {
+    data class Item<V : FloatingNumber<V>>(val item: QuantityItem<V>) : QuantityBpp3dDemandKey<V>
+    data class Material<V : FloatingNumber<V>>(val material: MaterialKey) : QuantityBpp3dDemandKey<V>
 }
 
 /**
  * 泛型需求值。
- * Generic demand value.
+ * Quantity demand value.
  */
-sealed interface GenericBpp3dDemandValue<V : FloatingNumber<V>> {
-    data class Amount<V : FloatingNumber<V>>(val value: UInt64) : GenericBpp3dDemandValue<V>
-    data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : GenericBpp3dDemandValue<V>
+sealed interface QuantityBpp3dDemandValue<V : FloatingNumber<V>> {
+    data class Amount<V : FloatingNumber<V>>(val value: UInt64) : QuantityBpp3dDemandValue<V>
+    data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : QuantityBpp3dDemandValue<V>
 }
 
-private fun <V : FloatingNumber<V>> GenericMaterial<V>.materialKey(): MaterialKey {
+private fun <V : FloatingNumber<V>> QuantityMaterial<V>.materialKey(): MaterialKey {
     return MaterialKey(
         no = no,
         type = type,
@@ -69,26 +69,26 @@ private fun <V : FloatingNumber<V>> quantityScale(
 }
 
 private fun <V : FloatingNumber<V>> scaleDemandValue(
-    value: GenericBpp3dDemandValue<V>,
+    value: QuantityBpp3dDemandValue<V>,
     multiplier: UInt64
-): GenericBpp3dDemandValue<V> {
+): QuantityBpp3dDemandValue<V> {
     return when (value) {
-        is GenericBpp3dDemandValue.Amount -> GenericBpp3dDemandValue.Amount(value.value * multiplier)
-        is GenericBpp3dDemandValue.Weight -> GenericBpp3dDemandValue.Weight(quantityScale(value.value, multiplier))
+        is QuantityBpp3dDemandValue.Amount -> QuantityBpp3dDemandValue.Amount(value.value * multiplier)
+        is QuantityBpp3dDemandValue.Weight -> QuantityBpp3dDemandValue.Weight(quantityScale(value.value, multiplier))
     }
 }
 
 private fun <V : FloatingNumber<V>> mergeDemandValue(
-    lhs: GenericBpp3dDemandValue<V>,
-    rhs: GenericBpp3dDemandValue<V>
-): GenericBpp3dDemandValue<V> {
+    lhs: QuantityBpp3dDemandValue<V>,
+    rhs: QuantityBpp3dDemandValue<V>
+): QuantityBpp3dDemandValue<V> {
     return when {
-        lhs is GenericBpp3dDemandValue.Amount && rhs is GenericBpp3dDemandValue.Amount -> {
-            GenericBpp3dDemandValue.Amount(lhs.value + rhs.value)
+        lhs is QuantityBpp3dDemandValue.Amount && rhs is QuantityBpp3dDemandValue.Amount -> {
+            QuantityBpp3dDemandValue.Amount(lhs.value + rhs.value)
         }
 
-        lhs is GenericBpp3dDemandValue.Weight && rhs is GenericBpp3dDemandValue.Weight -> {
-            GenericBpp3dDemandValue.Weight(quantityPlus(lhs.value, rhs.value))
+        lhs is QuantityBpp3dDemandValue.Weight && rhs is QuantityBpp3dDemandValue.Weight -> {
+            QuantityBpp3dDemandValue.Weight(quantityPlus(lhs.value, rhs.value))
         }
 
         else -> {
@@ -97,48 +97,48 @@ private fun <V : FloatingNumber<V>> mergeDemandValue(
     }
 }
 
-private fun <V : FloatingNumber<V>> MutableMap<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>.mergeDemand(
-    key: GenericBpp3dDemandKey<V>,
-    value: GenericBpp3dDemandValue<V>
+private fun <V : FloatingNumber<V>> MutableMap<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>>.mergeDemand(
+    key: QuantityBpp3dDemandKey<V>,
+    value: QuantityBpp3dDemandValue<V>
 ) {
     this[key] = this[key]?.let { mergeDemandValue(it, value) } ?: value
 }
 
-private fun <V : FloatingNumber<V>> Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>.scale(
+private fun <V : FloatingNumber<V>> Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>>.scale(
     multiplier: UInt64
-): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+): Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>> {
     if (multiplier == UInt64.zero) {
         return emptyMap()
     }
     return mapValues { (_, value) -> scaleDemandValue(value, multiplier) }
 }
 
-fun <V : FloatingNumber<V>> GenericItem<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+fun <V : FloatingNumber<V>> QuantityItem<V>.statistics(mode: Bpp3dDemandMode): Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>> {
     return when (mode) {
         is Bpp3dDemandMode.Item -> {
-            mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Amount(UInt64.one))
+            mapOf(QuantityBpp3dDemandKey.Item(this) to QuantityBpp3dDemandValue.Amount(UInt64.one))
         }
 
         is Bpp3dDemandMode.Material -> {
             val materials = pack?.materials ?: emptyMap()
             materials
-                .mapKeys { (material, _) -> GenericBpp3dDemandKey.Material<V>(material.materialKey()) }
-                .mapValues { (_, value) -> GenericBpp3dDemandValue.Amount<V>(value) }
+                .mapKeys { (material, _) -> QuantityBpp3dDemandKey.Material<V>(material.materialKey()) }
+                .mapValues { (_, value) -> QuantityBpp3dDemandValue.Amount<V>(value) }
         }
 
         is Bpp3dDemandMode.ItemAmount -> {
-            mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Amount(UInt64.one))
+            mapOf(QuantityBpp3dDemandKey.Item(this) to QuantityBpp3dDemandValue.Amount(UInt64.one))
         }
 
         is Bpp3dDemandMode.ItemWeight -> {
-            mapOf(GenericBpp3dDemandKey.Item(this) to GenericBpp3dDemandValue.Weight(weight))
+            mapOf(QuantityBpp3dDemandKey.Item(this) to QuantityBpp3dDemandValue.Weight(weight))
         }
 
         is Bpp3dDemandMode.ItemMaterialAmount -> {
             val materials = pack?.materials ?: emptyMap()
             materials
-                .mapKeys { (material, _) -> GenericBpp3dDemandKey.Material<V>(material.materialKey()) }
-                .mapValues { (_, value) -> GenericBpp3dDemandValue.Amount<V>(value) }
+                .mapKeys { (material, _) -> QuantityBpp3dDemandKey.Material<V>(material.materialKey()) }
+                .mapValues { (_, value) -> QuantityBpp3dDemandValue.Amount<V>(value) }
         }
 
         is Bpp3dDemandMode.ItemMaterialWeight -> {
@@ -146,8 +146,8 @@ fun <V : FloatingNumber<V>> GenericItem<V>.statistics(mode: Bpp3dDemandMode): Ma
             materials
                 .map { (material, amount) ->
                     Pair(
-                        GenericBpp3dDemandKey.Material<V>(material.materialKey()),
-                        GenericBpp3dDemandValue.Weight<V>(
+                        QuantityBpp3dDemandKey.Material<V>(material.materialKey()),
+                        QuantityBpp3dDemandValue.Weight<V>(
                             quantityScale(material.weight, amount)
                         )
                     )
@@ -157,19 +157,19 @@ fun <V : FloatingNumber<V>> GenericItem<V>.statistics(mode: Bpp3dDemandMode): Ma
     }
 }
 
-fun <V : FloatingNumber<V>> GenericItem<V>.statistics(
+fun <V : FloatingNumber<V>> QuantityItem<V>.statistics(
     mode: Bpp3dDemandMode,
     amount: UInt64
-): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+): Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>> {
     return statistics(mode).scale(amount)
 }
 
-fun <V : FloatingNumber<V>> GenericItemPlacement<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
+fun <V : FloatingNumber<V>> QuantityItemPlacement<V>.statistics(mode: Bpp3dDemandMode): Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>> {
     return item.statistics(mode)
 }
 
-fun <V : FloatingNumber<V>> GenericBinLayer<V>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
-    val counter = mutableMapOf<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>()
+fun <V : FloatingNumber<V>> QuantityBinLayer<V>.statistics(mode: Bpp3dDemandMode): Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>> {
+    val counter = mutableMapOf<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>>()
     for (unit in units) {
         for ((key, value) in unit.statistics(mode)) {
             counter.mergeDemand(key, value)
@@ -178,8 +178,8 @@ fun <V : FloatingNumber<V>> GenericBinLayer<V>.statistics(mode: Bpp3dDemandMode)
     return counter
 }
 
-fun <V : FloatingNumber<V>> Iterable<GenericBinLayer<V>>.statistics(mode: Bpp3dDemandMode): Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>> {
-    val counter = mutableMapOf<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>()
+fun <V : FloatingNumber<V>> Iterable<QuantityBinLayer<V>>.statistics(mode: Bpp3dDemandMode): Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>> {
+    val counter = mutableMapOf<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>>()
     for (layer in this) {
         for ((key, value) in layer.statistics(mode)) {
             counter.mergeDemand(key, value)

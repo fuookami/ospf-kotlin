@@ -2,7 +2,7 @@
 
 /**
  * 泛型需求缩减成本模型。
- * Generic demand reduced cost model.
+ * Quantity demand reduced cost model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -11,27 +11,27 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
  * 泛型需求影子价格键。
- * Generic demand shadow price key.
+ * Quantity demand shadow price key.
  */
-data class GenericDemandShadowPriceKey<V : FloatingNumber<V>>(
+data class QuantityDemandShadowPriceKey<V : FloatingNumber<V>>(
     val mode: Bpp3dDemandMode,
-    val key: GenericBpp3dDemandKey<V>
+    val key: QuantityBpp3dDemandKey<V>
 )
 
 private fun <V : FloatingNumber<V>> demandValueToScalar(
-    value: GenericBpp3dDemandValue<V>,
+    value: QuantityBpp3dDemandValue<V>,
     amountToScalar: (UInt64) -> V
 ): V {
     return when (value) {
-        is GenericBpp3dDemandValue.Amount -> amountToScalar(value.value)
-        is GenericBpp3dDemandValue.Weight -> value.value.value
+        is QuantityBpp3dDemandValue.Amount -> amountToScalar(value.value)
+        is QuantityBpp3dDemandValue.Weight -> value.value.value
     }
 }
 
 private fun <V : FloatingNumber<V>> reducedCostByStatistics(
-    statisticsOf: (Bpp3dDemandMode) -> Map<GenericBpp3dDemandKey<V>, GenericBpp3dDemandValue<V>>,
-    demandEntries: Iterable<Pair<Bpp3dDemandMode, GenericBpp3dDemandKey<V>>>,
-    shadowPriceOf: (Bpp3dDemandMode, GenericBpp3dDemandKey<V>) -> V,
+    statisticsOf: (Bpp3dDemandMode) -> Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>>,
+    demandEntries: Iterable<Pair<Bpp3dDemandMode, QuantityBpp3dDemandKey<V>>>,
+    shadowPriceOf: (Bpp3dDemandMode, QuantityBpp3dDemandKey<V>) -> V,
     amountToScalar: (UInt64) -> V,
     zero: V
 ): V {
@@ -49,9 +49,9 @@ private fun <V : FloatingNumber<V>> reducedCostByStatistics(
     return reducedCost
 }
 
-fun <V : FloatingNumber<V>> GenericItem<V>.reducedCost(
-    demandEntries: Iterable<Pair<Bpp3dDemandMode, GenericBpp3dDemandKey<V>>>,
-    shadowPriceOf: (Bpp3dDemandMode, GenericBpp3dDemandKey<V>) -> V,
+fun <V : FloatingNumber<V>> QuantityItem<V>.reducedCost(
+    demandEntries: Iterable<Pair<Bpp3dDemandMode, QuantityBpp3dDemandKey<V>>>,
+    shadowPriceOf: (Bpp3dDemandMode, QuantityBpp3dDemandKey<V>) -> V,
     amountToScalar: (UInt64) -> V,
     zero: V
 ): V {
@@ -64,25 +64,25 @@ fun <V : FloatingNumber<V>> GenericItem<V>.reducedCost(
     )
 }
 
-fun <V : FloatingNumber<V>> GenericItem<V>.reducedCost(
-    demandEntries: Iterable<GenericDemandShadowPriceKey<V>>,
-    shadowPrices: Map<GenericDemandShadowPriceKey<V>, V>,
+fun <V : FloatingNumber<V>> QuantityItem<V>.reducedCost(
+    demandEntries: Iterable<QuantityDemandShadowPriceKey<V>>,
+    shadowPrices: Map<QuantityDemandShadowPriceKey<V>, V>,
     amountToScalar: (UInt64) -> V,
     zero: V
 ): V {
     return reducedCost(
         demandEntries = demandEntries.map { Pair(it.mode, it.key) },
         shadowPriceOf = { mode, key ->
-            shadowPrices[GenericDemandShadowPriceKey(mode, key)] ?: zero
+            shadowPrices[QuantityDemandShadowPriceKey(mode, key)] ?: zero
         },
         amountToScalar = amountToScalar,
         zero = zero
     )
 }
 
-fun <V : FloatingNumber<V>> GenericBinLayer<V>.reducedCost(
-    demandEntries: Iterable<Pair<Bpp3dDemandMode, GenericBpp3dDemandKey<V>>>,
-    shadowPriceOf: (Bpp3dDemandMode, GenericBpp3dDemandKey<V>) -> V,
+fun <V : FloatingNumber<V>> QuantityBinLayer<V>.reducedCost(
+    demandEntries: Iterable<Pair<Bpp3dDemandMode, QuantityBpp3dDemandKey<V>>>,
+    shadowPriceOf: (Bpp3dDemandMode, QuantityBpp3dDemandKey<V>) -> V,
     amountToScalar: (UInt64) -> V,
     zero: V
 ): V {
@@ -95,16 +95,16 @@ fun <V : FloatingNumber<V>> GenericBinLayer<V>.reducedCost(
     )
 }
 
-fun <V : FloatingNumber<V>> GenericBinLayer<V>.reducedCost(
-    demandEntries: Iterable<GenericDemandShadowPriceKey<V>>,
-    shadowPrices: Map<GenericDemandShadowPriceKey<V>, V>,
+fun <V : FloatingNumber<V>> QuantityBinLayer<V>.reducedCost(
+    demandEntries: Iterable<QuantityDemandShadowPriceKey<V>>,
+    shadowPrices: Map<QuantityDemandShadowPriceKey<V>, V>,
     amountToScalar: (UInt64) -> V,
     zero: V
 ): V {
     return reducedCost(
         demandEntries = demandEntries.map { Pair(it.mode, it.key) },
         shadowPriceOf = { mode, key ->
-            shadowPrices[GenericDemandShadowPriceKey(mode, key)] ?: zero
+            shadowPrices[QuantityDemandShadowPriceKey(mode, key)] ?: zero
         },
         amountToScalar = amountToScalar,
         zero = zero

@@ -18,15 +18,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
 
 /**
- * 创建泛型二维放置，仅供 BLA 泛型投影搜索和 generic factory 内部复用。
- * Create a generic 2D placement only for BLA generic projection search and generic factory internals.
+ * 创建多态二维放置，仅供 BLA 多态投影搜索和多态工厂内部复用。
+ * Create a polymorphic 2D placement only for BLA polymorphic projection search and polymorphic factory internals.
  *
  * 业务调用侧应优先使用 `itemPlacement2Of` 或 `blockPlacement2Of`，避免直接暴露底层 Cuboid 泛型。
- * Business callers should prefer `itemPlacement2Of` or `blockPlacement2Of` to avoid exposing the underlying Cuboid generic.
+ * Business callers should prefer `itemPlacement2Of` or `blockPlacement2Of` to avoid exposing the underlying Cuboid type parameter.
  *
- * @param projection 泛型投影 / generic projection
+ * @param projection 多态投影 / polymorphic projection
  * @param position 放置坐标 / placement position
- * @return 泛型二维放置 / generic 2D placement
+ * @return 多态二维放置 / polymorphic 2D placement
  */
 fun <T : Cuboid<T>, P : ProjectivePlane> placement2Of(
     projection: Projection<T, P>,
@@ -40,7 +40,7 @@ fun <T : Cuboid<T>, P : ProjectivePlane> placement2Of(
 
 /**
  * 创建 Item 二维放置，隐藏底层 Cuboid 泛型工厂。
- * Create an item 2D placement while hiding the underlying Cuboid generic factory.
+ * Create an item 2D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param projection item 投影 / item projection
  * @param position 放置坐标 / placement position
@@ -58,7 +58,7 @@ fun <P : ProjectivePlane> itemPlacement2Of(
 
 /**
  * 创建 Block 二维放置，隐藏底层 Cuboid 泛型工厂。
- * Create a Block 2D placement while hiding the underlying Cuboid generic factory.
+ * Create a Block 2D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param projection block 投影 / block projection
  * @param position 放置坐标 / placement position
@@ -86,7 +86,7 @@ private fun <T : Cuboid<T>> placement3Of(
 
 /**
  * 创建 Item 三维放置，隐藏底层 Cuboid 泛型工厂。
- * Create an item 3D placement while hiding the underlying Cuboid generic factory.
+ * Create an item 3D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param view item 视图 / item view
  * @param position 放置坐标 / placement position
@@ -124,7 +124,7 @@ fun itemPlacement3Of(
 
 /**
  * 创建 BinLayer 三维放置，隐藏底层 Cuboid 泛型工厂。
- * Create a BinLayer 3D placement while hiding the underlying Cuboid generic factory.
+ * Create a BinLayer 3D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param view layer 视图 / layer view
  * @param position 放置坐标 / placement position
@@ -142,7 +142,7 @@ fun binLayerPlacementOf(
 
 /**
  * 创建 Block 三维放置，隐藏底层 Cuboid 泛型工厂。
- * Create a Block 3D placement while hiding the underlying Cuboid generic factory.
+ * Create a Block 3D placement while hiding the underlying Cuboid polymorphic factory.
  *
  * @param view block 视图 / block view
  * @param position 放置坐标 / placement position

@@ -8,27 +8,27 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class GenericShadowPriceMapProofTest {
+class QuantityShadowPriceMapProofTest {
     private data class FltXBox(
         override val width: Quantity<FltX>,
         override val height: Quantity<FltX>,
         override val depth: Quantity<FltX>,
         override val weight: Quantity<FltX>,
         override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : GenericCuboid<FltXBox, FltX> {
+    ) : QuantityCuboid<FltXBox, FltX> {
         override val self: FltXBox
             get() = this
     }
 
     private data class FltXArgs(
         override val cuboid: FltXBox
-    ) : GenericBPP3DShadowPriceArguments<FltX, FltXBox>
+    ) : QuantityBPP3DShadowPriceArguments<FltX, FltXBox>
 
     private class FltXShadowPriceMap :
-        GenericBPP3DShadowPriceMap<FltXArgs, FltX, FltXBox>()
+        QuantityBPP3DShadowPriceMap<FltXArgs, FltX, FltXBox>()
 
     @Test
-    fun genericShadowPriceTypesShouldSupportFltX() {
+    fun quantityShadowPriceTypesShouldSupportFltX() {
         val cuboid = FltXBox(
             width = Quantity(FltX(1.0), Meter),
             height = Quantity(FltX(2.0), Meter),

@@ -1,7 +1,7 @@
 /**
- * 连续半径选择结果提取器测试：native 结果构建、PWL 结果构建和类型化提取。
+ * 连续半径选择结果提取器测试：native 结果构建、PWL 结果构建和结构化提取。
  * Continuous radius selection result extractor tests: native result building,
- * PWL result building, and typed extraction.
+ * PWL result building, and structured extraction.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -179,7 +179,7 @@ class ContinuousRadiusSelectionExtractorTest {
             "isWithinEnvelope should be false when solver value is 0.0")
     }
 
-    // ===== 3. PWL 选择结果构建测试（typed PWLExtractedRadius）/ PWL selection result building tests (typed PWLExtractedRadius) =====
+    // ===== 3. PWL 选择结果构建测试（PWLExtractedRadius）/ PWL selection result building tests (PWLExtractedRadius) =====
 
     @Test
     fun testBuildPWLSelectionResultsFromExtractedRadius() {
@@ -292,7 +292,7 @@ class ContinuousRadiusSelectionExtractorTest {
     }
 
     @Test
-    fun testTypedPWLSelectionResultMatchesOpaqueMapResult() {
+    fun testExtractedPWLSelectionResultMatchesOpaqueMapResult() {
         val rMin = infraScalar(2.0)
         val rMax = infraScalar(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
@@ -334,25 +334,25 @@ class ContinuousRadiusSelectionExtractorTest {
             )
         )
 
-        // Build via typed path
-        val typedResults = buildPWLSelectionResultsFromExtracted(prototypes, listOf(extracted))
+        // Build via structured extracted-result path
+        val extractedResults = buildPWLSelectionResultsFromExtracted(prototypes, listOf(extracted))
 
         assertEquals(1, opaqueResults.size)
-        assertEquals(1, typedResults.size)
+        assertEquals(1, extractedResults.size)
         // Both should produce the same key, selectedRadius and axis
-        assertEquals(opaqueResults[0].key, typedResults[0].key)
+        assertEquals(opaqueResults[0].key, extractedResults[0].key)
         assertEquals(
             opaqueResults[0].selectedRadius.value.toDouble(),
-            typedResults[0].selectedRadius.value.toDouble(),
+            extractedResults[0].selectedRadius.value.toDouble(),
             1e-10
         )
         // Both should have PWL metadata
         assertNotNull(opaqueResults[0].pwlMetadata)
-        assertNotNull(typedResults[0].pwlMetadata)
+        assertNotNull(extractedResults[0].pwlMetadata)
         // actualRadiusSquared should be the same
         assertEquals(
             opaqueResults[0].pwlMetadata!!.actualRadiusSquared.toDouble(),
-            typedResults[0].pwlMetadata!!.actualRadiusSquared.toDouble(),
+            extractedResults[0].pwlMetadata!!.actualRadiusSquared.toDouble(),
             1e-10
         )
     }

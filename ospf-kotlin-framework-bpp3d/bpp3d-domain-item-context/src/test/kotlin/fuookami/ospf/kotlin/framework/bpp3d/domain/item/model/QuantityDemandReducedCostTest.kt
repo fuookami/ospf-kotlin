@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class GenericDemandReducedCostTest {
+class QuantityDemandReducedCostTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
@@ -30,18 +30,18 @@ class GenericDemandReducedCostTest {
 
     @Test
     fun itemReducedCostShouldUseActiveMaterialDemandEntriesOnly() {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-RC-MODEL-G64"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-MODEL-G64",
             weight = infraScalar(0.5) * Kilogram
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-rc-model-g64",
             name = "item-rc-model-g64",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = infraScalar(1.0) * Meter,
                     height = infraScalar(1.0) * Meter,
                     depth = infraScalar(1.0) * Meter,
@@ -68,18 +68,18 @@ class GenericDemandReducedCostTest {
 
     @Test
     fun layerReducedCostShouldSupportFltXDemandValues() {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-RC-MODEL-GX"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-MODEL-GX",
             weight = FltX(0.5) * Kilogram
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-rc-model-gx",
             name = "item-rc-model-gx",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX.one * Meter,
                     height = FltX.one * Meter,
                     depth = FltX.one * Meter,
@@ -92,15 +92,15 @@ class GenericDemandReducedCostTest {
             batchNo = BatchNo("B-RC-MODEL-GX"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = Int64.zero,
-            from = GenericDemandReducedCostTest::class,
+            from = QuantityDemandReducedCostTest::class,
             width = FltX(10.0) * Meter,
             height = FltX(10.0) * Meter,
             depth = FltX(10.0) * Meter,
             units = listOf(
-                GenericItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter),
-                GenericItemPlacement(item, FltX.one * Meter, FltX.zero * Meter, FltX.zero * Meter)
+                QuantityItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter),
+                QuantityItemPlacement(item, FltX.one * Meter, FltX.zero * Meter, FltX.zero * Meter)
             )
         )
         val materialKey = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).keys.single()
@@ -116,19 +116,19 @@ class GenericDemandReducedCostTest {
     }
 
     @Test
-    fun reducedCostShouldSupportGenericShadowPriceKeyMap() {
-        val material = GenericMaterial(
+    fun reducedCostShouldSupportQuantityShadowPriceKeyMap() {
+        val material = QuantityMaterial(
             no = MaterialNo("M-RC-MODEL-MAP"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-MODEL-MAP",
             weight = infraScalar(0.5) * Kilogram
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-rc-model-map",
             name = "item-rc-model-map",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = infraScalar(1.0) * Meter,
                     height = infraScalar(1.0) * Meter,
                     depth = infraScalar(1.0) * Meter,
@@ -142,7 +142,7 @@ class GenericDemandReducedCostTest {
             packageAttribute = defaultPackageAttribute()
         )
         val materialKey = item.statistics(Bpp3dDemandMode.ItemMaterialAmount).keys.single()
-        val demandKey = GenericDemandShadowPriceKey(
+        val demandKey = QuantityDemandShadowPriceKey(
             mode = Bpp3dDemandMode.ItemMaterialAmount,
             key = materialKey
         )

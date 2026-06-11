@@ -316,7 +316,7 @@ open class DemandConstraint<
 
 /**
  * 创建 Item 专用需求约束，供业务调用侧避开泛型基类入口。
- * Build item-only demand constraint so business callers avoid the generic base entry.
+ * Build item-only demand constraint so business callers avoid the quantity-polymorphic base entry.
  *
  * @param load 负载符号 / load symbols
  * @param demandEntries 需求条目列表 / demand entry list
@@ -340,7 +340,7 @@ fun itemDemandConstraint(
 
 /**
  * Item 专用需求约束，不暴露底层泛型 cuboid 约束。
- * Item-only demand constraint, does not expose the underlying generic cuboid constraint.
+ * Item-only demand constraint, does not expose the underlying quantity-polymorphic cuboid constraint.
  *
  * @property load 负载符号 / load symbols
  * @property demandEntries 需求条目列表 / demand entry list

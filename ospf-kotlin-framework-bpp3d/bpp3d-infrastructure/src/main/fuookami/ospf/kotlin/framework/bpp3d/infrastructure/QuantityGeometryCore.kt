@@ -1,6 +1,6 @@
 /**
  * 泛型量纲几何基础设施。
- * Generic quantity geometry infrastructure.
+ * Quantity geometry infrastructure.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 

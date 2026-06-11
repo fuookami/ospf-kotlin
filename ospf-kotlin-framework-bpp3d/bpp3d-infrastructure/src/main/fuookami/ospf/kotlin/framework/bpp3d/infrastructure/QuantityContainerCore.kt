@@ -2,7 +2,7 @@
 
 /**
  * 泛型容器核心实现。
- * Generic container core implementation.
+ * Quantity container core implementation.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 
-private fun <V : FloatingNumber<V>> genericQuantityTimes(
+private fun <V : FloatingNumber<V>> quantityTimesByValue(
     lhs: Quantity<V>,
     rhs: Quantity<V>
 ): Quantity<V> {
@@ -33,7 +33,7 @@ private fun <V : FloatingNumber<V>> genericQuantityTimes(
     }
 }
 
-private fun <V : FloatingNumber<V>> genericQuantityMinus(
+private fun <V : FloatingNumber<V>> quantityMinusByValue(
     lhs: Quantity<V>,
     rhs: Quantity<V>
 ): Quantity<V> {
@@ -45,7 +45,7 @@ private fun <V : FloatingNumber<V>> genericQuantityMinus(
     }
 }
 
-private fun <V : FloatingNumber<V>> genericQuantityPlus(
+private fun <V : FloatingNumber<V>> quantityPlusByValue(
     lhs: Quantity<V>,
     rhs: Quantity<V>
 ): Quantity<V> {
@@ -57,11 +57,11 @@ private fun <V : FloatingNumber<V>> genericQuantityPlus(
     }
 }
 
-private fun <V : FloatingNumber<V>> genericQuantityZero(sample: Quantity<V>): Quantity<V> {
-    return genericQuantityMinus(sample, sample)
+private fun <V : FloatingNumber<V>> quantityZeroByValue(sample: Quantity<V>): Quantity<V> {
+    return quantityMinusByValue(sample, sample)
 }
 
-private fun <V : FloatingNumber<V>> genericQuantityScale(
+private fun <V : FloatingNumber<V>> quantityScaleByValue(
     quantity: Quantity<V>,
     scale: UInt64
 ): Quantity<V> {
@@ -73,17 +73,17 @@ private fun <V : FloatingNumber<V>> genericQuantityScale(
     }
 }
 
-private fun <V : FloatingNumber<V>> genericQuantityWeightedSum(
+private fun <V : FloatingNumber<V>> quantityWeightedSumByValue(
     amounts: Map<AbstractCuboid<V>, UInt64>,
     zero: Quantity<V>,
     selector: (AbstractCuboid<V>) -> Quantity<V>
 ): Quantity<V> {
     return amounts.asSequence().fold(zero) { acc, (unit, amount) ->
-        genericQuantityPlus(acc, genericQuantityScale(selector(unit), amount))
+        quantityPlusByValue(acc, quantityScaleByValue(selector(unit), amount))
     }
 }
 
-private fun <V : FloatingNumber<V>> genericMaxQuantity(values: Iterable<Quantity<V>>): Quantity<V>? {
+private fun <V : FloatingNumber<V>> maxQuantityByValue(values: Iterable<Quantity<V>>): Quantity<V>? {
     var maximum: Quantity<V>? = null
     for (value in values) {
         maximum = if (maximum == null || (value geq maximum) == true) {
@@ -97,16 +97,16 @@ private fun <V : FloatingNumber<V>> genericMaxQuantity(values: Iterable<Quantity
 
 /**
  * 泛型 3D 容器形状接口。
- * Generic 3D container shape interface.
+ * Quantity 3D container shape interface.
  *
  * @param V 数值类型 / Numeric scalar type
  */
-interface GenericContainer3Shape<V : FloatingNumber<V>> : Eq<GenericContainer3Shape<V>> {
+interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> {
     val width: Quantity<V>
     val height: Quantity<V>
     val depth: Quantity<V>
     val volume: Quantity<V>
-        get() = genericQuantityTimes(genericQuantityTimes(width, height), depth)
+        get() = quantityTimesByValue(quantityTimesByValue(width, height), depth)
 
     fun enabled(
         unit: AbstractCuboid<V>,
@@ -117,22 +117,22 @@ interface GenericContainer3Shape<V : FloatingNumber<V>> : Eq<GenericContainer3Sh
                 && (depth geq orientation.depth(unit)) == true
     }
 
-    fun enabled(unit: GenericQuantityPlacement3<*, V>): Boolean {
+    fun enabled(unit: QuantityCuboidPlacement3<*, V>): Boolean {
         return (width geq unit.maxX) == true
                 && (height geq unit.maxY) == true
                 && (depth geq unit.maxZ) == true
     }
 
-    fun enabled(units: List<GenericQuantityPlacement3<*, V>>): Boolean {
-        val maxX = genericMaxQuantity(units.map { it.maxX })
+    fun enabled(units: List<QuantityCuboidPlacement3<*, V>>): Boolean {
+        val maxX = maxQuantityByValue(units.map { it.maxX })
         if (maxX != null && (width geq maxX) != true) {
             return false
         }
-        val maxY = genericMaxQuantity(units.map { it.maxY })
+        val maxY = maxQuantityByValue(units.map { it.maxY })
         if (maxY != null && (height geq maxY) != true) {
             return false
         }
-        val maxZ = genericMaxQuantity(units.map { it.maxZ })
+        val maxZ = maxQuantityByValue(units.map { it.maxZ })
         if (maxZ != null && (depth geq maxZ) != true) {
             return false
         }
@@ -141,20 +141,20 @@ interface GenericContainer3Shape<V : FloatingNumber<V>> : Eq<GenericContainer3Sh
 
     fun restSpace(offset: QuantityPoint3G<V>): QuantityContainer3Shape<V> {
         return QuantityContainer3Shape(
-            width = genericQuantityMinus(width, offset.x),
-            height = genericQuantityMinus(height, offset.y),
-            depth = genericQuantityMinus(depth, offset.z)
+            width = quantityMinusByValue(width, offset.x),
+            height = quantityMinusByValue(height, offset.y),
+            depth = quantityMinusByValue(depth, offset.z)
         )
     }
 
-    override fun partialEq(rhs: GenericContainer3Shape<V>): Boolean? {
+    override fun partialEq(rhs: Container3Geometry<V>): Boolean? {
         return width eq rhs.width && height eq rhs.height && depth eq rhs.depth
     }
 }
 
 /**
  * 泛型 3D 容器形状实现。
- * Generic 3D container shape implementation.
+ * Quantity 3D container shape implementation.
  *
  * @param V 数值类型 / Numeric scalar type
  * @property width 宽度 / Width
@@ -165,25 +165,25 @@ data class QuantityContainer3Shape<V : FloatingNumber<V>>(
     override val width: Quantity<V>,
     override val height: Quantity<V>,
     override val depth: Quantity<V>
-) : GenericContainer3Shape<V>
+) : Container3Geometry<V>
 
-interface GenericContainer2Shape<P : ProjectivePlane, V : FloatingNumber<V>> {
+interface Container2Geometry<P : ProjectivePlane, V : FloatingNumber<V>> {
     val length: Quantity<V>
     val width: Quantity<V>
     val plane: P
 
     fun restSpace(offset: QuantityPoint2G<V>): QuantityContainer2Shape<P, V> {
         return QuantityContainer2Shape(
-            length = genericQuantityMinus(length, offset.x),
-            width = genericQuantityMinus(width, offset.y),
+            length = quantityMinusByValue(length, offset.x),
+            width = quantityMinusByValue(width, offset.y),
             plane = plane
         )
     }
 
     fun restSpace(offset: QuantityVector2G<V>): QuantityContainer2Shape<P, V> {
         return QuantityContainer2Shape(
-            length = genericQuantityMinus(length, offset.x),
-            width = genericQuantityMinus(width, offset.y),
+            length = quantityMinusByValue(length, offset.x),
+            width = quantityMinusByValue(width, offset.y),
             plane = plane
         )
     }
@@ -193,22 +193,22 @@ data class QuantityContainer2Shape<P : ProjectivePlane, V : FloatingNumber<V>>(
     override val length: Quantity<V>,
     override val width: Quantity<V>,
     override val plane: P
-) : GenericContainer2Shape<P, V>
+) : Container2Geometry<P, V>
 
-interface GenericContainer2<
-        S : GenericContainer2<S, V, P>,
+interface QuantityContainer2<
+        S : QuantityContainer2<S, V, P>,
         V : FloatingNumber<V>,
         P : ProjectivePlane
         > : Copyable<S> {
-    val shape: GenericContainer2Shape<P, V>
-    val units: List<GenericQuantityPlacement2<*, V, P>>
+    val shape: Container2Geometry<P, V>
+    val units: List<QuantityProjectionPlacement2<*, V, P>>
     val amounts: Map<AbstractCuboid<V>, UInt64> get() = count(units)
 
     val length: Quantity<V> get() = shape.length
     val width: Quantity<V> get() = shape.width
 
     companion object {
-        fun <V : FloatingNumber<V>, P : ProjectivePlane> count(units: List<GenericQuantityPlacement2<*, V, P>>): Map<AbstractCuboid<V>, UInt64> {
+        fun <V : FloatingNumber<V>, P : ProjectivePlane> count(units: List<QuantityProjectionPlacement2<*, V, P>>): Map<AbstractCuboid<V>, UInt64> {
             val counter = HashMap<AbstractCuboid<V>, UInt64>()
             for (placement in units) {
                 val unit = placement.unit
@@ -223,12 +223,12 @@ interface GenericContainer2<
     fun contains(unit: AbstractCuboid<V>) = amounts[unit]?.let { it != UInt64.zero } ?: false
 }
 
-interface GenericContainer3<
-        S : GenericContainer3<S, V>,
+interface QuantityContainer3<
+        S : QuantityContainer3<S, V>,
         V : FloatingNumber<V>
         > : AbstractCuboid<V>, Copyable<S> {
-    val shape: GenericContainer3Shape<V>
-    val units: List<GenericQuantityPlacement3<*, V>>
+    val shape: Container3Geometry<V>
+    val units: List<QuantityCuboidPlacement3<*, V>>
     val amounts: Map<AbstractCuboid<V>, UInt64> get() = count(units)
 
     override val width: Quantity<V> get() = shape.width
@@ -236,19 +236,19 @@ interface GenericContainer3<
     override val depth: Quantity<V> get() = shape.depth
 
     override val weight: Quantity<V>
-        get() = genericQuantityWeightedSum(
+        get() = quantityWeightedSumByValue(
             amounts = amounts,
-            zero = Quantity(genericQuantityZero(width).value, Kilogram)
+            zero = Quantity(quantityZeroByValue(width).value, Kilogram)
         ) { it.weight }
-    override val volume: Quantity<V> get() = genericQuantityTimes(genericQuantityTimes(depth, height), width)
+    override val volume: Quantity<V> get() = quantityTimesByValue(quantityTimesByValue(depth, height), width)
     override val actualVolume: Quantity<V>
-        get() = genericQuantityWeightedSum(
+        get() = quantityWeightedSumByValue(
             amounts = amounts,
-            zero = genericQuantityZero(volume)
+            zero = quantityZeroByValue(volume)
         ) { it.actualVolume }
 
     companion object {
-        fun <V : FloatingNumber<V>> count(units: List<GenericQuantityPlacement3<*, V>>): Map<AbstractCuboid<V>, UInt64> {
+        fun <V : FloatingNumber<V>> count(units: List<QuantityCuboidPlacement3<*, V>>): Map<AbstractCuboid<V>, UInt64> {
             val counter = HashMap<AbstractCuboid<V>, UInt64>()
             for (placement in units) {
                 val unit = placement.unit
@@ -265,12 +265,12 @@ interface GenericContainer3<
 
 /**
  * 泛型 cuboid 接口。
- * Generic cuboid interface.
+ * Quantity cuboid interface.
  *
  * @param T 自身类型 / Self type
  * @param V 数值类型 / Numeric scalar type
  */
-interface GenericCuboid<T : GenericCuboid<T, V>, V : FloatingNumber<V>> : AbstractCuboid<V> {
+interface QuantityCuboid<T : QuantityCuboid<T, V>, V : FloatingNumber<V>> : AbstractCuboid<V> {
     val self: T
     val enabledOrientations: List<Orientation>
 
@@ -290,7 +290,7 @@ interface GenericCuboid<T : GenericCuboid<T, V>, V : FloatingNumber<V>> : Abstra
     }
 
     fun enabledOrientationsAt(
-        space: GenericContainer3Shape<V>,
+        space: Container3Geometry<V>,
         withRotation: Boolean = true
     ): List<Orientation> {
         return enabledOrientations.filter {
@@ -301,22 +301,22 @@ interface GenericCuboid<T : GenericCuboid<T, V>, V : FloatingNumber<V>> : Abstra
         }
     }
 
-    fun view(orientation: Orientation = Orientation.Upright): GenericCuboidView<T, V> {
-        return GenericCuboidView(self, orientation)
+    fun view(orientation: Orientation = Orientation.Upright): QuantityCuboidView<T, V> {
+        return QuantityCuboidView(self, orientation)
     }
 }
 
 /**
  * 泛型 cuboid 视图。
- * Generic cuboid view.
+ * Quantity cuboid view.
  *
  * @param T 原始 cuboid 类型 / Source cuboid type
  * @param V 数值类型 / Numeric scalar type
  */
-open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
+open class QuantityCuboidView<T : QuantityCuboid<T, V>, V : FloatingNumber<V>>(
     val unit: T,
     val orientation: Orientation = Orientation.Upright
-) : AbstractCuboid<V>, Copyable<GenericCuboidView<T, V>> {
+) : AbstractCuboid<V>, Copyable<QuantityCuboidView<T, V>> {
     private val geometryView: QuantityCuboid3View<V> by lazy { unit.geometryView(orientation) }
 
     override val width get() = geometryView.width
@@ -326,7 +326,7 @@ open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
 
     val rotatedOrientation by orientation::rotation
 
-    open val rotation: GenericCuboidView<T, V>?
+    open val rotation: QuantityCuboidView<T, V>?
         get() {
             return if (unit.enabledOrientations.contains(rotatedOrientation)) {
                 unit.view(rotatedOrientation)
@@ -335,7 +335,7 @@ open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
             }
         }
 
-    open fun rotationAt(space: GenericContainer3Shape<V>): GenericCuboidView<T, V>? {
+    open fun rotationAt(space: Container3Geometry<V>): QuantityCuboidView<T, V>? {
         return if (unit.enabledOrientationsAt(space).contains(rotatedOrientation)) {
             unit.view(rotatedOrientation)
         } else {
@@ -343,8 +343,8 @@ open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
         }
     }
 
-    override fun copy(): GenericCuboidView<T, V> {
-        return GenericCuboidView(
+    override fun copy(): QuantityCuboidView<T, V> {
+        return QuantityCuboidView(
             unit = unit,
             orientation = orientation
         )
@@ -353,11 +353,11 @@ open class GenericCuboidView<T : GenericCuboid<T, V>, V : FloatingNumber<V>>(
 
 /**
  * 旧版 `Cuboid<T>` 的泛型适配器（`InfraNumber`）。
- * Generic adapter for model `Cuboid<T>` (`InfraNumber`).
+ * Quantity adapter for model `Cuboid<T>` (`InfraNumber`).
  */
 data class ModelCuboidAdapter<T : Cuboid<T>>(
     val cuboid: T
-) : GenericCuboid<ModelCuboidAdapter<T>, InfraNumber> {
+) : QuantityCuboid<ModelCuboidAdapter<T>, InfraNumber> {
     override val self: ModelCuboidAdapter<T>
         get() = this
     override val width by cuboid::width
@@ -367,11 +367,11 @@ data class ModelCuboidAdapter<T : Cuboid<T>>(
     override val enabledOrientations by cuboid::enabledOrientations
 }
 
-fun <T : Cuboid<T>> T.asGenericCuboid(): ModelCuboidAdapter<T> {
+fun <T : Cuboid<T>> T.asQuantityCuboid(): ModelCuboidAdapter<T> {
     return ModelCuboidAdapter(this)
 }
 
-fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asGenericContainer2Shape(): GenericContainer2Shape<P, InfraNumber> {
+fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asQuantityContainer2Shape(): Container2Geometry<P, InfraNumber> {
     return QuantityContainer2Shape(
         length = length,
         width = width,
@@ -379,7 +379,7 @@ fun <P : ProjectivePlane> AbstractContainer2Shape<P>.asGenericContainer2Shape():
     )
 }
 
-fun AbstractContainer3Shape.asGenericContainer3Shape(): GenericContainer3Shape<InfraNumber> {
+fun AbstractContainer3Shape.asQuantityContainer3Shape(): Container3Geometry<InfraNumber> {
     return QuantityContainer3Shape(
         width = width,
         height = height,

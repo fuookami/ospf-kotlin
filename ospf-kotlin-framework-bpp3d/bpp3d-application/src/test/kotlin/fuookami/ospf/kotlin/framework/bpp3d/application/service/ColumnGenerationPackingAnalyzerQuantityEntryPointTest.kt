@@ -22,13 +22,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
@@ -39,7 +39,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGe
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 
-class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
+class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
     private object Cargo : AbstractCargoAttribute
 
     private fun packageAttribute(): PackageAttribute {
@@ -53,25 +53,25 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
-    fun analyzerShouldSupportGenericLayerEntryPoint() = runBlocking {
-        val material = GenericMaterial(
+    fun analyzerShouldSupportQuantityLayerEntryPoint() = runBlocking {
+        val material = QuantityMaterial(
             no = MaterialNo("M-ANALYZER-GENERIC"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
             name = "M-ANALYZER-GENERIC",
             weight = FltX(0.2) * Kilogram
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = FltX(1.0) * Meter,
             height = FltX(1.0) * Meter,
             depth = FltX(1.0) * Meter,
             weight = FltX(0.2) * Kilogram,
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
-            id = "item-analyzer-generic",
-            name = "item-analyzer-generic",
-            pack = GenericPackage.innerPackage(
+        val item = QuantityItem(
+            id = "item-analyzer-quantity",
+            name = "item-analyzer-quantity",
+            pack = QuantityPackage.innerPackage(
                 shape = shape,
                 materials = mapOf(material to UInt64.one)
             ),
@@ -79,14 +79,14 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             batchNo = BatchNo("B-ANALYZER-GENERIC"),
             packageAttribute = packageAttribute()
         )
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = Int64.zero,
-            from = ColumnGenerationPackingAnalyzerGenericEntryPointTest::class,
+            from = ColumnGenerationPackingAnalyzerQuantityEntryPointTest::class,
             width = FltX(2.0) * Meter,
             height = FltX(2.0) * Meter,
             depth = FltX(2.0) * Meter,
             units = listOf(
-                GenericItemPlacement(
+                QuantityItemPlacement(
                     item = item,
                     x = FltX(0.0) * Meter,
                     y = FltX(0.0) * Meter,
@@ -105,7 +105,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         )
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        analyzer.analyzeFromGeneric(
+        analyzer.analyzeFromQuantity(
             iteration = 5,
             columns = listOf(layer),
             bins = listOf(
@@ -172,18 +172,18 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
 
     @Test
     fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderSupportedStack() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-ADAPTER-CYLINDER-STACK"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
             name = "M-ADAPTER-CYLINDER-STACK",
             weight = FltX(0.2) * Kilogram
         )
-        val support = GenericItem(
+        val support = QuantityItem(
             id = "item-adapter-cylinder-stack-support",
             name = "item-adapter-cylinder-stack-support",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(1.2) * Meter,
                     height = FltX(0.2) * Meter,
                     depth = FltX(1.0) * Meter,
@@ -196,17 +196,17 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             batchNo = BatchNo("B-ADAPTER-CYLINDER-STACK-SUPPORT"),
             packageAttribute = packageAttribute()
         ).toModel()
-        val cylinder = GenericItem(
+        val cylinder = QuantityItem(
             id = "item-adapter-cylinder-stack-cylinder",
             name = "item-adapter-cylinder-stack-cylinder",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(1.0) * Meter,
                     height = FltX(1.0) * Meter,
                     depth = FltX(1.0) * Meter,
                     weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer,
-                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                    shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
                         axis = Axis3.X
                     )
@@ -251,18 +251,18 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
 
     @Test
     fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderMultiSupportStack() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-ADAPTER-CYLINDER-MULTI-STACK"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
             name = "M-ADAPTER-CYLINDER-MULTI-STACK",
             weight = FltX(0.2) * Kilogram
         )
-        val support = GenericItem(
+        val support = QuantityItem(
             id = "item-adapter-cylinder-multi-stack-support",
             name = "item-adapter-cylinder-multi-stack-support",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(0.4) * Meter,
                     height = FltX(0.2) * Meter,
                     depth = FltX(1.0) * Meter,
@@ -275,17 +275,17 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-STACK-SUPPORT"),
             packageAttribute = packageAttribute()
         ).toModel()
-        val cylinder = GenericItem(
+        val cylinder = QuantityItem(
             id = "item-adapter-cylinder-multi-stack-cylinder",
             name = "item-adapter-cylinder-multi-stack-cylinder",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(1.0) * Meter,
                     height = FltX(1.0) * Meter,
                     depth = FltX(1.0) * Meter,
                     weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer,
-                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                    shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
                         axis = Axis3.X
                     )
@@ -336,18 +336,18 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     private suspend fun assertGeneratedHorizontalCylinderMultiHangingSupport(axis: Axis3) {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-ADAPTER-CYLINDER-MULTI-HANGING-$axis"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
             name = "M-ADAPTER-CYLINDER-MULTI-HANGING-$axis",
             weight = FltX(0.2) * Kilogram
         )
-        val support = GenericItem(
+        val support = QuantityItem(
             id = "item-adapter-cylinder-multi-hanging-support-$axis",
             name = "item-adapter-cylinder-multi-hanging-support-$axis",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(0.4) * Meter,
                     height = FltX(0.2) * Meter,
                     depth = FltX(0.2) * Meter,
@@ -360,17 +360,17 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             batchNo = BatchNo("B-ADAPTER-CYLINDER-MULTI-HANGING-SUPPORT-$axis"),
             packageAttribute = packageAttribute()
         ).toModel()
-        val cylinder = GenericItem(
+        val cylinder = QuantityItem(
             id = "item-adapter-cylinder-multi-hanging-cylinder-$axis",
             name = "item-adapter-cylinder-multi-hanging-cylinder-$axis",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(1.0) * Meter,
                     height = FltX(1.0) * Meter,
                     depth = FltX(1.0) * Meter,
                     weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer,
-                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                    shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
                         axis = axis
                     )
@@ -421,18 +421,18 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
 
     @Test
     fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderHeterogeneousSupportStack() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-ADAPTER-CYLINDER-HETEROGENEOUS-STACK"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
             name = "M-ADAPTER-CYLINDER-HETEROGENEOUS-STACK",
             weight = FltX(0.2) * Kilogram
         )
-        val supportA = GenericItem(
+        val supportA = QuantityItem(
             id = "item-adapter-cylinder-heterogeneous-stack-support-a",
             name = "item-adapter-cylinder-heterogeneous-stack-support-a",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(0.4) * Meter,
                     height = FltX(0.2) * Meter,
                     depth = FltX(1.0) * Meter,
@@ -445,11 +445,11 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             batchNo = BatchNo("B-ADAPTER-CYLINDER-HETEROGENEOUS-STACK-SUPPORT-A"),
             packageAttribute = packageAttribute()
         ).toModel()
-        val supportB = GenericItem(
+        val supportB = QuantityItem(
             id = "item-adapter-cylinder-heterogeneous-stack-support-b",
             name = "item-adapter-cylinder-heterogeneous-stack-support-b",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(0.6) * Meter,
                     height = FltX(0.2) * Meter,
                     depth = FltX(1.0) * Meter,
@@ -462,17 +462,17 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             batchNo = BatchNo("B-ADAPTER-CYLINDER-HETEROGENEOUS-STACK-SUPPORT-B"),
             packageAttribute = packageAttribute()
         ).toModel()
-        val cylinder = GenericItem(
+        val cylinder = QuantityItem(
             id = "item-adapter-cylinder-heterogeneous-stack-cylinder",
             name = "item-adapter-cylinder-heterogeneous-stack-cylinder",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(1.0) * Meter,
                     height = FltX(1.0) * Meter,
                     depth = FltX(1.0) * Meter,
                     weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer,
-                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                    shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
                         axis = Axis3.X
                     )
@@ -520,7 +520,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         val layer = horizontalCylinderLayer(Axis3.X)
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        analyzer.analyzeFromGeneric(
+        analyzer.analyzeFromQuantity(
             iteration = 6,
             columns = listOf(layer)
         )
@@ -552,7 +552,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         )
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        analyzer.analyzeFromGeneric(
+        analyzer.analyzeFromQuantity(
             iteration = 7,
             columns = listOf(layer),
             bins = listOf(explicitBin)
@@ -570,7 +570,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     fun analyzerShouldBuildKnownCoordinateBinsForMultipleHorizontalCylinderAxes() = runBlocking {
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        analyzer.analyzeFromGeneric(
+        analyzer.analyzeFromQuantity(
             iteration = 8,
             columns = listOf(
                 horizontalCylinderLayer(Axis3.X),
@@ -596,7 +596,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         val analyzer = ColumnGenerationPackingAnalyzer()
 
         val exception = assertFailsWith<IllegalArgumentException> {
-            analyzer.analyzeFromGeneric(
+            analyzer.analyzeFromQuantity(
                 iteration = 9,
                 columns = listOf(layer)
             )
@@ -606,10 +606,10 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
-    fun analyzerShouldApplyDepthBoundaryPolicyToKnownCoordinateGenericBins() = runBlocking {
+    fun analyzerShouldApplyDepthBoundaryPolicyToKnownCoordinateQuantityBins() = runBlocking {
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        analyzer.analyzeFromGeneric(
+        analyzer.analyzeFromQuantity(
             iteration = 10,
             columns = listOf(horizontalCylinderLayer(Axis3.X)),
             depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
@@ -623,7 +623,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         assertEquals("10", latest.schema.kpi["cg_iteration"])
 
         val exception = assertFailsWith<IllegalArgumentException> {
-            analyzer.analyzeFromGeneric(
+            analyzer.analyzeFromQuantity(
                 iteration = 11,
                 columns = listOf(horizontalCylinderLayer(Axis3.X)),
                 depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
@@ -637,7 +637,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     }
 
     @Test
-    fun analyzerShouldApplyDepthBoundaryPolicyToExplicitGenericBins() = runBlocking {
+    fun analyzerShouldApplyDepthBoundaryPolicyToExplicitQuantityBins() = runBlocking {
         val layer = horizontalCylinderLayer(Axis3.Z)
         val modelLayer = layer.toModel()
         val bin = BinType(
@@ -655,7 +655,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         )
 
         val exception = assertFailsWith<IllegalArgumentException> {
-            ColumnGenerationPackingAnalyzer().analyzeFromGeneric(
+            ColumnGenerationPackingAnalyzer().analyzeFromQuantity(
                 iteration = 12,
                 columns = listOf(layer),
                 bins = listOf(explicitBin),
@@ -669,7 +669,7 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
         assertTrue(exception.message?.contains("cylinder_axis=Z") == true)
     }
 
-    private fun horizontalCylinderLayer(axis: Axis3): GenericBinLayer<FltX> {
+    private fun horizontalCylinderLayer(axis: Axis3): QuantityBinLayer<FltX> {
         return horizontalCylinderLayer(
             axes = listOf(axis),
             positions = listOf(Pair(0.0, 0.0))
@@ -679,9 +679,9 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
     private fun horizontalCylinderLayer(
         axes: List<Axis3>,
         positions: List<Pair<Double, Double>>
-    ): GenericBinLayer<FltX> {
+    ): QuantityBinLayer<FltX> {
         require(axes.size == positions.size)
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-ADAPTER-CYLINDER-${axes.joinToString("-")}"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
@@ -689,21 +689,21 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
             weight = FltX(0.2) * Kilogram
         )
         val items = axes.map { axis ->
-            val shape = GenericPackageShape(
+            val shape = QuantityPackageShape(
                 width = FltX(1.0) * Meter,
                 height = FltX(1.0) * Meter,
                 depth = FltX(1.0) * Meter,
                 weight = FltX(0.2) * Kilogram,
                 packageType = PackageType.CartonContainer,
-                shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                     radius = FltX(0.4) * Meter,
                     axis = axis
                 )
             )
-            GenericItem(
+            QuantityItem(
                 id = "item-adapter-cylinder-$axis",
                 name = "item-adapter-cylinder-$axis",
-                pack = GenericPackage.innerPackage(
+                pack = QuantityPackage.innerPackage(
                     shape = shape,
                     materials = mapOf(material to UInt64.one)
                 ),
@@ -712,15 +712,15 @@ class ColumnGenerationPackingAnalyzerGenericEntryPointTest {
                 packageAttribute = packageAttribute()
             )
         }
-        return GenericBinLayer(
+        return QuantityBinLayer(
             iteration = Int64.zero,
-            from = ColumnGenerationPackingAnalyzerGenericEntryPointTest::class,
+            from = ColumnGenerationPackingAnalyzerQuantityEntryPointTest::class,
             width = FltX(2.0) * Meter,
             height = FltX(2.0) * Meter,
             depth = FltX(2.0) * Meter,
             units = items.zip(positions).map { (item, position) ->
                 val (x, z) = position
-                GenericItemPlacement(
+                QuantityItemPlacement(
                     item = item,
                     x = FltX(x) * Meter,
                     y = FltX(0.0) * Meter,

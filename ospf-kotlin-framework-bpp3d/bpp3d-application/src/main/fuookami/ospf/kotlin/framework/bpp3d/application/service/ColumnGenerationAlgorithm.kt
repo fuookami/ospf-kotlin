@@ -9,8 +9,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousCylinderRadiusSolverPrototype
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
@@ -449,21 +449,21 @@ class ColumnGenerationAlgorithm<V>(
 }
 
 /**
- * 使用泛型货物列表执行列生成求解。
- * Execute column generation solving with generic item list.
+ * 使用量纲货物列表执行列生成求解。
+ * Execute column generation solving with quantity item list.
  *
- * @param T 泛型数值类型 / generic numeric type
- * @param items 泛型货物列表 / generic item list
+ * @param T 量纲数值类型 / quantity numeric type
+ * @param items 量纲货物列表 / quantity item list
  * @param config 列生成配置 / column generation config
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  * @return 列生成结果 / column generation result
  */
-suspend fun <V, T : FloatingNumber<T>> ColumnGenerationAlgorithm<V>.solveGeneric(
-    items: List<GenericItem<T>>,
+suspend fun <V, T : FloatingNumber<T>> ColumnGenerationAlgorithm<V>.solveQuantity(
+    items: List<QuantityItem<T>>,
     config: ColumnGenerationConfig = ColumnGenerationConfig(),
-    materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
-    itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ): ColumnGenerationResult<V> {
     return solve(
         items = items.map { it.toModel(materialCache, itemCache) },

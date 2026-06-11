@@ -53,10 +53,10 @@ private fun merge(
 
 @Suppress("UNCHECKED_CAST")
 private fun toModelCountMap(
-    genericCounts: Map<AbstractCuboid<InfraNumber>, UInt64>
+    quantityCounts: Map<AbstractCuboid<InfraNumber>, UInt64>
 ): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
-    for ((unit, amount) in genericCounts) {
+    for ((unit, amount) in quantityCounts) {
         val modelUnit = when (unit) {
             is ModelCuboidAdapter<*> -> unit.cuboid as AbstractCuboid<InfraNumber>
             else -> unit
@@ -66,7 +66,7 @@ private fun toModelCountMap(
     return counter
 }
 
-private fun <P : ProjectivePlane> count2WithGenericFallback(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
+private fun <P : ProjectivePlane> count2WithQuantityAdapter(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
     if (hasNestedContainer) {
         val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
@@ -75,11 +75,11 @@ private fun <P : ProjectivePlane> count2WithGenericFallback(units: List<Quantity
         }
         return counter
     }
-    val genericCounts = GenericContainer2.count(units.map { it.asGenericPlacement2() })
-    return toModelCountMap(genericCounts)
+    val quantityCounts = QuantityContainer2.count(units.map { it.asQuantityProjectionPlacement2() })
+    return toModelCountMap(quantityCounts)
 }
 
-private fun count3WithGenericFallback(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
+private fun count3WithQuantityAdapter(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
     val hasNestedContainer = units.any { it.unit is Container2<*, *> || it.unit is Container3<*> }
     if (hasNestedContainer) {
         val counter = HashMap<AbstractCuboid<InfraNumber>, UInt64>()
@@ -88,8 +88,8 @@ private fun count3WithGenericFallback(units: List<QuantityPlacement3<*>>): Map<A
         }
         return counter
     }
-    val genericCounts = GenericContainer3.count(units.map { it.asGenericPlacement3() })
-    return toModelCountMap(genericCounts)
+    val quantityCounts = QuantityContainer3.count(units.map { it.asQuantityCuboidPlacement3() })
+    return toModelCountMap(quantityCounts)
 }
 
 private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): Quantity<V>? {
@@ -165,7 +165,7 @@ interface Container2<
 
     companion object {
         fun <P : ProjectivePlane> count(units: List<QuantityPlacement2<*, P>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
-            return count2WithGenericFallback(units)
+            return count2WithQuantityAdapter(units)
         }
     }
 
@@ -195,7 +195,7 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
     }
 
     fun enabled(unit: QuantityPlacement3<*>): Boolean {
-        return asGenericContainer3Shape().enabled(unit.asGenericPlacement3())
+        return asQuantityContainer3Shape().enabled(unit.asQuantityCuboidPlacement3())
     }
 
     fun enabled(
@@ -243,7 +243,7 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
     }
 
     fun enabled(units: List<QuantityPlacement3<*>>): Boolean {
-        return asGenericContainer3Shape().enabled(units.map { it.asGenericPlacement3() })
+        return asQuantityContainer3Shape().enabled(units.map { it.asQuantityCuboidPlacement3() })
     }
 
     fun maxAmount(
@@ -340,7 +340,7 @@ interface Container3<S : Container3<S>> : AbstractCuboid<InfraNumber>, Copyable<
 
     companion object {
         fun count(units: List<QuantityPlacement3<*>>): Map<AbstractCuboid<InfraNumber>, UInt64> {
-            return count3WithGenericFallback(units)
+            return count3WithQuantityAdapter(units)
         }
     }
 

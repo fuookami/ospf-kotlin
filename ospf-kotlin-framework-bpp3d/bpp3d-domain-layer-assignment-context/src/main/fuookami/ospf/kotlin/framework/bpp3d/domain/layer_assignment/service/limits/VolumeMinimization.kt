@@ -63,7 +63,7 @@ open class VolumeMinimization<
 
 /**
  * 创建 Item 专用体积最小化目标，供业务调用侧避开泛型基类入口。
- * Build item-only volume minimization objective so business callers avoid the generic base entry.
+ * Build item-only volume minimization objective so business callers avoid the quantity-polymorphic base entry.
  *
  * @param assignment 不精确赋值 / imprecise assignment
  * @param coefficient 体积系数 / volume coefficient
@@ -84,7 +84,7 @@ fun itemVolumeMinimization(
 
 /**
  * Item 专用体积最小化目标，不暴露底层泛型 cuboid 约束。
- * Item-only volume minimization objective, does not expose the underlying generic cuboid constraint.
+ * Item-only volume minimization objective, does not expose the underlying quantity-polymorphic cuboid constraint.
  *
  * @property assignment 不精确赋值 / imprecise assignment
  * @property coefficient 体积系数 / volume coefficient

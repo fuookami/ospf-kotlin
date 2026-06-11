@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$ProjectRoot = "."
 )
 
@@ -25,23 +25,23 @@ $fixHints = @{
     CuboidWildcardOutOfAllowList = "Replace Cuboid<*> with ItemCuboid or AnyPlacement domain APIs; runtime dispatch should use Any only when the boundary is documented."
     AbstractCuboidOutOfAllowList = "Expose ItemCuboid or PackingShape3 at business boundaries instead of AbstractCuboid<...>."
     CuboidViewOutOfAllowList = "Expose ItemView, BlockView, or BinLayerView aliases instead of raw CuboidView."
-    CuboidViewWildcardOutOfAllowList = "Do not expose CuboidView<*> outside infrastructure; use ItemView or typed domain placement aliases."
+    CuboidViewWildcardOutOfAllowList = "Do not expose CuboidView<*> outside infrastructure; use ItemView or domain placement aliases."
     CuboidViewReceiverExtensionOutOfAllowList = "Do not add CuboidView receiver extensions in business code; put behavior on ItemView, ItemPlacement, or ItemContainer placement APIs."
-    ItemDomainPlacementFactoryCuboidBound = "Keep placement factory Cuboid bounds only inside typed factory internals or the documented BLA generic projection entry."
-    ItemDomainInternalBinCuboidBound = "Keep Bin Cuboid bounds behind the internal constructor and typed bin factories."
+    ItemDomainPlacementFactoryCuboidBound = "Keep placement factory Cuboid bounds only inside type-aware factory internals or the documented BLA polymorphic projection entry."
+    ItemDomainInternalBinCuboidBound = "Keep Bin Cuboid bounds behind the internal constructor and domain bin factories."
     QuantityCuboid3OutOfAllowList = "Keep QuantityCuboid3 in infrastructure geometry only; business code should use ItemCuboid or shape-domain APIs."
     QuantityRectangle2OutOfAllowList = "Keep QuantityRectangle2 in infrastructure projection only; business code should use placement/projection domain aliases."
-    LayerAssignmentGenericLimitCuboidBound = "Keep generic layer-assignment limit cuboid bounds only behind protected base constructors and item-specific public factories."
+    LayerAssignmentPolymorphicLimitCuboidBound = "Keep polymorphic layer-assignment limit cuboid bounds only behind protected base constructors and item-specific public factories."
     QuantityPlacementTypeOutOfAllowList = "Use ItemPlacement2/3, BlockPlacement2/3, BinLayerPlacement, or ItemContainerPlacement aliases."
     DirectQuantityPlacementConstructorOutOfFactory = "Create placements through placement2Of/placement3Of or narrower domain factories; do not call QuantityPlacement constructors directly."
-    DirectQuantityPlacementConstructorInBusinessTest = "Business tests should create placements through itemPlacement2/3Of, blockPlacement2/3Of, binLayerPlacementOf, or other typed factories; keep direct QuantityPlacement constructor coverage in infrastructure tests only."
-    Placement2GenericFactoryUseOutOfAllowList = "Use itemPlacement2Of or blockPlacement2Of outside the BLA generic projection search; do not add new business callers of placement2Of."
-    DirectBinConstructorOutOfFactory = "Create bins through layerBinOf, itemBinOf, or blockBinOf; do not call the generic Bin constructor from business code."
-    ApplicationDirectItemLimitFactory = "Use item-specific limit factories that hide Cuboid generic constraints from application code."
+    DirectQuantityPlacementConstructorInBusinessTest = "Business tests should create placements through itemPlacement2/3Of, blockPlacement2/3Of, binLayerPlacementOf, or other domain factories; keep direct QuantityPlacement constructor coverage in infrastructure tests only."
+    Placement2PolymorphicFactoryUseOutOfAllowList = "Use itemPlacement2Of or blockPlacement2Of outside the BLA polymorphic projection search; do not add new business callers of placement2Of."
+    DirectBinConstructorOutOfFactory = "Create bins through layerBinOf, itemBinOf, or blockBinOf; do not call the polymorphic Bin constructor from business code."
+    ApplicationDirectItemLimitFactory = "Use item-specific limit factories that hide Cuboid type constraints from application code."
     DuplicatedCylinderUnsupportedContract = "Keep cylinder unsupported messages in CylinderShapeContract; application and domain services should call the shared item-domain contract instead of duplicating message text."
     CylinderCapabilityPathSourceOutOfContract = "Keep cylinder capability path source and cuboid-only predicate strings in CylinderShapeContract; production callers should pass CylinderCapabilityPath instead of duplicating path metadata."
     DuplicatedPackingGeometryUnsupportedContract = "Keep final packing geometry unsupported messages in PackingGeometryContract; packer, renderer, and analyzer paths should call the shared packing-domain contract instead of duplicating message text."
-    KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the generic known-coordinate validation path."
+    KnownCoordinatePlacementBypassOutOfAllowList = "Use toLayerPlacement for generated candidates; toKnownCoordinateLayerPlacement is reserved for already-fixed final coordinates and the shape-neutral known-coordinate validation path."
     HorizontalCylinderAxisInGenerationOutOfAllowList = "Keep Axis3.X/Z in layer-generation production code limited to the axis-aware CirclePackingLayerGenerator path with verified footprint, support, and solver coverage."
     HorizontalCylinderGenerationGuardMissing = "CirclePackingLayerGenerator must call requireAxisAwareCylinderCandidate so X/Z cylinders can only enter the verified axis-aware candidate path."
     GeneratedPlacementAdapterGuardMissing = "LayerPlacementAdapter must call requireVerifiedGeneratedCylinderCandidate with ApplicationLayerPlacementCandidate so generated placements cannot bypass axis-aware provenance."
@@ -56,8 +56,8 @@ $fixHints = @{
     GurobiCsvContinuousRadiusKeyGuardMissing = "Gurobi CSV shape metadata parsing must require radius_weight_function_key to carry a concrete selected radius."
     ContinuousCylinderRadiusProductionGuardMissing = "PackageShape.toPackingShapeOrNull must require radiusWeightFunctionKey production use to carry a concrete selected radius."
     ContinuousCylinderRadiusSelectionResultGuardMissing = "Continuous-radius production must expose an explicit selected-radius result object, not just a metadata string."
-    ContinuousCylinderRadiusOptimizationGapReportGuardMissing = "Continuous-radius unsupported solver-native paths must be represented by a typed gap report shared by production and CSV guards."
-    ContinuousCylinderRadiusSolverPrototypeGuardMissing = "Continuous-radius solver-native work must keep a typed variable prototype wired into CSV guard diagnostics instead of silently fixing interval-only radius metadata."
+    ContinuousCylinderRadiusOptimizationGapReportGuardMissing = "Continuous-radius unsupported solver-native paths must be represented by a type-safe gap report shared by production and CSV guards."
+    ContinuousCylinderRadiusSolverPrototypeGuardMissing = "Continuous-radius solver-native work must keep a type-safe variable prototype wired into CSV guard diagnostics instead of silently fixing interval-only radius metadata."
     ContinuousCylinderRadiusSolverPrototypeBoundGuardMissing = "Continuous-radius solver prototypes must validate selected radius against solver registration bounds before reaching RMP/final/analyzer diagnostics."
     ContinuousCylinderRadiusSolverContextGuardMissing = "Column generation solver context must carry continuous-radius solver prototypes into RMP, final MILP, and packing snapshots."
     ContinuousCylinderRadiusLayerGenerationGuardMissing = "CirclePackingLayerGenerator must require concrete radius metadata before generating candidates."
@@ -66,7 +66,7 @@ $fixHints = @{
     HorizontalCylinderSupportCoverageSharedGuardMissing = "Item stacking and final packing guards must use the shared horizontal-cylinder cuboid support coverage helper."
     FinalPackingGeometryGuardMissing = "Packer.invoke and PackingRendererAdapter.toSchema must call requirePackedBinShapeGeometry so known-coordinate final packing/rendering cannot bypass real shape geometry checks."
     FinalPackingLayerAxisGuardMissing = "Packer.invoke must call the shared same-layer cylinder axis guard before dumping final bins."
-    DeletedCuboidCompatAliasReflux = "Do not re-introduce deleted ItemCuboid.packageType/packageCategory/bottomOnly/topFlat compat extensions or Projection/AnyPlacement compat extension aliases; use shape-generic ItemProjection/ItemPlacement domain APIs instead."
+    DeletedCuboidCompatAliasReflux = "Do not re-introduce deleted ItemCuboid.packageType/packageCategory/bottomOnly/topFlat compat extensions or Projection/AnyPlacement compat extension aliases; use shape-polymorphic ItemProjection/ItemPlacement domain APIs instead."
     ContinuousRadiusSolverResultWritebackMissing = "PackingRendererAdapter.toSchema must support solver-selected radius writeback for continuous-radius cylinders so actualVolume uses the solver-optimized radius."
     ContinuousRadiusSolverResultPropagationMissing = "ColumnGenerationPackingAnalyzer.analyze must propagate solver-selected radius results to the renderer adapter so actualVolume reflects the optimized radius."
     PWLApplicationConstraintRegistrationReflux = "PWL constraint registration must go through core symbol lifecycle (model.add(pwlSymbol)) in ContinuousRadiusModelComponent, not through manual helper variable/auxiliary token/Big-M constraint registration in application code. If new PWL registration is needed, extend the domain component using model.add(pwlSymbol) instead of hand-mirroring core constraint logic."
@@ -208,8 +208,8 @@ Add-TokenViolation -Check "CuboidTypeBoundOutOfAllowList" -Pattern "T\s*:\s*Cubo
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Cuboid.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericContainerCore.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt"
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityContainerCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityProjectionPlacementCore.kt"
 ) -ExcludeSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Bin.kt",
@@ -223,7 +223,7 @@ Add-TokenViolation -Check "ItemDomainPlacementFactoryCuboidBound" -Pattern "T\s*
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt"
 )
 
-Add-TokenViolation -Check "Placement2GenericFactoryUseOutOfAllowList" -Pattern "\bplacement2Of\s*\(" -AllowSuffixes @(
+Add-TokenViolation -Check "Placement2PolymorphicFactoryUseOutOfAllowList" -Pattern "\bplacement2Of\s*\(" -AllowSuffixes @(
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt",
     "/bpp3d-domain-bla-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/bla/service/BottomUpLeftJustifiedAlgorithm.kt"
 )
@@ -234,7 +234,7 @@ Add-TokenViolation -Check "ItemDomainInternalBinCuboidBound" -Pattern "T\s*:\s*C
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Bin.kt"
 )
 
-Add-TokenViolation -Check "LayerAssignmentGenericLimitCuboidBound" -Pattern "T\s*:\s*Cuboid<T>" -AllowSuffixes @(
+Add-TokenViolation -Check "LayerAssignmentPolymorphicLimitCuboidBound" -Pattern "T\s*:\s*Cuboid<T>" -AllowSuffixes @(
     "/bpp3d-domain-layer-assignment-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_assignment/service/limits/DemandConstraint.kt",
     "/bpp3d-domain-layer-assignment-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_assignment/service/limits/VolumeMinimization.kt"
 ) -IncludeSuffixes @(
@@ -249,8 +249,8 @@ Add-TokenViolation -Check "AbstractCuboidOutOfAllowList" -Pattern "\bAbstractCub
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Orientation.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Container.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericContainerCore.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityContainerCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityProjectionPlacementCore.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/PackingShape.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/ShadowPriceMap.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemModelAliases.kt"
@@ -276,15 +276,15 @@ Add-TokenViolation -Check "CuboidViewReceiverExtensionOutOfAllowList" -Pattern "
 Add-TokenViolation -Check "QuantityCuboid3OutOfAllowList" -Pattern "\bQuantityCuboid3\b" -AllowSuffixes @(
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Cuboid.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericContainerCore.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityContainerCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityProjectionPlacementCore.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/ProjectivePlaneGeometryMapping.kt"
 )
 
 Add-TokenViolation -Check "QuantityRectangle2OutOfAllowList" -Pattern "\bQuantityRectangle2\b" -AllowSuffixes @(
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityGeometrySpike.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityProjectionPlacementCore.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/ProjectivePlaneGeometryMapping.kt"
 )
 
@@ -293,7 +293,7 @@ Add-TokenViolation -Check "QuantityPlacementTypeOutOfAllowList" -Pattern "\bQuan
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Container.kt",
-    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/GenericProjectionPlacementCore.kt",
+    "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/QuantityProjectionPlacementCore.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemContainer.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Block.kt",
@@ -429,13 +429,13 @@ Add-RequiredPatternViolation `
     -Check "GurobiCsvDiscreteRadiusGuardMissing" `
     -FilePath $gurobiColumnGenerationTestPath `
     -Pattern "requireConcreteCsvRadiusMetadata\s*\([\s\S]*?continuousCylinderRadiusOptimizationGapReport\s*\([\s\S]*?hasContinuousRadiusInterval\s*=[\s\S]*?radiusStepMeter\s*==\s*null[\s\S]*?hasContinuousDiameterInterval\s*=[\s\S]*?diameterStepMeter\s*==\s*null" `
-    -MissingText "GurobiColumnGenerationTest CSV parser must reject continuous radius/diameter intervals through the typed continuous-radius gap report."
+    -MissingText "GurobiColumnGenerationTest CSV parser must reject continuous radius/diameter intervals through the type-safe continuous-radius gap report."
 
 Add-RequiredPatternViolation `
     -Check "GurobiCsvContinuousRadiusKeyGuardMissing" `
     -FilePath $gurobiColumnGenerationTestPath `
     -Pattern "radius_weight_function_key[\s\S]*?PackageShapeSpec\.VerticalCylinder\s*\([\s\S]*?radiusWeightFunctionKey\s*=\s*radiusWeightFunctionKey[\s\S]*?continuousCylinderRadiusOptimizationGapReport\s*\([\s\S]*?source\s*=\s*""Gurobi CSV""[\s\S]*?hasConcreteSelectedRadius\s*=\s*radiusMeter\s*!=\s*null[\s\S]*?hasDiscreteRadiusStep" `
-    -MissingText "GurobiColumnGenerationTest CSV parser must require radius_weight_function_key to carry radius_meter through the typed continuous-radius gap report and pass it into the shape spec."
+    -MissingText "GurobiColumnGenerationTest CSV parser must require radius_weight_function_key to carry radius_meter through the type-safe continuous-radius gap report and pass it into the shape spec."
 
 $packagePath = Join-Path $scanRoot "bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Package.kt"
 Add-RequiredPatternViolation `
@@ -449,19 +449,19 @@ Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSelectionResultGuardMissing" `
     -FilePath $cylinderShapeContractPath `
     -Pattern "data\s+class\s+CylinderRadiusSelectionResult[\s\S]*?selectedRadius[\s\S]*?fun\s+PackageShapeSpec\.VerticalCylinder\.continuousRadiusSelectionResult\s*\([\s\S]*?CylinderRadiusSelectionResult[\s\S]*?requireConcreteCylinderRadiusProductionMetadata\s*\([\s\S]*?continuousRadiusSelectionResult" `
-    -MissingText "CylinderShapeContract must keep selected continuous-radius results behind a typed result object used by the production guard."
+    -MissingText "CylinderShapeContract must keep selected continuous-radius results behind a type-safe result object used by the production guard."
 
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusOptimizationGapReportGuardMissing" `
     -FilePath $cylinderShapeContractPath `
     -Pattern "enum\s+class\s+ContinuousCylinderRadiusOptimizationGap[\s\S]*?SolverNativeRadiusIntervalUnsupported[\s\S]*?SolverNativeDiameterIntervalUnsupported[\s\S]*?data\s+class\s+ContinuousCylinderRadiusOptimizationGapReport[\s\S]*?fun\s+continuousCylinderRadiusOptimizationGapReport\s*\([\s\S]*?MissingSelectedRadius[\s\S]*?DiscreteRadiusMetadataConflict" `
-    -MissingText "CylinderShapeContract must expose a typed continuous-radius optimization gap report for solver-native unsupported paths."
+    -MissingText "CylinderShapeContract must expose a type-safe continuous-radius optimization gap report for solver-native unsupported paths."
 
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverPrototypeGuardMissing" `
     -FilePath $cylinderShapeContractPath `
     -Pattern "data\s+class\s+ContinuousCylinderRadiusSolverPrototype[\s\S]*?variableName[\s\S]*?isProductionReady[\s\S]*?fun\s+continuousCylinderRadiusSolverPrototype\s*\([\s\S]*?continuousCylinderRadiusOptimizationGapReport[\s\S]*?fun\s+PackageShapeSpec\.VerticalCylinder\.continuousRadiusSolverPrototype" `
-    -MissingText "CylinderShapeContract must keep a typed solver-native continuous-radius variable prototype and expose it from VerticalCylinder metadata."
+    -MissingText "CylinderShapeContract must keep a type-safe solver-native continuous-radius variable prototype and expose it from VerticalCylinder metadata."
 
 Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverPrototypeBoundGuardMissing" `
@@ -473,7 +473,7 @@ Add-RequiredPatternViolation `
     -Check "ContinuousCylinderRadiusSolverPrototypeGuardMissing" `
     -FilePath $gurobiColumnGenerationTestPath `
     -Pattern "requireConcreteCsvRadiusMetadata\s*\([\s\S]*?continuousCylinderRadiusSolverPrototype\s*\([\s\S]*?axis\s*=\s*axis[\s\S]*?gapReport\.message\s*\(rowDescription\)\s*\+\s*\(solverPrototype\?\.messageSuffix\(\)" `
-    -MissingText "Gurobi CSV radius guard must include the typed continuous-radius solver prototype in interval-only/key-without-radius diagnostics."
+    -MissingText "Gurobi CSV radius guard must include the type-safe continuous-radius solver prototype in interval-only/key-without-radius diagnostics."
 
 $columnGenerationAlgorithmPath = Join-Path $scanRoot "bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationAlgorithm.kt"
 Add-RequiredPatternViolation `
@@ -622,7 +622,7 @@ if (Test-Path $itemPath) {
                 Check = "DeletedCuboidCompatAliasReflux"
                 File = $itemPath.Replace("\", "/")
                 Line = 1
-                Text = "Deleted compat extension $($check.Name) must not be re-introduced; use shape-generic ItemProjection/ItemPlacement domain APIs instead."
+                Text = "Deleted compat extension $($check.Name) must not be re-introduced; use shape-polymorphic ItemProjection/ItemPlacement domain APIs instead."
             }
         }
     }

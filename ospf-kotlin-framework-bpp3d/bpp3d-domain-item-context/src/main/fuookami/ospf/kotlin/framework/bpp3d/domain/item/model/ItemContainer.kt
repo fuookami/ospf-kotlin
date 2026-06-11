@@ -83,7 +83,7 @@ typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, P>
 typealias ItemContainerSidePlacement2<S> = ItemContainerPlacement2<S, Side>
 /** 货物容器前视二维放置别名，用于容器堆叠检查边界。Item-container front-plane 2D placement alias for container stacking check boundaries. */
 typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
-/** 货物容器三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item-container 3D placement alias that hides the underlying QuantityPlacement3 generic. */
+/** 货物容器三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item-container 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
 typealias ItemContainerPlacement3<S> = QuantityPlacement3<S>
 
 @get:JvmName("itemContainerPlacementPackageType")

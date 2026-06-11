@@ -8,12 +8,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItemPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItemPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
@@ -194,25 +194,25 @@ class LayerGenerationFltXProofTest {
         val context = LayerGenerationContext<InfraNumber>()
         assertNotNull(context)
 
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-LG"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-LG",
             weight = q(FltX(0.25), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(0.8), Meter),
             depth = q(FltX(0.6), Meter),
             weight = q(FltX(0.3), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val pack = GenericPackage.innerPackage(
+        val pack = QuantityPackage.innerPackage(
             shape = shape,
             materials = mapOf(material to UInt64(2))
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-lg",
             name = "item-lg",
             pack = pack,
@@ -239,26 +239,26 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
-    fun genericRequestAdapterShouldConvertGenericItemsAndLayers() {
-        val material = GenericMaterial(
+    fun quantityRequestAdapterShouldConvertQuantityItemsAndLayers() {
+        val material = QuantityMaterial(
             no = MaterialNo("M-REQ"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-REQ",
             weight = q(FltX(0.15), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.2), Meter),
             height = q(FltX(0.6), Meter),
             depth = q(FltX(0.7), Meter),
             weight = q(FltX(0.4), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val pack = GenericPackage.innerPackage(
+        val pack = QuantityPackage.innerPackage(
             shape = shape,
             materials = mapOf(material to UInt64.one)
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-req",
             name = "item-req",
             pack = pack,
@@ -266,14 +266,14 @@ class LayerGenerationFltXProofTest {
             batchNo = BatchNo("B-REQ"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
             from = LayerGenerationFltXProofTest::class,
             width = q(FltX(2.0), Meter),
             height = q(FltX(2.0), Meter),
             depth = q(FltX(2.0), Meter),
             units = listOf(
-                GenericItemPlacement(
+                QuantityItemPlacement(
                     item = item,
                     x = q(FltX(0.0), Meter),
                     y = q(FltX(0.0), Meter),
@@ -282,7 +282,7 @@ class LayerGenerationFltXProofTest {
             )
         )
 
-        val request = bpp3dLayerGenerationRequestFromGeneric<FltX, InfraNumber>(
+        val request = bpp3dLayerGenerationRequestFromQuantity<FltX, InfraNumber>(
             iteration = 2,
             items = listOf(item),
             existingLayers = listOf(layer),
@@ -308,25 +308,25 @@ class LayerGenerationFltXProofTest {
             )
         )
 
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-LG2"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-LG2",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(0.5), Meter),
             depth = q(FltX(0.5), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val pack = GenericPackage.innerPackage(
+        val pack = QuantityPackage.innerPackage(
             shape = shape,
             materials = mapOf(material to UInt64.one)
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-lg2",
             name = "item-lg2",
             pack = pack,
@@ -334,14 +334,14 @@ class LayerGenerationFltXProofTest {
             batchNo = BatchNo("B-LG2"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
             from = LayerGenerationFltXProofTest::class,
             width = q(FltX(3.0), Meter),
             height = q(FltX(3.0), Meter),
             depth = q(FltX(3.0), Meter),
             units = listOf(
-                GenericItemPlacement(
+                QuantityItemPlacement(
                     item = item,
                     x = q(FltX(0.0), Meter),
                     y = q(FltX(0.0), Meter),
@@ -364,21 +364,21 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun generatedLayersShouldBeRankedByShadowPriceWhenEvaluatorProvided() = runBlocking {
-        val materialHigh = GenericMaterial(
+        val materialHigh = QuantityMaterial(
             no = MaterialNo("M-HIGH"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-HIGH",
             weight = q(FltX(0.2), Kilogram)
         )
-        val materialLow = GenericMaterial(
+        val materialLow = QuantityMaterial(
             no = MaterialNo("M-LOW"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-LOW",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(0.5), Meter),
             depth = q(FltX(0.5), Meter),
@@ -386,18 +386,18 @@ class LayerGenerationFltXProofTest {
             packageType = PackageType.CartonContainer
         )
 
-        val lowItem = GenericItem(
+        val lowItem = QuantityItem(
             id = "item-low",
             name = "item-low",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(materialLow to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(materialLow to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-LOW"),
             packageAttribute = defaultPackageAttribute()
         ).toModel()
-        val highItem = GenericItem(
+        val highItem = QuantityItem(
             id = "item-high",
             name = "item-high",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(materialHigh to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(materialHigh to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-HIGH"),
             packageAttribute = defaultPackageAttribute()
@@ -518,24 +518,24 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun blockLayerGeneratorShouldUseBlockLoadingWhenBinProvided() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-BLOCK"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-BLOCK",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(1.0), Meter),
             depth = q(FltX(1.0), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-block",
             name = "item-block",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-BLOCK"),
             packageAttribute = defaultPackageAttribute()
@@ -564,25 +564,25 @@ class LayerGenerationFltXProofTest {
     }
 
     @Test
-    fun blockLayerGeneratorShouldSupportGenericGenerateEntryPoint() = runBlocking {
-        val material = GenericMaterial(
+    fun blockLayerGeneratorShouldSupportQuantityGenerateEntryPoint() = runBlocking {
+        val material = QuantityMaterial(
             no = MaterialNo("M-BLOCK-GEN"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-BLOCK-GEN",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(1.0), Meter),
             depth = q(FltX(1.0), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-block-gen",
             name = "item-block-gen",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-BLOCK-GEN"),
             packageAttribute = defaultPackageAttribute()
@@ -597,7 +597,7 @@ class LayerGenerationFltXProofTest {
             typeCode = "BIN-LG-BLOCK-GEN"
         )
 
-        val generated = BlockLayerGenerator<InfraNumber>().generateFromGeneric(
+        val generated = BlockLayerGenerator<InfraNumber>().generateFromQuantity(
             iteration = 0,
             bin = bin,
             items = listOf(item, item),
@@ -610,24 +610,24 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun patternLayerGeneratorShouldUsePatternGroupedBlockLoadingWhenBinProvided() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-PATTERN"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PATTERN",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(1.0), Meter),
             depth = q(FltX(1.0), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-pattern",
             name = "item-pattern",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-PATTERN"),
             packageAttribute = defaultPackageAttribute()
@@ -657,24 +657,24 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun pileLayerGeneratorShouldStackItemsWhenBinProvided() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-PILE"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PILE",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(1.0), Meter),
             depth = q(FltX(1.0), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-pile",
             name = "item-pile",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-PILE"),
             packageAttribute = defaultPackageAttribute()
@@ -815,24 +815,24 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldGeneratePackedLayersWhenBinProvided() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-CIRCLE"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-CIRCLE",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(1.0), Meter),
             depth = q(FltX(1.0), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-circle",
             name = "item-circle",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CIRCLE"),
             packageAttribute = defaultPackageAttribute()
@@ -864,24 +864,24 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldPreferHexWhenPatternCountsTie() = runBlocking {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-CIRCLE-TIE"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-CIRCLE-TIE",
             weight = q(FltX(0.2), Kilogram)
         )
-        val shape = GenericPackageShape(
+        val shape = QuantityPackageShape(
             width = q(FltX(1.0), Meter),
             height = q(FltX(1.0), Meter),
             depth = q(FltX(1.0), Meter),
             weight = q(FltX(0.2), Kilogram),
             packageType = PackageType.CartonContainer
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-circle-tie",
             name = "item-circle-tie",
-            pack = GenericPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
+            pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CIRCLE-TIE"),
             packageAttribute = defaultPackageAttribute()

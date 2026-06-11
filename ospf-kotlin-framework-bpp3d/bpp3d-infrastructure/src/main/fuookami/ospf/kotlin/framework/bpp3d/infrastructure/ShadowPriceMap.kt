@@ -15,7 +15,7 @@ interface AbstractBPP3DShadowPriceArguments<
     val cuboid: T
 }
 
-interface GenericBPP3DShadowPriceArguments<
+interface QuantityBPP3DShadowPriceArguments<
         V : FloatingNumber<V>,
         out T : AbstractCuboid<@UnsafeVariance V>
         > {
@@ -29,10 +29,10 @@ open class AbstractBPP3DShadowPriceMap<
         @UnsafeVariance Args, AbstractBPP3DShadowPriceMap<@UnsafeVariance Args, @UnsafeVariance T>
         >()
 
-open class GenericBPP3DShadowPriceMap<
-        out Args : GenericBPP3DShadowPriceArguments<V, T>,
+open class QuantityBPP3DShadowPriceMap<
+        out Args : QuantityBPP3DShadowPriceArguments<V, T>,
         V : FloatingNumber<V>,
         out T : AbstractCuboid<@UnsafeVariance V>
         > : AbstractShadowPriceMap<
-        @UnsafeVariance Args, GenericBPP3DShadowPriceMap<@UnsafeVariance Args, @UnsafeVariance V, @UnsafeVariance T>
+        @UnsafeVariance Args, QuantityBPP3DShadowPriceMap<@UnsafeVariance Args, @UnsafeVariance V, @UnsafeVariance T>
         >()

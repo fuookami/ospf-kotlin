@@ -213,7 +213,7 @@ class Bin<T : Cuboid<T>> internal constructor(
 
 /**
  * 创建箱层装箱，隐藏底层 Bin 泛型构造。
- * Create a layer bin while hiding the underlying generic Bin constructor.
+ * Create a layer bin while hiding the underlying polymorphic Bin constructor.
  *
  * @param shape 箱型 / bin type
  * @param units 箱层放置列表 / bin-layer placements
@@ -234,7 +234,7 @@ fun layerBinOf(
 
 /**
  * 创建货物装箱，隐藏底层 Bin 泛型构造。
- * Create an item bin while hiding the underlying generic Bin constructor.
+ * Create an item bin while hiding the underlying polymorphic Bin constructor.
  *
  * @param shape 箱型 / bin type
  * @param units 货物放置列表 / item placements
@@ -255,7 +255,7 @@ fun itemBinOf(
 
 /**
  * 创建组合块装箱，隐藏底层 Bin 泛型构造。
- * Create a block bin while hiding the underlying generic Bin constructor.
+ * Create a block bin while hiding the underlying polymorphic Bin constructor.
  *
  * @param shape 箱型 / bin type
  * @param units 组合块放置列表 / block placements

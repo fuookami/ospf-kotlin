@@ -18,7 +18,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class GenericDomainAliasExampleTest {
+class QuantityDomainModelExampleTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
@@ -32,16 +32,16 @@ class GenericDomainAliasExampleTest {
     }
 
     @Test
-    fun infraNumberGenericDomainObjectsShouldBuildDirectly() {
-        val material: GenericMaterial<InfraNumber> = GenericMaterial(
+    fun infraNumberQuantityDomainObjectsShouldBuildDirectly() {
+        val material: QuantityMaterial<InfraNumber> = QuantityMaterial(
             no = MaterialNo("MAT-64"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-64",
             weight = infraScalar(0.5) * Kilogram
         )
-        val pack: GenericPackage<InfraNumber> = GenericPackage.innerPackage(
-            shape = GenericPackageShape(
+        val pack: QuantityPackage<InfraNumber> = QuantityPackage.innerPackage(
+            shape = QuantityPackageShape(
                 width = infraScalar(1.0) * Meter,
                 height = infraScalar(2.0) * Meter,
                 depth = infraScalar(3.0) * Meter,
@@ -50,7 +50,7 @@ class GenericDomainAliasExampleTest {
             ),
             materials = mapOf(material to UInt64(2))
         )
-        val item: GenericItem<InfraNumber> = GenericItem(
+        val item: QuantityItem<InfraNumber> = QuantityItem(
             id = "InfraNumber-item",
             name = "InfraNumber-item",
             pack = pack,
@@ -58,14 +58,14 @@ class GenericDomainAliasExampleTest {
             batchNo = BatchNo("BATCH-64"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer: GenericBinLayer<InfraNumber> = GenericBinLayer(
+        val layer: QuantityBinLayer<InfraNumber> = QuantityBinLayer(
             iteration = Int64.zero,
-            from = GenericDomainAliasExampleTest::class,
+            from = QuantityDomainModelExampleTest::class,
             width = infraScalar(5.0) * Meter,
             height = infraScalar(5.0) * Meter,
             depth = infraScalar(5.0) * Meter,
             units = listOf(
-                GenericItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
+                QuantityItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
             )
         )
 
@@ -75,16 +75,16 @@ class GenericDomainAliasExampleTest {
     }
 
     @Test
-    fun fltXGenericDomainObjectsShouldBuildDirectly() {
-        val material: GenericMaterial<FltX> = GenericMaterial(
+    fun fltXQuantityDomainObjectsShouldBuildDirectly() {
+        val material: QuantityMaterial<FltX> = QuantityMaterial(
             no = MaterialNo("MAT-X"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-X",
             weight = FltX(0.5) * Kilogram
         )
-        val pack: GenericPackage<FltX> = GenericPackage.innerPackage(
-            shape = GenericPackageShape(
+        val pack: QuantityPackage<FltX> = QuantityPackage.innerPackage(
+            shape = QuantityPackageShape(
                 width = FltX.one * Meter,
                 height = FltX(2.0) * Meter,
                 depth = FltX(3.0) * Meter,
@@ -93,7 +93,7 @@ class GenericDomainAliasExampleTest {
             ),
             materials = mapOf(material to UInt64(2))
         )
-        val item: GenericItem<FltX> = GenericItem(
+        val item: QuantityItem<FltX> = QuantityItem(
             id = "fltx-item",
             name = "fltx-item",
             pack = pack,
@@ -101,14 +101,14 @@ class GenericDomainAliasExampleTest {
             batchNo = BatchNo("BATCH-X"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer: GenericBinLayer<FltX> = GenericBinLayer(
+        val layer: QuantityBinLayer<FltX> = QuantityBinLayer(
             iteration = Int64.zero,
-            from = GenericDomainAliasExampleTest::class,
+            from = QuantityDomainModelExampleTest::class,
             width = FltX(5.0) * Meter,
             height = FltX(5.0) * Meter,
             depth = FltX(5.0) * Meter,
             units = listOf(
-                GenericItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter)
+                QuantityItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter)
             )
         )
 
@@ -119,14 +119,14 @@ class GenericDomainAliasExampleTest {
     }
 
     @Test
-    fun genericPackageShapeShouldMapVerticalCylinderSpecToModel() {
-        val genericShape = GenericPackageShape(
+    fun quantityPackageShapeShouldMapVerticalCylinderSpecToModel() {
+        val quantityShape = QuantityPackageShape(
             width = FltX(1.0) * Meter,
             height = FltX(1.2) * Meter,
             depth = FltX(1.0) * Meter,
             weight = FltX(1.5) * Kilogram,
             packageType = PackageType.CartonContainer,
-            shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+            shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                 radius = FltX(0.5) * Meter,
                 axis = Axis3.Y,
                 radiusMin = FltX(0.5) * Meter,
@@ -137,7 +137,7 @@ class GenericDomainAliasExampleTest {
             )
         )
 
-        val modelShape = genericShape.toModel()
+        val modelShape = quantityShape.toModel()
         val cylinderSpec = modelShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
         assertNotNull(cylinderSpec)
         assertTrue(cylinderSpec.radius eq (infraScalar(0.5) * Meter))

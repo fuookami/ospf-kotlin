@@ -197,7 +197,7 @@ class PalletLayer(
 
 /** 箱层视图别名，仅保留为 layer 结构性投影兼容入口。Bin-layer view alias kept only for layer structural projection compatibility. */
 typealias BinLayerView = CuboidView<BinLayer>
-/** 箱层三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Bin-layer 3D placement alias that hides the underlying QuantityPlacement3 generic. */
+/** 箱层三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Bin-layer 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
 typealias BinLayerPlacement = QuantityPlacement3<BinLayer>
 
 

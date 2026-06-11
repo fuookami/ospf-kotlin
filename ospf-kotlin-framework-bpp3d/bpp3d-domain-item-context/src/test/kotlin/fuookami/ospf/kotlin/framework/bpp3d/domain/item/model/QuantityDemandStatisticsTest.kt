@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class GenericDemandStatisticsTest {
+class QuantityDemandStatisticsTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun assertKilogramQuantity(value: Quantity<*>, expected: InfraNumber) {
@@ -42,18 +42,18 @@ class GenericDemandStatisticsTest {
 
     @Test
     fun flt64StatisticsShouldCoverAmountMaterialAmountAndMaterialWeightModes() {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-64"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-64",
             weight = infraScalar(0.5) * Kilogram
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-64",
             name = "item-64",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = infraScalar(1.0) * Meter,
                     height = infraScalar(1.0) * Meter,
                     depth = infraScalar(1.0) * Meter,
@@ -66,49 +66,49 @@ class GenericDemandStatisticsTest {
             batchNo = BatchNo("B-64"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = Int64.zero,
-            from = GenericDemandStatisticsTest::class,
+            from = QuantityDemandStatisticsTest::class,
             width = infraScalar(10.0) * Meter,
             height = infraScalar(10.0) * Meter,
             depth = infraScalar(10.0) * Meter,
             units = listOf(
-                GenericItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter),
-                GenericItemPlacement(item, infraScalar(1.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
+                QuantityItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter),
+                QuantityItemPlacement(item, infraScalar(1.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
             )
         )
 
         val scaledItemAmount = item.statistics(Bpp3dDemandMode.ItemAmount, UInt64(3)).values.single()
-        assertTrue(scaledItemAmount is GenericBpp3dDemandValue.Amount<*>)
+        assertTrue(scaledItemAmount is QuantityBpp3dDemandValue.Amount<*>)
         assertEquals(UInt64(3), scaledItemAmount.value)
 
         val scaledMaterialAmount = item.statistics(Bpp3dDemandMode.ItemMaterialAmount, UInt64(3)).values.single()
-        assertTrue(scaledMaterialAmount is GenericBpp3dDemandValue.Amount<*>)
+        assertTrue(scaledMaterialAmount is QuantityBpp3dDemandValue.Amount<*>)
         assertEquals(UInt64(6), scaledMaterialAmount.value)
 
         val scaledMaterialWeight = item.statistics(Bpp3dDemandMode.ItemMaterialWeight, UInt64(3)).values.single()
-        assertTrue(scaledMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
+        assertTrue(scaledMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
         assertKilogramQuantity(scaledMaterialWeight.value, InfraNumber(3.0))
 
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).values.single()
-        assertTrue(layerMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
+        assertTrue(layerMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
         assertKilogramQuantity(layerMaterialWeight.value, InfraNumber(2.0))
     }
 
     @Test
     fun fltXStatisticsShouldCoverAmountMaterialAmountAndMaterialWeightModes() {
-        val material = GenericMaterial(
+        val material = QuantityMaterial(
             no = MaterialNo("M-X"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-X",
             weight = FltX(0.5) * Kilogram
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-x",
             name = "item-x",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX.one * Meter,
                     height = FltX.one * Meter,
                     depth = FltX.one * Meter,
@@ -121,32 +121,32 @@ class GenericDemandStatisticsTest {
             batchNo = BatchNo("B-X"),
             packageAttribute = defaultPackageAttribute()
         )
-        val layer = GenericBinLayer(
+        val layer = QuantityBinLayer(
             iteration = Int64.zero,
-            from = GenericDemandStatisticsTest::class,
+            from = QuantityDemandStatisticsTest::class,
             width = FltX(10.0) * Meter,
             height = FltX(10.0) * Meter,
             depth = FltX(10.0) * Meter,
             units = listOf(
-                GenericItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter),
-                GenericItemPlacement(item, FltX.one * Meter, FltX.zero * Meter, FltX.zero * Meter)
+                QuantityItemPlacement(item, FltX.zero * Meter, FltX.zero * Meter, FltX.zero * Meter),
+                QuantityItemPlacement(item, FltX.one * Meter, FltX.zero * Meter, FltX.zero * Meter)
             )
         )
 
         val scaledItemAmount = item.statistics(Bpp3dDemandMode.ItemAmount, UInt64(4)).values.single()
-        assertTrue(scaledItemAmount is GenericBpp3dDemandValue.Amount<*>)
+        assertTrue(scaledItemAmount is QuantityBpp3dDemandValue.Amount<*>)
         assertEquals(UInt64(4), scaledItemAmount.value)
 
         val scaledMaterialAmount = item.statistics(Bpp3dDemandMode.ItemMaterialAmount, UInt64(4)).values.single()
-        assertTrue(scaledMaterialAmount is GenericBpp3dDemandValue.Amount<*>)
+        assertTrue(scaledMaterialAmount is QuantityBpp3dDemandValue.Amount<*>)
         assertEquals(UInt64(8), scaledMaterialAmount.value)
 
         val scaledMaterialWeight = item.statistics(Bpp3dDemandMode.ItemMaterialWeight, UInt64(4)).values.single()
-        assertTrue(scaledMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
+        assertTrue(scaledMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
         assertKilogramQuantity(scaledMaterialWeight.value, InfraNumber(4.0))
 
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).values.single()
-        assertTrue(layerMaterialWeight is GenericBpp3dDemandValue.Weight<*>)
+        assertTrue(layerMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
         assertKilogramQuantity(layerMaterialWeight.value, InfraNumber(2.0))
     }
 }

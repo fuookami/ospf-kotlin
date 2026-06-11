@@ -18,7 +18,7 @@ This repository currently focuses on:
 For the current MVP:
 
 1. Fixed-radius and discrete-radius `Axis3.X` / `Axis3.Z` horizontal cylinders can enter the axis-aware circle-packing generated grid path and the conservative cuboid supported-stack/hanging path, including single full-length support, repeated same-shape multi-support intervals, heterogeneous support intervals, and single or repeated narrow cuboid support-line hanging that cover the cylinder axis. Other candidate generation, block loading, coordinate-less hanging, and pile support remain vertical-cylinder-only (`Axis3.Y`) unless a path says otherwise.
-2. Final packing conversion/rendering and generic known-coordinate analysis can accept `Axis3.X` / `Axis3.Z` horizontal cylinders when generated candidates or known coordinates pass `PackingGeometryGuard` real axis-aligned cylinder geometry validation.
+2. Final packing conversion/rendering and shape-neutral known-coordinate analysis can accept `Axis3.X` / `Axis3.Z` horizontal cylinders when generated candidates or known coordinates pass `PackingGeometryGuard` real axis-aligned cylinder geometry validation.
 3. Horizontal cylinders must be on the bin floor or have cuboid support intervals underneath that cover the full cylinder axis and the bottom support line; unsupported or partially supported horizontal cylinders are rejected in final validation and in the 3D stacking support checker.
 4. A single `BinLayer` cannot mix multiple cylinder axes; different layers in the same bin may use different axes.
 5. Bottom overlap/support checks use real footprint geometry for supported vertical-cylinder paths.
@@ -28,7 +28,7 @@ For the current MVP:
 Explicit non-goals and remaining work:
 
 1. Arbitrary 3D cylinder rotation is not a target.
-2. Fully shape-generic migration for all legacy cuboid algorithms is still in progress.
+2. Full shape-polymorphic migration for all legacy cuboid algorithms is still in progress.
 3. Full solver-native continuous radius optimization is still in progress; the current column-generation model selects concrete generated `BinLayer` columns. Continuous-radius metadata has a solver-variable prototype carried through `ColumnGenerationState`, RMP/final solve info, packing snapshot KPI, and a shared solver registration plan with variable bounds, selected-radius bound validation, and blocked model-registration diagnostics. Interval-only continuous radius variables that qualify for the PWL approximation path are registered into the solver model with continuous `r`, radius bound constraints, and a core `UnivariateLinearPiecewiseFunction` symbol via `model.add(pwlSymbol)`, then expanded by the core mechanism-model lifecycle. They are wired into footprint (via `rMax` conservative envelope), volume (via `PWLRadiusSelectionMetadata.actualVolume`/`pwlVolume`), final MILP selection, and renderer `actualVolume`; other interval-only symbolic radius variables remain unregistered and are reported through the gap contract.
 4. Renderer source code is not part of this repository; this module emits shape metadata consumed by the external renderer, which now supports native X/Y/Z cylinders and `actualVolume` display semantics.
 
@@ -46,12 +46,12 @@ See detailed progress in [daily.md](./daily.md).
 
 The production path labels and unsupported messages are centralized in `CylinderCapabilityPath` / `CylinderShapeContract`.
 Candidate-generation, cuboid-only search/merge, support checks, known-coordinate final validation, renderer final validation, and depth-boundary final validation must use that shared contract instead of duplicating path strings. Horizontal-cylinder cuboid support coverage is centralized in infrastructure and reused by generated stacking checks and final packing/rendering geometry guards.
-Strict generic boundary checks reject stale fixed-number aliases, material-packing number aliases, deleted layer/depth-limit compatibility aliases, and deleted compatibility shortcuts so new code uses the shape-generic or solver-generic APIs directly.
+Strict quantity boundary checks reject stale fixed-number aliases, material-packing number aliases, deleted layer/depth-limit compatibility aliases, and deleted compatibility shortcuts so new code uses shape-polymorphic or solver-polymorphic APIs directly.
 
 | Path | Cuboid | `Axis3.Y` cylinder | `Axis3.X` / `Axis3.Z` cylinder |
 | --- | --- | --- | --- |
 | Explicit final bins / known-coordinate packing | Supported | Supported with real geometry guard | Supported with real geometry guard, floor or cuboid support axis coverage required |
-| Generic known-coordinate analysis | Supported; optional depth boundary final validation | Supported with real geometry guard and optional depth boundary final validation | Supported with real geometry guard, floor or cuboid support axis coverage required, and optional depth boundary final validation |
+| Shape-aware known-coordinate analysis | Supported; optional depth boundary final validation | Supported with real geometry guard and optional depth boundary final validation | Supported with real geometry guard, floor or cuboid support axis coverage required, and optional depth boundary final validation |
 | Default layer placement adapter for generated candidates | Supported | Supported | Supported only for verified axis-aware generated candidates; manual impostors are rejected |
 | Layer generation fallback / circle packing / pile | Supported | Supported as vertical-cylinder candidates; pile support is limited to upright `Axis3.Y` cylinders | Circle packing supports fixed/discrete-radius axis-aware horizontal grid candidates and conservative cuboid supported-stack/hanging candidates with single/repeated narrow-line hanging/repeated same-shape/heterogeneous support axis coverage; fallback and pile remain unsupported |
 | BLA placement | Supported for current generated layers | Supported only through verified vertical-cylinder generated layers | Supported only through verified axis-aware circle-packing generated layers |
@@ -94,7 +94,7 @@ Optional scenario-level policy columns:
 3. `first_layer_allowed_cuboid_orientations`
 4. `last_layer_allowed_cuboid_orientations`
 
-These fields constrain only the first and last depth layers after final placement collection. They are application-level hard validation after final MILP solving, or after generic known-coordinate final bins have been built; they are not native MILP constraints and not candidate-generation filters.
+These fields constrain only the first and last depth layers after final placement collection. They are application-level hard validation after final MILP solving, or after shape-neutral known-coordinate final bins have been built; they are not native MILP constraints and not candidate-generation filters.
 
 Column semantics:
 

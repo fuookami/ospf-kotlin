@@ -8,9 +8,9 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
@@ -64,9 +64,9 @@ private fun <T : FloatingNumber<T>> toInfraQuantity(
 
 /**
  * 从泛型输入构建列生成应用请求。
- * Build column generation application request from generic inputs.
+ * Build column generation application request from quantity inputs.
  *
- * @param T 泛型数值类型 / generic numeric type
+ * @param T 量纲数值类型 / quantity numeric type
  * @param itemDemands 货物需求列表 / item demand list
  * @param materialAmountDemands 物料数量需求 / material amount demands
  * @param materialWeightDemands 物料重量需求 / material weight demands
@@ -86,24 +86,24 @@ private fun <T : FloatingNumber<T>> toInfraQuantity(
  * @param itemCache 货物缓存 / item cache
  * @return 列生成应用请求 / column generation application request
  */
-fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromGeneric(
-    itemDemands: List<Pair<GenericItem<T>, UInt64>>,
-    materialAmountDemands: List<Pair<GenericMaterial<T>, UInt64>> = emptyList(),
-    materialWeightDemands: List<Pair<GenericMaterial<T>, Quantity<T>>> = emptyList(),
+fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
+    itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
+    materialAmountDemands: List<Pair<QuantityMaterial<T>, UInt64>> = emptyList(),
+    materialWeightDemands: List<Pair<QuantityMaterial<T>, Quantity<T>>> = emptyList(),
     materialPackingCandidates: List<MaterialPackingProgramCandidate<InfraNumber>> = emptyList(),
     layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<InfraNumber>, UInt64>> = emptyList(),
-    programMaterialCatalog: Map<MaterialKey, GenericMaterial<T>> = emptyMap(),
+    programMaterialCatalog: Map<MaterialKey, QuantityMaterial<T>> = emptyMap(),
     materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     demandEntries: List<Bpp3dDemandEntry<InfraNumber>>? = null,
-    initialColumns: List<GenericBinLayer<T>> = emptyList(),
+    initialColumns: List<QuantityBinLayer<T>> = emptyList(),
     finalBins: List<LayerBin> = emptyList(),
     generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-    materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
-    itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ): ColumnGenerationApplicationRequest {
     val modelItemDemands = itemDemands.map { (item, amount) ->
         Pair(item.toModel(materialCache, itemCache), amount)
@@ -181,10 +181,10 @@ data class ColumnGenerationApplicationRequest(
 )
 
 /**
- * 列生成泛型应用请求。
- * Column generation generic application request.
+ * 列生成量纲应用请求。
+ * Column generation quantity application request.
  *
- * @param T 泛型数值类型 / generic numeric type
+ * @param T 量纲数值类型 / quantity numeric type
  * @property itemDemands 货物需求列表 / item demand list
  * @property materialAmountDemands 物料数量需求 / material amount demands
  * @property materialWeightDemands 物料重量需求 / material weight demands
@@ -201,17 +201,17 @@ data class ColumnGenerationApplicationRequest(
  * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @property executorConfig 执行器配置 / executor config
  */
-data class ColumnGenerationGenericApplicationRequest<T : FloatingNumber<T>>(
-    val itemDemands: List<Pair<GenericItem<T>, UInt64>>,
-    val materialAmountDemands: List<Pair<GenericMaterial<T>, UInt64>> = emptyList(),
-    val materialWeightDemands: List<Pair<GenericMaterial<T>, Quantity<T>>> = emptyList(),
+data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
+    val itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
+    val materialAmountDemands: List<Pair<QuantityMaterial<T>, UInt64>> = emptyList(),
+    val materialWeightDemands: List<Pair<QuantityMaterial<T>, Quantity<T>>> = emptyList(),
     val materialPackingCandidates: List<MaterialPackingProgramCandidate<InfraNumber>> = emptyList(),
     val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<InfraNumber>, UInt64>> = emptyList(),
-    val programMaterialCatalog: Map<MaterialKey, GenericMaterial<T>> = emptyMap(),
+    val programMaterialCatalog: Map<MaterialKey, QuantityMaterial<T>> = emptyMap(),
     val materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     val demandEntries: List<Bpp3dDemandEntry<InfraNumber>>? = null,
-    val initialColumns: List<GenericBinLayer<T>> = emptyList(),
+    val initialColumns: List<QuantityBinLayer<T>> = emptyList(),
     val finalBins: List<LayerBin> = emptyList(),
     val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
@@ -220,19 +220,19 @@ data class ColumnGenerationGenericApplicationRequest<T : FloatingNumber<T>>(
 )
 
 /**
- * 泛型应用请求转模型应用请求。
- * Convert generic application request into model application request.
+ * 量纲应用请求转模型应用请求。
+ * Convert quantity application request into model application request.
  *
- * @param T 泛型数值类型 / generic numeric type
+ * @param T 量纲数值类型 / quantity numeric type
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  * @return 模型应用请求 / model application request
  */
-fun <T : FloatingNumber<T>> ColumnGenerationGenericApplicationRequest<T>.toModelRequest(
-    materialCache: MutableMap<GenericMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
-    itemCache: MutableMap<GenericItem<T>, ActualItem> = LinkedHashMap()
+fun <T : FloatingNumber<T>> ColumnGenerationQuantityApplicationRequest<T>.toModelRequest(
+    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ): ColumnGenerationApplicationRequest {
-    return columnGenerationApplicationRequestFromGeneric(
+    return columnGenerationApplicationRequestFromQuantity(
         itemDemands = itemDemands,
         materialAmountDemands = materialAmountDemands,
         materialWeightDemands = materialWeightDemands,
@@ -416,16 +416,16 @@ class ColumnGenerationApplicationService(
     }
 
     /**
-     * 执行泛型列生成求解。
-     * Execute generic column generation solving.
+     * 执行量纲列生成求解。
+     * Execute quantity column generation solving.
      *
-     * @param request 泛型应用请求 / generic application request
+     * @param request 量纲应用请求 / quantity application request
      * @param packingAnalyzer 装箱分析器（可选） / packing analyzer (optional)
      * @param solutionAnalyzer 解分析器（可选） / solution analyzer (optional)
      * @return 应用响应 / application response
      */
     suspend fun <T : FloatingNumber<T>> solve(
-        request: ColumnGenerationGenericApplicationRequest<T>,
+        request: ColumnGenerationQuantityApplicationRequest<T>,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
         solutionAnalyzer: ColumnGenerationSolutionAnalyzer<InfraNumber>? = null
     ): ColumnGenerationApplicationResponse {

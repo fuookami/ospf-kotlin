@@ -16,9 +16,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemView
@@ -113,19 +113,19 @@ fun <V> bpp3dLayerGenerationRequest(
     )
 }
 
-fun <T : FloatingNumber<T>, V> bpp3dLayerGenerationRequestFromGeneric(
+fun <T : FloatingNumber<T>, V> bpp3dLayerGenerationRequestFromQuantity(
     iteration: Int,
     bin: BinType? = null,
-    items: List<GenericItem<T>>,
-    existingLayers: List<GenericBinLayer<T>> = emptyList(),
+    items: List<QuantityItem<T>>,
+    existingLayers: List<QuantityBinLayer<T>> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
     scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
     timeLimit: Duration = ZERO,
     maxCandidates: Int = 256
 ): Bpp3dLayerGenerationRequest<V> {
-    val materialCache = LinkedHashMap<GenericMaterial<T>, Material<InfraNumber>>()
-    val itemCache = LinkedHashMap<GenericItem<T>, ActualItem>()
+    val materialCache = LinkedHashMap<QuantityMaterial<T>, Material<InfraNumber>>()
+    val itemCache = LinkedHashMap<QuantityItem<T>, ActualItem>()
     return bpp3dLayerGenerationRequest(
         iteration = iteration,
         bin = bin,
@@ -200,12 +200,12 @@ interface Bpp3dLayerGenerator<V> {
 
 /**
  * 使用泛型输入执行层生成。
- * Execute layer generation with generic inputs.
+ * Execute layer generation with quantity inputs.
  *
- * @param T 泛型数值类型 / generic numeric type
+ * @param T 量纲数值类型 / quantity numeric type
  * @param iteration 当前迭代 / current iteration
  * @param bin 目标箱型 / target bin type
- * @param items 泛型货物列表 / generic item list
+ * @param items 量纲货物列表 / quantity item list
  * @param existingLayers 已有层列表 / existing layer list
  * @param demandEntries 需求条目 / demand entries
  * @param shadowPrices 影子价格 / shadow prices
@@ -214,11 +214,11 @@ interface Bpp3dLayerGenerator<V> {
  * @param maxCandidates 最大候选数 / max candidate amount
  * @return 层生成结果列表 / layer generation result list
  */
-suspend fun <V, T : FloatingNumber<T>> Bpp3dLayerGenerator<V>.generateFromGeneric(
+suspend fun <V, T : FloatingNumber<T>> Bpp3dLayerGenerator<V>.generateFromQuantity(
     iteration: Int,
     bin: BinType? = null,
-    items: List<GenericItem<T>>,
-    existingLayers: List<GenericBinLayer<T>> = emptyList(),
+    items: List<QuantityItem<T>>,
+    existingLayers: List<QuantityBinLayer<T>> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
     scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
@@ -226,7 +226,7 @@ suspend fun <V, T : FloatingNumber<T>> Bpp3dLayerGenerator<V>.generateFromGeneri
     maxCandidates: Int = 256
 ): List<Bpp3dLayerGenerationResult<V>> {
     return generate(
-        request = bpp3dLayerGenerationRequestFromGeneric(
+        request = bpp3dLayerGenerationRequestFromQuantity(
             iteration = iteration,
             bin = bin,
             items = items,

@@ -4,13 +4,13 @@
 
 ## 1. 总目标
 
-在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，将 BPP3D 稳定在 fully generic shape 生产模型上。所有生产入口必须以 shape-generic API、真实几何、明确支撑合同和一致 metadata 为边界；不得回退到 cuboid-only fallback、外接长方体显示兼容、离散半径候选替代 interval-only PWL 路径。
+在不回退既有长方体生产链路、CSV/Gurobi 链路和 renderer 契约的前提下，将 BPP3D 稳定在 fully shape-polymorphic 生产模型上。所有生产入口必须以 shape-polymorphic API、真实几何、明确支撑合同和一致 metadata 为边界；不得回退到 cuboid-only fallback、外接长方体显示兼容、离散半径候选替代 interval-only PWL 路径。
 
 已开放能力必须继续具备 solver、final validation、packing snapshot、renderer、CSV/Gurobi、文档和测试闭环；未开放能力必须通过 guarded contract、负例测试、文档和脚本门禁收口。
 
 ## 2. 已完成事项摘要
 
-1. 已完成 shape-generic 生产入口、圆柱几何、横向支撑、连续半径 PWL v1、renderer 原生圆柱与 actual-radius 回写闭环。
+1. 已完成 shape-polymorphic 生产入口、圆柱几何、横向支撑、连续半径 PWL v1、renderer 原生圆柱与 actual-radius 回写闭环。
 2. 已完成 cuboid-only 兼容层清理、`BoundingCuboid` renderer 兼容映射移除、关键文档、负例测试和边界脚本收口。
 3. 已完成 PWL 连续半径建模职责收敛：BPP3D 只注册领域变量、领域边界约束和 core PWL 函数符号，PWL helper token 与 Big-M 约束由 core mechanism lifecycle 展开。
 4. 已完成 core token/function lifecycle 必要修复，并提交为 `95432009a`。
@@ -210,7 +210,7 @@
 
 1. `ospf-kotlin-framework-csp1d/**/*`
 2. 非 BPP3D 业务模块
-3. 与 PWL / shape-generic / renderer / Gurobi 验收无关的格式化 churn
+3. 与 PWL / shape-polymorphic / renderer / Gurobi 验收无关的格式化 churn
 
 ## 8. 验收目标
 
@@ -322,7 +322,7 @@ mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurob
 
 ### 总目标达成状态
 
-BPP3D fully generic shape 生产模型已达到稳定状态：
+BPP3D fully shape-polymorphic 生产模型已达到稳定状态：
 
 - ✅ 长方体、竖直圆柱、X/Z 横向圆柱生产路径
 - ✅ 固定半径、离散半径、solver-selected 连续半径、interval-only PWL 连续半径

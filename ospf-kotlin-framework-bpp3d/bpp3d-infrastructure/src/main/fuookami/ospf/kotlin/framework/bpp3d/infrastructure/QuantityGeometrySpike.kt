@@ -13,11 +13,11 @@ data class QuantityVector2(
     val y: Quantity<InfraNumber>
 ) {
     operator fun plus(rhs: QuantityVector2): QuantityVector2 {
-        return (asGeneric() + rhs.asGeneric()).toCompat()
+        return (asQuantityGeometry() + rhs.asQuantityGeometry()).toCompat()
     }
 
     operator fun minus(rhs: QuantityVector2): QuantityVector2 {
-        return (asGeneric() - rhs.asGeneric()).toCompat()
+        return (asQuantityGeometry() - rhs.asQuantityGeometry()).toCompat()
     }
 }
 
@@ -27,11 +27,11 @@ data class QuantityVector3(
     val z: Quantity<InfraNumber>
 ) {
     operator fun plus(rhs: QuantityVector3): QuantityVector3 {
-        return (asGeneric() + rhs.asGeneric()).toCompat()
+        return (asQuantityGeometry() + rhs.asQuantityGeometry()).toCompat()
     }
 
     operator fun minus(rhs: QuantityVector3): QuantityVector3 {
-        return (asGeneric() - rhs.asGeneric()).toCompat()
+        return (asQuantityGeometry() - rhs.asQuantityGeometry()).toCompat()
     }
 }
 
@@ -40,15 +40,15 @@ data class QuantityPoint2(
     val y: Quantity<InfraNumber>
 ) {
     operator fun plus(offset: QuantityVector2): QuantityPoint2 {
-        return (asGeneric() + offset.asGeneric()).toCompat()
+        return (asQuantityGeometry() + offset.asQuantityGeometry()).toCompat()
     }
 
     operator fun minus(offset: QuantityVector2): QuantityPoint2 {
-        return (asGeneric() - offset.asGeneric()).toCompat()
+        return (asQuantityGeometry() - offset.asQuantityGeometry()).toCompat()
     }
 
     infix fun ord(rhs: QuantityPoint2): Order {
-        return asGeneric() ord rhs.asGeneric()
+        return asQuantityGeometry() ord rhs.asQuantityGeometry()
     }
 }
 
@@ -58,15 +58,15 @@ data class QuantityPoint3(
     val z: Quantity<InfraNumber>
 ) {
     operator fun plus(offset: QuantityVector3): QuantityPoint3 {
-        return (asGeneric() + offset.asGeneric()).toCompat()
+        return (asQuantityGeometry() + offset.asQuantityGeometry()).toCompat()
     }
 
     operator fun minus(offset: QuantityVector3): QuantityPoint3 {
-        return (asGeneric() - offset.asGeneric()).toCompat()
+        return (asQuantityGeometry() - offset.asQuantityGeometry()).toCompat()
     }
 
     infix fun ord(rhs: QuantityPoint3): Order {
-        return asGeneric() ord rhs.asGeneric()
+        return asQuantityGeometry() ord rhs.asQuantityGeometry()
     }
 }
 
@@ -77,16 +77,16 @@ data class QuantityRectangle2(
     val maxY: Quantity<InfraNumber>
 ) {
     init {
-        require((asGeneric().minX.partialOrd(asGeneric().maxX) ?: error("Incomparable x")) !is Order.Greater) { "minX should be <= maxX" }
-        require((asGeneric().minY.partialOrd(asGeneric().maxY) ?: error("Incomparable y")) !is Order.Greater) { "minY should be <= maxY" }
+        require((asQuantityGeometry().minX.partialOrd(asQuantityGeometry().maxX) ?: error("Incomparable x")) !is Order.Greater) { "minX should be <= maxX" }
+        require((asQuantityGeometry().minY.partialOrd(asQuantityGeometry().maxY) ?: error("Incomparable y")) !is Order.Greater) { "minY should be <= maxY" }
     }
 
-    val width: Quantity<InfraNumber> get() = asGeneric().width
-    val height: Quantity<InfraNumber> get() = asGeneric().height
-    val area: Quantity<InfraNumber> get() = asGeneric().area
+    val width: Quantity<InfraNumber> get() = asQuantityGeometry().width
+    val height: Quantity<InfraNumber> get() = asQuantityGeometry().height
+    val area: Quantity<InfraNumber> get() = asQuantityGeometry().area
 
     fun intersect(rhs: QuantityRectangle2): QuantityRectangle2? {
-        return asGeneric().intersect(rhs.asGeneric())?.toCompat()
+        return asQuantityGeometry().intersect(rhs.asQuantityGeometry())?.toCompat()
     }
 
     fun intersectArea(rhs: QuantityRectangle2): Quantity<InfraNumber>? {
@@ -94,23 +94,23 @@ data class QuantityRectangle2(
     }
 }
 
-private fun QuantityVector2.asGeneric(): QuantityVector2G<InfraNumber> {
+private fun QuantityVector2.asQuantityGeometry(): QuantityVector2G<InfraNumber> {
     return QuantityVector2G(x = x, y = y)
 }
 
-private fun QuantityVector3.asGeneric(): QuantityVector3G<InfraNumber> {
+private fun QuantityVector3.asQuantityGeometry(): QuantityVector3G<InfraNumber> {
     return QuantityVector3G(x = x, y = y, z = z)
 }
 
-private fun QuantityPoint2.asGeneric(): QuantityPoint2G<InfraNumber> {
+private fun QuantityPoint2.asQuantityGeometry(): QuantityPoint2G<InfraNumber> {
     return QuantityPoint2G(x = x, y = y)
 }
 
-private fun QuantityPoint3.asGeneric(): QuantityPoint3G<InfraNumber> {
+private fun QuantityPoint3.asQuantityGeometry(): QuantityPoint3G<InfraNumber> {
     return QuantityPoint3G(x = x, y = y, z = z)
 }
 
-private fun QuantityRectangle2.asGeneric(): QuantityRectangle2G<InfraNumber> {
+private fun QuantityRectangle2.asQuantityGeometry(): QuantityRectangle2G<InfraNumber> {
     return QuantityRectangle2G(
         minX = minX,
         minY = minY,

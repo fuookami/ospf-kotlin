@@ -1,8 +1,8 @@
 @file:Suppress("DEPRECATION")
 
 /**
- * 泛型投影放置核心实现。
- * Generic projection placement core implementation.
+ * 多态投影放置核心实现。
+ * Quantity projection placement core implementation.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
@@ -90,12 +90,12 @@ private fun <V : FloatingNumber<V>> repeatedQuantitySum(sample: Quantity<V>, tim
     return acc
 }
 
-sealed interface GenericProjection<
-        T : GenericCuboid<T, V>,
+sealed interface QuantityProjection<
+        T : QuantityCuboid<T, V>,
         V : FloatingNumber<V>,
         P : ProjectivePlane
-        > : Copyable<GenericProjection<T, V, P>> {
-    val view: GenericCuboidView<T, V>
+        > : Copyable<QuantityProjection<T, V, P>> {
+    val view: QuantityCuboidView<T, V>
     val plane: P
     val unit: T
         get() = view.unit
@@ -113,17 +113,17 @@ sealed interface GenericProjection<
         get() = unit.weight
 
     fun amount(unit: AbstractCuboid<*>): UInt64
-    fun toPlacement3At(position: QuantityPoint2G<V>): List<GenericQuantityPlacement3<T, V>>
+    fun toPlacement3At(position: QuantityPoint2G<V>): List<QuantityCuboidPlacement3<T, V>>
 }
 
-data class GenericPlaneProjection<
-        T : GenericCuboid<T, V>,
+data class QuantityPlaneProjection<
+        T : QuantityCuboid<T, V>,
         V : FloatingNumber<V>,
         P : ProjectivePlane
         >(
-    override val view: GenericCuboidView<T, V>,
+    override val view: QuantityCuboidView<T, V>,
     override val plane: P
-) : GenericProjection<T, V, P> {
+) : QuantityProjection<T, V, P> {
     override fun amount(unit: AbstractCuboid<*>): UInt64 {
         return if (unit == this.unit) {
             UInt64.one
@@ -132,29 +132,29 @@ data class GenericPlaneProjection<
         }
     }
 
-    override fun toPlacement3At(position: QuantityPoint2G<V>): List<GenericQuantityPlacement3<T, V>> {
+    override fun toPlacement3At(position: QuantityPoint2G<V>): List<QuantityCuboidPlacement3<T, V>> {
         val zeroDistance = projectionQuantityZero(view.depth)
-        return listOf(GenericQuantityPlacement3(view, plane.point3(position, zeroDistance)))
+        return listOf(QuantityCuboidPlacement3(view, plane.point3(position, zeroDistance)))
     }
 
-    override fun copy(): GenericProjection<T, V, P> {
-        return GenericPlaneProjection(view.copy(), plane)
+    override fun copy(): QuantityProjection<T, V, P> {
+        return QuantityPlaneProjection(view.copy(), plane)
     }
 }
 
-data class GenericPileProjection<
-        T : GenericCuboid<T, V>,
+data class QuantityPileProjection<
+        T : QuantityCuboid<T, V>,
         V : FloatingNumber<V>,
         P : ProjectivePlane
         >(
-    override val view: GenericCuboidView<T, V>,
+    override val view: QuantityCuboidView<T, V>,
     override val plane: P,
     val layer: UInt64
-) : GenericProjection<T, V, P> {
+) : QuantityProjection<T, V, P> {
     override val height: Quantity<V> = repeatedQuantitySum(plane.height(view), layer)
     override val weight: Quantity<V> = repeatedQuantitySum(unit.weight, layer)
 
-    constructor(planeProjection: GenericPlaneProjection<T, V, P>, layer: UInt64 = UInt64.one) : this(
+    constructor(planeProjection: QuantityPlaneProjection<T, V, P>, layer: UInt64 = UInt64.one) : this(
         view = planeProjection.view,
         plane = planeProjection.plane,
         layer = layer
@@ -168,33 +168,33 @@ data class GenericPileProjection<
         }
     }
 
-    override fun toPlacement3At(position: QuantityPoint2G<V>): List<GenericQuantityPlacement3<T, V>> {
-        val units = ArrayList<GenericQuantityPlacement3<T, V>>()
+    override fun toPlacement3At(position: QuantityPoint2G<V>): List<QuantityCuboidPlacement3<T, V>> {
+        val units = ArrayList<QuantityCuboidPlacement3<T, V>>()
         val depth = view.depth
         var z = projectionQuantityZero(depth)
         var i = UInt64.zero
         while (i < layer) {
-            units.add(GenericQuantityPlacement3(view, plane.point3(position, z)))
+            units.add(QuantityCuboidPlacement3(view, plane.point3(position, z)))
             z = projectionQuantityPlus(z, depth)
             i += UInt64.one
         }
         return units
     }
 
-    override fun copy(): GenericProjection<T, V, P> {
-        return GenericPileProjection(view.copy(), plane, layer)
+    override fun copy(): QuantityProjection<T, V, P> {
+        return QuantityPileProjection(view.copy(), plane, layer)
     }
 }
 
-data class GenericMultiPileProjection<
-        T : GenericCuboid<T, V>,
+data class QuantityMultiPileProjection<
+        T : QuantityCuboid<T, V>,
         V : FloatingNumber<V>,
         P : ProjectivePlane
         >(
-    val views: List<GenericCuboidView<T, V>>,
+    val views: List<QuantityCuboidView<T, V>>,
     override val plane: P
-) : GenericProjection<T, V, P> {
-    override val view: GenericCuboidView<T, V> = views.first()
+) : QuantityProjection<T, V, P> {
+    override val view: QuantityCuboidView<T, V> = views.first()
 
     override val length: Quantity<V> = maxQuantity(views.map { plane.length(it) }) ?: projectionQuantityZero(view.depth)
     override val width: Quantity<V> = maxQuantity(views.map { plane.width(it) }) ?: projectionQuantityZero(view.width)
@@ -209,32 +209,32 @@ data class GenericMultiPileProjection<
         return UInt64(views.count { it.unit == unit })
     }
 
-    override fun toPlacement3At(position: QuantityPoint2G<V>): List<GenericQuantityPlacement3<T, V>> {
+    override fun toPlacement3At(position: QuantityPoint2G<V>): List<QuantityCuboidPlacement3<T, V>> {
         if (views.isEmpty()) {
             return emptyList()
         }
-        val units = ArrayList<GenericQuantityPlacement3<T, V>>(views.size)
+        val units = ArrayList<QuantityCuboidPlacement3<T, V>>(views.size)
         var z = projectionQuantityZero(views.first().depth)
         for (itemView in views) {
-            units.add(GenericQuantityPlacement3(itemView, plane.point3(position, z)))
+            units.add(QuantityCuboidPlacement3(itemView, plane.point3(position, z)))
             z = projectionQuantityPlus(z, itemView.depth)
         }
         return units
     }
 
-    override fun copy(): GenericProjection<T, V, P> {
-        return GenericMultiPileProjection(views.map { it.copy() }, plane)
+    override fun copy(): QuantityProjection<T, V, P> {
+        return QuantityMultiPileProjection(views.map { it.copy() }, plane)
     }
 }
 
-data class GenericQuantityPlacement2<
-        T : GenericCuboid<T, V>,
+data class QuantityProjectionPlacement2<
+        T : QuantityCuboid<T, V>,
         V : FloatingNumber<V>,
         P : ProjectivePlane
         >(
-    val projection: GenericProjection<T, V, P>,
+    val projection: QuantityProjection<T, V, P>,
     val position: QuantityPoint2G<V>
-) : Copyable<GenericQuantityPlacement2<T, V, P>> {
+) : Copyable<QuantityProjectionPlacement2<T, V, P>> {
     val unit by projection::unit
     val orientation by projection::orientation
     val view by projection::view
@@ -276,11 +276,11 @@ data class GenericQuantityPlacement2<
         )
     }
 
-    fun overlapped(rhs: GenericQuantityPlacement2<*, V, P>): Boolean {
+    fun overlapped(rhs: QuantityProjectionPlacement2<*, V, P>): Boolean {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
     }
 
-    fun intersect(rhs: GenericQuantityPlacement2<*, V, P>): QuantityRectangle2<V>? {
+    fun intersect(rhs: QuantityProjectionPlacement2<*, V, P>): QuantityRectangle2<V>? {
         val intersection = toGeometryPlacement().intersect(rhs.toGeometryPlacement()) ?: return null
         return QuantityRectangle2(
             width = intersection.width,
@@ -288,22 +288,22 @@ data class GenericQuantityPlacement2<
         )
     }
 
-    fun toPlacement3(): List<GenericQuantityPlacement3<T, V>> {
+    fun toPlacement3(): List<QuantityCuboidPlacement3<T, V>> {
         return projection.toPlacement3At(position)
     }
 
-    override fun copy(): GenericQuantityPlacement2<T, V, P> {
-        return GenericQuantityPlacement2(projection.copy(), position)
+    override fun copy(): QuantityProjectionPlacement2<T, V, P> {
+        return QuantityProjectionPlacement2(projection.copy(), position)
     }
 }
 
-data class GenericQuantityPlacement3<
-        T : GenericCuboid<T, V>,
+data class QuantityCuboidPlacement3<
+        T : QuantityCuboid<T, V>,
         V : FloatingNumber<V>
         >(
-    val view: GenericCuboidView<T, V>,
+    val view: QuantityCuboidView<T, V>,
     val position: QuantityPoint3G<V>
-) : Copyable<GenericQuantityPlacement3<T, V>>, Ord<GenericQuantityPlacement3<T, V>> {
+) : Copyable<QuantityCuboidPlacement3<T, V>>, Ord<QuantityCuboidPlacement3<T, V>> {
     val unit by view::unit
     val orientation by view::orientation
     val weight by unit::weight
@@ -351,15 +351,15 @@ data class GenericQuantityPlacement3<
         )
     }
 
-    infix fun overlapped(rhs: GenericQuantityPlacement3<*, V>): Boolean {
+    infix fun overlapped(rhs: QuantityCuboidPlacement3<*, V>): Boolean {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
     }
 
-    override fun copy(): GenericQuantityPlacement3<T, V> {
-        return GenericQuantityPlacement3(view.copy(), position)
+    override fun copy(): QuantityCuboidPlacement3<T, V> {
+        return QuantityCuboidPlacement3(view.copy(), position)
     }
 
-    override fun partialOrd(rhs: GenericQuantityPlacement3<T, V>): Order {
+    override fun partialOrd(rhs: QuantityCuboidPlacement3<T, V>): Order {
         when (val value = quantityOrd(z, rhs.z, "z")) {
             Order.Equal -> {}
             else -> return value
@@ -372,10 +372,10 @@ data class GenericQuantityPlacement3<
     }
 }
 
-fun <T : GenericCuboid<T, V>, V : FloatingNumber<V>> topPlacements(
-    placements: List<GenericQuantityPlacement3<T, V>>
-): List<GenericQuantityPlacement3<T, V>> {
-    val topPlacements = ArrayList<GenericQuantityPlacement3<T, V>>()
+fun <T : QuantityCuboid<T, V>, V : FloatingNumber<V>> topPlacements(
+    placements: List<QuantityCuboidPlacement3<T, V>>
+): List<QuantityCuboidPlacement3<T, V>> {
+    val topPlacements = ArrayList<QuantityCuboidPlacement3<T, V>>()
     for (placement1 in placements) {
         var flag = true
         for (placement2 in placements) {
@@ -393,10 +393,10 @@ fun <T : GenericCuboid<T, V>, V : FloatingNumber<V>> topPlacements(
     return topPlacements
 }
 
-fun <T : GenericCuboid<T, V>, V : FloatingNumber<V>> bottomPlacements(
-    placements: List<GenericQuantityPlacement3<T, V>>
-): List<GenericQuantityPlacement3<T, V>> {
-    val bottomPlacements = ArrayList<GenericQuantityPlacement3<T, V>>()
+fun <T : QuantityCuboid<T, V>, V : FloatingNumber<V>> bottomPlacements(
+    placements: List<QuantityCuboidPlacement3<T, V>>
+): List<QuantityCuboidPlacement3<T, V>> {
+    val bottomPlacements = ArrayList<QuantityCuboidPlacement3<T, V>>()
     for (placement1 in placements) {
         var flag = true
         for (placement2 in placements) {
@@ -414,9 +414,9 @@ fun <T : GenericCuboid<T, V>, V : FloatingNumber<V>> bottomPlacements(
     return bottomPlacements
 }
 
-fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantityPlacement3<ModelCuboidAdapter<T>, InfraNumber> {
-    return GenericQuantityPlacement3(
-        view = unit.asGenericCuboid().view(orientation),
+fun <T : Cuboid<T>> QuantityPlacement3<T>.asQuantityCuboidPlacement3(): QuantityCuboidPlacement3<ModelCuboidAdapter<T>, InfraNumber> {
+    return QuantityCuboidPlacement3(
+        view = unit.asQuantityCuboid().view(orientation),
         position = QuantityPoint3G(
             x = position.x,
             y = position.y,
@@ -425,10 +425,10 @@ fun <T : Cuboid<T>> QuantityPlacement3<T>.asGenericPlacement3(): GenericQuantity
     )
 }
 
-fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlacement2(): GenericQuantityPlacement2<ModelCuboidAdapter<T>, InfraNumber, P> {
-    return GenericQuantityPlacement2(
-        projection = GenericPlaneProjection(
-            view = unit.asGenericCuboid().view(orientation),
+fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asQuantityProjectionPlacement2(): QuantityProjectionPlacement2<ModelCuboidAdapter<T>, InfraNumber, P> {
+    return QuantityProjectionPlacement2(
+        projection = QuantityPlaneProjection(
+            view = unit.asQuantityCuboid().view(orientation),
             plane = plane
         ),
         position = QuantityPoint2G(
@@ -438,21 +438,21 @@ fun <T : Cuboid<T>, P : ProjectivePlane> QuantityPlacement2<T, P>.asGenericPlace
     )
 }
 
-fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asGenericProjection(): GenericProjection<ModelCuboidAdapter<T>, InfraNumber, P> {
+fun <T : Cuboid<T>, P : ProjectivePlane> Projection<T, P>.asQuantityProjection(): QuantityProjection<ModelCuboidAdapter<T>, InfraNumber, P> {
     return when (this) {
-        is PlaneProjection -> GenericPlaneProjection(
-            view = unit.asGenericCuboid().view(orientation),
+        is PlaneProjection -> QuantityPlaneProjection(
+            view = unit.asQuantityCuboid().view(orientation),
             plane = plane
         )
 
-        is PileProjection -> GenericPileProjection(
-            view = unit.asGenericCuboid().view(orientation),
+        is PileProjection -> QuantityPileProjection(
+            view = unit.asQuantityCuboid().view(orientation),
             plane = plane,
             layer = layer
         )
 
-        is MultiPileProjection -> GenericMultiPileProjection(
-            views = views.map { it.unit.asGenericCuboid().view(it.orientation) },
+        is MultiPileProjection -> QuantityMultiPileProjection(
+            views = views.map { it.unit.asQuantityCuboid().view(it.orientation) },
             plane = plane
         )
     }

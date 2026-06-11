@@ -3,11 +3,11 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackage
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericPackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackage
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShape
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityPackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
@@ -32,7 +32,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class ColumnGenerationGenericShapeSpecEntryPointTest {
+class ColumnGenerationQuantityShapeSpecEntryPointTest {
     private object Cargo : AbstractCargoAttribute
 
     private fun packageAttribute(): PackageAttribute {
@@ -46,30 +46,30 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
     }
 
     @Test
-    fun genericRequestShouldKeepVerticalCylinderShapeSpecWhenMappingToModel() {
-        val material = GenericMaterial(
+    fun quantityRequestShouldKeepVerticalCylinderShapeSpecWhenMappingToModel() {
+        val material = QuantityMaterial(
             no = MaterialNo("M-SHAPE-SPEC"),
             type = MaterialType.RawMaterial,
             cargo = Cargo,
             name = "M-SHAPE-SPEC",
             weight = FltX(0.2) * Kilogram
         )
-        val item = GenericItem(
+        val item = QuantityItem(
             id = "item-shape-spec",
             name = "item-shape-spec",
-            pack = GenericPackage.innerPackage(
-                shape = GenericPackageShape(
+            pack = QuantityPackage.innerPackage(
+                shape = QuantityPackageShape(
                     width = FltX(1.0) * Meter,
                     height = FltX(1.2) * Meter,
                     depth = FltX(1.0) * Meter,
                     weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer,
-                    shapeSpec = GenericPackageShapeSpec.VerticalCylinder(
+                    shapeSpec = QuantityPackageShapeSpec.VerticalCylinder(
                         radius = FltX(0.5) * Meter,
                         axis = Axis3.Y,
                         radiusMin = FltX(0.5) * Meter,
                         radiusMax = FltX(0.6) * Meter,
-                        radiusWeightFunctionKey = "generic-shape-spec-v1",
+                        radiusWeightFunctionKey = "quantity-shape-spec-v1",
                         diameterMin = FltX(1.0) * Meter,
                         diameterMax = FltX(1.2) * Meter
                     )
@@ -80,7 +80,7 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
             batchNo = BatchNo("B-SHAPE-SPEC"),
             packageAttribute = packageAttribute()
         )
-        val request = ColumnGenerationGenericApplicationRequest(
+        val request = ColumnGenerationQuantityApplicationRequest(
             itemDemands = listOf(item to UInt64.one)
         )
 
@@ -93,29 +93,29 @@ class ColumnGenerationGenericShapeSpecEntryPointTest {
         assertEquals(0, cylinderSpec.radiusCandidates.size)
         assertTrue(cylinderSpec.radiusMin!! eq (infraScalar(0.5) * Meter))
         assertTrue(cylinderSpec.radiusMax!! eq (infraScalar(0.6) * Meter))
-        assertEquals("generic-shape-spec-v1", cylinderSpec.radiusWeightFunctionKey)
+        assertEquals("quantity-shape-spec-v1", cylinderSpec.radiusWeightFunctionKey)
         assertEquals(null, cylinderSpec.radiusStep)
         assertTrue(cylinderSpec.diameterMin!! eq (infraScalar(1.0) * Meter))
         assertTrue(cylinderSpec.diameterMax!! eq (infraScalar(1.2) * Meter))
         assertEquals(null, cylinderSpec.diameterStep)
         assertEquals(1, cylinderSpec.resolvedRadiusCandidates.size)
         val selectedRadius = assertNotNull(cylinderSpec.continuousRadiusSelectionResult())
-        assertEquals("generic-shape-spec-v1", selectedRadius.key)
+        assertEquals("quantity-shape-spec-v1", selectedRadius.key)
         assertTrue(selectedRadius.selectedRadius eq (infraScalar(0.5) * Meter))
-        val solverPrototype = assertNotNull(cylinderSpec.continuousRadiusSolverPrototype(source = "generic DTO"))
-        assertEquals("generic-shape-spec-v1", solverPrototype.radiusWeightFunctionKey)
-        assertEquals("cylinder_radius_generic_DTO_generic_shape_spec_v1_Y", solverPrototype.variableName)
+        val solverPrototype = assertNotNull(cylinderSpec.continuousRadiusSolverPrototype(source = "quantity DTO"))
+        assertEquals("quantity-shape-spec-v1", solverPrototype.radiusWeightFunctionKey)
+        assertEquals("cylinder_radius_quantity_DTO_quantity_shape_spec_v1_Y", solverPrototype.variableName)
         assertTrue(solverPrototype.initialRadius!! eq (infraScalar(0.5) * Meter))
         assertTrue(solverPrototype.isProductionReady)
     }
 
     @Test
-    fun genericRequestShouldKeepDepthBoundaryPolicyWhenMappingToModel() {
+    fun quantityRequestShouldKeepDepthBoundaryPolicyWhenMappingToModel() {
         val policy = DepthBoundaryLayerOrientationPolicy(
             firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
             lastLayerAllowedCuboidOrientations = setOf(Orientation.Upright, Orientation.Side)
         )
-        val request = ColumnGenerationGenericApplicationRequest<FltX>(
+        val request = ColumnGenerationQuantityApplicationRequest<FltX>(
             itemDemands = emptyList(),
             depthBoundaryLayerOrientationPolicy = policy
         )

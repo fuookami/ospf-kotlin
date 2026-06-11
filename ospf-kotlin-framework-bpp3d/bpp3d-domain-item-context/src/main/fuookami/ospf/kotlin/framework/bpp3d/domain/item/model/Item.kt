@@ -522,17 +522,17 @@ open class ItemView(
 typealias ItemProjection<P> = Projection<Item, P>
 /** 多层货物投影别名，用于 item-domain 的堆叠投影语义。Multi-pile item projection alias for item-domain stacking projection semantics. */
 typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
-/** 任意二维放置。Generic 2D placement. */
+/** 任意二维放置。Any 2D placement. */
 typealias AnyPlacement2<P> = QuantityPlacement2<*, P>
-/** 任意侧视二维放置。Generic side-plane 2D placement. */
+/** 任意侧视二维放置。Any side-plane 2D placement. */
 typealias AnySidePlacement2 = AnyPlacement2<Side>
-/** 任意前视二维放置。Generic front-plane 2D placement. */
+/** 任意前视二维放置。Any front-plane 2D placement. */
 typealias AnyFrontPlacement2 = AnyPlacement2<Front>
-/** 任意三维放置。Generic 3D placement. */
+/** 任意三维放置。Any 3D placement. */
 typealias AnyPlacement3 = QuantityPlacement3<*>
-/** 货物二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Item 2D placement alias that hides the underlying QuantityPlacement2 generic. */
+/** 货物二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Item 2D placement alias that hides the underlying QuantityPlacement2 type parameter. */
 typealias ItemPlacement2<P> = QuantityPlacement2<Item, P>
-/** 货物三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item 3D placement alias that hides the underlying QuantityPlacement3 generic. */
+/** 货物三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
 typealias ItemPlacement3 = QuantityPlacement3<Item>
 
 /**
