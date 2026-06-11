@@ -371,6 +371,164 @@ class PWLContinuousRadiusNegativeTest {
         )
     }
 
+    @Test
+    fun testCustomBreakpointsInsufficientCoverage() {
+        // Custom breakpoints 不覆盖 [rMin, rMax] 时应抛出异常
+        // Custom breakpoints should throw when not covering [rMin, rMax]
+        val rMin = infraScalar(2.0)
+        val rMax = infraScalar(5.0)
+
+        // Case 1: breakpoints.first() > rMin / 断点起点超过 rMin
+        val breakpointsNotCoveringMin = listOf(infraScalar(2.5), infraScalar(5.0), infraScalar(6.0))
+        val exception1 = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PWLRadiusSquaredApproximation.fromRadiusInterval(
+                rMin = rMin,
+                rMax = rMax,
+                config = PWLRadiusApproximationConfig(customBreakpoints = breakpointsNotCoveringMin)
+            )
+        }
+        assertTrue(
+            exception1.message?.contains("Custom breakpoints must start at or below rMin") == true,
+            "Should reject breakpoints not covering rMin"
+        )
+
+        // Case 2: breakpoints.last() < rMax / 断点终点不到 rMax
+        val breakpointsNotCoveringMax = listOf(infraScalar(1.5), infraScalar(2.0), infraScalar(4.5))
+        val exception2 = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PWLRadiusSquaredApproximation.fromRadiusInterval(
+                rMin = rMin,
+                rMax = rMax,
+                config = PWLRadiusApproximationConfig(customBreakpoints = breakpointsNotCoveringMax)
+            )
+        }
+        assertTrue(
+            exception2.message?.contains("Custom breakpoints must end at or above rMax") == true,
+            "Should reject breakpoints not covering rMax"
+        )
+    }
+
+    @Test
+    fun testCustomBreakpointsNonMonotonic() {
+        // Custom breakpoints 递减时应抛出异常
+        // Custom breakpoints should throw when non-monotonic (decreasing)
+        val rMin = infraScalar(1.0)
+        val rMax = infraScalar(4.0)
+
+        // Case 1: 覆盖范围但内部递减 / covers range but internally decreasing
+        // [1.0, 3.0, 2.0, 4.0] — 3.0 > 2.0 违反单调性
+        val partiallyDecreasing1 = listOf(infraScalar(1.0), infraScalar(3.0), infraScalar(2.0), infraScalar(4.0))
+        val exception1 = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PWLRadiusSquaredApproximation.fromRadiusInterval(
+                rMin = rMin,
+                rMax = rMax,
+                config = PWLRadiusApproximationConfig(customBreakpoints = partiallyDecreasing1)
+            )
+        }
+        assertTrue(
+            exception1.message?.contains("Custom breakpoints must be non-decreasing") == true,
+            "Should reject partially decreasing breakpoints"
+        )
+
+        // Case 2: 另一组部分递减 / another partially decreasing set
+        // [0.5, 2.0, 1.5, 3.0, 5.0] — 2.0 > 1.5 违反单调性
+        val partiallyDecreasing2 = listOf(infraScalar(0.5), infraScalar(2.0), infraScalar(1.5), infraScalar(3.0), infraScalar(5.0))
+        val exception2 = kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PWLRadiusSquaredApproximation.fromRadiusInterval(
+                rMin = rMin,
+                rMax = rMax,
+                config = PWLRadiusApproximationConfig(customBreakpoints = partiallyDecreasing2)
+            )
+        }
+        assertTrue(
+            exception2.message?.contains("Custom breakpoints must be non-decreasing") == true,
+            "Should reject another set of partially decreasing breakpoints"
+        )
+    }
+
+    @Test
+    fun testUnitConversionNearToleranceBoundary() {
+        // 直径转半径后（/2），边界值接近 PWL tolerance
+        // After diameter-to-radius conversion (/2), boundary values approach PWL tolerance
+        // 模拟 CylinderShapeContract.toContinuousRadiusBoundFromDiameter 的行为
+
+        // Case 1: 直径区间 [0.30, 0.36] -> 半径区间 [0.15, 0.18]
+        // 比例 0.18/0.15 = 1.2，相对较小，PWL 应精确
+        val diameterMin = infraScalar(0.30)
+        val diameterMax = infraScalar(0.36)
+        val radiusMin = infraScalar(diameterMin.toDouble() / 2.0)  // 0.15
+        val radiusMax = infraScalar(diameterMax.toDouble() / 2.0)  // 0.18
+
+        val pwl1 = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = radiusMin,
+            rMax = radiusMax,
+            config = PWLRadiusApproximationConfig(
+                maxSegments = 4,
+                breakpointStrategy = PWLBreakpointStrategy.Uniform,
+                relativeErrorTolerance = infraScalar(0.01)
+            )
+        )
+        // 窄区间应达到高精度 / narrow interval should achieve high precision
+        assertTrue(
+            pwl1.maxRelativeError.toDouble() < 0.001,
+            "PWL for diameter [0.30, 0.36] (radius [0.15, 0.18]) should be very accurate: actual=${pwl1.maxRelativeError.toDouble()}"
+        )
+
+        // Case 2: 直径区间 [0.10, 1.00] -> 半径区间 [0.05, 0.50]
+        // 比例 0.50/0.05 = 10，跨度大，需要更多段
+        val largeRadiusMin = infraScalar(0.10 / 2.0)   // 0.05
+        val largeRadiusMax = infraScalar(1.00 / 2.0)   // 0.50
+
+        val pwl2FewSegments = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = largeRadiusMin,
+            rMax = largeRadiusMax,
+            config = PWLRadiusApproximationConfig(
+                maxSegments = 2,
+                breakpointStrategy = PWLBreakpointStrategy.Uniform,
+                relativeErrorTolerance = infraScalar(0.01)
+            )
+        )
+        // 少段数下误差应较大 / few segments should have significant error
+        assertTrue(
+            pwl2FewSegments.maxRelativeError.toDouble() > 0.01,
+            "PWL with 2 segments for diameter [0.10, 1.00] should exceed 1% tolerance: actual=${pwl2FewSegments.maxRelativeError.toDouble()}"
+        )
+
+        val pwl2MoreSegments = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = largeRadiusMin,
+            rMax = largeRadiusMax,
+            config = PWLRadiusApproximationConfig(
+                maxSegments = 16,
+                breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
+                relativeErrorTolerance = infraScalar(0.01)
+            )
+        )
+        // 更多段 + error-driven 应满足 tolerance / more segments + error-driven should meet tolerance
+        assertTrue(
+            pwl2MoreSegments.maxRelativeError.toDouble() < 0.01,
+            "PWL with 16 error-driven segments for diameter [0.10, 1.00] should meet 1% tolerance: actual=${pwl2MoreSegments.maxRelativeError.toDouble()}"
+        )
+
+        // Case 3: 边界值接近 tolerance 临界点
+        // 直径 [0.1998, 0.2002] -> 半径 [0.0999, 0.1001]
+        // 极窄区间，即使 1 段也应远超 tolerance
+        val boundaryRadiusMin = infraScalar(0.1998 / 2.0)   // 0.0999
+        val boundaryRadiusMax = infraScalar(0.2002 / 2.0)   // 0.1001
+
+        val pwl3 = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = boundaryRadiusMin,
+            rMax = boundaryRadiusMax,
+            config = PWLRadiusApproximationConfig(
+                maxSegments = 1,
+                breakpointStrategy = PWLBreakpointStrategy.Uniform,
+                relativeErrorTolerance = infraScalar(0.01)
+            )
+        )
+        assertTrue(
+            pwl3.maxRelativeError.toDouble() < 1e-5,
+            "PWL for extremely narrow diameter [0.1998, 0.2002] should be extremely accurate: actual=${pwl3.maxRelativeError.toDouble()}"
+        )
+    }
+
     // ===== 7. 误差预算推导测试 / Error budget derivation tests =====
 
     @Test
