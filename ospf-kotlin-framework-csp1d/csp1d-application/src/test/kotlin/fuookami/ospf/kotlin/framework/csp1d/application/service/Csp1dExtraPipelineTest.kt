@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -32,6 +33,20 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.solver.Flt64FeasibleSolverOutput
+import fuookami.ospf.kotlin.framework.solver.Flt64LinearMetaModel
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
+import kotlin.time.Duration
 
 /**
  * 扩展管线集成测试 / Extra pipeline integration test
@@ -320,6 +335,334 @@ class Csp1dExtraPipelineTest {
         assertEquals(1, sameLengthPipeline.constraintCount, "One same-unit-length constraint should be registered in LP mode")
     }
 
+    // ===== Public solve 入口扩展传播测试 =====
+
+    /**
+     * 验证普通 MILP public 入口通过 Csp1dSolveConfig 注入扩展管线 /
+     * Verify plain MILP public entry injects extension pipeline through Csp1dSolveConfig
+     */
+    @Test
+    fun milpPublicEntryShouldInjectExtensionFromSolveConfig(): Unit = runBlocking {
+        val material = testMaterial("mat-milp-ext")
+        val product = testProduct("prod-milp-ext")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val sameWidthPipeline = FakeSameWidthPipeline<Flt64>(materialId = "mat-milp-ext")
+        val extension = Csp1dModelingExtension<Flt64>(
+            pipeline = sameWidthPipeline,
+            mode = Csp1dExtensionMode.MILP
+        )
+        val solver = ConstraintNameCapturingSolver()
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensions = listOf(extension)
+        )
+
+        val solution = Csp1dMilp<Flt64>(solver).solve(
+            problem = problem,
+            solveConfig = solveConfig
+        )
+
+        assertEquals(Csp1dSolutionStatus.Feasible, solution.status)
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-milp-ext"),
+            "Same width constraint should be registered through MILP public entry"
+        )
+    }
+
+    /**
+     * 验证列生成 public 入口通过 Csp1dSolveConfig 注入扩展管线到 LP 和 final MILP /
+     * Verify column generation public entry injects extension pipeline through Csp1dSolveConfig to LP and final MILP
+     */
+    @Test
+    fun columnGenerationPublicEntryShouldInjectExtensionFromSolveConfig(): Unit = runBlocking {
+        val material = testMaterial("mat-cg-ext")
+        val product = testProduct("prod-cg-ext")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val sameWidthPipeline = FakeSameWidthPipeline<Flt64>(materialId = "mat-cg-ext")
+        val extension = Csp1dModelingExtension<Flt64>(
+            pipeline = sameWidthPipeline,
+            mode = Csp1dExtensionMode.ALL
+        )
+        val solver = ConstraintNameCapturingSolver()
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensions = listOf(extension)
+        )
+
+        val result = Csp1dColumnGeneration<Flt64>(solver).solveWithTrace(
+            problem = problem,
+            solveConfig = solveConfig
+        )
+
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-cg-ext"),
+            "Same width constraint should be registered through CG public entry"
+        )
+    }
+
+    /**
+     * 验证多个扩展管线同时通过 public 入口注册 /
+     * Verify multiple extension pipelines can be registered simultaneously through public entry
+     */
+    @Test
+    fun multipleExtensionsShouldAllRegisterThroughPublicEntry(): Unit = runBlocking {
+        val material1 = testMaterial("mat-multi-ext-1")
+        val material2 = testMaterial("mat-multi-ext-2")
+        val product = testProduct("prod-multi-ext")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val sameWidthPipeline1 = FakeSameWidthPipeline<Flt64>(materialId = "mat-multi-ext-1")
+        val sameWidthPipeline2 = FakeSameWidthPipeline<Flt64>(materialId = "mat-multi-ext-2")
+        val extensions = listOf(
+            Csp1dModelingExtension<Flt64>(
+                pipeline = sameWidthPipeline1,
+                mode = Csp1dExtensionMode.ALL
+            ),
+            Csp1dModelingExtension<Flt64>(
+                pipeline = sameWidthPipeline2,
+                mode = Csp1dExtensionMode.ALL
+            )
+        )
+        val solver = ConstraintNameCapturingSolver()
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material1, material2),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensions = extensions
+        )
+
+        val solution = Csp1dMilp<Flt64>(solver).solve(
+            problem = problem,
+            solveConfig = solveConfig
+        )
+
+        assertEquals(Csp1dSolutionStatus.Feasible, solution.status)
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-multi-ext-1"),
+            "First extension constraint should be registered"
+        )
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-multi-ext-2"),
+            "Second extension constraint should be registered"
+        )
+    }
+
+    // ===== Recovery / partial 路径扩展传播测试 =====
+
+    /**
+     * 验证 Csp1dRecovery 路径不丢失扩展配置 /
+     * Verify Csp1dRecovery path does not lose extension configuration
+     *
+     * Csp1dRecovery.solveWithTrace 将 solveConfig 透传到 Csp1dMilp.solve，
+     * 而 Csp1dMilp.solve 将 extensions 传入 Csp1dMilpSolver.solve，
+     * 此处验证整个链路中扩展管线约束已注册到模型。
+     */
+    @Test
+    fun recoveryShouldPreserveExtensionConfig(): Unit = runBlocking {
+        val material = testMaterial("mat-recovery-ext")
+        val product = testProduct("prod-recovery-ext")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val plan = testCuttingPlan("plan-recovery-ext", material, product, Flt64(50.0))
+        val sameWidthPipeline = FakeSameWidthPipeline<Flt64>(materialId = "mat-recovery-ext")
+        val extension = Csp1dModelingExtension<Flt64>(
+            pipeline = sameWidthPipeline,
+            mode = Csp1dExtensionMode.ALL
+        )
+        val solver = ConstraintNameCapturingSolver()
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensions = listOf(extension)
+        )
+
+        val result = Csp1dRecovery<Flt64>(solver).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = solveConfig
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+        // 验证扩展管线约束已注册到模型 / Verify extension pipeline constraint was registered in model
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-recovery-ext"),
+            "Same width constraint should be registered through recovery MILP path"
+        )
+    }
+
+    /**
+     * 验证 Csp1dColumnGenerationRecovery 路径不丢失扩展配置 /
+     * Verify Csp1dColumnGenerationRecovery path does not lose extension configuration
+     *
+     * Csp1dColumnGenerationRecovery.solveWithTrace 将 solveConfig 透传到
+     * Csp1dColumnGeneration.solve，列生成主循环和最终 MILP 均注入 extensions，
+     * 此处验证扩展管线约束在最终 MILP 模型中已注册。
+     */
+    @Test
+    fun columnGenerationRecoveryShouldPreserveExtensionConfig(): Unit = runBlocking {
+        val material = testMaterial("mat-cg-recovery-ext")
+        val product = testProduct("prod-cg-recovery-ext")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val plan = testCuttingPlan("plan-cg-recovery-ext", material, product, Flt64(50.0))
+        val sameWidthPipeline = FakeSameWidthPipeline<Flt64>(materialId = "mat-cg-recovery-ext")
+        val extension = Csp1dModelingExtension<Flt64>(
+            pipeline = sameWidthPipeline,
+            mode = Csp1dExtensionMode.ALL
+        )
+        val solver = ConstraintNameCapturingSolver()
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensions = listOf(extension)
+        )
+
+        val result = Csp1dColumnGenerationRecovery<Flt64>(
+            solver = solver,
+            pricingGenerator = fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator<Flt64> { emptyList() }
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = solveConfig
+            )
+        )
+
+        assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
+        assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)
+        assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
+        // 验证扩展管线约束已注册到最终 MILP 模型 / Verify extension constraint registered in final MILP
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-cg-recovery-ext"),
+            "Same width constraint should be registered through CG recovery final MILP path"
+        )
+    }
+
+    /**
+     * 验证列生成恢复在最终 MILP 失败（partial 路径）时仍保留扩展配置 /
+     * Verify CG recovery retains extension configuration even when final MILP fails (partial path)
+     *
+     * 最终 MILP 失败时 allowPartialSolution=true 会返回 Partial 解，
+     * 此处验证即使最终 MILP 失败，扩展管线约束仍被注入模型（失败模型也包含约束）。
+     */
+    @Test
+    fun columnGenerationRecoveryShouldPreserveExtensionConfigWhenFinalMilpFails(): Unit = runBlocking {
+        val material = testMaterial("mat-cg-partial-ext")
+        val product = testProduct("prod-cg-partial-ext")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val plan = testCuttingPlan("plan-cg-partial-ext", material, product, Flt64(50.0))
+        val sameWidthPipeline = FakeSameWidthPipeline<Flt64>(materialId = "mat-cg-partial-ext")
+        val extension = Csp1dModelingExtension<Flt64>(
+            pipeline = sameWidthPipeline,
+            mode = Csp1dExtensionMode.ALL
+        )
+        val solver = FailingMilpButConstraintCapturingSolver()
+        val problem = Csp1dProblem<Flt64>(
+            products = listOf(product),
+            materials = listOf(material),
+            machines = emptyList(),
+            demands = listOf(demand),
+            configuration = Csp1dConfiguration(
+                maxInitialPlans = 8,
+                maxPricingPlans = 1,
+                iterationLimit = 1
+            )
+        )
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensions = listOf(extension),
+            allowPartialSolution = true,
+            topKPlanLimit = 1
+        )
+
+        val result = Csp1dColumnGenerationRecovery<Flt64>(
+            solver = solver,
+            pricingGenerator = fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator<Flt64> { emptyList() }
+        ).solveWithTrace(
+            Csp1dRecoveryInput(
+                problem = problem,
+                solveConfig = solveConfig
+            )
+        )
+
+        assertEquals(Csp1dSolutionStatus.Partial, result.solution.status)
+        // 验证扩展管线约束在尝试求解最终 MILP 时已注册 /
+        // Verify extension constraint was registered when attempting final MILP solve
+        assertTrue(
+            solver.constraintNames.contains("same_width_bound_mat-cg-partial-ext"),
+            "Same width constraint should be registered in failed final MILP model (partial path)"
+        )
+    }
+
     // ===== 测试辅助方法 =====
 
     private fun testMaterial(id: String): Material<Flt64> {
@@ -368,5 +711,122 @@ class Csp1dExtraPipelineTest {
             ),
             capacityConsumption = null
         )
+    }
+
+    /**
+     * 约束名捕获 fake solver / Constraint-name-capturing fake solver
+     *
+     * 求解成功，同时记录所有约束名，用于验证扩展管线约束已注入模型。
+     */
+    private class ConstraintNameCapturingSolver : ColumnGenerationSolver {
+        override val name: String = "constraint-name-capturing"
+
+        val constraintNames = mutableSetOf<String>()
+
+        override suspend fun solveMILP(
+            name: String,
+            metaModel: Flt64LinearMetaModel,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<Flt64FeasibleSolverOutput> {
+            captureConstraintNames(metaModel)
+            return Ok(captureFakeFeasibleOutput(metaModel))
+        }
+
+        override suspend fun solveLP(
+            name: String,
+            metaModel: Flt64LinearMetaModel,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<ColumnGenerationSolver.LPResult> {
+            captureConstraintNames(metaModel)
+            return Ok(
+                ColumnGenerationSolver.LPResult(
+                    result = captureFakeFeasibleOutput(metaModel),
+                    dualSolution = emptyMap()
+                )
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun captureConstraintNames(metaModel: Flt64LinearMetaModel) {
+            for (constraint in metaModel.constraints) {
+                (constraint as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<Flt64>)?.name?.let {
+                    constraintNames.add(it)
+                }
+            }
+        }
+
+        private fun captureFakeFeasibleOutput(metaModel: Flt64LinearMetaModel): Flt64FeasibleSolverOutput {
+            val size = metaModel.tokens.tokensInSolver.size
+            val solution: Solution<Flt64> = (0 until size).map { Flt64(1.0) }
+            return FeasibleSolverOutput(
+                obj = Flt64.zero,
+                solution = solution,
+                time = Duration.ZERO,
+                possibleBestObj = Flt64.zero,
+                gap = Flt64.zero
+            )
+        }
+    }
+
+    /**
+     * MILP 失败但约束名仍捕获的 fake solver /
+     * Fake solver that fails MILP but still captures constraint names
+     */
+    private class FailingMilpButConstraintCapturingSolver : ColumnGenerationSolver {
+        override val name: String = "failing-milp-constraint-capturing"
+
+        val constraintNames = mutableSetOf<String>()
+
+        override suspend fun solveMILP(
+            name: String,
+            metaModel: Flt64LinearMetaModel,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<Flt64FeasibleSolverOutput> {
+            captureConstraintNames(metaModel)
+            throw IllegalStateException("forced final MILP failure for partial path test")
+        }
+
+        override suspend fun solveLP(
+            name: String,
+            metaModel: Flt64LinearMetaModel,
+            toLogModel: Boolean,
+            registrationStatusCallBack: RegistrationStatusCallBack?,
+            solvingStatusCallBack: SolvingStatusCallBack?
+        ): Ret<ColumnGenerationSolver.LPResult> {
+            captureConstraintNames(metaModel)
+            return Ok(
+                ColumnGenerationSolver.LPResult(
+                    result = captureFakeFeasibleOutput(metaModel),
+                    dualSolution = emptyMap()
+                )
+            )
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        private fun captureConstraintNames(metaModel: Flt64LinearMetaModel) {
+            for (constraint in metaModel.constraints) {
+                (constraint as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<Flt64>)?.name?.let {
+                    constraintNames.add(it)
+                }
+            }
+        }
+
+        private fun captureFakeFeasibleOutput(metaModel: Flt64LinearMetaModel): Flt64FeasibleSolverOutput {
+            val size = metaModel.tokens.tokensInSolver.size
+            val solution: Solution<Flt64> = (0 until size).map { Flt64(1.0) }
+            return FeasibleSolverOutput(
+                obj = Flt64.zero,
+                solution = solution,
+                time = Duration.ZERO,
+                possibleBestObj = Flt64.zero,
+                gap = Flt64.zero
+            )
+        }
     }
 }

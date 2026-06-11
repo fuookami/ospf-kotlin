@@ -6,8 +6,13 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
 
 /** CSP1D DSL 标记 / CSP1D DSL marker */
@@ -190,6 +195,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
     private var lengthConfigValue: LengthAssignmentModelingConfig<V>? = null
     private var topKPlanLimitValue: Int? = null
     private var allowPartialSolutionValue: Boolean = true
+    private val extensionsBuffer = ArrayList<Csp1dModelingExtension<V>>()
 
     /**
      * 设置列生成配置 / Set column generation configuration
@@ -272,6 +278,50 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
     }
 
     /**
+     * 追加建模扩展 / Add a modeling extension
+     *
+     * @param extension 建模扩展 / Modeling extension
+     */
+    fun extension(extension: Csp1dModelingExtension<V>): Csp1dSolveConfigBuilder<V> {
+        extensionsBuffer.add(extension)
+        return this
+    }
+
+    /**
+     * 追加建模扩展列表 / Add modeling extensions
+     *
+     * @param extensions 建模扩展列表 / Modeling extensions
+     */
+    fun extensions(extensions: Iterable<Csp1dModelingExtension<V>>): Csp1dSolveConfigBuilder<V> {
+        extensionsBuffer.addAll(extensions)
+        return this
+    }
+
+    /**
+     * 便捷方法：追加扩展管线（默认所有模式）/ Convenience: add an extension pipeline (all modes)
+     *
+     * @param pipeline 扩展管线 / Extension pipeline
+     */
+    fun extensionPipeline(pipeline: Pipeline<LinearMetaModel<Flt64>>): Csp1dSolveConfigBuilder<V> {
+        extensionsBuffer.add(Csp1dModelingExtension(pipeline))
+        return this
+    }
+
+    /**
+     * 便捷方法：追加扩展管线（指定模式）/ Convenience: add an extension pipeline (specific mode)
+     *
+     * @param pipeline 扩展管线 / Extension pipeline
+     * @param mode 扩展适用模式 / Extension applicable mode
+     */
+    fun extensionPipeline(
+        pipeline: Pipeline<LinearMetaModel<Flt64>>,
+        mode: Csp1dExtensionMode
+    ): Csp1dSolveConfigBuilder<V> {
+        extensionsBuffer.add(Csp1dModelingExtension(pipeline, mode))
+        return this
+    }
+
+    /**
      * 构建求解配置 / Build solve configuration
      *
      * @return 一站式求解配置 / One-stop solve configuration
@@ -283,7 +333,8 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
             wasteConfig = wasteConfigValue,
             lengthConfig = lengthConfigValue,
             topKPlanLimit = topKPlanLimitValue,
-            allowPartialSolution = allowPartialSolutionValue
+            allowPartialSolution = allowPartialSolutionValue,
+            extensions = extensionsBuffer.toList()
         )
     }
 }

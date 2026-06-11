@@ -19,6 +19,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResu
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
 
 /**
  * CSP1D MILP/LP 求解器 / CSP1D MILP/LP solver
@@ -50,10 +52,12 @@ class Csp1dMilpSolver(
         input: ProduceInput<V>,
         yieldConfig: YieldModelingConfig<V>? = null,
         wasteConfig: WasteMinimizationConfig<V>? = null,
-        lengthConfig: LengthAssignmentModelingConfig<V>? = null
+        lengthConfig: LengthAssignmentModelingConfig<V>? = null,
+        extensions: List<Csp1dModelingExtension<V>> = emptyList(),
+        isFinalMilp: Boolean = false
     ): MilpResult<V>? {
         return try {
-            solveInternal(input, yieldConfig, wasteConfig, lengthConfig)
+            solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, isFinalMilp)
         } catch (_: Exception) {
             null
         }
@@ -63,7 +67,9 @@ class Csp1dMilpSolver(
         input: ProduceInput<V>,
         yieldConfig: YieldModelingConfig<V>?,
         wasteConfig: WasteMinimizationConfig<V>?,
-        lengthConfig: LengthAssignmentModelingConfig<V>?
+        lengthConfig: LengthAssignmentModelingConfig<V>?,
+        extensions: List<Csp1dModelingExtension<V>>,
+        isFinalMilp: Boolean
     ): MilpResult<V>? {
         if (input.cuttingPlans.isEmpty()) {
             return null
@@ -84,6 +90,13 @@ class Csp1dMilpSolver(
                 wasteConfig?.let { wasteConfig(it) }
                 resolvedLengthConfig?.let { lengthConfig(it) }
                 mode(Csp1dModelingMode.MILP)
+                // 注入适用于 MILP / FINAL_MILP / ALL 模式的扩展管线
+                // Inject extensions applicable to MILP / FINAL_MILP / ALL modes
+                for (ext in extensions) {
+                    if (ext.mode.matches(Csp1dModelingMode.MILP, isFinalMilp)) {
+                        extraPipeline(ext.pipeline)
+                    }
+                }
             }
             .build()
 
@@ -122,17 +135,19 @@ class Csp1dMilpSolver(
     }
 
     suspend fun <V : RealNumber<V>> solveLP(
-        input: ProduceInput<V>
+        input: ProduceInput<V>,
+        extensions: List<Csp1dModelingExtension<V>> = emptyList()
     ): LpResult<V>? {
         return try {
-            solveLPInternal(input)
+            solveLPInternal(input, extensions)
         } catch (_: Exception) {
             null
         }
     }
 
     private suspend fun <V : RealNumber<V>> solveLPInternal(
-        input: ProduceInput<V>
+        input: ProduceInput<V>,
+        extensions: List<Csp1dModelingExtension<V>>
     ): LpResult<V>? {
         if (input.cuttingPlans.isEmpty()) {
             return null
@@ -148,6 +163,15 @@ class Csp1dMilpSolver(
         val context = Csp1dProduceContextBuilder(input)
             .shadowPriceKeys(shadowPriceKeys)
             .mode(Csp1dModelingMode.LP)
+            .apply {
+                // 注入适用于 LP / ALL 模式的扩展管线
+                // Inject extensions applicable to LP / ALL modes
+                for (ext in extensions) {
+                    if (ext.mode.matches(Csp1dModelingMode.LP)) {
+                        extraPipeline(ext.pipeline)
+                    }
+                }
+            }
             .build()
 
         when (val result = context.register(model)) {

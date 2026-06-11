@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
@@ -56,6 +57,7 @@ data class Csp1dConfiguration<V : RealNumber<V>>(
  * @property lengthConfig 长度分配配置 / Length assignment configuration
  * @property topKPlanLimit Top-K 方案保留上限，null 表示不输出 / Top-K plan limit, null for disabled
  * @property allowPartialSolution 最终 MILP 失败时是否返回部分结果 / Whether to return a partial result when final MILP fails
+ * @property extensions 建模扩展列表，用于注入额外管线（如 same unit length / same width 等业务约束）/ Modeling extensions for injecting additional pipelines (e.g. same unit length / same width constraints)
  */
 data class Csp1dSolveConfig<V : RealNumber<V>>(
     val columnGeneration: Csp1dConfiguration<V> = Csp1dConfiguration(),
@@ -63,5 +65,6 @@ data class Csp1dSolveConfig<V : RealNumber<V>>(
     val wasteConfig: WasteMinimizationConfig<V>? = null,
     val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
     val topKPlanLimit: Int? = null,
-    val allowPartialSolution: Boolean = true
+    val allowPartialSolution: Boolean = true,
+    val extensions: List<Csp1dModelingExtension<V>> = emptyList()
 )

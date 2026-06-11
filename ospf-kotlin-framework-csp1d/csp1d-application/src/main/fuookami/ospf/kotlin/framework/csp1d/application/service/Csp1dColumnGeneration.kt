@@ -178,7 +178,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     demands = problem.demands,
                     materials = problem.materials,
                     machines = problem.machines
-                )
+                ),
+                extensions = resolvedConfig.extensions
             )
             if (lpResult == null) {
                 pricedPlanCounts.add(UInt64.zero)
@@ -447,7 +448,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 ),
                 yieldConfig = solveConfig.yieldConfig,
                 wasteConfig = solveConfig.wasteConfig,
-                lengthConfig = solveConfig.lengthConfig
+                lengthConfig = solveConfig.lengthConfig,
+                extensions = solveConfig.extensions,
+                isFinalMilp = true
             )
         } catch (error: Exception) {
             return FinalMilpSolveResult(

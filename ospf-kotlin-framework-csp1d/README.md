@@ -80,6 +80,39 @@ val solver = Csp1dColumnGeneration<Flt64>(
 )
 ```
 
+## Modeling Extensions
+
+`Csp1dSolveConfig<V>` exposes an `extensions` field that accepts a list of `Csp1dModelingExtension<V>`. Each extension carries a `Pipeline<LinearMetaModel<Flt64>>` and an `Csp1dExtensionMode` filter that determines which solve stages the pipeline applies to:
+
+- `MILP` — plain MILP only
+- `LP` — column-generation LP master only
+- `FINAL_MILP` — column-generation final MILP only
+- `ALL` — all stages (default)
+
+Downstream business constraints (same unit length, same width, width difference, material compatibility, etc.) should be injected as extension pipelines rather than modifying framework core code.
+
+Example — injecting a same-width constraint through the public solve entry:
+
+```kotlin
+val sameWidthPipeline: Pipeline<LinearMetaModel<Flt64>> = SameWidthConstraintPipeline(materialId = "m1")
+val extension = Csp1dModelingExtension<Flt64>(
+    pipeline = sameWidthPipeline,
+    mode = Csp1dExtensionMode.ALL
+)
+val solveConfig = Csp1dSolveConfig<Flt64>(
+    extensions = listOf(extension)
+)
+// Or via the builder DSL:
+val config = csp1dSolveConfig<Flt64> {
+    extension(Csp1dModelingExtension(sameWidthPipeline, Csp1dExtensionMode.ALL))
+}
+val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
+```
+
+Extensions propagate through all solve paths: plain MILP, column-generation LP master and final MILP, and recovery/partial fallback MILP. The default empty `extensions` list preserves backward compatibility.
+
+`Csp1dProduceContext.addColumns` remains a placeholder API reserved for future incremental column generation. It currently only deduplicates and returns new plans without adding column variables, refreshing constraints, or updating the objective in an existing model.
+
 ## Outputs
 
 `Csp1dSolution<V>` contains:

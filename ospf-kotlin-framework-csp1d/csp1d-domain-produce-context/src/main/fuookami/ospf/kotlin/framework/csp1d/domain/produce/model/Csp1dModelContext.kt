@@ -151,3 +151,56 @@ enum class Csp1dModelingMode {
  * Ordered list of CSP1D modeling pipelines, executed in registration order.
  */
 typealias Csp1dPipelineList = List<Pipeline<LinearMetaModel<Flt64>>>
+
+/**
+ * CSP1D 扩展适用模式 / CSP1D extension applicable mode
+ *
+ * 扩展管线可注册到哪些求解阶段。默认 ALL 表示所有阶段均生效。
+ * Extension pipelines can be registered to specific solve stages.
+ * Default ALL means the extension applies to all stages.
+ */
+enum class Csp1dExtensionMode {
+    /** 普通 MILP / Normal MILP */
+    MILP,
+    /** 列生成 LP 松弛 / Column generation LP relaxation */
+    LP,
+    /** 列生成最终 MILP / Column generation final MILP */
+    FINAL_MILP,
+    /** 所有模式 / All modes */
+    ALL;
+
+    /**
+     * 判断是否匹配指定建模模式 / Check if this extension mode matches the given modeling mode
+     *
+     * @param mode 建模模式 / Modeling mode
+     * @param isFinalMilp 是否为列生成最终 MILP / Whether this is a column generation final MILP
+     */
+    fun matches(mode: Csp1dModelingMode, isFinalMilp: Boolean = false): Boolean {
+        return when (this) {
+            MILP -> mode == Csp1dModelingMode.MILP && !isFinalMilp
+            LP -> mode == Csp1dModelingMode.LP
+            FINAL_MILP -> isFinalMilp
+            ALL -> true
+        }
+    }
+}
+
+/**
+ * CSP1D 建模扩展 / CSP1D modeling extension
+ *
+ * 承载可在求解各阶段注入的额外管线。下游通过此类型注册 same unit length、
+ * same width、宽差、材质兼容等业务约束，而不修改 framework 核心代码。
+ *
+ * Carries additional pipelines that can be injected at various solve stages.
+ * Downstream uses this type to register business constraints such as
+ * same unit length, same width, width difference, material compatibility,
+ * without modifying framework core code.
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property pipeline 扩展管线 / Extension pipeline
+ * @property mode 扩展适用模式 / Extension applicable mode
+ */
+data class Csp1dModelingExtension<V : RealNumber<V>>(
+    val pipeline: Pipeline<LinearMetaModel<Flt64>>,
+    val mode: Csp1dExtensionMode = Csp1dExtensionMode.ALL
+)

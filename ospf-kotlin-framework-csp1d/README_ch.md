@@ -80,6 +80,39 @@ val solver = Csp1dColumnGeneration<Flt64>(
 )
 ```
 
+## 建模扩展
+
+`Csp1dSolveConfig<V>` 暴露 `extensions` 字段，接受 `List<Csp1dModelingExtension<V>>`。每个扩展承载一个 `Pipeline<LinearMetaModel<Flt64>>` 和一个 `Csp1dExtensionMode` 过滤条件，决定管线在哪些求解阶段生效：
+
+- `MILP` — 仅普通 MILP
+- `LP` — 仅列生成 LP master
+- `FINAL_MILP` — 仅列生成最终 MILP
+- `ALL` — 所有阶段（默认）
+
+下游业务约束（同单位长度、同宽度、宽差、材质兼容等）应以扩展管线注入，而非修改 framework 核心代码。
+
+示例 — 通过 public 求解入口注入同宽度约束：
+
+```kotlin
+val sameWidthPipeline: Pipeline<LinearMetaModel<Flt64>> = SameWidthConstraintPipeline(materialId = "m1")
+val extension = Csp1dModelingExtension<Flt64>(
+    pipeline = sameWidthPipeline,
+    mode = Csp1dExtensionMode.ALL
+)
+val solveConfig = Csp1dSolveConfig<Flt64>(
+    extensions = listOf(extension)
+)
+// 或使用 builder DSL：
+val config = csp1dSolveConfig<Flt64> {
+    extension(Csp1dModelingExtension(sameWidthPipeline, Csp1dExtensionMode.ALL))
+}
+val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
+```
+
+扩展配置会传播到所有求解路径：普通 MILP、列生成 LP master 和最终 MILP、以及 recovery/partial 回退 MILP。默认空 `extensions` 列表保持向后兼容。
+
+`Csp1dProduceContext.addColumns` 仍是预留接口，用于未来真实增量列生成。当前仅做去重并返回新增方案，不会在已有模型上添加列变量、刷新约束或更新目标函数。
+
 ## 输出
 
 `Csp1dSolution<V>` 包含：

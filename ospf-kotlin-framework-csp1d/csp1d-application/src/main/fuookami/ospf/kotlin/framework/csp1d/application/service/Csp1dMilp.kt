@@ -73,7 +73,8 @@ class Csp1dMilp<V : RealNumber<V>>(
         val milpResult = solveMilp(
             problem = problem,
             cuttingPlans = generatedPlans,
-            solveConfig = resolvedConfig
+            solveConfig = resolvedConfig,
+            isFinalMilp = false
         )
         val produce = milpResult.result?.produce ?: emptyProduce(problem)
         val topPlans = topCuttingPlans(
@@ -141,7 +142,8 @@ class Csp1dMilp<V : RealNumber<V>>(
     private suspend fun solveMilp(
         problem: Csp1dProblem<V>,
         cuttingPlans: List<CuttingPlan<V>>,
-        solveConfig: Csp1dSolveConfig<V>
+        solveConfig: Csp1dSolveConfig<V>,
+        isFinalMilp: Boolean = false
     ): MilpSolveResult<V> {
         val result = try {
             Csp1dMilpSolver(solver).solve(
@@ -154,7 +156,9 @@ class Csp1dMilp<V : RealNumber<V>>(
                 ),
                 yieldConfig = solveConfig.yieldConfig,
                 wasteConfig = solveConfig.wasteConfig,
-                lengthConfig = solveConfig.lengthConfig
+                lengthConfig = solveConfig.lengthConfig,
+                extensions = solveConfig.extensions,
+                isFinalMilp = isFinalMilp
             )
         } catch (error: Exception) {
             return MilpSolveResult(
