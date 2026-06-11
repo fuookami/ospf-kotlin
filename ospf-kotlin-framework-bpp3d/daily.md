@@ -333,8 +333,20 @@ BPP3D fully generic shape 生产模型已达到稳定状态：
 - ✅ 诊断字段口径统一、无歧义
 - ✅ PWL 参数默认配置合理、自适应调优机制就绪
 
-### 剩余可选增强
+### 收尾增强补充记录（2026-06-12）
 
-1. 极端 radius interval（如 [1.0, 50.0]）的 benchmark 数据集，目前由 `deriveSegmentCount` 自适应处理
-2. Adaptive / ErrorDriven breakpoint 策略的对比 benchmark
-3. 更多 production-like Gurobi dataset
+1. **极端 radius interval benchmark / regression**
+   - 已在 `PWLRadiusSquaredApproximationTest` 中补充 `[1.0, 50.0]` 极端半径区间回归。
+   - 默认 8 段、1% tolerance 下明确返回 `meetsTolerance=false`，不会静默放宽误差目标。
+   - 高段数预算下 `deriveSegmentCount` 会继续倍增并降低最大相对误差，可满足 1% tolerance。
+   - 结论：默认 8 段仍适合作为生产默认值；极端区间必须依赖 `deriveSegmentCount` 暴露诊断并提高 segment budget，不应隐式降级。
+
+2. **PWL breakpoint 策略对比**
+   - 已覆盖 Uniform / Adaptive / ErrorDriven 在 `[1.0, 50.0]` 区间上的基线对比。
+   - 三种策略均保持端点覆盖、正向误差诊断和弦线 over-approximation。
+   - ErrorDriven 在当前实现下不劣于 Uniform 基线；Adaptive 作为有效策略保留，不强制声明优于 Uniform。
+   - 结论：默认策略继续保持 Uniform；ErrorDriven 可作为极端区间调优候选，但不改变当前生产默认。
+
+3. **剩余可选增强**
+   - 更多 production-like Gurobi dataset。
+   - 如果后续真实业务数据出现极端半径分布，可新增应用层 dataset suite，而不是修改默认 PWL 策略。

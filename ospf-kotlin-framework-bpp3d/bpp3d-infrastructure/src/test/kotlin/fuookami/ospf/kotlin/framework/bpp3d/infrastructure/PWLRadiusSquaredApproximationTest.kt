@@ -317,6 +317,95 @@ class PWLRadiusSquaredApproximationTest {
     }
 
     @Test
+    fun testExtremeRadiusIntervalDerivationReportsUnmetDefaultTolerance() {
+        val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(1.0),
+            rMax = infraScalar(50.0),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 8
+        )
+        assertEquals(8, result.recommendedSegments)
+        assertEquals(false, result.meetsTolerance)
+        assertTrue(
+            result.achievedMaxRelativeError.toDouble() > 0.01,
+            "Extreme interval should report unmet tolerance instead of silently relaxing it"
+        )
+    }
+
+    @Test
+    fun testExtremeRadiusIntervalImprovesWithHigherSegmentBudget() {
+        val defaultBudget = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(1.0),
+            rMax = infraScalar(50.0),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 8
+        )
+        val higherBudget = PWLRadiusSquaredApproximation.deriveSegmentCount(
+            rMin = infraScalar(1.0),
+            rMax = infraScalar(50.0),
+            relativeErrorTolerance = infraScalar(0.01),
+            maxSegments = 512
+        )
+
+        assertTrue(
+            higherBudget.recommendedSegments > defaultBudget.recommendedSegments,
+            "Higher budget should be used for extreme radius intervals"
+        )
+        assertTrue(
+            higherBudget.achievedMaxRelativeError.toDouble() < defaultBudget.achievedMaxRelativeError.toDouble(),
+            "Higher segment budget should reduce max relative error"
+        )
+        assertTrue(
+            higherBudget.meetsTolerance,
+            "Higher segment budget should meet 1% tolerance for [1, 50]"
+        )
+    }
+
+    @Test
+    fun testBreakpointStrategiesForExtremeRadiusInterval() {
+        val rMin = infraScalar(1.0)
+        val rMax = infraScalar(50.0)
+        val uniform = buildStrategyBenchmark(
+            strategy = PWLBreakpointStrategy.Uniform,
+            rMin = rMin,
+            rMax = rMax,
+            maxSegments = 16
+        )
+        val adaptive = buildStrategyBenchmark(
+            strategy = PWLBreakpointStrategy.Adaptive,
+            rMin = rMin,
+            rMax = rMax,
+            maxSegments = 16
+        )
+        val errorDriven = buildStrategyBenchmark(
+            strategy = PWLBreakpointStrategy.ErrorDriven,
+            rMin = rMin,
+            rMax = rMax,
+            maxSegments = 16
+        )
+
+        assertValidStrategyBenchmark(
+            benchmark = uniform,
+            rMin = rMin,
+            rMax = rMax
+        )
+        assertValidStrategyBenchmark(
+            benchmark = adaptive,
+            rMin = rMin,
+            rMax = rMax
+        )
+        assertValidStrategyBenchmark(
+            benchmark = errorDriven,
+            rMin = rMin,
+            rMax = rMax
+        )
+        assertTrue(
+            errorDriven.maxRelativeError <= uniform.maxRelativeError + 1e-10,
+            "Error-driven strategy should not be worse than the uniform baseline"
+        )
+    }
+
+    @Test
     fun testRequiresPositiveRMin() {
         try {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
@@ -418,5 +507,75 @@ class PWLRadiusSquaredApproximationTest {
         assertTrue(info.containsKey("pwl_derived_achieved_max_rel_error"))
         assertTrue(info.containsKey("pwl_derived_meets_tolerance"))
         assertTrue(info.containsKey("pwl_derived_iterations"))
+    }
+
+    private data class StrategyBenchmark(
+        val strategy: PWLBreakpointStrategy,
+        val pwl: PWLRadiusSquaredApproximation,
+        val maxRelativeError: Double,
+        val maxAbsoluteError: Double
+    )
+
+    private fun buildStrategyBenchmark(
+        strategy: PWLBreakpointStrategy,
+        rMin: InfraNumber,
+        rMax: InfraNumber,
+        maxSegments: Int
+    ): StrategyBenchmark {
+        val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
+            rMin = rMin,
+            rMax = rMax,
+            config = PWLRadiusApproximationConfig(
+                maxSegments = maxSegments,
+                breakpointStrategy = strategy
+            )
+        )
+        return StrategyBenchmark(
+            strategy = strategy,
+            pwl = pwl,
+            maxRelativeError = pwl.maxRelativeError.toDouble(),
+            maxAbsoluteError = pwl.maxAbsoluteError.toDouble()
+        )
+    }
+
+    private fun assertValidStrategyBenchmark(
+        benchmark: StrategyBenchmark,
+        rMin: InfraNumber,
+        rMax: InfraNumber
+    ) {
+        assertEquals(
+            expected = rMin.toDouble(),
+            actual = benchmark.pwl.breakpoints.first().toDouble(),
+            absoluteTolerance = 1e-10
+        )
+        assertEquals(
+            expected = rMax.toDouble(),
+            actual = benchmark.pwl.breakpoints.last().toDouble(),
+            absoluteTolerance = 1e-10
+        )
+        assertTrue(benchmark.pwl.numSegments >= 16, "${benchmark.strategy} should keep at least the configured baseline segments")
+        assertTrue(benchmark.maxRelativeError > 0.0, "${benchmark.strategy} should report a positive relative error")
+        assertTrue(benchmark.maxAbsoluteError > 0.0, "${benchmark.strategy} should report a positive absolute error")
+        assertOverApproximatesAtSamples(
+            pwl = benchmark.pwl,
+            rMin = rMin,
+            rMax = rMax
+        )
+    }
+
+    private fun assertOverApproximatesAtSamples(
+        pwl: PWLRadiusSquaredApproximation,
+        rMin: InfraNumber,
+        rMax: InfraNumber
+    ) {
+        for (i in 0..20) {
+            val t = infraScalar(i.toDouble()) / infraScalar(20.0)
+            val r = rMin + (rMax - rMin) * t
+            val actualRadiusSquared = r * r
+            assertTrue(
+                pwl.evaluate(r) >= actualRadiusSquared,
+                "PWL chord approximation should over-approximate r^2 at r=${r.toDouble()}"
+            )
+        }
     }
 }
