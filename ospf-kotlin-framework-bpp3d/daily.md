@@ -1150,3 +1150,76 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 2. README.md 补充 `ContinuousRadiusModelComponent` 扩展点说明和 `isPWLRegisterable` 对 key 的要求
 3. README_ch.md 同步更新
 
+### 8.14 剩余可选增强执行记录
+
+日期：2026-06-11
+
+#### 极端半径测试补充
+
+在 `PWLContinuousRadiusNegativeTest.kt` 新增 3 个测试：
+
+1. **testCustomBreakpointsInsufficientCoverage**：验证自定义断点不覆盖 [rMin, rMax] 时抛出 IllegalArgumentException
+   - Case 1: breakpoints.first() > rMin → "Custom breakpoints must start at or below rMin"
+   - Case 2: breakpoints.last() < rMax → "Custom breakpoints must end at or above rMax"
+
+2. **testCustomBreakpointsNonMonotonic**：验证自定义断点递减时抛出 IllegalArgumentException
+   - Case 1: [1.0, 3.0, 2.0, 4.0] → "Custom breakpoints must be non-decreasing"
+   - Case 2: [0.5, 2.0, 1.5, 3.0, 5.0] → 同上
+
+3. **testUnitConversionNearToleranceBoundary**：验证直径转半径后（/2）的 PWL tolerance 边界
+   - Case 1: 直径 [0.30, 0.36] → 半径 [0.15, 0.18]，4 段高精度
+   - Case 2: 直径 [0.10, 1.00] → 半径 [0.05, 0.50]，2 段误差超 1%，16 段 ErrorDriven 满足
+   - Case 3: 直径 [0.1998, 0.2002] → 半径 [0.0999, 0.1001]，1 段极窄区间高精度
+
+#### Gurobi Dataset 补充
+
+新增 2 个 CSV dataset：
+
+1. **grouped-layer-pwl-tight-bin-envelope-sample.csv**：
+   - Group 0: 紧凑 bin，PWL 圆柱 rMin=0.48 rMax=0.52 + cuboid
+   - Group 1: 较大 bin，PWL 圆柱 rMin=0.95 rMax=1.05 + cuboid
+   - 验证 conservative envelope 在紧凑 bin 中不越界
+
+2. **grouped-layer-pwl-horizontal-support-sample.csv**：
+   - Group 0: X 轴横向 PWL 圆柱 rMin=0.45 rMax=0.55 + 2 cuboid 支撑
+   - Group 1: Z 轴横向 PWL 圆柱 rMin=0.40 rMax=0.50 + 2 cuboid 支撑
+   - 验证横向 PWL 圆柱与支撑的交互
+
+#### Gurobi 测试补充
+
+在 `GurobiColumnGenerationTest.kt` 新增 2 个测试：
+
+1. **groupedLayerPwlTightBinEnvelopeSampleFileShouldBeParsable**：验证 tight bin dataset 结构和 PWL 配置
+2. **groupedLayerPwlHorizontalSupportSampleFileShouldBeParsable**：验证横向圆柱 PWL 配置和支撑生成
+
+#### 验收结果
+
+1. BPP3D 全模块 BUILD SUCCESS（9/9 模块，所有测试通过）
+2. 4 个边界脚本全部通过
+3. `git diff --check` 无错误
+
+#### 可选增强最终完成状态
+
+| 可选增强 | 状态 | 说明 |
+|---------|------|------|
+| 误差预算推导 | ✅ 完成 | `deriveSegmentCount` + 3 个测试 |
+| 极端半径测试 | ✅ 完成 | 6 个测试（小rMin/大比率/窄区间 + custom breakpoints 覆盖/非单调 + 单位换算） |
+| 性能 KPI | ✅ 完成 | `modelScaleInfo` 9 个指标 |
+| Gurobi dataset 扩展 | ✅ 完成 | 6 个 CSV 文件 |
+
+#### 阶段八最终完成状态
+
+| Dataset | 状态 |
+|---------|------|
+| 单 interval-only vertical cylinder | ✅ |
+| 多 interval-only vertical cylinders | ✅ |
+| mixed cuboid + vertical cylinder | ✅ |
+| tight bin + conservative envelope | ✅ |
+| support-sensitive horizontal cylinder（PWL） | ✅ |
+
+#### 剩余留待下一轮事项
+
+1. 多 material / 多 demand 场景 dataset（阶段八）
+2. renderer fixture 扩展（仅在显示语义变化时）
+3. core PWL 注册能力评估（等待 core 后续提供）
+

@@ -1,0 +1,5 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis,width_meter,height_meter,depth_meter
+0,0,item-pwl-tight-cyl,MAT-TIGHT-A,Material-Tight-A,1.0,vertical_cylinder,0.48,0.52,cylinder_tight_a,Y,1.10,1.10,1.10
+0,0,item-tight-cub,MAT-TIGHT-B,Material-Tight-B,0.8,cuboid,,,,0.50,0.50,0.50
+1,0,item-pwl-envelope-cyl,MAT-ENV-A,Material-Env-A,1.2,vertical_cylinder,0.95,1.05,cylinder_env_a,Y,2.20,2.20,2.20
+1,0,item-envelope-cub,MAT-ENV-B,Material-Env-B,1.0,cuboid,,,,1.00,1.00,1.00

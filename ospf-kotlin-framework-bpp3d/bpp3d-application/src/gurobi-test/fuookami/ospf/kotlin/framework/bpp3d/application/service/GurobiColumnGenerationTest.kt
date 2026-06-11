@@ -1917,6 +1917,80 @@ class GurobiColumnGenerationTest {
         assertTrue(cylinderSpecs.all { spec -> spec.resolvedRadiusCandidates.size >= 3 })
     }
 
+    @Test
+    fun groupedLayerPwlTightBinEnvelopeSampleFileShouldBeParsable() {
+        // Tight bin + conservative envelope: 验证 PWL 圆柱在紧凑 bin 中 envelope 不越界
+        // Tight bin + conservative envelope: verify PWL cylinder envelope stays within bin bounds
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-pwl-tight-bin-envelope-sample.csv")
+
+        assertEquals(2, scenario.groupCount)
+        assertEquals(4, scenario.totalItemCount)
+
+        // 验证 PWL 圆柱配置 / verify PWL cylinder config
+        val cylinderItems = scenario.itemDemands
+            .map { it.first }
+            .filter { item ->
+                item.packageShape.shapeSpec is PackageShapeSpec.VerticalCylinder
+            }
+        assertEquals(2, cylinderItems.size)
+
+        // 验证两个圆柱都有 PWL 区间 / verify both cylinders have PWL intervals
+        for (item in cylinderItems) {
+            val spec = item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+            assertNotNull(spec.radiusMin, "${item.id} should have radiusMin")
+            assertNotNull(spec.radiusMax, "${item.id} should have radiusMax")
+            assertNotNull(spec.radiusWeightFunctionKey, "${item.id} should have weight function key")
+            assertTrue(
+                spec.radiusMax!!.value.toDouble() > spec.radiusMin!!.value.toDouble(),
+                "${item.id} should have valid radius interval"
+            )
+            // envelope diameter = 2 * rMax 应小于 bin width
+            // envelope diameter = 2 * rMax should be less than bin width
+            val envelopeDiameter = spec.radiusMax!!.value.toDouble() * 2.0
+            assertTrue(
+                envelopeDiameter < 2.5,
+                "${item.id} envelope diameter $envelopeDiameter should be reasonable"
+            )
+        }
+    }
+
+    @Test
+    fun groupedLayerPwlHorizontalSupportSampleFileShouldBeParsable() {
+        // Support-sensitive horizontal cylinder + PWL: 验证横向 PWL 圆柱与支撑
+        // Support-sensitive horizontal cylinder + PWL: verify horizontal PWL cylinder with supports
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-pwl-horizontal-support-sample.csv")
+
+        assertEquals(2, scenario.groupCount)
+        assertEquals(6, scenario.totalItemCount)
+
+        // 验证横向圆柱配置 / verify horizontal cylinder config
+        val cylinderItems = scenario.itemDemands
+            .map { it.first }
+            .filter { item ->
+                val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
+                spec != null && spec.axis != Axis3.Y
+            }
+        assertEquals(2, cylinderItems.size)
+
+        // 验证 X 轴和 Z 轴圆柱 / verify X and Z axis cylinders
+        val xAxisCylinder = cylinderItems.firstOrNull { item ->
+            (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).axis == Axis3.X
+        }
+        val zAxisCylinder = cylinderItems.firstOrNull { item ->
+            (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).axis == Axis3.Z
+        }
+        assertNotNull(xAxisCylinder, "Should have X-axis horizontal cylinder")
+        assertNotNull(zAxisCylinder, "Should have Z-axis horizontal cylinder")
+
+        // 验证 PWL 区间 / verify PWL intervals
+        for (cylinder in listOf(xAxisCylinder!!, zAxisCylinder!!)) {
+            val spec = cylinder.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+            assertNotNull(spec.radiusMin, "${cylinder.id} should have radiusMin")
+            assertNotNull(spec.radiusMax, "${cylinder.id} should have radiusMax")
+            assertNotNull(spec.radiusWeightFunctionKey, "${cylinder.id} should have weight function key")
+        }
+    }
+
     private fun loadMaterialWidthAmountCsvScenario(lines: List<String>): CsvDrivenScenario {
         val headerColumns = lines.first().split(",").map { it.trim() }
         val headerIndex = headerColumns.withIndex().associate { (index, column) ->

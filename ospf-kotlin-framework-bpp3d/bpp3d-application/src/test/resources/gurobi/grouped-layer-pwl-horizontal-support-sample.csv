@@ -1,0 +1,7 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis,width_meter,height_meter,depth_meter
+0,0,item-pwl-horiz-support-a,MAT-PWL-HSA,Material-PWL-HSA,1.0,cuboid,,,,0.40,0.25,1.20
+0,0,item-pwl-horiz-support-b,MAT-PWL-HSB,Material-PWL-HSB,1.0,cuboid,,,,0.60,0.25,1.20
+0,0,item-pwl-horiz-cylinder-x,MAT-PWL-HCX,Material-PWL-HCX,1.5,vertical_cylinder,0.45,0.55,cylinder_pwl_hcx,X,1.20,1.20,1.20
+1,0,item-pwl-horiz-z-support-a,MAT-PWL-HZA,Material-PWL-HZA,1.0,cuboid,,,,1.20,0.25,0.40
+1,0,item-pwl-horiz-z-support-b,MAT-PWL-HZB,Material-PWL-HZB,1.0,cuboid,,,,1.20,0.25,0.60
+1,0,item-pwl-horiz-cylinder-z,MAT-PWL-HCZ,Material-PWL-HCZ,1.5,vertical_cylinder,0.40,0.50,cylinder_pwl_hcz,Z,1.20,1.20,1.20
