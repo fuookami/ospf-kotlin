@@ -1,16 +1,21 @@
 /**
  * PWL 连续半径 solver 变量注册（基于 core UnivariateLinearPiecewiseFunction）。
  * PWL continuous-radius solver variable registration (based on core UnivariateLinearPiecewiseFunction).
+ *
+ * 注意：PWLExtractedRadius 和 extractPWLRadiusValues 已迁移到 domain-item-context 的
+ * ContinuousRadiusModelComponent.kt。注册逻辑将在阶段三迁移到 ContinuousRadiusModelComponent。
+ *
+ * Note: PWLExtractedRadius and extractPWLRadiusValues have been moved to
+ * ContinuousRadiusModelComponent.kt in domain-item-context.
+ * Registration logic will be migrated to ContinuousRadiusModelComponent in Phase 3.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ConservativeRadiusEnvelope
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PWLContinuousRadiusSolverVariable
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusSquaredApproximation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -213,96 +218,6 @@ private fun registerPWLFunctionConstraints(
                 name = "${name}_seg_${i}_eq_lb"
             ),
             "register PWL segment $i equality lower for $variableName"
-        )
-    }
-}
-
-/**
- * 从 solver 结果中提取 PWL 变量值。
- * Extract PWL variable values from solver results.
- *
- * @param pwlVariables PWL solver 变量列表 / PWL solver variable list
- * @param resultMap solver 变量结果映射 / solver variable result map
- * @return 提取的半径值列表 / extracted radius values
- */
-internal fun extractPWLRadiusValues(
-    pwlVariables: List<PWLContinuousRadiusSolverVariable>,
-    resultMap: Map<RealVar, InfraNumber>
-): List<PWLExtractedRadius> {
-    return pwlVariables.map { pwlVar ->
-        val rValue = resultMap[pwlVar.radiusVariable] ?: InfraNumber.zero
-        val qValue = resultMap[pwlVar.pwlFunction.resultVar] ?: InfraNumber.zero
-        val actualRSquared = rValue * rValue
-        val pwlError = (qValue - actualRSquared).abs()
-
-        PWLExtractedRadius(
-            variableName = pwlVar.variableName,
-            solverRadius = rValue,
-            solverRadiusSquared = qValue,
-            actualRadiusSquared = actualRSquared,
-            pwlAbsoluteError = pwlError,
-            pwlRelativeError = if (actualRSquared > infraScalar(1e-12)) pwlError / actualRSquared else InfraNumber.zero,
-            isWithinEnvelope = pwlVar.envelope.isRadiusValid(rValue),
-            envelope = pwlVar.envelope,
-            pwlApproximation = pwlVar.pwlApproximation
-        )
-    }
-}
-
-/**
- * PWL 提取的半径结果。
- * PWL extracted radius result.
- *
- * @property variableName 变量名 / variable name
- * @property solverRadius solver 选择的半径 r / solver-selected radius r
- * @property solverRadiusSquared solver 的近似 r² 值 q / solver's approximate r² value q
- * @property actualRadiusSquared 真实 r² 值 / actual r² value
- * @property pwlAbsoluteError PWL 绝对误差 |q - r²| / PWL absolute error
- * @property pwlRelativeError PWL 相对误差 |q - r²| / r² / PWL relative error
- * @property isWithinEnvelope 是否在 envelope 范围内 / whether within envelope range
- * @property envelope 保守半径 envelope / conservative radius envelope
- * @property pwlApproximation PWL 近似函数 / PWL approximation function
- */
-internal data class PWLExtractedRadius(
-    val variableName: String,
-    val solverRadius: InfraNumber,
-    val solverRadiusSquared: InfraNumber,
-    val actualRadiusSquared: InfraNumber,
-    val pwlAbsoluteError: InfraNumber,
-    val pwlRelativeError: InfraNumber,
-    val isWithinEnvelope: Boolean,
-    val envelope: ConservativeRadiusEnvelope,
-    val pwlApproximation: PWLRadiusSquaredApproximation
-) {
-    /**
-     * 计算真实圆柱体积（使用 solver 选择的半径）。
-     * Compute actual cylinder volume using solver-selected radius.
-     */
-    fun actualVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
-        return pi * actualRadiusSquared * height
-    }
-
-    /**
-     * 计算 PWL 近似体积（使用 q ≈ r²）。
-     * Compute PWL approximate volume using q ≈ r².
-     */
-    fun pwlVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
-        return pi * solverRadiusSquared * height
-    }
-
-    /**
-     * 转为诊断信息。
-     * Convert to diagnostic info.
-     */
-    fun info(): Map<String, String> {
-        return mapOf(
-            "pwl_radius_${variableName}_r" to solverRadius.toDouble().toString(),
-            "pwl_radius_${variableName}_q" to solverRadiusSquared.toDouble().toString(),
-            "pwl_radius_${variableName}_r_squared" to actualRadiusSquared.toDouble().toString(),
-            "pwl_radius_${variableName}_abs_error" to pwlAbsoluteError.toDouble().toString(),
-            "pwl_radius_${variableName}_rel_error" to pwlRelativeError.toDouble().toString(),
-            "pwl_radius_${variableName}_within_envelope" to isWithinEnvelope.toString(),
-            "pwl_radius_${variableName}_pwl_max_rel_error" to pwlApproximation.maxRelativeError.toDouble().toString()
         )
     }
 }

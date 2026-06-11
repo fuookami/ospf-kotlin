@@ -14,15 +14,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousCylinderRadiusSolverPrototype
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverVariableRegistrationPlan
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.GenericMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.withSolverSelectedRadius
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.withPWLSolverSelectedRadius
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.buildNativeContinuousRadiusSelectionResults
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.buildPWLContinuousRadiusSelectionResults
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
@@ -126,7 +126,7 @@ class ColumnGenerationPackingAnalyzer(
             bins = bins,
             context = contextBuilder(state)
         )
-        val continuousRadiusSelectionResults = buildContinuousRadiusSelectionResults(
+        val continuousRadiusSelectionResults = buildNativeContinuousRadiusSelectionResults(
             prototypes = state.continuousRadiusSolverPrototypes,
             solverResults = state.continuousRadiusSolverResults
         )
@@ -169,74 +169,6 @@ class ColumnGenerationPackingAnalyzer(
             demandModeShadowPriceEntryCounts = demandModeShadowPriceEntryCounts
         )
     }
-}
-
-/**
- * 从 solver 变量原型和选出结果构建连续半径已选择结果列表。
- * Build continuous-radius selection results from solver prototypes and solver-selected values.
- *
- * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
- * @param solverResults solver 选出半径映射 / solver-selected radius map
- * @return 连续半径已选择结果列表 / continuous-radius selection result list
- */
-private fun buildContinuousRadiusSelectionResults(
-    prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
-    solverResults: Map<String, InfraNumber>
-): List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult> {
-    if (solverResults.isEmpty()) return emptyList()
-    val results = ArrayList<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult>()
-    for (prototype in prototypes) {
-        val solverValue = solverResults[prototype.variableName] ?: continue
-        val selectionResult = prototype.withSolverSelectedRadius(
-            solverRadius = fuookami.ospf.kotlin.quantities.quantity.Quantity(solverValue, fuookami.ospf.kotlin.quantities.unit.Meter)
-        )
-        results.add(selectionResult)
-    }
-    return results
-}
-
-/**
- * 从 PWL solver 变量原型和 opaque Map 结果构建连续半径已选择结果列表。
- * Build continuous-radius selection results from PWL solver prototypes and opaque Map results.
- *
- * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
- * @param pwlContinuousRadiusResults PWL 连续半径结果 opaque Map / PWL continuous-radius results opaque Map
- * @return 连续半径已选择结果列表（包含 PWL 元数据）/ continuous-radius selection result list (with PWL metadata)
- */
-private fun buildPWLContinuousRadiusSelectionResults(
-    prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
-    pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>>
-): List<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult> {
-    if (pwlContinuousRadiusResults.isEmpty()) return emptyList()
-    val results = ArrayList<fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult>()
-    for ((variableName, values) in pwlContinuousRadiusResults) {
-        val prototype = prototypes.firstOrNull { it.variableName == variableName } ?: continue
-        val solverRadius = values["solverRadius"] ?: continue
-        val solverRadiusSquared = values["solverRadiusSquared"] ?: continue
-        val actualRadiusSquared = values["actualRadiusSquared"] ?: continue
-        val pwlAbsoluteError = values["pwlAbsoluteError"] ?: InfraNumber.zero
-        val pwlRelativeError = values["pwlRelativeError"] ?: InfraNumber.zero
-        val isWithinEnvelope = (values["isWithinEnvelope"] ?: InfraNumber.zero).toDouble() > 0.5
-        val maxPWLRelativeError = values["maxPWLRelativeError"] ?: InfraNumber.zero
-        val numSegments = (values["numSegments"] ?: InfraNumber.zero).toDouble().toInt().coerceAtLeast(1)
-
-        // Build PWL metadata with reconstructed approximation info
-        val pwlMetadata = fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PWLRadiusSelectionMetadata(
-            solverRadiusSquared = solverRadiusSquared,
-            actualRadiusSquared = actualRadiusSquared,
-            pwlAbsoluteError = pwlAbsoluteError,
-            pwlRelativeError = pwlRelativeError,
-            maxPWLRelativeError = maxPWLRelativeError,
-            numSegments = numSegments,
-            isWithinEnvelope = isWithinEnvelope
-        )
-        val selectionResult = prototype.withPWLSolverSelectedRadius(
-            solverRadius = fuookami.ospf.kotlin.quantities.quantity.Quantity(solverRadius, fuookami.ospf.kotlin.quantities.unit.Meter),
-            pwlMetadata = pwlMetadata
-        )
-        results.add(selectionResult)
-    }
-    return results
 }
 
 /**

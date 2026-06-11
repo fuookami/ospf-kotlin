@@ -816,3 +816,117 @@ npx tauri build
 - 边界脚本：现有 BoundingCuboid / compat alias 检查。
 
 审计阶段不修改生产代码。
+
+### 8.7 阶段二设计决策
+
+日期：2026-06-11
+
+#### 组件落点
+
+最终文件规划：
+
+| 组件 | 文件路径 | 所属模块 |
+|------|---------|---------|
+| `ContinuousRadiusModelComponent` | `domain/item/model/ContinuousRadiusModelComponent.kt` | `bpp3d-domain-item-context` |
+| `PWLExtractedRadius` | 同上（与组件同文件） | `bpp3d-domain-item-context` |
+| `ContinuousRadiusSelectionExtractor`（native + PWL + typed） | `domain/item/model/ContinuousRadiusSelectionExtractor.kt` | `bpp3d-domain-item-context` |
+| `ContinuousRadiusSolverVariable` / `PWLContinuousRadiusSolverVariable` / `RegistrationPlan` | 保留在 `application/service/ContinuousRadiusSolverRegistrationPlan.kt`（阶段三迁入组件或保持为 internal 委托） | `bpp3d-application` |
+
+选择 `bpp3d-domain-item-context` 的理由：
+
+1. `ContinuousCylinderRadiusSolverPrototype`、`PWLRadiusSelectionMetadata`、`CylinderRadiusSelectionResult` 已在此模块。
+2. parent POM 已在所有子模块提供 `ospf-kotlin-core`（`LinearMetaModel`、`RealVar`、`UnivariateLinearPiecewiseFunction`），无需新增依赖。
+3. 符合 `.rules/framework-architecture.md` 第 3 节"model component 持有领域变量、中间值、派生表达式和结果解析所需引用"的定位。
+
+#### 组件接口设计
+
+```
+ContinuousRadiusModelComponent
+├── prototypes: List<ContinuousCylinderRadiusSolverPrototype>
+├── config: PWLRadiusApproximationConfig
+├── nativeVariables: List<ContinuousRadiusSolverVariable>  (lazy)
+├── pwlVariables: List<PWLContinuousRadiusSolverVariable>  (lazy)
+├── registrationPlan: ContinuousRadiusSolverVariableRegistrationPlan  (lazy)
+├── register(model, ensureTry)          // 注册所有变量+约束
+├── extractNativeResults(model)          // -> Map<String, InfraNumber>
+├── extractPWLResults(model)             // -> Map<String, Map<String, InfraNumber>> (opaque)
+├── extractPWLResultsList(model)         // -> List<PWLExtractedRadius> (typed)
+└── info()                               // -> Map<String, String> (诊断)
+```
+
+```
+ContinuousRadiusSelectionExtractor（顶级函数）
+├── buildNativeContinuousRadiusSelectionResults(prototypes, solverResults)
+│   -> List<CylinderRadiusSelectionResult>
+├── buildPWLContinuousRadiusSelectionResults(prototypes, pwlResults)
+│   -> List<CylinderRadiusSelectionResult>  (从 opaque Map)
+└── buildPWLSelectionResultsFromExtracted(prototypes, extractedResults)
+    -> List<CylinderRadiusSelectionResult>  (从 typed PWLExtractedRadius)
+```
+
+#### Application 层调用方式（阶段三迁移后）
+
+```kotlin
+// ColumnGenerationStandardExecutors.finalSolver() 中：
+val continuousRadiusComponent = ContinuousRadiusModelComponent(
+    prototypes = state.continuousRadiusSolverPrototypes
+)
+continuousRadiusComponent.register(model, ::ensureTry)
+
+// 求解后：
+val nativeResults = continuousRadiusComponent.extractNativeResults(model)
+val pwlResults = continuousRadiusComponent.extractPWLResults(model)
+
+// ColumnGenerationPackingAnalyzer.analyze() 中：
+val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes, nativeResults)
+    + buildPWLContinuousRadiusSelectionResults(prototypes, pwlResults)
+```
+
+#### 设计约束确认
+
+1. 不改变 public DTO 或 CSV 语义。
+2. 不改变 `PWLRadiusSquaredApproximation` 数学含义（仍是 `q ≈ r²`）。
+3. 不改变 renderer `actualVolume` 口径（仍用 `π*r²*h`）。
+4. 不引入离散半径候选生成。
+5. 不把 `Double` 裸值扩散到领域模型；转换集中在 adapter/registration/extraction 边界。
+6. import 排序、KDoc、中英双语注释遵循 `.rules/chore.md`。
+
+#### 骨架文件已创建
+
+1. `bpp3d-domain-item-context/src/main/.../domain/item/model/ContinuousRadiusModelComponent.kt` — 包含 `ContinuousRadiusModelComponent` 类和 `PWLExtractedRadius` 数据类（完整实现）。
+2. `bpp3d-domain-item-context/src/main/.../domain/item/model/ContinuousRadiusSelectionExtractor.kt` — 包含三个提取函数（完整实现）。
+
+### 8.8 阶段三至四执行记录
+
+日期：2026-06-11
+
+#### 阶段三：迁移 PWL 注册链路
+
+已完成的变更：
+
+1. `ColumnGenerationStandardExecutors.kt`：
+   - `RmpArtifacts` 数据类用 `ContinuousRadiusModelComponent` 替换三个独立列表字段。
+   - `buildRmpArtifacts()` 改为创建组件并调用 `component.register(model, ::ensureTry)`。
+   - `finalSolver()` 同样改为组件化注册。
+   - 移除 `registerContinuousRadiusVariables()`、`extractContinuousRadiusSolverResults()`、`extractPWLRadiusValuesFromModel()` 三个私有方法。
+   - 移除 `Comparison`、`LinearInequality`、`LinearMonomial`、`LinearPolynomial`、`ContinuousRadiusSolverVariable`、`PWLContinuousRadiusSolverVariable`、`continuousRadiusSolverVariables`、`pwlContinuousRadiusSolverVariables`、`continuousRadiusSolverVariableRegistrationPlan` 等不再使用的导入。
+
+2. `ColumnGenerationPackingAnalyzer.kt`：
+   - 移除私有 `buildPWLContinuousRadiusSelectionResults()` 函数，改用域模块 `buildPWLContinuousRadiusSelectionResults`。
+
+3. `PWLContinuousRadiusRegistration.kt`：
+   - `registerPWLContinuousRadiusVariables()` 已成为死代码（无调用方），保留文件供后续清理。
+
+#### 阶段四：迁移 PWL 提取与 renderer selection 链路
+
+已完成的变更：
+
+1. `ColumnGenerationPackingAnalyzer.kt`：
+   - 移除私有 `buildContinuousRadiusSelectionResults()` 函数，改用域模块 `buildNativeContinuousRadiusSelectionResults`。
+   - analyzer 的 `analyze()` 方法现在只做：获取 native selection results → 获取 PWL selection results → 合并 → 调用 `PackingRendererAdapter.toSchema()`。
+   - 移除 `ContinuousCylinderRadiusSolverPrototype`、`withSolverSelectedRadius`、`withPWLSolverSelectedRadius` 等不再使用的导入。
+
+#### 编译验证
+
+全 BPP3D 父 POM 编译通过（9/9 模块 BUILD SUCCESS）。唯一警告为预存的 unchecked cast（`PWLContinuousRadiusRegistration.kt:82`）。
+
