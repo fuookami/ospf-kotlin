@@ -553,3 +553,75 @@ test(bpp3d): verify PWL radius lifecycle with Gurobi datasets
 4. 迁移后先跑 focused component tests，再跑全模块测试。
 5. 边界脚本最后收紧，避免迁移过程中误报阻塞开发。
 6. 结束前必须更新本文件，记录实际执行结果和剩余工作量。
+
+## 11. 执行记录（2026-06-11 续）
+
+### 已完成
+
+1. **发现 core InfraNumber 限制**（阶段 0-1）
+   - 核实了 `MechanismModelFlt64Conversion.kt`：`registerConstraintsUnchecked` 通过 `SolverBoundaryCasts` 做星投影到 Flt64。
+   - 确认 core `LinearMechanismModel` 约束展开和 `registerAuxiliaryTokens` 仅在 Flt64 mechanism model 构建阶段发生。
+   - BPP3D 使用 `InfraNumber`，不走 core mechanism model 的 Flt64 约束展开路径。
+   - 结论：PWL Big-M 约束和 helper variable 注册必须在 `LinearMetaModel<InfraNumber>` 上完成，不能依赖 core mechanism model。
+
+2. **修订 ContinuousRadiusModelComponent 注册路径**（阶段 2-3）
+   - `model.add(pwlSymbol)` 注册 PWL 函数符号（IntermediateSymbol lifecycle）。
+   - 手动 `model.add(helperVar)` 注册 helper variables 到 `LinearMetaModel.tokens`。
+   - `registerPWLFunctionConstraints` 在 `LinearMetaModel` 上注册 Big-M 约束。
+   - Big-M 计算对齐 core `UnivariateLinearPiecewiseFunction.registerConstraints` 的 per-segment 逻辑。
+   - 更新 KDoc 和注释，说明 InfraNumber 路径限制。
+   - 避免 `Flt64` token（改用"求解器精度浮点数"措辞）。
+
+3. **更新测试**（阶段 4）
+   - 测试断言从 `LinearMechanismModel.constraints` 改为 `LinearMetaModel.constraints`。
+   - Helper variable 断言从 `mechanismModel.tokens` 改为 `model.tokens.find(helperVar)`。
+   - 删除 `LinearMechanismModel` 和 `runBlocking` 残留 import。
+   - `modelScaleInfo()` 注释更新，反映 InfraNumber 注册路径。
+
+4. **更新边界脚本**（阶段 5）
+   - `PWLCustomBigMRegistrationReflux`：允许 `ContinuousRadiusModelComponent.kt` 使用 `registerPWLFunctionConstraints` 和 helper variable 注册循环。
+   - `PWLApplicationConstraintRegistrationReflux`：允许 `ContinuousRadiusModelComponent.kt` 使用 `registerPWLFunctionConstraints`。
+   - 其他文件仍禁止手写 PWL 约束。
+
+5. **门禁验收**
+   - `generic-boundary-check.ps1`：PASS
+   - `shape-boundary-check.ps1`：PASS
+   - `geometry-boundary-check.ps1`：PASS
+   - `geometry-module-dry-run.ps1`：PASS（8 warnings）
+   - `git diff --check`：PASS
+   - BPP3D 全模块测试：56 tests, 0 failures, 0 skipped, BUILD SUCCESS
+
+### Commit
+
+- `fbecdc6bd refactor(bpp3d): register PWL Big-M constraints on LinearMetaModel for InfraNumber path`
+
+### 修正后的架构结论
+
+原始计划（第 3 节）假设 core `LinearMechanismModel` 能自动展开 PWL 约束，因此 BPP3D 应删除所有手写 PWL 约束。但实际发现：
+
+1. Core `LinearMechanismModel` 约束展开路径仅支持 Flt64 模型。
+2. Core `registerAuxiliaryTokens` 仅在 Flt64 mechanism model 构建阶段的 `register()` 流程中调用。
+3. BPP3D 使用 `InfraNumber`，PWL Big-M 约束必须在 `LinearMetaModel<InfraNumber>` 上注册。
+
+因此 BPP3D 的 PWL 注册路径为：
+- `model.add(pwlSymbol)`：注册 IntermediateSymbol（PWL 函数符号）
+- `model.add(helperVar)`：手动注册 helper variables（selector vars、result var）
+- `registerPWLFunctionConstraints(model, ...)`：在 LinearMetaModel 上注册 Big-M 约束
+
+这与原始计划的方向部分不同：不再删除 `registerPWLFunctionConstraints`，而是将其明确为 InfraNumber 路径下的必要实现。
+
+### 未完成 / 剩余
+
+1. **Gurobi 触发式验收**未执行（需要 Gurobi 环境和插件构建）。
+2. **README / README_ch 更新**未完成——需要反映 InfraNumber 路径的实际架构。
+3. 原计划 Commit 4（docs）和 Commit 5（Gurobi 回归）未执行。
+
+### 距离总目标的剩余工作判断
+
+PWL 连续半径的 solver 注册路径已稳定，核心架构已验证：
+- PWL 函数符号通过 core IntermediateSymbol lifecycle 注册 ✓
+- Helper variables 和 Big-M 约束在 LinearMetaModel 上注册（因 InfraNumber 限制）✓
+- 结果提取、renderer 回写、PWL diagnostics 不变 ✓
+- 边界脚本和测试闭环 ✓
+
+剩余工作量为文档级和 Gurobi 端到端验证，不影响生产代码。
