@@ -1100,8 +1100,8 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 | 2 | `refactor(bpp3d): move PWL radius modeling into domain component` | 三+四 | 已提交 |
 | 3 | `test(bpp3d): cover PWL radius extension boundaries` | 五+六 | 已提交 |
 | 4 | `feat(bpp3d): add PWL radius accuracy and performance diagnostics` | 七 | 已提交 |
-| 5 | `refactor(bpp3d): clean up dead code and strengthen PWL key guard` | 续会话 | 待提交 |
-| 6 | `test(bpp3d): expand PWL continuous radius datasets` | 续会话 | 待提交 |
+| 5 | `refactor(bpp3d): clean up dead code and strengthen PWL key guard` | 续会话 | 已提交 |
+| 6 | `test(bpp3d): expand PWL continuous radius datasets` | 续会话 | 已提交 |
 
 #### Gurobi 触发式验收结果
 
@@ -1109,4 +1109,44 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 - Gurobi dataset suite: 51 tests, 0 failures, 0 skips — BUILD SUCCESS
 - 4 个边界脚本全部通过
 - `git diff --check` 无错误
+
+### 8.13 复查结论
+
+日期：2026-06-11
+
+#### 必做事项复查
+
+17 项必做事项中 16 项完全通过，1 项（#16 更新文档）已补全：README.md 和 README_ch.md 已补充 `ContinuousRadiusModelComponent` 扩展点说明和 `isPWLRegisterable` 对 `radiusWeightFunctionKey` 的要求。
+
+#### 可选增强复查
+
+| 可选增强 | 状态 | 说明 |
+|---------|------|------|
+| 误差预算推导 | ✅ 完成 | `deriveSegmentCount` + 3 个测试 |
+| 极端半径测试 | ⚠️ 部分完成 | 3 个已完成（小rMin/大比率/窄区间），缺少 custom breakpoints 和单位换算边界测试 |
+| 性能 KPI | ✅ 完成 | `modelScaleInfo` 9 个指标 |
+| Gurobi dataset 扩展 | ✅ 完成 | 4 个 CSV 文件 |
+
+#### 阶段八复查
+
+6 个 dataset 中 3 个已完成，3 个留待下一轮：
+- ❌ tight bin + conservative envelope dataset
+- ❌ support-sensitive horizontal cylinder（PWL 专门）
+- ❌ 多 material / 多 demand 场景
+
+#### 未完成但合理的留待下一轮事项
+
+1. custom breakpoints 覆盖不足和非单调测试（可选增强2 部分）
+2. 单位换算后接近 tolerance 的边界测试（可选增强2 部分）
+3. tight bin / conservative envelope dataset（阶段八）
+4. support-sensitive horizontal cylinder PWL dataset（阶段八）
+5. 多 material / 多 demand 场景 dataset（阶段八）
+
+这些项目在 daily.md 原计划中标记为"可选增强"或"阶段八在前面稳定后执行"，当前未完成属于合理范围。
+
+#### 文档修复
+
+1. daily.md Commit 5/6 状态从"待提交"改为"已提交"
+2. README.md 补充 `ContinuousRadiusModelComponent` 扩展点说明和 `isPWLRegisterable` 对 key 的要求
+3. README_ch.md 同步更新
 
