@@ -70,7 +70,7 @@ $fixHints = @{
     ContinuousRadiusSolverResultWritebackMissing = "PackingRendererAdapter.toSchema must support solver-selected radius writeback for continuous-radius cylinders so actualVolume uses the solver-optimized radius."
     ContinuousRadiusSolverResultPropagationMissing = "ColumnGenerationPackingAnalyzer.analyze must propagate solver-selected radius results to the renderer adapter so actualVolume reflects the optimized radius."
     PWLApplicationConstraintRegistrationReflux = "PWL constraint registration must go through core symbol lifecycle (model.add(pwlSymbol)) in ContinuousRadiusModelComponent, not through manual helper variable/auxiliary token/Big-M constraint registration in application code. If new PWL registration is needed, extend the domain component using model.add(pwlSymbol) instead of hand-mirroring core constraint logic."
-    PWLCustomBigMRegistrationReflux = "BPP3D must not hand-write PWL Big-M constraints outside ContinuousRadiusModelComponent. The domain component registers PWL function symbols via model.add(pwlSymbol), helper variables, and Big-M constraints on LinearMetaModel because core LinearMechanismModel constraint expansion only supports Flt64 and BPP3D uses InfraNumber. Other files must not mirror PWL constraint logic."
+    PWLCustomBigMRegistrationReflux = "BPP3D must not hand-write PWL Big-M constraints or helper-token registration. ContinuousRadiusModelComponent may register the radius variable, radius bound constraints, and the core PWL function symbol via model.add(pwlSymbol); helper tokens and Big-M constraints must be expanded by the core mechanism model lifecycle."
     PWLDiscreteFallbackReflux = "PWL continuous-radius path must not use discrete candidate, fallback radius list, or silent downgrade. Keep interval-only PWL as the only continuous-radius approximation strategy."
     ContinuousRadiusUnsupportedRegression = "Interval-only PWL continuous-radius path must not be re-labeled as unsupported or gap-only. Once opened, the PWL registration path must remain available for interval-only prototypes."
     PWLActualVolumeRegression = "Renderer adapter actualVolume must use solver-selected radius (actualRadiusSquared), not envelope volume or PWL volume. PWL volume (pwlVolume) is a diagnostic field only."
@@ -687,7 +687,7 @@ Add-TokenViolation -Check "ContinuousRadiusUnsupportedRegression" -Pattern "isPW
 # actualVolume must always use the solver-selected radius (actualRadiusSquared), not the PWL approximation (solverRadiusSquared).
 # / Renderer adapter 不得将 envelope volume 或 PWL volume 用作 PWL 圆柱的 actualVolume。
 # actualVolume 必须始终使用 solver-selected radius（actualRadiusSquared），而非 PWL 近似（solverRadiusSquared）。
-Add-TokenViolation -Check "PWLActualVolumeRegression" -Pattern "envelopeVolume.*actualVolume|pwlVolume.*actualVolume|rMax.*actualVolume|rMin.*actualVolume" -AllowSuffixes @() -ScanGlob @($sourceGlob)
+Add-TokenViolation -Check "PWLActualVolumeRegression" -Pattern "envelopeVolume.*actualVolume|actualVolume.*envelopeVolume|pwlVolume.*actualVolume|actualVolume.*pwlVolume|solverRadiusSquared.*actualVolume|actualVolume.*solverRadiusSquared|rMax.*actualVolume|actualVolume.*rMax|rMin.*actualVolume|actualVolume.*rMin" -AllowSuffixes @() -ScanGlob @($sourceGlob)
 
 # --- Application PWL helper variable registration reflux detection ---
 # Application solver code must not register PWL helper variables or build PWL constraint strings.
