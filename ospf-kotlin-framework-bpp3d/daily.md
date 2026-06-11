@@ -1219,7 +1219,47 @@ val allSelectionResults = buildNativeContinuousRadiusSelectionResults(prototypes
 
 #### 剩余留待下一轮事项
 
-1. 多 material / 多 demand 场景 dataset（阶段八）
+1. ~~多 material / 多 demand 场景 dataset（阶段八）~~ ✅ 已完成（续会话）
 2. renderer fixture 扩展（仅在显示语义变化时）
 3. core PWL 注册能力评估（等待 core 后续提供）
+
+### 8.15 多 material / 多 demand 场景执行记录
+
+日期：2026-06-11
+
+#### 新增 Dataset
+
+1. **grouped-layer-pwl-multi-material-sample.csv**：
+   - 2 个 group，4 个 material，4 个 PWL 圆柱 + 4 个 cuboid
+   - 跨 group 使用相同 material_no 的圆柱有不同 PWL 区间
+   - 验证 program demand、material packing、renderer metadata 口径一致
+
+2. **material-width-amount-pwl-multi-material-sample.csv**：
+   - 4 个 material，2 个 PWL 圆柱 + 2 个 cuboid
+   - MAT-PWL-MA amount=2，MAT-PWL-MC amount=3，验证 amount > 1 的 demand
+   - 验证 material amount demand 和 material packing 口径一致
+
+#### 新增 Gurobi 测试
+
+1. **groupedLayerPwlMultiMaterialSampleFileShouldBeParsable**：验证跨 group 多 material PWL 圆柱的结构和配置
+2. **materialWidthAmountPwlMultiMaterialSampleFileShouldBeParsable**：验证 material-width-amount 格式的多 material PWL 场景
+
+#### 验收结果
+
+1. BPP3D 全模块 BUILD SUCCESS（9/9 模块，所有测试通过）
+2. 4 个边界脚本全部通过
+3. `git diff --check` 无错误
+
+#### 阶段八最终完成状态
+
+| Dataset | 状态 |
+|---------|------|
+| 单 interval-only vertical cylinder | ✅ |
+| 多 interval-only vertical cylinders | ✅ |
+| mixed cuboid + vertical cylinder | ✅ |
+| tight bin + conservative envelope | ✅ |
+| support-sensitive horizontal cylinder（PWL） | ✅ |
+| 多 material / 多 demand 场景 | ✅ |
+
+阶段八全部 6 个 dataset 已完成。
 

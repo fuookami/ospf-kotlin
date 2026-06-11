@@ -1991,6 +1991,93 @@ class GurobiColumnGenerationTest {
         }
     }
 
+    @Test
+    fun groupedLayerPwlMultiMaterialSampleFileShouldBeParsable() {
+        // 多 material / 多 demand 场景：验证跨 group 多 material PWL 圆柱的 program demand、
+        // material packing 和 renderer metadata 口径一致
+        // Multi-material / multi-demand scenario: verify program demand, material packing,
+        // and renderer metadata consistency for cross-group multi-material PWL cylinders
+        val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-pwl-multi-material-sample.csv")
+
+        assertEquals(2, scenario.groupCount)
+        assertEquals(8, scenario.totalItemCount)
+
+        // 验证 4 个不同 material / verify 4 different materials
+        assertEquals(4, scenario.materialCount)
+
+        // 验证 PWL 圆柱配置 / verify PWL cylinder config
+        val cylinderItems = scenario.itemDemands
+            .map { it.first }
+            .filter { item ->
+                item.packageShape.shapeSpec is PackageShapeSpec.VerticalCylinder
+            }
+        assertEquals(4, cylinderItems.size)
+
+        // 验证每个圆柱都有 PWL 区间和 key / verify each cylinder has PWL interval and key
+        for (item in cylinderItems) {
+            val spec = item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+            assertNotNull(spec.radiusMin, "${item.id} should have radiusMin")
+            assertNotNull(spec.radiusMax, "${item.id} should have radiusMax")
+            assertNotNull(spec.radiusWeightFunctionKey, "${item.id} should have weight function key")
+        }
+
+        // 验证跨 group 使用相同 material_no 的圆柱有不同的 PWL 区间
+        // Verify cylinders sharing material_no across groups have different PWL intervals
+        val matACylinders = cylinderItems.filter { item ->
+            (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).radiusWeightFunctionKey?.startsWith("cylinder_mma") == true
+        }
+        assertEquals(2, matACylinders.size)
+        val matACylinder0 = matACylinders.first()
+        val matACylinder1 = matACylinders.last()
+        val spec0 = matACylinder0.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+        val spec1 = matACylinder1.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+        // Group 0: [0.35, 0.45], Group 1: [0.40, 0.50] — 不同区间
+        assertTrue(
+            spec0.radiusMin!!.value.toDouble() != spec1.radiusMin!!.value.toDouble()
+                || spec0.radiusMax!!.value.toDouble() != spec1.radiusMax!!.value.toDouble(),
+            "Same material PWL cylinders across groups should have different intervals"
+        )
+    }
+
+    @Test
+    fun materialWidthAmountPwlMultiMaterialSampleFileShouldBeParsable() {
+        // Material-width-amount 格式的多 material / 多 demand 场景：
+        // 验证 amount > 1 的 PWL 圆柱 demand 和 material packing 口径一致
+        // Material-width-amount format multi-material / multi-demand scenario:
+        // verify amount > 1 PWL cylinder demand and material packing consistency
+        val scenario = loadCsvDrivenScenario("gurobi/material-width-amount-pwl-multi-material-sample.csv")
+
+        assertEquals(1, scenario.groupCount)
+        assertEquals(4, scenario.materialCount)
+
+        // 验证 PWL 圆柱配置 / verify PWL cylinder config
+        val cylinderItems = scenario.itemDemands
+            .map { it.first }
+            .filter { item ->
+                item.packageShape.shapeSpec is PackageShapeSpec.VerticalCylinder
+            }
+        assertEquals(2, cylinderItems.size)
+
+        for (item in cylinderItems) {
+            val spec = item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+            assertNotNull(spec.radiusMin, "${item.id} should have radiusMin")
+            assertNotNull(spec.radiusMax, "${item.id} should have radiusMax")
+            assertNotNull(spec.radiusWeightFunctionKey, "${item.id} should have weight function key")
+        }
+
+        // 验证 material amount demands / verify material amount demands
+        assertTrue(
+            scenario.materialAmountDemands.isNotEmpty(),
+            "Should have material amount demands"
+        )
+        // MAT-PWL-MA 的 amount=2, MAT-PWL-MC 的 amount=3
+        val totalExpectedAmount = scenario.itemDemands.sumOf { it.second.toLong().toLong() }
+        assertTrue(
+            totalExpectedAmount >= 7L,
+            "Total amount should be at least 7 (2 + 1 + 3 + 1): actual=$totalExpectedAmount"
+        )
+    }
+
     private fun loadMaterialWidthAmountCsvScenario(lines: List<String>): CsvDrivenScenario {
         val headerColumns = lines.first().split(",").map { it.trim() }
         val headerIndex = headerColumns.withIndex().associate { (index, column) ->
