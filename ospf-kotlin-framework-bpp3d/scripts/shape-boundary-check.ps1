@@ -69,7 +69,8 @@ $fixHints = @{
     DeletedCuboidCompatAliasReflux = "Do not re-introduce deleted ItemCuboid.packageType/packageCategory/bottomOnly/topFlat compat extensions or Projection/AnyPlacement compat extension aliases; use shape-generic ItemProjection/ItemPlacement domain APIs instead."
     ContinuousRadiusSolverResultWritebackMissing = "PackingRendererAdapter.toSchema must support solver-selected radius writeback for continuous-radius cylinders so actualVolume uses the solver-optimized radius."
     ContinuousRadiusSolverResultPropagationMissing = "ColumnGenerationPackingAnalyzer.analyze must propagate solver-selected radius results to the renderer adapter so actualVolume reflects the optimized radius."
-    PWLApplicationConstraintRegistrationReflux = "PWL constraint registration (model.addConstraint + Big-M/segment/PWL keywords) must live in ContinuousRadiusModelComponent, not in application solver code. If new PWL registration is needed, extend the domain component instead."
+    PWLApplicationConstraintRegistrationReflux = "PWL constraint registration must go through core symbol lifecycle (model.add(pwlSymbol)) in ContinuousRadiusModelComponent, not through manual helper variable/auxiliary token/Big-M constraint registration. If new PWL registration is needed, extend the domain component using model.add(pwlSymbol) instead of hand-mirroring core constraint logic."
+    PWLCustomBigMRegistrationReflux = "BPP3D must not hand-write PWL Big-M constraints (registerPWLFunctionConstraints, pwlFunction.registerAuxiliaryTokens(model.tokens), manual helper variable registration loops). PWL function symbols are registered via model.add(pwlSymbol); core LinearMechanismModel automatically expands helper tokens and Big-M constraints."
     PWLDiscreteFallbackReflux = "PWL continuous-radius path must not use discrete candidate, fallback radius list, or silent downgrade. Keep interval-only PWL as the only continuous-radius approximation strategy."
     ContinuousRadiusUnsupportedRegression = "Interval-only PWL continuous-radius path must not be re-labeled as unsupported or gap-only. Once opened, the PWL registration path must remain available for interval-only prototypes."
 }
@@ -653,14 +654,19 @@ if (Test-Path $packingAnalyzerPath) {
 }
 
 # --- PWL application constraint registration reflux detection ---
-# Application solver code should not directly register PWL constraints (Big-M, segment, select-one).
-# PWL registration must go through ContinuousRadiusModelComponent in domain-item-context.
-$pwlApplicationAllowSuffixes = @(
-    # ContinuousRadiusModelComponent.kt is the correct location for PWL registration.
-    # / ContinuousRadiusModelComponent.kt 是 PWL 注册的正确位置。
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ContinuousRadiusModelComponent.kt"
-)
-Add-TokenViolation -Check "PWLApplicationConstraintRegistrationReflux" -Pattern "registerPWLContinuousRadiusVariables|registerPWLFunctionConstraints|extractPWLRadiusValues" -AllowSuffixes $pwlApplicationAllowSuffixes -ScanGlob @($sourceGlob)
+# PWL constraint registration must go through core symbol lifecycle (model.add(pwlSymbol)).
+# Application solver code should not directly register PWL constraints.
+# / PWL 约束注册必须通过 core symbol lifecycle（model.add(pwlSymbol)）。
+# Application solver 代码不应直接注册 PWL 约束。
+Add-TokenViolation -Check "PWLApplicationConstraintRegistrationReflux" -Pattern "registerPWLContinuousRadiusVariables|registerPWLFunctionConstraints|extractPWLRadiusValues" -ScanGlob @($sourceGlob)
+
+# --- PWL custom Big-M registration reflux detection ---
+# BPP3D must not hand-write PWL Big-M constraints or manually register
+# auxiliary tokens / helper variables. These are handled by core symbol lifecycle
+# via model.add(pwlSymbol) + LinearMechanismModel expansion.
+# / BPP3D 不应手写 PWL Big-M 约束或手动注册 auxiliary tokens / helper variables。
+# 这些由 core symbol lifecycle 通过 model.add(pwlSymbol) + LinearMechanismModel 展开自动处理。
+Add-TokenViolation -Check "PWLCustomBigMRegistrationReflux" -Pattern "registerPWLFunctionConstraints|\.registerAuxiliaryTokens\(model\.tokens\)|for \(helperVar in pwlFunction\.helperVariables" -ScanGlob @($sourceGlob)
 
 # --- PWL discrete fallback reflux detection ---
 # PWL continuous-radius path must not contain discrete candidate generation, fallback radius list, or silent downgrade.
