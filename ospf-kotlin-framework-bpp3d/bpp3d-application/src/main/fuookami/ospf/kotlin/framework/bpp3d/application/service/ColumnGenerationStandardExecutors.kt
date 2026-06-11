@@ -263,6 +263,7 @@ class ColumnGenerationStandardExecutors(
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 ) + artifacts.continuousRadiusComponent.info()
+                    + artifacts.continuousRadiusComponent.modelScaleInfo()
                     + artifacts.continuousRadiusComponent.extractNativeResults(artifacts.model)
                         .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
                         .mapValues { (_, value) -> value.toString() }
@@ -385,6 +386,7 @@ class ColumnGenerationStandardExecutors(
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
                 ) + continuousRadiusComponent.info()
+                    + continuousRadiusComponent.modelScaleInfo()
                     + continuousRadiusComponent.extractNativeResults(model)
                         .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
                         .mapValues { (_, value) -> value.toString() },
