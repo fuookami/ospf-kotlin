@@ -10,7 +10,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
@@ -24,7 +23,6 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
-import kotlinx.coroutines.runBlocking
 
 class ContinuousRadiusModelComponentTest {
 
@@ -585,50 +583,45 @@ class ContinuousRadiusModelComponentTest {
         val pwlVar = component.pwlVariables[0]
         val pwlFunctionName = pwlVar.pwlFunction.name
 
-        // Build LinearMechanismModel which triggers core constraint expansion
-        val mechanismModel = runBlocking {
-            when (val result = LinearMechanismModel(model)) {
-                is fuookami.ospf.kotlin.utils.functional.Ok -> result.value
-                else -> throw AssertionError("LinearMechanismModel construction should succeed")
-            }
+        // Verify the PWL function symbol is in tokens.symbols
+        val pwlSymbol = model.tokens.symbols.find { it.name == pwlFunctionName }
+        assertNotNull(pwlSymbol, "PWL function symbol should be in tokens.symbols. Symbols: ${model.tokens.symbols.map { "${it.name}(${it::class.simpleName})" }}")
+
+        // Verify PWL constraints are registered on LinearMetaModel
+        // (BPP3D uses InfraNumber, so PWL constraints are registered on LinearMetaModel
+        // rather than relying on core mechanism model expansion which only supports Flt64)
+        val constraintNames = model.constraints.mapNotNull {
+            (it as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<*>)?.name
         }
-
-        // Core should have expanded PWL function constraints
-        val mechanismConstraintNames = mechanismModel.constraints.map { it.name }
-
-        // Should contain select_one constraint
         assertTrue(
-            mechanismConstraintNames.contains("${pwlFunctionName}_select_one"),
-            "Mechanism model should contain PWL select_one constraint. Actual: $mechanismConstraintNames"
+            constraintNames.contains("${pwlFunctionName}_select_one"),
+            "Should contain PWL select_one constraint. Actual: $constraintNames"
         )
 
         // Should contain segment constraints for each segment
         for (i in 0 until pwlVar.pwlApproximation.numSegments) {
             assertTrue(
-                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_lb"),
-                "Mechanism model should contain segment $i lower bound constraint"
+                constraintNames.contains("${pwlFunctionName}_seg_${i}_lb"),
+                "Should contain segment $i lower bound constraint"
             )
             assertTrue(
-                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_ub"),
-                "Mechanism model should contain segment $i upper bound constraint"
+                constraintNames.contains("${pwlFunctionName}_seg_${i}_ub"),
+                "Should contain segment $i upper bound constraint"
             )
             assertTrue(
-                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_eq_ub"),
-                "Mechanism model should contain segment $i equality upper constraint"
+                constraintNames.contains("${pwlFunctionName}_seg_${i}_eq_ub"),
+                "Should contain segment $i equality upper constraint"
             )
             assertTrue(
-                mechanismConstraintNames.contains("${pwlFunctionName}_seg_${i}_eq_lb"),
-                "Mechanism model should contain segment $i equality lower constraint"
+                constraintNames.contains("${pwlFunctionName}_seg_${i}_eq_lb"),
+                "Should contain segment $i equality lower constraint"
             )
         }
 
-        // Helper variables should be in mechanism tokens
-        val mechanismTokenVars = mechanismModel.tokens.tokens.map { it.variable }
+        // Helper variables should be registered via core symbol lifecycle
         for (helperVar in pwlVar.pwlFunction.helperVariables) {
-            assertTrue(
-                mechanismTokenVars.contains(helperVar),
-                "Helper variable ${helperVar.name} should be in mechanism tokens"
-            )
+            val token = model.tokens.find(helperVar)
+            assertNotNull(token, "Helper variable ${helperVar.name} should be registered in tokens via core lifecycle")
         }
     }
 
@@ -653,19 +646,14 @@ class ContinuousRadiusModelComponentTest {
             )
         }
 
-        // Build mechanism model and verify constraints for both
-        val mechanismModel = runBlocking {
-            when (val result = LinearMechanismModel(model)) {
-                is fuookami.ospf.kotlin.utils.functional.Ok -> result.value
-                else -> throw AssertionError("LinearMechanismModel construction should succeed")
-            }
+        // Verify PWL constraints for both variables on LinearMetaModel
+        val constraintNames = model.constraints.mapNotNull {
+            (it as? fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<*>)?.name
         }
-        val mechanismConstraintNames = mechanismModel.constraints.map { it.name }
-
         for (pwlVar in component.pwlVariables) {
             assertTrue(
-                mechanismConstraintNames.contains("${pwlVar.pwlFunction.name}_select_one"),
-                "Mechanism model should contain select_one for ${pwlVar.variableName}"
+                constraintNames.contains("${pwlVar.pwlFunction.name}_select_one"),
+                "Should contain select_one for ${pwlVar.variableName}"
             )
         }
     }

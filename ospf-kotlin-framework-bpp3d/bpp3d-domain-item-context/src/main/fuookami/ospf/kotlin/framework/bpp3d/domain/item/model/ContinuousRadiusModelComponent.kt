@@ -414,11 +414,11 @@ class ContinuousRadiusModelComponent(
      *
      * 包括：
      * - native 路径：注册 RealVar + 上下界约束 + target 约束
-     * - PWL 路径：注册 RealVar + 上下界约束 + PWL 函数符号（helper variables、auxiliary tokens、Big-M 约束由 core symbol lifecycle 自动处理）
+     * - PWL 路径：注册 RealVar + 上下界约束 + PWL 函数符号 + helper variables + Big-M 约束（在 LinearMetaModel 上注册，因 InfraNumber 不走 core mechanism model 展开）
      *
      * Includes:
      * - native path: register RealVar + bound constraints + target constraint
-     * - PWL path: register RealVar + bound constraints + PWL function symbol (helper variables, auxiliary tokens, Big-M constraints are handled automatically by core symbol lifecycle)
+     * - PWL path: register RealVar + bound constraints + PWL function symbol + helper variables + Big-M constraints (registered on LinearMetaModel, as InfraNumber bypasses core mechanism model expansion)
      *
      * @param model 线性元模型 / linear meta model
      * @param ensureTry 错误处理函数 / error handling function
@@ -519,22 +519,53 @@ class ContinuousRadiusModelComponent(
             // Register PWL function symbol via core intermediate symbol lifecycle.
             // The LinearFunctionSymbolAdapter wraps the MathFunctionSymbol as an
             // IntermediateSymbol so it can be registered via model.add(symbol).
-            // Core will automatically handle:
-            //   - helper variable registration during token registration phase
-            //   - auxiliary token registration via registerAuxiliaryTokens()
-            //   - Big-M constraint registration during LinearMechanismModel construction
+            //
+            // Note: Core token registration (registerAuxiliaryTokens) only happens during
+            // the LinearMechanismModel construction phase, which operates on solver-precision
+            // floating-point numbers. Since BPP3D uses InfraNumber, helper variables must be
+            // manually registered on LinearMetaModel.tokens, and Big-M constraints are
+            // registered directly on LinearMetaModel (via registerPWLFunctionConstraints).
             // 通过 core 中间符号生命周期注册 PWL 函数符号。
             // LinearFunctionSymbolAdapter 将 MathFunctionSymbol 包装为 IntermediateSymbol，
             // 以便通过 model.add(symbol) 注册。
-            // Core 会自动处理：
-            //   - token 注册阶段的辅助变量注册
-            //   - 通过 registerAuxiliaryTokens() 的辅助 token 注册
-            //   - LinearMechanismModel 构建阶段的 Big-M 约束注册
+            //
+            // 注意：core token 注册（registerAuxiliaryTokens）仅在 LinearMechanismModel
+            // 构建阶段发生，该阶段操作求解器精度浮点数。
+            // 由于 BPP3D 使用 InfraNumber，辅助变量需手动注册到 LinearMetaModel.tokens，
+            // Big-M 约束直接在 LinearMetaModel 上注册（通过 registerPWLFunctionConstraints）。
             val pwlSymbol = LinearFunctionSymbolAdapter(pwlFunction, IntoValue.fromConverter(FltX))
             ensureTry(
                 model.add(pwlSymbol),
                 "register PWL function symbol for $variableName"
             )
+
+            // Manually register PWL helper variables into LinearMetaModel.tokens.
+            // Core auxiliary token registration only happens during LinearMechanismModel construction,
+            // which unfolds tokens to solver-precision floating-point and registers auxiliary tokens
+            // on the solver-precision token table. Since BPP3D operates on InfraNumber and registers
+            // constraints on LinearMetaModel, helper variables (selector vars, result var) must be
+            // registered on LinearMetaModel.tokens so that constraint symbol references can be resolved
+            // during mechanism model construction.
+            // 手动将 PWL 辅助变量注册到 LinearMetaModel.tokens。
+            // core auxiliary token 注册仅在 LinearMechanismModel 构建阶段发生，
+            // 该阶段将 tokens 展开到求解器精度浮点数并在求解器精度 token table 上注册辅助 token。
+            // 由于 BPP3D 操作 InfraNumber 并在 LinearMetaModel 上注册约束，
+            // 辅助变量（选择变量、结果变量）必须注册到 LinearMetaModel.tokens，
+            // 以便 mechanism model 构建时约束符号引用能被解析。
+            for (helperVar in pwlFunction.helperVariables) {
+                ensureTry(
+                    model.add(helperVar),
+                    "register PWL helper variable ${helperVar.name} for $variableName"
+                )
+            }
+
+            // Register PWL Big-M constraints on LinearMetaModel.
+            // This is necessary because core mechanism model constraint expansion
+            // only supports solver-precision floating-point, but BPP3D operates on InfraNumber.
+            // 在 LinearMetaModel 上注册 PWL Big-M 约束。
+            // 这是必要的，因为 core mechanism model 约束展开仅支持求解器精度浮点数，
+            // 而 BPP3D 操作的是 InfraNumber。
+            registerPWLFunctionConstraints(model, pwlFunction, variableName, ensureTry)
         }
     }
 
@@ -631,11 +662,13 @@ class ContinuousRadiusModelComponent(
         val totalSelectorVars = pwlVariables.sumOf { it.pwlFunction.selectorVars.size }
         val totalHelperVars = pwlVariables.sumOf { it.pwlFunction.helperVariables.size }
         // Per PWL variable: 1 select-one constraint + 4 Big-M constraints per segment
-        // These constraints are registered by core LinearMechanismModel during construction,
-        // not by BPP3D. The count is kept for diagnostic purposes only.
+        // These constraints are registered on LinearMetaModel by registerPWLFunctionConstraints,
+        // because core LinearMechanismModel constraint expansion only supports solver-precision
+        // floating-point. BPP3D uses InfraNumber, so PWL Big-M constraints are registered directly.
         // 每个 PWL 变量：1 个 select-one 约束 + 4 个 Big-M 约束/线段
-        // 这些约束由 core LinearMechanismModel 在构建阶段注册，而非 BPP3D。
-        // 此计数仅用于诊断目的。
+        // 这些约束通过 registerPWLFunctionConstraints 在 LinearMetaModel 上注册，
+        // 因为 core LinearMechanismModel 约束展开仅支持求解器精度浮点数。
+        // BPP3D 使用 InfraNumber，因此 PWL Big-M 约束直接注册。
         val totalConstraints = pwlVariables.sumOf { 1 + 4 * it.pwlApproximation.numSegments }
         val maxSegments = segmentCounts.maxOrNull() ?: 0
         val avgSegments = segmentCounts.average()
@@ -656,4 +689,159 @@ class ContinuousRadiusModelComponent(
         )
     }
 
+    /**
+     * 将 UnivariateLinearPiecewiseFunction 的 Big-M 约束注册到 LinearMetaModel。
+     * Register UnivariateLinearPiecewiseFunction's Big-M constraints into LinearMetaModel.
+     *
+     * This mirrors the logic in UnivariateLinearPiecewiseFunction.registerConstraints
+     * but targets LinearMetaModel.addConstraint instead of AbstractLinearMechanismModel.addConstraint.
+     *
+     * This is necessary because core LinearMechanismModel constraint expansion only
+     * supports solver-precision floating-point models, but BPP3D operates on InfraNumber.
+     * 这是因为 core LinearMechanismModel 约束展开仅支持求解器精度浮点数模型，
+     * 而 BPP3D 操作的是 InfraNumber。
+     */
+    private fun registerPWLFunctionConstraints(
+        model: LinearMetaModel<InfraNumber>,
+        pwlFunction: UnivariateLinearPiecewiseFunction<InfraNumber>,
+        variableName: String,
+        ensureTry: (Try, String) -> Unit
+    ) {
+        val name = pwlFunction.name
+        val breakpoints = pwlFunction.breakpoints
+        val slopes = pwlFunction.slopes
+        val intercepts = pwlFunction.intercepts
+        val numSegments = breakpoints.size - 1
+        val selectorVars = pwlFunction.selectorVars
+        val resultVar = pwlFunction.resultVar
+        val x = pwlFunction.x
+
+        val one = InfraNumber.one
+        val zero = InfraNumber.zero
+
+        // Compute output range for Big-M calculation
+        // 计算输出范围用于 Big-M 计算
+        val outputValues = (0 until numSegments).flatMap { i ->
+            listOf(
+                slopes[i] * breakpoints[i] + intercepts[i],
+                slopes[i] * breakpoints[i + 1] + intercepts[i]
+            )
+        }
+        val outputLower = outputValues.reduce { acc, value -> if (value ls acc) value else acc }
+        val outputUpper = outputValues.reduce { acc, value -> if (value gr acc) value else acc }
+
+        // Exactly one segment must be active: sum(s[i]) = 1
+        // 恰好一个线段激活：sum(s[i]) = 1
+        val sumMonos = selectorVars.map { LinearMonomial(one, it) }
+        ensureTry(
+            model.addConstraint(
+                relation = LinearInequality(
+                    LinearPolynomial(sumMonos, zero),
+                    LinearPolynomial(emptyList(), one),
+                    Comparison.EQ
+                ),
+                name = "${name}_select_one"
+            ),
+            "register PWL select-one constraint for $variableName"
+        )
+
+        for (i in 0 until numSegments) {
+            val sVar = selectorVars[i]
+            val bpLow = breakpoints[i]
+            val bpHigh = breakpoints[i + 1]
+            val slope = slopes[i]
+            val intercept = intercepts[i]
+
+            // Compute per-segment Big-M aligned with core logic
+            // For each segment, Big-M is derived from the x-bounds relaxation and
+            // output-range relaxation, matching UnivariateLinearPiecewiseFunction.registerConstraints.
+            // 每个 segment 独立计算 Big-M，与 core 逻辑对齐。
+            // Big-M 由 x-bounds 松弛和输出范围松弛推导，匹配
+            // UnivariateLinearPiecewiseFunction.registerConstraints。
+            val xLower = breakpoints.first()
+            val xUpper = breakpoints.last()
+            val lineAtLower = slope * xLower + intercept
+            val lineAtUpper = slope * xUpper + intercept
+            val lineLower = if (lineAtLower ls lineAtUpper) lineAtLower else lineAtUpper
+            val lineUpper = if (lineAtLower gr lineAtUpper) lineAtLower else lineAtUpper
+            val xLowerRelax = if (bpLow gr xLower) bpLow - xLower else zero
+            val xUpperRelax = if (xUpper gr bpHigh) xUpper - bpHigh else zero
+            val eqUpperRelax = (outputUpper - lineLower).abs()
+            val eqLowerRelax = (outputLower - lineUpper).abs()
+            val bigMValue = listOf(
+                xLowerRelax,
+                xUpperRelax,
+                eqUpperRelax,
+                eqLowerRelax
+            ).reduce { acc, value -> if (value gr acc) value else acc }
+            // Ensure Big-M is positive (matches core ensurePositiveBigM behavior)
+            // 确保 Big-M 为正值（匹配 core ensurePositiveBigM 行为）
+            val safeBigM = if (bigMValue ls infraScalar(1e-6)) infraScalar(1e6) else bigMValue
+
+            // Lower bound: x >= bpLow - M*(1 - s[i])
+            ensureTry(
+                model.addConstraint(
+                    relation = LinearInequality(
+                        LinearPolynomial(
+                            x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } + LinearMonomial(-safeBigM, sVar),
+                            x.constant + safeBigM
+                        ),
+                        LinearPolynomial(emptyList(), bpLow),
+                        Comparison.GE
+                    ),
+                    name = "${name}_seg_${i}_lb"
+                ),
+                "register PWL segment $i lower bound for $variableName"
+            )
+
+            // Upper bound: x <= bpHigh + M*(1 - s[i])
+            ensureTry(
+                model.addConstraint(
+                    relation = LinearInequality(
+                        LinearPolynomial(
+                            x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } + LinearMonomial(safeBigM, sVar),
+                            x.constant
+                        ),
+                        LinearPolynomial(emptyList(), bpHigh + safeBigM),
+                        Comparison.LE
+                    ),
+                    name = "${name}_seg_${i}_ub"
+                ),
+                "register PWL segment $i upper bound for $variableName"
+            )
+
+            // y - slope*x - intercept <= M*(1 - s[i])
+            val negSlopeXMonos = x.monomials.map { LinearMonomial(-it.coefficient * slope, it.symbol) }
+            ensureTry(
+                model.addConstraint(
+                    relation = LinearInequality(
+                        LinearPolynomial(
+                            listOf(LinearMonomial(one, resultVar)) + negSlopeXMonos + LinearMonomial(safeBigM, sVar),
+                            -intercept
+                        ),
+                        LinearPolynomial(emptyList(), safeBigM),
+                        Comparison.LE
+                    ),
+                    name = "${name}_seg_${i}_eq_ub"
+                ),
+                "register PWL segment $i equality upper for $variableName"
+            )
+
+            // y - slope*x - intercept >= -M*(1 - s[i])
+            ensureTry(
+                model.addConstraint(
+                    relation = LinearInequality(
+                        LinearPolynomial(
+                            listOf(LinearMonomial(one, resultVar)) + negSlopeXMonos + LinearMonomial(-safeBigM, sVar),
+                            -intercept
+                        ),
+                        LinearPolynomial(emptyList(), -safeBigM),
+                        Comparison.GE
+                    ),
+                    name = "${name}_seg_${i}_eq_lb"
+                ),
+                "register PWL segment $i equality lower for $variableName"
+            )
+        }
+    }
 }
