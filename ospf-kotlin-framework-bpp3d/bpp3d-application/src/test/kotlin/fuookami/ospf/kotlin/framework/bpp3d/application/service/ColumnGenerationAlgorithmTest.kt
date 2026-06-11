@@ -716,7 +716,12 @@ class ColumnGenerationAlgorithmTest {
     }
 
     @Test
-    fun standardExecutorsShouldKeepIntervalContinuousRadiusRegistrationPlanGuarded() = runBlocking {
+    fun standardExecutorsShouldRegisterIntervalContinuousRadiusViaPWLPath() = runBlocking {
+        // Interval-only continuous radius (with radiusWeightFunctionKey) is now handled
+        // via the PWL approximation path, not blocked. The solver will select the optimal
+        // radius through piecewise-linear approximation of r².
+        // 仅区间连续半径（有 radiusWeightFunctionKey）现在通过 PWL 近似路径处理，而非被 blocked。
+        // solver 将通过 r² 的分段线性近似选择最优半径。
         val material = Material(
             no = MaterialNo("M-CG-RADIUS-INTERVAL"),
             type = MaterialType.RawMaterial,
@@ -825,8 +830,6 @@ class ColumnGenerationAlgorithmTest {
         val lpResult = executors.rmpSolver().solve(state)
         val finalResult = executors.finalSolver().solve(state)
 
-        assertTrue(lpRadiusTokens.isEmpty())
-        assertTrue(milpRadiusTokens.isEmpty())
         assertEquals("1", lpResult.info["continuous_radius_solver_registration_plan_count"])
         assertEquals(
             prototype.variableName,
@@ -845,6 +848,149 @@ class ColumnGenerationAlgorithmTest {
                 ?.contains("SolverNativeRadiusIntervalUnsupported") == true
         )
         assertEquals("", lpResult.info["continuous_radius_solver_registration_plan_production_ready_variables"])
+        // Interval-only with key is now PWL-registerable, not blocked
+        // 有 key 的仅区间半径现在可通过 PWL 注册，不再被 blocked
+        assertEquals("", lpResult.info["continuous_radius_solver_model_registration_blocked_variables"])
+        assertEquals("", lpResult.info["continuous_radius_solver_model_registration_blocked_reason"])
+        // PWL variables are registered (contains segments and maxRelErr diagnostics)
+        // PWL 变量已注册（包含段数和最大相对误差诊断）
+        assertNotNull(lpResult.info["continuous_radius_solver_pwl_registered_variables"])
+        assertTrue(
+            (lpResult.info["continuous_radius_solver_pwl_registered_variables"] ?: "").isNotEmpty()
+        )
+        assertTrue(
+            (lpResult.info["continuous_radius_solver_pwl_registered_variables"] ?: "").contains("segments=")
+        )
+        assertEquals("1", finalResult.info["continuous_radius_solver_registration_plan_count"])
+        assertTrue(
+            finalResult.info["continuous_radius_solver_registration_plan_gap_variables"]
+                ?.contains("MissingSelectedRadius") == true
+        )
+    }
+
+    @Test
+    fun standardExecutorsShouldBlockIntervalContinuousRadiusWithoutWeightFunctionKey() = runBlocking {
+        // Interval-only continuous radius without radiusWeightFunctionKey should remain blocked
+        // because PWL path requires a key for production writeback.
+        // 无 radiusWeightFunctionKey 的仅区间连续半径应保持 blocked，
+        // 因为 PWL 路径需要 key 才能进行生产回写。
+        val material = Material(
+            no = MaterialNo("M-CG-RADIUS-INTERVAL-NO-KEY"),
+            type = MaterialType.RawMaterial,
+            cargo = CargoAttr,
+            name = "M-CG-RADIUS-INTERVAL-NO-KEY",
+            weight = InfraNumber.one * Kilogram
+        )
+        val item = item("item-cg-radius-interval-no-key-demand", material)
+        val seedBin = layerBin(listOf(item))
+        val rawSeedLayer = seedBin.units.first().unit
+        val seedLayer = BinLayer(
+            iteration = rawSeedLayer.iteration,
+            from = rawSeedLayer.from,
+            bin = seedBin.shape,
+            shape = rawSeedLayer.shape,
+            units = rawSeedLayer.units
+        )
+        val finalBin: LayerBin = layerBinOf(
+            shape = seedBin.shape,
+            units = emptyList<BinLayerPlacement>(),
+            batchNo = seedBin.batchNo
+        )
+        // No radiusWeightFunctionKey → isPWLRegisterable is false → blocked
+        // 无 radiusWeightFunctionKey → isPWLRegisterable 为 false → blocked
+        val prototype = assertNotNull(
+            continuousCylinderRadiusSolverPrototype(
+                source = "ColumnGenerationState.item.interval-no-key",
+                radiusWeightFunctionKey = null,
+                axis = Axis3.Y,
+                radiusMin = infraScalar(0.4) * Meter,
+                radiusMax = infraScalar(0.6) * Meter
+            )
+        )
+        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+            fixedDemandEntry(
+                mode = Bpp3dDemandMode.ItemAmount,
+                key = Bpp3dDemandKey.Item(item),
+                demand = InfraNumber.one
+            )
+        )
+        val lpRadiusTokens = ArrayList<String>()
+        val milpRadiusTokens = ArrayList<String>()
+        val solver = object : ColumnGenerationSolver {
+            override val name: String = "stub-cg-radius-interval-no-key-solver"
+
+            override suspend fun solveMILP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<FeasibleSolverOutput<Flt64>> {
+                for (token in metaModel.tokens.tokensInSolver) {
+                    if (token.name == prototype.variableName) {
+                        milpRadiusTokens.add(token.name)
+                    }
+                }
+                return Ok(
+                    FeasibleSolverOutput(
+                        obj = Flt64(5.0),
+                        solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                        time = Duration.ZERO,
+                        possibleBestObj = Flt64(5.0),
+                        gap = Flt64.zero
+                    )
+                )
+            }
+
+            override suspend fun solveLP(
+                name: String,
+                metaModel: LinearMetaModel<Flt64>,
+                toLogModel: Boolean,
+                registrationStatusCallBack: RegistrationStatusCallBack?,
+                solvingStatusCallBack: SolvingStatusCallBack?
+            ): Ret<ColumnGenerationSolver.LPResult> {
+                val tagged = metaModel.constraints.first { it.args is DemandShadowPriceKey }
+                for (token in metaModel.tokens.tokensInSolver) {
+                    if (token.name == prototype.variableName) {
+                        lpRadiusTokens.add(token.name)
+                    }
+                }
+                return Ok(
+                    lpResultOf(
+                        result = FeasibleSolverOutput(
+                            obj = Flt64(4.0),
+                            solution = List(metaModel.tokens.tokensInSolver.size) { Flt64.zero },
+                            time = Duration.ZERO,
+                            possibleBestObj = Flt64(4.0),
+                            gap = Flt64.zero
+                        ),
+                        dualSolution = linkedMapOf(fakeConstraint(tagged) to Flt64.one)
+                    )
+                )
+            }
+        }
+        val executors = ColumnGenerationStandardExecutors.fromDemandEntries(
+            solver = solver,
+            itemDemands = listOf(Pair(item, UInt64.one)),
+            demandEntries = demandEntries,
+            finalBins = listOf(finalBin)
+        )
+        val state = ColumnGenerationState<InfraNumber>(
+            iteration = 0,
+            columns = listOf(seedLayer),
+            continuousRadiusSolverPrototypes = listOf(prototype)
+        )
+
+        val lpResult = executors.rmpSolver().solve(state)
+        val finalResult = executors.finalSolver().solve(state)
+
+        // Without key, PWL is not registerable → radius variable not registered
+        // 无 key 时 PWL 不可注册 → 半径变量不注册
+        assertTrue(lpRadiusTokens.isEmpty())
+        assertTrue(milpRadiusTokens.isEmpty())
+        assertEquals("1", lpResult.info["continuous_radius_solver_registration_plan_count"])
+        // Without key, the variable is blocked
+        // 无 key 时变量被 blocked
         assertEquals(
             prototype.variableName,
             lpResult.info["continuous_radius_solver_model_registration_blocked_variables"]
@@ -852,11 +998,6 @@ class ColumnGenerationAlgorithmTest {
         assertTrue(
             lpResult.info["continuous_radius_solver_model_registration_blocked_reason"]
                 ?.contains("core token-bound support") == true
-        )
-        assertEquals("1", finalResult.info["continuous_radius_solver_registration_plan_count"])
-        assertTrue(
-            finalResult.info["continuous_radius_solver_registration_plan_gap_variables"]
-                ?.contains("MissingSelectedRadius") == true
         )
     }
 

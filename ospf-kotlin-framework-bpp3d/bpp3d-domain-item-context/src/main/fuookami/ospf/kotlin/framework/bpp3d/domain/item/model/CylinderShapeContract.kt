@@ -452,11 +452,22 @@ data class ContinuousCylinderRadiusSolverPrototype(
                 || it == ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported
     }
 
-    /** 是否可以通过 PWL 近似路径注册到 solver model（interval-only 变量使用分段线性近似表达 r²）。 / Whether the variable can be registered into the solver model via the PWL approximation path (interval-only variables use piecewise linear approximation for r²). */
+    /** 是否可以通过 PWL 近似路径注册到 solver model（interval-only 变量使用分段线性近似表达 r²）。
+     * PWL 路径允许 MissingSelectedRadius gap（PWL 就是由 solver 选择半径，不需要预先选定的半径），
+     * 但必须提供 radiusWeightFunctionKey 以确保生产回写路径可用。
+     *
+     * Whether the variable can be registered into the solver model via the PWL approximation path
+     * (interval-only variables use piecewise linear approximation for r²).
+     * PWL path allows MissingSelectedRadius gap (PWL is about letting the solver choose the radius,
+     * no pre-selected radius needed), but requires radiusWeightFunctionKey to ensure the production
+     * writeback path is available.
+     */
     val isPWLRegisterable: Boolean get() = gaps.all {
         it == ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported
                 || it == ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported
+                || it == ContinuousCylinderRadiusOptimizationGap.MissingSelectedRadius
     } && radiusLowerBound != null && radiusUpperBound != null && initialRadius == null
+            && radiusWeightFunctionKey != null
 
     /**
      * 转为错误信息后缀。

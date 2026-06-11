@@ -656,10 +656,8 @@ if (Test-Path $packingAnalyzerPath) {
 # Application solver code should not directly register PWL constraints (Big-M, segment, select-one).
 # PWL registration must go through ContinuousRadiusModelComponent in domain-item-context.
 $pwlApplicationAllowSuffixes = @(
-    # PWLContinuousRadiusRegistration.kt is dead code (migration to domain component complete),
-    # but still present on disk. Allow it temporarily until cleanup.
-    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/PWLContinuousRadiusRegistration.kt",
     # ContinuousRadiusModelComponent.kt is the correct location for PWL registration.
+    # / ContinuousRadiusModelComponent.kt 是 PWL 注册的正确位置。
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ContinuousRadiusModelComponent.kt"
 )
 Add-TokenViolation -Check "PWLApplicationConstraintRegistrationReflux" -Pattern "registerPWLContinuousRadiusVariables|registerPWLFunctionConstraints|extractPWLRadiusValues" -AllowSuffixes $pwlApplicationAllowSuffixes -ScanGlob @($sourceGlob)
