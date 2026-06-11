@@ -1955,40 +1955,44 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun groupedLayerPwlHorizontalSupportSampleFileShouldBeParsable() {
-        // Support-sensitive horizontal cylinder + PWL: 验证横向 PWL 圆柱与支撑
-        // Support-sensitive horizontal cylinder + PWL: verify horizontal PWL cylinder with supports
+    fun groupedLayerPwlSupportSensitiveSampleFileShouldBeParsable() {
+        // Support-sensitive vertical cylinder + PWL: 验证 PWL 圆柱与支撑 cuboid 的组合
+        // 注意：grouped-layer known-coordinate 路径不支持 X/Z 横向圆柱
+        // （LayerPlacementAdapter 会 guard 横向圆柱，横向圆柱只能通过 CirclePackingLayerGenerator 生成）
+        // Support-sensitive vertical cylinder + PWL: verify PWL cylinder with support cuboids
+        // Note: grouped-layer known-coordinate path does not support X/Z horizontal cylinders
+        // (LayerPlacementAdapter guards horizontal cylinders; they must come from CirclePackingLayerGenerator)
         val scenario = loadCsvDrivenScenario("gurobi/grouped-layer-pwl-horizontal-support-sample.csv")
 
         assertEquals(2, scenario.groupCount)
-        assertEquals(6, scenario.totalItemCount)
+        assertEquals(5, scenario.totalItemCount)
 
-        // 验证横向圆柱配置 / verify horizontal cylinder config
+        // 验证 PWL 圆柱配置 / verify PWL cylinder config
         val cylinderItems = scenario.itemDemands
             .map { it.first }
             .filter { item ->
-                val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
-                spec != null && spec.axis != Axis3.Y
+                item.packageShape.shapeSpec is PackageShapeSpec.VerticalCylinder
             }
         assertEquals(2, cylinderItems.size)
 
-        // 验证 X 轴和 Z 轴圆柱 / verify X and Z axis cylinders
-        val xAxisCylinder = cylinderItems.firstOrNull { item ->
-            (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).axis == Axis3.X
+        // 验证 PWL 区间和 key / verify PWL intervals and key
+        for (item in cylinderItems) {
+            val spec = item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+            assertNotNull(spec.radiusMin, "${item.id} should have radiusMin")
+            assertNotNull(spec.radiusMax, "${item.id} should have radiusMax")
+            assertNotNull(spec.radiusWeightFunctionKey, "${item.id} should have weight function key")
+            // 所有圆柱都是 Y 轴（grouped-layer known-coordinate 路径限制）
+            assertEquals(Axis3.Y, spec.axis, "${item.id} should be Y-axis for grouped-layer path")
         }
-        val zAxisCylinder = cylinderItems.firstOrNull { item ->
-            (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).axis == Axis3.Z
-        }
-        assertNotNull(xAxisCylinder, "Should have X-axis horizontal cylinder")
-        assertNotNull(zAxisCylinder, "Should have Z-axis horizontal cylinder")
 
-        // 验证 PWL 区间 / verify PWL intervals
-        for (cylinder in listOf(xAxisCylinder!!, zAxisCylinder!!)) {
-            val spec = cylinder.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
-            assertNotNull(spec.radiusMin, "${cylinder.id} should have radiusMin")
-            assertNotNull(spec.radiusMax, "${cylinder.id} should have radiusMax")
-            assertNotNull(spec.radiusWeightFunctionKey, "${cylinder.id} should have weight function key")
-        }
+        // 验证两个圆柱有不同的 PWL 区间 / verify different PWL intervals
+        val spec0 = cylinderItems[0].packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+        val spec1 = cylinderItems[1].packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder
+        assertTrue(
+            spec0.radiusMin!!.value.toDouble() != spec1.radiusMin!!.value.toDouble()
+                || spec0.radiusMax!!.value.toDouble() != spec1.radiusMax!!.value.toDouble(),
+            "Two PWL cylinders should have different intervals"
+        )
     }
 
     @Test
