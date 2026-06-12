@@ -84,12 +84,14 @@ class FullSumGenerator<V : RealNumber<V>>(
             dominanceStrategy = dominanceStrategy
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
+        val widthCheck = input.widthFeasibilityCheck
 
         val widthIndex = GenerationWidthIndex.fromDemands(input.demands)
         if (widthIndex.isEmpty) return collector.report()
         val materialWidthIndexCache = GenerationMaterialWidthIndexCache(
             baseIndex = widthIndex,
-            maxOverProduceLength = maxOverProduceLength
+            maxOverProduceLength = maxOverProduceLength,
+            widthCheck = input.widthFeasibilityCheck
         )
         val materialSliceTemplateCache: GenerationSliceTemplateCache<V>? = if (canReuseMaterialSliceTemplates(constraints)) {
             if (parallelism == 1) {
@@ -126,7 +128,8 @@ class FullSumGenerator<V : RealNumber<V>>(
                                     machines = input.machines,
                                     planIndex = planIndex,
                                     collector = localCollector,
-                                    templates = templates
+                                    templates = templates,
+                                    widthCheck = widthCheck
                                 )
                             } else {
                                 val templateRecorder = GenerationSliceTemplateRecorder<V>()
@@ -137,7 +140,8 @@ class FullSumGenerator<V : RealNumber<V>>(
                                     planIndex = planIndex,
                                     collector = localCollector,
                                     quantityCache = localQuantityCache,
-                                    templateRecorder = templateRecorder
+                                    templateRecorder = templateRecorder,
+                                    widthCheck = widthCheck
                                 )
                                 if (!localCollector.shouldStop()) {
                                     materialSliceTemplateCache?.put(material, templateRecorder.templates)
@@ -180,7 +184,8 @@ class FullSumGenerator<V : RealNumber<V>>(
                     machines = input.machines,
                     planIndex = planIndex,
                     collector = collector,
-                    templates = templates
+                    templates = templates,
+                    widthCheck = widthCheck
                 )
             } else {
                 val templateRecorder = materialSliceTemplateCache?.let { GenerationSliceTemplateRecorder<V>() }
@@ -191,7 +196,8 @@ class FullSumGenerator<V : RealNumber<V>>(
                     planIndex = planIndex,
                     collector = collector,
                     quantityCache = quantityCache,
-                    templateRecorder = templateRecorder
+                    templateRecorder = templateRecorder,
+                    widthCheck = widthCheck
                 )
                 if (!collector.shouldStop() && templateRecorder != null) {
                     materialSliceTemplateCache.put(
@@ -220,7 +226,8 @@ class FullSumGenerator<V : RealNumber<V>>(
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         collector: GenerationCollector<V>,
         quantityCache: GenerationQuantityCache<V>,
-        templateRecorder: GenerationSliceTemplateRecorder<V>? = null
+        templateRecorder: GenerationSliceTemplateRecorder<V>? = null,
+        widthCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ) {
         val entries = widthIndex.entries
         val upperBound = material.widthRange.upperBound
@@ -284,7 +291,7 @@ class FullSumGenerator<V : RealNumber<V>>(
                     )
                     collector.record(
                         plan = plan,
-                        feasible = material.enabled(plan, machines)
+                        feasible = if (widthCheck != null) material.enabledWithoutWidthCheck(plan, machines) else material.enabled(plan, machines)
                     )
                 }
                 continue
@@ -345,7 +352,8 @@ class FullSumGenerator<V : RealNumber<V>>(
         machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         collector: GenerationCollector<V>,
-        templates: List<List<CuttingPlanSlice<V>>>
+        templates: List<List<CuttingPlanSlice<V>>>,
+        widthCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ) {
         for (slices in templates) {
             if (collector.shouldStop()) break
@@ -357,7 +365,7 @@ class FullSumGenerator<V : RealNumber<V>>(
             )
             collector.record(
                 plan = plan,
-                feasible = material.enabled(plan, machines)
+                feasible = if (widthCheck != null) material.enabledWithoutWidthCheck(plan, machines) else material.enabled(plan, machines)
             )
         }
     }

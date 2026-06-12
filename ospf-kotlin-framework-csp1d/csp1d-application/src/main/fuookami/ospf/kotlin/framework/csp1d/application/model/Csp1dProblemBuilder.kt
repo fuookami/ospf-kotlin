@@ -6,8 +6,16 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dPricingPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -196,6 +204,12 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
     private var topKPlanLimitValue: Int? = null
     private var allowPartialSolutionValue: Boolean = true
     private val extensionsBuffer = ArrayList<Csp1dModelingExtension<V>>()
+    private val domainPolicyBuffer = ArrayList<Csp1dDomainPolicy<V>>()
+    private val objectivePolicyBuffer = ArrayList<Csp1dObjectivePolicy<V>>()
+    private val generationStrategyBuffer = ArrayList<Csp1dGenerationStrategy<V>>()
+    private val pricingPolicyBuffer = ArrayList<Csp1dPricingPolicy<V>>()
+    private val flowPolicyBuffer = ArrayList<Csp1dFlowPolicy<V>>()
+    private val extractionPolicyBuffer = ArrayList<Csp1dExtractionPolicy<V>>()
 
     /**
      * 设置列生成配置 / Set column generation configuration
@@ -322,6 +336,101 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
     }
 
     /**
+     * 便捷方法：追加上下文感知扩展管线（默认所有模式）/ Convenience: add a context-aware extension pipeline (all modes)
+     *
+     * 下游扩展管线通过 factory 接收 Csp1dModelingContext，无需闭包捕获即可访问领域数据。
+     * Downstream extension pipelines receive Csp1dModelingContext through factory,
+     * accessing domain data without closure capture.
+     *
+     * @param factory 上下文感知管线工厂 / Context-aware pipeline factory
+     */
+    fun contextAwareExtensionPipeline(
+        factory: (Csp1dModelingContext<V>) -> Pipeline<LinearMetaModel<Flt64>>
+    ): Csp1dSolveConfigBuilder<V> {
+        extensionsBuffer.add(Csp1dModelingExtension(
+            contextAwarePipeline = factory
+        ))
+        return this
+    }
+
+    /**
+     * 便捷方法：追加上下文感知扩展管线（指定模式）/ Convenience: add a context-aware extension pipeline (specific mode)
+     *
+     * @param factory 上下文感知管线工厂 / Context-aware pipeline factory
+     * @param mode 扩展适用模式 / Extension applicable mode
+     */
+    fun contextAwareExtensionPipeline(
+        factory: (Csp1dModelingContext<V>) -> Pipeline<LinearMetaModel<Flt64>>,
+        mode: Csp1dExtensionMode
+    ): Csp1dSolveConfigBuilder<V> {
+        extensionsBuffer.add(Csp1dModelingExtension(
+            mode = mode,
+            contextAwarePipeline = factory
+        ))
+        return this
+    }
+
+    /**
+     * 追加领域策略 / Add a domain policy
+     *
+     * @param policy 领域策略 / Domain policy
+     */
+    fun domainPolicy(policy: Csp1dDomainPolicy<V>): Csp1dSolveConfigBuilder<V> {
+        domainPolicyBuffer.add(policy)
+        return this
+    }
+
+    /**
+     * 追加目标策略 / Add an objective policy
+     *
+     * @param policy 目标策略 / Objective policy
+     */
+    fun objectivePolicy(policy: Csp1dObjectivePolicy<V>): Csp1dSolveConfigBuilder<V> {
+        objectivePolicyBuffer.add(policy)
+        return this
+    }
+
+    /**
+     * 追加生成策略 / Add a generation strategy
+     *
+     * @param strategy 生成策略 / Generation strategy
+     */
+    fun generationStrategy(strategy: Csp1dGenerationStrategy<V>): Csp1dSolveConfigBuilder<V> {
+        generationStrategyBuffer.add(strategy)
+        return this
+    }
+
+    /**
+     * 追加定价策略 / Add a pricing policy
+     *
+     * @param policy 定价策略 / Pricing policy
+     */
+    fun pricingPolicy(policy: Csp1dPricingPolicy<V>): Csp1dSolveConfigBuilder<V> {
+        pricingPolicyBuffer.add(policy)
+        return this
+    }
+
+    /**
+     * 追加流程策略 / Add a flow policy
+     *
+     * @param policy 流程策略 / Flow policy
+     */
+    fun flowPolicy(policy: Csp1dFlowPolicy<V>): Csp1dSolveConfigBuilder<V> {
+        flowPolicyBuffer.add(policy)
+        return this
+    }
+
+    /**
+     * 追加提取策略 / Add an extraction policy
+     *
+     * @param policy 提取策略 / Extraction policy
+     */
+    fun extractionPolicy(policy: Csp1dExtractionPolicy<V>): Csp1dSolveConfigBuilder<V> {
+        extractionPolicyBuffer.add(policy)
+        return this
+    }
+
+    /**
      * 构建求解配置 / Build solve configuration
      *
      * @return 一站式求解配置 / One-stop solve configuration
@@ -334,7 +443,16 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
             lengthConfig = lengthConfigValue,
             topKPlanLimit = topKPlanLimitValue,
             allowPartialSolution = allowPartialSolutionValue,
-            extensions = extensionsBuffer.toList()
+            extensions = extensionsBuffer.toList(),
+            extensionSet = Csp1dExtensionSet(
+                modelingExtensions = emptyList(),
+                domainPolicies = domainPolicyBuffer.toList(),
+                objectivePolicies = objectivePolicyBuffer.toList(),
+                generationStrategies = generationStrategyBuffer.toList(),
+                pricingPolicies = pricingPolicyBuffer.toList(),
+                flowPolicies = flowPolicyBuffer.toList(),
+                extractionPolicies = extractionPolicyBuffer.toList()
+            )
         )
     }
 }

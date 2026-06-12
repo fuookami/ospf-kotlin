@@ -24,9 +24,12 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dIterativeContext
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dPipelineList
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.SimpleDomainCalculationContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MaterialUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MachineCapacityUsage
@@ -61,7 +64,7 @@ import kotlin.math.roundToLong
  * @param V 数值类型 / Numeric value type
  */
 class Csp1dProduceContext<V : RealNumber<V>>(
-    val produce: ProduceAggregation<V>,
+    override val produce: ProduceAggregation<V>,
     val yield: YieldAggregation<V>?,
     val waste: WasteAggregation<V>?,
     val length: LengthAggregation<V>?,
@@ -70,13 +73,21 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     private val wasteObjective: WasteObjectivePipeline<V>?,
     private val lengthObjective: LengthObjectivePipeline<V>?,
     private val extraPipelines: Csp1dPipelineList = emptyList(),
-    private val mode: Csp1dModelingMode = Csp1dModelingMode.MILP,
+    override val mode: Csp1dModelingMode = Csp1dModelingMode.MILP,
     private val shadowPriceKeys: MutableMap<String, Csp1dShadowPriceKey>? = null,
     private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList(),
     private val wasteOverProductionAreaMeasure: OverProductionAreaMeasure = OverProductionAreaMeasure.ProductMaxWidthProxy,
     private val wasteRestMaterialMeasure: RestMaterialMeasure = RestMaterialMeasure.RestWidthByMaterialLengthProxy,
-    private val vSample: V
-) : Csp1dIterativeContext<V> {
+    private val objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
+    override val vSample: V,
+    override val isFinalMilp: Boolean = false
+) : Csp1dIterativeContext<V>, Csp1dModelingContext<V> {
+
+    override val demands: List<ProductDemand<V>> get() = produce.demands
+    override val materials: List<Material<V>> get() = produce.materials
+    override val machines: List<Machine<V>> get() = produce.machines
+
+    override fun flt64ToV(value: Flt64): V = solverValueLike(vSample, value)
 
     override fun register(model: LinearMetaModel<Flt64>): Try {
         // 1. 注册变量
@@ -139,8 +150,23 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         val monomials = ArrayList<LinearMonomial<Flt64>>()
 
         // 基础目标: 最小化批次 / Base objective: minimize batches
-        val batchCoefficient = lengthObjective?.batchCoefficient() ?: Flt64.one
+        // 允许 objective policy 修正每个方案的 batch coefficient
+        // Allow objective policy to modify batch coefficient for each plan
+        val baseBatchCoefficient = lengthObjective?.batchCoefficient() ?: Flt64.one
         for (index in 0 until produce.planCount) {
+            val plan = produce.cuttingPlans[index]
+            val batchCoefficient = if (objectivePolicies.isNotEmpty()) {
+                val ctx = SimpleDomainCalculationContext(
+                    plan = plan,
+                    planIndex = index,
+                    vSample = vSample
+                )
+                objectivePolicies.fold(baseBatchCoefficient) { coeff, policy ->
+                    policy.modifyBatchCoefficient(ctx, coeff)
+                }
+            } else {
+                baseBatchCoefficient
+            }
             monomials.add(LinearMonomial(batchCoefficient, produce[index]))
         }
 
@@ -371,12 +397,28 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         }
         if (addedPlans.isEmpty()) return Ok(emptyList())
 
-        // 注意：当前列生成路径每轮迭代重新创建 ProduceInput 和 Csp1dProduceContext，
-        // 不在已有模型上增量添加列。此方法为未来增量列生成预留接口。
+        // Rebuild-compatible lifecycle:
         //
-        // Note: Current column generation path recreates ProduceInput and Csp1dProduceContext
-        // per iteration, not adding columns incrementally on an existing model.
-        // This method is reserved for future incremental column generation.
+        // 当前 AbstractLinearMetaModel 不支持原地追加变量并刷新约束表达式，
+        // 因此 addColumns 仅返回去重后的新方案列表，不修改已有模型。
+        // 列生成主循环应使用 rebuild 模式：将新增方案加入 plan pool 后，
+        // 下一轮迭代通过 Csp1dMilpSolver.solveLP() 重新构建完整模型。
+        //
+        // 后续若底层变量容器支持原地扩展，可在此方法中：
+        // 1. 为每个新增方案注册 plan usage 变量 x[j]
+        // 2. 更新需求、物料、设备约束表达式中的新列系数
+        // 3. 更新目标函数中的新列系数
+        //
+        // Current AbstractLinearMetaModel does not support in-place variable addition
+        // with constraint expression refresh, so addColumns only returns deduplicated
+        // new plans without modifying the existing model.
+        // The CG main loop should use rebuild mode: add new plans to the pool,
+        // then the next iteration rebuilds the full model via Csp1dMilpSolver.solveLP().
+        //
+        // When the underlying variable container supports in-place extension, this method
+        // should: 1) register plan usage variables for each new plan,
+        // 2) update demand/material/machine constraint expressions with new column coefficients,
+        // 3) update objective function with new column coefficients.
 
         return Ok(addedPlans)
     }
@@ -458,17 +500,17 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
-        return when (sample) {
-            is Flt64 -> value as V
-            is FltX -> value.toFltX() as V
-            else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
-        }
-    }
-
     companion object {
         private val UInt64.Companion.ZERO: UInt64 get() = UInt64(0UL)
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
+    return when (sample) {
+        is Flt64 -> value as V
+        is FltX -> value.toFltX() as V
+        else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
     }
 }
 
@@ -483,7 +525,10 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     private var _lengthConfig: LengthAssignmentModelingConfig<V>? = null
     private var _shadowPriceKeys: MutableMap<String, Csp1dShadowPriceKey>? = null
     private var _mode: Csp1dModelingMode = Csp1dModelingMode.MILP
+    private var _isFinalMilp: Boolean = false
     private val _extraPipelines = ArrayList<Pipeline<LinearMetaModel<Flt64>>>()
+    private val _objectivePolicies = ArrayList<Csp1dObjectivePolicy<V>>()
+    private val _extensions = ArrayList<Csp1dModelingExtension<V>>()
 
     fun yieldConfig(config: YieldModelingConfig<V>): Csp1dProduceContextBuilder<V> {
         this._yieldConfig = config
@@ -510,8 +555,28 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
         return this
     }
 
+    fun isFinalMilp(isFinalMilp: Boolean): Csp1dProduceContextBuilder<V> {
+        this._isFinalMilp = isFinalMilp
+        return this
+    }
+
     fun extraPipeline(pipeline: Pipeline<LinearMetaModel<Flt64>>): Csp1dProduceContextBuilder<V> {
         _extraPipelines.add(pipeline)
+        return this
+    }
+
+    fun objectivePolicy(policy: Csp1dObjectivePolicy<V>): Csp1dProduceContextBuilder<V> {
+        _objectivePolicies.add(policy)
+        return this
+    }
+
+    /**
+     * 追加建模扩展，build 时自动解析 context-aware pipeline / Add a modeling extension
+     *
+     * @param extension 建模扩展 / Modeling extension
+     */
+    fun extension(extension: Csp1dModelingExtension<V>): Csp1dProduceContextBuilder<V> {
+        _extensions.add(extension)
         return this
     }
 
@@ -526,6 +591,28 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             materials = input.materials,
             machines = input.machines
         )
+
+        // 为 context-aware 扩展构建只读建模上下文
+        // Build read-only modeling context for context-aware extension resolution
+        val vSample = resolveVSample(input)
+        val modelingContext = object : Csp1dModelingContext<V> {
+            override val mode = _mode
+            override val isFinalMilp = _isFinalMilp
+            override val produce = produce
+            override val demands: List<ProductDemand<V>> get() = produce.demands
+            override val materials: List<Material<V>> get() = produce.materials
+            override val machines: List<Machine<V>> get() = produce.machines
+            override val vSample = vSample
+            override fun flt64ToV(value: Flt64): V = solverValueLike(vSample, value)
+        }
+
+        // 解析 context-aware 扩展管线
+        // Resolve context-aware extension pipelines
+        for (ext in _extensions) {
+            if (ext.mode.matches(_mode, _isFinalMilp)) {
+                _extraPipelines.add(ext.resolvePipeline(modelingContext))
+            }
+        }
 
         // LP 模式不加 yield/length slack
         val yieldAgg = if (_mode == Csp1dModelingMode.MILP) {
@@ -639,7 +726,9 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             warmStartPlanUsages = input.warmStartPlanUsages,
             wasteOverProductionAreaMeasure = wasteCfg?.overProductionAreaMeasure ?: OverProductionAreaMeasure.ProductMaxWidthProxy,
             wasteRestMaterialMeasure = wasteCfg?.restMaterialMeasure ?: RestMaterialMeasure.RestWidthByMaterialLengthProxy,
-            vSample = resolveVSample(input)
+            objectivePolicies = _objectivePolicies,
+            vSample = resolveVSample(input),
+            isFinalMilp = _isFinalMilp
         )
     }
 

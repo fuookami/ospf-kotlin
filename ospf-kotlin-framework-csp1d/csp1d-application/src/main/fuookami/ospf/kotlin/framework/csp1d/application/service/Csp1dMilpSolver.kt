@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
@@ -21,6 +23,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
 
 /**
  * CSP1D MILP/LP 求解器 / CSP1D MILP/LP solver
@@ -45,7 +48,8 @@ class Csp1dMilpSolver(
     data class LpResult<V : RealNumber<V>>(
         val shadowPrices: ShadowPriceMap<V>,
         val model: LinearMetaModel<Flt64>,
-        val lpOutput: ColumnGenerationSolver.LPResult
+        val lpOutput: ColumnGenerationSolver.LPResult,
+        val frameworkShadowPriceMap: AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>? = null
     )
 
     suspend fun <V : RealNumber<V>> solve(
@@ -54,10 +58,11 @@ class Csp1dMilpSolver(
         wasteConfig: WasteMinimizationConfig<V>? = null,
         lengthConfig: LengthAssignmentModelingConfig<V>? = null,
         extensions: List<Csp1dModelingExtension<V>> = emptyList(),
+        objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
         isFinalMilp: Boolean = false
     ): MilpResult<V>? {
         return try {
-            solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, isFinalMilp)
+            solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, objectivePolicies, isFinalMilp)
         } catch (_: Exception) {
             null
         }
@@ -69,6 +74,7 @@ class Csp1dMilpSolver(
         wasteConfig: WasteMinimizationConfig<V>?,
         lengthConfig: LengthAssignmentModelingConfig<V>?,
         extensions: List<Csp1dModelingExtension<V>>,
+        objectivePolicies: List<Csp1dObjectivePolicy<V>>,
         isFinalMilp: Boolean
     ): MilpResult<V>? {
         if (input.cuttingPlans.isEmpty()) {
@@ -90,12 +96,15 @@ class Csp1dMilpSolver(
                 wasteConfig?.let { wasteConfig(it) }
                 resolvedLengthConfig?.let { lengthConfig(it) }
                 mode(Csp1dModelingMode.MILP)
-                // 注入适用于 MILP / FINAL_MILP / ALL 模式的扩展管线
-                // Inject extensions applicable to MILP / FINAL_MILP / ALL modes
+                isFinalMilp(isFinalMilp)
+                // 注入建模扩展（context-aware pipeline 在 build 时解析）
+                // Inject modeling extensions (context-aware pipelines resolved at build time)
                 for (ext in extensions) {
-                    if (ext.mode.matches(Csp1dModelingMode.MILP, isFinalMilp)) {
-                        extraPipeline(ext.pipeline)
-                    }
+                    extension(ext)
+                }
+                // 注入目标策略 / Inject objective policies
+                for (policy in objectivePolicies) {
+                    objectivePolicy(policy)
                 }
             }
             .build()
@@ -157,19 +166,21 @@ class Csp1dMilpSolver(
             name = "csp1d_produce_lp",
             converter = IntoValue.Identity
         )
-        val shadowPriceKeys = java.util.LinkedHashMap<String, Csp1dShadowPriceKey>()
+
+        // 通过 Csp1dShadowPriceLifecycle 统一管理影子价格注册与提取
+        // Use Csp1dShadowPriceLifecycle for unified shadow price registration and extraction
+        val vSample = resolveVSampleForLP(input)
+        val shadowPriceLifecycle = Csp1dShadowPriceLifecycle(vSample)
 
         // 通过 Csp1dProduceContext 注册 LP 模式建模逻辑 / Register LP mode modeling logic through Csp1dProduceContext
         val context = Csp1dProduceContextBuilder(input)
-            .shadowPriceKeys(shadowPriceKeys)
+            .shadowPriceKeys(shadowPriceLifecycle.registry)
             .mode(Csp1dModelingMode.LP)
             .apply {
-                // 注入适用于 LP / ALL 模式的扩展管线
-                // Inject extensions applicable to LP / ALL modes
+                // 注入建模扩展（context-aware pipeline 在 build 时解析）
+                // Inject modeling extensions (context-aware pipelines resolved at build time)
                 for (ext in extensions) {
-                    if (ext.mode.matches(Csp1dModelingMode.LP)) {
-                        extraPipeline(ext.pipeline)
-                    }
+                    extension(ext)
                 }
             }
             .build()
@@ -188,14 +199,27 @@ class Csp1dMilpSolver(
             stage = "solve CSP1D produce LP"
         )
 
-        val shadowPrices = context.extractShadowPriceMap(
-            dualSolution = lpResult.dualSolution,
-            shadowPriceKeys = shadowPriceKeys
-        )
+        // 通过 lifecycle 统一提取影子价格（同时填充 framework map 和 lightweight map）
+        // Extract shadow prices through lifecycle (populates both framework map and lightweight map)
+        val shadowPrices = shadowPriceLifecycle.extractFromDualSolution(lpResult.dualSolution)
         return LpResult(
             shadowPrices = shadowPrices,
             model = model,
-            lpOutput = lpResult
+            lpOutput = lpResult,
+            frameworkShadowPriceMap = shadowPriceLifecycle.frameworkShadowPriceMap
+        )
+    }
+
+    /**
+     * 从 ProduceInput 推导 V 样本值，用于影子价格 Flt64 → V 转换
+     * Derive V sample value from ProduceInput for shadow price Flt64 → V conversion
+     */
+    private fun <V : RealNumber<V>> resolveVSampleForLP(input: ProduceInput<V>): V {
+        input.demands.firstOrNull()?.quantity?.value?.let { return it }
+        input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return it }
+        input.cuttingPlans.firstOrNull()?.restWidth?.value?.let { return it }
+        throw IllegalArgumentException(
+            "Cannot derive V sample from ProduceInput for shadow price extraction"
         )
     }
 

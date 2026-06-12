@@ -111,7 +111,28 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 Extensions propagate through all solve paths: plain MILP, column-generation LP master and final MILP, and recovery/partial fallback MILP. The default empty `extensions` list preserves backward compatibility.
 
-`Csp1dProduceContext.addColumns` remains a placeholder API reserved for future incremental column generation. It currently only deduplicates and returns new plans without adding column variables, refreshing constraints, or updating the objective in an existing model.
+`Csp1dProduceContext.addColumns` implements a rebuild-compatible lifecycle: it deduplicates new cutting plans against the existing pool and returns the accepted subset. Since `AbstractLinearMetaModel` does not support in-place variable addition with constraint expression refresh, the CG main loop uses rebuild mode — new plans are added to the pool and the next iteration rebuilds the full model via `Csp1dMilpSolver.solveLP()`. When the underlying variable container supports in-place extension, this method can be upgraded to register variables, refresh constraints, and update the objective incrementally.
+
+## Extension Policies
+
+`Csp1dSolveConfig<V>` exposes an `extensionSet` field of type `Csp1dExtensionSet<V>`, which aggregates six policy categories beyond modeling extensions:
+
+- **Domain policies** (`Csp1dDomainPolicy<V>`): width feasibility overrides, candidate acceptance.
+- **Objective policies** (`Csp1dObjectivePolicy<V>`): modify batch coefficients in the objective function.
+- **Generation strategies** (`Csp1dGenerationStrategy<V>`): candidate acceptance, custom canonical keys, and dominance acceptance.
+- **Pricing policies** (`Csp1dPricingPolicy<V>`): modify reduced cost, modify benefit, and custom `isImproving` judges.
+- **Flow policies** (`Csp1dFlowPolicy<V>`): control the CG main loop flow — filter initial plans, determine plan equivalence, trigger early iteration stop, customize termination reason/message, accept partial solutions when final MILP fails, and allow recovery fallback.
+- **Extraction policies** (`Csp1dExtractionPolicy<V>`): enrich solution output by writing custom entries into KPI details and render KPI maps without modifying the solution model.
+
+All policies provide default implementations that preserve existing behavior. Empty policy lists maintain full backward compatibility.
+
+Flow policies receive a `Csp1dFlowContext<V>` exposing iteration number, current plans, new plans, iteration limit, LP result status, pricing statistics, and `allowPartialSolution`. This allows context-aware decisions without closure capture.
+
+Extraction policies receive `Produce<V>`, demands, materials, machines, generated plans, iteration count, termination reason, final MILP status, and pricing statistics. They can write to mutable `details` and `renderKpi` maps. Exceptions thrown by extraction policies are caught and logged, preventing escape into the solve path.
+
+## Shadow Price Lifecycle
+
+LP shadow price extraction is managed through `Csp1dShadowPriceLifecycle<V>`, which unifies constraint-name-to-shadow-price-key registration, dual value extraction, and framework `AbstractCsp1dShadowPriceMap` population. Demand, material, and machine constraints register their shadow price keys into the lifecycle's registry during model construction. After LP solve, the lifecycle extracts dual values with explicit `Flt64 → V` conversion (no `dualValue as? V` casting) and populates both the framework-compatible `AbstractCsp1dShadowPriceMap` and the lightweight `ShadowPriceMap<V>` used by pricing. The existing constraint name map mechanism is retained as a compatible fallback.
 
 ## Outputs
 
@@ -180,7 +201,7 @@ The demo uses `Csp1dProblem<Flt64>`, framework generators, `ReducedCostPricingGe
 Focused CSP1D tests:
 
 ```powershell
-mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest,Csp1dCgLifecycleTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
 Gurobi profile compile gate:

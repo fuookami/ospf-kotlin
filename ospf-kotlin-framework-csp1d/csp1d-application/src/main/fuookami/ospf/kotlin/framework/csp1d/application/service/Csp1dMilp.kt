@@ -7,6 +7,13 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.widthFeasibilityCheckFromPolicies
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
@@ -49,9 +56,19 @@ class Csp1dMilp<V : RealNumber<V>>(
             problem = problem,
             solveConfig = solveConfig
         )
+        val domainPolicies = resolvedConfig.extensionSet.domainPolicies
+        val vSample = problem.demands.firstOrNull()?.quantity?.value
+            ?: problem.materials.firstOrNull()?.widthRange?.upperBound?.value
+        val widthCheck = if (vSample != null) widthFeasibilityCheckFromPolicies(domainPolicies, vSample) else null
         val generatedPlans = initialPlans(
             problem = problem,
-            configuration = resolvedConfig.columnGeneration
+            configuration = resolvedConfig.columnGeneration,
+            domainPolicies = domainPolicies,
+            candidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
+                { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
+            },
+            flowPolicies = resolvedConfig.extensionSet.flowPolicies,
+            widthFeasibilityCheck = widthCheck
         )
         if (generatedPlans.isEmpty()) {
             val failureMessage = "No initial cutting plans generated"
@@ -66,7 +83,11 @@ class Csp1dMilp<V : RealNumber<V>>(
                 status = Csp1dSolutionStatus.NoInitialPlans,
                 failureMessage = failureMessage,
                 finalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
-                partialSolutionAvailable = false
+                partialSolutionAvailable = false,
+                extractionPolicies = resolvedConfig.extensionSet.extractionPolicies,
+                demands = problem.demands,
+                materials = problem.materials,
+                machines = problem.machines
             )
         }
 
@@ -101,13 +122,21 @@ class Csp1dMilp<V : RealNumber<V>>(
             status = solutionStatus,
             failureMessage = milpResult.failureMessage,
             finalMilpStatus = milpResult.status,
-            partialSolutionAvailable = milpResult.status == Csp1dFinalMilpStatus.Failed
+            partialSolutionAvailable = milpResult.status == Csp1dFinalMilpStatus.Failed,
+            extractionPolicies = resolvedConfig.extensionSet.extractionPolicies,
+            demands = problem.demands,
+            materials = problem.materials,
+            machines = problem.machines
         )
     }
 
     private fun initialPlans(
         problem: Csp1dProblem<V>,
-        configuration: Csp1dConfiguration<V>
+        configuration: Csp1dConfiguration<V>,
+        domainPolicies: List<Csp1dDomainPolicy<V>> = emptyList(),
+        candidateFilters: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
+        flowPolicies: List<fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy<V>> = emptyList(),
+        widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ): List<CuttingPlan<V>> {
         if (configuration.maxInitialPlans <= 0) {
             return emptyList()
@@ -118,11 +147,28 @@ class Csp1dMilp<V : RealNumber<V>>(
                 materials = problem.materials,
                 machines = problem.machines,
                 costars = problem.costars,
-                demands = problem.demands
+                demands = problem.demands,
+                domainPolicies = domainPolicies,
+                candidateFilters = candidateFilters,
+                widthFeasibilityCheck = widthFeasibilityCheck
             )
         )
-        return report.plans.distinctBy { it.canonicalKey() }
+        val generatedPlans = report.plans.distinctBy { it.canonicalKey() }
             .take(configuration.maxInitialPlans)
+        // Apply flow policy initial plan filter with context
+        return if (flowPolicies.isNotEmpty()) {
+            val flowContext = object : fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext<V> {
+                override val iteration = 0
+                override val currentPlans: List<CuttingPlan<V>> = generatedPlans
+                override val iterationLimit = configuration.iterationLimit
+                override val allowPartialSolution = true
+            }
+            fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.filterInitialPlansByPolicies(
+                flowPolicies, flowContext, generatedPlans
+            )
+        } else {
+            generatedPlans
+        }
     }
 
     private fun resolveSolveConfig(
@@ -157,7 +203,8 @@ class Csp1dMilp<V : RealNumber<V>>(
                 yieldConfig = solveConfig.yieldConfig,
                 wasteConfig = solveConfig.wasteConfig,
                 lengthConfig = solveConfig.lengthConfig,
-                extensions = solveConfig.extensions,
+                extensions = solveConfig.allExtensions,
+                objectivePolicies = solveConfig.extensionSet.objectivePolicies,
                 isFinalMilp = isFinalMilp
             )
         } catch (error: Exception) {

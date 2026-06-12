@@ -20,6 +20,11 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allFeasible
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allWidthFeasible
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
     return unit.symbol ?: unit.name ?: unit.toString()
@@ -36,7 +41,24 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
     val machines: List<Machine<V>>,
     val costars: List<Costar<V>> = emptyList(),
     val demands: List<ProductDemand<V>>,
-    val existingPlans: List<CuttingPlan<V>> = emptyList()
+    val existingPlans: List<CuttingPlan<V>> = emptyList(),
+    val domainPolicies: List<Csp1dDomainPolicy<V>> = emptyList(),
+    /** 候选方案过滤器列表，每个返回 true 表示接受 / Candidate filter list, each returns true if accepted */
+    val candidateFilters: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
+    /**
+     * 宽度可行性判断函数，返回 true 表示该产品宽度在该物料上可切。
+     * 默认使用 material.widthRange.canCut(productWidth)。
+     * 下游可通过此函数放宽或替代原始宽度判断逻辑。
+     *
+     * Width feasibility check function, returns true if the product width is cuttable on the material.
+     * Defaults to material.widthRange.canCut(productWidth).
+     * Downstream can relax or replace the original width judgment logic through this function.
+     *
+     * @param material 物料 / Material
+     * @param product 产品 / Product
+     * @param productWidth 当前枚举的产品宽度 / Current enumerated product width
+     */
+    val widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
 )
 
 /**
@@ -256,7 +278,13 @@ data class Csp1dPricingInput<V : RealNumber<V>>(
     val generationInput: CuttingPlanGenerationInput<V>,
     val shadowPrices: ShadowPriceMap<V>,
     val maxGeneratedPlans: UInt64 = UInt64.one,
-    val objectiveConfig: Csp1dPricingObjectiveConfig<V> = Csp1dPricingObjectiveConfig()
+    val objectiveConfig: Csp1dPricingObjectiveConfig<V> = Csp1dPricingObjectiveConfig(),
+    /** 定价成本修正器列表，每个接收 (candidate, baseCost) 返回修正后成本 / Pricing cost modifier list */
+    val pricingCostModifiers: List<(CuttingPlan<V>, V) -> V> = emptyList(),
+    /** 定价收益修正器列表，每个接收 (candidate, baseBenefit) 返回修正后收益 / Pricing benefit modifier list */
+    val pricingBenefitModifiers: List<(CuttingPlan<V>, V) -> V> = emptyList(),
+    /** 自定义 isImproving 判断器列表，返回 null 表示跳过 / Custom isImproving judges, null to skip */
+    val isImprovingJudges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList()
 )
 
 /**
@@ -319,11 +347,22 @@ fun interface Csp1dPricingGenerator<V : RealNumber<V>> {
  */
 class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCuttingPlanGenerator<V> {
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
+        val domainPolicies = input.domainPolicies
+        val candidateFilters = input.candidateFilters
+        val widthCheck = input.widthFeasibilityCheck
+        val vSample = input.demands.firstOrNull()?.quantity?.value
+            ?: input.materials.firstOrNull()?.widthRange?.upperBound?.value
+            ?: return emptyList()
         val plans = ArrayList<CuttingPlan<V>>()
         for (material in input.materials) {
             for (demand in input.demands) {
                 val width = demand.product.width.firstOrNull { productWidth ->
-                    material.widthRange.canCut(productWidth)
+                    // Use domain policy width check if provided, otherwise fall back to canCut
+                    if (widthCheck != null) {
+                        widthCheck(material, demand.product, productWidth)
+                    } else {
+                        material.widthRange.canCut(productWidth)
+                    }
                 } ?: continue
                 val plan = CuttingPlan(
                     id = "init-${material.id}-${demand.product.id}-${plans.size}",
@@ -341,7 +380,25 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
                         )
                     )
                 )
-                if (material.enabled(plan, input.machines)) {
+                if (if (widthCheck != null) material.enabledWithoutWidthCheck(plan, input.machines) else material.enabled(plan, input.machines)) {
+                    // Apply domain policy feasibility checks
+                    if (domainPolicies.isNotEmpty()) {
+                        val ctx = SimpleDomainCalculationContext(
+                            plan = plan,
+                            planIndex = plans.size,
+                            vSample = vSample
+                        )
+                        if (!allFeasible(domainPolicies, ctx) || !allWidthFeasible(domainPolicies, ctx)) {
+                            continue
+                        }
+                    }
+                    // Apply candidate filters
+                    if (candidateFilters.isNotEmpty()) {
+                        val accepted = candidateFilters.all { it(plan, input.existingPlans) }
+                        if (!accepted) {
+                            continue
+                        }
+                    }
                     plans.add(plan)
                 }
             }
@@ -357,6 +414,12 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
  */
 class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
     override fun generate(input: Csp1dPricingInput<V>): List<CuttingPlan<V>> {
+        val domainPolicies = input.generationInput.domainPolicies
+        val candidateFilters = input.generationInput.candidateFilters
+        val widthCheck = input.generationInput.widthFeasibilityCheck
+        val vSample = input.generationInput.demands.firstOrNull()?.quantity?.value
+            ?: input.generationInput.materials.firstOrNull()?.widthRange?.upperBound?.value
+            ?: return emptyList()
         val pricedPlans = ArrayList<CuttingPlan<V>>()
         val maxGeneratedPlans = input.maxGeneratedPlans
         val material = input.generationInput.materials.firstOrNull() ?: return emptyList()
@@ -374,7 +437,12 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
                 continue
             }
             val width = demand.product.width.firstOrNull { productWidth ->
-                material.widthRange.width.contains(productWidth)
+                // Use domain policy width check if provided, otherwise fall back to contains
+                if (widthCheck != null) {
+                    widthCheck(material, demand.product, productWidth)
+                } else {
+                    material.widthRange.width.contains(productWidth)
+                }
             } ?: continue
             val plan = CuttingPlan(
                 id = "pricing-${material.id}-${demand.product.id}-${pricedPlans.size}",
@@ -392,7 +460,25 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
                     )
                 )
             )
-            if (material.enabled(plan, input.generationInput.machines)) {
+            if (if (widthCheck != null) material.enabledWithoutWidthCheck(plan, input.generationInput.machines) else material.enabled(plan, input.generationInput.machines)) {
+                // Apply domain policy feasibility checks
+                if (domainPolicies.isNotEmpty()) {
+                    val ctx = SimpleDomainCalculationContext(
+                        plan = plan,
+                        planIndex = pricedPlans.size,
+                        vSample = vSample
+                    )
+                    if (!allFeasible(domainPolicies, ctx) || !allWidthFeasible(domainPolicies, ctx)) {
+                        continue
+                    }
+                }
+                // Apply candidate filters
+                if (candidateFilters.isNotEmpty()) {
+                    val accepted = candidateFilters.all { it(plan, input.generationInput.existingPlans) }
+                    if (!accepted) {
+                        continue
+                    }
+                }
                 pricedPlans.add(plan)
             }
         }
@@ -447,14 +533,22 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
             .filter { (plan, key) -> plan.id !in existingIds && key !in existingKeys }
             .distinctBy { (_, key) -> key }
             .map { (plan, _) ->
-                val benefit = computeDualBenefit(plan, shadowPrices)
+                val baseBenefit = computeDualBenefit(plan, shadowPrices)
+                val benefit = if (input.pricingBenefitModifiers.isNotEmpty()) {
+                    input.pricingBenefitModifiers.fold(baseBenefit) { b, modifier -> modifier(plan, b) }
+                } else {
+                    baseBenefit
+                }
                 PricedCandidate(
                     plan = plan,
                     benefit = benefit,
-                    objectiveCost = computeObjectiveCost(plan, input.objectiveConfig)
+                    objectiveCost = computeObjectiveCost(plan, input.objectiveConfig).let { baseCost ->
+                        // Apply pricing cost modifiers
+                        input.pricingCostModifiers.fold(baseCost) { cost, modifier -> modifier(plan, cost) }
+                    }
                 )
             }
-            .filter { candidate -> isImproving(candidate) }
+            .filter { candidate -> isImproving(candidate, input.isImprovingJudges) }
             .sortedWith(compareByScore())
             .map { it.plan }
             .take(maxGeneratedPlans.toInt())
@@ -557,7 +651,16 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         return cost
     }
 
-    private fun isImproving(candidate: PricedCandidate<V>): Boolean {
+    private fun isImproving(
+        candidate: PricedCandidate<V>,
+        judges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList()
+    ): Boolean {
+        // Check custom judges first
+        for (judge in judges) {
+            val result = judge(candidate.plan, candidate.benefit, candidate.objectiveCost)
+            if (result != null) return result
+        }
+        // Default: benefit > objectiveCost
         return when (candidate.benefit partialOrd candidate.objectiveCost) {
             is Order.Greater -> true
             else -> false

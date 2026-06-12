@@ -4,6 +4,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
@@ -31,7 +36,11 @@ internal fun <V : RealNumber<V>> enrichSolution(
     initialGenerationStatistics: CuttingPlanGenerationStatistics? = null,
     pricingGenerationStatistics: CuttingPlanGenerationStatistics? = null,
     lpFailureMessage: String? = null,
-    iterationRecords: List<Csp1dIterationRecord> = emptyList()
+    iterationRecords: List<Csp1dIterationRecord> = emptyList(),
+    extractionPolicies: List<Csp1dExtractionPolicy<V>> = emptyList(),
+    demands: List<ProductDemand<V>> = emptyList(),
+    materials: List<Material<V>> = emptyList(),
+    machines: List<Machine<V>> = emptyList()
 ): Csp1dSolution<V> {
     val details = kpiDetails(
         solution = solution,
@@ -114,6 +123,45 @@ internal fun <V : RealNumber<V>> enrichSolution(
     } else {
         renderKpi.remove(Csp1dKpiKeys.FailureMessage)
     }
+
+    // Apply extraction policies to enrich output
+    if (extractionPolicies.isNotEmpty()) {
+        val extractionDetails = LinkedHashMap(details)
+        for (policy in extractionPolicies) {
+            try {
+                policy.enrichOutput(
+                    details = extractionDetails,
+                    renderKpi = renderKpi,
+                    produce = solution.produce,
+                    demands = demands,
+                    materials = materials,
+                    machines = machines,
+                    generatedPlans = solution.generatedPlans,
+                    iterationCount = iterationRecords.size,
+                    terminationReason = terminationReason?.name,
+                    finalMilpStatus = finalMilpStatus?.name,
+                    pricingStatistics = pricingGenerationStatistics
+                )
+            } catch (_: Exception) {
+                // Extraction policy failure must not escape or break the enrichment pipeline
+            }
+        }
+        // Merge extraction details into kpi.details and renderKpi
+        val extraKeys = extractionDetails.keys - details.keys
+        for (key in extraKeys) {
+            extractionDetails[key]?.let { value ->
+                renderKpi[key] = value
+            }
+        }
+        return solution.copy(
+            kpi = kpi.copy(details = extractionDetails),
+            render = solution.render.copy(kpi = renderKpi),
+            status = status,
+            failureMessage = failureMessage,
+            topPlans = topPlans
+        )
+    }
+
     return solution.copy(
         kpi = kpi,
         render = solution.render.copy(kpi = renderKpi),

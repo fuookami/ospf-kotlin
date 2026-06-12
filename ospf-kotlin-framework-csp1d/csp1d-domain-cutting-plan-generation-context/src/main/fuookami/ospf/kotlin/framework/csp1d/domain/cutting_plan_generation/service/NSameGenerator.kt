@@ -84,6 +84,7 @@ class NSameGenerator<V : RealNumber<V>>(
             dominanceStrategy = dominanceStrategy
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
+        val widthCheck = input.widthFeasibilityCheck
 
         if (parallelism > 1 && input.materials.size > 1) {
             val reports = runGenerationTasks(
@@ -103,7 +104,8 @@ class NSameGenerator<V : RealNumber<V>>(
                             machines = input.machines,
                             planIndex = planIndex,
                             collector = localCollector,
-                            quantityCache = localQuantityCache
+                            quantityCache = localQuantityCache,
+                            widthCheck = widthCheck
                         )
                         val localReport = localCollector.report()
                         localReport.copy(
@@ -130,7 +132,8 @@ class NSameGenerator<V : RealNumber<V>>(
                 machines = input.machines,
                 planIndex = planIndex,
                 collector = collector,
-                quantityCache = quantityCache
+                quantityCache = quantityCache,
+                widthCheck = widthCheck
             )
             if (collector.shouldStop()) break
         }
@@ -149,14 +152,20 @@ class NSameGenerator<V : RealNumber<V>>(
         machines: List<Machine<V>>,
         planIndex: java.util.concurrent.atomic.AtomicInteger,
         collector: GenerationCollector<V>,
-        quantityCache: GenerationQuantityCache<V>
+        quantityCache: GenerationQuantityCache<V>,
+        widthCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ) {
         for (demand in demands) {
             if (collector.shouldStop()) break
 
             for (productWidth in demand.product.width) {
                 if (collector.shouldStop()) break
-                if (!material.widthRange.canCut(productWidth)) continue
+                // Use domain policy width check if provided, otherwise fall back to canCut
+                if (widthCheck != null) {
+                    if (!widthCheck(material, demand.product, productWidth)) continue
+                } else {
+                    if (!material.widthRange.canCut(productWidth)) continue
+                }
                 if (!demand.product.fitsGenerationLengthBound(maxOverProduceLength)) {
                     collector.recordLengthBoundPrunedEntries()
                     continue
@@ -219,7 +228,7 @@ class NSameGenerator<V : RealNumber<V>>(
                     )
                     collector.record(
                         plan = plan,
-                        feasible = material.enabled(plan, machines)
+                        feasible = if (widthCheck != null) material.enabledWithoutWidthCheck(plan, machines) else material.enabled(plan, machines)
                     )
                 }
             }

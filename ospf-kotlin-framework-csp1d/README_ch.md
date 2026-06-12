@@ -111,7 +111,28 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 扩展配置会传播到所有求解路径：普通 MILP、列生成 LP master 和最终 MILP、以及 recovery/partial 回退 MILP。默认空 `extensions` 列表保持向后兼容。
 
-`Csp1dProduceContext.addColumns` 仍是预留接口，用于未来真实增量列生成。当前仅做去重并返回新增方案，不会在已有模型上添加列变量、刷新约束或更新目标函数。
+`Csp1dProduceContext.addColumns` 实现 rebuild-compatible lifecycle：对新增切割方案做去重后返回接受子集。由于 `AbstractLinearMetaModel` 不支持原地追加变量并刷新约束表达式，列生成主循环使用 rebuild 模式——将新增方案加入方案池后，下一轮迭代通过 `Csp1dMilpSolver.solveLP()` 重新构建完整模型。后续若底层变量容器支持原地扩展，可升级为注册变量、刷新约束和增量更新目标函数。
+
+## 扩展策略
+
+`Csp1dSolveConfig<V>` 暴露 `extensionSet` 字段（`Csp1dExtensionSet<V>` 类型），在建模扩展之外聚合六类策略：
+
+- **领域策略**（`Csp1dDomainPolicy<V>`）：宽度可行性覆盖、候选验收。
+- **目标策略**（`Csp1dObjectivePolicy<V>`）：修正目标函数中的批次系数。
+- **生成策略**（`Csp1dGenerationStrategy<V>`）：候选验收、自定义 canonical key、dominance 验收。
+- **定价策略**（`Csp1dPricingPolicy<V>`）：修正 reduced cost、修正 benefit、自定义 `isImproving` 判断。
+- **流程策略**（`Csp1dFlowPolicy<V>`）：控制列生成主循环流程——过滤初始方案、判定方案等价、触发提前停止迭代、自定义终止原因/消息、最终 MILP 失败时接受部分解、允许 recovery 回退。
+- **提取策略**（`Csp1dExtractionPolicy<V>`）：在不修改解模型的前提下，向 KPI 明细和 render KPI 映射写入自定义条目，扩展解输出。
+
+所有策略都提供默认实现以保持既有行为。空策略列表完全向后兼容。
+
+流程策略接收 `Csp1dFlowContext<V>`，暴露迭代号、当前方案、新增方案、迭代上限、LP 结果状态、pricing 统计和 `allowPartialSolution`，支持上下文感知判断而无需闭包捕获。
+
+提取策略接收 `Produce<V>`、需求、物料、设备、已生成方案、迭代次数、终止原因、最终 MILP 状态和 pricing 统计，可向可变 `details` 和 `renderKpi` 映射写入。提取策略抛出的异常会被捕获并记录，不会逃逸到求解路径中。
+
+## 影子价格生命周期
+
+LP 影子价格提取通过 `Csp1dShadowPriceLifecycle<V>` 统一管理，封装约束名到影子价格键的注册、对偶值提取和框架 `AbstractCsp1dShadowPriceMap` 的填充。需求、物料、设备约束在模型构建阶段将影子价格键注册到 lifecycle 的注册表中。LP 求解后，lifecycle 通过显式 `Flt64 → V` 转换（禁止 `dualValue as? V` 强转）提取对偶值，并同时填充框架兼容的 `AbstractCsp1dShadowPriceMap` 和 pricing 消费的轻量级 `ShadowPriceMap<V>`。原有约束名映射机制保留为兼容 fallback。
 
 ## 输出
 
@@ -180,7 +201,7 @@ framework 示例位于：
 CSP1D 窄测试：
 
 ```powershell
-mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+mvn -B -ntp "-Dkotlin.compiler.execution.strategy=in-process" "-Dkotlin.daemon.enabled=false" -pl .\ospf-kotlin-framework-csp1d\csp1d-domain-material-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-cutting-plan-generation-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-length-assignment-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-yield-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-wasting-minimization-context,.\ospf-kotlin-framework-csp1d\csp1d-domain-produce-context,.\ospf-kotlin-framework-csp1d\csp1d-application "-Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest,Csp1dCgLifecycleTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
 ```
 
 Gurobi profile 编译门禁：

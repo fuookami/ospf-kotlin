@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
@@ -66,5 +67,19 @@ data class Csp1dSolveConfig<V : RealNumber<V>>(
     val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
     val topKPlanLimit: Int? = null,
     val allowPartialSolution: Boolean = true,
-    val extensions: List<Csp1dModelingExtension<V>> = emptyList()
-)
+    val extensions: List<Csp1dModelingExtension<V>> = emptyList(),
+    val extensionSet: Csp1dExtensionSet<V> = Csp1dExtensionSet()
+) {
+    /**
+     * 合并 extensions 与 extensionSet.modelingExtensions /
+     * Merge extensions and extensionSet.modelingExtensions
+     *
+     * 保证直接构造 Csp1dSolveConfig(extensionSet = ...) 时 modelingExtensions 也能进入求解路径。
+     * Ensures that modelingExtensions from extensionSet also enters the solve path
+     * when Csp1dSolveConfig is constructed directly with extensionSet.
+     */
+    val allExtensions: List<Csp1dModelingExtension<V>>
+        get() = extensions + extensionSet.modelingExtensions.filter { ext ->
+            ext !in extensions
+        }
+}

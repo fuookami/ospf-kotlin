@@ -3,10 +3,12 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 
 internal class GenerationMaterialWidthIndexCache<V : RealNumber<V>>(
     private val baseIndex: GenerationWidthIndex<V>,
-    private val maxOverProduceLength: Quantity<V>?
+    private val maxOverProduceLength: Quantity<V>?,
+    private val widthCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
 ) {
     private val cache = LinkedHashMap<GenerationMaterialWidthRangeKey, CachedWidthIndex<V>>()
 
@@ -22,7 +24,14 @@ internal class GenerationMaterialWidthIndexCache<V : RealNumber<V>>(
             }
 
             val filtered = baseIndex
-                .filter { material.widthRange.canCut(it.width) }
+                .filter { entry ->
+                    // Use domain policy width check if provided, otherwise fall back to canCut
+                    if (widthCheck != null) {
+                        widthCheck(material, entry.product, entry.width)
+                    } else {
+                        material.widthRange.canCut(entry.width)
+                    }
+                }
                 .filterByLengthBound(maxOverProduceLength)
             val newEntry = CachedWidthIndex(
                 widthIndex = filtered.widthIndex,
