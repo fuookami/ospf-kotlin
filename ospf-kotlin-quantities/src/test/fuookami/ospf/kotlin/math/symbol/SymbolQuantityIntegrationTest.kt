@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.math.symbol
 import java.util.concurrent.*
 import kotlin.test.*
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*

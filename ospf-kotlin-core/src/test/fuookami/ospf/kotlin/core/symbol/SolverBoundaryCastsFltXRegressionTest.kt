@@ -1,14 +1,14 @@
 package fuookami.ospf.kotlin.core.symbol
 
-import fuookami.ospf.kotlin.core.variable.RealVar
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class SolverBoundaryCastsFltXRegressionTest {
     @Test

@@ -1,15 +1,15 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import kotlin.test.*
-import org.junit.jupiter.api.Test
 
 /**
  * Tests for SubObject constructors using FlattenData

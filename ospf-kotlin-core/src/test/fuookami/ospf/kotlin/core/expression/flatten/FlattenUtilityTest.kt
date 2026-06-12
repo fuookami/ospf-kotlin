@@ -1,13 +1,13 @@
 package fuookami.ospf.kotlin.core.expression.flatten
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.core.symbol.flatten.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import kotlin.test.*
-import org.junit.jupiter.api.Test
 
 /**
  * Unit tests for FlattenUtility functions

@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.core.test.flt64TestConverter
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*

@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.testing.*
+import kotlin.test.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
-import kotlin.test.*
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.testing.*
 
 class GenericTokenCacheTest {
     @Test

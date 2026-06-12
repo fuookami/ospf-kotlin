@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.unit.Byte as ByteUnit
-import fuookami.ospf.kotlin.quantities.dimension.*
 import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
+import fuookami.ospf.kotlin.quantities.dimension.*
 
 class QuantityDomainTest {
     @Test

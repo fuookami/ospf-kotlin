@@ -1,15 +1,15 @@
 package fuookami.ospf.kotlin.core.model.callback
 
+import kotlin.test.*
+import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.utils.functional.Order
-import kotlin.test.*
-import org.junit.jupiter.api.Test
 
 class MultiObjectCallBackModelTest {
     @Test

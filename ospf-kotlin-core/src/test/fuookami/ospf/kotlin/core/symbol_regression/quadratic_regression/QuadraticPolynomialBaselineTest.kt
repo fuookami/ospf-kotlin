@@ -1,16 +1,16 @@
 package fuookami.ospf.kotlin.core.symbol_regression.quadratic_regression
 
-import fuookami.ospf.kotlin.core.symbol.QuadraticExpressionSymbol
-import fuookami.ospf.kotlin.core.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlin.test.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import kotlin.test.*
-import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.symbol.QuadraticExpressionSymbol
+import fuookami.ospf.kotlin.core.test.flt64TestConverter
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.variable.RealVar
 
 class QuadraticPolynomialBaselineTest {
     @Test

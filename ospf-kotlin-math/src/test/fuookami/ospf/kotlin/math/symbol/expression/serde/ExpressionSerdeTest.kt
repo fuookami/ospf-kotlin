@@ -9,9 +9,9 @@ package fuookami.ospf.kotlin.math.symbol.expression.serde
 
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.Trivalent
 
 @DisplayName("Expression Serde Tests / 表达式序列化测试")
 class ExpressionSerdeTest {
