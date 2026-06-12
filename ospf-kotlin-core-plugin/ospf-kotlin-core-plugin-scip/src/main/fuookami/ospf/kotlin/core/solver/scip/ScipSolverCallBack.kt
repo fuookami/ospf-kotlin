@@ -1,18 +1,12 @@
 /** SCIP 求解器回调支持 / SCIP solver callback support */
 package fuookami.ospf.kotlin.core.solver.scip
 
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import java.util.*
+import jscip.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
-import jscip.Constraint
-import jscip.Event
-import jscip.EventHandler
-import jscip.EventHandlerRef
-import jscip.EventMask
-import jscip.Scip
-import jscip.Variable
-import java.util.*
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** SCIP 求解器回调函数类型 / SCIP solver callback function type */
 typealias Function = suspend (SolverStatus?, Scip, List<Variable>, List<Constraint>) -> Try

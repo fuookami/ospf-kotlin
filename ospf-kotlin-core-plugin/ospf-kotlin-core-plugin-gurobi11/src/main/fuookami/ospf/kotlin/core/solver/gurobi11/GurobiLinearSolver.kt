@@ -1,41 +1,27 @@
+/** Gurobi 11 线性求解器 / Gurobi 11 Linear Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-
+import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.*
 import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.solver.LinearSolver
-import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
-import fuookami.ospf.kotlin.core.solver.solvingException
-import fuookami.ospf.kotlin.core.solver.modelingException
-import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
-import fuookami.ospf.kotlin.core.solver.failByStatus
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
-import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlin.math.min
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 
 /** Gurobi 11 线性求解器 / Gurobi 11 linear solver */
 class GurobiLinearSolver(

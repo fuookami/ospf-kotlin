@@ -1,20 +1,19 @@
+/** Hexaly 列生成求解器实现 / Hexaly column generation solver implementation */
 package fuookami.ospf.kotlin.core.solver.hexaly
 
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 /** Hexaly 列生成求解器 / Hexaly column generation solver */
 class HexalyColumnGenerationSolver(

@@ -1,6 +1,5 @@
 /** COPT 求解器常量定义 / COPT solver constants definition */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package copt
 
 /** COPT 求解器常量和枚举定义 / COPT solver constants and enum definitions */

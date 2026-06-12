@@ -1,8 +1,8 @@
 /** Gurobi 约束符号映射 / Gurobi constraint sign mapping */
 package fuookami.ospf.kotlin.core.solver.gurobi
 
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import gurobi.GRB
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 
 /** Gurobi 约束符号枚举，将内部约束关系映射为 Gurobi 约束符号 / Gurobi constraint sign enum, maps internal constraint relations to Gurobi constraint signs */
 enum class GurobiConstraintSign {

@@ -1,10 +1,10 @@
 /** CPLEX 求解器基类 / CPLEX solver base */
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import ilog.cplex.IloCplex
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
-import ilog.cplex.IloCplex
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** CPLEX 求解器抽象基类，提供环境初始化和状态分析的通用实现 / CPLEX solver abstract base class, provides common implementation for environment initialization and status analysis */
 abstract class CplexSolver : AutoCloseable {

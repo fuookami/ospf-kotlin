@@ -1,29 +1,50 @@
+/** Gurobi 列生成求解器实现 / Gurobi column generation solver implementation */
 package fuookami.ospf.kotlin.core.solver.gurobi
 
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import kotlinx.coroutines.*
+import gurobi.GRB
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import gurobi.GRB
-import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
-/** Gurobi 列生成求解器 / Gurobi column generation solver */
+/**
+ * Gurobi 列生成求解器
+ *
+ * 使用 Gurobi 求解器实现列生成策略，支持 MILP 求解、多解求解和 LP 松弛求解（含对偶解提取）。
+ *
+ * Gurobi column generation solver
+ *
+ * Implements column generation strategy using Gurobi solver, supporting MILP solving, multi-solution
+ * solving, and LP relaxation solving (with dual solution extraction).
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 线性求解器回调 / linear solver callback
+ */
 class GurobiColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
 ) : ColumnGenerationSolver {
     override val name = "gurobi"
 
+    /**
+     * 求解 MILP 主问题 / Solve MILP master problem
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param toLogModel 是否记录模型日志 / whether to log model
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果 / solving result
+     */
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -96,6 +117,17 @@ class GurobiColumnGenerationSolver(
         }
     }
 
+    /**
+     * 求解 MILP 主问题并获取多个解 / Solve MILP master problem and obtain multiple solutions
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param amount 期望解的数量 / desired number of solutions
+     * @param toLogModel 是否记录模型日志 / whether to log model
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return 求解结果及多个解 / solving result with multiple solutions
+     */
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -189,6 +221,16 @@ class GurobiColumnGenerationSolver(
         }
     }
 
+    /**
+     * 求解 LP 松弛问题（含对偶解提取）/ Solve LP relaxation problem (with dual solution extraction)
+     *
+     * @param name 模型名称 / model name
+     * @param metaModel 线性元模型 / linear meta model
+     * @param toLogModel 是否记录模型日志 / whether to log model
+     * @param registrationStatusCallBack 注册状态回调 / registration status callback
+     * @param solvingStatusCallBack 求解状态回调 / solving status callback
+     * @return LP 求解结果（含对偶解）/ LP solving result with dual solution
+     */
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,

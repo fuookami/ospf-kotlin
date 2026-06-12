@@ -1,40 +1,22 @@
+/** SCIP 线性求解器 / SCIP Linear Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.scip
 
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.solver.LinearSolver
-import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
-import fuookami.ospf.kotlin.core.solver.failByStatus
-import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.core.solver.shouldAbortOnCallbackFailure
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.gap
-import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import kotlin.time.DurationUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.*
+import java.util.UUID
+import jscip.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import jscip.Event
-import jscip.EventHandler
-import jscip.EventHandlerRef
-import jscip.EventMask
-import java.util.UUID
-import kotlin.time.DurationUnit
-import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 
 /** SCIP 线性求解器 / SCIP linear solver */
 class ScipLinearSolver(

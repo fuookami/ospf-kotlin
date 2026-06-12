@@ -1,10 +1,10 @@
 /** 灰狼优化器种群相关类型定义 / Grey Wolf Optimizer population type definitions */
 package fuookami.ospf.kotlin.core.solver.heuristic.gwo
 
-import fuookami.ospf.kotlin.core.solver.heuristic.SolutionWithFitness
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.heuristic.SolutionWithFitness
 
 /** 灰狼个体类型，带有适应度的解 / Wolf type, solution with fitness */
 typealias Wolf<ObjValue, V> = SolutionWithFitness<ObjValue, V>

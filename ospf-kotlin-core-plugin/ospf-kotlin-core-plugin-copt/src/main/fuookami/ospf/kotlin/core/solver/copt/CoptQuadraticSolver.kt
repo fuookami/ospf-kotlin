@@ -1,38 +1,27 @@
+/** COPT 二次求解器 / COPT Quadratic Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.copt
 
+import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.*
 import copt.*
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.solver.QuadraticSolver
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
-import fuookami.ospf.kotlin.core.solver.solvingException
-import fuookami.ospf.kotlin.core.solver.modelingException
-import fuookami.ospf.kotlin.core.solver.failByStatus
-import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlin.math.min
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 
 /** COPT 二次求解器 / COPT quadratic solver */
 class CoptQuadraticSolver(
@@ -214,7 +203,11 @@ private class CoptQuadraticSolverImpl(
                                 val lhs = QuadExpr()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
                                     if (colIndex2 != null) {
-                                        lhs.addTerm(coptVars[colIndex1], coptVars[colIndex2], coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"))
+                                        lhs.addTerm(
+                                            coptVars[colIndex1],
+                                            coptVars[colIndex2],
+                                            coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient")
+                                        )
                                     } else {
                                         lhs.addTerm(coptVars[colIndex1], coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"))
                                     }
@@ -242,7 +235,11 @@ private class CoptQuadraticSolverImpl(
                         val lhs = QuadExpr()
                         model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
                             if (colIndex2 != null) {
-                                lhs.addTerm(coptVars[colIndex1], coptVars[colIndex2], coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"))
+                                lhs.addTerm(
+                                    coptVars[colIndex1],
+                                    coptVars[colIndex2],
+                                    coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient")
+                                )
                             } else {
                                 lhs.addTerm(coptVars[colIndex1], coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"))
                             }
@@ -262,7 +259,11 @@ private class CoptQuadraticSolverImpl(
             val obj = QuadExpr()
             for ((index, cell) in model.objective.objective.withIndex()) {
                 if (cell.colIndex2 != null) {
-                    obj.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toSolverDouble("quadratic.objective.cells[$index][${cell.colIndex1},${cell.colIndex2}].coefficient"))
+                    obj.addTerm(
+                        coptVars[cell.colIndex1],
+                        coptVars[cell.colIndex2!!],
+                        cell.coefficient.toSolverDouble("quadratic.objective.cells[$index][${cell.colIndex1},${cell.colIndex2}].coefficient")
+                    )
                 } else {
                     obj.addTerm(coptVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.objective.cells[$index][${cell.colIndex1}].coefficient"))
                 }
@@ -315,7 +316,7 @@ private class CoptQuadraticSolverImpl(
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
-                coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toSolverDouble("quadratic.config.gap"))
+            coptModel.set(COPT.DoubleParam.AbsGap, config.gap.toSolverDouble("quadratic.config.gap"))
             coptModel.set(COPT.IntParam.Threads, config.threadNum.toInt())
 
             if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {

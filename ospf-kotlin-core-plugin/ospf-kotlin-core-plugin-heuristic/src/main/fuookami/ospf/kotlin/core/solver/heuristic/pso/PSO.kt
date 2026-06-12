@@ -1,32 +1,32 @@
+/** 粒子群优化器实现 / Particle Swarm Optimizer implementation */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
-import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.utils.functional.Order
 import kotlin.random.Random
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /** 粒子群优化器策略接口 / Particle Swarm Optimizer policy interface */
-interface AbstractPSOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractPSOPolicy<ObjValue, V> :
+    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
      * 加速粒子 / Accelerate particle
      *
@@ -48,6 +48,24 @@ interface AbstractPSOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuo
  *
  * @property c1         local learning factor
  * @property c2         global learning factor
+ */
+/**
+ * 粒子群优化器策略
+ *
+ * 实现粒子群优化的加速操作，使用惯性权重、局部学习因子和全局学习因子控制粒子运动。
+ *
+ * Particle Swarm Optimizer policy
+ *
+ * Implements acceleration operation for PSO, using inertia weight, local learning factor,
+ * and global learning factor to control particle movement.
+ *
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property w 惯性权重 / inertia weight
+ * @property c1 局部学习因子 / local learning factor
+ * @property c2 全局学习因子 / global learning factor
+ * @property maxVelocity 最大速度 / maximum velocity
+ * @property randomGenerator 随机数生成器 / random number generator
  */
 open class PSOPolicy<ObjValue, V>(
     val w: Flt64 = Flt64(0.4),
@@ -88,6 +106,7 @@ open class PSOPolicy<ObjValue, V>(
             )
         }
     }
+
     /** 加速粒子 / Accelerate particle */
     override fun accelerate(
         iteration: Iteration,
@@ -120,6 +139,23 @@ open class PSOPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+/**
+ * 粒子群优化算法
+ *
+ * 实现基于粒子群的优化算法，每个粒子根据个体最优和全局最优更新位置和速度。
+ *
+ * Particle Swarm Optimization algorithm
+ *
+ * Implements swarm-based optimization algorithm, where each particle updates its position
+ * and velocity based on personal best and global best.
+ *
+ * @param Obj 目标类型 / objective type
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property particleAmount 粒子数量 / particle amount
+ * @property solutionAmount 期望解的数量 / desired number of solutions
+ * @property policy 粒子群策略 / PSO policy
+ */
 class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
@@ -141,6 +177,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
             )
         }
     }
+
     /**
      * 执行粒子群优化算法 / Execute Particle Swarm Optimization
      *

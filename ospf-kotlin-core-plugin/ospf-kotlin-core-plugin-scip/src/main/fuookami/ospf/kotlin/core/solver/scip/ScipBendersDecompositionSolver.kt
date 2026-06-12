@@ -1,29 +1,24 @@
+/** SCIP Benders 分解求解器 / SCIP Benders decomposition solver */
 package fuookami.ospf.kotlin.core.solver.scip
 
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.intermediate.solveDual
-import fuookami.ospf.kotlin.core.model.intermediate.solveFarkasDual
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.SolverOutput
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
-import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
+import kotlinx.coroutines.*
+import jscip.SCIP_ParamSetting
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import jscip.SCIP_ParamSetting
-import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
+import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 
 /** SCIP 线性 Benders 分解求解器 / SCIP linear Benders decomposition solver */
 class ScipLinearBendersDecompositionSolver(
@@ -259,6 +254,21 @@ class ScipLinearBendersDecompositionSolver(
     }
 }
 
+/**
+ * SCIP 二次 Benders 分解求解器
+ *
+ * 使用 SCIP 求解器实现二次 Benders 分解策略，支持线性主问题求解（委托给线性 Benders 求解器）和二次主问题求解，
+ * 以及二次子问题求解（含对偶解和 Farkas 证明提取）。
+ *
+ * SCIP quadratic Benders decomposition solver
+ *
+ * Implements quadratic Benders decomposition strategy using SCIP solver, supporting linear master problem solving
+ * (delegates to linear Benders solver) and quadratic master problem solving, as well as quadratic sub-problem solving
+ * (with dual solution and Farkas proof extraction).
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 求解器回调 / solver callback
+ */
 class ScipQuadraticBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()

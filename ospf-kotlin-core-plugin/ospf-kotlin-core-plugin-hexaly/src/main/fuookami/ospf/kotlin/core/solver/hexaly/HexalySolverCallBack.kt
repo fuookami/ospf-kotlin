@@ -1,14 +1,12 @@
 /** Hexaly 求解器回调支持 / Hexaly solver callback support */
 package fuookami.ospf.kotlin.core.solver.hexaly
 
-import com.hexaly.optimizer.HexalyOptimizer
-import com.hexaly.optimizer.HxCallbackType
-import com.hexaly.optimizer.HxExpression
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import java.util.*
+import com.hexaly.optimizer.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
-import java.util.*
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** 创建环境函数类型 / Creating environment function type */
 typealias CreatingEnvironmentFunction = (HexalyOptimizer) -> Try

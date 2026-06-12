@@ -36,7 +36,7 @@ PowerShell 用：pwsh.exe。
 
 1. 所有 `import` 连续排列，中间不按来源分组插空行。
 2. import 来源层级按以下顺序排列（被依赖方排在前面）：
-   - Kotlin / Java / kotlinx 标准或官方库
+   - Java / Kotlin / kotlinx 标准或官方库
    - 第三方库（如 `org.apache.logging`、`org.http4k` 等）
    - `fuookami.ospf.kotlin.*`（按模块依赖深度升序）
 3. `fuookami.ospf.kotlin.*` 内部按模块依赖层级排列，从底层到上层：

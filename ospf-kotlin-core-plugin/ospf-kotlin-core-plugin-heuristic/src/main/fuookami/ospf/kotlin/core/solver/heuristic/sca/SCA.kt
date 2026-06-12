@@ -1,41 +1,35 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
+/** 正弦余弦算法实现 / Sine Cosine Algorithm implementation */
 package fuookami.ospf.kotlin.core.solver.heuristic.sca
 
-import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import kotlin.random.Random
+import kotlin.time.*
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.functional.average
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlin.random.Random
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /** 正弦余弦算法策略接口 / Sine Cosine Algorithm policy interface */
-interface AbstractSCAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractSCAPolicy<ObjValue, V> :
+    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
      * 计算控制参数 r1 / Calculate control parameter r1
      *
@@ -91,6 +85,19 @@ interface AbstractSCAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuo
     ): SolutionWithFitness<ObjValue, V>
 }
 
+/**
+ * Q-learning 状态
+ *
+ * 基于种群密度和距离的离散化状态，用于 Q-learning 控制参数选择。
+ *
+ * Q-learning state
+ *
+ * Discretized state based on population density and distance, used for Q-learning
+ * control parameter selection.
+ *
+ * @property density 种群密度 / population density
+ * @property distance 到最优个体的距离 / distance to best individual
+ */
 data class QLearningState(
     val density: Flt64,
     val distance: Flt64
@@ -114,6 +121,22 @@ data class QLearningState(
     }
 }
 
+/**
+ * 正弦余弦算法策略
+ *
+ * 实现正弦余弦算法的位置更新策略，结合 Q-learning 自适应调整控制参数 r1 和 r3 的范围。
+ *
+ * Sine Cosine Algorithm policy
+ *
+ * Implements position update strategy for SCA, combined with Q-learning for adaptive
+ * adjustment of control parameter r1 and r3 ranges.
+ *
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property alpha Q-learning 学习率 / Q-learning learning rate
+ * @property gamma Q-learning 折扣因子 / Q-learning discount factor
+ * @property randomGenerator 随机数生成器 / random number generator
+ */
 class SCAPolicy<ObjValue, V>(
     private val alpha: Flt64 = Flt64(0.1),
     private val gamma: Flt64 = Flt64(0.9),
@@ -147,6 +170,7 @@ class SCAPolicy<ObjValue, V>(
             )
         }
     }
+
     private val qTable = mutableMapOf<UInt64, MutableList<Flt64>>()
     private var currentState: UInt64 = UInt64.zero
 
@@ -321,6 +345,7 @@ class SCAPolicy<ObjValue, V>(
             }
         } / Flt64(population.size * flt64Solutions.first().size)
     }
+
     /**
      * 计算种群到最优个体的距离 / Calculate distance from population to best individual
      *
@@ -352,6 +377,24 @@ class SCAPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+/**
+ * 正弦余弦算法
+ *
+ * 实现基于正弦余弦函数的优化算法，使用正弦或余弦函数更新个体位置，
+ * 结合 Q-learning 自适应调整搜索策略。
+ *
+ * Sine Cosine Algorithm
+ *
+ * Implements optimization algorithm based on sine and cosine functions, using sine or cosine
+ * function to update individual positions, combined with Q-learning for adaptive search strategy.
+ *
+ * @param Obj 目标类型 / objective type
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property populationAmount 种群数量 / population amount
+ * @property solutionAmount 期望解的数量 / desired number of solutions
+ * @property policy 正弦余弦算法策略 / SCA policy
+ */
 class SineCosineAlgorithm<Obj, ObjValue, V>(
     val populationAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,

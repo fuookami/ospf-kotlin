@@ -1,14 +1,12 @@
 /** 粒子群优化器粒子定义 / Particle Swarm Optimizer particle definition */
 package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
-import fuookami.ospf.kotlin.core.solver.heuristic.AbstractHeuristicPolicy
-import fuookami.ospf.kotlin.core.solver.heuristic.Individual
-import fuookami.ospf.kotlin.core.solver.heuristic.Iteration
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.ifNull
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value

@@ -3,8 +3,8 @@ package fuookami.ospf.kotlin.core.solver.hexaly
 
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxModel
-import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.variable.*
 
 /** Hexaly 变量类型密封接口，将内部变量类型映射为 Hexaly 变量表达式 / Hexaly variable type sealed interface, maps internal variable types to Hexaly variable expressions */
 sealed interface HexalyVariable {

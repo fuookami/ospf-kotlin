@@ -1,37 +1,37 @@
+/** 多元宇宙优化器实现 / Multi-Verse Optimizer implementation */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.heuristic.mvo
 
-import fuookami.ospf.kotlin.core.solver.heuristic.*
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.utils.functional.Order
-import kotlin.random.Random
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.ExperimentalTime
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /** 宇宙个体类型，带有适应度的解 / Universe type, solution with fitness */
 typealias Universe<ObjValue, V> = SolutionWithFitness<ObjValue, V>
 
 /** 多元宇宙优化器策略接口 / Multi-Verse Optimizer policy interface */
-interface AbstractMVOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractMVOPolicy<ObjValue, V> :
+    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
      * 计算虫洞存在概率（WEP）/ Calculate Wormhole Existence Probability (WEP)
      *
@@ -86,6 +86,25 @@ interface AbstractMVOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuo
  * @param V
  * @property minWEP         minimum wormhole existence probability
  * @property maxWEP         maximum wormhole existence probability
+ */
+/**
+ * 多元宇宙优化器策略
+ *
+ * 实现多元宇宙优化的虫洞存在概率、旅行距离率和白洞概率计算，
+ * 使用白洞/虫洞穿越机制进行全局搜索。
+ *
+ * Multi-Verse Optimizer policy
+ *
+ * Implements Wormhole Existence Probability, Travelling Distance Rate, and white hole rate calculation
+ * for MVO, using white hole/wormhole traversal mechanism for global search.
+ *
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property minWEP 最小虫洞存在概率 / minimum wormhole existence probability
+ * @property maxWEP 最大虫洞存在概率 / maximum wormhole existence probability
+ * @property whiteHoleSelector 白洞选择器 / white hole selector
+ * @property whiteHoleRateCalculator 白洞概率计算器 / white hole rate calculator
+ * @property randomGenerator 随机数生成器 / random number generator
  */
 open class MVOPolicy<ObjValue, V>(
     val minWEP: Flt64 = Flt64(0.2),
@@ -182,12 +201,14 @@ open class MVOPolicy<ObjValue, V>(
                 } else {
                     newFlt64
                 }
-                newSolution[dimension] = converter.intoValue(coerceIn(
-                    iteration = iteration,
-                    index = dimension,
-                    value = finalFlt64,
-                    model = model
-                ))
+                newSolution[dimension] = converter.intoValue(
+                    coerceIn(
+                        iteration = iteration,
+                        index = dimension,
+                        value = finalFlt64,
+                        model = model
+                    )
+                )
             }
             newSolutions.add(newSolution)
         }
@@ -221,6 +242,23 @@ open class MVOPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+/**
+ * 多元宇宙优化器
+ *
+ * 实现基于多元宇宙理论的优化算法，使用白洞和虫洞穿越机制在解空间中搜索最优解。
+ *
+ * Multi-Verse Optimizer
+ *
+ * Implements optimization algorithm based on multi-verse theory, using white hole and wormhole
+ * traversal mechanism to search for optimal solutions in the solution space.
+ *
+ * @param Obj 目标类型 / objective type
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property population 种群构建参数列表 / population builder list
+ * @property solutionAmount 期望解的数量 / desired number of solutions
+ * @property policy 多元宇宙优化器策略 / MVO policy
+ */
 class MultiVerseOptimizer<Obj, ObjValue, V>(
     val universeAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,

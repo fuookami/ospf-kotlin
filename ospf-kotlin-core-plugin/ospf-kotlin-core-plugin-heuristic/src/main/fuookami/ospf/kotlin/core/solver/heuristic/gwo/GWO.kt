@@ -1,38 +1,31 @@
+/** 灰狼优化器实现 / Grey Wolf Optimizer implementation */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.heuristic.gwo
 
-import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import kotlin.random.Random
+import kotlin.time.*
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlin.random.Random
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /** 灰狼优化器策略接口 / Grey Wolf Optimizer policy interface */
 interface AbstractGWOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
@@ -79,6 +72,26 @@ interface AbstractGWOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : Rea
     ): Wolf<ObjValue, V>
 }
 
+/**
+ * 灰狼优化器策略
+ *
+ * 实现灰狼优化器的收敛系数计算、领导狼扰动和狼群移动操作，
+ * 使用 alpha/beta/delta 三级领导层次引导搜索。
+ *
+ * Grey Wolf Optimizer policy
+ *
+ * Implements convergence coefficient calculation, leader wolf perturbation, and wolf movement operations,
+ * using alpha/beta/delta three-level leadership hierarchy to guide the search.
+ *
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property minA 最小收敛系数 / minimum convergence coefficient
+ * @property maxA 最大收敛系数 / maximum convergence coefficient
+ * @property b 随机游走参数 / random walk parameter
+ * @property growthRateAlpha alpha 增长率 / alpha growth rate
+ * @property growthRateBeta beta 增长率 / beta growth rate
+ * @property randomGenerator 随机数生成器 / random number generator
+ */
 class GWOPolicy<ObjValue, V>(
     val minA: Flt64 = Flt64(0.02),
     val maxA: Flt64 = Flt64(2.2),
@@ -122,6 +135,7 @@ class GWOPolicy<ObjValue, V>(
             )
         }
     }
+
     /** 计算收敛系数 a / Calculate convergence coefficient a */
     override fun a(iteration: Iteration): List<Flt64> {
         val iterationCoefficient = min(
@@ -189,12 +203,14 @@ class GWOPolicy<ObjValue, V>(
             val x2 = betaFlt64 - a2 * (c2 * betaFlt64 - posFlt64).abs()
             val x3 = deltaFlt64 - a3 * (c3 * deltaFlt64 - posFlt64).abs()
             val newPosition = (x1 + x2 + x3) / Flt64.three
-            converter.intoValue(coerceIn(
-                iteration = iteration,
-                index = i,
-                value = newPosition,
-                model = model
-            ))
+            converter.intoValue(
+                coerceIn(
+                    iteration = iteration,
+                    index = i,
+                    value = newPosition,
+                    model = model
+                )
+            )
         }
         return Wolf(
             newSolution,
@@ -204,6 +220,23 @@ class GWOPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+/**
+ * 灰狼优化器
+ *
+ * 实现基于灰狼群体的优化算法，使用 alpha/beta/delta 领导层次和随机游走机制进行全局搜索。
+ *
+ * Grey Wolf Optimizer
+ *
+ * Implements wolf-pack-based optimization algorithm, using alpha/beta/delta leadership hierarchy
+ * and random walk mechanism for global search.
+ *
+ * @param Obj 目标类型 / objective type
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property population 种群构建参数列表 / population builder list
+ * @property solutionAmount 期望解的数量 / desired number of solutions
+ * @property policy 灰狼优化器策略 / GWO policy
+ */
 class GreyWolfOptimizer<Obj, ObjValue, V>(
     val population: List<PopulationBuilder>,
     val solutionAmount: UInt64 = UInt64.one,

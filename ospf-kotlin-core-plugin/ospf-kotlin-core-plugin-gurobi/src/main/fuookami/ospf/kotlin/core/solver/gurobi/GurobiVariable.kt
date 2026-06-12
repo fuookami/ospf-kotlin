@@ -1,8 +1,8 @@
 /** Gurobi 变量类型映射 / Gurobi variable type mapping */
 package fuookami.ospf.kotlin.core.solver.gurobi
 
-import fuookami.ospf.kotlin.core.variable.*
 import gurobi.GRB
+import fuookami.ospf.kotlin.core.variable.*
 
 /** Gurobi 变量类型枚举，将内部变量类型映射为 Gurobi 变量类型 / Gurobi variable type enum, maps internal variable types to Gurobi variable types */
 enum class GurobiVariable {

@@ -1,30 +1,29 @@
+/** 模拟退火算法实现 / Simulated Annealing Algorithm implementation */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.heuristic.saa
 
-import fuookami.ospf.kotlin.core.solver.heuristic.*
+import kotlin.random.Random
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.minutes
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.nextFlt64
 import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.utils.functional.Order
-import kotlin.random.Random
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.ExperimentalTime
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /**
  *
@@ -34,7 +33,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * @property markovLength               the length of the markov chain
  */
 /** 模拟退火算法策略接口 / Simulated Annealing Algorithm policy interface */
-interface AbstractSAAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractSAAPolicy<ObjValue, V> :
+    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /** 马尔可夫链长度 / Markov chain length */
     val markovLength: UInt64
 
@@ -81,6 +81,26 @@ interface AbstractSAAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuo
  * @property disturbanceAmount          the amount of disturbance
  * @property distance                   the distance rate function between two objectives
  * @property randomGenerator
+ */
+/**
+ * 模拟退火算法策略
+ *
+ * 实现模拟退火的解变换、接受准则和温度调度，支持自适应步长衰减。
+ *
+ * Simulated Annealing Algorithm policy
+ *
+ * Implements solution transformation, acceptance criterion, and temperature scheduling
+ * for simulated annealing, supporting adaptive step size decay.
+ *
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property initialTemperature 初始温度 / initial temperature
+ * @property finalTemperature 终止温度 / final temperature
+ * @property temperatureGradiant 温度梯度 / temperature gradient
+ * @property markovLength Markov 链长度 / Markov chain length
+ * @property disturbanceAmount 扰动点数量 / disturbance point amount
+ * @property distance 目标值距离函数 / objective distance function
+ * @property randomGenerator 随机数生成器 / random number generator
  */
 open class SAAPolicy<ObjValue, V>(
     val initialTemperature: Flt64 = Flt64(100.0),
@@ -194,6 +214,21 @@ open class SAAPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+/**
+ * 模拟退火算法
+ *
+ * 实现基于温度调度的模拟退火优化算法，通过 Metropolis 准则接受劣解以跳出局部最优。
+ *
+ * Simulated Annealing Algorithm
+ *
+ * Implements temperature-scheduling-based simulated annealing optimization algorithm,
+ * accepting worse solutions via Metropolis criterion to escape local optima.
+ *
+ * @param Obj 目标类型 / objective type
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property policy 模拟退火策略 / simulated annealing policy
+ */
 class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
     val policy: AbstractSAAPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {

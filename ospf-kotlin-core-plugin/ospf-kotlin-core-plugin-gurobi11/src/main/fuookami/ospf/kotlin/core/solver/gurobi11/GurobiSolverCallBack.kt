@@ -1,12 +1,12 @@
 /** Gurobi 11 求解器回调支持 / Gurobi 11 solver callback support */
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
+import java.util.*
 import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
-import java.util.*
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** 创建环境函数类型 / Creating environment function type */
 typealias CreatingEnvironmentFunction = (GRBEnv) -> Try

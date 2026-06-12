@@ -1,37 +1,22 @@
+/** MOSEK 线性求解器 / MOSEK Linear Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.mosek
 
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.solver.LinearSolver
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
-import fuookami.ospf.kotlin.core.solver.modelingException
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import kotlin.time.Duration
+import kotlinx.coroutines.*
+import mosek.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import mosek.Exception
-import mosek.boundkey
-import mosek.objsense
-import mosek.variabletype
-import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 
 /** MOSEK 线性求解器 / MOSEK linear solver */
 class MosekLinearSolver(
@@ -134,15 +119,40 @@ class MosekLinearSolverImpl(
                     mosekModel.putvartype(col, variabletype.type_int)
                 }
                 if (variable.lowerBound.isNegativeInfinity() && variable.upperBound.isInfinity()) {
-                    mosekModel.putvarbound(col, boundkey.fr, Flt64.negativeInfinity.toSolverDouble("linear.variables[$col].lowerBound"), Flt64.infinity.toSolverDouble("linear.variables[$col].upperBound"))
+                    mosekModel.putvarbound(
+                        col,
+                        boundkey.fr,
+                        Flt64.negativeInfinity.toSolverDouble("linear.variables[$col].lowerBound"),
+                        Flt64.infinity.toSolverDouble("linear.variables[$col].upperBound")
+                    )
                 } else if (variable.lowerBound.isNegativeInfinity()) {
-                    mosekModel.putvarbound(col, boundkey.up, Flt64.negativeInfinity.toSolverDouble("linear.variables[$col].lowerBound"), variable.upperBound.toSolverDouble("linear.variables[$col].upperBound"))
+                    mosekModel.putvarbound(
+                        col,
+                        boundkey.up,
+                        Flt64.negativeInfinity.toSolverDouble("linear.variables[$col].lowerBound"),
+                        variable.upperBound.toSolverDouble("linear.variables[$col].upperBound")
+                    )
                 } else if (variable.upperBound.isInfinity()) {
-                    mosekModel.putvarbound(col, boundkey.lo, variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"), Flt64.infinity.toSolverDouble("linear.variables[$col].upperBound"))
+                    mosekModel.putvarbound(
+                        col,
+                        boundkey.lo,
+                        variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"),
+                        Flt64.infinity.toSolverDouble("linear.variables[$col].upperBound")
+                    )
                 } else if (variable.lowerBound eq variable.upperBound) {
-                    mosekModel.putvarbound(col, boundkey.fx, variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"), variable.upperBound.toSolverDouble("linear.variables[$col].upperBound"))
+                    mosekModel.putvarbound(
+                        col,
+                        boundkey.fx,
+                        variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"),
+                        variable.upperBound.toSolverDouble("linear.variables[$col].upperBound")
+                    )
                 } else {
-                    mosekModel.putvarbound(col, boundkey.ra, variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"), variable.upperBound.toSolverDouble("linear.variables[$col].upperBound"))
+                    mosekModel.putvarbound(
+                        col,
+                        boundkey.ra,
+                        variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"),
+                        variable.upperBound.toSolverDouble("linear.variables[$col].upperBound")
+                    )
                 }
             }
             // todo: initial solution

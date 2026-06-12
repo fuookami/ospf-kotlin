@@ -1,14 +1,14 @@
 /** CPLEX 求解器回调支持 / CPLEX solver callback support */
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.syncRun
+import java.util.*
 import ilog.concert.IloNumVar
 import ilog.concert.IloRange
 import ilog.cplex.IloCplex
-import java.util.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.syncRun
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** CPLEX 原生回调函数类型 / CPLEX native callback function type */
 typealias NativeCallback = IloCplex.Callback.() -> Unit

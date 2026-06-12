@@ -1,41 +1,22 @@
+/** Hexaly 二次求解器 / Hexaly Quadratic Solver */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.hexaly
 
-import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-
-import com.hexaly.optimizer.HxCallbackType
-import com.hexaly.optimizer.HxException
-import com.hexaly.optimizer.HxExpression
-import com.hexaly.optimizer.HxObjectiveDirection
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.solver.QuadraticSolver
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
-import fuookami.ospf.kotlin.core.solver.modelingException
-import fuookami.ospf.kotlin.core.solver.failByStatus
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import kotlin.time.*
+import kotlinx.coroutines.*
+import com.hexaly.optimizer.*
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.solver.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 
 /** Hexaly 二次求解器 / Hexaly quadratic solver */
 class HexalyQuadraticSolver(
@@ -156,7 +137,10 @@ private class HexalyQuadraticSolverImpl(
                                     if (colIndex2 != null) {
                                         lhs.addOperands(
                                             hexalyModel.prod(
-                                                hexalyModel.prod(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"), hexalyVars[colIndex1]),
+                                                hexalyModel.prod(
+                                                    coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"),
+                                                    hexalyVars[colIndex1]
+                                                ),
                                                 hexalyVars[colIndex2]
                                             )
                                         )
@@ -236,7 +220,10 @@ private class HexalyQuadraticSolverImpl(
                 if (cell.colIndex2 != null) {
                     obj.addOperands(
                         hexalyModel.prod(
-                            hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1},${cell.colIndex2}].coefficient"), hexalyVars[cell.colIndex1]),
+                            hexalyModel.prod(
+                                cell.coefficient.toSolverDouble("quadratic.objective.cells[${cell.colIndex1},${cell.colIndex2}].coefficient"),
+                                hexalyVars[cell.colIndex1]
+                            ),
                             hexalyVars[cell.colIndex2!!]
                         )
                     )

@@ -1,12 +1,12 @@
 /** MindOPT 求解器回调支持 / MindOPT solver callback support */
 package fuookami.ospf.kotlin.core.solver.mindopt
 
+import java.util.*
 import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
-import java.util.*
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** 创建环境函数类型 / Creating environment function type */
 typealias CreatingEnvironmentFunction = (MDOEnv) -> Try

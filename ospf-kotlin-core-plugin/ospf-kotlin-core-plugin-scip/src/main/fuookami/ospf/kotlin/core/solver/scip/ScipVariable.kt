@@ -1,8 +1,8 @@
 /** SCIP 变量类型映射 / SCIP variable type mapping */
 package fuookami.ospf.kotlin.core.solver.scip
 
-import fuookami.ospf.kotlin.core.variable.*
 import jscip.SCIP_Vartype
+import fuookami.ospf.kotlin.core.variable.*
 
 /** SCIP 变量类型枚举，将内部变量类型映射为 SCIP 变量类型 / SCIP variable type enum, maps internal variable types to SCIP variable types */
 enum class ScipVariable {

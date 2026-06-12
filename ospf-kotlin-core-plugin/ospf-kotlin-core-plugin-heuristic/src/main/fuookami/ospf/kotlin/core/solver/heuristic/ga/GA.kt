@@ -1,38 +1,34 @@
+/** 遗传算法实现 / Genetic Algorithm implementation */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.core.solver.heuristic.ga
 
-import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
-import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
-import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlin.random.Random
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
+import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /** 遗传算法策略接口 / Genetic algorithm policy interface */
-interface AbstractGAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractGAPolicy<ObjValue, V> :
+    AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
      * 执行种群迁移 / Execute population migration
      *
@@ -94,6 +90,28 @@ interface AbstractGAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuoo
     ): List<Chromosome<ObjValue, V>>
 }
 
+/**
+ * 遗传算法策略
+ *
+ * 实现遗传算法的迁移、选择、交叉和变异操作，支持多种群迁移和精英保留策略。
+ *
+ * Genetic algorithm policy
+ *
+ * Implements migration, selection, crossover, and mutation operations for genetic algorithm,
+ * supporting multi-population migration and elite preservation strategy.
+ *
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property migration 迁移策略 / migration strategy
+ * @property selectionMode 选择模式 / selection mode
+ * @property selection 选择算子 / selection operator
+ * @property crossMode 交叉模式 / crossover mode
+ * @property cross 交叉算子 / crossover operator
+ * @property mutationMode 变异模式 / mutation mode
+ * @property mutation 变异算子 / mutation operator
+ * @property normalization 目标归一化方法 / objective normalization method
+ * @property randomGenerator 随机数生成器 / random number generator
+ */
 class GAPolicy<ObjValue, V>(
     val migration: Migration<ObjValue, V>,
     val selectionMode: SelectionMode<ObjValue, V>,
@@ -145,6 +163,7 @@ class GAPolicy<ObjValue, V>(
             )
         }
     }
+
     /** 执行种群迁移 / Execute population migration */
     override suspend fun migrate(
         iteration: Iteration,
@@ -291,6 +310,24 @@ class GAPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+/**
+ * 遗传算法
+ *
+ * 实现基于种群的遗传算法，支持多种群协同进化、精英保留和周期性迁移。
+ *
+ * Genetic algorithm
+ *
+ * Implements population-based genetic algorithm, supporting multi-population co-evolution,
+ * elite preservation, and periodic migration.
+ *
+ * @param Obj 目标类型 / objective type
+ * @param ObjValue 目标值类型 / objective value type
+ * @param V 值类型 / value type
+ * @property population 种群构建参数列表 / population builder list
+ * @property migrationPeriod 迁移周期 / migration period
+ * @property solutionAmount 期望解的数量 / desired number of solutions
+ * @property policy 遗传算法策略 / genetic algorithm policy
+ */
 class GeneAlgorithm<Obj, ObjValue, V>(
     val population: List<PopulationBuilder>,
     val migrationPeriod: UInt64,

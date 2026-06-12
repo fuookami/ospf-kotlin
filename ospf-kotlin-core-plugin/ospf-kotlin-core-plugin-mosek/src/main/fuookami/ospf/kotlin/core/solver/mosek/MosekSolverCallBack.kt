@@ -1,13 +1,13 @@
 /** MOSEK 求解器回调支持 / MOSEK solver callback support */
 package fuookami.ospf.kotlin.core.solver.mosek
 
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import java.util.*
+import mosek.Callback
+import mosek.Task
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
-import mosek.Callback
-import mosek.Task
-import java.util.*
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** 创建环境函数类型 / Creating environment function type */
 typealias CreatingEnvironmentFunction = (Task) -> Try

@@ -1,8 +1,8 @@
 /** CPLEX 变量类型映射 / CPLEX variable type mapping */
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import fuookami.ospf.kotlin.core.variable.*
 import ilog.concert.IloNumVarType
+import fuookami.ospf.kotlin.core.variable.*
 
 /** CPLEX 变量类型枚举，将内部变量类型映射为 CPLEX 变量类型 / CPLEX variable type enum, maps internal variable types to CPLEX variable types */
 enum class CplexVariable {
