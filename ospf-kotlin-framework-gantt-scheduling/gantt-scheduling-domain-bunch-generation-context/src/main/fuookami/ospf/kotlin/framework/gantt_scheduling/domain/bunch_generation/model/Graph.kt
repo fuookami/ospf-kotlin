@@ -1,14 +1,10 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 /** 任务束生成图模型 / Bunch generation graph model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Instant
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 节点密封类 / Node sealed class

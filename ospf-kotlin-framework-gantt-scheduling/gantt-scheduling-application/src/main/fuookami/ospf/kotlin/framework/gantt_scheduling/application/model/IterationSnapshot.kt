@@ -1,5 +1,4 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 /** 迭代状态快照 / Iteration state snapshot */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model
 

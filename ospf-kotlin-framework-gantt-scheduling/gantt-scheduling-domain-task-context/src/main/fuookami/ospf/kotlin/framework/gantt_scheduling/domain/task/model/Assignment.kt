@@ -1,4 +1,3 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
@@ -6,8 +5,8 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 
 /**
  * 分配策略，描述任务的执行者和时间分配 / Assignment policy describing executor and time assignment for a task

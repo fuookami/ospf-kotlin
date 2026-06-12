@@ -1,19 +1,23 @@
+/**
+ * 产能调度生产抽象基类 / Capacity scheduling produce abstract base class
+ *
+ * 本文件定义产能调度场景下产品产量管理的通用框架抽象基类。
+ * This file defines the abstract base class for the common framework of product quantity management in capacity scheduling scenarios.
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
  * 产能调度场景的产品产量管理抽象基类

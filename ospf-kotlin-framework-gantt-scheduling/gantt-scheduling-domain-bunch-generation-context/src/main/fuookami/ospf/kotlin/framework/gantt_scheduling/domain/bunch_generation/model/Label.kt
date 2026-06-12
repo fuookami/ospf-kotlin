@@ -1,9 +1,8 @@
+/** 标签模型 / Label model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
-import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**

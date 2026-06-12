@@ -1,30 +1,31 @@
+/**
+ * 迭代产能编译决策对象（列生成主问题）
+ * Iterative Capacity Compilation Decision Object (Column Generation Master Problem)
+ *
+ * 用于列生成迭代求解场景。
+ * Used for column generation/iterative solving scenarios.
+ *
+ * 变量结构：每台设备的二维整型变量
+ * Variable structure: 2D integer variable per executor
+ * x[executor][iteration, columnIndex] -> amount
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols2
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.flatMap
-import fuookami.ospf.kotlin.core.variable.UIntVariable2
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverFlt64
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.multiarray.Shape2
 import kotlin.math.floor
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 迭代产能编译决策对象（列生成主问题）

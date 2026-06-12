@@ -1,10 +1,8 @@
+/** 分时隙任务束聚合模型 / Slot-based bunch aggregation model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 分时隙任务束聚合 / Slot-based bunch aggregation

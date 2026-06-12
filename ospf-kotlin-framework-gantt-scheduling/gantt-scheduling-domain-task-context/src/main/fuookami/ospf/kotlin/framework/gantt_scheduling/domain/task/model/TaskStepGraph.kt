@@ -1,4 +1,3 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
@@ -6,12 +5,9 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 步骤关系枚举 / Step relation enumeration

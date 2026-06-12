@@ -1,31 +1,18 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+/** 分时隙产能预求解服务 / Slot-based capacity pre-solving service */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.PlusGroup
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityCompilation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverFlt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
 
@@ -62,17 +49,28 @@ private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
  * 分时隙产能预求解服务
  * Slot-based capacity pre-solving service
  *
- * 负责求解 capacity scheduling 问题并提取中间值�?
+ * 负责求解 capacity scheduling 问题并提取中间值。
  * Responsible for solving capacity scheduling problem and extracting intermediate values.
  *
- * 中间值用于给 bunch 生成器提供时隙约束�?
+ * 中间值用于给 bunch 生成器提供时隙约束。
  * Intermediate values are used to provide slot constraints to bunch generators.
  *
  * @param V 业务数值类型 / Business numeric type
- * @param E 执行器类�?/ Executor type
+ * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
+ * @property actions 生产动作列表 / List of production actions
+ * @property executors 执行器列表 / List of executors
+ * @property slots 时隙列表 / List of time slots
+ * @property timeWindow 时间窗口 / Time window
+ * @property products 产品列表及其需求量 / Products with their demand quantities
+ * @property resourceCapacities 资源容量列表 / List of resource capacities
+ * @property useColumnGeneration 是否使用列生成 / Whether to use column generation
+ * @property unitProduceOfAction 计算动作单位操作时间的产品产量 / Calculate product produce per unit operation time for action
+ * @property unitConsumptionOfAction 计算动作单位操作时间的原料消耗 / Calculate material consumption per unit operation time for action
+ * @property unitResourceUsageOfAction 计算动作在时隙内单位操作时间的资源使用量 / Calculate resource usage per unit operation time for action in slot
+ * @property materials 原料列表 / Material list
  */
 class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     /**
@@ -82,7 +80,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     private val actions: List<A>,
 
     /**
-     * 执行器列�?
+     * 执行器列表
      * List of executors
      */
     private val executors: List<E>,
@@ -112,19 +110,19 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     private val resourceCapacities: List<R> = emptyList(),
 
     /**
-     * 是否使用列生�?
+     * 是否使用列生成
      * Whether to use column generation
      */
     private val useColumnGeneration: Boolean = false,
 
     /**
-     * 计算动作单位操作时间的产品产�?
+     * 计算动作单位操作时间的产品产量
      * Calculate product produce per unit operation time for action
      */
     private val unitProduceOfAction: ((A, M) -> V)? = null,
 
     /**
-     * 计算动作单位操作时间的原料消�?
+     * 计算动作单位操作时间的原料消耗
      * Calculate material consumption per unit operation time for action
      */
     private val unitConsumptionOfAction: ((A, M) -> V)? = null,
@@ -176,7 +174,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         }
 
     /**
-     * 注册到模�?
+     * 注册到模型
      * Register to model
      *
      * @param model Linear meta model / 线性元模型
@@ -191,7 +189,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
-     * 在列生成模式下添加预求解�?
+     * 在列生成模式下添加预求解列
      * Add pre-solving columns in column-generation mode
      *
      * @param iteration Iteration number / 迭代编号
@@ -217,13 +215,13 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     }
 
     /**
-     * 执行预求�?
+     * 执行预求解
      * Execute pre-solving
      *
      * @param model Linear meta model / 线性元模型
-     * @param solver Solver / 求解�?
-     * @param initialColumnsByIteration Initial columns grouped by iteration / 按迭代分组的初始�?
-     * @return Intermediate values / 中间�?
+     * @param solver Solver / 求解器
+     * @param initialColumnsByIteration Initial columns grouped by iteration / 按迭代分组的初始列
+     * @return Intermediate values / 中间值
      */
     suspend fun solve(
         model: AbstractLinearMetaModel<Flt64>,
@@ -250,19 +248,19 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         }
 
         // Extract intermediate values
-        // 提取中间�?
+        // 提取中间值
         return extractIntermediateValues(model)
     }
 
     /**
-     * 提取中间�?
+     * 提取中间值
      * Extract intermediate values
      *
-     * 从已求解的模型中提取每个时隙的产能、产量、资源使用中间值�?
+     * 从已求解的模型中提取每个时隙的产能、产量、资源使用中间值。
      * Extract capacity, produce, resource usage intermediate values for each slot from solved model.
      *
      * @param model Solved linear meta model / 已求解的线性元模型
-     * @return Intermediate values / 中间�?
+     * @return Intermediate values / 中间值
      */
     fun extractIntermediateValues(
         model: AbstractLinearMetaModel<Flt64>
@@ -271,7 +269,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         val zero = timeWindow.fromDouble(0.0)
 
         // Extract capacity solution
-        // 提取产能�?
+        // 提取产能解
         val capacitySolution = when (val result = compilation.extractSolution(model)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
@@ -279,19 +277,19 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         }
 
         // Group action allocations by slot
-        // 按时隙分组动作分�?
+        // 按时隙分组动作分配
         val allocationsBySlot = HashMap<TimeSlot, MutableList<ActionAllocation<A>>>()
         for (allocation in capacitySolution.actionAllocations) {
             allocationsBySlot.getOrPut(allocation.slot) { mutableListOf() }.add(allocation)
         }
 
         // Build result for each slot
-        // 为每个时隙构建结�?
+        // 为每个时隙构建结果
         for ((slotIndex, slot) in slots.withIndex()) {
             val allocations = allocationsBySlot[slot] ?: emptyList()
 
             // Calculate total cost for this slot
-            // 计算该时隙的总成�?
+            // 计算该时隙的总成本
             val totalCost = allocations.fold(zero) { acc, alloc ->
                 acc + alloc.action.unitCost(
                     time = alloc.slot.time.start,
@@ -351,4 +349,3 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
         return Ok(CapacityIntermediateValues(slots, results))
     }
 }
-

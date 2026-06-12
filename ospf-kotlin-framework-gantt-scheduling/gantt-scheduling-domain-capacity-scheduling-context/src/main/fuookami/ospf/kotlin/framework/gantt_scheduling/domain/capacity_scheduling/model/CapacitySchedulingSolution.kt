@@ -1,17 +1,21 @@
 
+/**
+ * 产能调度解
+ * Capacity Scheduling Solution
+ *
+ * 存储产能调度的完整解。
+ * Stores complete solution for capacity scheduling.
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /** 产能时长物理量 / Capacity duration quantity */
 typealias CapacityDurationQuantity<V> = Quantity<V>

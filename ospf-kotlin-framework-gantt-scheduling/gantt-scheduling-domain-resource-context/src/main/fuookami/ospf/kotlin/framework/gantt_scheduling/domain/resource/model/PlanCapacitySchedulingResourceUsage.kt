@@ -1,32 +1,30 @@
+/** Plan 模式产能调度资源使用量管理（非列生成场景） / Plan-mode resource usage for Capacity Scheduling (non-column generation scenarios) */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 
 /**
- * Plan 模式的产能调度资源使用量管理
- * Plan-mode resource usage for Capacity Scheduling
+ * Plan 模式的产能调度资源使用量管理 / Plan-mode resource usage for Capacity Scheduling
  *
  * 用于非列生成场景，在构造时绑定 Capacity 编译对象
  * Used for non-column generation scenarios, binds to Capacity compilation object at construction
  *
+ * @param A 生产动作类型 / Production action type
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param resources 资源列表 / Resource list
  * @param compilation Capacity 编译对象 / Capacity compilation object
  * @param times 时隙列表 / Time slot list
@@ -124,6 +122,12 @@ class PlanCapacitySchedulingResourceUsage<
         }
     }
 
+    /**
+     * 注册变量到线性元模型 / Register variables to the linear meta model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
+     */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         return addQuantityToModel(model, timeSlots)
     }

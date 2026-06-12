@@ -1,38 +1,29 @@
+/**
+ * 生产管理模块 / Produce management module
+ *
+ * 本模块定义生产相关的接口和类，用于建模产品产量、需求约束及影子价格提取。
+ * This module defines produce-related interfaces and classes for modeling product output, demand constraints, and shadow price extraction.
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.variable.UContinuous
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
-import fuookami.ospf.kotlin.framework.model.refresh
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /** 生产接口 / Produce interface */
 interface Produce {
@@ -262,13 +253,15 @@ abstract class AbstractProduce<
     }
 
     /**
-     * 提取影子价格
-     * Extract shadow prices from slack variables
+     * 提取影子价格 / Extract shadow prices
      *
-     * @param Map              影子价格表类型
-     * @param shadowPriceMap   影子价格表 / Shadow price map
-     * @param shadowPrices     原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
-     * @return                 成功与否 / Success or failure
+     * 从松弛变量提取影子价格（对偶变量）。
+     * Extracts shadow prices (dual variables) from slack variables.
+     *
+     * @param Map 影子价格表类型 / Shadow price map type
+     * @param shadowPriceMap 影子价格表 / Shadow price map
+     * @param shadowPrices 原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
+     * @return 成功与否 / Success or failure
      */
     fun <Map : AbstractShadowPriceMap<*, Map>> refresh(
         shadowPriceMap: Map,

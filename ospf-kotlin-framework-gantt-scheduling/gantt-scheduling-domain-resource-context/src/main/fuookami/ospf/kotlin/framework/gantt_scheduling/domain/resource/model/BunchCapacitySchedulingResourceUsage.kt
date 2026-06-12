@@ -1,34 +1,36 @@
+/** Bunch 模式产能调度资源使用量管理（支持列生成） / Bunch-mode resource usage for Capacity Scheduling (with column generation) */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 
 /**
- * Bunch 模式的产能调度资源使用量管理（支持列生成）
- * Bunch-mode resource usage for Capacity Scheduling (with column generation)
+ * Bunch 模式的产能调度资源使用量管理（支持列生成）/ Bunch-mode resource usage for Capacity Scheduling (with column generation)
  *
  * 用于列生成场景，通过 CapacityColumn 追加资源使用量贡献
  * Used for column generation scenarios, adds resource usage contribution through CapacityColumn
+ *
+ * @param E 执行器类型 / Executor type
+ * @param A 生产动作类型 / Production action type
+ * @param R 资源类型 / Resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param actions 生产动作列表 / List of production actions
+ * @param interval 时间间隔 / Time interval
  */
 class BunchCapacitySchedulingResourceUsage<
         E : Executor,
@@ -105,13 +107,18 @@ class BunchCapacitySchedulingResourceUsage<
         initQuantity(this.timeSlots)
     }
 
+    /**
+     * 注册变量到线性元模型 / Register variables to the linear meta model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
+     */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         return addQuantityToModel(model, timeSlots)
     }
 
     /**
-     * 从 IterativeCapacityCompilation 添加列贡献
-     * Add column contribution from IterativeCapacityCompilation
+     * 从 IterativeCapacityCompilation 添加列贡献 / Add column contribution from IterativeCapacityCompilation
      *
      * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献
      * Used for column generation, adds resource usage contribution from new columns in each iteration

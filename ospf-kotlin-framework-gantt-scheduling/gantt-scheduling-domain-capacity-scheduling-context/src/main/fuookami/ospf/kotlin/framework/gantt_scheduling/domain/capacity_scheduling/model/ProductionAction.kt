@@ -1,17 +1,27 @@
+/**
+ * 生产动作接口
+ * Production Action Interface
+ *
+ * 生产动作表示产能的生产方式。
+ * A production action represents a way to produce capacity.
+ *
+ * 分为：
+ * Can be:
+ * - **离散型**：有固定批次时长，决策变量表示批次数
+ * - **Discrete**: Has fixed batch duration, decision variable represents batch count
+ * - **连续型**：无固定批次时长，决策变量表示时长单位数
+ * - **Continuous**: No fixed batch duration, decision variable represents duration units
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import kotlin.time.Duration
-import kotlin.time.Instant
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import kotlin.time.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 生产动作接口

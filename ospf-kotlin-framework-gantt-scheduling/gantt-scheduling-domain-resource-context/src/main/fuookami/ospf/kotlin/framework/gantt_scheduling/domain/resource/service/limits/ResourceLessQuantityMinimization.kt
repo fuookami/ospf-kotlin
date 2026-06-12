@@ -1,25 +1,16 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
 /** 资源下限数量最小化 / Resource less quantity minimization */
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.core.variable.UContinuous
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Resource
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceTimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceUsage
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceSlack
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 资源下限数量最小化 / Resource less quantity minimization
@@ -30,6 +21,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
  * @param S 资源时间槽类型 / Resource time slot type
  * @param R 资源类型 / Resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param quantity 资源使用对象 / Resource usage object
  * @param threshold 阈值函数 / Threshold function
  * @param coefficient 成本系数函数 / Cost coefficient function
@@ -55,6 +47,12 @@ class ResourceLessQuantityMinimization<
         emptyList()
     }
 
+    /**
+     * 向模型添加下限数量最小化目标 / Add less-quantity minimization objective to the model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
+     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (slots.isNotEmpty()) {
             val cost = MutableLinearPolynomial(constant = Flt64.zero)

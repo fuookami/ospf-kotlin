@@ -1,25 +1,20 @@
+/**
+ * 生产数量约束服务 / Produce quantity constraint service
+ *
+ * 本文件定义生产数量约束管道及影子价格键，用于建模产品产量的上下限约束。
+ * This file defines produce quantity constraint pipeline and shadow price key for modeling product output lower/upper bound constraints.
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.ProductionTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.nonZeroProduceMaterials
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverLowerBound
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.solverUpperBound
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.model.ShadowPrice
-import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 生产数量影子价格键 / Produce quantity shadow price key

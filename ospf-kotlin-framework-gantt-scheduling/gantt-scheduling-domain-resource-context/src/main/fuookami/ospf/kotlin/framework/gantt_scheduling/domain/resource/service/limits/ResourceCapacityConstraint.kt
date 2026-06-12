@@ -1,29 +1,24 @@
+/** 资源容量约束与影子价格提取 / Resource capacity constraints and shadow price extraction */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.model.ShadowPrice
-import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
 /**
  * 资源容量影子价格键 / Resource capacity shadow price key
  *
  * @param R 资源类型 / Resource type
  * @param C 资源容量类型 / Resource capacity type
- * @param slot 资源时间槽 / Resource time slot
+ * @param V 值类型 / Value type
+ * @property slot 资源时间槽 / Resource time slot
  */
 data class ResourceCapacityShadowPriceKey<R : Resource<C, V>, C : AbstractResourceCapacity<V>, V>(
     val slot: ResourceTimeSlot<R, C, V>
@@ -38,6 +33,7 @@ data class ResourceCapacityShadowPriceKey<R : Resource<C, V>, C : AbstractResour
  * @param S 资源时间槽类型 / Resource time slot type
  * @param R 存储资源类型 / Storage resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param usage 资源使用对象 / Resource usage object
  * @param quantity 数量提取器 / Quantity extractor
  * @param withSlack 是否使用松弛 / Whether to use slack
@@ -59,6 +55,12 @@ class ResourceCapacityConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "${usage.name}_resource_capacity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 向模型添加资源容量约束 / Add resource capacity constraints to the model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
+     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (slot in usage.timeSlots) {
             val thisQuantity = quantity(slot)
@@ -182,6 +184,11 @@ class ResourceCapacityConstraint<
         return ok
     }
 
+    /**
+     * 返回影子价格提取器 / Return the shadow price extractor
+     *
+     * @return 影子价格提取函数 / Shadow price extractor function
+     */
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
@@ -209,6 +216,14 @@ class ResourceCapacityConstraint<
             }
         }
     }
+    /**
+     * 从对偶解中刷新影子价格 / Refresh shadow prices from the dual solution
+     *
+     * @param shadowPriceMap 影子价格表 / Shadow price map
+     * @param model 线性元模型 / Linear meta model
+     * @param shadowPrices 对偶解 / Dual solution
+     * @return 成功与否 / Success or failure
+     */
     override fun refresh(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,

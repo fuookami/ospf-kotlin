@@ -1,5 +1,10 @@
+/**
+ * 影子价格键类型转换支持 / Shadow price key type cast support
+ *
+ * 本文件提供影子价格键的安全类型转换工具函数。
+ * This file provides utility functions for safe type casting of shadow price keys.
+ */
 @file:Suppress("UNCHECKED_CAST")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey

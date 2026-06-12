@@ -1,4 +1,3 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
@@ -6,21 +5,14 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.utils.functional.eq
-import kotlin.time.Instant
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 import kotlin.reflect.jvm.jvmName
-import kotlin.time.Duration
+import kotlin.time.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 
 /**
  * 任务类型，基于KClass / Task type based on KClass

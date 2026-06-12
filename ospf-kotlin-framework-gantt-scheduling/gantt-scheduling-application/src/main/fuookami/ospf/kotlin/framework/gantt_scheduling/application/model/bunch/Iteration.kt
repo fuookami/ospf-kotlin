@@ -1,25 +1,17 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 /** 任务束迭代器 / Bunch iterator */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch
 
 import kotlin.time.Clock
 import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.utils.functional.sum
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.IterationSnapshot
 
 /**
@@ -28,9 +20,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.Iterati
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- * @param initialSlowLpImprovementStep 初始慢 LP 目标标量改进步长 / Initial slow LP objective scalar improvement step
- * @param relativeImprovementStep 相对目标标量改进步长 / Relative objective scalar improvement step
- * @param improvementSlowCount 改进缓慢计数 / Improvement slow count
+ * @property initialSlowLpImprovementStep 初始慢 LP 目标标量改进步长 / Initial slow LP objective scalar improvement step
+ * @property relativeImprovementStep 相对目标标量改进步长 / Relative objective scalar improvement step
+ * @property improvementSlowCount 改进缓慢计数 / Improvement slow count
  */
 class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V : RealNumber<V>>(
     val initialSlowLpImprovementStep: Flt64 = Flt64(100.0),
@@ -40,13 +32,16 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
     private val logger = logger()
 
     private var _iteration = UInt64.Companion.zero
+    /** 当前迭代次数 / Current iteration count */
     val iteration get() = _iteration
     private var beginTime = Clock.System.now()
+    /** 算法运行时长 / Algorithm runtime duration */
     val runTime get() = Clock.System.now() - beginTime
 
     private var slowLpImprovementStep: Flt64 = Flt64.Companion.infinity
     private var slowLpImprovementCount = UInt64.Companion.zero
     private var slowIpImprovementCount = UInt64.Companion.zero
+    /** 是否改进缓慢 / Whether improvement is slow */
     val isImprovementSlow get() = slowIpImprovementCount >= improvementSlowCount
 
     private var prevLpObj = Flt64.Companion.maximum
@@ -57,6 +52,7 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
     private var bestDualObj = Flt64.Companion.minimum
     private var lowerBound = Flt64.Companion.zero
     private var upperBound: Flt64? = null
+    /** 最优率，值域 [0, 1]，越接近 1 越优 / Optimal rate in [0, 1]; closer to 1 means more optimal */
     val optimalRate: Flt64
         get() {
             val actualOptimalRate = ((lowerBound + Flt64.Companion.one) / (bestObj + Flt64.Companion.one)).sqrt()
@@ -191,16 +187,19 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
         )
     }
 
+    /** 递增迭代次数 / Increment iteration count */
     operator fun inc(): Iteration<T, E, A, V> {
         ++_iteration
         return this
     }
 
+    /** 递减迭代次数 / Decrement iteration count */
     operator fun dec(): Iteration<T, E, A, V> {
         --_iteration
         return this
     }
 
+    /** 返回迭代次数的字符串表示 / Return string representation of iteration count */
     override fun toString(): String {
         return "$iteration"
     }

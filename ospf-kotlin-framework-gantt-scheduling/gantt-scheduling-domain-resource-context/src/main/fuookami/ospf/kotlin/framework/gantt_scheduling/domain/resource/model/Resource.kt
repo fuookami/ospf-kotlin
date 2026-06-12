@@ -1,43 +1,33 @@
+/** 资源领域核心建模：容量、使用、影子价格 / Resource domain core modeling: capacity, usage, shadow price */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.variable.UContinuous
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
-import fuookami.ospf.kotlin.framework.model.refresh
-import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.multiarray.Shape1
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
- * 将资源 slack 变量范围收敛为 Flt64 表达式范围并设置上限。
- * 资源变量范围由 Flt64 表达式变量构造，运行期类型不变量由资源建模路径保证。
+ * 将资源 slack 变量范围收敛为 Flt64 表达式范围并设置上限 / Narrows resource slack-variable ranges to Flt64 expression ranges and sets upper bounds
  *
- * Narrows resource slack-variable ranges to Flt64 expression ranges and sets upper bounds.
+ * 资源变量范围由 Flt64 表达式变量构造，运行期类型不变量由资源建模路径保证。
  * Resource variable ranges are built from Flt64 expression variables; the resource modeling path owns the runtime type invariant.
+ *
+ * @param range 表达式范围 / Expression range
+ * @param upperBound 上界 / Upper bound
+ * @return 是否设置成功 / Whether the upper bound was set
  */
 @Suppress("UNCHECKED_CAST")
 private fun setResourceSlackUpperBoundAsFlt64(
@@ -64,12 +54,15 @@ internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<
 /**
  * 抽象资源容量接口 / Abstract resource capacity interface
  *
+ * @param V 值类型 / Value type
  * @property time 时间范围 / Time range
  * @property quantityRangeValue 数量范围物理量 / Quantity range value
  * @property lessQuantityValue 不足数量物理量 / Less quantity value
  * @property overQuantityValue 超量数量物理量 / Over quantity value
  * @property interval 时间间隔 / Time interval
  * @property name 名称 / Name
+ * @property lessEnabled 是否启用不足 / Whether less quantity is enabled
+ * @property overEnabled 是否启用超量 / Whether over quantity is enabled
  */
 interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
     val time: TimeRange
@@ -115,6 +108,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
 /**
  * 资源容量 / Resource capacity
  *
+ * @param V 值类型 / Value type
  * @property time 时间范围 / Time range
  * @property quantityRangeValue 数量范围物理量 / Quantity range value
  * @property lessQuantityValue 不足数量物理量 / Less quantity value
@@ -137,6 +131,7 @@ open class ResourceCapacity<V>(
  * 资源抽象类 / Resource abstract class
  *
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @property id 资源ID / Resource ID
  * @property name 资源名称 / Resource name
  * @property capacities 容量列表 / List of capacities
@@ -187,6 +182,11 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
  *
  * @param R 资源类型 / Resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @property origin 原始时间槽 / Origin time slot
+ * @property resource 资源 / Resource
+ * @property resourceCapacity 资源容量 / Resource capacity
+ * @property indexInRule 规则内索引 / Index in rule
  */
 interface ResourceTimeSlot<
         R : Resource<C, V>,
@@ -199,6 +199,15 @@ interface ResourceTimeSlot<
     override val time: TimeRange get() = origin.time
     val indexInRule: UInt64
 
+    /**
+     * 判断任务是否与此时槽相关 / Check whether tasks are related to this time slot
+     *
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param prevTask 前驱任务 / Previous task
+     * @param task 当前任务 / Current task
+     * @return 是否相关 / Whether related
+     */
     fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
@@ -207,6 +216,15 @@ interface ResourceTimeSlot<
         return relation neq relation.constants.zero
     }
 
+    /**
+     * 计算任务与此时槽的关联量 / Calculate the relation quantity between tasks and this time slot
+     *
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param prevTask 前驱任务 / Previous task
+     * @param task 当前任务 / Current task
+     * @return 关联量 / Relation quantity
+     */
     fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
@@ -214,6 +232,15 @@ interface ResourceTimeSlot<
         return resource.initialQuantityValue.constants.zero
     }
 
+    /**
+     * 计算任务束在此时槽的资源使用量 / Calculate resource usage of a task bunch at this time slot
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param bunch 任务束 / Task bunch
+     * @return 资源使用量裸值 / Resource usage raw value
+     */
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
         bunch: AbstractTaskBunch<T, E, A, V>
     ): V {
@@ -227,6 +254,14 @@ interface ResourceTimeSlot<
  * @param S 资源时间槽类型 / Resource time slot type
  * @param R 资源类型 / Resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @property name 名称 / Name
+ * @property timeSlots 时间槽列表 / List of time slots
+ * @property quantity 数量变量 / Quantity variables
+ * @property overQuantity 超量变量 / Over quantity variables
+ * @property lessQuantity 不足量变量 / Less quantity variables
+ * @property overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @property lessEnabled 是否启用不足 / Whether less quantity is enabled
  */
 interface ResourceUsage<
         S : ResourceTimeSlot<R, C, V>,
@@ -244,6 +279,12 @@ interface ResourceUsage<
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
+    /**
+     * 注册松弛变量到元模型 / Register slack variables to the meta model
+     *
+     * @param model 元模型 / Meta model
+     * @return 成功与否 / Success or failure
+     */
     fun register(model: MetaModel<Flt64>): Try
 
     /**
@@ -335,6 +376,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantity
  * @param S 资源时间槽类型 / Resource time slot type
  * @param R 资源类型 / Resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  */
 abstract class AbstractResourceUsage<
         S : ResourceTimeSlot<R, C, V>,
@@ -442,13 +484,12 @@ abstract class AbstractResourceUsage<
     }
 
     /**
-     * 提取影子价格
-     * Extract shadow prices from slack variables
+     * 提取影子价格 / Extract shadow prices from slack variables
      *
-     * @param Map              影子价格表类�?
-     * @param shadowPriceMap   影子价格�?/ Shadow price map
-     * @param shadowPrices     原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
-     * @return                 成功与否 / Success or failure
+     * @param Map 影子价格表类型 / Shadow price map type
+     * @param shadowPriceMap 影子价格表 / Shadow price map
+     * @param shadowPrices 原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
+     * @return 成功与否 / Success or failure
      */
     fun <Map : AbstractShadowPriceMap<*, Map>> refresh(
         shadowPriceMap: Map,

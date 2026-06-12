@@ -1,13 +1,13 @@
 /** 生产松弛工具 / Produce slack utilities */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.VariableTypeKind
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
 /**
  * 生产常数多项式 / Produce constant polynomial

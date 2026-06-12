@@ -1,34 +1,24 @@
+/** 连接资源建模：任务间连接的资源消耗 / Connection resource modeling: resource consumption between task connections */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
-import fuookami.ospf.kotlin.multiarray.Shape1
-import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 /**
  * 连接资源 / Connection resource
@@ -46,6 +36,17 @@ abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
     override val capacities: List<C>,
     override val initialQuantityValue: V = resourceQuantityZero(capacities)
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 计算任务间连接在指定时间范围内的资源消耗量 / Calculate resource consumption of a task connection in the given time range
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param prevTask 前驱任务 / Previous task
+     * @param task 当前任务 / Current task
+     * @param time 时间范围 / Time range
+     * @return 资源消耗量裸值 / Resource consumption raw value
+     */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
         prevTask: T?,
         task: T?,
@@ -99,6 +100,15 @@ data class ConnectionResourceTimeSlot<
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C, V>, AutoIndexed(ConnectionResourceTimeSlot::class)
         where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 计算任务间连接在此时槽的资源消耗量 / Calculate resource consumption of a task connection at this time slot
+     *
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param prevTask 前驱任务 / Previous task
+     * @param task 当前任务 / Current task
+     * @return 资源消耗量裸值 / Resource consumption raw value
+     */
     fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
@@ -377,6 +387,21 @@ class BunchSchedulingConnectionResourceUsage<
         return ok
     }
 
+    /**
+     * 添加列贡献 / Add column contribution
+     *
+     * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献
+     * Used for column generation, adds resource usage contribution from new columns in each iteration
+     *
+     * @param B 任务束类型 / Task bunch type
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param iteration 当前迭代 / Current iteration
+     * @param bunches 任务束列表 / List of task bunches
+     * @param compilation 编译对象 / Compilation object
+     * @return 成功与否 / Success or failure
+     */
     fun <
             B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,

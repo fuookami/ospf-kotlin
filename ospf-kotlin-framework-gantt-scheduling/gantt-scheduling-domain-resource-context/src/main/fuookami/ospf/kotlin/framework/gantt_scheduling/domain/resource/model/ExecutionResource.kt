@@ -1,39 +1,30 @@
+/** 执行资源建模：任务级资源消耗与时间槽 / Execution resource modeling: task-level resource consumption and time slots */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
-import fuookami.ospf.kotlin.multiarray.Shape1
-import kotlin.time.Duration
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
 /**
  * 执行资源 / Execution resource
  *
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param id 资源ID / Resource ID
  * @param name 资源名称 / Resource name
  * @param capacities 容量列表 / List of capacities
@@ -45,6 +36,15 @@ abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
     override val capacities: List<C>,
     override val initialQuantityValue: V = resourceQuantityZero(capacities)
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 计算任务在指定时间范围内的资源消耗量 / Calculate resource consumption of a task in the given time range
+     *
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param task 任务 / Task
+     * @param time 时间范围 / Time range
+     * @return 资源消耗量裸值 / Resource consumption raw value
+     */
     abstract fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         task: AbstractTask<E, A>,
         time: TimeRange
@@ -68,6 +68,7 @@ abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
  *
  * @param R 执行资源类型 / Execution resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param origin 原始时间槽 / Origin time slot
  * @param resource 资源 / Resource
  * @param resourceCapacity 资源容量 / Resource capacity
@@ -84,6 +85,14 @@ data class ExecutionResourceTimeSlot<
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C, V>, AutoIndexed(ExecutionResourceTimeSlot::class)
         where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 计算任务在此时槽的资源消耗量 / Calculate resource consumption of a task at this time slot
+     *
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param task 任务 / Task
+     * @return 资源消耗量裸值 / Resource consumption raw value
+     */
     fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): V {
         return resource.usedBy(task, time)
     }
@@ -123,6 +132,7 @@ typealias ExecutionResourceUsage<R, C, V> = ResourceUsage<ExecutionResourceTimeS
  *
  * @param R 执行资源类型 / Execution resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param timeWindow 时间窗口 / Time window
  * @param resources 资源列表 / List of resources
  * @param times 时间槽列表 / List of time slots
@@ -196,6 +206,7 @@ abstract class AbstractExecutionResourceUsage<
  *
  * @param R 执行资源类型 / Execution resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param timeWindow 时间窗口 / Time window
  * @param resources 资源列表 / List of resources
  * @param times 时间槽列表 / List of time slots
@@ -270,6 +281,7 @@ class TaskSchedulingExecutionResourceUsage<
  *
  * @param R 执行资源类型 / Execution resource type
  * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
  * @param timeWindow 时间窗口 / Time window
  * @param resources 资源列表 / List of resources
  * @param times 时间槽列表 / List of time slots
@@ -356,6 +368,21 @@ class BunchSchedulingExecutionResourceUsage<
         return ok
     }
 
+    /**
+     * 添加列贡献 / Add column contribution
+     *
+     * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献
+     * Used for column generation, adds resource usage contribution from new columns in each iteration
+     *
+     * @param B 任务束类型 / Task bunch type
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param iteration 当前迭代 / Current iteration
+     * @param bunches 任务束列表 / List of task bunches
+     * @param compilation 编译对象 / Compilation object
+     * @return 成功与否 / Success or failure
+     */
     fun <
             B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,

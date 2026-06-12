@@ -1,10 +1,17 @@
+/**
+ * 产能编译抽象接口
+ * Capacity Compilation Abstract Interface
+ *
+ * 提供统一的产能计算接口，用于约束和目标函数。
+ * Provides unified capacity calculation interface for constraints and objectives.
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols2
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /**
  * 产能编译抽象接口

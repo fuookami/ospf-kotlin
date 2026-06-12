@@ -3,12 +3,10 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.model.*
 
 /**
  * 甘特调度影子价格参数接口 / Gantt scheduling shadow price arguments interface

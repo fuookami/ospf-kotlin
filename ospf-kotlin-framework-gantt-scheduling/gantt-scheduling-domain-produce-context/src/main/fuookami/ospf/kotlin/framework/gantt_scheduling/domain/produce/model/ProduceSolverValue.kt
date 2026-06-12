@@ -1,10 +1,16 @@
+/**
+ * 求解器数值转换工具 / Solver value conversion utilities
+ *
+ * 本文件提供 MaterialDemand 和 MaterialReserves 与求解器数值之间的转换扩展函数。
+ * This file provides extension functions for converting between MaterialDemand/MaterialReserves and solver values.
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 
 internal fun <V> MaterialDemand<V>.solverLowerBound() where V : RealNumber<V>, V : NumberField<V> =
     quantityRangeValue.value.lowerBound.value.unwrap().toSolverValue()

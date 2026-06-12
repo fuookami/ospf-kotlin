@@ -5,16 +5,13 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.sumOf
-import kotlin.time.Instant
-import kotlin.time.Duration
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 
 /**
  * 抽象任务束，表示分配给同一执行者的一组有序任务 / Abstract task bunch representing an ordered group of tasks assigned to the same executor

@@ -1,20 +1,15 @@
-
 /** 任务束编译上下文 / Bunch compilation context */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.BunchSolutionAnalyzer
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.TaskSolutionAnalyzer
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.model.invoke
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
-import fuookami.ospf.kotlin.framework.model.invoke
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.*
 
 /**
  * 任务束编译上下文接口 / Bunch compilation context interface

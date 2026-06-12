@@ -1,5 +1,6 @@
 @file:Suppress("UNCHECKED_CAST")
 
+/** 影子价格键类型转换支持 / Shadow price key cast support */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey

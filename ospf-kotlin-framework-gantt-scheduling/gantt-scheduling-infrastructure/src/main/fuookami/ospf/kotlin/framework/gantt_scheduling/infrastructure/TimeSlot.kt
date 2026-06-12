@@ -1,4 +1,3 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
@@ -6,8 +5,7 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.time.Instant
-import kotlin.time.Duration
+import kotlin.time.*
 
 /**
  * 时间槽接口，表示具有时间范围的可切片对象 / Time slot interface representing a sliceable object with a time range

@@ -1,33 +1,22 @@
 @file:Suppress("UNCHECKED_CAST")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 /** 任务分支定价算法 / Task branch and price algorithm */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.task
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.toMeta
-import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.ExtractIterativeTaskCompilationContext
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.IterativeTaskCompilationContext
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import org.apache.logging.log4j.kotlin.logger
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
 
 /**
  * 分支定价算法 / Branch and price algorithm
@@ -71,11 +60,11 @@ class BranchAndPriceAlgorithm<
      * @param T 任务类型 / Task type
      * @param E 执行器类型 / Executor type
      * @param A 分配策略类型 / Assignment policy type
-     * @param contextBuilder 上下文构建器 / Context builder
-     * @param extractContextBuilder 提取上下文构建器列表 / Extract context builder list
-     * @param shadowPriceMap 影子价格映射构建器 / Shadow price map builder
-     * @param reducedCost 约简成本标量函数，仅用于 branch-and-price 内部列筛选 / Reduced-cost scalar function used only for internal column filtering
-     * @param taskGenerator 任务生成器 / Task generator
+     * @property contextBuilder 上下文构建器 / Context builder
+     * @property extractContextBuilder 提取上下文构建器列表 / Extract context builder list
+     * @property shadowPriceMap 影子价格映射构建器 / Shadow price map builder
+     * @property reducedCost 约简成本标量函数，仅用于 branch-and-price 内部列筛选 / Reduced-cost scalar function used only for internal column filtering
+     * @property taskGenerator 任务生成器 / Task generator
      */
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,

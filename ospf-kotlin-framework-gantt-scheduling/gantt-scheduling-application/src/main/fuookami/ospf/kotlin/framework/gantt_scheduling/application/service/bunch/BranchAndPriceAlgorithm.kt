@@ -1,33 +1,23 @@
 @file:Suppress("UNCHECKED_CAST")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
-
 /** 任务束分支定价算法 / Bunch branch and price algorithm */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.toMeta
-import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.ExtractBunchCompilationContext
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import org.apache.logging.log4j.kotlin.logger
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
 
 /**
  * 分支定价算法 / Branch and price algorithm
@@ -71,11 +61,11 @@ class BranchAndPriceAlgorithm<
      * @param T 任务类型 / Task type
      * @param E 执行器类型 / Executor type
      * @param A 分配策略类型 / Assignment policy type
-     * @param contextBuilder 上下文构建器 / Context builder
-     * @param extractContextBuilder 提取上下文构建器列表 / Extract context builder list
-     * @param shadowPriceMap 影子价格映射构建器 / Shadow price map builder
-     * @param reducedCost 约简成本标量函数，仅用于 branch-and-price 内部列筛选 / Reduced-cost scalar function used only for internal column filtering
-     * @param bunchGenerator 任务束生成器 / Bunch generator
+     * @property contextBuilder 上下文构建器 / Context builder
+     * @property extractContextBuilder 提取上下文构建器列表 / Extract context builder list
+     * @property shadowPriceMap 影子价格映射构建器 / Shadow price map builder
+     * @property reducedCost 约简成本标量函数，仅用于 branch-and-price 内部列筛选 / Reduced-cost scalar function used only for internal column filtering
+     * @property bunchGenerator 任务束生成器 / Bunch generator
      */
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,

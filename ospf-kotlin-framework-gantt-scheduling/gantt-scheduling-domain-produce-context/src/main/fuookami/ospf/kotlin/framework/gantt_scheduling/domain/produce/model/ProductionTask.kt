@@ -1,15 +1,18 @@
+/**
+ * 生产任务模型 / Production task model
+ *
+ * 本文件定义材料接口、产品类型、材料需求与储备、以及生产任务接口。
+ * This file defines material interfaces, product types, material demand and reserves, and production task interface.
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /** 材料接口 / Material interface */
 interface Material : AbstractMaterial {

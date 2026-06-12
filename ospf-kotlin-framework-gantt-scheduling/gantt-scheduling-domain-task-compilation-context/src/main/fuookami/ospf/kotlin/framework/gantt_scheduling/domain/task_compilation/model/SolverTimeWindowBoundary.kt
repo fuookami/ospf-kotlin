@@ -3,10 +3,9 @@
 /** Solver 时间窗口边界 / Solver time-window boundary */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import kotlin.time.Duration
-import kotlin.time.Instant
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import kotlin.time.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
 /**
  * Solver 时间窗口边界，用于集中把业务时间转为 solver 数值 /

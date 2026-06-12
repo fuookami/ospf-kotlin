@@ -1,8 +1,8 @@
+/** 影子价格键类型安全转换支持 / Shadow price key type-safe cast support */
 @file:Suppress("UNCHECKED_CAST")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.framework.model.*
 
 /**
  * 将约束参数安全收敛为目标影子价格 key 类型。

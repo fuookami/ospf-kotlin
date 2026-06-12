@@ -1,4 +1,3 @@
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
@@ -6,9 +5,9 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.dto
 
-import fuookami.ospf.kotlin.utils.serialization.DateTimeSerializer
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+import fuookami.ospf.kotlin.utils.serialization.DateTimeSerializer
 
 /**
  * 甘特图渲染任务类别 / Gantt render task category

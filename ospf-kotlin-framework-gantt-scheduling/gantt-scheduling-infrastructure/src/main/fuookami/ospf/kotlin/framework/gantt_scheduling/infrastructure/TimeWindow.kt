@@ -1,10 +1,11 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
+/**
+ * 时间窗口模型，提供时间离散化和舍入功能 / Time window model providing time discretization and rounding capabilities
+ */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.round
+import kotlin.math.*
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
@@ -13,14 +14,11 @@ import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
 import fuookami.ospf.kotlin.utils.truncatedTo
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.toDuration
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 
 /** 时间窗口数值物理量 / Time-window value quantity */
 typealias TimeWindowValueQuantity<V> = Quantity<V>
