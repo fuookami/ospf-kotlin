@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.solver.SolveOptions
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy

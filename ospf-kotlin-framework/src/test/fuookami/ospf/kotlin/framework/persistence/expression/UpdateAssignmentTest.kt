@@ -8,9 +8,9 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 @DisplayName("UpdateAssignment Tests / 更新赋值模型测试")
 class UpdateAssignmentTest {

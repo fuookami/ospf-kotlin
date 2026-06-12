@@ -10,10 +10,7 @@ import java.security.MessageDigest
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
-import fuookami.ospf.kotlin.framework.solver.remote.domain.ObjectEtag
-import fuookami.ospf.kotlin.framework.solver.remote.domain.ObjectPath
-import fuookami.ospf.kotlin.framework.solver.remote.domain.ObjectRef
-import fuookami.ospf.kotlin.framework.solver.remote.domain.ObjectVersion
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
 
 /**

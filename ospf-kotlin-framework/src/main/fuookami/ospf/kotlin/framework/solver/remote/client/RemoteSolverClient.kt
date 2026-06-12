@@ -5,8 +5,7 @@
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.SolverExecutionPort
 

@@ -5,9 +5,7 @@
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import org.http4k.client.ApacheClient
-import org.http4k.core.HttpHandler
-import org.http4k.core.Method
-import org.http4k.core.Request
+import org.http4k.core.*
 
 /**
  * HTTP4K HTTP 传输实现。

@@ -4,8 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.solver.remote.port
 
-import fuookami.ospf.kotlin.framework.solver.remote.domain.ObjectPath
-import fuookami.ospf.kotlin.framework.solver.remote.domain.ObjectRef
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 
 /**
  * 对象存储端口。

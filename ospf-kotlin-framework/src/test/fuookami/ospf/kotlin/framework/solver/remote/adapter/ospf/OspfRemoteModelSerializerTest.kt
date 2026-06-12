@@ -1,31 +1,16 @@
 package fuookami.ospf.kotlin.framework.solver.remote.adapter.ospf
 
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.Objective
 import fuookami.ospf.kotlin.core.model.basic.Variable
-import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.LinearObjectiveCell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjectiveCell
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
-import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
-import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticVector
-import fuookami.ospf.kotlin.core.model.intermediate.SparseVector
-import fuookami.ospf.kotlin.core.variable.Binary
-import fuookami.ospf.kotlin.core.variable.Continuous
-import fuookami.ospf.kotlin.core.variable.Integer
-import fuookami.ospf.kotlin.framework.solver.remote.domain.SerializedConstraintSign
-import fuookami.ospf.kotlin.framework.solver.remote.domain.SerializedObjectiveCategory
-import fuookami.ospf.kotlin.framework.solver.remote.domain.SerializedVariableType
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 
 class OspfRemoteModelSerializerTest {
     @Test

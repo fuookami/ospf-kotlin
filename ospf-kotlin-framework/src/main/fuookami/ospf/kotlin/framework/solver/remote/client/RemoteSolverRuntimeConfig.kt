@@ -8,10 +8,7 @@ import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.framework.solver.remote.domain.NodeId
-import fuookami.ospf.kotlin.framework.solver.remote.domain.SliceId
-import fuookami.ospf.kotlin.framework.solver.remote.domain.TaskId
-import fuookami.ospf.kotlin.framework.solver.remote.domain.TenantId
+import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 
 /**
  * 远程求解运行配置。

@@ -1,13 +1,11 @@
 package fuookami.ospf.kotlin.framework.persistence
 
-import fuookami.ospf.kotlin.framework.log.LogRecordPO
-import fuookami.ospf.kotlin.framework.log.LogRecordType
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.log.*
 
 @Serializable
 private data class LogPayload(

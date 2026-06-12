@@ -14,8 +14,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import kotlinx.serialization.json.Json
 import org.apache.logging.log4j.kotlin.logger
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
