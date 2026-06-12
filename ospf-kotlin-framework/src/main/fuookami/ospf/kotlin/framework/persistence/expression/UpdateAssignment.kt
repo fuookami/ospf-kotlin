@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
 import kotlin.reflect.KProperty1
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
 
 /**
  * 更新赋值集�?

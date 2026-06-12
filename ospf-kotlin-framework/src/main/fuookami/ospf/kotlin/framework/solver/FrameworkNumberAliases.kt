@@ -8,14 +8,14 @@
  */
 package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Rtn64
 import fuookami.ospf.kotlin.math.algebra.number.RtnX
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 /** FltX 线性元模型 / FltX linear meta model */
 typealias FltXLinearMetaModel = LinearMetaModel<FltX>

@@ -9,6 +9,8 @@
  */
 package fuookami.ospf.kotlin.framework.network
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.serialization.InternalSerializationApi
@@ -18,8 +20,6 @@ import org.apache.logging.log4j.kotlin.logger
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
 import org.http4k.filter.ClientFilters.CustomBasicAuth.withBasicAuth
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * 授权接口
