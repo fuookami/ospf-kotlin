@@ -363,7 +363,7 @@ data object ItemMerger {
                 }
                 val maxAmount = xAmount * yAmount * zAmount
                 if (maxAmount != UInt64.zero && maxAmount != UInt64.one && UInt64(list.size) >= maxAmount) {
-                    val placements = ArrayList<ItemPlacement3>()
+                    val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
                     for (i in UInt64.zero until xAmount) {
                         val x = scalar(i.toULong()) * view.width
                         for (j in UInt64.zero until yAmount) {
@@ -591,7 +591,7 @@ data object ItemMerger {
                     (hollowSquareSpace.height / height).floor().toUInt64()
                 )
 
-                val placements = ArrayList<ItemPlacement3>()
+                val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
                 placements.addAll(
                     (UInt64.zero until amount)
                         .flatMap { i ->
@@ -686,9 +686,9 @@ data object ItemMerger {
 
     @JvmName("dumpPlacements")
     fun dump(
-        placements: List<AnyPlacement3>,
+        placements: List<QuantityPlacement3<*, FltX>>,
         offset: QuantityVector3<FltX> = vector3FltX()
-    ): List<ItemPlacement3> {
+    ): List<QuantityPlacement3<Item, FltX>> {
         return placements.map {
             when (it.unit) {
                 is Item -> {

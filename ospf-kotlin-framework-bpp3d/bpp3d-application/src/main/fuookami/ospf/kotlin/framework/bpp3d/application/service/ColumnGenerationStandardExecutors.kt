@@ -17,16 +17,16 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousRadiusModelComponent
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
@@ -41,8 +41,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limi
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.ItemDemandConstraint
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.itemDemandConstraint
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.itemVolumeMinimization
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationDemandEntry
@@ -145,7 +145,7 @@ class ColumnGenerationStandardExecutors(
     private val solver: ColumnGenerationSolver,
     private val itemDemands: List<Pair<Item, UInt64>>,
     private val demandEntries: List<Bpp3dDemandEntry<FltX>> = demandEntriesFromItems(itemDemands),
-    private val finalBins: List<LayerBin> = emptyList(),
+    private val finalBins: List<Bin<BinLayer, FltX>> = emptyList(),
     private val config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
     companion object {
@@ -164,7 +164,7 @@ class ColumnGenerationStandardExecutors(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<Item, UInt64>>,
             demandEntries: List<Bpp3dDemandEntry<FltX>>,
-            finalBins: List<LayerBin> = emptyList(),
+            finalBins: List<Bin<BinLayer, FltX>> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
         ): ColumnGenerationStandardExecutors {
             return ColumnGenerationStandardExecutors(
@@ -194,7 +194,7 @@ class ColumnGenerationStandardExecutors(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
             demandEntries: List<Bpp3dDemandEntry<FltX>>,
-            finalBins: List<LayerBin> = emptyList(),
+            finalBins: List<Bin<BinLayer, FltX>> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
             materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
             itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
@@ -230,7 +230,7 @@ class ColumnGenerationStandardExecutors(
                 ),
                 stage = "solve LP"
             )
-            val shadowPriceMap = BPP3DShadowPriceMap()
+            val shadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
             ensureTry(
                 artifacts.demandConstraint.refresh(
                     shadowPriceMap = shadowPriceMap,
@@ -521,13 +521,13 @@ class ColumnGenerationStandardExecutors(
 
     private fun collectSelectedBins(
         model: LinearMetaModel<FltX>,
-        bins: List<LayerBin>,
+        bins: List<Bin<BinLayer, FltX>>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment
-    ): List<LayerBin> {
-        val selected = ArrayList<LayerBin>()
+    ): List<Bin<BinLayer, FltX>> {
+        val selected = ArrayList<Bin<BinLayer, FltX>>()
         for ((binIndex, baseBin) in bins.withIndex()) {
-            val placements = ArrayList<BinLayerPlacement>()
+            val placements = ArrayList<QuantityPlacement3<BinLayer, FltX>>()
             var zCursor = baseBin.shape.depth - baseBin.shape.depth
             for ((columnIndex, column) in columns.withIndex()) {
                 val raw = tokenValue(model, assignment.x[binIndex, columnIndex])
@@ -554,7 +554,7 @@ class ColumnGenerationStandardExecutors(
         return selected
     }
 
-    private fun fallbackFinalBins(columns: List<BinLayer>): List<LayerBin> {
+    private fun fallbackFinalBins(columns: List<BinLayer>): List<Bin<BinLayer, FltX>> {
         return columns.mapNotNull { layer ->
             val binShape = layer.bin ?: return@mapNotNull null
             layerBinOf(

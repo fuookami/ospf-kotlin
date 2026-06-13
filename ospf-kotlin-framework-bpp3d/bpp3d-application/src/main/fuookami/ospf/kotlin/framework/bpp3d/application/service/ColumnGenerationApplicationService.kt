@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingDemand
@@ -97,7 +97,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
     mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     demandEntries: List<Bpp3dDemandEntry<FltX>>? = null,
     initialColumns: List<QuantityBinLayer<T>> = emptyList(),
-    finalBins: List<LayerBin> = emptyList(),
+    finalBins: List<Bin<BinLayer, FltX>> = emptyList(),
     generators: List<Bpp3dLayerGenerator<FltX>> = emptyList(),
     cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
@@ -173,7 +173,7 @@ data class ColumnGenerationApplicationRequest(
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     val demandEntries: List<Bpp3dDemandEntry<FltX>>? = null,
     val initialColumns: List<BinLayer> = emptyList(),
-    val finalBins: List<LayerBin> = emptyList(),
+    val finalBins: List<Bin<BinLayer, FltX>> = emptyList(),
     val generators: List<Bpp3dLayerGenerator<FltX>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
@@ -212,7 +212,7 @@ data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
     val demandEntries: List<Bpp3dDemandEntry<FltX>>? = null,
     val initialColumns: List<QuantityBinLayer<T>> = emptyList(),
-    val finalBins: List<LayerBin> = emptyList(),
+    val finalBins: List<Bin<BinLayer, FltX>> = emptyList(),
     val generators: List<Bpp3dLayerGenerator<FltX>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,

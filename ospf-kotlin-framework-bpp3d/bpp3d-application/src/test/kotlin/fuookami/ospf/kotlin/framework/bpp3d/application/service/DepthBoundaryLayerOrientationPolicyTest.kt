@@ -17,10 +17,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
@@ -379,13 +379,13 @@ class DepthBoundaryLayerOrientationPolicyTest {
         )
     }
 
-    private fun placedLayer(layer: BinLayer, z: Double): BinLayerPlacement {
+    private fun placedLayer(layer: BinLayer, z: Double): QuantityPlacement3<BinLayer, FltX> {
         return layer.toKnownCoordinateLayerPlacement(
             z = fltX(z) * Meter
         )
     }
 
-    private fun binOf(vararg placements: BinLayerPlacement): LayerBin {
+    private fun binOf(vararg placements: QuantityPlacement3<BinLayer, FltX>): Bin<BinLayer, FltX> {
         return layerBinOf(
             shape = binType,
             units = placements.toList()

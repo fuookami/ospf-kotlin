@@ -8,13 +8,14 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.packing
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class PackedItem(
-    val placement: ItemPlacement3,
+    val placement: QuantityPlacement3<Item, FltX>,
     val loadingOrder: UInt64
 )
 

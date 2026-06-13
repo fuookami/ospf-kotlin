@@ -46,13 +46,13 @@ private data class PatternItemInfo(
 abstract class Pattern {
     data class Step(
         val lengthOrientation: ProjectivePlane,
-        val nextPointExtractor: ((projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> QuantityPoint2<FltX>)?
+        val nextPointExtractor: ((projection: Projection<Item, FltX, Bottom>, placements: List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX>)?
     ) {
         fun generatePlacement(
-            projection: ItemProjection<Bottom>,
-            placements: List<ItemPlacement2<Bottom>>,
+            projection: Projection<Item, FltX, Bottom>,
+            placements: List<QuantityPlacement2<Item, FltX, Bottom>>,
             i: Int
-        ): ItemPlacement2<Bottom> {
+        ): QuantityPlacement2<Item, FltX, Bottom> {
             val point = if (i == 0) {
                 point2FltX()
             } else {
@@ -64,8 +64,8 @@ abstract class Pattern {
             )
         }
 
-        fun generateMultiPileProjection(items: List<Item>): Result<MultipleItemProjection<Bottom>?, ErrorCode, Error<ErrorCode>> {
-            var projection: MultipleItemProjection<Bottom>? = null
+        fun generateMultiPileProjection(items: List<Item>): Result<MultiPileProjection<Item, FltX, Bottom>?, ErrorCode, Error<ErrorCode>> {
+            var projection: MultiPileProjection<Item, FltX, Bottom>? = null
             val views = ArrayList<ItemView>()
             for (item in items) {
                 when (val ret = getPatternView(item = item)) {
@@ -170,14 +170,14 @@ abstract class Pattern {
 
         val disabledOrientation = setOf(Orientation.Side, Orientation.SideRotated, Orientation.Lie, Orientation.LieRotated)
 
-        val rightBottom: (ItemProjection<Bottom>, List<ItemPlacement2<Bottom>>) -> QuantityPoint2<FltX> = { _, placements ->
+        val rightBottom: (Projection<Item, FltX, Bottom>, List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX> = { _, placements ->
             QuantityPoint2(
                 x = placements.filter { it.y eq FltX.zero }.maxOf { it.maxX },
                 y = FltX.zero * placements.first().y.unit
             )
         }
 
-        val leftUpper: (ItemProjection<Bottom>, List<ItemPlacement2<Bottom>>) -> QuantityPoint2<FltX> = { projection, placements ->
+        val leftUpper: (Projection<Item, FltX, Bottom>, List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX> = { projection, placements ->
             val y = placements.filter { it.y eq FltX.zero }.maxOf { it.maxY }
             val maxY = max(placements.maxOf { it.maxY }, y + projection.height)
             var x = y * FltX.zero
@@ -203,7 +203,7 @@ abstract class Pattern {
         pattern: List<Step>,
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
+    ): Result<List<List<QuantityPlacement3<Item, FltX>>>, ErrorCode, Error<ErrorCode>> {
         return this(
             originItems = originItems,
             space = binType.asContainer3Shape(),
@@ -221,7 +221,7 @@ abstract class Pattern {
         patterns: List<List<Step>> = emptyList(),
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
+    ): Result<List<List<QuantityPlacement3<Item, FltX>>>, ErrorCode, Error<ErrorCode>> {
         return this(
             originItems = originItems,
             space = binType.asContainer3Shape(),
@@ -240,7 +240,7 @@ abstract class Pattern {
         pattern: List<Step>,
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
+    ): Result<List<List<QuantityPlacement3<Item, FltX>>>, ErrorCode, Error<ErrorCode>> {
         return this(
             originItems = originItems,
             space = space,
@@ -259,7 +259,7 @@ abstract class Pattern {
         patterns: List<List<Step>> = emptyList(),
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
+    ): Result<List<List<QuantityPlacement3<Item, FltX>>>, ErrorCode, Error<ErrorCode>> {
         if (hasCylinderItem(originItems.keys)) {
             return Failed(
                 Err(
@@ -312,7 +312,7 @@ abstract class Pattern {
         }
 
         return coroutineScope {
-            val placementsList = ArrayList<List<ItemPlacement3>>()
+            val placementsList = ArrayList<List<QuantityPlacement3<Item, FltX>>>()
             val promise = generatePlanePlacements(
                 originItems = items,
                 itemsGroup = items.groupBy { it.item.height.value }.toSortedMap(),
@@ -365,8 +365,8 @@ abstract class Pattern {
         patterns: List<List<Step>>,
         config: Config,
         scope: CoroutineScope = bpp3dItemModelAsyncScope
-    ): ChannelGuard<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>> {
-        val promise = Channel<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>>(Channel.UNLIMITED)
+    ): ChannelGuard<Result<List<QuantityPlacement2<Item, FltX, Bottom>>, ErrorCode, Error<ErrorCode>>> {
+        val promise = Channel<Result<List<QuantityPlacement2<Item, FltX, Bottom>>, ErrorCode, Error<ErrorCode>>>(Channel.UNLIMITED)
         for (pattern in patterns) {
             scope.launch(Dispatchers.Default) {
                 try {
@@ -400,12 +400,12 @@ abstract class Pattern {
         restWeight: FltX,
         pattern: List<Step>,
         config: Config,
-        promise: Channel<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>>,
+        promise: Channel<Result<List<QuantityPlacement2<Item, FltX, Bottom>>, ErrorCode, Error<ErrorCode>>>,
     ) {
         val items = originItems.map { it.copy() }
         while (true) {
             var i = 0
-            val placements = ArrayList<ItemPlacement2<Bottom>>()
+            val placements = ArrayList<QuantityPlacement2<Item, FltX, Bottom>>()
             val itemsAmount = items.associate { Pair(it.item, it.amount) }.toMutableMap()
             // generate mixed stacks through the combination of heights stacked in threes, and place them at the specified position
             // 閫氳繃涓夊眰楂樺害缁勫悎鐢熸垚娣峰悎鍫嗗灈锛屽苟鏀剧疆鍒版寚瀹氫綅缃?

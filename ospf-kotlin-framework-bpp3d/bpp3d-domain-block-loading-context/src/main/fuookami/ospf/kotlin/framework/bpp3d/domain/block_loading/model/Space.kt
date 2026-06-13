@@ -9,6 +9,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -37,16 +38,16 @@ data class Space(
     val forwardLink: Pair<ProjectivePlane, Space>? = null
 ) {
     companion object {
-        fun from(blocks: BlockBin): List<Space>? {
+        fun from(blocks: Bin<Block, FltX>): List<Space>? {
             return from(blocks.units)
         }
 
         fun from(
-            blocks: List<BlockPlacement3>,
+            blocks: List<QuantityPlacement3<Block, FltX>>,
             shape: AbstractContainer3Shape = Container3Shape(),
             offset: Point<Dim3, FltX> = infraPoint3()
         ): List<Space>? {
-            val absoluteBlocks = blocks.map { BlockPlacement3(it.view.copy(), it.position + offset) }
+            val absoluteBlocks = blocks.map { QuantityPlacement3<Block, FltX>(it.view.copy(), it.position + offset) }
             val spaces = ArrayList<Space>()
             val stack = arrayListOf(Space(position = offset, shape = shape))
             while (stack.isNotEmpty()) {
@@ -270,7 +271,7 @@ data class Space(
         )
     }
 
-    fun dump(): List<ItemPlacement3> {
+    fun dump(): List<QuantityPlacement3<Item, FltX>> {
         return block?.dump() ?: emptyList()
     }
 

@@ -23,12 +23,12 @@ import kotlin.reflect.KClass
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>
     override val shape: AbstractContainer2Shape<P>,
-    override val units: List<ItemPlacement2<P>>
+    override val units: List<QuantityPlacement2<Item, FltX, P>>
 ) : Container2<PlaneLayer<P>, FltX, P> {
     companion object {
         operator fun <P : ProjectivePlane> invoke(
             space: AbstractContainer3Shape,
-            units: List<ItemPlacement2<P>>,
+            units: List<QuantityPlacement2<Item, FltX, P>>,
             plane: P
         ): PlaneLayer<P> {
             return PlaneLayer(
@@ -42,7 +42,7 @@ class PlaneLayer<P : ProjectivePlane>(
 
         operator fun <P : ProjectivePlane, S : Container3<S, FltX>> invoke(
             container: Container3<S, FltX>,
-            units: List<ItemPlacement2<P>>,
+            units: List<QuantityPlacement2<Item, FltX, P>>,
             plane: P
         ): PlaneLayer<P> {
             return this(
@@ -69,7 +69,7 @@ class BinLayer(
     val bin: BinType<FltX>? = null,
     // inherited from Container3<BinLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<AnyPlacement3>,
+    override val units: List<QuantityPlacement3<*, FltX>>,
 ) : ItemContainer<BinLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
@@ -93,7 +93,7 @@ class BinLayer(
             iteration: Int64,
             from: KClass<*>,
             bin: BinType<FltX>,
-            units: List<ItemPlacement3>
+            units: List<QuantityPlacement3<Item, FltX>>
         ): BinLayer {
             return BinLayer(
                 iteration = iteration,
@@ -138,7 +138,7 @@ class PalletLayer(
     val from: KClass<*>,
     // inherited from Container3<PalletLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<AnyPlacement3>,
+    override val units: List<QuantityPlacement3<*, FltX>>,
 ) : ItemContainer<PalletLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
@@ -160,7 +160,7 @@ class PalletLayer(
             iteration: Int64,
             from: KClass<*>,
             bin: BinType<FltX>,
-            units: List<ItemPlacement3>
+            units: List<QuantityPlacement3<Item, FltX>>
         ): BinLayer {
             return BinLayer(
                 iteration = iteration,
@@ -197,10 +197,4 @@ class PalletLayer(
         return true
     }
 }
-
-/** 箱层视图别名，仅保留为 layer 结构性投影兼容入口。Bin-layer view alias kept only for layer structural projection compatibility. */
-typealias BinLayerView = CuboidView<BinLayer, FltX>
-/** 箱层三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Bin-layer 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias BinLayerPlacement = QuantityPlacement3<BinLayer, FltX>
-
 

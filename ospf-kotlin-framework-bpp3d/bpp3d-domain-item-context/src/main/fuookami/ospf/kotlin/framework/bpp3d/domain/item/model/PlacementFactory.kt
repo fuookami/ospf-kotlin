@@ -48,9 +48,9 @@ fun <T : Cuboid<T, FltX>, P : ProjectivePlane> placement2Of(
  * @return item 二维放置 / item 2D placement
  */
 fun <P : ProjectivePlane> itemPlacement2Of(
-    projection: ItemProjection<P>,
+    projection: Projection<Item, FltX, P>,
     position: QuantityPoint2<FltX>
-): ItemPlacement2<P> {
+): QuantityPlacement2<Item, FltX, P> {
     return placement2Of(
         projection = projection,
         position = position
@@ -68,7 +68,7 @@ fun <P : ProjectivePlane> itemPlacement2Of(
 fun <P : ProjectivePlane> blockPlacement2Of(
     projection: Projection<Block, FltX, P>,
     position: QuantityPoint2<FltX>
-): BlockPlacement2<P> {
+): QuantityPlacement2<Block, FltX, P> {
     return placement2Of(
         projection = projection,
         position = position
@@ -96,7 +96,7 @@ private fun <T : Cuboid<T, FltX>> placement3Of(
 fun itemPlacement3Of(
     view: ItemView,
     position: QuantityPoint3<FltX>
-): ItemPlacement3 {
+): QuantityPlacement3<Item, FltX> {
     return placement3Of(
         view = view,
         position = position
@@ -116,7 +116,7 @@ fun itemPlacement3Of(
     item: Item,
     position: QuantityPoint3<FltX>,
     orientation: Orientation = Orientation.Upright
-): ItemPlacement3 {
+): QuantityPlacement3<Item, FltX> {
     return itemPlacement3Of(
         view = item.view(orientation),
         position = position
@@ -132,9 +132,9 @@ fun itemPlacement3Of(
  * @return BinLayer 三维放置 / BinLayer 3D placement
  */
 fun binLayerPlacementOf(
-    view: BinLayerView,
+    view: CuboidView<BinLayer, FltX>,
     position: QuantityPoint3<FltX>
-): BinLayerPlacement {
+): QuantityPlacement3<BinLayer, FltX> {
     return placement3Of(
         view = view,
         position = position
@@ -150,9 +150,9 @@ fun binLayerPlacementOf(
  * @return Block 三维放置 / Block 3D placement
  */
 fun blockPlacement3Of(
-    view: BlockView,
+    view: CuboidView<Block, FltX>,
     position: QuantityPoint3<FltX>
-): BlockPlacement3 {
+): QuantityPlacement3<Block, FltX> {
     return placement3Of(
         view = view,
         position = position
@@ -163,13 +163,13 @@ private fun <T : Cuboid<T, FltX>> QuantityPlacement3<T, FltX>.bottomPlacement():
     return QuantityPlacement2(this, Bottom)
 }
 
-fun AnyPlacement3.overlappedOnBottom(other: AnyPlacement3): Boolean {
+fun QuantityPlacement3<*, FltX>.overlappedOnBottom(other: QuantityPlacement3<*, FltX>): Boolean {
     return bottomPlacement().overlapped(other.bottomPlacement())
 }
 
-fun Iterable<AnyPlacement3>.filterBottomOverlapped(
-    target: AnyPlacement3
-): List<AnyPlacement3> {
+fun Iterable<QuantityPlacement3<*, FltX>>.filterBottomOverlapped(
+    target: QuantityPlacement3<*, FltX>
+): List<QuantityPlacement3<*, FltX>> {
     val targetBottomPlacement = target.bottomPlacement()
     return filter { placement ->
         placement.bottomPlacement().overlapped(targetBottomPlacement)

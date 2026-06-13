@@ -12,12 +12,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CuboidView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
@@ -29,7 +28,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackin
  * 统一创建 BinLayer 的放置对象。
  * Create BinLayer placement via a unified adapter.
  */
-internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): BinLayerPlacement {
+internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): QuantityPlacement3<BinLayer, FltX> {
     ensureGeneratedCylinderCandidatePath(
         layer = this
     )
@@ -43,14 +42,14 @@ internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): BinLayerPlace
  * @param z 层深度坐标 / layer depth coordinate
  * @return 层放置 / layer placement
  */
-internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null): BinLayerPlacement {
+internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null): QuantityPlacement3<BinLayer, FltX> {
     val position = if (z == null) {
         point3FltX()
     } else {
         point3FltX(z = z.value, unit = z.unit)
     }
     return binLayerPlacementOf(
-        view = BinLayerView(copy()),
+        view = CuboidView<BinLayer, FltX>(copy()),
         position = position
     )
 }
@@ -59,7 +58,7 @@ internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null)
  * 统一创建空层箱体，避免业务处散落 QuantityPlacement3 构造。
  * Build a bin with one placed layer via adapter.
  */
-internal fun LayerBin.withPlacedLayer(layer: BinLayer, z: Quantity<FltX>? = null): LayerBin {
+internal fun Bin<BinLayer, FltX>.withPlacedLayer(layer: BinLayer, z: Quantity<FltX>? = null): Bin<BinLayer, FltX> {
     return layerBinOf(
         shape = type,
         units = listOf(layer.toLayerPlacement(z)),
@@ -76,7 +75,7 @@ internal fun Item.toItemPlacement(
     y: Quantity<FltX>? = null,
     z: Quantity<FltX>? = null,
     orientation: Orientation = Orientation.Upright
-): ItemPlacement3 {
+): QuantityPlacement3<Item, FltX> {
     val origin = point3FltX()
     val position = point3(
         x = x ?: origin.x,

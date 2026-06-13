@@ -523,30 +523,13 @@ open class ItemView(
     }
 }
 
-/** 货物投影别名，用于 item-domain 的二维装载语义。Item projection alias for item-domain 2D loading semantics. */
-typealias ItemProjection<P> = Projection<Item, FltX, P>
-/** 多层货物投影别名，用于 item-domain 的堆叠投影语义。Multi-pile item projection alias for item-domain stacking projection semantics. */
-typealias MultipleItemProjection<P> = MultiPileProjection<Item, FltX, P>
-/** 任意二维放置。Any 2D placement. */
-typealias AnyPlacement2<P> = QuantityPlacement2<*, FltX, P>
-/** 任意侧视二维放置。Any side-plane 2D placement. */
-typealias AnySidePlacement2 = AnyPlacement2<Side>
-/** 任意前视二维放置。Any front-plane 2D placement. */
-typealias AnyFrontPlacement2 = AnyPlacement2<Front>
-/** 任意三维放置。Any 3D placement. */
-typealias AnyPlacement3 = QuantityPlacement3<*, FltX>
-/** 货物二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Item 2D placement alias that hides the underlying QuantityPlacement2 type parameter. */
-typealias ItemPlacement2<P> = QuantityPlacement2<Item, FltX, P>
-/** 货物三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias ItemPlacement3 = QuantityPlacement3<Item, FltX>
-
 /**
  * 解析放置级真实装载形状，优先使用 ItemView 携带的候选几何。
  * Resolve placement-level packing shape, preferring candidate geometry carried by ItemView.
  *
  * @return 放置级装载形状 / placement-level packing shape
  */
-fun AnyPlacement3.resolvedPackingShape(): PackingShape3<FltX> {
+fun QuantityPlacement3<*, FltX>.resolvedPackingShape(): PackingShape3<FltX> {
     val itemView = view as? ItemView
     itemView?.placementPackingShape?.let {
         return it
@@ -558,90 +541,90 @@ fun AnyPlacement3.resolvedPackingShape(): PackingShape3<FltX> {
 }
 
 @get:JvmName("itemProjectionType")
-val ItemProjection<*>.type: ItemType
+val Projection<Item, FltX, *>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement2Type")
-val ItemPlacement2<*>.type: ItemType
+val QuantityPlacement2<Item, FltX, *>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement3Type")
-val ItemPlacement3.type: ItemType
+val QuantityPlacement3<Item, FltX>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemProjectionPackageType")
-val ItemProjection<*>.packageType: PackageType
+val Projection<Item, FltX, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement2PackageType")
-val ItemPlacement2<*>.packageType: PackageType
+val QuantityPlacement2<Item, FltX, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement3PackageType")
-val ItemPlacement3.packageType: PackageType
+val QuantityPlacement3<Item, FltX>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemProjectionPackageCategory")
-val ItemProjection<*>.packageCategory: PackageCategory
+val Projection<Item, FltX, *>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("itemPlacement2PackageCategory")
-val ItemPlacement2<*>.packageCategory: PackageCategory
+val QuantityPlacement2<Item, FltX, *>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("itemPlacement3PackageCategory")
-val ItemPlacement3.packageCategory: PackageCategory
+val QuantityPlacement3<Item, FltX>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("itemPlacement2BottomOnly")
-val ItemPlacement2<*>.bottomOnly: Boolean
+val QuantityPlacement2<Item, FltX, *>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
 
 @get:JvmName("itemPlacement3BottomOnly")
-val ItemPlacement3.bottomOnly: Boolean
+val QuantityPlacement3<Item, FltX>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
 
 @get:JvmName("itemProjectionTopFlat")
-val ItemProjection<*>.topFlat: Boolean
+val Projection<Item, FltX, *>.topFlat: Boolean
     get() {
         return (view as ItemView).topFlat
     }
 
 @get:JvmName("itemPlacement2TopFlat")
-val ItemPlacement2<*>.topFlat: Boolean
+val QuantityPlacement2<Item, FltX, *>.topFlat: Boolean
     get() {
         return (view as ItemView).topFlat
     }
 
 @get:JvmName("itemPlacement3TopFlat")
-val ItemPlacement3.topFlat: Boolean
+val QuantityPlacement3<Item, FltX>.topFlat: Boolean
     get() {
         return (view as ItemView).topFlat
     }
 
-private fun AnyPlacement3.toHorizontalCylinderSupportGeometry(): HorizontalCylinderSupportGeometry {
+private fun QuantityPlacement3<*, FltX>.toHorizontalCylinderSupportGeometry(): HorizontalCylinderSupportGeometry {
     val shape = resolvedPackingShape()
     val minX = absoluteX.toDouble()
     val minY = absoluteY.toDouble()
@@ -658,8 +641,8 @@ private fun AnyPlacement3.toHorizontalCylinderSupportGeometry(): HorizontalCylin
 }
 
 private fun hasHorizontalCylinderStackingSupportCoverage(
-    item: ItemPlacement3,
-    bottomItems: List<AnyPlacement3>
+    item: QuantityPlacement3<Item, FltX>,
+    bottomItems: List<QuantityPlacement3<*, FltX>>
 ): Boolean {
     val cylinder = item.resolvedPackingShape() as? CylinderPackingShape3 ?: return true
     val axis = cylinder.axis
@@ -675,8 +658,8 @@ private fun hasHorizontalCylinderStackingSupportCoverage(
 }
 
 @JvmName("itemPlacement2SideEnabledStackingOn")
-suspend fun ItemPlacement2<Side>.enabledStackingOn(
-    bottomItems: List<AnySidePlacement2>,
+suspend fun QuantityPlacement2<Item, FltX, Side>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, FltX, Side>>,
     space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -734,8 +717,8 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
     }
 }
 @JvmName("itemPlacement2FrontEnabledStackingOn")
-suspend fun ItemPlacement2<Front>.enabledStackingOn(
-    bottomItems: List<AnyFrontPlacement2>,
+suspend fun QuantityPlacement2<Item, FltX, Front>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, FltX, Front>>,
     space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -793,8 +776,8 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
     }
 }
 @JvmName("itemPlacement3EnabledStackingOn")
-suspend fun ItemPlacement3.enabledStackingOn(
-    bottomItems: List<AnyPlacement3>,
+suspend fun QuantityPlacement3<Item, FltX>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement3<*, FltX>>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val shape = resolvedPackingShape()
@@ -908,18 +891,18 @@ fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
-fun List<AnyPlacement3>.dump(offset: Point<Dim3, FltX>): List<ItemPlacement3> {
+fun List<QuantityPlacement3<*, FltX>>.dump(offset: Point<Dim3, FltX>): List<QuantityPlacement3<Item, FltX>> {
     return dump(point3FltX(offset))
 }
 
-fun List<AnyPlacement3>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+fun List<QuantityPlacement3<*, FltX>>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<QuantityPlacement3<Item, FltX>> {
     val offsetVector = QuantityVector3<FltX>(offset.x, offset.y, offset.z)
-    val items = ArrayList<ItemPlacement3>()
+    val items = ArrayList<QuantityPlacement3<Item, FltX>>()
     for (placement in this) {
         when (val unit = placement.unit) {
             is Container3<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
-                items.addAll((unit.units as List<AnyPlacement3>).dump(placement.position + offsetVector))
+                items.addAll((unit.units as List<QuantityPlacement3<*, FltX>>).dump(placement.position + offsetVector))
             }
 
             is Item -> {
@@ -937,18 +920,18 @@ fun List<AnyPlacement3>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<
     return items
 }
 
-fun List<AnyPlacement3>.dumpAbsolutely(offset: Point<Dim3, FltX>): List<ItemPlacement3> {
+fun List<QuantityPlacement3<*, FltX>>.dumpAbsolutely(offset: Point<Dim3, FltX>): List<QuantityPlacement3<Item, FltX>> {
     return dumpAbsolutely(point3FltX(offset))
 }
 
-fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+fun List<QuantityPlacement3<*, FltX>>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<QuantityPlacement3<Item, FltX>> {
     val offsetVector = QuantityVector3<FltX>(offset.x, offset.y, offset.z)
-    val items = ArrayList<ItemPlacement3>()
+    val items = ArrayList<QuantityPlacement3<Item, FltX>>()
     for (placement in this) {
         when (val unit = placement.unit) {
             is Container3<*, *> -> {
                 @Suppress("UNCHECKED_CAST")
-                items.addAll((unit.units as List<AnyPlacement3>).dump(placement.absolutePosition + offsetVector))
+                items.addAll((unit.units as List<QuantityPlacement3<*, FltX>>).dump(placement.absolutePosition + offsetVector))
             }
 
             is Item -> {

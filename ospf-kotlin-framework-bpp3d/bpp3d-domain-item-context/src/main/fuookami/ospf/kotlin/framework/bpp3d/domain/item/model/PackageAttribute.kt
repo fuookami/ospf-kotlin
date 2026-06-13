@@ -349,7 +349,7 @@ data class PackageAttribute(
     val stackingOnPolicy: AbstractStackingOnPolicy,
 
     val extraOrientationRule: ((AbstractContainer3Shape, Orientation) -> Boolean)? = null,
-    val extraStackingOnRule: ((ItemPlacement3, List<ItemPlacement3>, List<ItemPlacement3>) -> Boolean)? = null
+    val extraStackingOnRule: ((QuantityPlacement3<Item, FltX>, List<QuantityPlacement3<Item, FltX>>, List<QuantityPlacement3<Item, FltX>>) -> Boolean)? = null
 ) {
     val packageCategory by packageType::category
 
@@ -360,8 +360,8 @@ data class PackageAttribute(
 
     companion object {
         private suspend fun layerLayer(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
+            item: QuantityPlacement3<Item, FltX>,
+            bottomItems: List<QuantityPlacement3<Item, FltX>>,
         ): UInt64 {
             return coroutineScope {
                 val directBottomItems = topItemPlacements(bottomItems)
@@ -371,7 +371,7 @@ data class PackageAttribute(
                 for (bottomItem in directBottomItems) {
                     if (bottomItem.type == item.type) {
                         promises.add(async(Dispatchers.Default) {
-                            val thisBottomPlacements = indirectBottomItems.filterBottomOverlapped(bottomItem).filterIsInstance<ItemPlacement3>()
+                            val thisBottomPlacements = indirectBottomItems.filterBottomOverlapped(bottomItem).filterIsInstance<QuantityPlacement3<Item, FltX>>()
                             if (thisBottomPlacements.isNotEmpty()) {
                                 UInt64.one + layerLayer(bottomItem, thisBottomPlacements)
                             } else {
@@ -391,8 +391,8 @@ data class PackageAttribute(
             }
         }
         private suspend fun layerHeight(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
+            item: QuantityPlacement3<Item, FltX>,
+            bottomItems: List<QuantityPlacement3<Item, FltX>>,
         ): Quantity<FltX> {
             return coroutineScope {
                 val directBottomItems = topItemPlacements(bottomItems)
@@ -402,7 +402,7 @@ data class PackageAttribute(
                 for (bottomItem in directBottomItems) {
                     if (bottomItem.type == item.type) {
                         promises.add(async(Dispatchers.Default) {
-                            val thisBottomPlacements = indirectBottomItems.filterBottomOverlapped(bottomItem).filterIsInstance<ItemPlacement3>()
+                            val thisBottomPlacements = indirectBottomItems.filterBottomOverlapped(bottomItem).filterIsInstance<QuantityPlacement3<Item, FltX>>()
                             if (thisBottomPlacements.isNotEmpty()) {
                                 bottomItem.height + layerHeight(bottomItem, thisBottomPlacements)
                             } else {
@@ -423,8 +423,8 @@ data class PackageAttribute(
         }
 
         suspend fun layer(
-            item: ItemPlacement3,
-            bottomItems: List<ItemPlacement3>,
+            item: QuantityPlacement3<Item, FltX>,
+            bottomItems: List<QuantityPlacement3<Item, FltX>>,
         ): Pair<UInt64, Quantity<FltX>> {
             return coroutineScope {
                 val layer = async(Dispatchers.Default) {
@@ -502,8 +502,8 @@ data class PackageAttribute(
         )
     }
     suspend fun enabledStackingOn(
-        item: ItemPlacement3,
-        bottomItems: List<ItemPlacement3>,
+        item: QuantityPlacement3<Item, FltX>,
+        bottomItems: List<QuantityPlacement3<Item, FltX>>,
         space: AbstractContainer3Shape = Container3Shape()
     ): Boolean {
         val directBottomItems = topItemPlacements(bottomItems)

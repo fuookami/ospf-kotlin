@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
@@ -152,7 +152,7 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private fun finalBinOf(layer: BinLayer): LayerBin {
+    private fun finalBinOf(layer: BinLayer): Bin<BinLayer, FltX> {
         val binShape = layer.bin!!
         return layerBinOf(
             shape = binShape,

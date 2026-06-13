@@ -123,12 +123,12 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     operator fun invoke(
         originProjections: List<Projection<*, FltX, P>>,
         scope: CoroutineScope = bpp3dBlaAsyncScope
-    ): ChannelGuard<List<AnyPlacement2<P>?>> {
+    ): ChannelGuard<List<QuantityPlacement2<*, FltX, P>?>> {
         val projections = config.comparator.let { originProjections.sortedWithThreeWayComparator { lhs, rhs -> it(lhs, rhs) } }
 
-        val promise = Channel<List<AnyPlacement2<P>?>>()
+        val promise = Channel<List<QuantityPlacement2<*, FltX, P>?>>()
         scope.launch(Dispatchers.Default) {
-            val placements = projections.indices.map { null }.toMutableList<AnyPlacement2<P>?>()
+            val placements = projections.indices.map { null }.toMutableList<QuantityPlacement2<*, FltX, P>?>()
             try {
                 bla(
                     promise = promise,
@@ -148,18 +148,18 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     private suspend fun bla(
-        promise: Channel<List<AnyPlacement2<P>?>>,
-        placements: MutableList<AnyPlacement2<P>?>,
+        promise: Channel<List<QuantityPlacement2<*, FltX, P>?>>,
+        placements: MutableList<QuantityPlacement2<*, FltX, P>?>,
         projections: List<Projection<*, FltX, P>>
     ) {
         if (projections.isEmpty()) {
             return
         }
 
-        val stack = ArrayList<Pair<Int, AnyPlacement2<P>?>>()
+        val stack = ArrayList<Pair<Int, QuantityPlacement2<*, FltX, P>?>>()
         stack.add(Pair(0, null))
         coroutineScope {
-            val promises = ArrayList<Deferred<AnyPlacement2<P>?>>()
+            val promises = ArrayList<Deferred<QuantityPlacement2<*, FltX, P>?>>()
             val thisFeasiblePoints = feasiblePoints(placements = placements, reverse = true)
             for (feasiblePoint in thisFeasiblePoints) {
                 promises.add(async(Dispatchers.Default) {
@@ -215,7 +215,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                     feasiblePoints(placements = placements, reverse = true)
                 }
                 coroutineScope {
-                    val promises = ArrayList<Deferred<AnyPlacement2<P>?>>()
+                    val promises = ArrayList<Deferred<QuantityPlacement2<*, FltX, P>?>>()
                     for (feasiblePoint in thisFeasiblePoints) {
                         promises.add(async(Dispatchers.Default) {
                             val placement = placement2Of(
@@ -239,7 +239,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     private suspend fun feasiblePoints(
-        placements: List<AnyPlacement2<P>?>,
+        placements: List<QuantityPlacement2<*, FltX, P>?>,
         reverse: Boolean = true
     ): List<QuantityPoint2<FltX>> {
         return feasiblePoints(
@@ -250,8 +250,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     private suspend fun feasiblePoints(
-        targetPlacements: List<AnyPlacement2<P>?>,
-        fixedPlacements: List<AnyPlacement2<P>?>,
+        targetPlacements: List<QuantityPlacement2<*, FltX, P>?>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>,
         reverse: Boolean = true
     ): List<QuantityPoint2<FltX>> {
         val ret = HashSet<QuantityPoint2<FltX>>()
@@ -305,8 +305,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 
     private fun actualFeasiblePoints(
         point: QuantityPoint2<FltX>,
-        placement: AnyPlacement2<*>,
-        fixedPlacements: List<AnyPlacement2<*>?>
+        placement: QuantityPlacement2<*, FltX, *>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
     ): List<QuantityPoint2<FltX>> {
         val stack = arrayListOf(point)
         val points = ArrayList<QuantityPoint2<FltX>>()
@@ -341,8 +341,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 
     private fun actualFeasiblePointOnX(
         point: QuantityPoint2<FltX>,
-        placement: AnyPlacement2<*>,
-        fixedPlacements: List<AnyPlacement2<*>?>
+        placement: QuantityPlacement2<*, FltX, *>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
     ): QuantityPoint2<FltX>? {
         if (point.x eq fltXZero()) {
             return null
@@ -371,8 +371,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 
     private fun actualFeasiblePointOnY(
         point: QuantityPoint2<FltX>,
-        placement: AnyPlacement2<*>,
-        fixedPlacements: List<AnyPlacement2<*>?>
+        placement: QuantityPlacement2<*, FltX, *>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
     ): QuantityPoint2<FltX>? {
         if (point.y eq fltXZero()) {
             return null
@@ -399,8 +399,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
     }
     private suspend fun feasible(
-        placement: AnyPlacement2<P>,
-        fixedPlacements: List<AnyPlacement2<P>?>
+        placement: QuantityPlacement2<*, FltX, P>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>
     ): Boolean {
         if ((placement.maxX gr space.length) || (placement.maxY gr space.width)) {
             return false

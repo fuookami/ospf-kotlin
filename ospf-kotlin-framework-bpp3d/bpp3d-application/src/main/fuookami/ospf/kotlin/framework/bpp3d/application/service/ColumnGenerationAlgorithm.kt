@@ -14,15 +14,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverSource
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import kotlin.time.Duration
 import kotlin.time.TimeSource
@@ -57,7 +57,7 @@ data class ColumnGenerationConfig(
 data class ColumnGenerationState<V>(
     val iteration: Int,
     val columns: List<BinLayer>,
-    val bins: List<LayerBin> = emptyList(),
+    val bins: List<Bin<BinLayer, FltX>> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
     val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList(),
     val continuousRadiusSolverResults: Map<String, FltX> = emptyMap(),
@@ -134,7 +134,7 @@ data class ColumnGenerationLpResult<V>(
  */
 data class ColumnGenerationFinalResult<V>(
     val columns: List<BinLayer>,
-    val bins: List<LayerBin> = emptyList(),
+    val bins: List<Bin<BinLayer, FltX>> = emptyList(),
     val objective: V? = null,
     val info: Map<String, String> = emptyMap(),
     // PWL results stored as opaque Map for public API - internal types remain internal

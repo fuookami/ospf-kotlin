@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSo
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.buildNativeContinuousRadiusSelectionResults
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRender
  * @property demandModeShadowPriceEntryCounts 需求模式影子价格条目数 / demand mode shadow price entry counts
  */
 data class ColumnGenerationPackingSnapshot(
-    val bins: List<LayerBin>,
+    val bins: List<Bin<BinLayer, FltX>>,
     val packingResult: PackingResult,
     val schema: SchemaDTO,
     val demandModeShadowPriceTotals: Map<String, FltX> = emptyMap(),
@@ -111,7 +111,7 @@ class ColumnGenerationPackingAnalyzer(
      * @param state 列生成状态 / column generation state
      */
     override suspend fun analyze(state: ColumnGenerationState<FltX>) {
-        val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
+        val bins: List<Bin<BinLayer, FltX>> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
             state.columns.mapNotNull { layer ->
@@ -187,7 +187,7 @@ class ColumnGenerationPackingAnalyzer(
 suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQuantity(
     iteration: Int,
     columns: List<QuantityBinLayer<T>>,
-    bins: List<LayerBin> = emptyList(),
+    bins: List<Bin<BinLayer, FltX>> = emptyList(),
     depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     shadowPrices: Map<DemandModeKey, FltX> = emptyMap(),
     materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),

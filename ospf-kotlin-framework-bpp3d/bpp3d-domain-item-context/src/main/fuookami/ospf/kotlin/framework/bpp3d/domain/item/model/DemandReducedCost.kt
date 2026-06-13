@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
@@ -27,7 +28,7 @@ private fun demandStatisticsForReducedCost(
     }
 }
 
-fun BPP3DShadowPriceMap.reducedCost(
+fun AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>.reducedCost(
     unit: Any,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>,
     shadowPriceOf: (Bpp3dDemandMode, Bpp3dDemandKey) -> FltX,

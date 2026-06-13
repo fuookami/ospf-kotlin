@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
@@ -119,12 +119,12 @@ class PreciseLoadMultiBinAggregationTest {
         val bins = listOf(
             layerBinOf(
                 shape = sharedBinType,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = BatchNo("B-LOAD-MULTI-BIN-0")
             ),
             layerBinOf(
                 shape = sharedBinType,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = BatchNo("B-LOAD-MULTI-BIN-1")
             )
         )
@@ -242,12 +242,12 @@ class PreciseLoadMultiBinAggregationTest {
         val bins = listOf(
             layerBinOf(
                 shape = sharedBinType,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = BatchNo("B-LOAD-MIX-0")
             ),
             layerBinOf(
                 shape = sharedBinType,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = BatchNo("B-LOAD-MIX-1")
             )
         )

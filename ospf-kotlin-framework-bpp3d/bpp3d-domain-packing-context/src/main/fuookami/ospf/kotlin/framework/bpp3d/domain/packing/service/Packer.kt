@@ -2,7 +2,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
@@ -29,7 +30,7 @@ class Packer(
     )
 ) {
     private fun requireSingleCylinderAxisPerLayer(
-        bin: LayerBin,
+        bin: Bin<BinLayer, FltX>,
         source: String
     ) {
         for ((layerIndex, layerPlacement) in bin.units.withIndex()) {
@@ -57,7 +58,7 @@ class Packer(
      * @return 装箱结果 / packing result
      */
     suspend operator fun invoke(
-        bins: List<LayerBin>,
+        bins: List<Bin<BinLayer, FltX>>,
         context: PackingContext = PackingContext()
     ): PackingResult {
         val packedBins = bins.mapIndexed { index, bin ->

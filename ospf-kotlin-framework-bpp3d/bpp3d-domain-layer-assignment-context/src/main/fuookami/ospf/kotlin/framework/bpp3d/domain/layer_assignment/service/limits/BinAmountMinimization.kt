@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -23,9 +23,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property name 约束名称 / constraint name
  */
 class BinAmountMinimization(
-    private val bins: List<LayerBin>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val assignment: PreciseAssignment,
-    private val coefficient: (LayerBin) -> FltX,
+    private val coefficient: (Bin<BinLayer, FltX>) -> FltX,
     val name: String = "bin_amount_minimization"
 ) {
     /**

@@ -24,14 +24,14 @@ class MaterialDemandReducedCostTest {
 
     private data class ReducedCostContainer(
         override val shape: Container3Shape,
-        override val units: List<AnyPlacement3>
+        override val units: List<QuantityPlacement3<*, FltX>>
     ) : Container3<ReducedCostContainer, FltX> {
         override fun copy(): ReducedCostContainer {
             return ReducedCostContainer(shape = shape, units = units)
         }
     }
 
-    private class ZeroShadowPriceMap : BPP3DShadowPriceMap() {
+    private class ZeroShadowPriceMap : AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>() {
         override fun invoke(arg: BPP3DShadowPriceArguments): Flt64 {
             return Flt64.zero
         }
@@ -70,7 +70,7 @@ class MaterialDemandReducedCostTest {
         x: Double = 0.0,
         y: Double = 0.0,
         z: Double = 0.0
-    ): ItemPlacement3 {
+    ): QuantityPlacement3<Item, FltX> {
         return itemPlacement3Of(
             view = item.view(Orientation.Upright),
             position = point3(
@@ -81,7 +81,7 @@ class MaterialDemandReducedCostTest {
         )
     }
 
-    private fun zeroShadowPriceMap(): BPP3DShadowPriceMap {
+    private fun zeroShadowPriceMap(): AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item> {
         return ZeroShadowPriceMap()
     }
 
@@ -112,7 +112,7 @@ class MaterialDemandReducedCostTest {
             packageAttribute = defaultPackageAttribute()
         )
 
-        val shadowPriceMap = BPP3DShadowPriceMap()
+        val shadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
         val materialKey = LocalDemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))
         val itemKey = LocalDemandShadowPriceKey(Bpp3dDemandMode.ItemAmount, Bpp3dDemandKey.Item(item))
         shadowPriceMap[materialKey] = ShadowPrice(materialKey, Flt64(2.0))

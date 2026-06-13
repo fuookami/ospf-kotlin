@@ -9,13 +9,13 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
@@ -155,7 +155,7 @@ class ColumnGenerationAlgorithmTest {
     private fun layerBin(
         items: List<ActualItem>,
         typeCode: String = "BIN-A"
-    ): LayerBin {
+    ): Bin<BinLayer, FltX> {
         val binType = BinType(
             width = fltX(3.0) * Meter,
             height = fltX(3.0) * Meter,
@@ -589,9 +589,9 @@ class ColumnGenerationAlgorithmTest {
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val finalBin: LayerBin = layerBinOf(
+        val finalBin: Bin<BinLayer, FltX> = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         val prototype = continuousRadiusSolverPrototypesFromItems(listOf(item)).single()
@@ -739,9 +739,9 @@ class ColumnGenerationAlgorithmTest {
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val finalBin: LayerBin = layerBinOf(
+        val finalBin: Bin<BinLayer, FltX> = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         val prototype = assertNotNull(
@@ -891,9 +891,9 @@ class ColumnGenerationAlgorithmTest {
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val finalBin: LayerBin = layerBinOf(
+        val finalBin: Bin<BinLayer, FltX> = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         // No radiusWeightFunctionKey → isPWLRegisterable is false → blocked
@@ -1020,9 +1020,9 @@ class ColumnGenerationAlgorithmTest {
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val finalBin: LayerBin = layerBinOf(
+        val finalBin: Bin<BinLayer, FltX> = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         val demandValue = FltX.one
@@ -1439,7 +1439,7 @@ class ColumnGenerationAlgorithmTest {
         val seedLayer = seedBin.units.first().unit
         val finalBin = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         val demandEntries = listOf(
@@ -1585,9 +1585,9 @@ class ColumnGenerationAlgorithmTest {
         val actualItem = item("item-3", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val finalBin: LayerBin = layerBinOf(
+        val finalBin: Bin<BinLayer, FltX> = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         val demandValue = FltX.one
@@ -1700,9 +1700,9 @@ class ColumnGenerationAlgorithmTest {
         val actualItem = item("item-4", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val finalBin: LayerBin = layerBinOf(
+        val finalBin: Bin<BinLayer, FltX> = layerBinOf(
             shape = seedBin.type,
-            units = emptyList<BinLayerPlacement>(),
+            units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
             batchNo = seedBin.batchNo
         )
         val demandValue = FltX(2.0)
@@ -1819,12 +1819,12 @@ class ColumnGenerationAlgorithmTest {
         val finalBins = listOf(
             layerBinOf(
                 shape = seedBinA.type,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = seedBinA.batchNo
             ),
             layerBinOf(
                 shape = seedBinB.type,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = seedBinB.batchNo
             )
         )
@@ -1967,7 +1967,7 @@ class ColumnGenerationAlgorithmTest {
         val finalBins = seedBins.map { seedBin ->
             layerBinOf(
                 shape = seedBin.type,
-                units = emptyList<BinLayerPlacement>(),
+                units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
                 batchNo = seedBin.batchNo
             )
         }

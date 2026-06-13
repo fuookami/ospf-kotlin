@@ -25,7 +25,7 @@ import kotlinx.coroutines.*
 
 
 sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, FltX>, ItemMergeUnit, Eq<ItemContainer<S>> {
-    val items: List<ItemPlacement3> get() = dump()
+    val items: List<QuantityPlacement3<Item, FltX>> get() = dump()
 
     val packageType: PackageType
         get() = units.minOfWithThreeWayComparator({ lhs, rhs -> lhs ord rhs }) {
@@ -76,37 +76,28 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, F
     }
 }
 
-/** 货物容器二维放置别名，用于容器结构性兼容边界。Item-container 2D placement alias for container structural compatibility boundaries. */
-typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, FltX, P>
-/** 货物容器侧视二维放置别名，用于容器堆叠检查边界。Item-container side-plane 2D placement alias for container stacking check boundaries. */
-typealias ItemContainerSidePlacement2<S> = ItemContainerPlacement2<S, Side>
-/** 货物容器前视二维放置别名，用于容器堆叠检查边界。Item-container front-plane 2D placement alias for container stacking check boundaries. */
-typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
-/** 货物容器三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item-container 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias ItemContainerPlacement3<S> = QuantityPlacement3<S, FltX>
-
 @get:JvmName("itemContainerPlacementPackageType")
-val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageType: PackageType
+val <S : ItemContainer<S>> QuantityPlacement3<S, FltX>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemContainerPlacementPackageCategory")
-val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageCategory: PackageCategory
+val <S : ItemContainer<S>> QuantityPlacement3<S, FltX>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
-fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> QuantityPlacement3<S, FltX>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<QuantityPlacement3<Item, FltX>> {
     return unit.dump(position + QuantityVector3<FltX>(offset.x, offset.y, offset.z))
 }
 
-fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> QuantityPlacement3<S, FltX>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<QuantityPlacement3<Item, FltX>> {
     return unit.dump(absolutePosition + QuantityVector3<FltX>(offset.x, offset.y, offset.z))
 }
 @JvmName("itemContainerPlacement2SideEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> ItemContainerSidePlacement2<S>.enabledStackingOn(
-    bottomItems: List<AnySidePlacement2>,
+suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, FltX, Side>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, FltX, Side>>,
     space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -139,8 +130,8 @@ suspend fun <S : ItemContainer<S>> ItemContainerSidePlacement2<S>.enabledStackin
     }
 }
 @JvmName("itemContainerPlacement2FrontEnabledStackingOn")
-suspend fun <S : ItemContainer<S>> ItemContainerFrontPlacement2<S>.enabledStackingOn(
-    bottomItems: List<AnyFrontPlacement2>,
+suspend fun <S : ItemContainer<S>> QuantityPlacement2<S, FltX, Front>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, FltX, Front>>,
     space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -173,8 +164,8 @@ suspend fun <S : ItemContainer<S>> ItemContainerFrontPlacement2<S>.enabledStacki
     }
 }
 @JvmName("itemContainerPlacement3EnabledStackingOn")
-suspend fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.enabledStackingOn(
-    bottomItems: List<AnyPlacement3>,
+suspend fun <S : ItemContainer<S>> QuantityPlacement3<S, FltX>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement3<*, FltX>>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
     val thisBottomItems = bottomItemPlacements(this.dump())

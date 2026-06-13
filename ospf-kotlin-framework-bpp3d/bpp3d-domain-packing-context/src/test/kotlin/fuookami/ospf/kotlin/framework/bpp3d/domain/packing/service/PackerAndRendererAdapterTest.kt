@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverSource
@@ -155,7 +155,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun toPackingResult(bin: LayerBin): PackingResult {
+    private fun toPackingResult(bin: Bin<BinLayer, FltX>): PackingResult {
         val packed = PackedBin(
             name = "bin-test",
             type = bin.type,
@@ -186,7 +186,7 @@ class PackerAndRendererAdapterTest {
     private fun layerBin(
         items: List<ActualItem>,
         positions: List<Pair<Double, Double>> = items.indices.map { index -> Pair(index.toDouble(), 0.0) }
-    ): LayerBin {
+    ): Bin<BinLayer, FltX> {
         val binType = binType()
         val placements = items.mapIndexed { index, item ->
             val (x, z) = positions[index]
@@ -217,7 +217,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
-    private fun multiLayerBin(layers: List<Pair<List<ActualItem>, Double>>): LayerBin {
+    private fun multiLayerBin(layers: List<Pair<List<ActualItem>, Double>>): Bin<BinLayer, FltX> {
         val binType = binType()
         val layerPlacements = layers.mapIndexed { index, (items, z) ->
             val layer = BinLayer(

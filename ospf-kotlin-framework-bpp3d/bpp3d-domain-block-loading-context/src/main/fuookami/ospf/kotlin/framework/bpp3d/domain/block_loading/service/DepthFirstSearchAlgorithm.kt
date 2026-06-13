@@ -99,14 +99,14 @@ class DepthFirstSearchAlgorithm(
         items: Map<Item, UInt64>,
         bins: Map<BinType<FltX>, UInt64>,
         blockTable: List<Block>
-    ): Pair<List<BlockBin>, List<Item>> {
+    ): Pair<List<Bin<Block, FltX>>, List<Item>> {
         requireNoCylinderItemsForCuboidSearch(
             items = items
         )
         val restItems = items.toMutableMap()
         val availableBins = bins.toMutableMap()
 
-        val usedBins = ArrayList<BlockBin>()
+        val usedBins = ArrayList<Bin<Block, FltX>>()
         try {
             coroutineScope {
                 while (!finished(restItems)) {

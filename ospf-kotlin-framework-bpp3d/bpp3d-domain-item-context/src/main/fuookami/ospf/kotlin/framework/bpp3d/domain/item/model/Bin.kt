@@ -27,7 +27,7 @@ class BinType<V : FloatingNumber<V>>(
     val lateralBalance: V?,
     val typeCode: String,
     val isMain: Boolean = false,
-    val extraCheckRule: ((BinType<V>, List<BinLayerPlacement>) -> Boolean)? = null
+    val extraCheckRule: ((BinType<V>, List<QuantityPlacement3<BinLayer, FltX>>) -> Boolean)? = null
 ) : Container3Geometry<V> {
     fun new(
         width: Quantity<V>? = null,
@@ -38,7 +38,7 @@ class BinType<V : FloatingNumber<V>>(
         lateralBalance: V? = null,
         typeCode: String? = null,
         isMain: Boolean? = null,
-        extraCheckRule: ((BinType<V>, List<BinLayerPlacement>) -> Boolean)? = null
+        extraCheckRule: ((BinType<V>, List<QuantityPlacement3<BinLayer, FltX>>) -> Boolean)? = null
     ): BinType<V> {
         return BinType(
             width = width ?: this.width,
@@ -57,7 +57,7 @@ class BinType<V : FloatingNumber<V>>(
         layers: List<BinLayer>,
         withCheck: Boolean = true,
         layerComparator: ThreeWayComparator<BinLayer>? = null
-    ): List<BinLayerPlacement>? {
+    ): List<QuantityPlacement3<BinLayer, FltX>>? {
         val sortedLayers = layers.sortedWithThreeWayComparator { lhs, rhs ->
             if (layerComparator != null) {
                 when (val value = layerComparator(lhs, rhs)) {
@@ -127,7 +127,7 @@ class BinType<V : FloatingNumber<V>>(
             }
         }
 
-        var placements: List<BinLayerPlacement>? = null
+        var placements: List<QuantityPlacement3<BinLayer, FltX>>? = null
         return try {
             coroutineScope {
                 val layersPromise = permuteAsync(
@@ -138,7 +138,7 @@ class BinType<V : FloatingNumber<V>>(
                     var z = fltXZero() * depth.unit
                     val thisPlacements = thisLayers.map {
                         val ret = binLayerPlacementOf(
-                            view = BinLayerView(it.copy()),
+                            view = CuboidView<BinLayer, FltX>(it.copy()),
                             position = QuantityPoint3(
                                 x = fltXZero() * depth.unit,
                                 y = fltXZero() * depth.unit,
@@ -173,12 +173,12 @@ fun BinType<FltX>.enabled(unit: Item, orientation: Orientation): Boolean {
     return geometry.enabled(unit, orientation) && unit.weight leq capacity
 }
 
-fun BinType<FltX>.enabled(unit: AnyPlacement3): Boolean {
+fun BinType<FltX>.enabled(unit: QuantityPlacement3<*, FltX>): Boolean {
     val geometry: Container3Geometry<FltX> = this
     return geometry.enabled(unit) && unit.weight leq capacity
 }
 
-fun BinType<FltX>.enabled(units: List<AnyPlacement3>): Boolean {
+fun BinType<FltX>.enabled(units: List<QuantityPlacement3<*, FltX>>): Boolean {
     val geometry: Container3Geometry<FltX> = this
     return geometry.enabled(units) && units.sumOf { it.weight } leq capacity
 }
@@ -234,9 +234,9 @@ class Bin<T, V> internal constructor(
  */
 fun layerBinOf(
     shape: BinType<FltX>,
-    units: List<BinLayerPlacement>,
+    units: List<QuantityPlacement3<BinLayer, FltX>>,
     batchNo: BatchNo? = null
-): LayerBin {
+): Bin<BinLayer, FltX> {
     return Bin(
         type = shape,
         units = units,
@@ -255,9 +255,9 @@ fun layerBinOf(
  */
 fun itemBinOf(
     shape: BinType<FltX>,
-    units: List<ItemPlacement3>,
+    units: List<QuantityPlacement3<Item, FltX>>,
     batchNo: BatchNo? = null
-): ItemBin {
+): Bin<Item, FltX> {
     return Bin(
         type = shape,
         units = units,
@@ -276,9 +276,9 @@ fun itemBinOf(
  */
 fun blockBinOf(
     shape: BinType<FltX>,
-    units: List<BlockPlacement3>,
+    units: List<QuantityPlacement3<Block, FltX>>,
     batchNo: BatchNo? = null
-): BlockBin {
+): Bin<Block, FltX> {
     return Bin(
         type = shape,
         units = units,
@@ -332,14 +332,7 @@ infix fun Collection<Bin<*, FltX>>.ord(rhs: Collection<Bin<*, FltX>>): Order {
     }
 }
 
-/** 箱层装箱别名。Bin alias for bin-layer units. */
-typealias LayerBin = Bin<BinLayer, FltX>
-/** 货物装箱别名。Bin alias for item units. */
-typealias ItemBin = Bin<Item, FltX>
-/** 组合块装箱别名。Bin alias for block units. */
-typealias BlockBin = Bin<Block, FltX>
-
-fun LayerBin.dump(): ItemBin {
+fun Bin<BinLayer, FltX>.dump(): Bin<Item, FltX> {
     return itemBinOf(
         shape = this.type,
         units = this.units.flatMap { it.unit.dumpAbsolutely() }

@@ -11,6 +11,7 @@ import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
@@ -275,7 +276,7 @@ data class QuantityItemPlacement<V : FloatingNumber<V>>(
     fun toModel(
         materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
-    ): ItemPlacement3 {
+    ): QuantityPlacement3<Item, FltX> {
         val modelItem = item.toModel(materialCache, itemCache)
         return itemPlacement3Of(
             item = modelItem,

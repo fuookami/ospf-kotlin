@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 sealed class Block(
     // inherited from Container3<Block>
-    final override val units: List<ItemPlacement3>,
+    final override val units: List<QuantityPlacement3<Item, FltX>>,
 ) : ItemContainer<Block> {
     // inherited from Container3<Block>
     final override val shape = Container3Shape(
@@ -49,13 +49,13 @@ sealed class Block(
 }
 
 class CommonBlock(
-    units: List<ItemPlacement3>
+    units: List<QuantityPlacement3<Item, FltX>>
 ) : Block(units) {
     override fun copy() = CommonBlock(units.map { it.copy() })
 }
 
 class SimpleBlock(
-    units: List<ItemPlacement3>,
+    units: List<QuantityPlacement3<Item, FltX>>,
 ) : Block(units) {
     init {
         assert(units.all { it.unit == units.first().unit })
@@ -80,7 +80,7 @@ class SimpleBlock(
 }
 
 class HollowSquareBlock(
-    units: List<ItemPlacement3>,
+    units: List<QuantityPlacement3<Item, FltX>>,
 ) : Block(units) {
     companion object {
         operator fun invoke(
@@ -134,8 +134,8 @@ class Pile(
     val itemViews: List<ItemView>
 ) : Block(dump(itemViews)) {
     companion object {
-        private fun dump(items: List<ItemView>): List<ItemPlacement3> {
-            val units = ArrayList<ItemPlacement3>()
+        private fun dump(items: List<ItemView>): List<QuantityPlacement3<Item, FltX>> {
+            val units = ArrayList<QuantityPlacement3<Item, FltX>>()
             var y = fltXZero() * items.first().height.unit
             for (item in items) {
                 units.add(
@@ -199,10 +199,10 @@ class Pile(
     // inherited from CuboidUnit<Pile>
     override val enabledOrientations: List<Orientation> = listOf(Orientation.Upright, Orientation.UprightRotated)
 
-    override fun view(orientation: Orientation): BlockView? {
+    override fun view(orientation: Orientation): CuboidView<Block, FltX>? {
         return when (orientation) {
-            Orientation.UprightRotated -> rotation?.let { BlockView(it.copy()) }
-            else -> BlockView(copy())
+            Orientation.UprightRotated -> rotation?.let { CuboidView<Block, FltX>(it.copy()) }
+            else -> CuboidView<Block, FltX>(copy())
         }
     }
 
@@ -220,9 +220,9 @@ class LayeredBlock(
     val blocks: List<SimpleBlock>
 ) : Block(dump(blocks)) {
     companion object {
-        private fun dump(blocks: List<SimpleBlock>): List<ItemPlacement3> {
+        private fun dump(blocks: List<SimpleBlock>): List<QuantityPlacement3<Item, FltX>> {
             var y = fltXZero() * blocks.first().height.unit
-            val placements = ArrayList<ItemPlacement3>()
+            val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
             for (block in blocks) {
                 placements.addAll(
                     block.units.dump(
@@ -263,11 +263,11 @@ class LayeredBlock(
 
 class ComplexBlock(
     // inherited from Container3<Block>
-    val blocks: List<BlockPlacement3>
+    val blocks: List<QuantityPlacement3<Block, FltX>>
 ) : Block(dump(blocks)) {
     companion object {
-        private fun dump(blocks: List<BlockPlacement3>): List<ItemPlacement3> {
-            val placements = ArrayList<ItemPlacement3>()
+        private fun dump(blocks: List<QuantityPlacement3<Block, FltX>>): List<QuantityPlacement3<Item, FltX>> {
+            val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
             for (block in blocks) {
                 placements.addAll(block.unit.units.dump(block.position))
             }
@@ -277,13 +277,4 @@ class ComplexBlock(
 
     override fun copy() = ComplexBlock(blocks.map { it.copy() })
 }
-
-/** 组合块视图别名，仅保留为 block 结构性投影兼容入口。Block view alias kept only for block structural projection compatibility. */
-typealias BlockView = CuboidView<Block, FltX>
-/** 组合块二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Block 2D placement alias that hides the underlying QuantityPlacement2 type parameter. */
-typealias BlockPlacement2<P> = QuantityPlacement2<Block, FltX, P>
-/** 组合块三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Block 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias BlockPlacement3 = QuantityPlacement3<Block, FltX>
-
-
 

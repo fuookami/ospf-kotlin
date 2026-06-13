@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPol
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceMap
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
@@ -284,7 +284,7 @@ class ItemDemandConstraintModeKeyTest {
         val constraint = itemDemandConstraint(load)
         val extractor = constraint.extractor()!!
 
-        val map = BPP3DShadowPriceMap()
+        val map = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
         map[amountKey] = ShadowPrice(amountKey, Flt64(2.0))
         map[materialAmountKey] = ShadowPrice(materialAmountKey, Flt64(3.0))
         map[materialWeightKey] = ShadowPrice(materialWeightKey, Flt64(4.0))
@@ -316,7 +316,7 @@ class ItemDemandConstraintModeKeyTest {
         val materialAmountKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))
         val materialWeightKey = DemandShadowPriceKey(Bpp3dDemandMode.ItemMaterialWeight, Bpp3dDemandKey.Material(material.key))
 
-        val map = BPP3DShadowPriceMap()
+        val map = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
         map[amountKey] = ShadowPrice(amountKey, Flt64(100.0))
         map[materialAmountKey] = ShadowPrice(materialAmountKey, Flt64(90.0))
         map[materialWeightKey] = ShadowPrice(materialWeightKey, Flt64(2.0))
@@ -373,7 +373,7 @@ class ItemDemandConstraintModeKeyTest {
         val constraint = itemDemandConstraint(load)
         val extractor = constraint.extractor()!!
 
-        val map = BPP3DShadowPriceMap()
+        val map = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
         map[amountKey] = ShadowPrice(amountKey, Flt64(2.0))
         map[materialAmountKey] = ShadowPrice(materialAmountKey, Flt64(3.0))
         map[materialWeightKey] = ShadowPrice(materialWeightKey, Flt64(4.0))

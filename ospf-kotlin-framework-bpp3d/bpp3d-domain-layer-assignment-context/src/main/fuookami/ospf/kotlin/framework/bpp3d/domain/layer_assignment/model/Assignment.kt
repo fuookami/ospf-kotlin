@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.core.variable.UIntVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -143,7 +143,7 @@ class ImpreciseAssignment(
  * @property layers 层列表 / layer list
  */
 class PreciseAssignment(
-    private val bins: List<LayerBin>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>
 ) {
     /** 赋值变量矩阵 / assignment variable matrix */

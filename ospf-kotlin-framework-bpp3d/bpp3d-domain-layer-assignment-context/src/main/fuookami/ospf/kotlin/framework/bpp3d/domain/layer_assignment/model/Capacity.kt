@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -51,7 +51,7 @@ interface Capacity {
  * @property solverValueAdapter 求解器值适配器 / solver value adapter
  */
 class PreciseLoadCapacity(
-    private val bins: List<LayerBin>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment,
     private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter

@@ -13,9 +13,7 @@ open class BPP3DShadowPriceArguments(
     override val cuboid: Item
 ) : AbstractBPP3DShadowPriceArguments<FltX, Item>
 
-typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>
-
-fun BPP3DShadowPriceMap.reducedCost(unit: Any): FltX {
+fun AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>.reducedCost(unit: Any): FltX {
     fun shadowPriceOf(item: Item): FltX {
         return FltX(this(BPP3DShadowPriceArguments(item)).toDouble())
     }
@@ -37,7 +35,7 @@ fun BPP3DShadowPriceMap.reducedCost(unit: Any): FltX {
     }
 }
 
-fun BPP3DShadowPriceMap.reducedCost(
+fun AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>.reducedCost(
     unit: Any,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>
 ): FltX {

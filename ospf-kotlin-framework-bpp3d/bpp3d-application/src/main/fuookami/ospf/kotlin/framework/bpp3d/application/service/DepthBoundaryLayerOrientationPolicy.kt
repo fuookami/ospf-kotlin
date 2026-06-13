@@ -3,10 +3,10 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AnyPlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 
 /**
@@ -49,7 +49,7 @@ data class DepthBoundaryLayerOrientationPolicy(
         )
     }
 
-    internal fun ensureSatisfied(bins: List<LayerBin>) {
+    internal fun ensureSatisfied(bins: List<Bin<BinLayer, FltX>>) {
         if (!enabled) {
             return
         }
@@ -74,7 +74,7 @@ data class DepthBoundaryLayerOrientationPolicy(
     private fun ensureBoundaryLayerSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
-        placement: BinLayerPlacement
+        placement: QuantityPlacement3<BinLayer, FltX>
     ) {
         val allowedCylinderAxes = when (side) {
             DepthBoundaryLayerSide.First -> firstLayerAllowedCylinderAxes
@@ -102,8 +102,8 @@ data class DepthBoundaryLayerOrientationPolicy(
     private fun ensureBoundaryUnitSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
-        layerPlacement: BinLayerPlacement,
-        unitPlacement: AnyPlacement3,
+        layerPlacement: QuantityPlacement3<BinLayer, FltX>,
+        unitPlacement: QuantityPlacement3<*, FltX>,
         allowedCylinderAxes: Set<Axis3>?,
         allowedCuboidOrientations: Set<Orientation>?
     ) {

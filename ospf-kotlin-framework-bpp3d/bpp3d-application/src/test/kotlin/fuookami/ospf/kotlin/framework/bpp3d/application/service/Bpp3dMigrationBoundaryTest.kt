@@ -8,7 +8,7 @@ import kotlin.io.path.pathString
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 
-class Bpp3dQuantityBoundaryTest {
+class Bpp3dMigrationBoundaryTest {
     private fun bpp3dRoot(): Path {
         val cwd = Path.of("").toAbsolutePath()
         val candidates = generateSequence(cwd) { it.parent }.flatMap { path ->
