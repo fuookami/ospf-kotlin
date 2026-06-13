@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.math.symbol
 
 import java.util.concurrent.*
-import kotlin.test.*
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -43,7 +43,7 @@ class SymbolQuantityIntegrationTest {
         val distance = Quantity(poly, Meter)
         val inCm = distance.to(Centimeter)
         assertNotNull(inCm)
-        assertEquals(Flt64(200.0), inCm.value.monomials[0].coefficient)
+        assertEquals(Flt64(200.0), inCm!!.value.monomials[0].coefficient)
         assertEquals(Flt64(100.0), inCm.value.constant)
     }
 
@@ -79,7 +79,7 @@ class SymbolQuantityIntegrationTest {
         )
         val time = Quantity(polyTime, Second)
 
-        assertThrows<DimensionMismatchException> {
+        assertThrows(DimensionMismatchException::class.java) {
             length + time
         }
     }
@@ -113,7 +113,7 @@ class SymbolQuantityIntegrationTest {
 
         val standard = distance.to(Meter)
         assertNotNull(standard)
-        assertEquals(Flt64(0.02), standard.value.monomials[0].coefficient)
+        assertEquals(Flt64(0.02), standard!!.value.monomials[0].coefficient)
         assertEquals(Flt64(0.01), standard.value.constant)
     }
 
@@ -174,6 +174,6 @@ class SymbolQuantityIntegrationTest {
         // 求值
         val evaluated = quantity.evaluate(mapOf(x to Flt64(3.0)))
         assertNotNull(evaluated)
-        assertEquals(Flt64(35.0), evaluated.value) // 10*3 + 5 = 35
+        assertEquals(Flt64(35.0), evaluated!!.value) // 10*3 + 5 = 35
     }
 }
