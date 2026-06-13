@@ -8,12 +8,12 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
-import fuookami.ospf.kotlin.math.Trivalent
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 @DisplayName("MybatisBooleanTranslator Tests / MyBatis 布尔翻译器测试")
 class MybatisBooleanTranslatorTest {

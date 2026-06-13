@@ -4,8 +4,6 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
@@ -16,8 +14,10 @@ import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.BinaryExpression
 import org.ktorm.expression.BinaryExpressionType
 import org.ktorm.expression.FunctionExpression
-import org.ktorm.schema.int
 import org.ktorm.schema.Table
+import org.ktorm.schema.int
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
 @DisplayName("KtormScalarTranslator Tests / Ktorm 标量翻译器测试")
 class KtormScalarTranslatorTest {

@@ -5,13 +5,13 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.mongodb.MongoClientSettings
-import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
+import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 
 @DisplayName("MongoUpdateTranslator Tests / MongoDB 更新翻译器测试")
 class MongoUpdateTranslatorTest {

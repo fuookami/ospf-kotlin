@@ -7,24 +7,17 @@
  */
 package fuookami.ospf.kotlin.framework.persistence
 
-import com.mongodb.MongoClientSettings
-import com.mongodb.MongoCredential
-import com.mongodb.ServerAddress
-import com.mongodb.client.MongoClient
-import com.mongodb.client.MongoClients
-import com.mongodb.client.MongoDatabase
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
+import com.mongodb.*
+import com.mongodb.client.*
 import org.bson.Document
 
 /**
- * MongoDB 查询键
+ * MongoDB 查询键 / MongoDB query key
  *
- * @property name       库名
- * @property database   数据库名
+ * @property name 客户端名称 / Client name
+ * @property database 数据库名称 / Database name
  */
 data class MongoClientKey(
     val name: String,

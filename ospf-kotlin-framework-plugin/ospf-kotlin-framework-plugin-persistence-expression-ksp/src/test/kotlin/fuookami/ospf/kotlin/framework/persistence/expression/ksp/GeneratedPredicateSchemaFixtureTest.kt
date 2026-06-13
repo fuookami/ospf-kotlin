@@ -4,18 +4,18 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.ksp
 
-import com.tschuchort.compiletesting.configureKsp
+import java.io.ByteArrayOutputStream
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
+import com.tschuchort.compiletesting.configureKsp
 import com.tschuchort.compiletesting.sourcesGeneratedBySymbolProcessor
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
-import java.io.ByteArrayOutputStream
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
 
 @OptIn(ExperimentalCompilerApi::class)
 @DisplayName("Generated Predicate Schema Fixture Tests / 生成谓词 Schema Fixture 测试")
@@ -65,8 +65,8 @@ class GeneratedPredicateSchemaFixtureTest {
         val entitySource = """
             package fixture
 
-            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
-            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateField
+                    import fuookami.ospf.kotlin.math.symbol.expression.dsl.and
+                    import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
 
             @PredicateEntity(schemaName = "Users")
             data class User(
@@ -105,9 +105,9 @@ class GeneratedPredicateSchemaFixtureTest {
                     """
                     package fixture
 
-                    import fuookami.ospf.kotlin.math.symbol.expression.dsl.and
-                    import fuookami.ospf.kotlin.math.symbol.expression.dsl.gt
                     import fuookami.ospf.kotlin.math.symbol.expression.dsl.predicate
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateField
 
                     fun buildPredicate() = Users.predicate {
                         (status eq "active") and (age gt 18)

@@ -7,13 +7,11 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
-import org.ktorm.schema.Column
-import org.ktorm.schema.ColumnDeclaring
-import org.ktorm.schema.Table
+import org.ktorm.schema.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * Ktorm 更新翻译器

@@ -7,10 +7,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence
 
+import kotlinx.serialization.*
 import com.mongodb.client.MongoDatabase
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
 
 /**
  * 插入请求记录（使用默认序列化器）

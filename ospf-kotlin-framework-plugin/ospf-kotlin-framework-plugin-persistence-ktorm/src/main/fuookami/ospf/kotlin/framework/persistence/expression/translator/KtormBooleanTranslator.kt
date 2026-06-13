@@ -7,19 +7,19 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
+import org.ktorm.dsl.*
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.BinaryExpression
 import org.ktorm.expression.BinaryExpressionType
 import org.ktorm.expression.InListExpression
 import org.ktorm.expression.ScalarExpression
-import org.ktorm.dsl.*
 import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.SqlType
+import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * 列名解析器

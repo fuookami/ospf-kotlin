@@ -4,6 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.ksp
 
+import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -15,8 +17,6 @@ import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.validate
-import java.io.OutputStreamWriter
-import java.nio.charset.StandardCharsets
 
 /**
  * 谓词 schema KSP 处理器

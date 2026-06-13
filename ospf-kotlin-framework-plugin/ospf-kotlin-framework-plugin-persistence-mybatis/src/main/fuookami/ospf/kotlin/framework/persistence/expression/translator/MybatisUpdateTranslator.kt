@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * MyBatis 更新翻译器

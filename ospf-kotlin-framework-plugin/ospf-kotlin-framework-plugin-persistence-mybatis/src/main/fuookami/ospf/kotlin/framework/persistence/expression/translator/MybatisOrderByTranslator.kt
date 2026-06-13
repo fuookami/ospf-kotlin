@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.*
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * MyBatis 排序翻译器

@@ -5,12 +5,12 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
-import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
-import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.expression.ScalarConstant
+import fuookami.ospf.kotlin.framework.persistence.expression.UpdateAssignments
 
 @DisplayName("MybatisUpdateTranslator Tests / MyBatis 更新翻译器测试")
 class MybatisUpdateTranslatorTest {

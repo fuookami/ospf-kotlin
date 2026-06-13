@@ -9,6 +9,10 @@
  */
 package fuookami.ospf.kotlin.framework.message
 
+import java.util.*
+import java.util.regex.Pattern
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.toJavaDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -22,10 +26,6 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import java.util.*
-import java.util.regex.Pattern
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toJavaDuration
 
 /**
  * Kafka 配置构建器

@@ -7,8 +7,6 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.ktorm.expression.ArgumentExpression
 import org.ktorm.expression.BinaryExpression
 import org.ktorm.expression.BinaryExpressionType
@@ -22,6 +20,8 @@ import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.LongSqlType
 import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
 /**
  * Ktorm 标量表达式翻译器

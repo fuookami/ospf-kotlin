@@ -4,13 +4,13 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrder
-import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrderSupport
-import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrder
+import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrderSupport
+import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
 
 @DisplayName("MybatisOrderByTranslator Tests / MyBatis 排序翻译器测试")
 class MybatisOrderByTranslatorTest {

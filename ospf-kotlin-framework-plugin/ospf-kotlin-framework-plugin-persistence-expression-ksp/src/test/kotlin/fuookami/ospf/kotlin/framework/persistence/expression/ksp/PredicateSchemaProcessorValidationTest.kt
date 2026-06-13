@@ -4,17 +4,17 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.ksp
 
-import com.tschuchort.compiletesting.KotlinCompilation
+import java.io.ByteArrayOutputStream
 import com.tschuchort.compiletesting.JvmCompilationResult
+import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.configureKsp
 import com.tschuchort.compiletesting.sourcesGeneratedBySymbolProcessor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalCompilerApi::class)
 @DisplayName("Predicate Schema Processor Validation Tests / 谓词 Schema Processor 校验测试")

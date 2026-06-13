@@ -4,12 +4,12 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
 import com.mongodb.MongoClientSettings
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.framework.persistence.expression.SortBy
 
 @DisplayName("MongoOrderByTranslator Tests / MongoDB 排序翻译器测试")
 class MongoOrderByTranslatorTest {
