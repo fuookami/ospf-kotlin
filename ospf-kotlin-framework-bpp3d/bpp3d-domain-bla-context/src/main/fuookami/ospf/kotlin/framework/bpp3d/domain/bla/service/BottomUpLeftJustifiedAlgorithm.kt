@@ -1,23 +1,19 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 自底向上左对齐算法。
  * Bottom-up left-justified algorithm.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
-import fuookami.ospf.kotlin.utils.functional.not
-import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
-import fuookami.ospf.kotlin.quantities.unit.Meter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 private fun compareWithPosition(
     lhs: QuantityPoint2<FltX>,
@@ -444,6 +440,3 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
     }
 }
-
-
-

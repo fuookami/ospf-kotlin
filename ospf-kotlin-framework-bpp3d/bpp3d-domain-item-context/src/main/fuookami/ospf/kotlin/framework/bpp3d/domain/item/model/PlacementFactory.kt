@@ -1,22 +1,12 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 放置构造与底面重叠辅助。
  * Placement factory and bottom-overlap helpers.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Bottom
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CuboidView
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ProjectivePlane
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Projection
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement2
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
  * 创建多态二维放置，仅供 BLA 多态投影搜索和多态工厂内部复用。

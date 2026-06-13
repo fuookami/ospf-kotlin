@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 容器基础设施。
  * Container infrastructure.
@@ -7,27 +6,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.Predicate
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.math.geometry.Dim2
-import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Vector
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.div
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.geq
-import fuookami.ospf.kotlin.quantities.quantity.gr
-import fuookami.ospf.kotlin.quantities.quantity.minus
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 private fun <V : FloatingNumber<V>> quantityWeightedSumByValue(
     amounts: Map<AbstractCuboid<V>, UInt64>,
@@ -340,6 +325,3 @@ interface Container3CuboidUnit<S, V> : Container3<S, V>, Cuboid<S, V> where S : 
     override val self: S
         get() = copy()
 }
-
-
-

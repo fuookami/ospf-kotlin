@@ -4,39 +4,21 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
-import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.sum
-import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.noWeightDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.multiarray.Shape1
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import kotlin.math.ceil
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 /**
  * BPP3D 需求域。
@@ -658,8 +640,3 @@ class PreciseLoad(
         return super.register(model)
     }
 }
-
-
-
-
-

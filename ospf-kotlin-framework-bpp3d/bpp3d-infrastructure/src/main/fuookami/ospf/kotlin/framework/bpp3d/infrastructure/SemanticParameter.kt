@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 语义参数基础设施。
  * Semantic parameter infrastructure.

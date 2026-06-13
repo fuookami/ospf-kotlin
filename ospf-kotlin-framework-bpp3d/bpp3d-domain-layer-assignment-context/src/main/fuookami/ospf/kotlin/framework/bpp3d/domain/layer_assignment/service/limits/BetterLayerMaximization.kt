@@ -4,14 +4,13 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 更优层最大化目标，最大化层与箱子的匹配系数。
@@ -61,8 +60,3 @@ class BetterLayerMaximization(
         return ok
     }
 }
-
-
-
-
-

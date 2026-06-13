@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 包装类型基础设施。
  * Package type infrastructure.
@@ -49,4 +48,3 @@ enum class PackageType {
 
     abstract val category: PackageCategory
 }
-

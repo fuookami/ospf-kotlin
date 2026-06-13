@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 层放置适配器。
  * Layer placement adapter.
@@ -8,20 +7,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CuboidView
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.binLayerPlacementOf
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemPlacement3Of
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerifiedGeneratedCylinderCandidate
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
 
 /**

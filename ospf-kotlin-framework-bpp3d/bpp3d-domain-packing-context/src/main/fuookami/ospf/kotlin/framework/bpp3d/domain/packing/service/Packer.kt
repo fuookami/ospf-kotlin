@@ -1,21 +1,15 @@
 @file:Suppress("DEPRECATION")
+/**
+ * 装箱器。
+ * Packer.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.dump
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.MaterialSummary
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingAggregation
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
 
 /**
  * 装箱器，将最终箱子转换为装箱结果。

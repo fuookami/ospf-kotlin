@@ -1,23 +1,18 @@
 @file:Suppress("DEPRECATION")
-
+/**
+ * 物品模型。
+ * Item model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.concept.Indexed
-import fuookami.ospf.kotlin.utils.concept.ManualIndexed
-import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 data class PriorityAttribute(
     val key: String,
@@ -960,4 +955,3 @@ val Projection<*, FltX, *>.bottomOnly: Boolean
             else -> false
         }
     }
-

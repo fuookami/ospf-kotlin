@@ -1,14 +1,16 @@
 @file:Suppress("DEPRECATION")
+/**
+ * 物理量运算工具函数。
+ * Quantity operator utility functions.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.Dim2
-import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Vector
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.quantity.ceil as quantityCeil
-import fuookami.ospf.kotlin.quantities.quantity.convertTo
 import fuookami.ospf.kotlin.quantities.quantity.div as quantityDiv
 import fuookami.ospf.kotlin.quantities.quantity.eq as quantityEq
 import fuookami.ospf.kotlin.quantities.quantity.floor as quantityFloor
@@ -20,11 +22,7 @@ import fuookami.ospf.kotlin.quantities.quantity.minus as quantityMinus
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd as quantityPartialOrd
 import fuookami.ospf.kotlin.quantities.quantity.plus as quantityPlus
 import fuookami.ospf.kotlin.quantities.quantity.round as quantityRound
-import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.quantity.times as quantityTimes
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
  * 量纲运算基础设施。
@@ -345,4 +343,3 @@ fun vector3FltX(
 fun vector3FltX(vector: Vector<Dim3, FltX>, unit: PhysicalUnit = Meter): QuantityVector3<FltX> {
     return vector3FltX(vector[0], vector[1], vector[2], unit)
 }
-

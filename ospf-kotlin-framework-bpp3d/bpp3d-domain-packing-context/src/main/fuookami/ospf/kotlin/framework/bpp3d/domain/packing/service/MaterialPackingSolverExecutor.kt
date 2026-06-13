@@ -1,17 +1,14 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 物料装箱求解器执行器。
  * Material packing solver executor.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 
 data class MaterialPackingMipRequest<V : FloatingNumber<V>>(
     val demands: Map<MaterialKey, UInt64>,
@@ -36,4 +33,3 @@ data class MaterialPackingMipResult(
 interface MaterialPackingSolverExecutor {
     suspend fun <V : FloatingNumber<V>> solve(request: MaterialPackingMipRequest<V>): MaterialPackingMipResult
 }
-

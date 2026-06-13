@@ -1,26 +1,14 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 需求统计模型。
  * Demand statistics model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
-
-
-
-
-
-
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 sealed interface Bpp3dDemandMode {
     object Item : Bpp3dDemandMode

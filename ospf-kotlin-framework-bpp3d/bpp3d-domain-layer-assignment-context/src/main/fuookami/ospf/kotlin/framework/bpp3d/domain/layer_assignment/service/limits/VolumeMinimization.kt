@@ -4,17 +4,14 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.model.CGPipeline
 
 /**
  * 体积最小化目标，最小化总体积使用。
@@ -99,6 +96,3 @@ class ItemVolumeMinimization(
     coefficient = coefficient,
     name = name
 )
-
-
-

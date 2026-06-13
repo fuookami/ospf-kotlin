@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 装箱渲染适配器。
  * Packing renderer adapter.
@@ -7,27 +6,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.PI
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderRadiusSelectionResult
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverSource
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverPrototype
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingAlgorithmShapeType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShapeType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAlgorithmShapeTypeDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAxis3DTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanItemDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderShapeTypeDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.toFltX
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 
 /**
  * 装箱渲染适配器，将装箱结果转换为渲染 DTO。

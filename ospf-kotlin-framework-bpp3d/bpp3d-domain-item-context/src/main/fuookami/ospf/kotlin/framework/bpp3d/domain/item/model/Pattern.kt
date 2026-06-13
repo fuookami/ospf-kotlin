@@ -1,37 +1,23 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 模式模型。
  * Pattern model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
-
-
-
-
-
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
 
 private fun patternScalar(value: Number): FltX = FltX(value.toDouble())
 private fun patternScalar(value: ULong): FltX = FltX(value.toDouble())

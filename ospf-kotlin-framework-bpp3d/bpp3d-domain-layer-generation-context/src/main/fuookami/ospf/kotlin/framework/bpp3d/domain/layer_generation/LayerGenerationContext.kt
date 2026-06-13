@@ -1,70 +1,22 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 层生成上下文。
  * Layer generation context.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.ComplexBlockGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.SimpleBlockGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemView
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireConcreteCylinderRadiusProductionMetadata
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireAxisAwareCylinderCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireUprightVerticalCylinderSupport
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireVerticalCylinderAxis
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.toConcreteMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asShapePlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.leq
-import fuookami.ospf.kotlin.quantities.quantity.minus
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import kotlin.math.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
-import kotlin.math.sqrt
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 
 /**
  * Layer generation request.

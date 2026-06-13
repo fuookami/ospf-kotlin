@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+
 /**
  * PWL 连续半径近似配置。
  * PWL continuous-radius approximation config.

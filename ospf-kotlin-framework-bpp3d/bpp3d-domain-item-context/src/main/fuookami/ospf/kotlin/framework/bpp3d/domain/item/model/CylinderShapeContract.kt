@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 圆柱形状契约。
  * Cylinder shape contract.
@@ -8,13 +7,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.convertTo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.OrientationCategory
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
  * 圆柱能力路径状态。

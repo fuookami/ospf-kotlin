@@ -1,19 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 简单块生成器。
  * Simple block generator.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 class SimpleBlockGenerator(
     val config: Config
@@ -421,6 +417,3 @@ class SimpleBlockGenerator(
 
     private fun zUnit(item: Item, orientation: Orientation) = orientation.depth(item).unit
 }
-
-
-

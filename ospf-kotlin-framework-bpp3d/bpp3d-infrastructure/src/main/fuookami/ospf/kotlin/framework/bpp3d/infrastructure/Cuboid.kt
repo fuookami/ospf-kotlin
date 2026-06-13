@@ -1,25 +1,16 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 立方体基础设施。
  * Cuboid infrastructure.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.QuantityBox3
-import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
-import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3View
-import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.operator.Plus
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.div
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.geq
-import fuookami.ospf.kotlin.quantities.quantity.gr
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 interface AbstractCuboid<V : FloatingNumber<V>> {
     val width: Quantity<V>

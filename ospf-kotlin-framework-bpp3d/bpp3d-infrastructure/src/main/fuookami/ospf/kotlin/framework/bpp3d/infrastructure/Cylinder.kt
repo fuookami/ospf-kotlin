@@ -4,10 +4,9 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.math.geometry.QuantityCylinder3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 interface AbstractCylinder<V : FloatingNumber<V>> {

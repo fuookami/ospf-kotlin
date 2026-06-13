@@ -1,16 +1,13 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 容器几何核心。
  * Container geometry core.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.geq
 import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 泛型 3D 容器形状接口。

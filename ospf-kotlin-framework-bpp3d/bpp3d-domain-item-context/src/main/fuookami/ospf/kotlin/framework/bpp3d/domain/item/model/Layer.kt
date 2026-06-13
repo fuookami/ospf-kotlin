@@ -1,24 +1,16 @@
 @file:Suppress("DEPRECATION")
-
+/**
+ * 层模型。
+ * Layer model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import kotlin.reflect.KClass
-
-
-
-
-
-
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>
@@ -197,4 +189,3 @@ class PalletLayer(
         return true
     }
 }
-

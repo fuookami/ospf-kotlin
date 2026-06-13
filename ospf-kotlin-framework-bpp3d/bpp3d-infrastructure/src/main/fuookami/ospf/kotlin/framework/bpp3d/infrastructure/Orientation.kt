@@ -1,23 +1,16 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 方向基础设施。
  * Orientation infrastructure.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.ord
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 enum class OrientationCategory {
     Upright,
@@ -189,5 +182,3 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
         }
     }
 }
-
-

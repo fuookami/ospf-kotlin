@@ -2,6 +2,19 @@
 
 :us: English | :cn: [简体中文](README_ch.md)
 
+## Sub-Modules
+
+| Module | Description |
+| --- | --- |
+| [bpp3d-infrastructure](bpp3d-infrastructure/README.md) | Foundational geometry primitives, type aliases, and utility functions shared across all sub-modules. |
+| [bpp3d-domain-item-context](bpp3d-domain-item-context/README.md) | Item domain context: models for items, packages, materials, bins, layers, patterns, and column-generation model components. |
+| [bpp3d-domain-bla-context](bpp3d-domain-bla-context/README.md) | Bottom-Up Left-Justified Assignment (BLA) placement algorithm context. |
+| [bpp3d-domain-block-loading-context](bpp3d-domain-block-loading-context/README.md) | Block loading context: block generation algorithms and search strategies for packing candidate construction. |
+| [bpp3d-domain-layer-assignment-context](bpp3d-domain-layer-assignment-context/README.md) | Layer assignment context: column-generation model for assigning items to bin layers with constraint pipelines. |
+| [bpp3d-domain-layer-generation-context](bpp3d-domain-layer-generation-context/README.md) | Layer generation context: candidate bin layer generation (circle packing, fallback, pile). |
+| [bpp3d-domain-packing-context](bpp3d-domain-packing-context/README.md) | Packing context: final packing process, geometry validation, renderer output, and solution assembly. |
+| [bpp3d-application](bpp3d-application/README.md) | Application layer: column-generation workflow orchestration combining all domain contexts. |
+
 ## Scope
 
 `ospf-kotlin-framework-bpp3d` is the BPP3D domain framework in OSPF Kotlin.

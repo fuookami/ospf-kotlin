@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 方案模型。
  * Schema model.
@@ -8,10 +7,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-
-
-
-
 
 class Scheme(
     val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>> = emptyList(),
@@ -42,7 +37,3 @@ class Scheme(
 fun <T : Item> List<Triple<T, UInt64, UInt64>>.pack(): Map<T, UInt64> {
     return this.associate { Pair(it.first, it.second) }
 }
-
-
-
-

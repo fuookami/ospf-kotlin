@@ -1,14 +1,12 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 渲染器数据传输对象。
  * Renderer data transfer objects.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.serialization.Serializable
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /** 渲染真实形状类型 / Render actual shape type */
 @Serializable
@@ -88,5 +86,3 @@ data class SchemaDTO(
     val kpi: Map<String, String> = emptyMap(),
     val loadingPlans: List<RenderLoadingPlanDTO> = emptyList(),
 )
-
-

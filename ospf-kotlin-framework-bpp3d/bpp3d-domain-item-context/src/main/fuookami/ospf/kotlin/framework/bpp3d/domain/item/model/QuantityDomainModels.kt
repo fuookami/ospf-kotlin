@@ -1,29 +1,16 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 量纲域模型。
  * Quantity domain models.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.reflect.KClass
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
     return Quantity(fltX(this.value.toString().toDouble()), this.unit)

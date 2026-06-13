@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 影子价格映射模型。
  * Shadow price map model.

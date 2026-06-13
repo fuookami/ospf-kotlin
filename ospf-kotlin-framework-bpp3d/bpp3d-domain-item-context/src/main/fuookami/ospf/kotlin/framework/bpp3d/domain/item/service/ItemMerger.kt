@@ -1,28 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 货物合并服务。
  * Item merger service.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
-import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.utils.functional.Order
-
-
-
-
-
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 private fun scalar(value: Number): FltX = FltX(value.toDouble())
 private fun scalar(value: ULong): FltX = FltX(value.toDouble())

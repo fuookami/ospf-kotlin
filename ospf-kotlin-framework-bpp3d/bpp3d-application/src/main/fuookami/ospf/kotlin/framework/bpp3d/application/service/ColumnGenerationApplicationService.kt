@@ -1,47 +1,19 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 列生成应用服务。
  * Column generation application service.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingDemand
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingPlan
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.ExhaustiveMaterialPackingSolverExecutor
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPacker
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.MaterialPackingSolverExecutor
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BLLocalLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BLGlobalLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.BlockLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackingLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.HistoricalLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationContext
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PatternLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PileLayerGenerator
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.layerGenerationItemDemandsFromPrograms
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.*
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 /**
  * 物料装箱混合需求策略。
@@ -480,5 +452,3 @@ class ColumnGenerationApplicationService(
         )
     }
 }
-
-

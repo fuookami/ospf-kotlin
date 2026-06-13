@@ -4,15 +4,13 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
 /**
  * 尾箱装载率最小化目标，最小化尾箱的装载率。
@@ -60,6 +58,3 @@ class TailBinLoadingRateMinimization(
         return ok
     }
 }
-
-
-

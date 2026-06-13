@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+
 /**
  * PWL 段数推导结果。
  * PWL segment count derivation result.

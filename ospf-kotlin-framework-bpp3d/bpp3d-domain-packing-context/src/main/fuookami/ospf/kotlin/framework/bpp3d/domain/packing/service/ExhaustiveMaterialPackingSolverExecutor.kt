@@ -1,18 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 穷举物料装箱求解器执行器。
  * Exhaustive material packing solver executor.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.abs
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
     private data class CandidateScore(
@@ -252,4 +249,3 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         )
     }
 }
-

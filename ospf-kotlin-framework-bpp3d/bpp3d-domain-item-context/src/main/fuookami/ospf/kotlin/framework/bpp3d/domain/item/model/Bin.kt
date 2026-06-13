@@ -1,22 +1,20 @@
 @file:Suppress("DEPRECATION")
-
+/**
+ * 箱位模型。
+ * Bin model.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
-import fuookami.ospf.kotlin.utils.functional.ord
-import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
+
 class BinType<V : FloatingNumber<V>>(
     // inherited from Container3Shape
     override val width: Quantity<V>,

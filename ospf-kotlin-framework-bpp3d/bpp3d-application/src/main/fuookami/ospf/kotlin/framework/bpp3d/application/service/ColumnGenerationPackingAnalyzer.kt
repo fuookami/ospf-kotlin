@@ -4,30 +4,16 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousRadiusSolverVariableRegistrationPlan
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.buildNativeContinuousRadiusSelectionResults
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.buildPWLContinuousRadiusSelectionResults
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingContext
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.Packer
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.*
 
 /**
  * 列生成装箱快照。

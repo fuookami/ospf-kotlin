@@ -1,18 +1,13 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 复杂块生成器。
  * Complex block generator.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ComplexBlock
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.blockPlacement3Of
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 class ComplexBlockGenerator(
     val config: Config
@@ -209,5 +204,3 @@ class ComplexBlockGenerator(
         return true
     }
 }
-
-

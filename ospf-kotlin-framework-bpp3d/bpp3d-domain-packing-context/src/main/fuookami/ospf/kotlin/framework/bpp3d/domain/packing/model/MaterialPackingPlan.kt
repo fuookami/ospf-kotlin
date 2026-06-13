@@ -1,25 +1,16 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 物料装箱计划模型。
  * Material packing plan model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingOne
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 
 /**
  * 物料包装目标权重配置。
@@ -115,4 +106,3 @@ data class MaterialPackingPlan(
     val normalizedDemands: Map<MaterialKey, UInt64> = emptyMap(),
     val solveInfo: MaterialPackingSolveInfo
 )
-

@@ -1,28 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 货物容器模型。
  * Item container model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.functional.Eq
-import fuookami.ospf.kotlin.utils.functional.ord
-import kotlinx.coroutines.*
-
-
-
-
-
-
 
 sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, FltX>, ItemMergeUnit, Eq<ItemContainer<S>> {
     val items: List<QuantityPlacement3<Item, FltX>> get() = dump()
@@ -191,6 +178,3 @@ suspend fun <S : ItemContainer<S>> QuantityPlacement3<S, FltX>.enabledStackingOn
         return false
     }
 }
-
-
-

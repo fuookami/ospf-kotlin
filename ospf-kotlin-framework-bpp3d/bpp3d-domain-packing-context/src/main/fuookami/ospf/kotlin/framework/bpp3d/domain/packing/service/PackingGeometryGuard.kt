@@ -1,22 +1,16 @@
 @file:Suppress("DEPRECATION")
-
+/**
+ * 装箱几何守卫。
+ * Packing geometry guard.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
+import kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.HorizontalCylinderSupportGeometry
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.horizontalCylinderCuboidSupportCoverage
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 
 private const val PackingGeometryOverlapTolerance = 1e-7
 

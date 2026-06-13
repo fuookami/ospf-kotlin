@@ -1,18 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 物料属性模型。
  * Material attribute model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 data class MaterialAttributeValue<V : FloatingNumber<V>>(
     val deformationCoefficient: V?,
@@ -51,5 +48,3 @@ open class MaterialAttributeKey(
         return result
     }
 }
-
-

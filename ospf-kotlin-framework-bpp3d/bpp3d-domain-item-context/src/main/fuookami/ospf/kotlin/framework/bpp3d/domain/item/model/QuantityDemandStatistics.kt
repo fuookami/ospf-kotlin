@@ -1,18 +1,14 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 泛型需求统计模型。
  * Quantity demand statistics model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 
 /**
  * 泛型需求键。
@@ -183,4 +179,3 @@ fun <V : FloatingNumber<V>> Iterable<QuantityBinLayer<V>>.statistics(mode: Bpp3d
     }
     return counter
 }
-

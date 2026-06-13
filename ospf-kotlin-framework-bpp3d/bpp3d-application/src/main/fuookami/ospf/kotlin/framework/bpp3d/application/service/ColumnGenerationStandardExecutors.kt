@@ -1,66 +1,26 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 列生成标准执行器。
  * Column generation standard executors.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
-import fuookami.ospf.kotlin.core.model.mechanism.MathConstraint
-import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import kotlin.math.roundToInt
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousRadiusModelComponent
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityMaterial
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dDemandEntry
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseLoad
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.LayerAggregation
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoad
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseLoadCapacity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromItems
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinAmountMinimization
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinCapacityConstraint
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.BinDepthConstraint
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.ItemDemandConstraint
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.itemDemandConstraint
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.itemVolumeMinimization
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationDemandEntry
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceAwareLayerScore
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.quantities.quantity.minus
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import kotlin.math.roundToInt
 
 /**
  * 将对偶解映射转换为 MetaDualSolution（未经类型检查）。

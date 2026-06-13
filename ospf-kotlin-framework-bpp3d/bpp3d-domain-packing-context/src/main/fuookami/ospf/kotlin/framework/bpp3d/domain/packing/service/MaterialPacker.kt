@@ -1,36 +1,16 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 物料装箱器。
  * Material packer.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.ceil
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.to
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingAssignment
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingDemand
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingObjectiveConfig
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingPlan
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingSolveInfo
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingStatus
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackageSelection
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.PackagedItem
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 
 class MaterialPacker(
     private val solverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
@@ -344,4 +324,3 @@ class MaterialPacker(
         )
     }
 }
-

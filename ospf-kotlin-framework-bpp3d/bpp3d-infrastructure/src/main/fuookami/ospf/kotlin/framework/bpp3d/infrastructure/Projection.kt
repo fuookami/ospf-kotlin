@@ -1,5 +1,4 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 投影基础设施。
  * Projection infrastructure.
@@ -8,12 +7,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.geq
-import fuookami.ospf.kotlin.quantities.quantity.gr
-import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 private fun <V : FloatingNumber<V>> projectionQuantityZero(sample: Quantity<V>): Quantity<V> {
     return quantityZeroByValue(sample)

@@ -1,22 +1,14 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 物料模型。
  * Material model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
-
-
-
-
-
-
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 enum class MaterialType {
     RawMaterial,
@@ -74,6 +66,3 @@ open class Material<V : FloatingNumber<V>>(
             supplier = supplier
         )
 }
-
-
-

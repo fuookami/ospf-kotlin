@@ -4,15 +4,10 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
-import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3View
-import fuookami.ospf.kotlin.math.geometry.QuantityPlaneFrame3
-import fuookami.ospf.kotlin.math.geometry.QuantityPlanePoint2
-import fuookami.ospf.kotlin.math.geometry.QuantityPlanePoint3
-import fuookami.ospf.kotlin.math.geometry.QuantityPlaneVector3
-import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2 as GeometryRectangle2
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2 as GeometryRectangle2
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 fun ProjectivePlane.toPlaneFrame3(): QuantityPlaneFrame3 {

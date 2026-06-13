@@ -1,26 +1,14 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 块模型。
  * Block model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-
-
-
-
-
-
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 
 sealed class Block(
     // inherited from Container3<Block>
@@ -277,4 +265,3 @@ class ComplexBlock(
 
     override fun copy() = ComplexBlock(blocks.map { it.copy() })
 }
-

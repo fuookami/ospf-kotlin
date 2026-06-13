@@ -2,6 +2,19 @@
 
 :us: [English](README.md) | :cn: 简体中文
 
+## 子模块
+
+| 模块 | 描述 |
+| --- | --- |
+| [bpp3d-infrastructure](bpp3d-infrastructure/README_ch.md) | 基础设施层：几何原语、类型别名和工具函数，供所有子模块共享。 |
+| [bpp3d-domain-item-context](bpp3d-domain-item-context/README_ch.md) | 物品领域上下文：物品、包装、物料、箱位、层、装箱方案模型及列生成模型组件。 |
+| [bpp3d-domain-bla-context](bpp3d-domain-bla-context/README_ch.md) | 底部向上左对齐分配（BLA）放置算法上下文。 |
+| [bpp3d-domain-block-loading-context](bpp3d-domain-block-loading-context/README_ch.md) | 块装载上下文：块生成算法和搜索策略，用于装箱候选构建。 |
+| [bpp3d-domain-layer-assignment-context](bpp3d-domain-layer-assignment-context/README_ch.md) | 层分配上下文：将物品分配到箱位的列生成模型，含约束管线。 |
+| [bpp3d-domain-layer-generation-context](bpp3d-domain-layer-generation-context/README_ch.md) | 层生成上下文：候选箱层生成（circle packing、回退、堆叠）。 |
+| [bpp3d-domain-packing-context](bpp3d-domain-packing-context/README_ch.md) | 装箱上下文：最终装箱流程、几何验证、渲染器输出和方案组装。 |
+| [bpp3d-application](bpp3d-application/README_ch.md) | 应用层：组合所有领域上下文的列生成工作流编排。 |
+
 ## 模块范围
 
 `ospf-kotlin-framework-bpp3d` 是 OSPF Kotlin 的 BPP3D 领域框架。

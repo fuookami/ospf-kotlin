@@ -1,13 +1,12 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 影子价格映射基础设施。
  * Shadow price map infrastructure.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 
 interface AbstractBPP3DShadowPriceArguments<
         V : FloatingNumber<V>,

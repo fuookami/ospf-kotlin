@@ -1,9 +1,11 @@
+/**
+ * 物料装箱编号。
+ * Material packing numbers.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
  * 物料包装标量零值。

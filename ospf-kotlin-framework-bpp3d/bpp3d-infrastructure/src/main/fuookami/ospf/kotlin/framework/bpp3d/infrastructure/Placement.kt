@@ -1,38 +1,20 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 放置基础设施。
  * Placement infrastructure.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import kotlin.math.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
-import fuookami.ospf.kotlin.math.geometry.QuantityCircle2
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.geometry.QuantityPlacement2 as GeometryPlacement2
 import fuookami.ospf.kotlin.math.geometry.QuantityPlacement3 as GeometryPlacement3
-import fuookami.ospf.kotlin.math.geometry.QuantityProjection2
 import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2 as GeometryRectangle2
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.geometry.Dim2
-import fuookami.ospf.kotlin.math.geometry.Dim3
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.utils.functional.Ord
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.quantity.gr
-import fuookami.ospf.kotlin.quantities.quantity.ls
-import fuookami.ospf.kotlin.quantities.quantity.minus
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.quantities.quantity.times
-import kotlin.math.PI
-import kotlin.math.acos
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sin
-import kotlin.math.sqrt
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 private fun <V : FloatingNumber<V>> containsInRange(
     value: Quantity<V>,

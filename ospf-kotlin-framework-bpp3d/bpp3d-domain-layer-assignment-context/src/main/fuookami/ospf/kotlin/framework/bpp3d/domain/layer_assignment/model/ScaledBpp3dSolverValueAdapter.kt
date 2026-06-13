@@ -4,17 +4,10 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.number.toFltX
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.convertTo
-import fuookami.ospf.kotlin.quantities.unit.CubicMeter
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.quantities.unit.SquareMeter
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 求解器单位系统配置。
@@ -111,4 +104,3 @@ class ScaledBpp3dSolverValueAdapter(
         return (normalized.value.toFltX() * factor).toSolverNumber()
     }
 }
-

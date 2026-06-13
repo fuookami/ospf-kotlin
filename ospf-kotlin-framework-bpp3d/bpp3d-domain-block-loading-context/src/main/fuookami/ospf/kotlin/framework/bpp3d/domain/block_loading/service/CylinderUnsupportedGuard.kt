@@ -1,15 +1,12 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 圆柱未开放路径门禁。
  * Cylinder unsupported-path guards.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.CylinderCapabilityPath
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.requireNoCylinderItemsForCuboidOnlyPath
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 /**
  * 要求 DFS/MLHS 仅长方体搜索路径不接收圆柱。

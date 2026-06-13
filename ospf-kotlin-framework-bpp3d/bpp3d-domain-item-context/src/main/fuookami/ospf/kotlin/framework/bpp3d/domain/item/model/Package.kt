@@ -1,28 +1,19 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 包装模型。
  * Package model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.convertTo
-import fuookami.ospf.kotlin.quantities.quantity.neq
-import fuookami.ospf.kotlin.quantities.quantity.times
-import fuookami.ospf.kotlin.quantities.quantity.toFltX
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
-import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.math.geometry.Axis3
+import kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.Eq
-import kotlin.math.abs
-import kotlin.math.ceil
+import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 data class PackageBottomShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
@@ -906,7 +897,3 @@ open class Package<V : FloatingNumber<V>>(
         return materialType != null && materials.keys.any { it.type == materialType }
     }
 }
-
-
-
-

@@ -1,18 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 空间模型。
  * Space model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 private fun infraPoint3(
     x: FltX = fltXZero(),
@@ -305,6 +302,3 @@ data class Space(
         }
     }
 }
-
-
-

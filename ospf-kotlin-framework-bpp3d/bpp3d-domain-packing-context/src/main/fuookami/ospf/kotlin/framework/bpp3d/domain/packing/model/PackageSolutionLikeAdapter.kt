@@ -1,20 +1,14 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 包装解决方案适配器。
  * Package solution like adapter.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.mergePackingProgramMaterialValues
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 sealed interface PackageSolutionLikeQuantity {
     data class Amount(val value: UInt64) : PackageSolutionLikeQuantity

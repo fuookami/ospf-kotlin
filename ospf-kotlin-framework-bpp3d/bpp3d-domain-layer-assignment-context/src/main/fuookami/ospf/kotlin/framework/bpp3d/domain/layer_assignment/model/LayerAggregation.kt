@@ -4,13 +4,10 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.math.usize
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 
 /**
  * 层聚合，管理列生成过程中的层集合。

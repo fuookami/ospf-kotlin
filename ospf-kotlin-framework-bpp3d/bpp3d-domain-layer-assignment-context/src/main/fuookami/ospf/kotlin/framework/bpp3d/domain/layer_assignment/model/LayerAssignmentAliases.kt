@@ -5,8 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 fun layerAssignmentOne(): FltX = fltXOne()
 fun layerAssignmentZero(): FltX = fltXZero()

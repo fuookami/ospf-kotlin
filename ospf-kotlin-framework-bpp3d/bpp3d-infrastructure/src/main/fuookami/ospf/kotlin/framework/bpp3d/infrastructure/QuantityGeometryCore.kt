@@ -4,16 +4,14 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.quantity.div as quantityDiv
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.quantity.minus as quantityMinus
 import fuookami.ospf.kotlin.quantities.quantity.plus as quantityPlus
 import fuookami.ospf.kotlin.quantities.quantity.times as quantityTimes
-import fuookami.ospf.kotlin.utils.functional.Order
 
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> quantityBinary(

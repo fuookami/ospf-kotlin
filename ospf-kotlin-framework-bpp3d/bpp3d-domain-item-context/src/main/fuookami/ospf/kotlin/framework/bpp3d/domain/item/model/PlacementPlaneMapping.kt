@@ -1,20 +1,13 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 放置平面桥接。
  * Placement plane bridge.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractContainer2Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Front
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PlaneProjection
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement2
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ProjectivePlane
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Side
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+
 private fun <P : ProjectivePlane> QuantityPlacement2<*, FltX, P>.asSidePlacementOrNull(): QuantityPlacement2<*, FltX, Side>? {
     return if (plane == Side && projection is PlaneProjection<*, FltX, *>) {
         @Suppress("UNCHECKED_CAST")

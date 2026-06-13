@@ -1,32 +1,15 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 货物聚合。
  * Item aggregation.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Scheme
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.statistics
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MultiBatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.maxBy
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ord
-import fuookami.ospf.kotlin.utils.functional.toSortedMapWithThreeWayComparator
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.plus
-import fuookami.ospf.kotlin.utils.functional.Order
-
-
-
-
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 class Aggregation(
     val schemes: Map<BatchNo, Scheme>,

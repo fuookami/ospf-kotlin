@@ -1,19 +1,12 @@
 @file:Suppress("DEPRECATION")
-
 /**
  * 放置类型模型。
  * Placement typing model.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.bottomPlacements
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.topPlacements
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-
-
-
-
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 fun QuantityPlacement3<*, FltX>.toItemPlacementOrNull(): QuantityPlacement3<Item, FltX>? {
     val item = unit as? Item ?: return null

@@ -1,8 +1,11 @@
 @file:Suppress("DEPRECATION")
+/**
+ * FltX 别名与工具函数。
+ * FltX aliases and utility functions.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * BPP3D FltX 数值辅助函数。

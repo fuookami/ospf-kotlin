@@ -1,8 +1,10 @@
+/**
+ * 水平圆柱支撑覆盖区域。
+ * Horizontal cylinder support coverage.
+ */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /** 横向圆柱支撑覆盖默认容差。Default tolerance for horizontal-cylinder support coverage. */

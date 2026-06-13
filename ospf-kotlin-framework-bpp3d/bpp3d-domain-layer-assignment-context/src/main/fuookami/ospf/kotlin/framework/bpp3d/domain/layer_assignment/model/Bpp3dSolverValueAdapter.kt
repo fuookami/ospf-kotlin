@@ -4,11 +4,10 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 
 /**
  * UInt64 转求解器 FltX。
@@ -138,4 +137,3 @@ private data object DirectBpp3dSolverValueAdapter : Bpp3dSolverValueAdapter {
  * Default BPP3D solver value adapter instance.
  */
 val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = DirectBpp3dSolverValueAdapter
-
