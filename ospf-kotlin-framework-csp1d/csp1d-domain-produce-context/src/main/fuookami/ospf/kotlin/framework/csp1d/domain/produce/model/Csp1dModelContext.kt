@@ -494,6 +494,22 @@ interface Csp1dFlowContext<V : RealNumber<V>> {
 
     /** LP 求解是否曾成功 / Whether at least one LP solve has succeeded */
     val hasValidLpResult: Boolean get() = false
+
+    /**
+     * warm start 方案数量（recovery 场景可用）/ Warm start plan count (available in recovery scenarios)
+     *
+     * 非 recovery 场景默认为 0。下游 policy 可据此判断 warm start 可复用方案规模。
+     * Default 0 in non-recovery scenarios. Downstream can use this to gauge warm-start reusable plan scale.
+     */
+    val warmStartPlanCount: Int get() = 0
+
+    /**
+     * warm start 是否需要 fallback（recovery 场景可用）/ Whether warm start requires fallback (recovery scenarios)
+     *
+     * 非 recovery 场景默认为 false。当 warm start 不可用（Invalid 或 AdapterUnsupported）时为 true。
+     * Default false in non-recovery scenarios. True when warm start is unusable (Invalid or AdapterUnsupported).
+     */
+    val warmStartRequiresFallback: Boolean get() = false
 }
 
 /**

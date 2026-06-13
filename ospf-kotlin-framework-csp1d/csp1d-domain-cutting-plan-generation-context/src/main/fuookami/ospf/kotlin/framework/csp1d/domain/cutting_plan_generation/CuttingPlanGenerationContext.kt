@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
@@ -58,7 +59,21 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
      * @param product 产品 / Product
      * @param productWidth 当前枚举的产品宽度 / Current enumerated product width
      */
-    val widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
+    val widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null,
+    /**
+     * 自定义 canonical key 函数列表，每个返回非 null 时替代默认 canonicalKey()。
+     * 按列表顺序尝试，首个返回非 null 的值作为自定义 key。
+     * Custom canonical key function list; when any returns non-null, it replaces the default canonicalKey().
+     * Tried in list order; the first non-null result is used as the custom key.
+     */
+    val canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList(),
+    /**
+     * 自定义 dominance 接受函数列表，每个返回 true 表示新候选应被接受。
+     * 默认空列表表示不额外过滤。
+     * Custom dominance acceptance function list; each returns true if the new candidate should be accepted.
+     * Default empty list means no extra filtering.
+     */
+    val dominanceAcceptOverrides: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList()
 )
 
 /**
@@ -284,7 +299,14 @@ data class Csp1dPricingInput<V : RealNumber<V>>(
     /** 定价收益修正器列表，每个接收 (candidate, baseBenefit) 返回修正后收益 / Pricing benefit modifier list */
     val pricingBenefitModifiers: List<(CuttingPlan<V>, V) -> V> = emptyList(),
     /** 自定义 isImproving 判断器列表，返回 null 表示跳过 / Custom isImproving judges, null to skip */
-    val isImprovingJudges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList()
+    val isImprovingJudges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList(),
+    /**
+     * 自定义 canonical key 函数列表，覆盖 generationInput 中的同名字段。
+     * 每个返回非 null 时替代默认 canonicalKey()。
+     * Custom canonical key function list, overriding the same field in generationInput.
+     * When any returns non-null, it replaces the default canonicalKey().
+     */
+    val canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList()
 )
 
 /**
@@ -522,14 +544,23 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
             return report
         }
 
+        // Resolve canonical key overrides: pricing-level overrides take precedence, then generation-level
+        val canonicalKeyOverrides = input.canonicalKeyOverrides.ifEmpty {
+            input.generationInput.canonicalKeyOverrides
+        }
+        val resolveCanonicalKey: (CuttingPlan<V>) -> CuttingPlanCanonicalKey = { plan ->
+            val customKey = canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) }
+            if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
+        }
+
         val existingIds = input.generationInput.existingPlans.map { it.id }.toSet()
-        val existingKeys = input.generationInput.existingPlans.map { it.canonicalKey() }.toSet()
+        val existingKeys = input.generationInput.existingPlans.map { resolveCanonicalKey(it) }.toSet()
         val maxGeneratedPlans = input.maxGeneratedPlans.toULong()
         val shadowPrices = input.shadowPrices
 
         val pricedPlans = report.plans
             .asSequence()
-            .map { plan -> plan to plan.canonicalKey() }
+            .map { plan -> plan to resolveCanonicalKey(plan) }
             .filter { (plan, key) -> plan.id !in existingIds && key !in existingKeys }
             .distinctBy { (_, key) -> key }
             .map { (plan, _) ->

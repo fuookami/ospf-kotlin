@@ -77,11 +77,19 @@ class FullSumGenerator<V : RealNumber<V>>(
         val startTime = System.nanoTime()
         val planIndex = java.util.concurrent.atomic.AtomicInteger(0)
         val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
+        val canonicalKeyOverride = if (input.canonicalKeyOverrides.isNotEmpty()) {
+            { plan: CuttingPlan<V> -> input.canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) } }
+        } else null
+        val dominanceAcceptOverride = if (input.dominanceAcceptOverrides.isNotEmpty()) {
+            { plan: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> input.dominanceAcceptOverrides.all { it(plan, existing) } }
+        } else null
         val collector = GenerationCollector<V>(
             maxPlans = maxPlans,
             deadline = deadline,
             enableDominancePruning = enableDominancePruning,
-            dominanceStrategy = dominanceStrategy
+            dominanceStrategy = dominanceStrategy,
+            canonicalKeyOverride = canonicalKeyOverride,
+            dominanceAcceptOverride = dominanceAcceptOverride
         )
         val quantityCache = GenerationQuantityCache(arithmetic)
         val widthCheck = input.widthFeasibilityCheck
@@ -108,11 +116,19 @@ class FullSumGenerator<V : RealNumber<V>>(
                 parallelism = parallelism,
                 tasks = input.materials.map { material ->
                     {
+                        val localCanonicalKeyOverride = if (input.canonicalKeyOverrides.isNotEmpty()) {
+                            { plan: CuttingPlan<V> -> input.canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) } }
+                        } else null
+                        val localDominanceAcceptOverride = if (input.dominanceAcceptOverrides.isNotEmpty()) {
+                            { plan: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> input.dominanceAcceptOverrides.all { it(plan, existing) } }
+                        } else null
                         val localCollector = GenerationCollector<V>(
                             maxPlans = maxPlans,
                             deadline = deadline,
                             enableDominancePruning = enableDominancePruning,
-                            dominanceStrategy = dominanceStrategy
+                            dominanceStrategy = dominanceStrategy,
+                            canonicalKeyOverride = localCanonicalKeyOverride,
+                            dominanceAcceptOverride = localDominanceAcceptOverride
                         )
                         val localQuantityCache = GenerationQuantityCache(arithmetic)
                         val materialWidthIndex = materialWidthIndexCache.get(
@@ -162,7 +178,8 @@ class FullSumGenerator<V : RealNumber<V>>(
                 reports = reports,
                 maxPlans = maxPlans,
                 startedAt = startTime,
-                deadline = deadline
+                deadline = deadline,
+                canonicalKeyOverride = canonicalKeyOverride
             )
         }
 

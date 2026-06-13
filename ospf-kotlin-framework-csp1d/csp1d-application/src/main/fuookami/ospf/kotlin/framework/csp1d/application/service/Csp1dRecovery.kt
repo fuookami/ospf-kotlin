@@ -11,6 +11,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.allowRecoveryFallbackByPolicies
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
@@ -288,7 +291,19 @@ class Csp1dRecovery<V : RealNumber<V>>(
             input = input,
             warmStartAdapter = warmStartAdapter
         )
-        if (csp1dRequiresFallback(warmStart.status) && !input.options.retryWithoutWarmStart) {
+        // Wire flow policy allowRecoveryFallback into fallback decision
+        val effectiveFlowPolicies = csp1dRecoveryFlowPolicies(input)
+        val allowFallback = if (csp1dRequiresFallback(warmStart.status) && effectiveFlowPolicies.isNotEmpty()) {
+            val flowCtx = csp1dRecoveryFlowContext(
+                input = input,
+                warmStartPlanCount = warmStart.plans.size,
+                warmStartRequiresFallback = csp1dRequiresFallback(warmStart.status)
+            )
+            allowRecoveryFallbackByPolicies(effectiveFlowPolicies, flowCtx, input.options.retryWithoutWarmStart)
+        } else {
+            input.options.retryWithoutWarmStart
+        }
+        if (csp1dRequiresFallback(warmStart.status) && !allowFallback) {
             val trace = csp1dFallbackDisabledTrace(
                 status = warmStart.status,
                 planCount = warmStart.plans.size
@@ -410,7 +425,19 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
             input = input,
             warmStartAdapter = warmStartAdapter
         )
-        if (csp1dRequiresFallback(warmStart.status) && !input.options.retryWithoutWarmStart) {
+        // Wire flow policy allowRecoveryFallback into fallback decision
+        val effectiveFlowPolicies = csp1dRecoveryFlowPolicies(input)
+        val allowFallback = if (csp1dRequiresFallback(warmStart.status) && effectiveFlowPolicies.isNotEmpty()) {
+            val flowCtx = csp1dRecoveryFlowContext(
+                input = input,
+                warmStartPlanCount = warmStart.plans.size,
+                warmStartRequiresFallback = csp1dRequiresFallback(warmStart.status)
+            )
+            allowRecoveryFallbackByPolicies(effectiveFlowPolicies, flowCtx, input.options.retryWithoutWarmStart)
+        } else {
+            input.options.retryWithoutWarmStart
+        }
+        if (csp1dRequiresFallback(warmStart.status) && !allowFallback) {
             val trace = csp1dFallbackDisabledTrace(
                 status = warmStart.status,
                 planCount = warmStart.plans.size
@@ -633,3 +660,26 @@ private data class Csp1dWarmStartPlanSelection<V : RealNumber<V>>(
     val plans: List<CuttingPlan<V>>,
     val status: Csp1dWarmStartStatus? = null
 )
+
+private fun <V : RealNumber<V>> csp1dRecoveryFlowPolicies(
+    input: Csp1dRecoveryInput<V>
+): List<Csp1dFlowPolicy<V>> {
+    val config = input.solveConfig ?: input.problem.solveConfig
+    return config?.extensionSet?.flowPolicies ?: emptyList()
+}
+
+private fun <V : RealNumber<V>> csp1dRecoveryFlowContext(
+    input: Csp1dRecoveryInput<V>,
+    warmStartPlanCount: Int,
+    warmStartRequiresFallback: Boolean = false
+): Csp1dFlowContext<V> {
+    val config = input.solveConfig ?: input.problem.solveConfig
+    return object : Csp1dFlowContext<V> {
+        override val iteration = 0
+        override val currentPlans: List<CuttingPlan<V>> = emptyList()
+        override val iterationLimit = config?.columnGeneration?.iterationLimit ?: 0
+        override val allowPartialSolution = config?.allowPartialSolution ?: true
+        override val warmStartPlanCount = warmStartPlanCount
+        override val warmStartRequiresFallback = warmStartRequiresFallback
+    }
+}

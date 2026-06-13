@@ -389,36 +389,51 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         newPlans: List<CuttingPlan<V>>,
         model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<CuttingPlan<V>>> {
-        // 去重 / Deduplicate
-        val existingIds = produce.cuttingPlans.map { it.id }.toSet()
-        val existingKeys = produce.cuttingPlans.map { it.canonicalKey() }.toSet()
-        val addedPlans = newPlans.filter { candidate ->
-            candidate.id !in existingIds && candidate.canonicalKey() !in existingKeys
+        // 1. 委托 ProduceAggregation.addColumns() 完成变量、batch 和约束中间符号的原地增量
+        //    Delegate to ProduceAggregation.addColumns() for in-place variable, batch and
+        //    constraint intermediate symbol increment
+        val addedPlans = when (val result = produce.addColumns(iteration, newPlans, model)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
         if (addedPlans.isEmpty()) return Ok(emptyList())
 
-        // Rebuild-compatible lifecycle:
-        //
-        // 当前 AbstractLinearMetaModel 不支持原地追加变量并刷新约束表达式，
-        // 因此 addColumns 仅返回去重后的新方案列表，不修改已有模型。
-        // 列生成主循环应使用 rebuild 模式：将新增方案加入 plan pool 后，
-        // 下一轮迭代通过 Csp1dMilpSolver.solveLP() 重新构建完整模型。
-        //
-        // 后续若底层变量容器支持原地扩展，可在此方法中：
-        // 1. 为每个新增方案注册 plan usage 变量 x[j]
-        // 2. 更新需求、物料、设备约束表达式中的新列系数
-        // 3. 更新目标函数中的新列系数
-        //
-        // Current AbstractLinearMetaModel does not support in-place variable addition
-        // with constraint expression refresh, so addColumns only returns deduplicated
-        // new plans without modifying the existing model.
-        // The CG main loop should use rebuild mode: add new plans to the pool,
-        // then the next iteration rebuilds the full model via Csp1dMilpSolver.solveLP().
-        //
-        // When the underlying variable container supports in-place extension, this method
-        // should: 1) register plan usage variables for each new plan,
-        // 2) update demand/material/machine constraint expressions with new column coefficients,
-        // 3) update objective function with new column coefficients.
+        // 2. 追加新列目标项到模型 / Append new column objective terms to model
+        //    为每个新增方案追加 minimize(batchCoefficient * x_j) 到目标函数
+        //    Append minimize(batchCoefficient * x_j) for each new plan to the objective
+        val baseBatchCoefficient = lengthObjective?.batchCoefficient() ?: Flt64.one
+        val latestBatch = produce.batchGroups.lastOrNull()
+        if (latestBatch != null) {
+            for ((planIndex, plan) in addedPlans.withIndex()) {
+                if (planIndex >= latestBatch.shape[0]) break
+                val batchCoefficient = if (objectivePolicies.isNotEmpty()) {
+                    val ctx = SimpleDomainCalculationContext(
+                        plan = plan,
+                        planIndex = produce.planCount + planIndex,
+                        vSample = vSample
+                    )
+                    objectivePolicies.fold(baseBatchCoefficient) { coeff, policy ->
+                        policy.modifyBatchCoefficient(ctx, coeff)
+                    }
+                } else {
+                    baseBatchCoefficient
+                }
+                when (val result = model.minimize(
+                    LinearMonomial(batchCoefficient, latestBatch[planIndex]),
+                    name = "csp1d_objective_${iteration}_$planIndex"
+                )) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+            }
+        }
+
+        // 3. 扩展管线不在此处刷新；扩展管线通过 rebuild 模式或
+        //    Csp1dModelingExtension.addColumns()（待后续 CGPipeline 迁移后支持）
+        //    Extension pipelines are not refreshed here; they use rebuild mode or
+        //    Csp1dModelingExtension.addColumns() (to be supported after CGPipeline migration)
 
         return Ok(addedPlans)
     }

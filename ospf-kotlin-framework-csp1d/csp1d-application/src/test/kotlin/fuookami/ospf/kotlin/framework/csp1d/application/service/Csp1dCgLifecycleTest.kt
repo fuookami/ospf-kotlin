@@ -698,4 +698,187 @@ class Csp1dCgLifecycleTest {
         assertNotNull(result.solution)
         assertNotNull(result.trace)
     }
+
+    // ===== Behavior Assertion Tests =====
+
+    /**
+     * 验证 custom canonicalKeyFor 影响去重行为：
+     * 当策略让两个结构不同的方案拥有相同 custom key 时，
+     * 第二个应被去重过滤掉，方案池应比默认更小。
+     *
+     * Verify custom canonicalKeyFor affects deduplication:
+     * when a strategy gives two structurally different plans the same custom key,
+     * the second should be deduped away, resulting in a smaller plan pool than default.
+     */
+    @Test
+    fun canonicalKeyForAffectsDeduplication(): Unit = runBlocking {
+        // First: solve without custom key to get baseline plan count
+        val problem = simpleProblem()
+        val baselineConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensionSet = fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet.empty()
+        )
+        val baselineResult = Csp1dColumnGeneration<Flt64>(LifecycleFakeSolver())
+            .solveWithTrace(problem, baselineConfig)
+        val baselinePlanCount = baselineResult.trace.finalPlanCount.toInt()
+
+        // Now: solve with a custom canonical key that collapses everything to one key
+        val collapsingStrategy = object : fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy<Flt64> {
+            override val name = "collapsing-canonical-key"
+            override fun canonicalKeyFor(candidate: CuttingPlan<Flt64>): String? = "same-key"
+        }
+        val collapsingConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensionSet = fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet<Flt64>(
+                generationStrategies = listOf(collapsingStrategy)
+            )
+        )
+        val collapsingResult = Csp1dColumnGeneration<Flt64>(LifecycleFakeSolver())
+            .solveWithTrace(problem, collapsingConfig)
+        val collapsingPlanCount = collapsingResult.trace.finalPlanCount.toInt()
+
+        // With all plans sharing the same custom key, dedup should leave at most 1 plan
+        assertTrue(
+            collapsingPlanCount <= 1,
+            "Collapsing canonical key should dedup all plans to at most 1, got $collapsingPlanCount"
+        )
+        // If baseline already has <=1 plan, the collapsing key cannot reduce further
+        if (baselinePlanCount > 1) {
+            assertTrue(
+                collapsingPlanCount < baselinePlanCount,
+                "Collapsing canonical key should produce fewer plans than baseline ($baselinePlanCount), got $collapsingPlanCount"
+            )
+        }
+    }
+
+    /**
+     * 验证 acceptDominance=false 在不启用 dominance pruning 时仍拒绝候选：
+     * 策略始终返回 false 时，方案池应为空或显著少于默认。
+     *
+     * Verify acceptDominance=false rejects candidates even without dominance pruning:
+     * when the strategy always returns false, the plan pool should be empty or
+     * significantly smaller than default.
+     */
+    @Test
+    fun acceptDominanceWorksWithoutDominancePruning(): Unit = runBlocking {
+        val rejectingStrategy = object : fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy<Flt64> {
+            override val name = "reject-all-dominance"
+            override fun acceptDominance(
+                candidate: CuttingPlan<Flt64>,
+                existingPlans: List<CuttingPlan<Flt64>>
+            ): Boolean = false
+        }
+        val problem = simpleProblem()
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensionSet = fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet<Flt64>(
+                generationStrategies = listOf(rejectingStrategy)
+            )
+        )
+        val result = Csp1dColumnGeneration<Flt64>(LifecycleFakeSolver())
+            .solveWithTrace(problem, solveConfig)
+
+        // acceptDominance=false should reject candidates when existingPlans is non-empty,
+        // but the first candidate has no existing plans to compare against and may be accepted.
+        // Therefore the plan pool should have at most 1 plan (the first one that passes with no existing).
+        assertTrue(
+            result.trace.finalPlanCount.toInt() <= 1,
+            "acceptDominance=false should reject all candidates after the first, got ${result.trace.finalPlanCount.toInt()} plans"
+        )
+    }
+
+    /**
+     * 验证 selectTermination 的 customReason 写回 terminationReason：
+     * 当策略返回 "PricingConverged" 以外的 reason 且 CG 自然收敛时，
+     * trace 的 terminationReason 应反映自定义值。
+     *
+     * Verify selectTermination customReason is written back to terminationReason:
+     * when the policy returns a reason other than the default and CG converges naturally,
+     * the trace terminationReason should reflect the custom value.
+     */
+    @Test
+    fun selectTerminationCustomReasonAffectsTerminationReason(): Unit = runBlocking {
+        val customTerminationPolicy = object : Csp1dFlowPolicy<Flt64> {
+            override val name = "custom-termination-reason"
+            override fun selectTermination(
+                context: Csp1dFlowContext<Flt64>,
+                defaultReason: String,
+                defaultMessage: String?
+            ): Pair<String, String?> {
+                return "AllDuplicates" to "custom termination message"
+            }
+        }
+        val problem = simpleProblem()
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensionSet = fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet<Flt64>(
+                flowPolicies = listOf(customTerminationPolicy)
+            )
+        )
+        val result = Csp1dColumnGeneration<Flt64>(LifecycleFakeSolver())
+            .solveWithTrace(problem, solveConfig)
+
+        // The custom reason "AllDuplicates" should override the default
+        assertEquals(
+            Csp1dTerminationReason.AllDuplicates,
+            result.trace.terminationReason,
+            "selectTermination customReason should be written back to trace.terminationReason"
+        )
+    }
+
+    /**
+     * 验证 allowRecoveryFallback=false 的 flow policy 能覆盖默认 retryWithoutWarmStart=true：
+     * 当 warm start 不可用且 flow policy 禁止 fallback 时，应抛出 FallbackDisabled 异常。
+     *
+     * Verify allowRecoveryFallback=false flow policy overrides default retryWithoutWarmStart=true:
+     * when warm start is unusable and flow policy disables fallback, should throw FallbackDisabled.
+     */
+    @Test
+    fun allowRecoveryFallbackPolicyOverridesDefault(): Unit = runBlocking {
+        val disableFallbackPolicy = object : Csp1dFlowPolicy<Flt64> {
+            override val name = "disable-fallback"
+            override fun allowRecoveryFallback(
+                context: Csp1dFlowContext<Flt64>,
+                defaultDecision: Boolean
+            ): Boolean {
+                // Verify context carries warm start info
+                assertTrue(
+                    context.warmStartPlanCount >= 0,
+                    "warmStartPlanCount should be non-negative"
+                )
+                return false
+            }
+        }
+        val problem = simpleProblem()
+        val solveConfig = Csp1dSolveConfig<Flt64>(
+            columnGeneration = problem.configuration,
+            extensionSet = fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet<Flt64>(
+                flowPolicies = listOf(disableFallbackPolicy)
+            )
+        )
+        val input = Csp1dRecoveryInput(
+            problem = problem,
+            solveConfig = solveConfig,
+            warmStart = Csp1dWarmStart(
+                cuttingPlans = listOf(simpleCuttingPlan(
+                    product("nonexistent", 99.9),
+                    material("wrong", 0.1, 0.2),
+                    Flt64(1.0)
+                ))
+            ),
+            options = Csp1dRecoveryOptions(retryWithoutWarmStart = true)
+        )
+        // The warm start plan is incompatible, so fallback is required.
+        // The flow policy returns false, so Csp1dRecoveryFallbackDisabledException should be thrown.
+        var fallbackDisabledThrown = false
+        try {
+            Csp1dRecovery<Flt64>(LifecycleFakeSolver()).solveWithTrace(input)
+        } catch (e: Csp1dRecoveryFallbackDisabledException) {
+            fallbackDisabledThrown = true
+        }
+        assertTrue(
+            fallbackDisabledThrown,
+            "allowRecoveryFallback=false policy should cause FallbackDisabled exception even when retryWithoutWarmStart=true"
+        )
+    }
 }
