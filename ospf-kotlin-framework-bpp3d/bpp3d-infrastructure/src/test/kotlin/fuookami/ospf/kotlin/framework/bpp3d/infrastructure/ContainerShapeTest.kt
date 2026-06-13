@@ -1,5 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -13,35 +14,35 @@ import kotlin.test.assertTrue
 
 class ContainerShapeTest {
     private data class StubCuboid(
-        override val width: InfraQuantity,
-        override val height: InfraQuantity,
-        override val depth: InfraQuantity,
-        override val weight: InfraQuantity
-    ) : AbstractCuboid<InfraNumber>
+        override val width: Quantity<FltX>,
+        override val height: Quantity<FltX>,
+        override val depth: Quantity<FltX>,
+        override val weight: Quantity<FltX>
+    ) : AbstractCuboid<FltX>
 
     @Test
     fun volumeShouldKeepLengthCubeDimension() {
         val shape = Container3Shape(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(4.0) * Meter
+            width = fltX(2.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(4.0) * Meter
         )
 
-        assertTrue(shape.volume eq (infraScalar(24.0) * CubicMeter))
+        assertTrue(shape.volume eq (fltX(24.0) * CubicMeter))
     }
 
     @Test
     fun enabledAndMaxAmountShouldRespectOrientationAndLimits() {
         val shape = Container3Shape(
-            width = infraScalar(10.0) * Meter,
-            height = infraScalar(9.0) * Meter,
-            depth = infraScalar(8.0) * Meter
+            width = fltX(10.0) * Meter,
+            height = fltX(9.0) * Meter,
+            depth = fltX(8.0) * Meter
         )
         val unit = StubCuboid(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(4.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(4.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
 
         assertTrue(shape.enabled(unit, Orientation.Upright))
@@ -58,15 +59,15 @@ class ContainerShapeTest {
         )
 
         val rotatedOnlyShape = Container3Shape(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter
+            width = fltX(3.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter
         )
         val rotatedUnit = StubCuboid(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(3.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(3.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
 
         assertFalse(rotatedOnlyShape.enabled(rotatedUnit, Orientation.Upright))
@@ -76,48 +77,48 @@ class ContainerShapeTest {
     @Test
     fun restSpaceShouldSubtractPointAndVectorOffsets() {
         val shape = Container3Shape(
-            width = infraScalar(8.0) * Meter,
-            height = infraScalar(6.0) * Meter,
-            depth = infraScalar(5.0) * Meter
+            width = fltX(8.0) * Meter,
+            height = fltX(6.0) * Meter,
+            depth = fltX(5.0) * Meter
         )
         val pointOffset = QuantityPoint3(
-            x = infraScalar(3.0) * Meter,
-            y = infraScalar(2.0) * Meter,
-            z = infraScalar(1.0) * Meter
+            x = fltX(3.0) * Meter,
+            y = fltX(2.0) * Meter,
+            z = fltX(1.0) * Meter
         )
         val vectorOffset = QuantityVector3(
-            x = infraScalar(1.0) * Meter,
-            y = infraScalar(1.5) * Meter,
-            z = infraScalar(2.0) * Meter
+            x = fltX(1.0) * Meter,
+            y = fltX(1.5) * Meter,
+            z = fltX(2.0) * Meter
         )
 
         val byPoint = shape.restSpace(pointOffset)
         val byVector = shape.restSpace(vectorOffset)
 
-        assertTrue(byPoint.width eq (infraScalar(5.0) * Meter))
-        assertTrue(byPoint.height eq (infraScalar(4.0) * Meter))
-        assertTrue(byPoint.depth eq (infraScalar(4.0) * Meter))
+        assertTrue(byPoint.width eq (fltX(5.0) * Meter))
+        assertTrue(byPoint.height eq (fltX(4.0) * Meter))
+        assertTrue(byPoint.depth eq (fltX(4.0) * Meter))
 
-        assertTrue(byVector.width eq (infraScalar(7.0) * Meter))
-        assertTrue(byVector.height eq (infraScalar(4.5) * Meter))
-        assertTrue(byVector.depth eq (infraScalar(3.0) * Meter))
+        assertTrue(byVector.width eq (fltX(7.0) * Meter))
+        assertTrue(byVector.height eq (fltX(4.5) * Meter))
+        assertTrue(byVector.depth eq (fltX(3.0) * Meter))
     }
 
     @Test
     fun container3ShapeFrom2DShouldFollowPlaneAxisRules() {
         val bottom2 = Container2Shape(
-            length = infraScalar(4.0) * Meter,
-            width = infraScalar(3.0) * Meter,
+            length = fltX(4.0) * Meter,
+            width = fltX(3.0) * Meter,
             plane = Bottom
         )
         val side2 = Container2Shape(
-            length = infraScalar(4.0) * Meter,
-            width = infraScalar(3.0) * Meter,
+            length = fltX(4.0) * Meter,
+            width = fltX(3.0) * Meter,
             plane = Side
         )
         val front2 = Container2Shape(
-            length = infraScalar(4.0) * Meter,
-            width = infraScalar(3.0) * Meter,
+            length = fltX(4.0) * Meter,
+            width = fltX(3.0) * Meter,
             plane = Front
         )
 
@@ -125,37 +126,37 @@ class ContainerShapeTest {
         val side3 = Container3Shape(side2)
         val front3 = Container3Shape(front2)
 
-        assertTrue(bottom3.width eq (infraScalar(3.0) * Meter))
-        assertTrue(bottom3.depth eq (infraScalar(4.0) * Meter))
+        assertTrue(bottom3.width eq (fltX(3.0) * Meter))
+        assertTrue(bottom3.depth eq (fltX(4.0) * Meter))
 
-        assertTrue(side3.width eq (infraScalar(4.0) * Meter))
-        assertTrue(side3.height eq (infraScalar(3.0) * Meter))
+        assertTrue(side3.width eq (fltX(4.0) * Meter))
+        assertTrue(side3.height eq (fltX(3.0) * Meter))
 
-        assertTrue(front3.width eq (infraScalar(4.0) * Meter))
-        assertTrue(front3.height eq (infraScalar(3.0) * Meter))
+        assertTrue(front3.width eq (fltX(4.0) * Meter))
+        assertTrue(front3.height eq (fltX(3.0) * Meter))
     }
 
     @Test
     fun enabledWithVerticalCylinderShapeShouldUseRadiusBoundary() {
         val shape = Container3Shape(
-            width = infraScalar(10.0) * Meter,
-            height = infraScalar(6.0) * Meter,
-            depth = infraScalar(8.0) * Meter
+            width = fltX(10.0) * Meter,
+            height = fltX(6.0) * Meter,
+            depth = fltX(8.0) * Meter
         )
-        val cylinder = object : AbstractCylinder<InfraNumber> {
-            override val radius = infraScalar(1.5) * Meter
-            override val height = infraScalar(4.0) * Meter
+        val cylinder = object : AbstractCylinder<FltX> {
+            override val radius = fltX(1.5) * Meter
+            override val height = fltX(4.0) * Meter
             override val axis = Axis3.Y
-            override val weight = infraScalar(2.0) * Kilogram
+            override val weight = fltX(2.0) * Kilogram
         }.asPackingShape3()
 
         assertTrue(
             shape.enabled(
                 shape = cylinder,
                 position = QuantityPoint3(
-                    x = infraScalar(2.0) * Meter,
-                    y = infraScalar(1.0) * Meter,
-                    z = infraScalar(3.0) * Meter
+                    x = fltX(2.0) * Meter,
+                    y = fltX(1.0) * Meter,
+                    z = fltX(3.0) * Meter
                 )
             )
         )
@@ -164,9 +165,9 @@ class ContainerShapeTest {
             shape.enabled(
                 shape = cylinder,
                 position = QuantityPoint3(
-                    x = infraScalar(8.0) * Meter,
-                    y = infraScalar(1.0) * Meter,
-                    z = infraScalar(3.0) * Meter
+                    x = fltX(8.0) * Meter,
+                    y = fltX(1.0) * Meter,
+                    z = fltX(3.0) * Meter
                 )
             )
         )
@@ -175,9 +176,9 @@ class ContainerShapeTest {
             shape.enabled(
                 shape = cylinder,
                 position = QuantityPoint3(
-                    x = infraScalar(-0.1) * Meter,
-                    y = infraScalar(1.0) * Meter,
-                    z = infraScalar(3.0) * Meter
+                    x = fltX(-0.1) * Meter,
+                    y = fltX(1.0) * Meter,
+                    z = fltX(3.0) * Meter
                 )
             )
         )
@@ -186,30 +187,30 @@ class ContainerShapeTest {
     @Test
     fun enabledWithHorizontalCylinderShapeShouldUseBoundingBoxBoundary() {
         val shape = Container3Shape(
-            width = infraScalar(10.0) * Meter,
-            height = infraScalar(6.0) * Meter,
-            depth = infraScalar(8.0) * Meter
+            width = fltX(10.0) * Meter,
+            height = fltX(6.0) * Meter,
+            depth = fltX(8.0) * Meter
         )
-        val cylinderX = object : AbstractCylinder<InfraNumber> {
-            override val radius = infraScalar(1.0) * Meter
-            override val height = infraScalar(5.0) * Meter
+        val cylinderX = object : AbstractCylinder<FltX> {
+            override val radius = fltX(1.0) * Meter
+            override val height = fltX(5.0) * Meter
             override val axis = Axis3.X
-            override val weight = infraScalar(2.0) * Kilogram
+            override val weight = fltX(2.0) * Kilogram
         }.asPackingShape3()
-        val cylinderZ = object : AbstractCylinder<InfraNumber> {
-            override val radius = infraScalar(1.0) * Meter
-            override val height = infraScalar(5.0) * Meter
+        val cylinderZ = object : AbstractCylinder<FltX> {
+            override val radius = fltX(1.0) * Meter
+            override val height = fltX(5.0) * Meter
             override val axis = Axis3.Z
-            override val weight = infraScalar(2.0) * Kilogram
+            override val weight = fltX(2.0) * Kilogram
         }.asPackingShape3()
 
         assertTrue(
             shape.enabled(
                 shape = cylinderX,
                 position = QuantityPoint3(
-                    x = infraScalar(5.0) * Meter,
-                    y = infraScalar(4.0) * Meter,
-                    z = infraScalar(6.0) * Meter
+                    x = fltX(5.0) * Meter,
+                    y = fltX(4.0) * Meter,
+                    z = fltX(6.0) * Meter
                 )
             )
         )
@@ -218,9 +219,9 @@ class ContainerShapeTest {
             shape.enabled(
                 shape = cylinderX,
                 position = QuantityPoint3(
-                    x = infraScalar(6.0) * Meter,
-                    y = infraScalar(4.0) * Meter,
-                    z = infraScalar(6.0) * Meter
+                    x = fltX(6.0) * Meter,
+                    y = fltX(4.0) * Meter,
+                    z = fltX(6.0) * Meter
                 )
             )
         )
@@ -229,9 +230,9 @@ class ContainerShapeTest {
             shape.enabled(
                 shape = cylinderZ,
                 position = QuantityPoint3(
-                    x = infraScalar(8.0) * Meter,
-                    y = infraScalar(4.0) * Meter,
-                    z = infraScalar(3.0) * Meter
+                    x = fltX(8.0) * Meter,
+                    y = fltX(4.0) * Meter,
+                    z = fltX(3.0) * Meter
                 )
             )
         )
@@ -240,9 +241,9 @@ class ContainerShapeTest {
             shape.enabled(
                 shape = cylinderZ,
                 position = QuantityPoint3(
-                    x = infraScalar(8.0) * Meter,
-                    y = infraScalar(4.0) * Meter,
-                    z = infraScalar(4.0) * Meter
+                    x = fltX(8.0) * Meter,
+                    y = fltX(4.0) * Meter,
+                    z = fltX(4.0) * Meter
                 )
             )
         )

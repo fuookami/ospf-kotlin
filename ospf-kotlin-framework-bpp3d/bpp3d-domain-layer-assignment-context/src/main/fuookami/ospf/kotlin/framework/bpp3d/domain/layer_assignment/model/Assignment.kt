@@ -4,7 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols2
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.multiarray._a
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter: IntoValue<InfraNumber> = IntoValue.fromConverter(InfraNumber)
+private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
 
 /**
  * 不精确赋值，用于列生成 RMP 阶段。
@@ -52,7 +52,7 @@ class ImpreciseAssignment(
     val x: List<UIntVariable1> by ::_x
 
     /** 体积符号 / volume symbol */
-    lateinit var volume: LinearExpressionSymbol<InfraNumber>
+    lateinit var volume: LinearExpressionSymbol<FltX>
 
     /**
      * 注册赋值符号到模型。
@@ -61,9 +61,9 @@ class ImpreciseAssignment(
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
      */
-    fun register(model: MetaModel<InfraNumber>): Try {
+    fun register(model: MetaModel<FltX>): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(InfraNumber.zero, name = "volume")
+            volume = LinearExpressionSymbol(FltX.zero, name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}
@@ -92,7 +92,7 @@ class ImpreciseAssignment(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel<InfraNumber>
+        model: AbstractLinearMetaModel<FltX>
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -150,9 +150,9 @@ class PreciseAssignment(
     lateinit var x: UIntVariable2
 
     /** 二值化中间符号 / binary intermediate symbols */
-    lateinit var u: LinearIntermediateSymbols2<InfraNumber>
+    lateinit var u: LinearIntermediateSymbols2<FltX>
     /** 箱子使用符号 / bin usage symbols */
-    lateinit var v: LinearIntermediateSymbols1<InfraNumber>
+    lateinit var v: LinearIntermediateSymbols1<FltX>
     /** 尾箱标记变量 / tail bin marker variable */
     lateinit var tail: BinVariable1
 
@@ -163,7 +163,7 @@ class PreciseAssignment(
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
      */
-    fun register(model: MetaModel<InfraNumber>): Try {
+    fun register(model: MetaModel<FltX>): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",
@@ -171,7 +171,7 @@ class PreciseAssignment(
             )
             for ((i, bin) in bins.withIndex()) {
                 for ((j, layer) in layers.withIndex()) {
-                    if (layer.bin != bin.shape || !bin.enabled(layer)) {
+                    if (layer.bin != bin.type || !bin.enabled(layer)) {
                         x[i, j].range.eq(UInt64.zero)
                     } else {
                         x[i, j].range.leq((bin.depth / layer.depth).ceil().toUInt64())
@@ -181,7 +181,7 @@ class PreciseAssignment(
         }
         for ((i, bin) in bins.withIndex()) {
             for ((j, layer) in layers.withIndex()) {
-                if (layer.bin == bin.shape && bin.enabled(layer)) {
+                if (layer.bin == bin.type && bin.enabled(layer)) {
                     when (val result = model.add(x[i, j])) {
                         is Ok -> {}
 
@@ -198,13 +198,13 @@ class PreciseAssignment(
         }
 
         if (!::u.isInitialized) {
-            u = LinearIntermediateSymbols2<InfraNumber>(
+            u = LinearIntermediateSymbols2<FltX>(
                 name = "u",
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
-                        polynomial = LinearMonomial(InfraNumber.one, x[v[0], v[1]]).toLinearPolynomial(),
+                        polynomial = LinearMonomial(FltX.one, x[v[0], v[1]]).toLinearPolynomial(),
                         converter = flt64Converter,
                         name = "u_$v",
                     ),
@@ -225,13 +225,13 @@ class PreciseAssignment(
         }
 
         if (!::v.isInitialized) {
-            v = LinearIntermediateSymbols1<InfraNumber>(
+            v = LinearIntermediateSymbols1<FltX>(
                 name = "v",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
-                        polynomial = sum(x[i, _a].map { LinearMonomial(InfraNumber.one, it) }),
+                        polynomial = sum(x[i, _a].map { LinearMonomial(FltX.one, it) }),
                         converter = flt64Converter,
                         name = "v_$i",
                     ),

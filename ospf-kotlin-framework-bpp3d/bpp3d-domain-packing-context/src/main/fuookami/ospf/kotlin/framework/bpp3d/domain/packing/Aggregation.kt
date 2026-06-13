@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
@@ -19,7 +20,7 @@ data class PackedItem(
 
 data class PackedBin(
     val name: String,
-    val type: BinType,
+    val type: BinType<FltX>,
     val batchNo: BatchNo? = null,
     val group: List<String> = emptyList(),
     val items: List<PackedItem>

@@ -14,8 +14,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ProjectivePlane
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Side
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 private fun <P : ProjectivePlane> AnyPlacement2<P>.asSidePlacementOrNull(): AnySidePlacement2? {
-    return if (plane == Side && projection is PlaneProjection<*, *>) {
+    return if (plane == Side && projection is PlaneProjection<*, FltX, *>) {
         @Suppress("UNCHECKED_CAST")
         this as AnySidePlacement2
     } else {
@@ -24,7 +25,7 @@ private fun <P : ProjectivePlane> AnyPlacement2<P>.asSidePlacementOrNull(): AnyS
 }
 
 private fun <P : ProjectivePlane> AnyPlacement2<P>.asFrontPlacementOrNull(): AnyFrontPlacement2? {
-    return if (plane == Front && projection is PlaneProjection<*, *>) {
+    return if (plane == Front && projection is PlaneProjection<*, FltX, *>) {
         @Suppress("UNCHECKED_CAST")
         this as AnyFrontPlacement2
     } else {
@@ -92,7 +93,7 @@ fun <P : ProjectivePlane> List<AnyPlacement2<P>?>.toFrontPlacements(): List<AnyF
     }
 }
 
-private fun <P : ProjectivePlane> AbstractContainer2Shape<P>.restSideSpace(position: QuantityPoint2): Container2Shape<Side> {
+private fun <P : ProjectivePlane> AbstractContainer2Shape<P>.restSideSpace(position: QuantityPoint2<FltX>): Container2Shape<Side> {
     val rest = restSpace(position)
     return Container2Shape(
         length = rest.length,
@@ -101,7 +102,7 @@ private fun <P : ProjectivePlane> AbstractContainer2Shape<P>.restSideSpace(posit
     )
 }
 
-private fun <P : ProjectivePlane> AbstractContainer2Shape<P>.restFrontSpace(position: QuantityPoint2): Container2Shape<Front> {
+private fun <P : ProjectivePlane> AbstractContainer2Shape<P>.restFrontSpace(position: QuantityPoint2<FltX>): Container2Shape<Front> {
     val rest = restSpace(position)
     return Container2Shape(
         length = rest.length,

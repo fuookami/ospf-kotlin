@@ -1,6 +1,6 @@
 # BPP3D 下一轮交接计划
 
-日期：2026-06-11
+日期：2026-06-13
 
 ## 1. 总目标
 
@@ -8,13 +8,21 @@
 
 已开放能力必须继续具备 solver、final validation、packing snapshot、renderer、CSV/Gurobi、文档和测试闭环；未开放能力必须通过 guarded contract、负例测试、文档和脚本门禁收口。
 
+对外接口必须是最简洁、最语义化的，不保留任何迁移重构留下的前后缀痕迹（包括 `FltX` 固定别名、`Quantity` 前缀兼容层等）。
+
 ## 2. 已完成事项摘要
 
 1. 已完成 shape-polymorphic 生产入口、圆柱几何、横向支撑、连续半径 PWL v1、renderer 原生圆柱与 actual-radius 回写闭环。
 2. 已完成 cuboid-only 兼容层清理、`BoundingCuboid` renderer 兼容映射移除、关键文档、负例测试和边界脚本收口。
 3. 已完成 PWL 连续半径建模职责收敛：BPP3D 只注册领域变量、领域边界约束和 core PWL 函数符号，PWL helper token 与 Big-M 约束由 core mechanism lifecycle 展开。
-4. 已完成 core token/function lifecycle 必要修复，并提交为 `95432009a`。
-5. 已完成 BPP3D 必跑门禁与全模块测试阶段性验收。
+4. 已完成 core token/function lifecycle 必要修复（`95432009a`）。
+5. 已完成 Gurobi 端到端验收（55/0/0 focused，55/0/0 dataset suite 19 dataset）。
+6. 已完成 PWL 参数调优基线（默认 8 段 1% Uniform，`deriveSegmentCount` 自适应）。
+7. 已完成 PWL 诊断字段收敛（`PWLRadiusSelectionMetadata` 口径统一）。
+8. 已完成边界脚本硬化（6 个新增检查，全部通过无误报）。
+9. 已完成横向圆柱 dataset 修复（Y 轴 PWL 圆柱 + tight-bin 重叠修复 + modelScaleInfo 接入）。
+10. 已完成部分兼容层文件删除：`InfraAliases.kt`、`QuantityCompatibility.kt`、`QuantityGeometrySpike.kt`、`QuantityProjectionPlacementCore.kt`、`ItemModelAliases.kt` 及对应的 proof test 文件。
+11. 已完成 `InfraNumber` / `infra*` 命名模式清理、`XXXV` / `Typed` / `Generic` 迁移痕迹清理。
 
 ## 3. 当前边界
 
@@ -24,162 +32,174 @@
 4. renderer `actualVolume` 必须继续使用 solver-selected radius 的真实 `pi * r^2 * h`，不得回退到 envelope volume 或 PWL volume。
 5. unsupported 范围继续 guarded，不允许 silent downgrade。
 6. CSP1D 当前有无关未提交改动，下一会话不得混入 BPP3D 提交。
+7. 对外接口不得保留 `FltX` 固定别名、`Quantity` 前缀兼容层、迁移前后缀痕迹。
 
 ## 4. 下一轮目标
 
-下一轮目标是做 BPP3D 收尾增强，不改变已开放能力边界：
-
-1. 完成 Gurobi focused 与 dataset suite 触发式验收，确认 PWL lifecycle 修复后 solver 端到端行为稳定。
-2. 建立 PWL 参数调优基线，形成默认 segment / tolerance / radius interval 的推荐口径。
-3. 收敛 PWL 诊断字段，使 Gurobi result、final validation、packing snapshot、renderer metadata 与 README 示例可直接对照。
-4. 继续硬化边界脚本，防止 PWL 手写约束、actualVolume 回退、application solver 重新堆建模逻辑等问题回流。
-5. 整理 PWL 测试分层与命名，降低后续维护成本。
-6. 将 `daily.md` 从阶段性交接逐步转为完成记录，README 补充简短流程说明。
+消除 BPP3D 对外 API 中所有兼容层残留，使类型别名从固定 `FltX` 收敛到真正泛型化，确保对外接口最简洁最语义化。
 
 ## 5. 下一轮事项
 
-### 5.1 Gurobi 触发式端到端验收
+### 5.1 固定 FltX 的自然名别名泛型化（核心事项）
 
-1. 安装 Gurobi core plugin：
-   - 执行 `mvn --% -f ospf-kotlin-core-plugin/pom.xml -pl ospf-kotlin-core-plugin-gurobi -am install -DskipTests -Dgpg.skip=true`。
-   - 若环境缺少 Gurobi license、native library 或 license server，记录明确 skip 原因，不修改生产代码绕过。
-2. 执行 focused CG 测试：
-   - 执行 `GurobiColumnGenerationTest` focused 命令。
-   - 重点检查 PWL interval-only 连续半径 case 是否仍生成 solver-selected radius、PWL metadata、actual radius 和 renderer actualVolume。
-3. 执行 dataset suite：
-   - 使用 `bpp3d-application/src/test/resources/gurobi` 全量 dataset。
-   - 重点覆盖 grouped-layer、material-width-amount、连续半径、unsupported metadata、横向圆柱和 final validation。
-4. 验收输出整理：
-   - 在 `daily.md` 记录 focused 与 dataset suite 的测试数量、skip 数量和失败原因。
-   - 若失败，优先判断是环境问题、dataset 问题、solver precision 问题还是 lifecycle 回归。
-   - 不允许通过禁用 PWL、回退 cuboid-only 或回退 fixed/discrete radius 来消除失败。
+当前 BPP3D 有 23 个 typealias 固定到 `FltX`，与"对外只保留完全泛型化接口"口径冲突。需逐一分析并处理。
 
-### 5.2 PWL 参数调优基线
+**A. Bin 相关（3 个，文件 `Bin.kt:336-340`）**
 
-1. 梳理当前 PWL 配置入口：
-   - 查找 `PWLRadiusApproximationConfig`、`PWLBreakpointStrategy`、`PWLRadiusSquaredApproximation` 的调用点。
-   - 确认默认 `maxSegments`、relative tolerance、absolute tolerance、Big-M envelope 来源和 debug info 开关。
-2. 设计最小 benchmark / regression 数据集：
-   - 半径区间小：例如 `[0.5, 2.0]`。
-   - 半径区间中：例如 `[2.0, 8.0]`。
-   - 半径区间大：例如 `[1.0, 50.0]`。
-   - tight bin：接近边界的容器尺寸。
-   - multi material / multi demand：验证 PWL 参数不会只对单一 demand 成立。
-3. 对比策略：
-   - Uniform。
-   - Adaptive。
-   - ErrorDriven。
-   - 每种策略至少比较 segment 数、最大相对误差、最大绝对误差、求解时间和 actualVolume 偏差。
-4. 输出推荐：
-   - 形成默认 segment 与 tolerance 建议。
-   - 标明何时建议开启 debug info。
-   - 标明极端 radius interval 是否需要强制提高 segment 或拒绝。
-5. 若新增测试：
-   - 优先放在 `bpp3d-infrastructure/src/test` 或 `bpp3d-application/src/gurobi-test`。
-   - 测试名称体现策略、误差预算和数据规模。
+```
+typealias LayerBin = Bin<BinLayer, FltX>
+typealias ItemBin = Bin<Item, FltX>
+typealias BlockBin = Bin<Block, FltX>
+```
 
-### 5.3 PWL 诊断字段收敛
+方案：删除这 3 个别名。调用方改为直接使用 `Bin<BinLayer, FltX>` 或 `Bin<T, V>` 泛型形式。需确认 `BinLayer` 本身是否仍是 `FltX` 领域模型——如果 `BinLayer` 内部类型参数就是 `FltX`，则调用方 `Bin<BinLayer, FltX>` 是自然的泛型实例化而非兼容层。关键判断标准：别名是否让调用方把 `FltX` 隐藏起来导致无法感知数值类型绑定。
 
-1. 盘点字段来源：
-   - `PWLExtractedRadius.info()`。
-   - `PWLRadiusSelectionMetadata`。
-   - `ContinuousRadiusModelComponent.modelScaleInfo()`。
-   - `ColumnGenerationResult` / final result info。
-   - renderer item metadata。
-2. 统一字段口径：
-   - radius：solver-selected `r`。
-   - q / pwlRadiusSquared：PWL function result。
-   - actualRadiusSquared：真实 `r^2`。
-   - pwlAbsoluteError / pwlRelativeError：误差。
-   - pwlVolume：`pi * q * h`。
-   - actualVolume：`pi * r^2 * h`。
-   - envelope：`rMin` / `rMax` 与是否 within envelope。
-3. 避免字段重复与歧义：
-   - 同一字段不要在不同层级使用不同含义。
-   - 对外 README 示例只展示稳定字段。
-   - 内部 debug 字段可保留，但要有前缀。
-4. 增加 focused assertion：
-   - renderer metadata 中 actualVolume 与 PWL volume 不应混用。
-   - Gurobi result info 与 renderer metadata 中 selected radius 一致。
-   - final validation 使用 actual radius 而非 envelope radius。
+执行步骤：
+1. 全局搜索 `LayerBin`、`ItemBin`、`BlockBin` 的所有引用点。
+2. 将引用替换为 `Bin<BinLayer, FltX>`、`Bin<Item, FltX>`、`Bin<Block, FltX>`。
+3. 删除 3 个 typealias 定义。
+4. 编译确认类型推断未被打散。
+5. 跑 BPP3D 全量测试。
 
-### 5.4 边界脚本硬化
+**B. Placement/Projection 相关（14 个，分布在 `Item.kt`、`Block.kt`、`ItemContainer.kt`、`Layer.kt`）**
 
-1. 在 `shape-boundary-check.ps1` 中继续保留并扩展 PWL lifecycle 检查：
-   - 禁止 `registerPWLFunctionConstraints` 回流。
-   - 禁止 `for (helperVar in pwlFunction.helperVariables)` 手动注册回流。
-   - 禁止 `registerAuxiliaryTokens(model.tokens)` 回流。
-2. 新增或增强 actualVolume 回退检查：
-   - 禁止 renderer adapter 在 PWL path 使用 envelope volume 作为 `actualVolume`。
-   - 禁止使用 `pwlVolume` 覆盖 `actualVolume`。
-   - 允许 `pwlVolume` 作为诊断字段。
-3. 新增 application solver 建模边界检查：
-   - application 层不得新增 PWL helper variable 注册函数。
-   - application 层不得直接拼 PWL Big-M segment constraints。
-   - application 层只允许调用 domain component / context 暴露的注册入口。
-4. 检查误报：
-   - 对脚本新增检查必须先跑全量边界脚本。
-   - 若需要 allowlist，必须写明原因，不能泛化到整个目录。
+```
+// Item.kt:527-541
+typealias ItemProjection<P> = Projection<Item, FltX, P>
+typealias MultipleItemProjection<P> = MultiPileProjection<Item, FltX, P>
+typealias AnyPlacement2<P> = QuantityPlacement2<*, FltX, P>
+typealias AnySidePlacement2 = AnyPlacement2<Side>
+typealias AnyFrontPlacement2 = AnyPlacement2<Front>
+typealias AnyPlacement3 = QuantityPlacement3<*, FltX>
+typealias ItemPlacement2<P> = QuantityPlacement2<Item, FltX, P>
+typealias ItemPlacement3 = QuantityPlacement3<Item, FltX>
 
-### 5.5 测试分层整理
+// Block.kt:282-286
+typealias BlockView = CuboidView<Block, FltX>
+typealias BlockPlacement2<P> = QuantityPlacement2<Block, FltX, P>
+typealias BlockPlacement3 = QuantityPlacement3<Block, FltX>
 
-1. 梳理现有 PWL 测试：
-   - infrastructure approximation / negative tests。
-   - domain item component lifecycle tests。
-   - packing integration negative tests。
-   - application / Gurobi tests。
-2. 建议命名分层：
-   - `PWLRadiusSquaredApproximationTest`：只测数学近似与误差预算。
-   - `ContinuousRadiusModelComponentTest`：只测 domain component 注册、分类、lifecycle。
-   - `PWLContinuousRadiusIntegrationNegativeTest`：只测跨 domain 的负例和 silent downgrade。
-   - `GurobiColumnGenerationTest`：只测 solver 端到端。
-3. 清理重复断言：
-   - 同一个字段的基础存在性不要在三层重复测。
-   - 保留一处主断言，其他层只验证跨层契约。
-4. 不做大规模重构：
-   - 只调整命名、分组、局部 helper。
-   - 不改变已通过测试的业务语义。
+// ItemContainer.kt:80-86
+typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, FltX, P>
+typealias ItemContainerSidePlacement2<S> = ItemContainerPlacement2<S, Side>
+typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
+typealias ItemContainerPlacement3<S> = QuantityPlacement3<S, FltX>
 
-### 5.6 文档收尾
+// Layer.kt:202-204
+typealias BinLayerView = CuboidView<BinLayer, FltX>
+typealias BinLayerPlacement = QuantityPlacement3<BinLayer, FltX>
+```
 
-1. README / README_ch：
-   - 增加简短 PWL 生命周期说明：`MetaModel -> MechanismModel -> Solver -> renderer actual radius`。
-   - 明确 `actualVolume`、`pwlVolume`、`envelope` 的区别。
-   - 明确 PWL 仍是近似线性化，不是离散半径候选。
-2. daily.md：
-   - 下一轮结束时改写为完成记录。
-   - 记录 Gurobi 验收状态、参数调优结论和仍保留的可选增强。
-3. 若改动外部 renderer：
-   - 只在 DTO、fixture、adapter 或显示语义变化时修改。
-   - 当前计划不需要修改 renderer。
+方案：这些别名将 `FltX` 隐藏在自然名后面，需消除。但需区分两种情况：
+
+- **带类型参数的别名**（如 `ItemPlacement2<P>`）：`FltX` 被隐藏，调用方不知道数值类型是 `FltX`。这类需要删除，调用方改为直接使用 `QuantityPlacement2<Item, FltX, P>` 或引入不含 `FltX` 的上层泛型别名（如 `ItemPlacement2<T, V, P>`）。
+- **星投影别名**（如 `AnyPlacement3`）：是 `QuantityPlacement3<*, FltX>`，隐藏了 `FltX` 但也约束了通配符。这类别名有实际语义价值（表达"任意物品的 3D 放置"），删除后调用方需要写 `QuantityPlacement3<*, FltX>`，不够简洁。判断是否可通过在 infrastructure 层保留泛型版本（如 `Placement3<T, V>` 已存在于 `Placement.kt:516`）来替代。
+
+执行步骤：
+1. 逐个检查每个别名的引用数量和引用位置。
+2. 对于引用少（<10 处）的别名，直接删除并替换为展开形式。
+3. 对于引用多（>=10 处）的别名，先评估是否保留泛型版本（不含 `FltX` 固定），再逐组替换。
+4. 特别注意 `AnyPlacement2`/`AnyPlacement3` 这类星投影别名的语义是否可由 `Placement2<*, V, P>` / `Placement3<*, V>` 替代。
+5. 每删除一组别名后编译确认。
+6. 跑 BPP3D 全量测试。
+
+**C. ShadowPriceMap（1 个，文件 `ShadowPriceMap.kt:16`）**
+
+```
+typealias BPP3DShadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>
+```
+
+方案：删除别名，调用方改为直接使用 `AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>`。如果引用过多，可保留但改名为不含 `BPP3D` 前缀的更语义化名称。
+
+**D. Infrastructure 层泛型别名（2 个，文件 `Placement.kt:513-516`）**
+
+```
+typealias Placement2<T, V, P> = QuantityPlacement2<T, V, P>
+typealias Placement3<T, V> = QuantityPlacement3<T, V>
+```
+
+这两个别名不含固定 `FltX`，是 `Quantity` 前缀的语义化别名。方案：这两个可以保留——它们是从 `Quantity*` 前缀到更语义化名称的桥接，不含兼容层痕迹。但需确认 `Quantity` 前缀是否属于"迁移重构留下的痕迹"。如果是，则应直接让调用方使用 `QuantityPlacement2`/`QuantityPlacement3`，或在 math 层重命名基础类型。
+
+### 5.2 Quantity 前缀残留审计
+
+已删除的 Quantity 兼容层文件：
+- `QuantityCompatibility.kt`（已删除）
+- `QuantityGeometrySpike.kt`（已删除）
+- `QuantityProjectionPlacementCore.kt`（已删除）
+- `InfraAliases.kt`（已删除）
+
+但仍存在的 Quantity 前缀文件和类型：
+- `QuantityContainerCore.kt`（infrastructure 层，仍在）
+- `QuantityGeometryCore.kt`（infrastructure 层，仍在）
+- `QuantityPlacement2` / `QuantityPlacement3`（来自 math 层，非 BPP3D 定义）
+- `QuantityDemandStatistics.kt`（domain-item-context 层）
+- `QuantityDomainModels.kt`（domain-item-context 层）
+- `Bpp3dQuantityBoundaryTest.kt`（测试文件）
+
+方案：
+1. 审计 `QuantityContainerCore.kt` 和 `QuantityGeometryCore.kt` 的内容，判断是否是兼容层（桥接旧 Quantity API 到新 API）还是生产代码（真正使用 Quantity 语义）。如果是兼容桥接，删除并让调用方直接使用新 API。
+2. `QuantityPlacement2` / `QuantityPlacement3` 来自 math 层（非 BPP3D），BPP3D 不能重命名。BPP3D 内部通过 `Placement2`/`Placement3` 别名或直接使用全名即可。
+3. `QuantityDemandStatistics.kt` / `QuantityDomainModels.kt` 需判断是兼容层还是生产类型名。
+4. 测试文件 `Bpp3dQuantityBoundaryTest.kt` 如不含兼容层逻辑，仅需重命名去除 `Quantity` 前缀。
+
+### 5.3 边界脚本更新
+
+删除 typealias 后，需同步更新边界脚本：
+
+1. `shape-boundary-check.ps1`：当前有 `DeletedQuantityRectangleAliasReflux` 检查。需新增检查确保已删除的 typealias 不会回流。
+2. `generic-boundary-check.ps1`：当前有 `Direction`/`ZOX`/`XOY`/`ZOY` 和 `Scalar` typealias 检查。需新增检查确保 BPP3D 不得新增固定 `FltX` 的 typealias。
+3. 新增 `FltXFixedAliasReflux` 检查：禁止 `typealias Xxx = SomeGeneric<Xxx, FltX>` 模式（排除 infrastructure 层 `Placement2`/`Placement3` 等不含固定 `FltX` 的泛型别名）。
+
+### 5.4 测试文件整理
+
+1. 已删除的测试文件需确认其测试覆盖已迁移到其他测试中：
+   - `BottomUpLeftJustifiedAlgorithmProofTest.kt`
+   - `ComplexBlockGeneratorProofTest.kt`
+   - `SimpleBlockGeneratorProofTest.kt`
+   - `FltXDirectCompileProofTest.kt`
+   - `LayerGenerationFltXProofTest.kt`
+2. 重命名含 `Quantity` 前缀的测试文件（如 `Bpp3dQuantityBoundaryTest.kt`）。
+3. 确保全量测试通过。
+
+### 5.5 文档与 README 更新
+
+1. README.md / README_ch.md：如有类型别名变更导致对外 API 变化，需同步更新。
+2. daily.md：本轮结束时改写为完成记录。
 
 ## 6. 执行计划
 
-1. 启动检查：
-   - 执行 `git status --short`。
-   - 确认只处理 `ospf-kotlin-framework-bpp3d` 与必要 core / core-plugin 验收，不混入 CSP1D。
-   - 阅读本文件、README.md、README_ch.md 与 `shape-boundary-check.ps1` 的 PWL 检查段。
-2. Gurobi 验收优先：
-   - 先跑 core plugin install。
-   - 再跑 focused。
-   - 最后跑 dataset suite。
-   - 失败时先记录并定位，不急于修改。
-3. 参数调优：
-   - 先做静态代码盘点。
-   - 再补最小 benchmark / regression。
-   - 最后更新 README 推荐口径。
-4. 诊断与边界脚本：
-   - 先统一字段命名与断言。
-   - 再增强脚本。
-   - 每增强一类脚本检查，立即跑 `shape-boundary-check.ps1`。
-5. 测试整理：
-   - 小步调整，不做跨模块大搬迁。
-   - 每次调整后跑 focused test。
-6. 收尾：
-   - 跑必跑门禁。
-   - 跑触发式 Gurobi。
-   - 更新 `daily.md` 为实际完成记录。
-   - 提交时使用 Conventional Commit，提交信息说明目的、关键变更和验收结果。
+1. **启动检查**
+   - 执行 `git status --short`，确认只处理 `ospf-kotlin-framework-bpp3d`。
+   - 阅读本文件、README.md、README_ch.md 与 `shape-boundary-check.ps1`、`generic-boundary-check.ps1`。
+   - 确认 `InfraNumber`/`infra*`/`XXXV`/`Typed`/`Generic` 命名模式已清理完毕（上一轮已完成）。
+
+2. **Quantity 兼容层审计与清理（5.2）**
+   - 先读 `QuantityContainerCore.kt`、`QuantityGeometryCore.kt`、`QuantityDemandStatistics.kt`、`QuantityDomainModels.kt` 内容。
+   - 判断每个文件是兼容层还是生产代码。
+   - 删除兼容层文件，让调用方直接使用新 API。
+   - 编译确认。
+
+3. **固定 FltX 别名泛型化（5.1）**
+   - 按 A→B→C→D 顺序处理。
+   - 每组先搜索引用，评估影响面。
+   - 每删除一组后编译 + focused test。
+   - 全部完成后跑 BPP3D 全量测试。
+
+4. **边界脚本更新（5.3）**
+   - 新增 `FltXFixedAliasReflux` 检查。
+   - 新增已删除 typealias 回流检查。
+   - 跑全量边界脚本确认无误报。
+
+5. **测试整理与文档更新（5.4, 5.5）**
+   - 确认已删除测试的覆盖迁移。
+   - 重命名含 `Quantity` 前缀的测试文件。
+   - 更新 README。
+   - 更新 daily.md 为完成记录。
+
+6. **最终验收**
+   - 跑必跑门禁（见第 8 节）。
+   - 跑 Gurobi 触发式验收（如有 Gurobi 环境）。
+   - `git diff --check -- ospf-kotlin-framework-bpp3d`。
 
 ## 7. 修改清单
 
@@ -199,6 +219,10 @@
 12. `ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/**/*`
 13. `ospf-kotlin-framework-bpp3d/bpp3d-application/src/gurobi-test/**/*`
 14. `ospf-kotlin-framework-bpp3d/bpp3d-application/src/test/resources/gurobi/**/*`
+15. `ospf-kotlin-framework-bpp3d/bpp3d-domain-bla-context/src/main/**/*`
+16. `ospf-kotlin-framework-bpp3d/bpp3d-domain-block-loading-context/src/main/**/*`
+17. `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context/src/main/**/*`
+18. `ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-generation-context/src/main/**/*`
 
 谨慎修改：
 
@@ -210,7 +234,7 @@
 
 1. `ospf-kotlin-framework-csp1d/**/*`
 2. 非 BPP3D 业务模块
-3. 与 PWL / shape-polymorphic / renderer / Gurobi 验收无关的格式化 churn
+3. 与兼容层清理 / 泛型化 / renderer / Gurobi 验收无关的格式化 churn
 
 ## 8. 验收目标
 
@@ -239,114 +263,72 @@ mvn --% -f ospf-kotlin-framework-bpp3d/pom.xml -pl bpp3d-application -am -Pgurob
 2. interval-only PWL 连续半径保持 solver-selected radius、PWL metadata、actual radius validation 和 renderer actualVolume 闭环。
 3. PWL function constraints 仍由 core mechanism lifecycle 展开。
 4. renderer `actualVolume` 不使用 envelope volume 或 PWL volume 替代。
-5. diagnostics 字段在 Gurobi result、final validation、packing snapshot 和 renderer metadata 中解释一致。
-6. PWL 参数推荐有测试或 benchmark 支撑。
-7. README / README_ch / daily.md 与代码能力口径一致。
-8. unsupported 能力保持 guarded，不出现 silent downgrade。
-9. 新增边界脚本无误报，且能阻止明确回流模式。
-10. 所有提交不包含 CSP1D 或非目标模块改动。
+5. 对外 API 不保留固定 `FltX` 的 typealias（infrastructure 层泛型别名 `Placement2`/`Placement3` 除外）。
+6. 对外 API 不保留 `Quantity` 前缀兼容层文件。
+7. 对外 API 不保留任何迁移重构留下的前后缀痕迹。
+8. 边界脚本能阻止已删除兼容层和固定 `FltX` typealias 回流。
+9. 所有提交不包含 CSP1D 或非目标模块改动。
 
 ## 9. 提交建议
 
 建议拆分为 2 到 3 个提交：
 
-1. `test(bpp3d): validate PWL radius Gurobi datasets`
-   - 只包含 Gurobi dataset / focused 验收相关修复和记录。
-2. `chore(bpp3d): tune PWL radius diagnostics and boundaries`
-   - 包含诊断字段、边界脚本和 README 口径收敛。
-3. `test(bpp3d): organize PWL radius regression coverage`
-   - 包含测试命名、分层和局部 helper 整理。
+1. `refactor(bpp3d): remove Quantity compatibility layer and remaining bridge files`
+   - 删除 Quantity 兼容层文件、桥接类型、对应测试。
+2. `refactor(bpp3d): replace fixed-FltX type aliases with generic or expanded forms`
+   - 删除固定 `FltX` 的 typealias，替换引用为展开形式或泛型形式。
+3. `chore(bpp3d): update boundary scripts and docs for compatibility layer removal`
+   - 边界脚本新增回流检查、README 更新、测试文件重命名。
 
-如实际改动很小，也可以合并为一个提交，但提交信息必须说明 Gurobi 验收、PWL 参数结论和边界脚本结果。
+如实际改动较小，可合并为一个提交，但提交信息必须说明删除了哪些兼容层和别名。
 
 ## 10. 当前状态
 
 最新相关提交：`95432009a`。
 
-当前 BPP3D 生产目标已基本达到。下一轮是收尾增强与最终 Gurobi 验收，不应扩大功能范围。
+工作区有 153 个 BPP3D 文件未提交改动（+4125/-8752），包含上一轮的 PWL 架构收口和部分兼容层清理。
 
-## 11. 收尾增强执行记录（2026-06-12）
+上一轮会话在处理 `Bin`/`Placement` 自然名别名泛型化时中断。中断时 assistant 正在重新核对 `Bin`、`ItemContainer`、`Placement` 的类型边界——核心判断是：`LayerBin`、`ItemBin`、`BlockBin` 不能简单加 `<V>` 参数，因为 `BinLayer` 本身仍是 `FltX` 领域模型，别名泛型会变成"看起来泛型、实际不成立"的 API。
 
-### 已完成
+用户最后明确要求："Quantity 兼容层也要删除，所有兼容层都要删除，对外接口应当是最简洁最语义化的而不要保留任何迁移重构留下的前后缀痕迹"。
 
-1. **Gurobi 触发式端到端验收**（5.1）
-   - Gurobi core plugin install：BUILD SUCCESS
-   - Focused CG 测试：55 tests, 0 failures, 1 skipped（环境性 skip）
-   - Dataset suite：55 tests, 0 failures, 0 skipped，19 个 dataset 全部通过
-   - PWL interval-only、multi-interval、multi-material、tight-bin envelope、horizontal support 场景全部正常
-   - solver-selected radius、PWL metadata、actual radius、renderer actualVolume 闭环确认
+## 11. 待清理 typealias 完整清单
 
-2. **PWL 参数审计与调优基线**（5.2）
-   - 默认配置：`maxSegments=8`, `relativeErrorTolerance=0.01(1%)`, `breakpointStrategy=Uniform`
-   - 三种策略：Uniform / Adaptive / ErrorDriven
-   - `deriveSegmentCount` 自动倍增（1→2→4→8...）到满足 tolerance 或达到 maxSegments
-   - Gurobi dataset suite 在默认配置下求解稳定，无参数调优必要
-   - 结论：默认参数推荐保持当前值，极端 radius interval 由 `deriveSegmentCount` 自适应
+| # | 别名 | 定义位置 | 固定 FltX | 处理方式 |
+|---|------|----------|-----------|----------|
+| 1 | `LayerBin` | Bin.kt:336 | 是 | 删除，引用改为 `Bin<BinLayer, FltX>` |
+| 2 | `ItemBin` | Bin.kt:338 | 是 | 删除，引用改为 `Bin<Item, FltX>` |
+| 3 | `BlockBin` | Bin.kt:340 | 是 | 删除，引用改为 `Bin<Block, FltX>` |
+| 4 | `BlockView` | Block.kt:282 | 是 | 删除，引用改为 `CuboidView<Block, FltX>` |
+| 5 | `BlockPlacement2<P>` | Block.kt:284 | 是 | 删除，引用改为 `QuantityPlacement2<Block, FltX, P>` |
+| 6 | `BlockPlacement3` | Block.kt:286 | 是 | 删除，引用改为 `QuantityPlacement3<Block, FltX>` |
+| 7 | `ItemProjection<P>` | Item.kt:527 | 是 | 删除，引用改为 `Projection<Item, FltX, P>` |
+| 8 | `MultipleItemProjection<P>` | Item.kt:529 | 是 | 删除，引用改为 `MultiPileProjection<Item, FltX, P>` |
+| 9 | `AnyPlacement2<P>` | Item.kt:531 | 是 | 删除，引用改为 `QuantityPlacement2<*, FltX, P>` |
+| 10 | `AnySidePlacement2` | Item.kt:533 | 是 | 删除，引用改为 `QuantityPlacement2<*, FltX, Side>` |
+| 11 | `AnyFrontPlacement2` | Item.kt:535 | 是 | 删除，引用改为 `QuantityPlacement2<*, FltX, Front>` |
+| 12 | `AnyPlacement3` | Item.kt:537 | 是 | 删除，引用改为 `QuantityPlacement3<*, FltX>` |
+| 13 | `ItemPlacement2<P>` | Item.kt:539 | 是 | 删除，引用改为 `QuantityPlacement2<Item, FltX, P>` |
+| 14 | `ItemPlacement3` | Item.kt:541 | 是 | 删除，引用改为 `QuantityPlacement3<Item, FltX>` |
+| 15 | `ItemContainerPlacement2<S, P>` | ItemContainer.kt:80 | 是 | 删除，引用改为 `QuantityPlacement2<S, FltX, P>` |
+| 16 | `ItemContainerSidePlacement2<S>` | ItemContainer.kt:82 | 是 | 删除，引用改为 `QuantityPlacement2<S, FltX, Side>` |
+| 17 | `ItemContainerFrontPlacement2<S>` | ItemContainer.kt:84 | 是 | 删除，引用改为 `QuantityPlacement2<S, FltX, Front>` |
+| 18 | `ItemContainerPlacement3<S>` | ItemContainer.kt:86 | 是 | 删除，引用改为 `QuantityPlacement3<S, FltX>` |
+| 19 | `BinLayerView` | Layer.kt:202 | 是 | 删除，引用改为 `CuboidView<BinLayer, FltX>` |
+| 20 | `BinLayerPlacement` | Layer.kt:204 | 是 | 删除，引用改为 `QuantityPlacement3<BinLayer, FltX>` |
+| 21 | `BPP3DShadowPriceMap` | ShadowPriceMap.kt:16 | 是 | 删除，引用改为 `AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>` |
+| 22 | `Placement2<T, V, P>` | Placement.kt:513 | 否 | 保留（泛型别名，不含固定 FltX） |
+| 23 | `Placement3<T, V>` | Placement.kt:516 | 否 | 保留（泛型别名，不含固定 FltX） |
 
-3. **PWL 诊断字段收敛**（5.3）
-   - `PWLRadiusSelectionMetadata` 字段口径统一，无重复或歧义：
-     - `solverRadiusSquared`：q ≈ r²（PWL 近似）
-     - `actualRadiusSquared`：真实 r²
-     - `pwlAbsoluteError` / `pwlRelativeError`：误差
-     - `maxPWLRelativeError`：PWL 函数最大相对误差
-     - `numSegments`：段数
-     - `isWithinEnvelope`：是否在 envelope 内
-     - `actualVolume`：π × actualRadiusSquared × h（真实体积）
-     - `pwlVolume`：π × solverRadiusSquared × h（PWL 近似体积，诊断字段）
-   - renderer adapter 使用 `pwlMetadata.actualVolume(...)` 而非 `pwlVolume(...)` 作为 DTO actualVolume
-   - `pwlVolume` 仅作为 renderer item info 诊断字段
+## 12. 待审计 Quantity 前缀文件
 
-4. **边界脚本硬化**（5.4）
-   - 新增 `PWLActualVolumeRegression`：禁止 renderer adapter 在 PWL path 使用 envelope volume 或 PWL volume 作为 actualVolume
-   - 新增 `ApplicationPWLHelperRegistrationReflux`：禁止 application 层访问 PWL helper variables / selector vars / result vars，只允许 `ContinuousRadiusModelComponent.kt`
-   - 4 个边界脚本全部通过
-   - 无误报
-
-5. **文档**（5.6）
-   - README.md 已包含 PWL lifecycle 说明（第 86 行和第 117 行）
-   - README_ch.md 已同步
-   - daily.md 更新为本完成记录
-
-### 门禁验收
-
-| 门禁 | 结果 |
-|------|------|
-| generic-boundary-check.ps1 | PASS |
-| shape-boundary-check.ps1 | PASS |
-| geometry-boundary-check.ps1 | PASS |
-| geometry-module-dry-run.ps1 | PASS（8 warnings） |
-| git diff --check | PASS |
-| BPP3D 全模块测试 | 56 tests, 0 failures, 0 skipped |
-| Gurobi focused CG | 55 tests, 0 failures, 1 skipped |
-| Gurobi dataset suite | 55 tests, 0 failures, 0 skipped |
-
-### 总目标达成状态
-
-BPP3D fully shape-polymorphic 生产模型已达到稳定状态：
-
-- ✅ 长方体、竖直圆柱、X/Z 横向圆柱生产路径
-- ✅ 固定半径、离散半径、solver-selected 连续半径、interval-only PWL 连续半径
-- ✅ PWL 建模通过 core symbol lifecycle（`model.add(pwlSymbol)`）
-- ✅ renderer 原生圆柱、actual-radius 回写、actualVolume 使用真实 π·r²·h
-- ✅ Gurobi 端到端验收通过（19 dataset）
-- ✅ 边界脚本硬化、门禁闭环
-- ✅ 诊断字段口径统一、无歧义
-- ✅ PWL 参数默认配置合理、自适应调优机制就绪
-
-### 收尾增强补充记录（2026-06-12）
-
-1. **极端 radius interval benchmark / regression**
-   - 已在 `PWLRadiusSquaredApproximationTest` 中补充 `[1.0, 50.0]` 极端半径区间回归。
-   - 默认 8 段、1% tolerance 下明确返回 `meetsTolerance=false`，不会静默放宽误差目标。
-   - 高段数预算下 `deriveSegmentCount` 会继续倍增并降低最大相对误差，可满足 1% tolerance。
-   - 结论：默认 8 段仍适合作为生产默认值；极端区间必须依赖 `deriveSegmentCount` 暴露诊断并提高 segment budget，不应隐式降级。
-
-2. **PWL breakpoint 策略对比**
-   - 已覆盖 Uniform / Adaptive / ErrorDriven 在 `[1.0, 50.0]` 区间上的基线对比。
-   - 三种策略均保持端点覆盖、正向误差诊断和弦线 over-approximation。
-   - ErrorDriven 在当前实现下不劣于 Uniform 基线；Adaptive 作为有效策略保留，不强制声明优于 Uniform。
-   - 结论：默认策略继续保持 Uniform；ErrorDriven 可作为极端区间调优候选，但不改变当前生产默认。
-
-3. **剩余可选增强**
-   - 更多 production-like Gurobi dataset。
-   - 如果后续真实业务数据出现极端半径分布，可新增应用层 dataset suite，而不是修改默认 PWL 策略。
+| # | 文件 | 模块 | 状态 | 判断 |
+|---|------|------|------|------|
+| 1 | `QuantityContainerCore.kt` | infrastructure | 存在 | 待审计：兼容层 or 生产代码 |
+| 2 | `QuantityGeometryCore.kt` | infrastructure | 存在 | 待审计：兼容层 or 生产代码 |
+| 3 | `QuantityDemandStatistics.kt` | domain-item-context | 存在 | 待审计：兼容层 or 生产代码 |
+| 4 | `QuantityDomainModels.kt` | domain-item-context | 存在 | 待审计：兼容层 or 生产代码 |
+| 5 | `Bpp3dQuantityBoundaryTest.kt` | application test | 存在 | 待重命名 |
+| 6 | `QuantityCompatibility.kt` | infrastructure | 已删除 | - |
+| 7 | `QuantityGeometrySpike.kt` | infrastructure | 已删除 | - |
+| 8 | `QuantityProjectionPlacementCore.kt` | infrastructure | 已删除 | - |

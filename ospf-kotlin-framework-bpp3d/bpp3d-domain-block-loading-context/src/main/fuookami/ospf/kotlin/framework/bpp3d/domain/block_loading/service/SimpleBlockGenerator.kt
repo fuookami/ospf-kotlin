@@ -6,12 +6,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.min
 
@@ -82,7 +82,7 @@ class SimpleBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         patterns: List<Pattern>,
-        restWeight: InfraNumber = infraInfinity()
+        restWeight: FltX = fltXInfinity()
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
@@ -138,7 +138,7 @@ class SimpleBlockGenerator(
                 val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                 val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height.value).floor().toUInt64())
                 val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                val itemMinZAmount = if (view.minDepth eq infraZero()) {
+                val itemMinZAmount = if (view.minDepth eq fltXZero()) {
                     UInt64.one
                 } else {
                     (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -165,7 +165,7 @@ class SimpleBlockGenerator(
                     val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                     val itemMaxYAmount = item.sideOnTopLayer
                     val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                    val itemMinZAmount = if (view.minDepth eq infraZero()) {
+                    val itemMinZAmount = if (view.minDepth eq fltXZero()) {
                         UInt64.one
                     } else {
                         (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -193,7 +193,7 @@ class SimpleBlockGenerator(
                     val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                     val itemMaxYAmount = item.lieOnTopLayer
                     val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                    val itemMinZAmount = if (view.minDepth eq infraZero()) {
+                    val itemMinZAmount = if (view.minDepth eq fltXZero()) {
                         UInt64.one
                     } else {
                         (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -236,11 +236,11 @@ class SimpleBlockGenerator(
                 for (k in minZAmount..maxZAmount) {
                     val placements = ArrayList<ItemPlacement3>()
                     for (p in UInt64.zero until i) {
-                        val x = orientation.width(item) * p.toInfraNumberScalar()
+                        val x = orientation.width(item) * p.toFltXScalar()
                         for (q in UInt64.zero until j) {
-                            val y = orientation.height(item) * q.toInfraNumberScalar()
+                            val y = orientation.height(item) * q.toFltXScalar()
                             for (m in UInt64.zero until k) {
-                                val z = orientation.depth(item) * m.toInfraNumberScalar()
+                                val z = orientation.depth(item) * m.toFltXScalar()
                                 placements.add(
                                     itemPlacement3Of(
                                         view = item.view(orientation),
@@ -272,13 +272,17 @@ class SimpleBlockGenerator(
                 val placements = ArrayList<ItemPlacement3>()
                 if (remainderMaxYAmount != UInt64.zero) {
                     for (i in UInt64.zero until maxXAmount) {
-                        val x = orientation.width(item) * i.toInfraNumberScalar()
+                        val x = orientation.width(item) * i.toFltXScalar()
                         for (j in UInt64.zero until remainderMaxYAmount) {
-                            val y = orientation.height(item) * j.toInfraNumberScalar()
+                            val y = orientation.height(item) * j.toFltXScalar()
                             placements.add(
                                 itemPlacement3Of(
                                     view = item.view(orientation),
-                                    position = point3(x = x, y = y)
+                                    position = point3(
+                                        x = x,
+                                        y = y,
+                                        z = fltXZero() * zUnit(item, orientation)
+                                    )
                                 )
                             )
                         }
@@ -287,11 +291,15 @@ class SimpleBlockGenerator(
                 val remainderPlacements = ArrayList<ItemPlacement3>()
                 if ((remainder % maxXAmount) != UInt64.zero) {
                     for (i in UInt64.zero until (remainder % maxXAmount)) {
-                        val x = orientation.width(item) * i.toInfraNumberScalar()
+                        val x = orientation.width(item) * i.toFltXScalar()
                         remainderPlacements.add(
                             itemPlacement3Of(
                                 view = item.view(orientation),
-                                position = point3(x = x)
+                                position = point3(
+                                    x = x,
+                                    y = fltXZero() * yUnit(item, orientation),
+                                    z = fltXZero() * zUnit(item, orientation)
+                                )
                             )
                         )
                     }
@@ -304,10 +312,14 @@ class SimpleBlockGenerator(
                     blocks.add(
                         ComplexBlock(
                             listOf(
-                                blockPlacement3Of(view = SimpleBlock(placements).view()!!, position = point3()),
+                                blockPlacement3Of(view = SimpleBlock(placements).view()!!, position = point3FltX()),
                                 blockPlacement3Of(
                                     view = SimpleBlock(remainderPlacements).view()!!,
-                                    position = point3(y = orientation.height(item) * remainderMaxYAmount.toInfraNumberScalar())
+                                    position = point3(
+                                        x = fltXZero() * xUnit(item, orientation),
+                                        y = orientation.height(item) * remainderMaxYAmount.toFltXScalar(),
+                                        z = fltXZero() * zUnit(item, orientation)
+                                    )
                                 )
                             )
                         )
@@ -318,11 +330,11 @@ class SimpleBlockGenerator(
                 val remainderMaxYAmount = (remainder % (maxXAmount * maxYAmount)) / maxXAmount
                 val placements = ArrayList<ItemPlacement3>()
                 for (i in UInt64.zero until maxXAmount) {
-                    val x = orientation.width(item) * i.toInfraNumberScalar()
+                    val x = orientation.width(item) * i.toFltXScalar()
                     for (j in UInt64.zero until maxYAmount) {
-                        val y = orientation.height(item) * j.toInfraNumberScalar()
+                        val y = orientation.height(item) * j.toFltXScalar()
                         for (k in UInt64.zero until remainderMaxZAmount) {
-                            val z = orientation.depth(item) * k.toInfraNumberScalar()
+                            val z = orientation.depth(item) * k.toFltXScalar()
                             placements.add(
                                 itemPlacement3Of(
                                     view = item.view(orientation),
@@ -335,13 +347,17 @@ class SimpleBlockGenerator(
                 val remainderPlacements = ArrayList<ItemPlacement3>()
                 if (remainderMaxYAmount != UInt64.zero) {
                     for (i in UInt64.zero until maxXAmount) {
-                        val x = orientation.width(item) * i.toInfraNumberScalar()
+                        val x = orientation.width(item) * i.toFltXScalar()
                         for (j in UInt64.zero until remainderMaxYAmount) {
-                            val y = orientation.height(item) * j.toInfraNumberScalar()
+                            val y = orientation.height(item) * j.toFltXScalar()
                             remainderPlacements.add(
                                 itemPlacement3Of(
                                     view = item.view(orientation),
-                                    position = point3(x = x, y = y)
+                                    position = point3(
+                                        x = x,
+                                        y = y,
+                                        z = fltXZero() * zUnit(item, orientation)
+                                    )
                                 )
                             )
                         }
@@ -350,22 +366,30 @@ class SimpleBlockGenerator(
                 val remainderRemainderPlacements = ArrayList<ItemPlacement3>()
                 if (((remainder % (maxXAmount * maxYAmount)) % maxXAmount) != UInt64.zero) {
                     for (i in UInt64.zero until ((remainder % (maxXAmount * maxYAmount)) % maxXAmount)) {
-                        val x = orientation.width(item) * i.toInfraNumberScalar()
+                        val x = orientation.width(item) * i.toFltXScalar()
                         remainderRemainderPlacements.add(
                             itemPlacement3Of(
                                 view = item.view(orientation),
-                                position = point3(x = x)
+                                position = point3(
+                                    x = x,
+                                    y = fltXZero() * yUnit(item, orientation),
+                                    z = fltXZero() * zUnit(item, orientation)
+                                )
                             )
                         )
                     }
                 }
                 val remainderBlocks = ArrayList<BlockPlacement3>()
-                remainderBlocks.add(blockPlacement3Of(view = SimpleBlock(placements).view()!!, position = point3()))
+                remainderBlocks.add(blockPlacement3Of(view = SimpleBlock(placements).view()!!, position = point3FltX()))
                 if (remainderPlacements.isEmpty()) {
                     remainderBlocks.add(
                         blockPlacement3Of(
                             view = SimpleBlock(remainderPlacements).view()!!,
-                            position = point3(z = orientation.depth(item) * remainderMaxZAmount.toInfraNumberScalar())
+                            position = point3(
+                                x = fltXZero() * xUnit(item, orientation),
+                                y = fltXZero() * yUnit(item, orientation),
+                                z = orientation.depth(item) * remainderMaxZAmount.toFltXScalar()
+                            )
                         )
                     )
                 }
@@ -374,8 +398,9 @@ class SimpleBlockGenerator(
                         blockPlacement3Of(
                             view = SimpleBlock(remainderRemainderPlacements).view()!!,
                             position = point3(
-                                y = orientation.height(item) * remainderMaxYAmount.toInfraNumberScalar(),
-                                z = orientation.depth(item) * remainderMaxZAmount.toInfraNumberScalar()
+                                x = fltXZero() * xUnit(item, orientation),
+                                y = orientation.height(item) * remainderMaxYAmount.toFltXScalar(),
+                                z = orientation.depth(item) * remainderMaxZAmount.toFltXScalar()
                             )
                         )
                     )
@@ -386,9 +411,15 @@ class SimpleBlockGenerator(
         return blocks
     }
 
-    private fun UInt64.toInfraNumberScalar(): InfraNumber {
-        return infraScalar(this)
+    private fun UInt64.toFltXScalar(): FltX {
+        return fltX(this)
     }
+
+    private fun xUnit(item: Item, orientation: Orientation) = orientation.width(item).unit
+
+    private fun yUnit(item: Item, orientation: Orientation) = orientation.height(item).unit
+
+    private fun zUnit(item: Item, orientation: Orientation) = orientation.depth(item).unit
 }
 
 

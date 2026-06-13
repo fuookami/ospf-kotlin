@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
@@ -18,34 +19,33 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 
 class SearchAlgorithmCylinderGuardTest {
     private fun packageAttribute(): PackageAttribute {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = infraScalar(10.0) * Meter,
-            maxDepth = infraScalar(10.0) * Meter,
+            maxHeight = fltX(10.0) * Meter,
+            maxDepth = fltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
     private fun cylinderItem(id: String, axis: Axis3 = Axis3.Y): ActualItem {
-        val radius = infraScalar(0.5) * Meter
+        val radius = fltX(0.5) * Meter
         return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
-            height = infraScalar(1.0) * Meter,
+            height = fltX(1.0) * Meter,
             depth = radius + radius,
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -58,9 +58,9 @@ class SearchAlgorithmCylinderGuardTest {
 
     private fun shape(): Container3Shape {
         return Container3Shape(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter
         )
     }
 

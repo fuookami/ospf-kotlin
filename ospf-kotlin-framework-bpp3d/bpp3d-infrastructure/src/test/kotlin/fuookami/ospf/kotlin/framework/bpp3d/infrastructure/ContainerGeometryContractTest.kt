@@ -11,50 +11,39 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuantityContainerCoreProofTest {
-    private data class FltXBox(
+class ContainerGeometryContractTest {
+    private data class Box(
         override val width: Quantity<FltX>,
         override val height: Quantity<FltX>,
         override val depth: Quantity<FltX>,
         override val weight: Quantity<FltX>,
         override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : QuantityCuboid<FltXBox, FltX> {
-        override val self: FltXBox
+    ) : Cuboid<Box, FltX> {
+        override val self: Box
             get() = this
     }
 
-    private data class LegacyBox(
-        override val width: InfraQuantity,
-        override val height: InfraQuantity,
-        override val depth: InfraQuantity,
-        override val weight: InfraQuantity,
-        override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : Cuboid<LegacyBox> {
-        override val self: LegacyBox
-            get() = this
-    }
-
-    private data class FltXContainer2(
+    private data class PlaneContainer(
         override val shape: Container2Geometry<Bottom, FltX>,
-        override val units: List<QuantityProjectionPlacement2<*, FltX, Bottom>>
-    ) : QuantityContainer2<FltXContainer2, FltX, Bottom> {
-        override fun copy(): FltXContainer2 {
-            return FltXContainer2(shape = shape, units = units)
+        override val units: List<QuantityPlacement2<*, FltX, Bottom>>
+    ) : Container2<PlaneContainer, FltX, Bottom> {
+        override fun copy(): PlaneContainer {
+            return PlaneContainer(shape = shape, units = units)
         }
     }
 
-    private data class FltXContainer3(
+    private data class SpaceContainer(
         override val shape: Container3Geometry<FltX>,
-        override val units: List<QuantityCuboidPlacement3<*, FltX>>
-    ) : QuantityContainer3<FltXContainer3, FltX> {
-        override fun copy(): FltXContainer3 {
-            return FltXContainer3(shape = shape, units = units)
+        override val units: List<QuantityPlacement3<*, FltX>>
+    ) : Container3<SpaceContainer, FltX> {
+        override fun copy(): SpaceContainer {
+            return SpaceContainer(shape = shape, units = units)
         }
     }
 
     @Test
-    fun quantityContainerAndCuboidShouldSupportFltX() {
-        val box = FltXBox(
+    fun containerGeometryShouldSupportFltX() {
+        val box = Box(
             width = Quantity(FltX(1.0), Meter),
             height = Quantity(FltX(2.0), Meter),
             depth = Quantity(FltX(3.0), Meter),
@@ -69,61 +58,60 @@ class QuantityContainerCoreProofTest {
         assertTrue(space.enabled(box, Orientation.Upright))
         assertTrue(space.enabled(box, Orientation.UprightRotated))
 
-        val rotated = box.view(Orientation.UprightRotated)
+        val rotated = box.view(Orientation.UprightRotated)!!
         assertTrue(rotated.width eq Quantity(FltX(3.0), Meter))
         assertTrue(rotated.height eq Quantity(FltX(2.0), Meter))
         assertTrue(rotated.depth eq Quantity(FltX(1.0), Meter))
     }
 
     @Test
-    fun legacyAdapterShouldBridgeToQuantityContainerShape() {
-        val box = LegacyBox(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(4.0) * Meter,
-            weight = infraScalar(5.0) * Kilogram
+    fun naturalCuboidShouldUseContainerGeometryDirectly() {
+        val box = Box(
+            width = fltX(2.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(4.0) * Meter,
+            weight = fltX(5.0) * Kilogram
         )
-        val quantityCuboid = box.asQuantityCuboid()
         val space = Container3Shape(
-            width = infraScalar(4.0) * Meter,
-            height = infraScalar(4.0) * Meter,
-            depth = infraScalar(4.0) * Meter
-        ).asQuantityContainer3Shape()
+            width = fltX(4.0) * Meter,
+            height = fltX(4.0) * Meter,
+            depth = fltX(4.0) * Meter
+        )
         val space2 = Container2Shape(
-            length = infraScalar(5.0) * Meter,
-            width = infraScalar(6.0) * Meter,
+            length = fltX(5.0) * Meter,
+            width = fltX(6.0) * Meter,
             plane = Bottom
-        ).asQuantityContainer2Shape()
+        )
 
-        assertTrue(quantityCuboid.enabledOrientationsAt(space).contains(Orientation.Upright))
-        assertEquals(Orientation.entries.size, quantityCuboid.enabledOrientationsAt(space, withRotation = true).size)
-        assertTrue(space2.length eq (infraScalar(5.0) * Meter))
-        assertTrue(space2.width eq (infraScalar(6.0) * Meter))
+        assertTrue(box.enabledOrientationsAt(space).contains(Orientation.Upright))
+        assertEquals(Orientation.entries.size, box.enabledOrientationsAt(space, withRotation = true).size)
+        assertTrue(space2.length eq (fltX(5.0) * Meter))
+        assertTrue(space2.width eq (fltX(6.0) * Meter))
     }
 
     @Test
-    fun quantityContainer2ShouldCountPlacements() {
-        val box = FltXBox(
+    fun container2ShouldCountPlacements() {
+        val box = Box(
             width = Quantity(FltX(1.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(1.0), Meter),
             weight = Quantity(FltX(2.0), Kilogram)
         )
-        val projection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom)
-        val container = FltXContainer2(
+        val projection = PlaneProjection(box.view(Orientation.Upright)!!, Bottom)
+        val container = PlaneContainer(
             shape = QuantityContainer2Shape(
                 length = Quantity(FltX(10.0), Meter),
                 width = Quantity(FltX(10.0), Meter),
                 plane = Bottom
             ),
             units = listOf(
-                QuantityProjectionPlacement2(
+                QuantityPlacement2(
                     projection = projection,
-                    position = QuantityPoint2G(Quantity(FltX.zero, Meter), Quantity(FltX.zero, Meter))
+                    position = QuantityPoint2(Quantity(FltX.zero, Meter), Quantity(FltX.zero, Meter))
                 ),
-                QuantityProjectionPlacement2(
+                QuantityPlacement2(
                     projection = projection,
-                    position = QuantityPoint2G(Quantity(FltX(2.0), Meter), Quantity(FltX.zero, Meter))
+                    position = QuantityPoint2(Quantity(FltX(2.0), Meter), Quantity(FltX.zero, Meter))
                 )
             )
         )
@@ -133,31 +121,31 @@ class QuantityContainerCoreProofTest {
     }
 
     @Test
-    fun quantityContainer3ShouldAggregateWeightAndVolume() {
-        val box = FltXBox(
+    fun container3ShouldAggregateWeightAndVolume() {
+        val box = Box(
             width = Quantity(FltX(1.0), Meter),
             height = Quantity(FltX(2.0), Meter),
             depth = Quantity(FltX(3.0), Meter),
             weight = Quantity(FltX(4.0), Kilogram)
         )
-        val container = FltXContainer3(
+        val container = SpaceContainer(
             shape = QuantityContainer3Shape(
                 width = Quantity(FltX(10.0), Meter),
                 height = Quantity(FltX(10.0), Meter),
                 depth = Quantity(FltX(10.0), Meter)
             ),
             units = listOf(
-                QuantityCuboidPlacement3(
-                    view = box.view(Orientation.Upright),
-                    position = QuantityPoint3G(
+                QuantityPlacement3(
+                    view = box.view(Orientation.Upright)!!,
+                    position = QuantityPoint3(
                         x = Quantity(FltX.zero, Meter),
                         y = Quantity(FltX.zero, Meter),
                         z = Quantity(FltX.zero, Meter)
                     )
                 ),
-                QuantityCuboidPlacement3(
-                    view = box.view(Orientation.Upright),
-                    position = QuantityPoint3G(
+                QuantityPlacement3(
+                    view = box.view(Orientation.Upright)!!,
+                    position = QuantityPoint3(
                         x = Quantity(FltX(3.0), Meter),
                         y = Quantity(FltX.zero, Meter),
                         z = Quantity(FltX.zero, Meter)
@@ -171,4 +159,3 @@ class QuantityContainerCoreProofTest {
         assertTrue(container.actualVolume eq Quantity(FltX(12.0), container.actualVolume.unit))
     }
 }
-

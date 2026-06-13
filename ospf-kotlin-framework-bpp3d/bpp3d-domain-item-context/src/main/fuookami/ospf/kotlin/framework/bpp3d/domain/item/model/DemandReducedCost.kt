@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.neq
@@ -14,8 +15,14 @@ private fun demandStatisticsForReducedCost(
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (unit) {
         is Item -> unit.statistics(mode)
-        is Container3<*> -> unit.statistics(mode)
-        is Container2<*, *> -> unit.statistics(mode)
+        is Container3<*, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            (unit as Container3<*, FltX>).statistics(mode)
+        }
+        is Container2<*, *, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            (unit as Container2<*, FltX, *>).statistics(mode)
+        }
         else -> emptyMap()
     }
 }
@@ -23,19 +30,19 @@ private fun demandStatisticsForReducedCost(
 fun BPP3DShadowPriceMap.reducedCost(
     unit: Any,
     demandEntries: Iterable<Pair<Bpp3dDemandMode, Bpp3dDemandKey>>,
-    shadowPriceOf: (Bpp3dDemandMode, Bpp3dDemandKey) -> ShadowPriceNumber,
-    demandValueToScalar: (Bpp3dDemandValue) -> ShadowPriceNumber
-): ShadowPriceNumber {
+    shadowPriceOf: (Bpp3dDemandMode, Bpp3dDemandKey) -> FltX,
+    demandValueToScalar: (Bpp3dDemandValue) -> FltX
+): FltX {
     val activeDemandEntries = demandEntries.toSet()
     if (activeDemandEntries.isEmpty()) {
-        return ShadowPriceNumber.zero
+        return FltX.zero
     }
 
-    var reducedCost = ShadowPriceNumber.zero
+    var reducedCost = FltX.zero
     for ((mode, key) in activeDemandEntries) {
         val value = demandStatisticsForReducedCost(unit, mode)[key] ?: continue
         val shadow = shadowPriceOf(mode, key)
-        if (shadow neq ShadowPriceNumber.zero) {
+        if (shadow neq FltX.zero) {
             reducedCost += shadow * demandValueToScalar(value)
         }
     }

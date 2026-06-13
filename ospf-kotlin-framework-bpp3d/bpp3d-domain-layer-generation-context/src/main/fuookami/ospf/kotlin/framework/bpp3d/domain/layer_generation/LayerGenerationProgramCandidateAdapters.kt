@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
@@ -16,17 +17,16 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 @Suppress("UNCHECKED_CAST")
-private fun programQuantityToInfra(value: Quantity<*>): Quantity<InfraNumber> {
+private fun programQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
     return when (value.value) {
-        is InfraNumber -> value as Quantity<InfraNumber>
-        else -> Quantity(InfraNumber(value.value.toString().toDouble()), value.unit)
+        is FltX -> value as Quantity<FltX>
+        else -> Quantity(FltX(value.value.toString().toDouble()), value.unit)
     }
 }
 
@@ -43,8 +43,8 @@ private fun defaultProgramPackageAttribute(
     return PackageAttribute(
         packageType = packageType,
         weightAttribute = WeightAttribute(),
-        deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-        hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+        deformationAttribute = LinearDeformationAttribute(FltX.zero),
+        hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
         stackingOnPolicy = FilterStackingOnPolicy()
     )
 }
@@ -59,15 +59,15 @@ private fun defaultProgramPackageAttribute(
  */
 fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
     sequence: Int,
-    materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()
+    materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
 ): Item {
     return ActualItem(
         id = "program-candidate-$id-$sequence",
         name = itemName,
-        width = programQuantityToInfra(program.width),
-        height = programQuantityToInfra(program.height),
-        depth = programQuantityToInfra(program.depth),
-        weight = programQuantityToInfra(program.weight),
+        width = programQuantityToFltX(program.width),
+        height = programQuantityToFltX(program.height),
+        depth = programQuantityToFltX(program.depth),
+        weight = programQuantityToFltX(program.weight),
         enabledOrientations = enabledOrientations.ifEmpty { listOf(Orientation.Upright) },
         batchNo = batchNo,
         warehouse = warehouse,
@@ -88,7 +88,7 @@ fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
  */
 fun layerGenerationItemDemandsFromPrograms(
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
-    materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()
+    materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
 ): List<Pair<Item, UInt64>> {
     return programDemands.mapIndexed { index, (candidate, amount) ->
         Pair(
@@ -111,7 +111,7 @@ fun layerGenerationItemDemandsFromPrograms(
  */
 fun layerGenerationItemsFromPrograms(
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
-    materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()
+    materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
 ): List<Item> {
     val items = ArrayList<Item>()
     val itemDemands = layerGenerationItemDemandsFromPrograms(

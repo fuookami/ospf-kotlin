@@ -4,12 +4,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
@@ -27,13 +27,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property name 管道名称 / pipeline name
  */
 open class VolumeMinimization<
-        Args : AbstractBPP3DShadowPriceArguments<T>,
-        T : Cuboid<T>
+        Args : AbstractBPP3DShadowPriceArguments<FltX, T>,
+        T : Cuboid<T, FltX>
         > protected constructor(
     private val assignment: ImpreciseAssignment,
-    private val coefficient: InfraNumber,
+    private val coefficient: FltX,
     override val name: String = "volume_minimization",
-) : CGPipeline<Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>> {
+) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
     /**
      * 将目标添加到模型。
      * Add objective to model.
@@ -41,7 +41,7 @@ open class VolumeMinimization<
      * @param model 线性元模型 / linear meta model
      * @return 操作结果 / operation result
      */
-    override fun invoke(model: AbstractLinearMetaModel<InfraNumber>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<FltX>): Try {
         when (val result = model.minimize(
             monomial = LinearMonomial(coefficient, assignment.volume),
             name = "volume"
@@ -72,7 +72,7 @@ open class VolumeMinimization<
  */
 fun itemVolumeMinimization(
     assignment: ImpreciseAssignment,
-    coefficient: InfraNumber,
+    coefficient: FltX,
     name: String = "volume_minimization"
 ): ItemVolumeMinimization {
     return ItemVolumeMinimization(
@@ -92,7 +92,7 @@ fun itemVolumeMinimization(
  */
 class ItemVolumeMinimization(
     private val assignment: ImpreciseAssignment,
-    private val coefficient: InfraNumber,
+    private val coefficient: FltX,
     override val name: String = "volume_minimization"
 ) : VolumeMinimization<BPP3DShadowPriceArguments, Item>(
     assignment = assignment,

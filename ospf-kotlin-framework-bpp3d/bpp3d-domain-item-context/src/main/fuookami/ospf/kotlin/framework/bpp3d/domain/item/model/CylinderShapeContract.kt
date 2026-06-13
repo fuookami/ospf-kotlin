@@ -6,15 +6,15 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.convertTo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.OrientationCategory
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 
 /**
  * 圆柱能力路径状态。
@@ -161,7 +161,7 @@ fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String 
  * @param path 能力路径 / capability path
  */
 fun requireVerifiedGeneratedCylinderCandidate(
-    shape: PackingShape3<InfraNumber>,
+    shape: PackingShape3<FltX>,
     verifiedAxisAwareCandidate: Boolean,
     path: CylinderCapabilityPath
 ) {
@@ -357,16 +357,16 @@ private fun continuousRadiusVariableName(
     return "cylinder_radius_${sourceToken}_${keyToken}_${axis.name}"
 }
 
-private fun Quantity<InfraNumber>.toContinuousRadiusBoundFromDiameter(
-    radiusUnitSource: Quantity<InfraNumber>?
-): Quantity<InfraNumber> {
+private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameter(
+    radiusUnitSource: Quantity<FltX>?
+): Quantity<FltX> {
     val targetUnit = radiusUnitSource?.unit ?: unit
     val converted = convertTo(targetUnit)
         ?: throw IllegalArgumentException("Cylinder diameter bound must use a length-compatible unit.")
-    return Quantity(infraScalar(converted.value.toDouble() / 2.0), targetUnit)
+    return Quantity(fltX(converted.value.toDouble() / 2.0), targetUnit)
 }
 
-private fun Quantity<InfraNumber>.radiusValueText(): String {
+private fun Quantity<FltX>.radiusValueText(): String {
     return "${value.toDouble()} ${unit.symbol}"
 }
 
@@ -388,9 +388,9 @@ data class ContinuousCylinderRadiusSolverPrototype(
     val radiusWeightFunctionKey: String?,
     val axis: Axis3,
     val variableName: String,
-    val radiusLowerBound: Quantity<InfraNumber>? = null,
-    val radiusUpperBound: Quantity<InfraNumber>? = null,
-    val initialRadius: Quantity<InfraNumber>? = null,
+    val radiusLowerBound: Quantity<FltX>? = null,
+    val radiusUpperBound: Quantity<FltX>? = null,
+    val initialRadius: Quantity<FltX>? = null,
     val gaps: List<ContinuousCylinderRadiusOptimizationGap> = emptyList()
 ) {
     init {
@@ -512,11 +512,11 @@ fun continuousCylinderRadiusSolverPrototype(
     source: String,
     radiusWeightFunctionKey: String?,
     axis: Axis3,
-    selectedRadius: Quantity<InfraNumber>? = null,
-    radiusMin: Quantity<InfraNumber>? = null,
-    radiusMax: Quantity<InfraNumber>? = null,
-    diameterMin: Quantity<InfraNumber>? = null,
-    diameterMax: Quantity<InfraNumber>? = null,
+    selectedRadius: Quantity<FltX>? = null,
+    radiusMin: Quantity<FltX>? = null,
+    radiusMax: Quantity<FltX>? = null,
+    diameterMin: Quantity<FltX>? = null,
+    diameterMax: Quantity<FltX>? = null,
     hasDiscreteRadiusCandidates: Boolean = false,
     hasDiscreteRadiusStep: Boolean = false
 ): ContinuousCylinderRadiusSolverPrototype? {
@@ -571,11 +571,11 @@ fun continuousCylinderRadiusSolverPrototype(
  * @property selectionSource 选择来源（"pwl"）/ selection source ("pwl")
  */
 data class PWLRadiusSelectionMetadata(
-    val solverRadiusSquared: InfraNumber,
-    val actualRadiusSquared: InfraNumber,
-    val pwlAbsoluteError: InfraNumber,
-    val pwlRelativeError: InfraNumber,
-    val maxPWLRelativeError: InfraNumber,
+    val solverRadiusSquared: FltX,
+    val actualRadiusSquared: FltX,
+    val pwlAbsoluteError: FltX,
+    val pwlRelativeError: FltX,
+    val maxPWLRelativeError: FltX,
     val numSegments: Int,
     val isWithinEnvelope: Boolean,
     val selectionSource: String = "pwl"
@@ -589,7 +589,7 @@ data class PWLRadiusSelectionMetadata(
      * 计算真实圆柱体积（使用 solver 选择的半径）。
      * Compute actual cylinder volume using solver-selected radius.
      */
-    fun actualVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
+    fun actualVolume(height: FltX, pi: FltX): FltX {
         return pi * actualRadiusSquared * height
     }
 
@@ -597,7 +597,7 @@ data class PWLRadiusSelectionMetadata(
      * 计算 PWL 近似体积（使用 q ≈ r²）。
      * Compute PWL approximate volume using q ≈ r².
      */
-    fun pwlVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
+    fun pwlVolume(height: FltX, pi: FltX): FltX {
         return pi * solverRadiusSquared * height
     }
 }
@@ -616,10 +616,10 @@ data class PWLRadiusSelectionMetadata(
  */
 data class CylinderRadiusSelectionResult(
     val key: String,
-    val selectedRadius: Quantity<InfraNumber>,
+    val selectedRadius: Quantity<FltX>,
     val axis: Axis3,
-    val radiusMin: Quantity<InfraNumber>? = null,
-    val radiusMax: Quantity<InfraNumber>? = null,
+    val radiusMin: Quantity<FltX>? = null,
+    val radiusMax: Quantity<FltX>? = null,
     val variableName: String? = null,
     val source: String? = null,
     /** PWL 近似元数据（仅当通过 PWL 路径选择半径时非空） / PWL approximation metadata (non-null only when radius is selected via PWL path) */
@@ -774,7 +774,7 @@ fun requireConcreteCylinderRadiusProductionMetadata(
  * @param source 调用来源 / call source
  */
 fun requireVerticalCylinderAxis(
-    shape: PackingShape3<InfraNumber>,
+    shape: PackingShape3<FltX>,
     source: String
 ) {
     if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
@@ -790,7 +790,7 @@ fun requireVerticalCylinderAxis(
  * @param path 能力路径 / capability path
  */
 fun requireVerticalCylinderAxis(
-    shape: PackingShape3<InfraNumber>,
+    shape: PackingShape3<FltX>,
     path: CylinderCapabilityPath
 ) {
     require(path.status == CylinderCapabilityStatus.VerticalCandidateOnly) {
@@ -810,7 +810,7 @@ fun requireVerticalCylinderAxis(
  * @param path 能力路径 / capability path
  */
 fun requireAxisAwareCylinderCandidate(
-    shape: PackingShape3<InfraNumber>,
+    shape: PackingShape3<FltX>,
     path: CylinderCapabilityPath
 ) {
     require(path.status == CylinderCapabilityStatus.AxisAwareCandidate) {
@@ -831,7 +831,7 @@ fun requireAxisAwareCylinderCandidate(
  * @param source 调用来源 / call source
  */
 fun requireUprightVerticalCylinderSupport(
-    shape: PackingShape3<InfraNumber>,
+    shape: PackingShape3<FltX>,
     orientation: Orientation,
     source: String
 ) {
@@ -849,7 +849,7 @@ fun requireUprightVerticalCylinderSupport(
  * @param path 能力路径 / capability path
  */
 fun requireUprightVerticalCylinderSupport(
-    shape: PackingShape3<InfraNumber>,
+    shape: PackingShape3<FltX>,
     orientation: Orientation,
     path: CylinderCapabilityPath
 ) {
@@ -955,7 +955,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
  * @return 已选择半径结果 / selected radius result
  */
 fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
-    solverRadius: Quantity<InfraNumber>
+    solverRadius: Quantity<FltX>
 ): CylinderRadiusSelectionResult {
     require(radiusWeightFunctionKey != null) {
         "Continuous cylinder radius solver prototype must have a radius weight function key to build a selection result."
@@ -981,7 +981,7 @@ fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
  * @return 已选择半径结果（包含 PWL 元数据）/ selected radius result (with PWL metadata)
  */
 fun ContinuousCylinderRadiusSolverPrototype.withPWLSolverSelectedRadius(
-    solverRadius: Quantity<InfraNumber>,
+    solverRadius: Quantity<FltX>,
     pwlMetadata: PWLRadiusSelectionMetadata
 ): CylinderRadiusSelectionResult {
     require(radiusWeightFunctionKey != null) {

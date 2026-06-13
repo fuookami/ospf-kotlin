@@ -28,7 +28,7 @@
 明确非目标与剩余工作：
 
 1. 圆柱任意三维旋转不是当前目标。
-2. 全主链 legacy 长方体算法的 shape-polymorphic 迁移仍在推进。
+2. 部分长方体导向搜索算法仍在迁移为完全 shape-polymorphic 实现。
 3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，并已进入 `ColumnGenerationState`、RMP/final solve info、packing snapshot KPI，以及带变量上下界、已选择半径边界校验和模型注册阻断诊断的共享 solver 注册计划。满足 PWL 近似路径条件的 interval-only 连续半径变量已注册到 solver 模型，并接入 `rMax` 保守 footprint、PWL/真实体积、final MILP 选择和 renderer `actualVolume`；其它 interval-only 符号半径变量仍通过缺口合同报告。
 4. 外部 renderer 源码不属于本仓；本模块负责输出外部 renderer 消费的 shape metadata，且外部 renderer 现在已支持原生 X/Y/Z 圆柱和 `actualVolume` 展示语义。
 
@@ -171,13 +171,13 @@ val cylinderItem = ActualItem(
     name = "cyl-1",
     pack = Package.innerPackage(
         shape = PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.2) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.2) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         ),
@@ -187,7 +187,7 @@ val cylinderItem = ActualItem(
     batchNo = BatchNo("B-cyl-1"),
     packageAttribute = packageAttribute,
     shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-        radius = infraScalar(0.5) * Meter,
+        radius = fltX(0.5) * Meter,
         axis = Axis3.Y
     )
 )

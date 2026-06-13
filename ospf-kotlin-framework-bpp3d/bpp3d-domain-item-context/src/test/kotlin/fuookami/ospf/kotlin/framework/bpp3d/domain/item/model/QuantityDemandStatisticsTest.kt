@@ -1,11 +1,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -20,7 +19,7 @@ import kotlin.test.assertTrue
 class QuantityDemandStatisticsTest {
     private val cargo = object : AbstractCargoAttribute {}
 
-    private fun assertKilogramQuantity(value: Quantity<*>, expected: InfraNumber) {
+    private fun assertKilogramQuantity(value: Quantity<*>, expected: FltX) {
         assertEquals(Kilogram, value.unit)
         val actual = when (val scalar = value.value) {
             is FltX -> scalar.toDouble()
@@ -34,8 +33,8 @@ class QuantityDemandStatisticsTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -47,17 +46,17 @@ class QuantityDemandStatisticsTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-64",
-            weight = infraScalar(0.5) * Kilogram
+            weight = fltX(0.5) * Kilogram
         )
         val item = QuantityItem(
             id = "item-64",
             name = "item-64",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(0.2) * Kilogram,
+                    width = fltX(1.0) * Meter,
+                    height = fltX(1.0) * Meter,
+                    depth = fltX(1.0) * Meter,
+                    weight = fltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(2))
@@ -69,12 +68,12 @@ class QuantityDemandStatisticsTest {
         val layer = QuantityBinLayer(
             iteration = Int64.zero,
             from = QuantityDemandStatisticsTest::class,
-            width = infraScalar(10.0) * Meter,
-            height = infraScalar(10.0) * Meter,
-            depth = infraScalar(10.0) * Meter,
+            width = fltX(10.0) * Meter,
+            height = fltX(10.0) * Meter,
+            depth = fltX(10.0) * Meter,
             units = listOf(
-                QuantityItemPlacement(item, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter),
-                QuantityItemPlacement(item, infraScalar(1.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter)
+                QuantityItemPlacement(item, fltX(0.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter),
+                QuantityItemPlacement(item, fltX(1.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter)
             )
         )
 
@@ -88,11 +87,11 @@ class QuantityDemandStatisticsTest {
 
         val scaledMaterialWeight = item.statistics(Bpp3dDemandMode.ItemMaterialWeight, UInt64(3)).values.single()
         assertTrue(scaledMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(scaledMaterialWeight.value, InfraNumber(3.0))
+        assertKilogramQuantity(scaledMaterialWeight.value, FltX(3.0))
 
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).values.single()
         assertTrue(layerMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(layerMaterialWeight.value, InfraNumber(2.0))
+        assertKilogramQuantity(layerMaterialWeight.value, FltX(2.0))
     }
 
     @Test
@@ -143,10 +142,10 @@ class QuantityDemandStatisticsTest {
 
         val scaledMaterialWeight = item.statistics(Bpp3dDemandMode.ItemMaterialWeight, UInt64(4)).values.single()
         assertTrue(scaledMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(scaledMaterialWeight.value, InfraNumber(4.0))
+        assertKilogramQuantity(scaledMaterialWeight.value, FltX(4.0))
 
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight).values.single()
         assertTrue(layerMaterialWeight is QuantityBpp3dDemandValue.Weight<*>)
-        assertKilogramQuantity(layerMaterialWeight.value, InfraNumber(2.0))
+        assertKilogramQuantity(layerMaterialWeight.value, FltX(2.0))
     }
 }

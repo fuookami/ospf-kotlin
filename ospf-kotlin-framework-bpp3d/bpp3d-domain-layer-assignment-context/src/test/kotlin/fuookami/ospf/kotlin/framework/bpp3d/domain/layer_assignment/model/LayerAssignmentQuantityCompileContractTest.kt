@@ -32,15 +32,15 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class FltXDirectCompileProofTest {
+class LayerAssignmentQuantityCompileContractTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -49,12 +49,12 @@ class FltXDirectCompileProofTest {
         return value * unit
     }
 
-    private fun toFlt64Quantity(value: Quantity<FltX>): Quantity<InfraNumber> {
-        return Quantity(InfraNumber(value.value.toDouble()), value.unit)
+    private fun toFlt64Quantity(value: Quantity<FltX>): Quantity<FltX> {
+        return Quantity(FltX(value.value.toDouble()), value.unit)
     }
 
     @Test
-    fun fltXQuantityCanFlowThroughDomainAndSolverAdapterWithoutLegacyBridge() {
+    fun fltXQuantityCanFlowThroughDomainAndSolverAdapterDirectly() {
         val material = QuantityMaterial(
             no = MaterialNo("M-1"),
             type = MaterialType.RawMaterial,
@@ -84,7 +84,7 @@ class FltXDirectCompileProofTest {
 
         val layer = QuantityBinLayer(
             iteration = Int64.zero,
-            from = FltXDirectCompileProofTest::class,
+            from = LayerAssignmentQuantityCompileContractTest::class,
             width = q(FltX(5.0), Meter),
             height = q(FltX(5.0), Meter),
             depth = q(FltX(5.0), Meter),
@@ -113,7 +113,7 @@ class FltXDirectCompileProofTest {
             is QuantityBpp3dDemandValue.Amount -> adapter.amountToSolver(amountValue.value)
             else -> error("Unexpected amount statistics value: $amountValue")
         }
-        assertEquals(InfraNumber(6.0), amountSolverValue)
+        assertEquals(FltX(6.0), amountSolverValue)
 
         val layerWeightStats = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         val materialNo = when (val weightKey = layerWeightStats.keys.single()) {
@@ -126,7 +126,7 @@ class FltXDirectCompileProofTest {
             is QuantityBpp3dDemandValue.Weight -> adapter.weightToSolver(toFlt64Quantity(weightValue.value))
             else -> error("Unexpected weight statistics value: $weightValue")
         }
-        assertEquals(InfraNumber(10.0), weightSolverValue)
+        assertEquals(FltX(10.0), weightSolverValue)
     }
 }
 

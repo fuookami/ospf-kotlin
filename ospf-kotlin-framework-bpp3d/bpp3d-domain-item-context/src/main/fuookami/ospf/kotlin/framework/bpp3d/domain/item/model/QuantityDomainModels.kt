@@ -6,30 +6,30 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
 
-private fun <V : FloatingNumber<V>> Quantity<V>.toInfraQuantity(): Quantity<InfraNumber> {
-    return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
+private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
+    return Quantity(fltX(this.value.toString().toDouble()), this.unit)
 }
 
-private fun Quantity<*>.toInfraQuantityUnsafe(): Quantity<InfraNumber> {
-    return Quantity(infraScalar(this.value.toString().toDouble()), this.unit)
+private fun Quantity<*>.toFltXQuantityUnsafe(): Quantity<FltX> {
+    return Quantity(fltX(this.value.toString().toDouble()), this.unit)
 }
 
 sealed interface QuantityPackageShapeSpec {
@@ -54,16 +54,16 @@ private fun QuantityPackageShapeSpec.toModel(): PackageShapeSpec {
         QuantityPackageShapeSpec.Cuboid -> PackageShapeSpec.Cuboid
         is QuantityPackageShapeSpec.VerticalCylinder<*> -> {
             PackageShapeSpec.VerticalCylinder(
-                radius = radius.toInfraQuantityUnsafe(),
+                radius = radius.toFltXQuantityUnsafe(),
                 axis = axis,
-                radiusCandidates = radiusCandidates.map { it.toInfraQuantityUnsafe() },
-                radiusMin = radiusMin?.toInfraQuantityUnsafe(),
-                radiusMax = radiusMax?.toInfraQuantityUnsafe(),
+                radiusCandidates = radiusCandidates.map { it.toFltXQuantityUnsafe() },
+                radiusMin = radiusMin?.toFltXQuantityUnsafe(),
+                radiusMax = radiusMax?.toFltXQuantityUnsafe(),
                 radiusWeightFunctionKey = radiusWeightFunctionKey,
-                radiusStep = radiusStep?.toInfraQuantityUnsafe(),
-                diameterMin = diameterMin?.toInfraQuantityUnsafe(),
-                diameterMax = diameterMax?.toInfraQuantityUnsafe(),
-                diameterStep = diameterStep?.toInfraQuantityUnsafe()
+                radiusStep = radiusStep?.toFltXQuantityUnsafe(),
+                diameterMin = diameterMin?.toFltXQuantityUnsafe(),
+                diameterMax = diameterMax?.toFltXQuantityUnsafe(),
+                diameterStep = diameterStep?.toFltXQuantityUnsafe()
             )
         }
     }
@@ -79,7 +79,7 @@ data class QuantityMaterial<V : FloatingNumber<V>>(
     val warehouse: String? = null,
     val weight: Quantity<V>
 ) {
-    fun toModel(): Material<InfraNumber> {
+    fun toModel(): Material<FltX> {
         return Material(
             no = no,
             type = type,
@@ -88,7 +88,7 @@ data class QuantityMaterial<V : FloatingNumber<V>>(
             manufacturer = manufacturer,
             supplier = supplier,
             warehouse = warehouse,
-            weight = weight.toInfraQuantity()
+            weight = weight.toFltXQuantity()
         )
     }
 }
@@ -103,12 +103,12 @@ data class QuantityPackageShape<V : FloatingNumber<V>>(
 ) {
     val volume: Quantity<V> = width * height * depth
 
-    fun toModel(): PackageShape<InfraNumber> {
+    fun toModel(): PackageShape<FltX> {
         return PackageShape(
-            width = width.toInfraQuantity(),
-            height = height.toInfraQuantity(),
-            depth = depth.toInfraQuantity(),
-            weight = weight.toInfraQuantity(),
+            width = width.toFltXQuantity(),
+            height = height.toFltXQuantity(),
+            depth = depth.toFltXQuantity(),
+            weight = weight.toFltXQuantity(),
             packageType = packageType,
             shapeSpec = shapeSpec.toModel()
         )
@@ -177,8 +177,8 @@ data class QuantityPackage<V : FloatingNumber<V>>(
     val volume by shape::volume
 
     fun toModel(
-        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap()
-    ): Package<InfraNumber> {
+        materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap()
+    ): Package<FltX> {
         return if (packages.isNullOrEmpty()) {
             Package.innerPackage(
                 code = code,
@@ -242,7 +242,7 @@ data class QuantityItem<V : FloatingNumber<V>>(
     )
 
     fun toModel(
-        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
+        materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): ActualItem {
         return itemCache.getOrPut(this) {
@@ -252,10 +252,10 @@ data class QuantityItem<V : FloatingNumber<V>>(
                 name = name,
                 packageCode = packageCode ?: modelPack?.code,
                 pack = modelPack,
-                width = width.toInfraQuantity(),
-                height = height.toInfraQuantity(),
-                depth = depth.toInfraQuantity(),
-                weight = weight.toInfraQuantity(),
+                width = width.toFltXQuantity(),
+                height = height.toFltXQuantity(),
+                depth = depth.toFltXQuantity(),
+                weight = weight.toFltXQuantity(),
                 enabledOrientations = enabledOrientations,
                 batchNo = batchNo,
                 warehouse = warehouse,
@@ -273,16 +273,16 @@ data class QuantityItemPlacement<V : FloatingNumber<V>>(
     val orientation: Orientation = Orientation.Upright
 ) {
     fun toModel(
-        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
+        materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): ItemPlacement3 {
         val modelItem = item.toModel(materialCache, itemCache)
         return itemPlacement3Of(
             item = modelItem,
-            position = point3(
-                x = x.toInfraQuantity().value,
-                y = y.toInfraQuantity().value,
-                z = z.toInfraQuantity().value
+            position = point3FltX(
+                x = x.toFltXQuantity().value,
+                y = y.toFltXQuantity().value,
+                z = z.toFltXQuantity().value
             ),
             orientation = orientation
         )
@@ -298,16 +298,16 @@ data class QuantityBinLayer<V : FloatingNumber<V>>(
     val units: List<QuantityItemPlacement<V>>
 ) {
     fun toModel(
-        materialCache: MutableMap<QuantityMaterial<V>, Material<InfraNumber>> = LinkedHashMap(),
+        materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
     ): BinLayer {
         return BinLayer(
             iteration = iteration,
             from = from,
             shape = Container3Shape(
-                width = width.toInfraQuantity(),
-                height = height.toInfraQuantity(),
-                depth = depth.toInfraQuantity()
+                width = width.toFltXQuantity(),
+                height = height.toFltXQuantity(),
+                depth = depth.toFltXQuantity()
             ),
             units = units.map { it.toModel(materialCache, itemCache) }
         )

@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 /**
  * PWL 连续半径近似配置。
  * PWL continuous-radius approximation config.
@@ -16,9 +17,9 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
  */
 data class PWLRadiusApproximationConfig(
     val maxSegments: Int = 8,
-    val relativeErrorTolerance: InfraNumber = InfraNumber(0.01),
+    val relativeErrorTolerance: FltX = FltX(0.01),
     val breakpointStrategy: PWLBreakpointStrategy = PWLBreakpointStrategy.Uniform,
-    val customBreakpoints: List<InfraNumber>? = null,
+    val customBreakpoints: List<FltX>? = null,
     val enableDebugInfo: Boolean = false
 )
 

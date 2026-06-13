@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -16,21 +16,21 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class QuantityGeometrySpikeTest {
+class QuantityGeometryContractTest {
     @Test
-    fun quantityArithmeticSpike() {
-        val width = (infraScalar(2.0) * Meter) + (infraScalar(50.0) * Centimeter)
-        val height = infraScalar(3.0) * Meter
-        val depth = infraScalar(4.0) * Meter
-        val weight = infraScalar(12.0) * Kilogram
+    fun quantityArithmeticShouldRespectUnits() {
+        val width = (fltX(2.0) * Meter) + (fltX(50.0) * Centimeter)
+        val height = fltX(3.0) * Meter
+        val depth = fltX(4.0) * Meter
+        val weight = fltX(12.0) * Kilogram
 
         val area = width * height
         val volume = area * depth
         val linearDensity = weight / depth
 
-        assertTrue(width eq (infraScalar(2.5) * Meter))
-        assertTrue(area eq (infraScalar(7.5) * SquareMeter))
-        assertTrue(volume eq (infraScalar(30.0) * CubicMeter))
+        assertTrue(width eq (fltX(2.5) * Meter))
+        assertTrue(area eq (fltX(7.5) * SquareMeter))
+        assertTrue(volume eq (fltX(30.0) * CubicMeter))
         assertEquals((Kilogram / Meter).quantity.dimensionSymbol(), linearDensity.unit.quantity.dimensionSymbol())
         assertEquals(3.0, linearDensity.value.toDouble(), 1e-10)
     }
@@ -38,19 +38,19 @@ class QuantityGeometrySpikeTest {
     @Test
     fun quantityPoint2TranslateAndOrder() {
         val point = QuantityPoint2(
-            x = infraScalar(1.0) * Meter,
-            y = infraScalar(2.0) * Meter
+            x = fltX(1.0) * Meter,
+            y = fltX(2.0) * Meter
         )
         val offset = QuantityVector2(
-            x = infraScalar(50.0) * Centimeter,
-            y = infraScalar(100.0) * Centimeter
+            x = fltX(50.0) * Centimeter,
+            y = fltX(100.0) * Centimeter
         )
 
         val moved = point + offset
         val restored = moved - offset
 
-        assertTrue(moved.x eq (infraScalar(1.5) * Meter))
-        assertTrue(moved.y eq (infraScalar(3.0) * Meter))
+        assertTrue(moved.x eq (fltX(1.5) * Meter))
+        assertTrue(moved.y eq (fltX(3.0) * Meter))
         assertTrue(restored.x eq point.x)
         assertTrue(restored.y eq point.y)
         assertTrue((point ord moved) is Order.Less)
@@ -59,19 +59,19 @@ class QuantityGeometrySpikeTest {
     @Test
     fun quantityPoint3OrderPriority() {
         val p1 = QuantityPoint3(
-            x = infraScalar(1.0) * Meter,
-            y = infraScalar(2.0) * Meter,
-            z = infraScalar(3.0) * Meter
+            x = fltX(1.0) * Meter,
+            y = fltX(2.0) * Meter,
+            z = fltX(3.0) * Meter
         )
         val p2 = QuantityPoint3(
-            x = infraScalar(100.0) * Meter,
-            y = infraScalar(0.0) * Meter,
-            z = infraScalar(4.0) * Meter
+            x = fltX(100.0) * Meter,
+            y = fltX(0.0) * Meter,
+            z = fltX(4.0) * Meter
         )
         val p3 = QuantityPoint3(
-            x = infraScalar(0.0) * Meter,
-            y = infraScalar(3.0) * Meter,
-            z = infraScalar(3.0) * Meter
+            x = fltX(0.0) * Meter,
+            y = fltX(3.0) * Meter,
+            z = fltX(3.0) * Meter
         )
 
         assertTrue((p1 ord p2) is Order.Less)
@@ -79,41 +79,41 @@ class QuantityGeometrySpikeTest {
     }
 
     @Test
-    fun quantityRectangleIntersectArea() {
-        val lhs = QuantityRectangle2(
-            minX = infraScalar(0.0) * Meter,
-            minY = infraScalar(0.0) * Meter,
-            maxX = infraScalar(4.0) * Meter,
-            maxY = infraScalar(3.0) * Meter
+    fun rectangleIntersectArea() {
+        val lhs = Rectangle2(
+            minX = fltX(0.0) * Meter,
+            minY = fltX(0.0) * Meter,
+            maxX = fltX(4.0) * Meter,
+            maxY = fltX(3.0) * Meter
         )
-        val rhs = QuantityRectangle2(
-            minX = infraScalar(2.0) * Meter,
-            minY = infraScalar(1.0) * Meter,
-            maxX = infraScalar(6.0) * Meter,
-            maxY = infraScalar(5.0) * Meter
+        val rhs = Rectangle2(
+            minX = fltX(2.0) * Meter,
+            minY = fltX(1.0) * Meter,
+            maxX = fltX(6.0) * Meter,
+            maxY = fltX(5.0) * Meter
         )
 
         val intersect = lhs.intersect(rhs)
         assertNotNull(intersect)
-        assertTrue(intersect.width eq (infraScalar(2.0) * Meter))
-        assertTrue(intersect.height eq (infraScalar(2.0) * Meter))
-        assertTrue(intersect.area eq (infraScalar(4.0) * SquareMeter))
-        assertTrue(lhs.intersectArea(rhs)!! eq (infraScalar(4.0) * SquareMeter))
+        assertTrue(intersect.width eq (fltX(2.0) * Meter))
+        assertTrue(intersect.height eq (fltX(2.0) * Meter))
+        assertTrue(intersect.area eq (fltX(4.0) * SquareMeter))
+        assertTrue(lhs.intersectArea(rhs)!! eq (fltX(4.0) * SquareMeter))
     }
 
     @Test
-    fun quantityRectangleNoIntersectWhenOnlyTouchingBorder() {
-        val lhs = QuantityRectangle2(
-            minX = infraScalar(0.0) * Meter,
-            minY = infraScalar(0.0) * Meter,
-            maxX = infraScalar(4.0) * Meter,
-            maxY = infraScalar(3.0) * Meter
+    fun rectangleNoIntersectWhenOnlyTouchingBorder() {
+        val lhs = Rectangle2(
+            minX = fltX(0.0) * Meter,
+            minY = fltX(0.0) * Meter,
+            maxX = fltX(4.0) * Meter,
+            maxY = fltX(3.0) * Meter
         )
-        val rhs = QuantityRectangle2(
-            minX = infraScalar(4.0) * Meter,
-            minY = infraScalar(1.0) * Meter,
-            maxX = infraScalar(6.0) * Meter,
-            maxY = infraScalar(2.0) * Meter
+        val rhs = Rectangle2(
+            minX = fltX(4.0) * Meter,
+            minY = fltX(1.0) * Meter,
+            maxX = fltX(6.0) * Meter,
+            maxY = fltX(2.0) * Meter
         )
 
         assertNull(lhs.intersect(rhs))
@@ -123,12 +123,12 @@ class QuantityGeometrySpikeTest {
     @Test
     fun quantityPointRejectsIncomparableUnits() {
         val lhs = QuantityPoint2(
-            x = infraScalar(1.0) * Meter,
-            y = infraScalar(1.0) * Meter
+            x = fltX(1.0) * Meter,
+            y = fltX(1.0) * Meter
         )
         val rhs = QuantityPoint2(
-            x = infraScalar(1.0) * Kilogram,
-            y = infraScalar(1.0) * Meter
+            x = fltX(1.0) * Kilogram,
+            y = fltX(1.0) * Meter
         )
 
         assertFailsWith<IllegalArgumentException> {
@@ -138,11 +138,11 @@ class QuantityGeometrySpikeTest {
 
     @Test
     fun quantityGeometryShouldSupportFltX() {
-        val base = point2G(
+        val base = point2(
             x = Quantity(FltX(1.0), Meter),
             y = Quantity(FltX(2.0), Meter)
         )
-        val offset = vector2G(
+        val offset = vector2(
             x = Quantity(FltX(0.5), Meter),
             y = Quantity(FltX(1.0), Meter)
         )
@@ -151,13 +151,13 @@ class QuantityGeometrySpikeTest {
         assertTrue(moved.x eq Quantity(FltX(1.5), Meter))
         assertTrue(moved.y eq Quantity(FltX(3.0), Meter))
 
-        val lhs = QuantityRectangle2G(
+        val lhs = Rectangle2(
             minX = Quantity(FltX.zero, Meter),
             minY = Quantity(FltX.zero, Meter),
             maxX = Quantity(FltX(4.0), Meter),
             maxY = Quantity(FltX(3.0), Meter)
         )
-        val rhs = QuantityRectangle2G(
+        val rhs = Rectangle2(
             minX = Quantity(FltX(2.0), Meter),
             minY = Quantity(FltX(1.0), Meter),
             maxX = Quantity(FltX(6.0), Meter),

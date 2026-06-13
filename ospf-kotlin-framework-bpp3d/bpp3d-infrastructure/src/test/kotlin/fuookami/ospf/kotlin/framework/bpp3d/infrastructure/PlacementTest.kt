@@ -1,5 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -16,21 +17,21 @@ import kotlin.test.assertTrue
 
 class PlacementTest {
     private data class Box(
-        override val width: InfraQuantity,
-        override val height: InfraQuantity,
-        override val depth: InfraQuantity,
-        override val weight: InfraQuantity,
+        override val width: Quantity<FltX>,
+        override val height: Quantity<FltX>,
+        override val depth: Quantity<FltX>,
+        override val weight: Quantity<FltX>,
         override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : Cuboid<Box> {
+    ) : Cuboid<Box, FltX> {
         override val self: Box
             get() = this
     }
 
     private data class Column(
-        override val radius: InfraQuantity,
-        override val height: InfraQuantity,
+        override val radius: Quantity<FltX>,
+        override val height: Quantity<FltX>,
         override val axis: Axis3,
-        override val weight: InfraQuantity,
+        override val weight: Quantity<FltX>,
         override val enabledAxes: List<Axis3>
     ) : Cylinder<Column> {
         override val self: Column
@@ -40,35 +41,35 @@ class PlacementTest {
     @Test
     fun placement3CoordinatesAndMaxShouldUseQuantity() {
         val box = Box(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(4.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(4.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
         val placement = QuantityPlacement3(
             view = box.view()!!,
             position = QuantityPoint3(
-                x = infraScalar(1.0) * Meter,
-                y = infraScalar(2.0) * Meter,
-                z = infraScalar(3.0) * Meter
+                x = fltX(1.0) * Meter,
+                y = fltX(2.0) * Meter,
+                z = fltX(3.0) * Meter
             )
         )
 
-        assertTrue(placement.x eq (infraScalar(1.0) * Meter))
-        assertTrue(placement.y eq (infraScalar(2.0) * Meter))
-        assertTrue(placement.z eq (infraScalar(3.0) * Meter))
-        assertTrue(placement.maxX eq (infraScalar(3.0) * Meter))
-        assertTrue(placement.maxY eq (infraScalar(5.0) * Meter))
-        assertTrue(placement.maxZ eq (infraScalar(7.0) * Meter))
+        assertTrue(placement.x eq (fltX(1.0) * Meter))
+        assertTrue(placement.y eq (fltX(2.0) * Meter))
+        assertTrue(placement.z eq (fltX(3.0) * Meter))
+        assertTrue(placement.maxX eq (fltX(3.0) * Meter))
+        assertTrue(placement.maxY eq (fltX(5.0) * Meter))
+        assertTrue(placement.maxZ eq (fltX(7.0) * Meter))
     }
 
     @Test
     fun toPlacement3FromPileShouldExpandLayers() {
         val box = Box(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
         val projection = PileProjection(
             plane = PlaneProjection(box.view()!!, Bottom),
@@ -77,32 +78,32 @@ class PlacementTest {
         val QuantityPlacement2 = QuantityPlacement2(
             projection = projection,
             position = QuantityPoint2(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(0.0) * Meter
             )
         )
 
         val expanded = QuantityPlacement2.toPlacement3()
 
         assertEquals(3, expanded.size)
-        assertTrue(expanded[0].y eq (infraScalar(0.0) * Meter))
-        assertTrue(expanded[1].y eq (infraScalar(2.0) * Meter))
-        assertTrue(expanded[2].y eq (infraScalar(4.0) * Meter))
+        assertTrue(expanded[0].y eq (fltX(0.0) * Meter))
+        assertTrue(expanded[1].y eq (fltX(2.0) * Meter))
+        assertTrue(expanded[2].y eq (fltX(4.0) * Meter))
     }
 
     @Test
     fun topAndBottomPlacementsShouldSelectExpectedUnits() {
         val box = Box(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
         val view = box.view()!!
-        val p0 = QuantityPlacement3(view, QuantityPoint3(infraScalar(0.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter))
-        val p1 = QuantityPlacement3(view, QuantityPoint3(infraScalar(0.0) * Meter, infraScalar(1.0) * Meter, infraScalar(0.0) * Meter))
-        val p2 = QuantityPlacement3(view, QuantityPoint3(infraScalar(0.0) * Meter, infraScalar(2.0) * Meter, infraScalar(0.0) * Meter))
-        val isolated = QuantityPlacement3(view, QuantityPoint3(infraScalar(10.0) * Meter, infraScalar(0.0) * Meter, infraScalar(0.0) * Meter))
+        val p0 = QuantityPlacement3(view, QuantityPoint3(fltX(0.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter))
+        val p1 = QuantityPlacement3(view, QuantityPoint3(fltX(0.0) * Meter, fltX(1.0) * Meter, fltX(0.0) * Meter))
+        val p2 = QuantityPlacement3(view, QuantityPoint3(fltX(0.0) * Meter, fltX(2.0) * Meter, fltX(0.0) * Meter))
+        val isolated = QuantityPlacement3(view, QuantityPoint3(fltX(10.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter))
 
         val placements = listOf(p0, p1, p2, isolated)
         val top = topPlacements(placements)
@@ -120,35 +121,35 @@ class PlacementTest {
     @Test
     fun shapePlacement3CircleCircleOverlapShouldFollowFootprintGeometry() {
         val column = Column(
-            radius = infraScalar(1.0) * Meter,
-            height = infraScalar(2.0) * Meter,
+            radius = fltX(1.0) * Meter,
+            height = fltX(2.0) * Meter,
             axis = Axis3.Y,
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             enabledAxes = listOf(Axis3.Y)
         )
         val shape = column.asPackingShape3()
         val left = ShapePlacement3(
             shape = shape,
             position = QuantityPoint3(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val tangent = ShapePlacement3(
             shape = shape,
             position = QuantityPoint3(
-                x = infraScalar(2.0) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(2.0) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val far = ShapePlacement3(
             shape = shape,
             position = QuantityPoint3(
-                x = infraScalar(2.1) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(2.1) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
 
@@ -159,40 +160,40 @@ class PlacementTest {
     @Test
     fun shapePlacement3CircleRectangleOverlapShouldFollowFootprintGeometry() {
         val column = Column(
-            radius = infraScalar(1.0) * Meter,
-            height = infraScalar(2.0) * Meter,
+            radius = fltX(1.0) * Meter,
+            height = fltX(2.0) * Meter,
             axis = Axis3.Y,
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             enabledAxes = listOf(Axis3.Y)
         )
         val box = Box(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(1.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
         val circle = ShapePlacement3(
             shape = column.asPackingShape3(),
             position = QuantityPoint3(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val overlappedRect = ShapePlacement3(
             shape = box.asPackingShape3(),
             position = QuantityPoint3(
-                x = infraScalar(1.5) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(1.5) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val separatedRect = ShapePlacement3(
             shape = box.asPackingShape3(),
             position = QuantityPoint3(
-                x = infraScalar(2.1) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(2.1) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
 
@@ -203,33 +204,33 @@ class PlacementTest {
     @Test
     fun shapePlacement3OverlapShouldRequirePositiveVerticalIntersection() {
         val box = Box(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
         val base = ShapePlacement3(
             shape = box.asPackingShape3(),
             position = QuantityPoint3(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val touchingTop = ShapePlacement3(
             shape = box.asPackingShape3(),
             position = QuantityPoint3(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(2.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(2.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val crossingTop = ShapePlacement3(
             shape = box.asPackingShape3(),
             position = QuantityPoint3(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(1.9) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(1.9) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
 
@@ -240,17 +241,17 @@ class PlacementTest {
     @Test
     fun quantityPlacement3ShouldConvertToShapePlacement3WithAbsolutePosition() {
         val box = Box(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(4.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(4.0) * Meter,
+            weight = fltX(1.0) * Kilogram
         )
         val placement = QuantityPlacement3(
             view = box.view()!!,
             position = QuantityPoint3(
-                x = infraScalar(1.0) * Meter,
-                y = infraScalar(2.0) * Meter,
-                z = infraScalar(3.0) * Meter
+                x = fltX(1.0) * Meter,
+                y = fltX(2.0) * Meter,
+                z = fltX(3.0) * Meter
             )
         )
 
@@ -267,32 +268,32 @@ class PlacementTest {
     @Test
     fun bottomSupportShouldUseCircleFootprintOverlapAreaWhenResolverProvidesCylinderShape() {
         val box = Box(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            weight = infraScalar(4.0) * Kilogram
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            weight = fltX(4.0) * Kilogram
         )
         val topPlacement = QuantityPlacement3(
             view = box.view()!!,
             position = QuantityPoint3(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(1.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(0.0) * Meter,
+                y = fltX(1.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val bottomPlacement = QuantityPlacement3(
             view = box.view()!!,
             position = QuantityPoint3(
-                x = infraScalar(1.0) * Meter,
-                y = infraScalar(0.0) * Meter,
-                z = infraScalar(0.0) * Meter
+                x = fltX(1.0) * Meter,
+                y = fltX(0.0) * Meter,
+                z = fltX(0.0) * Meter
             )
         )
         val cylinderShape = Column(
-            radius = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
+            radius = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
             axis = Axis3.Y,
-            weight = infraScalar(4.0) * Kilogram,
+            weight = fltX(4.0) * Kilogram,
             enabledAxes = listOf(Axis3.Y)
         ).asPackingShape3()
         val support = bottomSupport(

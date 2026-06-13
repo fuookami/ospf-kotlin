@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -11,31 +12,30 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 
 class CylinderShapeContractTest {
     private fun packageAttribute(): PackageAttribute {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
-    private fun cylinderShape(axis: Axis3): PackingShape3<InfraNumber> {
-        val radius = infraScalar(0.5) * Meter
-        val height = infraScalar(1.0) * Meter
+    private fun cylinderShape(axis: Axis3): PackingShape3<FltX> {
+        val radius = fltX(0.5) * Meter
+        val height = fltX(1.0) * Meter
         val shape = PackageShape(
             width = radius + radius,
             height = height,
             depth = radius + radius,
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
@@ -46,14 +46,14 @@ class CylinderShapeContractTest {
     }
 
     private fun cylinderItem(axis: Axis3): ActualItem {
-        val radius = infraScalar(0.5) * Meter
+        val radius = fltX(0.5) * Meter
         return ActualItem(
             id = "cylinder-$axis",
             name = "cylinder-$axis",
             width = radius + radius,
-            height = infraScalar(1.0) * Meter,
+            height = fltX(1.0) * Meter,
             depth = radius + radius,
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CYL-$axis"),
             packageAttribute = packageAttribute(),

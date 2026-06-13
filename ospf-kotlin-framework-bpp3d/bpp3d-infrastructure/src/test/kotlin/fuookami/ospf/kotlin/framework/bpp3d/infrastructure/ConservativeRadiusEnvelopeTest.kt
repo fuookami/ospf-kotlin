@@ -14,8 +14,8 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testEnvelopeProperties() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(5.0)
+            rMin = fltX(2.0),
+            rMax = fltX(5.0)
         )
         assertEquals(5.0, envelope.envelopeRadius.toDouble(), 1e-10)
         assertEquals(10.0, envelope.envelopeDiameter.toDouble(), 1e-10)
@@ -24,10 +24,10 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testVerticalCylinderFootprint() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        val height = infraScalar(10.0)
+        val height = fltX(10.0)
         // Vertical cylinder (axis=Y): width=diameter, depth=diameter
         assertEquals(6.0, envelope.footprintWidth(Axis3.Y, height).toDouble(), 1e-10)
         assertEquals(6.0, envelope.footprintDepth(Axis3.Y, height).toDouble(), 1e-10)
@@ -38,10 +38,10 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testHorizontalCylinderFootprint() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        val height = infraScalar(10.0)
+        val height = fltX(10.0)
         // X-axis horizontal cylinder: width=height, depth=diameter
         assertEquals(10.0, envelope.footprintWidth(Axis3.X, height).toDouble(), 1e-10)
         assertEquals(6.0, envelope.footprintDepth(Axis3.X, height).toDouble(), 1e-10)
@@ -53,10 +53,10 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testBoundingDimensions() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        val height = infraScalar(10.0)
+        val height = fltX(10.0)
         // Vertical: bounding box is width=diameter x height=cylinder_height x depth=diameter
         assertEquals(6.0, envelope.boundingWidth(Axis3.Y, height).toDouble(), 1e-10)
         assertEquals(10.0, envelope.boundingHeight(Axis3.Y, height).toDouble(), 1e-10)
@@ -70,8 +70,8 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testSupportCoverageRadius() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
         assertEquals(3.0, envelope.supportCoverageRadius().toDouble(), 1e-10)
     }
@@ -79,8 +79,8 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testCollisionMargin() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
         assertEquals(6.0, envelope.collisionMargin().toDouble(), 1e-10)
     }
@@ -90,11 +90,11 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testRealFootprintVertical() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        val height = infraScalar(10.0)
-        val actualRadius = infraScalar(2.5)
+        val height = fltX(10.0)
+        val actualRadius = fltX(2.5)
         // Vertical: real footprint width = 2 * actualRadius = 5.0
         assertEquals(5.0, envelope.realFootprintWidth(Axis3.Y, height, actualRadius).toDouble(), 1e-10)
         assertEquals(5.0, envelope.realFootprintDepth(Axis3.Y, height, actualRadius).toDouble(), 1e-10)
@@ -103,11 +103,11 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testRealBoundingVertical() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        val height = infraScalar(10.0)
-        val actualRadius = infraScalar(2.5)
+        val height = fltX(10.0)
+        val actualRadius = fltX(2.5)
         // Vertical: real bounding height = cylinder_height = 10
         assertEquals(10.0, envelope.realBoundingHeight(Axis3.Y, height, actualRadius).toDouble(), 1e-10)
         // Real bounding width = 2 * actualRadius = 5.0
@@ -117,11 +117,11 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testEnvelopeConservativeOverActual() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        val height = infraScalar(10.0)
-        val actualRadius = infraScalar(2.5)
+        val height = fltX(10.0)
+        val actualRadius = fltX(2.5)
         // Conservative footprint should always be >= real footprint
         assertTrue(
             envelope.footprintWidth(Axis3.Y, height).toDouble() >= envelope.realFootprintWidth(Axis3.Y, height, actualRadius).toDouble(),
@@ -142,22 +142,22 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testIsRadiusValidWithinBounds() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        assertTrue(envelope.isRadiusValid(infraScalar(2.0)))
-        assertTrue(envelope.isRadiusValid(infraScalar(2.5)))
-        assertTrue(envelope.isRadiusValid(infraScalar(3.0)))
+        assertTrue(envelope.isRadiusValid(fltX(2.0)))
+        assertTrue(envelope.isRadiusValid(fltX(2.5)))
+        assertTrue(envelope.isRadiusValid(fltX(3.0)))
     }
 
     @Test
     fun testIsRadiusInvalidOutsideBounds() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(2.0),
+            rMax = fltX(3.0)
         )
-        assertTrue(!envelope.isRadiusValid(infraScalar(1.5)))
-        assertTrue(!envelope.isRadiusValid(infraScalar(3.5)))
+        assertTrue(!envelope.isRadiusValid(fltX(1.5)))
+        assertTrue(!envelope.isRadiusValid(fltX(3.5)))
     }
 
     // ===== Edge case tests =====
@@ -165,21 +165,21 @@ class ConservativeRadiusEnvelopeTest {
     @Test
     fun testEqualBounds() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = infraScalar(3.0),
-            rMax = infraScalar(3.0)
+            rMin = fltX(3.0),
+            rMax = fltX(3.0)
         )
         assertEquals(3.0, envelope.envelopeRadius.toDouble(), 1e-10)
         assertEquals(6.0, envelope.envelopeDiameter.toDouble(), 1e-10)
-        assertTrue(envelope.isRadiusValid(infraScalar(3.0)))
-        assertTrue(!envelope.isRadiusValid(infraScalar(2.99)))
+        assertTrue(envelope.isRadiusValid(fltX(3.0)))
+        assertTrue(!envelope.isRadiusValid(fltX(2.99)))
     }
 
     @Test
     fun testRequiresPositiveRMin() {
         try {
             ConservativeRadiusEnvelope(
-                rMin = infraScalar(0.0),
-                rMax = infraScalar(3.0)
+                rMin = fltX(0.0),
+                rMax = fltX(3.0)
             )
             throw AssertionError("Should have thrown for non-positive rMin")
         } catch (_: IllegalArgumentException) {
@@ -191,8 +191,8 @@ class ConservativeRadiusEnvelopeTest {
     fun testRequiresRMaxGreaterOrEqualRMin() {
         try {
             ConservativeRadiusEnvelope(
-                rMin = infraScalar(4.0),
-                rMax = infraScalar(3.0)
+                rMin = fltX(4.0),
+                rMax = fltX(3.0)
             )
             throw AssertionError("Should have thrown for rMax < rMin")
         } catch (_: IllegalArgumentException) {

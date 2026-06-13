@@ -6,16 +6,14 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
@@ -26,9 +24,8 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 
-private typealias MergeNumber = InfraNumber
-private fun scalar(value: Number): MergeNumber = MergeNumber(value.toDouble())
-private fun scalar(value: ULong): MergeNumber = MergeNumber(value.toDouble())
+private fun scalar(value: Number): FltX = FltX(value.toDouble())
+private fun scalar(value: ULong): FltX = FltX(value.toDouble())
 
 data object ItemMerger {
     data class Config(
@@ -114,19 +111,19 @@ data object ItemMerger {
 
     suspend fun merge(
         items: List<Item>,
-        binType: BinType,
+        binType: BinType<FltX>,
         patterns: List<Pattern>,
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<ItemCuboid> {
+    ): List<ItemMergeUnit> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMerge
         )
         return merge(
             items = items,
-            space = binType,
+            space = binType.asContainer3Shape(),
             restWeight = binType.capacity.value,
             patterns = patterns,
             predicate = predicate,
@@ -138,12 +135,12 @@ data object ItemMerger {
     suspend fun merge(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeNumber,
+        restWeight: FltX,
         patterns: List<Pattern>,
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<ItemCuboid> {
+    ): List<ItemMergeUnit> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMerge
@@ -155,7 +152,7 @@ data object ItemMerger {
         } else {
             items.filter { item -> predicate?.let { it(item) } != false }
         }
-        val mergedItems = ArrayList<ItemCuboid>()
+        val mergedItems = ArrayList<ItemMergeUnit>()
 
         if (config.mergeAsPatternBlock) {
             val (thisMergedItems, thisRestItems) = mergePatternBlocks(
@@ -210,13 +207,13 @@ data object ItemMerger {
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeNumber = infraInfinity()
+        restWeight: FltX = fltXInfinity()
     ): Pair<List<Pile>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergePiles
         )
-        val averagePileBottomArea = items.fold(MergeNumber.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
+        val averagePileBottomArea = items.fold(FltX.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
         val restItems = items
@@ -243,7 +240,11 @@ data object ItemMerger {
                             bottomItem = pileItems.last(),
                             layer = layer,
                             height = height,
-                            space = space.restSpace(vector3(y = pileItems.sumOfQuantity { it.height }))
+                            space = space.restSpace(QuantityVector3(
+                                x = FltX.zero * space.width.unit,
+                                y = pileItems.sumOfQuantity { it.height },
+                                z = FltX.zero * space.depth.unit
+                            ))
                         ) && (((enabledItems[j].width - pileItems.last().width).abs() + (enabledItems[j].depth - pileItems.last().depth).abs()) leq scalar(50.0))
                     ) {
                         visited[j] = true
@@ -260,7 +261,11 @@ data object ItemMerger {
                             bottomItem = pileItems.last(),
                             layer = layer,
                             height = height,
-                            space = space.restSpace(vector3(y = pileItems.sumOfQuantity { it.height }))
+                            space = space.restSpace(QuantityVector3(
+                                x = FltX.zero * space.width.unit,
+                                y = pileItems.sumOfQuantity { it.height },
+                                z = FltX.zero * space.depth.unit
+                            ))
                         )
                         && (((enabledItems[j].width - pileItems.last().width).abs() + (enabledItems[j].depth - pileItems.last().depth).abs()) leq scalar(50.0))
                     ) {
@@ -288,7 +293,7 @@ data object ItemMerger {
     fun mergeBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeNumber = infraInfinity(),
+        restWeight: FltX = fltXInfinity(),
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -342,7 +347,7 @@ data object ItemMerger {
                     (item.maxHeight / view.height.value).floor().toUInt64(),
                     (space.height / view.height).floor().toUInt64()
                 )
-                val zAmount = if (view.minDepth eq MergeNumber.zero) {
+                val zAmount = if (view.minDepth eq FltX.zero) {
                     UInt64.one
                 } else {
                     val minZAmount = (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -398,7 +403,7 @@ data object ItemMerger {
         items: List<Item>,
         space: AbstractContainer3Shape,
         patterns: List<Pattern>,
-        restWeight: MergeNumber = infraInfinity(),
+        restWeight: FltX = fltXInfinity(),
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -469,7 +474,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: MergeNumber = infraInfinity(),
+        restWeight: FltX = fltXInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -488,7 +493,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
-        restWeight: MergeNumber = infraInfinity(),
+        restWeight: FltX = fltXInfinity(),
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -514,7 +519,7 @@ data object ItemMerger {
                     val hollowSquareSpace = Container3Shape(
                         width = space.width,
                         height = space.height,
-                        depth = depth * MergeNumber.two - (depth % width)
+                        depth = depth * FltX.two - (depth % width)
                     )
                     if (hollowSquareSpace.width ls (width + depth)
                         || hollowSquareSpace.depth ls (depth + width)
@@ -540,7 +545,7 @@ data object ItemMerger {
                     }
 
                     val rotationView = item.view(it.rotation)
-                    val rotationMinZAmount = if (rotationView.minDepth eq MergeNumber.zero) {
+                    val rotationMinZAmount = if (rotationView.minDepth eq FltX.zero) {
                         UInt64.one
                     } else {
                         (rotationView.minDepth / rotationView.depth.value).ceil().toUInt64()
@@ -572,7 +577,11 @@ data object ItemMerger {
                 val depth = orientation.depth(item)
                 val width = orientation.width(item)
                 val height = orientation.height(item)
-                val hollowSquareSpace = space.restSpace(vector3(z = depth))
+                val hollowSquareSpace = space.restSpace(QuantityVector3(
+                    x = FltX.zero * space.width.unit,
+                    y = FltX.zero * space.height.unit,
+                    z = depth
+                ))
                 val amount = min((hollowSquareSpace.width - depth) / width, depth / width).floor().toUInt64()
                 val rotatedAmount = min((hollowSquareSpace.depth - depth) / width, depth / width).floor().toUInt64()
                 val heightAmount = min(
@@ -590,9 +599,10 @@ data object ItemMerger {
                                 .map { j ->
                                     itemPlacement3Of(
                                         view = item.view(orientation).copy(),
-                                        position = point3(
+                                        position = QuantityPoint3(
                                             x = scalar(i.toULong()) * width,
-                                            y = scalar(j.toULong()) * height
+                                            y = scalar(j.toULong()) * height,
+                                            z = FltX.zero * depth.unit
                                         )
                                     )
                                 }
@@ -605,7 +615,7 @@ data object ItemMerger {
                                 .map { j ->
                                     itemPlacement3Of(
                                         view = item.view(orientation.rotation).copy(),
-                                        position = point3(
+                                        position = QuantityPoint3(
                                             x = scalar(amount.toULong()) * width,
                                             y = scalar(j.toULong()) * height,
                                             z = scalar(i.toULong()) * width
@@ -621,7 +631,8 @@ data object ItemMerger {
                                 .map { j ->
                                     itemPlacement3Of(
                                         view = item.view(orientation.rotation).copy(),
-                                        position = point3(
+                                        position = QuantityPoint3(
+                                            x = FltX.zero * width.unit,
                                             y = scalar(j.toULong()) * height,
                                             z = depth + scalar(i.toULong()) * width
                                         )
@@ -636,7 +647,7 @@ data object ItemMerger {
                                 .map { j ->
                                     itemPlacement3Of(
                                         view = item.view(orientation).copy(),
-                                        position = point3(
+                                        position = QuantityPoint3(
                                             x = depth + scalar(i.toULong()) * width,
                                             y = scalar(j.toULong()) * height,
                                             z = scalar(rotatedAmount.toULong()) * width
@@ -664,12 +675,11 @@ data object ItemMerger {
      * Cuboid-only: cylinders are explicitly rejected in this path.
      */
     @JvmName("dumpItems")
-    fun dump(cuboids: List<ItemCuboid>): List<Item> {
-        return cuboids.flatMap {
-            when (it) {
-                is Item -> listOf(it)
-                is ItemContainer<*> -> it.items.map { item -> item.unit }
-                else -> emptyList()
+    fun dump(units: List<ItemMergeUnit>): List<Item> {
+        return units.flatMap { unit ->
+            when (unit) {
+                is Item -> listOf(unit)
+                is ItemContainer<*> -> unit.items.map { item -> item.unit }
             }
         }
     }
@@ -677,7 +687,7 @@ data object ItemMerger {
     @JvmName("dumpPlacements")
     fun dump(
         placements: List<AnyPlacement3>,
-        offset: QuantityVector3 = vector3()
+        offset: QuantityVector3<FltX> = vector3FltX()
     ): List<ItemPlacement3> {
         return placements.map {
             when (it.unit) {
@@ -712,6 +722,3 @@ data object ItemMerger {
         }.flatten()
     }
 }
-
-
-

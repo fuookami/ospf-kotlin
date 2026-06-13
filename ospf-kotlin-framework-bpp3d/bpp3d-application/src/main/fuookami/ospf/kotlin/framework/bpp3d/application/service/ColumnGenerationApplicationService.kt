@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer
@@ -38,7 +39,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PatternLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.PileLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.layerGenerationItemDemandsFromPrograms
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -56,10 +56,10 @@ enum class MaterialPackingMixedDemandPolicy {
     Merge
 }
 
-private fun <T : FloatingNumber<T>> toInfraQuantity(
+private fun <T : FloatingNumber<T>> toFltXQuantity(
     quantity: Quantity<T>
-): Quantity<InfraNumber> {
-    return Quantity(InfraNumber(quantity.value.toString().toDouble()), quantity.unit)
+): Quantity<FltX> {
+    return Quantity(FltX(quantity.value.toString().toDouble()), quantity.unit)
 }
 
 /**
@@ -90,19 +90,19 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
     itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
     materialAmountDemands: List<Pair<QuantityMaterial<T>, UInt64>> = emptyList(),
     materialWeightDemands: List<Pair<QuantityMaterial<T>, Quantity<T>>> = emptyList(),
-    materialPackingCandidates: List<MaterialPackingProgramCandidate<InfraNumber>> = emptyList(),
-    layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<InfraNumber>, UInt64>> = emptyList(),
+    materialPackingCandidates: List<MaterialPackingProgramCandidate<FltX>> = emptyList(),
+    layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<FltX>, UInt64>> = emptyList(),
     programMaterialCatalog: Map<MaterialKey, QuantityMaterial<T>> = emptyMap(),
     materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
-    demandEntries: List<Bpp3dDemandEntry<InfraNumber>>? = null,
+    demandEntries: List<Bpp3dDemandEntry<FltX>>? = null,
     initialColumns: List<QuantityBinLayer<T>> = emptyList(),
     finalBins: List<LayerBin> = emptyList(),
-    generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
+    generators: List<Bpp3dLayerGenerator<FltX>> = emptyList(),
     cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ): ColumnGenerationApplicationRequest {
     val modelItemDemands = itemDemands.map { (item, amount) ->
@@ -114,7 +114,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
     val modelMaterialWeightDemands = materialWeightDemands.map { (material, weight) ->
         Pair(
             materialCache.getOrPut(material) { material.toModel() },
-            toInfraQuantity(weight)
+            toFltXQuantity(weight)
         )
     }
     val modelProgramMaterialCatalog = programMaterialCatalog.mapValues { (_, material) ->
@@ -164,17 +164,17 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
  */
 data class ColumnGenerationApplicationRequest(
     val itemDemands: List<Pair<Item, UInt64>>,
-    val materialAmountDemands: List<Pair<Material<InfraNumber>, UInt64>> = emptyList(),
-    val materialWeightDemands: List<Pair<Material<InfraNumber>, Quantity<InfraNumber>>> = emptyList(),
-    val materialPackingCandidates: List<MaterialPackingProgramCandidate<InfraNumber>> = emptyList(),
-    val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<InfraNumber>, UInt64>> = emptyList(),
-    val programMaterialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap(),
+    val materialAmountDemands: List<Pair<Material<FltX>, UInt64>> = emptyList(),
+    val materialWeightDemands: List<Pair<Material<FltX>, Quantity<FltX>>> = emptyList(),
+    val materialPackingCandidates: List<MaterialPackingProgramCandidate<FltX>> = emptyList(),
+    val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<FltX>, UInt64>> = emptyList(),
+    val programMaterialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap(),
     val materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
-    val demandEntries: List<Bpp3dDemandEntry<InfraNumber>>? = null,
+    val demandEntries: List<Bpp3dDemandEntry<FltX>>? = null,
     val initialColumns: List<BinLayer> = emptyList(),
     val finalBins: List<LayerBin> = emptyList(),
-    val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
+    val generators: List<Bpp3dLayerGenerator<FltX>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
@@ -205,15 +205,15 @@ data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
     val itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
     val materialAmountDemands: List<Pair<QuantityMaterial<T>, UInt64>> = emptyList(),
     val materialWeightDemands: List<Pair<QuantityMaterial<T>, Quantity<T>>> = emptyList(),
-    val materialPackingCandidates: List<MaterialPackingProgramCandidate<InfraNumber>> = emptyList(),
-    val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<InfraNumber>, UInt64>> = emptyList(),
+    val materialPackingCandidates: List<MaterialPackingProgramCandidate<FltX>> = emptyList(),
+    val layerGenerationProgramDemands: List<Pair<MaterialPackingProgramCandidate<FltX>, UInt64>> = emptyList(),
     val programMaterialCatalog: Map<MaterialKey, QuantityMaterial<T>> = emptyMap(),
     val materialPackingObjectiveConfig: MaterialPackingObjectiveConfig = MaterialPackingObjectiveConfig(),
     val mixedDemandPolicy: MaterialPackingMixedDemandPolicy = MaterialPackingMixedDemandPolicy.Reject,
-    val demandEntries: List<Bpp3dDemandEntry<InfraNumber>>? = null,
+    val demandEntries: List<Bpp3dDemandEntry<FltX>>? = null,
     val initialColumns: List<QuantityBinLayer<T>> = emptyList(),
     val finalBins: List<LayerBin> = emptyList(),
-    val generators: List<Bpp3dLayerGenerator<InfraNumber>> = emptyList(),
+    val generators: List<Bpp3dLayerGenerator<FltX>> = emptyList(),
     val cgConfig: ColumnGenerationConfig = ColumnGenerationConfig(),
     val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
     val executorConfig: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
@@ -229,7 +229,7 @@ data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
  * @return 模型应用请求 / model application request
  */
 fun <T : FloatingNumber<T>> ColumnGenerationQuantityApplicationRequest<T>.toModelRequest(
-    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ): ColumnGenerationApplicationRequest {
     return columnGenerationApplicationRequestFromQuantity(
@@ -262,7 +262,7 @@ fun <T : FloatingNumber<T>> ColumnGenerationQuantityApplicationRequest<T>.toMode
  * @property materialPackingPlan 物料装箱计划（可选） / material packing plan (optional)
  */
 data class ColumnGenerationApplicationResponse(
-    val result: ColumnGenerationResult<InfraNumber>,
+    val result: ColumnGenerationResult<FltX>,
     val packingSnapshot: ColumnGenerationPackingSnapshot?,
     val materialPackingPlan: MaterialPackingPlan? = null
 )
@@ -285,7 +285,7 @@ class ColumnGenerationApplicationService(
          *
          * @return 层生成器列表 / layer generator list
          */
-        fun defaultLayerGenerators(): List<Bpp3dLayerGenerator<InfraNumber>> {
+        fun defaultLayerGenerators(): List<Bpp3dLayerGenerator<FltX>> {
             return listOf(
                 BlockLayerGenerator(),
                 BLLocalLayerGenerator(),
@@ -310,12 +310,12 @@ class ColumnGenerationApplicationService(
     suspend fun solve(
         request: ColumnGenerationApplicationRequest,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
-        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<InfraNumber>? = null
+        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<FltX>? = null
     ): ColumnGenerationApplicationResponse {
         val hasMaterialDemands = request.materialAmountDemands.isNotEmpty() || request.materialWeightDemands.isNotEmpty()
         val shouldRunMaterialPacking = hasMaterialDemands && request.materialPackingCandidates.isNotEmpty()
         val materialPackingPlan = if (shouldRunMaterialPacking) {
-            val materialDemands = ArrayList<MaterialPackingDemand<InfraNumber>>()
+            val materialDemands = ArrayList<MaterialPackingDemand<FltX>>()
             materialDemands.addAll(
                 request.materialAmountDemands.map { (material, amount) ->
                     MaterialPackingDemand(
@@ -386,7 +386,7 @@ class ColumnGenerationApplicationService(
         )
         val combinedAnalyzer = when {
             packingAnalyzer != null && solutionAnalyzer != null -> {
-                ColumnGenerationSolutionAnalyzer<InfraNumber> { state ->
+                ColumnGenerationSolutionAnalyzer<FltX> { state ->
                     solutionAnalyzer.analyze(state)
                     packingAnalyzer.analyze(state)
                 }
@@ -427,7 +427,7 @@ class ColumnGenerationApplicationService(
     suspend fun <T : FloatingNumber<T>> solve(
         request: ColumnGenerationQuantityApplicationRequest<T>,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
-        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<InfraNumber>? = null
+        solutionAnalyzer: ColumnGenerationSolutionAnalyzer<FltX>? = null
     ): ColumnGenerationApplicationResponse {
         return solve(
             request = request.toModelRequest(),
@@ -452,8 +452,8 @@ class ColumnGenerationApplicationService(
 
     private fun buildProgramMaterialCatalog(
         request: ColumnGenerationApplicationRequest
-    ): Map<MaterialKey, Material<InfraNumber>> {
-        val catalog = LinkedHashMap<MaterialKey, Material<InfraNumber>>()
+    ): Map<MaterialKey, Material<FltX>> {
+        val catalog = LinkedHashMap<MaterialKey, Material<FltX>>()
         for ((material, _) in request.materialAmountDemands) {
             catalog.putIfAbsent(material.key, material)
         }

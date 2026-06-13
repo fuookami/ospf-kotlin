@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
@@ -47,10 +48,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKe
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.LayerGenerationDemandEntry
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.shadowPriceAwareLayerScore
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -122,12 +122,12 @@ data class ColumnGenerationStandardExecutorConfig(
     val finalSolveNamePrefix: String = "bpp3d-final",
     val rmpToLogModel: Boolean = false,
     val finalToLogModel: Boolean = false,
-    val rmpVolumeCoefficient: InfraNumber = InfraNumber.one,
-    val finalBinAmountCoefficient: InfraNumber = InfraNumber.one,
+    val rmpVolumeCoefficient: FltX = FltX.one,
+    val finalBinAmountCoefficient: FltX = FltX.one,
     val enableFinalBinDepthConstraint: Boolean = true,
     val enableFinalBinCapacityConstraint: Boolean = true,
     val enableShadowPriceAwareRequestScore: Boolean = true,
-    val integralityTolerance: InfraNumber = InfraNumber(1e-6),
+    val integralityTolerance: FltX = FltX(1e-6),
     val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null
 )
 
@@ -144,7 +144,7 @@ data class ColumnGenerationStandardExecutorConfig(
 class ColumnGenerationStandardExecutors(
     private val solver: ColumnGenerationSolver,
     private val itemDemands: List<Pair<Item, UInt64>>,
-    private val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = demandEntriesFromItems(itemDemands),
+    private val demandEntries: List<Bpp3dDemandEntry<FltX>> = demandEntriesFromItems(itemDemands),
     private val finalBins: List<LayerBin> = emptyList(),
     private val config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
 ) {
@@ -163,7 +163,7 @@ class ColumnGenerationStandardExecutors(
         fun fromDemandEntries(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<Item, UInt64>>,
-            demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
+            demandEntries: List<Bpp3dDemandEntry<FltX>>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig()
         ): ColumnGenerationStandardExecutors {
@@ -193,10 +193,10 @@ class ColumnGenerationStandardExecutors(
         fun <T : FloatingNumber<T>> fromQuantityDemandEntries(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
-            demandEntries: List<Bpp3dDemandEntry<InfraNumber>>,
+            demandEntries: List<Bpp3dDemandEntry<FltX>>,
             finalBins: List<LayerBin> = emptyList(),
             config: ColumnGenerationStandardExecutorConfig = ColumnGenerationStandardExecutorConfig(),
-            materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+            materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
             itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
         ): ColumnGenerationStandardExecutors {
             val modelItemDemands = itemDemands.map { (item, amount) ->
@@ -219,7 +219,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @return RMP 求解器 / RMP solver
      */
-    fun rmpSolver(): ColumnGenerationRmpSolver<InfraNumber> {
+    fun rmpSolver(): ColumnGenerationRmpSolver<FltX> {
         return ColumnGenerationRmpSolver { state ->
             val artifacts = buildRmpArtifacts(state)
             val solved = ensureRet(
@@ -239,10 +239,10 @@ class ColumnGenerationStandardExecutors(
                 ),
                 stage = "refresh demand shadow prices"
             )
-            val shadowPrices = LinkedHashMap<DemandModeKey, InfraNumber>()
+            val shadowPrices = LinkedHashMap<DemandModeKey, FltX>()
             for ((key, value) in shadowPriceMap.map) {
                 val demandKey = key as? DemandShadowPriceKey ?: continue
-                val price = InfraNumber(value.price.toDouble())
+                val price = FltX(value.price.toDouble())
                 shadowPrices[DemandModeKey(demandKey.mode, demandKey.key, demandKey.quantityUnit)] = price
                 if (demandKey.quantityUnit != null) {
                     shadowPrices.putIfAbsent(
@@ -253,7 +253,7 @@ class ColumnGenerationStandardExecutors(
             }
             ColumnGenerationLpResult(
                 shadowPrices = shadowPrices,
-                objective = InfraNumber(solved.obj.toDouble()),
+                objective = FltX(solved.obj.toDouble()),
                 info = mapOf(
                     "solver" to solver.name,
                     "model" to artifacts.model.name,
@@ -277,7 +277,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @return 最终 MILP 求解器 / final MILP solver
      */
-    fun finalSolver(): ColumnGenerationFinalSolver<InfraNumber> {
+    fun finalSolver(): ColumnGenerationFinalSolver<FltX> {
         return ColumnGenerationFinalSolver { state ->
             val bins = if (finalBins.isNotEmpty()) {
                 finalBins
@@ -374,7 +374,7 @@ class ColumnGenerationStandardExecutors(
             ColumnGenerationFinalResult(
                 columns = if (selectedColumns.isNotEmpty()) selectedColumns else state.columns,
                 bins = selectedBins,
-                objective = InfraNumber(solved.obj.toDouble()),
+                objective = FltX(solved.obj.toDouble()),
                 info = mapOf(
                     "solver" to solver.name,
                     "model" to model.name,
@@ -401,7 +401,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @return 层请求构建器 / layer request builder
      */
-    fun requestBuilder(): ColumnGenerationLayerRequestBuilder<InfraNumber> {
+    fun requestBuilder(): ColumnGenerationLayerRequestBuilder<FltX> {
         val requestDemandEntries = demandEntries.map {
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
         }
@@ -424,18 +424,18 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    private fun layerGenerationCandidateBin(): BinType? {
-        return finalBins.firstOrNull()?.shape
+    private fun layerGenerationCandidateBin(): BinType<FltX>? {
+        return finalBins.firstOrNull()?.type
     }
 
     private data class RmpArtifacts(
-        val model: LinearMetaModel<InfraNumber>,
+        val model: LinearMetaModel<FltX>,
         val demandConstraint: ItemDemandConstraint,
         val continuousRadiusComponent: ContinuousRadiusModelComponent,
     )
 
     private suspend fun buildRmpArtifacts(
-        state: ColumnGenerationState<InfraNumber>
+        state: ColumnGenerationState<FltX>
     ): RmpArtifacts {
         val model = newModel("${config.rmpSolveNamePrefix}-${state.iteration}")
         val aggregation = LayerAggregation()
@@ -501,14 +501,14 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun collectSelectedColumns(
-        model: LinearMetaModel<InfraNumber>,
+        model: LinearMetaModel<FltX>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment,
         binAmount: Int
     ): List<BinLayer> {
         val selected = ArrayList<BinLayer>()
         for ((columnIndex, column) in columns.withIndex()) {
-            var amount = InfraNumber.zero
+            var amount = FltX.zero
             for (binIndex in 0 until binAmount) {
                 amount += tokenValue(model, assignment.x[binIndex, columnIndex])
             }
@@ -520,7 +520,7 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun collectSelectedBins(
-        model: LinearMetaModel<InfraNumber>,
+        model: LinearMetaModel<FltX>,
         bins: List<LayerBin>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment
@@ -544,7 +544,7 @@ class ColumnGenerationStandardExecutors(
             if (placements.isNotEmpty()) {
                 selected.add(
                     layerBinOf(
-                        shape = baseBin.shape,
+                        shape = baseBin.type,
                         units = placements,
                         batchNo = baseBin.batchNo
                     )
@@ -565,29 +565,29 @@ class ColumnGenerationStandardExecutors(
     }
 
     private fun tokenValue(
-        model: LinearMetaModel<InfraNumber>,
+        model: LinearMetaModel<FltX>,
         variable: AbstractVariableItem<*, *>
-    ): InfraNumber {
-        val token = model.tokens.find(variable) ?: return InfraNumber.zero
-        return token.doubleResult?.let { InfraNumber(it) } ?: InfraNumber.zero
+    ): FltX {
+        val token = model.tokens.find(variable) ?: return FltX.zero
+        return token.doubleResult?.let { FltX(it) } ?: FltX.zero
     }
 
-    private fun normalizeScalarSolution(values: List<*>): List<InfraNumber> {
+    private fun normalizeScalarSolution(values: List<*>): List<FltX> {
         return values.mapIndexed { index, value ->
             when (value) {
-                is InfraNumber -> value
-                is Number -> InfraNumber(value.toDouble())
+                is FltX -> value
+                is Number -> FltX(value.toDouble())
                 else -> throw IllegalStateException("unsupported solution value at $index: ${value?.javaClass?.name}")
             }
         }
     }
 
-    private fun newModel(name: String): LinearMetaModel<InfraNumber> {
+    private fun newModel(name: String): LinearMetaModel<FltX> {
         return LinearMetaModel(
             name = name,
             objectCategory = ObjectCategory.Minimum,
             configuration = MetaModelConfiguration(),
-            converter = IntoValue.fromConverter(InfraNumber)
+            converter = IntoValue.fromConverter(FltX)
         )
     }
 
@@ -607,4 +607,3 @@ class ColumnGenerationStandardExecutors(
         }
     }
 }
-

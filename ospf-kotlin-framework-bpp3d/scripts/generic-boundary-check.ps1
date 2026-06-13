@@ -20,37 +20,42 @@ if (-not (Get-Command rg -ErrorAction SilentlyContinue)) {
 
 $sourceGlob = "**/src/main/**/*.kt"
 
+$removedLegacy = "Legacy"
+$removedInfra = "Infra"
+$removedNumber = "Number"
+$removedQuantity = "Quantity"
+
 $contentChecks = @(
     @{
-        Name = "LegacyUpperAny"
+        Name = "RemovedUpperAny"
         Pattern = "Legacy"
     },
     @{
-        Name = "LegacyLowerAny"
+        Name = "RemovedLowerAny"
         Pattern = "legacy"
     },
     @{
-        Name = "LegacyQuantity"
-        Pattern = "\bLegacyQuantity\b"
+        Name = "RemovedQuantityAlias"
+        Pattern = "\b$removedLegacy$removedQuantity\b"
     },
     @{
-        Name = "toLegacyModel"
+        Name = "toRemovedModel"
         Pattern = "toLegacyModel\("
     },
     @{
-        Name = "toLegacyItems"
+        Name = "toRemovedItems"
         Pattern = "toLegacyItems\("
     },
     @{
-        Name = "toLegacyLayers"
+        Name = "toRemovedLayers"
         Pattern = "toLegacyLayers\("
     },
     @{
-        Name = "toLegacyPlacement3"
+        Name = "toRemovedPlacement3"
         Pattern = "toLegacyPlacement3\("
     },
     @{
-        Name = "toLegacy"
+        Name = "toRemoved"
         Pattern = "toLegacy\("
     },
     @{
@@ -210,8 +215,8 @@ $contentChecks = @(
         Pattern = "\bPalletLayerPlacement\b"
     },
     @{
-        Name = "InfraNumberQuantityDomainAliasToken"
-        Pattern = "\bInfraNumber(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
+        Name = "RemovedNumberQuantityDomainAliasToken"
+        Pattern = "\b$removedInfra$removedNumber(Material|PackageShape|Package|Item|ItemPlacement|BinLayer)\b"
     },
     @{
         Name = "FltXQuantityDomainAliasToken"

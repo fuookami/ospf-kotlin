@@ -4,12 +4,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
 import fuookami.ospf.kotlin.utils.functional.*
@@ -40,8 +40,8 @@ class BinLoadingOrderConstraint(
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
      */
-    fun invoke(model: MetaModel<InfraNumber>): Try {
-        val linearModel = model as AbstractLinearMetaModel<InfraNumber>
+    fun invoke(model: MetaModel<FltX>): Try {
+        val linearModel = model as AbstractLinearMetaModel<FltX>
         for (i in bins.indices) {
             if (i == 0) {
                 continue

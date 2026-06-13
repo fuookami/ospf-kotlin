@@ -5,7 +5,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
  */
 fun buildNativeContinuousRadiusSelectionResults(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
-    solverResults: Map<String, InfraNumber>
+    solverResults: Map<String, FltX>
 ): List<CylinderRadiusSelectionResult> {
     if (solverResults.isEmpty()) return emptyList()
     val results = ArrayList<CylinderRadiusSelectionResult>()
@@ -43,7 +43,7 @@ fun buildNativeContinuousRadiusSelectionResults(
  */
 fun buildPWLContinuousRadiusSelectionResults(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
-    pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>>
+    pwlContinuousRadiusResults: Map<String, Map<String, FltX>>
 ): List<CylinderRadiusSelectionResult> {
     if (pwlContinuousRadiusResults.isEmpty()) return emptyList()
     val results = ArrayList<CylinderRadiusSelectionResult>()
@@ -52,11 +52,11 @@ fun buildPWLContinuousRadiusSelectionResults(
         val solverRadius = values["solverRadius"] ?: continue
         val solverRadiusSquared = values["solverRadiusSquared"] ?: continue
         val actualRadiusSquared = values["actualRadiusSquared"] ?: continue
-        val pwlAbsoluteError = values["pwlAbsoluteError"] ?: InfraNumber.zero
-        val pwlRelativeError = values["pwlRelativeError"] ?: InfraNumber.zero
-        val isWithinEnvelope = (values["isWithinEnvelope"] ?: InfraNumber.zero).toDouble() > 0.5
-        val maxPWLRelativeError = values["maxPWLRelativeError"] ?: InfraNumber.zero
-        val numSegments = (values["numSegments"] ?: InfraNumber.zero).toDouble().toInt().coerceAtLeast(1)
+        val pwlAbsoluteError = values["pwlAbsoluteError"] ?: FltX.zero
+        val pwlRelativeError = values["pwlRelativeError"] ?: FltX.zero
+        val isWithinEnvelope = (values["isWithinEnvelope"] ?: FltX.zero).toDouble() > 0.5
+        val maxPWLRelativeError = values["maxPWLRelativeError"] ?: FltX.zero
+        val numSegments = (values["numSegments"] ?: FltX.zero).toDouble().toInt().coerceAtLeast(1)
 
         // Build PWL metadata with reconstructed approximation info
         val pwlMetadata = PWLRadiusSelectionMetadata(

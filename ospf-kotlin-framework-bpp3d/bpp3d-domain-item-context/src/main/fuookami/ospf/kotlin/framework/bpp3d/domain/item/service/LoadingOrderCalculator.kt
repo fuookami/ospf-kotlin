@@ -7,16 +7,15 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCuboid
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
@@ -27,10 +26,10 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 
 class LoadingOrderCalculator(
-    private val maxBlockDepth: Quantity<InfraNumber>?,
+    private val maxBlockDepth: Quantity<FltX>?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
-    private fun resolvePackingShape(placement: AnyPlacement3): PackingShape3<InfraNumber> {
+    private fun resolvePackingShape(placement: AnyPlacement3): PackingShape3<FltX> {
         return placement.resolvedPackingShape()
     }
 
@@ -38,14 +37,14 @@ class LoadingOrderCalculator(
         val lhsShapePlacement = lhs.asShapePlacement3(::resolvePackingShape)
         val rhsShapePlacement = rhs.asShapePlacement3(::resolvePackingShape)
         val overlapArea = lhsShapePlacement.footprintOverlapArea(rhsShapePlacement)
-        return (overlapArea gr (infraZero() * overlapArea.unit)) == true
+        return (overlapArea gr (fltXZero() * overlapArea.unit)) == true
     }
 
     private fun axisOverlapped(
-        lhsStart: Quantity<InfraNumber>,
-        lhsEnd: Quantity<InfraNumber>,
-        rhsStart: Quantity<InfraNumber>,
-        rhsEnd: Quantity<InfraNumber>
+        lhsStart: Quantity<FltX>,
+        lhsEnd: Quantity<FltX>,
+        rhsStart: Quantity<FltX>,
+        rhsEnd: Quantity<FltX>
     ): Boolean {
         val overlapStart = if ((lhsStart gr rhsStart) == true) {
             lhsStart
@@ -58,7 +57,7 @@ class LoadingOrderCalculator(
             rhsEnd
         }
         val overlap = overlapEnd - overlapStart
-        return (overlap gr (infraZero() * overlap.unit)) == true
+        return (overlap gr (fltXZero() * overlap.unit)) == true
     }
 
     private fun overlappedAt(
@@ -352,4 +351,3 @@ class LoadingOrderCalculator(
         return ret
     }
 }
-

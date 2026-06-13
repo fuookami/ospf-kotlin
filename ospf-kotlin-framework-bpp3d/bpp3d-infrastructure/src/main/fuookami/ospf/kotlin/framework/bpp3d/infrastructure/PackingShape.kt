@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import kotlin.math.PI
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -87,8 +88,8 @@ data class CuboidPackingShape3<V : FloatingNumber<V>>(
 }
 
 data class CylinderPackingShape3(
-    val cylinder: AbstractCylinder<InfraNumber>
-) : PackingShape3<InfraNumber> {
+    val cylinder: AbstractCylinder<FltX>
+) : PackingShape3<FltX> {
     override val shapeType: PackingShapeType = PackingShapeType.Cylinder
     override val algorithmShapeType: PackingAlgorithmShapeType
         get() = when (cylinder.axis) {
@@ -96,31 +97,31 @@ data class CylinderPackingShape3(
             Axis3.Y -> PackingAlgorithmShapeType.VerticalCylinder
             Axis3.Z -> PackingAlgorithmShapeType.HorizontalCylinderZ
         }
-    override val weight: Quantity<InfraNumber> by cylinder::weight
+    override val weight: Quantity<FltX> by cylinder::weight
     override val axis: Axis3 by cylinder::axis
 
-    val radius: Quantity<InfraNumber> by cylinder::radius
-    val diameter: Quantity<InfraNumber> get() = radius + radius
+    val radius: Quantity<FltX> by cylinder::radius
+    val diameter: Quantity<FltX> get() = radius + radius
 
-    override val boundingWidth: Quantity<InfraNumber>
+    override val boundingWidth: Quantity<FltX>
         get() = when (cylinder.axis) {
             Axis3.X -> cylinder.height
             Axis3.Y, Axis3.Z -> diameter
         }
-    override val boundingHeight: Quantity<InfraNumber>
+    override val boundingHeight: Quantity<FltX>
         get() = when (cylinder.axis) {
             Axis3.X, Axis3.Z -> diameter
             Axis3.Y -> cylinder.height
         }
-    override val boundingDepth: Quantity<InfraNumber>
+    override val boundingDepth: Quantity<FltX>
         get() = when (cylinder.axis) {
             Axis3.Z -> cylinder.height
             Axis3.X, Axis3.Y -> diameter
         }
-    override val actualVolume: Quantity<InfraNumber>
-        get() = infraScalar(PI) * radius * radius * cylinder.height
+    override val actualVolume: Quantity<FltX>
+        get() = fltX(PI) * radius * radius * cylinder.height
 
-    override fun footprint(): ShapeFootprint2<InfraNumber> {
+    override fun footprint(): ShapeFootprint2<FltX> {
         return when (cylinder.axis) {
             Axis3.Y -> ShapeFootprint2.Circle(radius)
             Axis3.X, Axis3.Z -> ShapeFootprint2.Rectangle(
@@ -135,7 +136,7 @@ fun <V : FloatingNumber<V>> AbstractCuboid<V>.asPackingShape3(): PackingShape3<V
     return CuboidPackingShape3(this)
 }
 
-fun AbstractCylinder<InfraNumber>.asPackingShape3(): PackingShape3<InfraNumber> {
+fun AbstractCylinder<FltX>.asPackingShape3(): PackingShape3<FltX> {
     return CylinderPackingShape3(this)
 }
 

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
@@ -31,8 +31,8 @@ class PackingProgramMaterialValueTest {
 
     private fun material(
         no: String,
-        unitWeightKg: InfraNumber
-    ): Material<InfraNumber> {
+        unitWeightKg: FltX
+    ): Material<FltX> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -42,17 +42,17 @@ class PackingProgramMaterialValueTest {
         )
     }
 
-    private fun shape(): PackageShape<InfraNumber> {
+    private fun shape(): PackageShape<FltX> {
         return PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer
         )
     }
 
-    private fun assertScalarEquals(expected: Double, actual: InfraNumber?) {
+    private fun assertScalarEquals(expected: Double, actual: FltX?) {
         assertEquals(expected, requireNotNull(actual).toDouble(), 1e-10)
     }
 
@@ -60,7 +60,7 @@ class PackingProgramMaterialValueTest {
     fun amountOnlyShouldExposeAmountAndDeriveWeightWhenCatalogProvided() {
         val material = material(
             no = "M-AMOUNT",
-            unitWeightKg = InfraNumber(2.0)
+            unitWeightKg = FltX(2.0)
         )
         val program = PackingProgram.innerPackage(
             shape = shape(),
@@ -75,13 +75,13 @@ class PackingProgramMaterialValueTest {
     fun weightOnlyShouldNotCreateAmountContribution() {
         val material = material(
             no = "M-WEIGHT",
-            unitWeightKg = InfraNumber(2.0)
+            unitWeightKg = FltX(2.0)
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = shape(),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
-                    weight = infraScalar(5.0) * Kilogram
+                    weight = fltX(5.0) * Kilogram
                 )
             )
         )
@@ -94,14 +94,14 @@ class PackingProgramMaterialValueTest {
     fun amountAndWeightShouldPreferExplicitWeight() {
         val material = material(
             no = "M-BOTH",
-            unitWeightKg = InfraNumber(2.0)
+            unitWeightKg = FltX(2.0)
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = shape(),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
                     amount = UInt64(3),
-                    weight = infraScalar(9.0) * Kilogram
+                    weight = fltX(9.0) * Kilogram
                 )
             )
         )
@@ -114,17 +114,17 @@ class PackingProgramMaterialValueTest {
     fun quantityMapShouldSupportDiscreteAndContinuousUnits() {
         val materialAmount = material(
             no = "M-QUANTITY-AMOUNT",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val materialWeight = material(
             no = "M-QUANTITY-WEIGHT",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val program = PackingProgram.innerPackageWithMaterialQuantities(
             shape = shape(),
             materials = mapOf(
-                materialAmount.key to Quantity(InfraNumber(3), DiscreteCountUnit),
-                materialWeight.key to Quantity(InfraNumber(5), Kilogram)
+                materialAmount.key to Quantity(FltX(3), DiscreteCountUnit),
+                materialWeight.key to Quantity(FltX(5), Kilogram)
             )
         )
 
@@ -137,10 +137,10 @@ class PackingProgramMaterialValueTest {
     }
 
     @Test
-    fun materialQuantityMapShouldAcceptFltXWeightsAndKeepFlt64CompatibilityView() {
+    fun materialQuantityMapShouldAcceptFltXWeightsAndExposeFlt64View() {
         val material = material(
             no = "M-QUANTITY-FLTX",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val program = PackingProgram.innerPackageWithMaterialQuantities(
             shape = shape(),

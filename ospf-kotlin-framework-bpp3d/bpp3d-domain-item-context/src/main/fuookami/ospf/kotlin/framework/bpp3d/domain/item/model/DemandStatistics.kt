@@ -7,13 +7,12 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 
@@ -76,7 +75,7 @@ fun Bpp3dDemandMode.toConcreteMode(
 
 sealed interface Bpp3dDemandValue {
     data class Amount(val value: UInt64) : Bpp3dDemandValue
-    data class Weight(val value: Quantity<InfraNumber>) : Bpp3dDemandValue
+    data class Weight(val value: Quantity<FltX>) : Bpp3dDemandValue
 }
 
 private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3dDemandValue {
@@ -90,7 +89,7 @@ private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3
 private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3dDemandValue {
     return when (value) {
         is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(value.value * multiplier)
-        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * InfraNumber(multiplier.toULong().toDouble()))
+        is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(value.value * FltX(multiplier.toULong().toDouble()))
     }
 }
 
@@ -119,14 +118,20 @@ private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
 }
 
 private fun statisticsOf(
-    unit: ItemCuboid,
+    unit: Any,
     mode: Bpp3dDemandMode
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (unit) {
         is Item -> unit.statistics(mode)
         is ItemContainer<*> -> unit.statistics(mode)
-        is Container3<*> -> unit.statistics(mode)
-        is Container2<*, *> -> unit.statistics(mode)
+        is Container3<*, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            (unit as Container3<*, FltX>).statistics(mode)
+        }
+        is Container2<*, *, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            (unit as Container2<*, FltX, *>).statistics(mode)
+        }
         else -> emptyMap()
     }
 }
@@ -182,11 +187,11 @@ fun AnyPlacement3.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDe
     return statisticsOf(unit, mode)
 }
 
-fun Projection<*, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+fun Projection<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (this) {
-        is PlaneProjection<*, *> -> statisticsOf(unit, mode)
-        is PileProjection<*, *> -> statisticsOf(unit, mode).scale(layer)
-        is MultiPileProjection<*, *> -> {
+        is PlaneProjection<*, FltX, *> -> statisticsOf(unit, mode)
+        is PileProjection<*, FltX, *> -> statisticsOf(unit, mode).scale(layer)
+        is MultiPileProjection<*, FltX, *> -> {
             val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
             for (view in views) {
                 counter.mergeDemand(statisticsOf(view.unit, mode))
@@ -196,7 +201,7 @@ fun Projection<*, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3
     }
 }
 
-fun Container2<*, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+fun Container2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in units) {
         counter.mergeDemand(placement.statistics(mode))
@@ -204,7 +209,7 @@ fun Container2<*, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3
     return counter
 }
 
-fun Container3<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
+fun Container3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in units) {
         counter.mergeDemand(placement.statistics(mode))
@@ -213,7 +218,7 @@ fun Container3<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDe
 }
 
 fun ItemContainer<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
-    return (this as Container3<*>).statistics(mode)
+    return (this as Container3<*, FltX>).statistics(mode)
 }
 
 fun Iterable<AnyPlacement3>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
@@ -224,8 +229,4 @@ fun Iterable<AnyPlacement3>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKe
     return counter
 }
 
-fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(infraZero() * Kilogram)
-
-
-
-
+fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(fltXZero() * Kilogram)

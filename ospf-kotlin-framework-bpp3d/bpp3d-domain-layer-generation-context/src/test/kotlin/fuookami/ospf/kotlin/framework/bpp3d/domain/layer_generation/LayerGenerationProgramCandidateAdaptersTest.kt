@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
@@ -12,11 +13,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMate
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -31,19 +31,19 @@ import kotlin.test.assertTrue
 class LayerGenerationProgramCandidateAdaptersTest {
     private val cargo = object : AbstractCargoAttribute {}
 
-    private fun makeProgram(material: Material<InfraNumber>): PackingProgram<InfraNumber> {
+    private fun makeProgram(material: Material<FltX>): PackingProgram<FltX> {
         return PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = infraScalar(1.0) * Meter,
-                height = infraScalar(0.8) * Meter,
-                depth = infraScalar(0.6) * Meter,
-                weight = infraScalar(0.2) * Kilogram,
+                width = fltX(1.0) * Meter,
+                height = fltX(0.8) * Meter,
+                depth = fltX(0.6) * Meter,
+                weight = fltX(0.2) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
                     amount = UInt64(3),
-                    weight = infraScalar(6.0) * Kilogram
+                    weight = fltX(6.0) * Kilogram
                 )
             )
         )
@@ -56,7 +56,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-ADAPTER",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-a",
@@ -84,15 +84,15 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-CYLINDER",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
-        val radius = infraScalar(0.5) * Meter
+        val radius = fltX(0.5) * Meter
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = infraScalar(1.0) * Meter,
-                height = infraScalar(1.2) * Meter,
-                depth = infraScalar(1.0) * Meter,
-                weight = infraScalar(0.2) * Kilogram,
+                width = fltX(1.0) * Meter,
+                height = fltX(1.2) * Meter,
+                depth = fltX(1.0) * Meter,
+                weight = fltX(0.2) * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = PackageShapeSpec.VerticalCylinder(
                     radius = radius,
@@ -129,7 +129,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-DEMAND",
-            weight = infraScalar(1.0) * Kilogram
+            weight = fltX(1.0) * Kilogram
         )
         val first = MaterialPackingProgramCandidate(
             id = "candidate-first",
@@ -165,14 +165,14 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-REQUEST",
-            weight = infraScalar(1.0) * Kilogram
+            weight = fltX(1.0) * Kilogram
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-request",
             program = makeProgram(material),
             itemName = "request-item"
         )
-        val request = bpp3dLayerGenerationRequestFromProgramDemands<InfraNumber>(
+        val request = bpp3dLayerGenerationRequestFromProgramDemands<FltX>(
             iteration = 3,
             items = emptyList(),
             programDemands = listOf(Pair(candidate, UInt64(2))),
@@ -197,7 +197,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-GEN",
-            weight = infraScalar(1.0) * Kilogram
+            weight = fltX(1.0) * Kilogram
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-gen",
@@ -208,13 +208,13 @@ class LayerGenerationProgramCandidateAdaptersTest {
             iteration = Int64.zero,
             from = LayerGenerationProgramCandidateAdaptersTest::class,
             shape = fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape(
-                width = infraScalar(1.0) * Meter,
-                height = infraScalar(1.0) * Meter,
-                depth = infraScalar(1.0) * Meter
+                width = fltX(1.0) * Meter,
+                height = fltX(1.0) * Meter,
+                depth = fltX(1.0) * Meter
             ),
             units = emptyList()
         )
-        val generated = HistoricalLayerGenerator<InfraNumber>().generateFromProgramDemands(
+        val generated = HistoricalLayerGenerator<FltX>().generateFromProgramDemands(
             iteration = 4,
             items = emptyList(),
             programDemands = listOf(Pair(candidate, UInt64.one)),

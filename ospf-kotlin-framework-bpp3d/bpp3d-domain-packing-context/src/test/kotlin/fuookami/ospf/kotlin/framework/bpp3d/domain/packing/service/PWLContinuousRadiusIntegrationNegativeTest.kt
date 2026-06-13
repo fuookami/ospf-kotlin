@@ -4,14 +4,14 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PWLRadiusSelectionMetadata
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 
 class PWLContinuousRadiusIntegrationNegativeTest {
 
@@ -21,11 +21,11 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLSelectionMetadataRejectsInvalidSegments() {
         try {
             PWLRadiusSelectionMetadata(
-                solverRadiusSquared = infraScalar(9.0),
-                actualRadiusSquared = infraScalar(9.0),
-                pwlAbsoluteError = InfraNumber.zero,
-                pwlRelativeError = InfraNumber.zero,
-                maxPWLRelativeError = InfraNumber.zero,
+                solverRadiusSquared = fltX(9.0),
+                actualRadiusSquared = fltX(9.0),
+                pwlAbsoluteError = FltX.zero,
+                pwlRelativeError = FltX.zero,
+                maxPWLRelativeError = FltX.zero,
                 numSegments = 0,
                 isWithinEnvelope = true
             )
@@ -39,11 +39,11 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLSelectionMetadataRejectsBlankSource() {
         try {
             PWLRadiusSelectionMetadata(
-                solverRadiusSquared = infraScalar(9.0),
-                actualRadiusSquared = infraScalar(9.0),
-                pwlAbsoluteError = InfraNumber.zero,
-                pwlRelativeError = InfraNumber.zero,
-                maxPWLRelativeError = InfraNumber.zero,
+                solverRadiusSquared = fltX(9.0),
+                actualRadiusSquared = fltX(9.0),
+                pwlAbsoluteError = FltX.zero,
+                pwlRelativeError = FltX.zero,
+                maxPWLRelativeError = FltX.zero,
                 numSegments = 4,
                 isWithinEnvelope = true,
                 selectionSource = ""
@@ -58,16 +58,16 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLSelectionMetadataActualVolumeUsesRealRadius() {
         // actualVolume 必须使用 actualRadiusSquared (r²)，而非 solverRadiusSquared (q)
         val metadata = PWLRadiusSelectionMetadata(
-            solverRadiusSquared = infraScalar(10.0), // q ≈ r² (PWL 近似)
-            actualRadiusSquared = infraScalar(9.0),   // r² = 9 (真实)
-            pwlAbsoluteError = infraScalar(1.0),
-            pwlRelativeError = infraScalar(1.0 / 9.0),
-            maxPWLRelativeError = infraScalar(0.1),
+            solverRadiusSquared = fltX(10.0), // q ≈ r² (PWL 近似)
+            actualRadiusSquared = fltX(9.0),   // r² = 9 (真实)
+            pwlAbsoluteError = fltX(1.0),
+            pwlRelativeError = fltX(1.0 / 9.0),
+            maxPWLRelativeError = fltX(0.1),
             numSegments = 2,
             isWithinEnvelope = true
         )
-        val height = infraScalar(5.0)
-        val pi = infraScalar(PI)
+        val height = fltX(5.0)
+        val pi = fltX(PI)
 
         val actualVol = metadata.actualVolume(height, pi).toDouble()
         val pwlVol = metadata.pwlVolume(height, pi).toDouble()
@@ -87,16 +87,16 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLActualVolumeAlwaysLessThanPwlVolume() {
         // PWL 过近似 r²，所以 actualVolume 应始终 <= pwlVolume
         val metadata = PWLRadiusSelectionMetadata(
-            solverRadiusSquared = infraScalar(10.0),
-            actualRadiusSquared = infraScalar(9.0),
-            pwlAbsoluteError = infraScalar(1.0),
-            pwlRelativeError = infraScalar(1.0 / 9.0),
-            maxPWLRelativeError = infraScalar(0.1),
+            solverRadiusSquared = fltX(10.0),
+            actualRadiusSquared = fltX(9.0),
+            pwlAbsoluteError = fltX(1.0),
+            pwlRelativeError = fltX(1.0 / 9.0),
+            maxPWLRelativeError = fltX(0.1),
             numSegments = 2,
             isWithinEnvelope = true
         )
-        val height = infraScalar(8.0)
-        val pi = infraScalar(PI)
+        val height = fltX(8.0)
+        val pi = fltX(PI)
         assertTrue(
             metadata.actualVolume(height, pi).toDouble() <= metadata.pwlVolume(height, pi).toDouble(),
             "actualVolume should be <= pwlVolume when PWL overapproximates"
@@ -107,17 +107,17 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLMetadataWithEnvelopeViolation() {
         // 当 solver 选出半径超出 envelope 时，isWithinEnvelope 应为 false
         val metadata = PWLRadiusSelectionMetadata(
-            solverRadiusSquared = infraScalar(16.0), // r=4 的 q 值
-            actualRadiusSquared = infraScalar(16.0),
-            pwlAbsoluteError = InfraNumber.zero,
-            pwlRelativeError = InfraNumber.zero,
-            maxPWLRelativeError = infraScalar(0.05),
+            solverRadiusSquared = fltX(16.0), // r=4 的 q 值
+            actualRadiusSquared = fltX(16.0),
+            pwlAbsoluteError = FltX.zero,
+            pwlRelativeError = FltX.zero,
+            maxPWLRelativeError = fltX(0.05),
             numSegments = 4,
             isWithinEnvelope = false // 超出 envelope
         )
         // actualVolume 仍然可以计算（即使超出 envelope）
-        val height = infraScalar(5.0)
-        val pi = infraScalar(PI)
+        val height = fltX(5.0)
+        val pi = fltX(PI)
         val actualVol = metadata.actualVolume(height, pi).toDouble()
         assertTrue(actualVol > 0.0, "actualVolume should still be positive even when outside envelope")
         // 但 isWithinEnvelope 标记了违规
@@ -128,16 +128,16 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLRendererInfoDiagnostics() {
         // 验证 PWL 诊断信息可用于 renderer 回写
         val metadata = PWLRadiusSelectionMetadata(
-            solverRadiusSquared = infraScalar(10.0),
-            actualRadiusSquared = infraScalar(9.0),
-            pwlAbsoluteError = infraScalar(1.0),
-            pwlRelativeError = infraScalar(1.0 / 9.0),
-            maxPWLRelativeError = infraScalar(0.1),
+            solverRadiusSquared = fltX(10.0),
+            actualRadiusSquared = fltX(9.0),
+            pwlAbsoluteError = fltX(1.0),
+            pwlRelativeError = fltX(1.0 / 9.0),
+            maxPWLRelativeError = fltX(0.1),
             numSegments = 4,
             isWithinEnvelope = true
         )
-        val height = infraScalar(5.0)
-        val pi = infraScalar(PI)
+        val height = fltX(5.0)
+        val pi = fltX(PI)
 
         // 验证 metadata 可以计算 pwlVolume 和 actualVolume
         val pwlVol = metadata.pwlVolume(height, pi)
@@ -153,11 +153,11 @@ class PWLContinuousRadiusIntegrationNegativeTest {
     fun testPWLSelectionSourceDefaultsToPwl() {
         // PWL 选择来源应默认为 "pwl"
         val metadata = PWLRadiusSelectionMetadata(
-            solverRadiusSquared = infraScalar(9.0),
-            actualRadiusSquared = infraScalar(9.0),
-            pwlAbsoluteError = InfraNumber.zero,
-            pwlRelativeError = InfraNumber.zero,
-            maxPWLRelativeError = InfraNumber.zero,
+            solverRadiusSquared = fltX(9.0),
+            actualRadiusSquared = fltX(9.0),
+            pwlAbsoluteError = FltX.zero,
+            pwlRelativeError = FltX.zero,
+            maxPWLRelativeError = FltX.zero,
             numSegments = 1,
             isWithinEnvelope = true
         )

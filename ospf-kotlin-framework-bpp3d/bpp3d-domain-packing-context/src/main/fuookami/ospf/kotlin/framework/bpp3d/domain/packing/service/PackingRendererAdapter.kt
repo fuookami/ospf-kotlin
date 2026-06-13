@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlan
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderLoadingPlanItemDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderShapeTypeDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -134,13 +134,13 @@ class PackingRendererAdapter {
                         // PWL path: use actualRadiusSquared (r²) for true volume, not solverRadiusSquared (q ≈ r²).
                         pwlMetadata.actualVolume(
                             height = cylinderShape.cylinder.height.value,
-                            pi = infraScalar(PI)
+                            pi = fltX(PI)
                         ).toFltX()
                     } else {
                         // 非 PWL 路径：直接使用 solver 选出的半径。
                         // Non-PWL path: use solver-selected radius directly.
                         val solverRadius = solverResult.selectedRadius
-                        (infraScalar(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
+                        (fltX(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
                     }
                 } else {
                     shape.actualVolume.value.toFltX()
@@ -152,7 +152,7 @@ class PackingRendererAdapter {
                     cylinderShape?.radius?.value?.toFltX()
                 }
                 val diameter: FltX? = if (cylinderShape != null && solverResult != null) {
-                    (solverResult.selectedRadius * infraScalar(2.0)).value.toFltX()
+                    (solverResult.selectedRadius * fltX(2.0)).value.toFltX()
                 } else {
                     cylinderShape?.diameter?.value?.toFltX()
                 }
@@ -164,7 +164,7 @@ class PackingRendererAdapter {
                     mapOf(
                         "pwl_volume" to pwl.pwlVolume(
                             height = cylinderShape.cylinder.height.value,
-                            pi = infraScalar(PI)
+                            pi = fltX(PI)
                         ).toDouble().toString(),
                         "pwl_absolute_error" to pwl.pwlAbsoluteError.toDouble().toString(),
                         "pwl_relative_error" to pwl.pwlRelativeError.toDouble().toString(),

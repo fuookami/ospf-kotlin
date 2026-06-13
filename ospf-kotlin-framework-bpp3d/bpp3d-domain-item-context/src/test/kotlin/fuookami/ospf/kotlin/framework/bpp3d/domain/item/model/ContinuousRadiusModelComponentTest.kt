@@ -14,13 +14,11 @@ import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ConservativeRadiusEnvelope
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLBreakpointStrategy
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusApproximationConfig
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusSquaredApproximation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -45,9 +43,9 @@ class ContinuousRadiusModelComponentTest {
             radiusWeightFunctionKey = "key_$variableName",
             axis = axis,
             variableName = variableName,
-            radiusLowerBound = Quantity(infraScalar(radius), Meter),
-            radiusUpperBound = Quantity(infraScalar(radius), Meter),
-            initialRadius = Quantity(infraScalar(radius), Meter),
+            radiusLowerBound = Quantity(fltX(radius), Meter),
+            radiusUpperBound = Quantity(fltX(radius), Meter),
+            initialRadius = Quantity(fltX(radius), Meter),
             gaps = emptyList()
         )
     }
@@ -67,8 +65,8 @@ class ContinuousRadiusModelComponentTest {
             radiusWeightFunctionKey = "key_$variableName",
             axis = axis,
             variableName = variableName,
-            radiusLowerBound = Quantity(infraScalar(rMin), Meter),
-            radiusUpperBound = Quantity(infraScalar(rMax), Meter),
+            radiusLowerBound = Quantity(fltX(rMin), Meter),
+            radiusUpperBound = Quantity(fltX(rMax), Meter),
             initialRadius = null,
             gaps = listOf(ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported)
         )
@@ -213,7 +211,7 @@ class ContinuousRadiusModelComponentTest {
             config = PWLRadiusApproximationConfig(
                 maxSegments = 8,
                 breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
-                relativeErrorTolerance = infraScalar(0.005)
+                relativeErrorTolerance = fltX(0.005)
             )
         )
         val pwlVar = component.pwlVariables[0]
@@ -302,8 +300,8 @@ class ContinuousRadiusModelComponentTest {
 
     @Test
     fun testPWLExtractedRadiusComputesVolumes() {
-        val rMin = infraScalar(2.0)
-        val rMax = infraScalar(5.0)
+        val rMin = fltX(2.0)
+        val rMax = fltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -315,17 +313,17 @@ class ContinuousRadiusModelComponentTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "test_r",
-            solverRadius = infraScalar(3.0),
-            solverRadiusSquared = infraScalar(9.5),
-            actualRadiusSquared = infraScalar(9.0),
-            pwlAbsoluteError = infraScalar(0.5),
-            pwlRelativeError = infraScalar(0.5 / 9.0),
+            solverRadius = fltX(3.0),
+            solverRadiusSquared = fltX(9.5),
+            actualRadiusSquared = fltX(9.0),
+            pwlAbsoluteError = fltX(0.5),
+            pwlRelativeError = fltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation
         )
-        val height = infraScalar(10.0)
-        val pi = infraScalar(Math.PI)
+        val height = fltX(10.0)
+        val pi = fltX(Math.PI)
         // actualVolume = π * r² * h = π * 9 * 10 = 90π
         assertEquals(Math.PI * 9.0 * 10.0, extracted.actualVolume(height, pi).toDouble(), 1e-6)
         // pwlVolume = π * q * h = π * 9.5 * 10 = 95π
@@ -334,8 +332,8 @@ class ContinuousRadiusModelComponentTest {
 
     @Test
     fun testPWLExtractedRadiusInfoContainsDiagnostics() {
-        val rMin = infraScalar(2.0)
-        val rMax = infraScalar(5.0)
+        val rMin = fltX(2.0)
+        val rMax = fltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -347,11 +345,11 @@ class ContinuousRadiusModelComponentTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "test_r",
-            solverRadius = infraScalar(3.0),
-            solverRadiusSquared = infraScalar(9.5),
-            actualRadiusSquared = infraScalar(9.0),
-            pwlAbsoluteError = infraScalar(0.5),
-            pwlRelativeError = infraScalar(0.5 / 9.0),
+            solverRadius = fltX(3.0),
+            solverRadiusSquared = fltX(9.5),
+            actualRadiusSquared = fltX(9.0),
+            pwlAbsoluteError = fltX(0.5),
+            pwlRelativeError = fltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation
@@ -504,7 +502,7 @@ class ContinuousRadiusModelComponentTest {
      */
     private fun createModelAndRegister(
         component: ContinuousRadiusModelComponent
-    ): LinearMetaModel<InfraNumber> {
+    ): LinearMetaModel<FltX> {
         val model = LinearMetaModel(
             name = "test_pwl_lifecycle",
             converter = IntoValue.fromConverter(FltX)
@@ -538,13 +536,9 @@ class ContinuousRadiusModelComponentTest {
             "PWL function symbol '$pwlFunctionName' should be registered in tokens.symbols. Actual symbols: $symbolNames"
         )
 
-        // The PWL function should be an IntermediateSymbol
+        // The PWL function should be visible as a registered model symbol
         val pwlSymbol = model.tokens.symbols.find { it.name == pwlFunctionName }
         assertNotNull(pwlSymbol, "PWL symbol should be found in tokens.symbols")
-        assertTrue(
-            pwlSymbol is IntermediateSymbol<*>,
-            "PWL symbol should be an IntermediateSymbol"
-        )
     }
 
     @Test

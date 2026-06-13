@@ -6,20 +6,20 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.abs
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingScalar
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.materialPackingZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
     private data class CandidateScore(
-        val objective: InfraNumber,
+        val objective: FltX,
         val packageCount: Long,
         val slack: Long,
-        val volume: InfraNumber
+        val volume: FltX
     )
 
     override suspend fun <V : FloatingNumber<V>> solve(request: MaterialPackingMipRequest<V>): MaterialPackingMipResult {
@@ -122,7 +122,7 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         var bestSelection: IntArray? = null
         var bestScore: CandidateScore? = null
 
-        fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: InfraNumber): CandidateScore {
+        fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: FltX): CandidateScore {
             var slack = 0L
             for (materialIndex in materials.indices) {
                 slack += maxOf(covered[materialIndex] - demandedAmount[materialIndex], 0L)

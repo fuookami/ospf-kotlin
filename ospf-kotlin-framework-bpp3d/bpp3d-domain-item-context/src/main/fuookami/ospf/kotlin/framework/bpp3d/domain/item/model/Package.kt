@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.quantity.toFltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.QuantityUnit
@@ -151,18 +150,18 @@ sealed interface PackageShapeSpec {
     data object Cuboid : PackageShapeSpec
 
     data class VerticalCylinder(
-        val radius: Quantity<InfraNumber>,
+        val radius: Quantity<FltX>,
         val axis: Axis3 = Axis3.Y,
-        val radiusCandidates: List<Quantity<InfraNumber>> = emptyList(),
-        val radiusMin: Quantity<InfraNumber>? = null,
-        val radiusMax: Quantity<InfraNumber>? = null,
+        val radiusCandidates: List<Quantity<FltX>> = emptyList(),
+        val radiusMin: Quantity<FltX>? = null,
+        val radiusMax: Quantity<FltX>? = null,
         val radiusWeightFunctionKey: String? = null,
-        val radiusStep: Quantity<InfraNumber>? = null,
-        val diameterMin: Quantity<InfraNumber>? = null,
-        val diameterMax: Quantity<InfraNumber>? = null,
-        val diameterStep: Quantity<InfraNumber>? = null
+        val radiusStep: Quantity<FltX>? = null,
+        val diameterMin: Quantity<FltX>? = null,
+        val diameterMax: Quantity<FltX>? = null,
+        val diameterStep: Quantity<FltX>? = null
     ) : PackageShapeSpec {
-        val resolvedRadiusCandidates: List<Quantity<InfraNumber>> = resolveVerticalCylinderRadiusCandidates(
+        val resolvedRadiusCandidates: List<Quantity<FltX>> = resolveVerticalCylinderRadiusCandidates(
             radius = radius,
             radiusCandidates = radiusCandidates,
             radiusMin = radiusMin,
@@ -235,15 +234,15 @@ sealed interface PackageShapeSpec {
 
 private const val CylinderRadiusCandidateTolerance = 1e-9
 
-private infix fun Quantity<InfraNumber>.sameCylinderRadiusValue(rhs: Quantity<InfraNumber>): Boolean {
+private infix fun Quantity<FltX>.sameCylinderRadiusValue(rhs: Quantity<FltX>): Boolean {
     val converted = rhs.convertTo(unit) ?: return false
     return abs(value.toDouble() - converted.value.toDouble()) <= CylinderRadiusCandidateTolerance
 }
 
-private fun Quantity<InfraNumber>.toPositiveQuantity(
+private fun Quantity<FltX>.toPositiveQuantity(
     unit: PhysicalUnit,
     fieldName: String
-): Quantity<InfraNumber> {
+): Quantity<FltX> {
     val converted = convertTo(unit)
         ?: throw IllegalArgumentException("Vertical cylinder $fieldName must use a length-compatible unit.")
     require(converted.value.toDouble() > 0.0) {
@@ -252,21 +251,21 @@ private fun Quantity<InfraNumber>.toPositiveQuantity(
     return converted
 }
 
-private fun Quantity<InfraNumber>.toRadiusQuantity(
+private fun Quantity<FltX>.toRadiusQuantity(
     unit: PhysicalUnit,
     fieldName: String
-): Quantity<InfraNumber> {
+): Quantity<FltX> {
     val converted = toPositiveQuantity(unit, fieldName)
-    return Quantity(infraScalar(converted.value.toDouble() / 2.0), unit)
+    return Quantity(fltX(converted.value.toDouble() / 2.0), unit)
 }
 
 private fun distinctSortedRadiusCandidates(
-    candidates: List<Quantity<InfraNumber>>
-): List<Quantity<InfraNumber>> {
+    candidates: List<Quantity<FltX>>
+): List<Quantity<FltX>> {
     val sorted = candidates.sortedWith { lhs, rhs ->
         lhs.value.toDouble().compareTo(rhs.value.toDouble())
     }
-    val distinct = ArrayList<Quantity<InfraNumber>>()
+    val distinct = ArrayList<Quantity<FltX>>()
     for (candidate in sorted) {
         if (distinct.none { it sameCylinderRadiusValue candidate }) {
             distinct.add(candidate)
@@ -276,12 +275,12 @@ private fun distinctSortedRadiusCandidates(
 }
 
 private fun intervalCandidates(
-    min: Quantity<InfraNumber>,
-    max: Quantity<InfraNumber>,
-    step: Quantity<InfraNumber>,
+    min: Quantity<FltX>,
+    max: Quantity<FltX>,
+    step: Quantity<FltX>,
     unit: PhysicalUnit,
     fieldPrefix: String
-): List<Quantity<InfraNumber>> {
+): List<Quantity<FltX>> {
     val normalizedMin = min.toPositiveQuantity(unit, "${fieldPrefix}Min")
     val normalizedMax = max.toPositiveQuantity(unit, "${fieldPrefix}Max")
     val normalizedStep = step.toPositiveQuantity(unit, "${fieldPrefix}Step")
@@ -303,15 +302,15 @@ private fun intervalCandidates(
     if (abs(values.last() - maxValue) > CylinderRadiusCandidateTolerance) {
         values.add(maxValue)
     }
-    return values.map { Quantity(infraScalar(it), unit) }
+    return values.map { Quantity(fltX(it), unit) }
 }
 
 private fun diameterIntervalRadiusCandidates(
-    min: Quantity<InfraNumber>,
-    max: Quantity<InfraNumber>,
-    step: Quantity<InfraNumber>,
+    min: Quantity<FltX>,
+    max: Quantity<FltX>,
+    step: Quantity<FltX>,
     unit: PhysicalUnit
-): List<Quantity<InfraNumber>> {
+): List<Quantity<FltX>> {
     return intervalCandidates(
         min = min,
         max = max,
@@ -319,20 +318,20 @@ private fun diameterIntervalRadiusCandidates(
         unit = unit,
         fieldPrefix = "diameter"
     ).map {
-        Quantity(infraScalar(it.value.toDouble() / 2.0), unit)
+        Quantity(fltX(it.value.toDouble() / 2.0), unit)
     }
 }
 
 private fun resolveVerticalCylinderRadiusCandidates(
-    radius: Quantity<InfraNumber>,
-    radiusCandidates: List<Quantity<InfraNumber>>,
-    radiusMin: Quantity<InfraNumber>?,
-    radiusMax: Quantity<InfraNumber>?,
-    radiusStep: Quantity<InfraNumber>?,
-    diameterMin: Quantity<InfraNumber>?,
-    diameterMax: Quantity<InfraNumber>?,
-    diameterStep: Quantity<InfraNumber>?
-): List<Quantity<InfraNumber>> {
+    radius: Quantity<FltX>,
+    radiusCandidates: List<Quantity<FltX>>,
+    radiusMin: Quantity<FltX>?,
+    radiusMax: Quantity<FltX>?,
+    radiusStep: Quantity<FltX>?,
+    diameterMin: Quantity<FltX>?,
+    diameterMax: Quantity<FltX>?,
+    diameterStep: Quantity<FltX>?
+): List<Quantity<FltX>> {
     radius.toPositiveQuantity(radius.unit, "radius")
     radiusMin?.toPositiveQuantity(radius.unit, "radiusMin")
     radiusMax?.toPositiveQuantity(radius.unit, "radiusMax")
@@ -393,7 +392,7 @@ private fun resolveVerticalCylinderRadiusCandidates(
     }
 }
 
-private fun PackageShape<InfraNumber>.cylinderAxisLength(axis: Axis3): Quantity<InfraNumber> {
+private fun PackageShape<FltX>.cylinderAxisLength(axis: Axis3): Quantity<FltX> {
     return when (axis) {
         Axis3.X -> width
         Axis3.Y -> height
@@ -401,7 +400,7 @@ private fun PackageShape<InfraNumber>.cylinderAxisLength(axis: Axis3): Quantity<
     }
 }
 
-fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>? {
+fun PackageShape<FltX>.toPackingShapeOrNull(): PackingShape3<FltX>? {
     val shapeWeight = weight
     return when (val spec = shapeSpec) {
         PackageShapeSpec.Cuboid -> null
@@ -412,7 +411,7 @@ fun PackageShape<InfraNumber>.toPackingShapeOrNull(): PackingShape3<InfraNumber>
             )
             val shapeHeight = cylinderAxisLength(spec.axis)
             CylinderPackingShape3(
-                cylinder = object : AbstractCylinder<InfraNumber> {
+                cylinder = object : AbstractCylinder<FltX> {
                     override val radius = spec.radius
                     override val height = shapeHeight
                     override val axis = spec.axis
@@ -433,13 +432,9 @@ data class PackingProgramMaterialValue(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun packingProgramWeightToInfraQuantity(value: Quantity<*>): Quantity<InfraNumber> {
+private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Quantity<FltX> {
     return when (value.value) {
-        is InfraNumber -> value as Quantity<InfraNumber>
-        is FltX -> {
-            val quantity = value as Quantity<FltX>
-            Quantity(InfraNumber(quantity.value.toDouble()), quantity.unit)
-        }
+        is FltX -> value as Quantity<FltX>
         else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${value.value}")
     }
 }
@@ -456,16 +451,7 @@ private fun plusPackingProgramWeight(
         return lhs
     }
     return when (lhs.value) {
-        is InfraNumber -> (lhs as Quantity<InfraNumber>) + packingProgramWeightToInfraQuantity(rhs)
-        is FltX -> {
-            val rhsValue = when (rhs.value) {
-                is FltX -> rhs as Quantity<FltX>
-                is InfraNumber -> packingProgramWeightToInfraQuantity(rhs).toFltX()
-                else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${rhs.value}")
-            }
-            (lhs as Quantity<FltX>) + rhsValue
-        }
-
+        is FltX -> (lhs as Quantity<FltX>) + packingProgramWeightToFltXQuantity(rhs)
         else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${lhs.value}")
     }
 }
@@ -531,7 +517,6 @@ private fun resolvePackingProgramDomain(unit: PhysicalUnit): PackingProgramMater
 
 private fun toDiscreteAmount(value: Any): UInt64 {
     val numericValue = when (value) {
-        is InfraNumber -> value.toDouble()
         is FltX -> value.toDouble()
         else -> value.toString().toDouble()
     }
@@ -571,9 +556,9 @@ data class PackingProgram<V : FloatingNumber<V>>(
         }
 
         fun innerPackage(
-            shape: PackageShape<InfraNumber>,
+            shape: PackageShape<FltX>,
             materials: Map<MaterialKey, UInt64>
-        ): PackingProgram<InfraNumber> {
+        ): PackingProgram<FltX> {
             return PackingProgram(
                 shape = shape,
                 materials = materials.mapValues { (_, amount) ->
@@ -585,9 +570,9 @@ data class PackingProgram<V : FloatingNumber<V>>(
         }
 
         fun innerPackageWithMaterialValues(
-            shape: PackageShape<InfraNumber>,
+            shape: PackageShape<FltX>,
             materials: Map<MaterialKey, PackingProgramMaterialValue>
-        ): PackingProgram<InfraNumber> {
+        ): PackingProgram<FltX> {
             return PackingProgram(
                 shape = shape,
                 materials = materials
@@ -641,15 +626,15 @@ data class PackingProgram<V : FloatingNumber<V>>(
 
     fun materialQuantities(
         amountUnit: PhysicalUnit = PackingProgramCountUnit,
-        materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()
-    ): Map<MaterialKey, Quantity<InfraNumber>> {
+        materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
+    ): Map<MaterialKey, Quantity<FltX>> {
         return materials.mapNotNull { (material, value) ->
-            val quantity = value.weight?.let { packingProgramWeightToInfraQuantity(it) } ?: value.amount?.let { amount ->
+            val quantity = value.weight?.let { packingProgramWeightToFltXQuantity(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight
                 if (unitWeight != null) {
-                    unitWeight * InfraNumber(amount.toULong().toDouble())
+                    unitWeight * FltX(amount.toULong().toDouble())
                 } else {
-                    InfraNumber(amount.toULong().toDouble()) * amountUnit
+                    FltX(amount.toULong().toDouble()) * amountUnit
                 }
             }
             if (quantity == null) {
@@ -660,11 +645,11 @@ data class PackingProgram<V : FloatingNumber<V>>(
         }.toMap()
     }
 
-    fun materialWeights(materialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap()): Map<MaterialKey, Quantity<InfraNumber>> {
+    fun materialWeights(materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()): Map<MaterialKey, Quantity<FltX>> {
         return materials.mapNotNull { (material, value) ->
-            val resolvedWeight = value.weight?.let { packingProgramWeightToInfraQuantity(it) } ?: value.amount?.let { amount ->
+            val resolvedWeight = value.weight?.let { packingProgramWeightToFltXQuantity(it) } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight ?: return@let null
-                unitWeight * InfraNumber(amount.toULong().toDouble())
+                unitWeight * FltX(amount.toULong().toDouble())
             }
             if (resolvedWeight == null) {
                 null
@@ -678,7 +663,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
         return materials[material]?.amount ?: UInt64.zero
     }
 
-    fun actualPackage(materials: Map<Material<InfraNumber>, UInt64>, pending: Boolean = false): Package<V> {
+    fun actualPackage(materials: Map<Material<FltX>, UInt64>, pending: Boolean = false): Package<V> {
         val requiredAmounts = this.materialAmounts()
         return when (classification) {
             PackageClassification.Outer -> {
@@ -777,7 +762,7 @@ open class Package<V : FloatingNumber<V>>(
     val program: PackingProgram<V>? = null,
     val shape: PackageShape<V>,
     val packages: List<Package<V>>? = null,
-    val materials: Map<Material<InfraNumber>, UInt64>,
+    val materials: Map<Material<FltX>, UInt64>,
     val amount: UInt64 = UInt64.one,
     val pending: Boolean = false,
 ) {
@@ -838,11 +823,11 @@ open class Package<V : FloatingNumber<V>>(
         fun innerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
-            shape: PackageShape<InfraNumber>,
-            materials: Map<Material<InfraNumber>, UInt64>,
+            shape: PackageShape<FltX>,
+            materials: Map<Material<FltX>, UInt64>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
-        ): Package<InfraNumber> {
+        ): Package<FltX> {
             return Package(
                 code = code,
                 pattern = pattern,
@@ -857,7 +842,7 @@ open class Package<V : FloatingNumber<V>>(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
             program: PackingProgram<V>,
-            materials: Map<Material<InfraNumber>, UInt64>,
+            materials: Map<Material<FltX>, UInt64>,
             amount: UInt64 = UInt64.one,
             pending: Boolean = false,
         ): Package<V> {

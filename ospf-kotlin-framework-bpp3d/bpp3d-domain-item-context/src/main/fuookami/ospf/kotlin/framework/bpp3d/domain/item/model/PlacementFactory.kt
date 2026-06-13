@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPlacement3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 
 /**
  * 创建多态二维放置，仅供 BLA 多态投影搜索和多态工厂内部复用。
@@ -28,10 +29,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
  * @param position 放置坐标 / placement position
  * @return 多态二维放置 / polymorphic 2D placement
  */
-fun <T : Cuboid<T>, P : ProjectivePlane> placement2Of(
-    projection: Projection<T, P>,
-    position: QuantityPoint2
-): QuantityPlacement2<T, P> {
+fun <T : Cuboid<T, FltX>, P : ProjectivePlane> placement2Of(
+    projection: Projection<T, FltX, P>,
+    position: QuantityPoint2<FltX>
+): QuantityPlacement2<T, FltX, P> {
     return QuantityPlacement2(
         projection = projection,
         position = position
@@ -48,7 +49,7 @@ fun <T : Cuboid<T>, P : ProjectivePlane> placement2Of(
  */
 fun <P : ProjectivePlane> itemPlacement2Of(
     projection: ItemProjection<P>,
-    position: QuantityPoint2
+    position: QuantityPoint2<FltX>
 ): ItemPlacement2<P> {
     return placement2Of(
         projection = projection,
@@ -65,8 +66,8 @@ fun <P : ProjectivePlane> itemPlacement2Of(
  * @return Block 二维放置 / Block 2D placement
  */
 fun <P : ProjectivePlane> blockPlacement2Of(
-    projection: Projection<Block, P>,
-    position: QuantityPoint2
+    projection: Projection<Block, FltX, P>,
+    position: QuantityPoint2<FltX>
 ): BlockPlacement2<P> {
     return placement2Of(
         projection = projection,
@@ -74,10 +75,10 @@ fun <P : ProjectivePlane> blockPlacement2Of(
     )
 }
 
-private fun <T : Cuboid<T>> placement3Of(
-    view: CuboidView<T>,
-    position: QuantityPoint3
-): QuantityPlacement3<T> {
+private fun <T : Cuboid<T, FltX>> placement3Of(
+    view: CuboidView<T, FltX>,
+    position: QuantityPoint3<FltX>
+): QuantityPlacement3<T, FltX> {
     return QuantityPlacement3(
         view = view,
         position = position
@@ -94,7 +95,7 @@ private fun <T : Cuboid<T>> placement3Of(
  */
 fun itemPlacement3Of(
     view: ItemView,
-    position: QuantityPoint3
+    position: QuantityPoint3<FltX>
 ): ItemPlacement3 {
     return placement3Of(
         view = view,
@@ -113,7 +114,7 @@ fun itemPlacement3Of(
  */
 fun itemPlacement3Of(
     item: Item,
-    position: QuantityPoint3,
+    position: QuantityPoint3<FltX>,
     orientation: Orientation = Orientation.Upright
 ): ItemPlacement3 {
     return itemPlacement3Of(
@@ -132,7 +133,7 @@ fun itemPlacement3Of(
  */
 fun binLayerPlacementOf(
     view: BinLayerView,
-    position: QuantityPoint3
+    position: QuantityPoint3<FltX>
 ): BinLayerPlacement {
     return placement3Of(
         view = view,
@@ -150,7 +151,7 @@ fun binLayerPlacementOf(
  */
 fun blockPlacement3Of(
     view: BlockView,
-    position: QuantityPoint3
+    position: QuantityPoint3<FltX>
 ): BlockPlacement3 {
     return placement3Of(
         view = view,
@@ -158,7 +159,7 @@ fun blockPlacement3Of(
     )
 }
 
-private fun <T : Cuboid<T>> QuantityPlacement3<T>.bottomPlacement(): QuantityPlacement2<T, Bottom> {
+private fun <T : Cuboid<T, FltX>> QuantityPlacement3<T, FltX>.bottomPlacement(): QuantityPlacement2<T, FltX, Bottom> {
     return QuantityPlacement2(this, Bottom)
 }
 

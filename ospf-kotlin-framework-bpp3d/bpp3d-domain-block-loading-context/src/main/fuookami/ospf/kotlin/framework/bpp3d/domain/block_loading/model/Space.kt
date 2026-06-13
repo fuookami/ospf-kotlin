@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -13,23 +14,23 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
 
 private fun infraPoint3(
-    x: InfraNumber = infraZero(),
-    y: InfraNumber = infraZero(),
-    z: InfraNumber = infraZero()
-): Point<Dim3, InfraNumber> {
+    x: FltX = fltXZero(),
+    y: FltX = fltXZero(),
+    z: FltX = fltXZero()
+): Point<Dim3, FltX> {
     return Point(x, y, z)
 }
 
 private fun infraVector3(
-    x: InfraNumber = infraZero(),
-    y: InfraNumber = infraZero(),
-    z: InfraNumber = infraZero()
-): Vector<Dim3, InfraNumber> {
+    x: FltX = fltXZero(),
+    y: FltX = fltXZero(),
+    z: FltX = fltXZero()
+): Vector<Dim3, FltX> {
     return Vector(x, y, z)
 }
 
 data class Space(
-    val position: Point<Dim3, InfraNumber>,
+    val position: Point<Dim3, FltX>,
     val shape: AbstractContainer3Shape,
     val parentShape: AbstractContainer3Shape = shape,
     val block: Block? = null,
@@ -43,7 +44,7 @@ data class Space(
         fun from(
             blocks: List<BlockPlacement3>,
             shape: AbstractContainer3Shape = Container3Shape(),
-            offset: Point<Dim3, InfraNumber> = infraPoint3()
+            offset: Point<Dim3, FltX> = infraPoint3()
         ): List<Space>? {
             val absoluteBlocks = blocks.map { BlockPlacement3(it.view.copy(), it.position + offset) }
             val spaces = ArrayList<Space>()
@@ -152,7 +153,7 @@ data class Space(
             val spaces = ArrayList<Space>()
             var forwardSpace = forwardLink
             while (forwardSpace != null) {
-                if (forwardSpace.second.position[1] eq infraZero() && forwardSpace.first != Bottom) {
+                if (forwardSpace.second.position[1] eq fltXZero() && forwardSpace.first != Bottom) {
                     break
                 }
                 if (forwardSpace.first == Bottom) {
@@ -210,7 +211,7 @@ data class Space(
                 }
             }
             var layer = thisLayer - UInt64.one
-            var height = infraScalar((thisLayer - UInt64.one).toULong().toDouble()) * thisItem.height
+            var height = fltX((thisLayer - UInt64.one).toULong().toDouble()) * thisItem.height
             for (space in thisBottomSpaces) {
                 when (val bottomBlock = space.block!!) {
                     is SimpleBlock -> {

@@ -3,28 +3,21 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.concept.Indexed
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlinx.coroutines.*
-
-
-
-
-
-
 
 data class PriorityAttribute(
     val key: String,
@@ -64,7 +57,7 @@ open class ItemType(
 }
 
 open class ItemPattern(
-    val shape: PackageShape<InfraNumber>,
+    val shape: PackageShape<FltX>,
     val enabledOrientations: List<Orientation>,
     val batchNo: BatchNo?,
     val priorities: Map<String, UInt64>,
@@ -97,32 +90,43 @@ open class ItemPattern(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun itemPackQuantityToInfra(value: Quantity<*>): Quantity<InfraNumber> {
+private fun itemPackQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
     return when (value.value) {
-        is InfraNumber -> value as Quantity<InfraNumber>
-        else -> Quantity(InfraNumber(value.value.toString().toDouble()), value.unit)
+        is FltX -> value as Quantity<FltX>
+        else -> Quantity(FltX(value.value.toString().toDouble()), value.unit)
     }
 }
 
-interface Item : Cuboid<Item>, Indexed {
+private fun Container3Geometry<FltX>.asContainer3Shape(): AbstractContainer3Shape {
+    return this as? AbstractContainer3Shape ?: Container3Shape(
+        width = width,
+        height = height,
+        depth = depth
+    )
+}
+
+/** 货物合并结果单元。Item merge result unit. */
+sealed interface ItemMergeUnit
+
+interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
     override val self: Item
         get() = this
-    val explicitPackingShape: PackingShape3<InfraNumber>?
+    val explicitPackingShape: PackingShape3<FltX>?
         get() = null
     val packingShapeSpec: PackageShapeSpec?
         get() = null
-    val packingShape: PackingShape3<InfraNumber>
+    val packingShape: PackingShape3<FltX>
         get() = explicitPackingShape
             ?: packageShape.toPackingShapeOrNull()
             ?: view().asPackingShape3()
     /** 包围盒（从 packingShape 派生，不直接依赖 Cuboid 继承）。Bounding box derived from packingShape, not directly from Cuboid inheritance. */
-    val shapeBoundingBox: ShapeBoundingBox3<InfraNumber>
+    val shapeBoundingBox: ShapeBoundingBox3<FltX>
         get() = packingShape.boundingBox
     /** 底面轮廓（从 packingShape 派生，不直接依赖 Cuboid 继承）。Bottom footprint derived from packingShape, not directly from Cuboid inheritance. */
-    val shapeFootprint: ShapeFootprint2<InfraNumber>
+    val shapeFootprint: ShapeFootprint2<FltX>
         get() = packingShape.footprint()
     /** 形状实际体积（从 packingShape 派生，不直接依赖 Cuboid 继承）。Shape geometric volume derived from packingShape, not directly from Cuboid inheritance. */
-    val shapeVolume: Quantity<InfraNumber>
+    val shapeVolume: Quantity<FltX>
         get() = packingShape.actualVolume
     val batchNo: BatchNo?
     val priorities: Map<String, UInt64>
@@ -130,7 +134,7 @@ interface Item : Cuboid<Item>, Indexed {
     val packageAttribute: PackageAttribute
     val materialAmounts: Map<MaterialKey, UInt64>
         get() = emptyMap()
-    val materialWeights: Map<MaterialKey, Quantity<InfraNumber>>
+    val materialWeights: Map<MaterialKey, Quantity<FltX>>
         get() = emptyMap()
 
     val packageType get() = packageAttribute.packageType
@@ -170,7 +174,7 @@ interface Item : Cuboid<Item>, Indexed {
 
     fun enabledStackingOn(bottomSupport: BottomSupport): Boolean {
         return packageAttribute.enabledStackingOn(
-            unit = this,
+            item = view(),
             bottomSupport = bottomSupport
         )
     }
@@ -178,15 +182,15 @@ interface Item : Cuboid<Item>, Indexed {
     fun enabledStackingOn(
         bottomItem: Item,
         layer: UInt64 = UInt64.zero,
-        height: Quantity<InfraNumber> = width * infraZero(),
-        space: AbstractContainer3Shape = Container3Shape()
+        height: Quantity<FltX> = width * fltXZero(),
+        space: Container3Geometry<FltX> = Container3Shape()
     ): Boolean {
         return packageAttribute.enabledStackingOn(
             item = this,
             bottomItem = bottomItem,
             layer = layer,
             height = height,
-            space = space
+            space = space.asContainer3Shape()
         )
     }
 
@@ -202,10 +206,10 @@ open class ActualItem(
     val pack: Package<*>? = null,
     val priorityAttribute: List<PriorityAttribute> = emptyList(),
     // inherited from Cuboid<Item>
-    override val width: Quantity<InfraNumber>,
-    override val height: Quantity<InfraNumber>,
-    override val depth: Quantity<InfraNumber>,
-    override val weight: Quantity<InfraNumber>,
+    override val width: Quantity<FltX>,
+    override val height: Quantity<FltX>,
+    override val depth: Quantity<FltX>,
+    override val weight: Quantity<FltX>,
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
@@ -213,14 +217,14 @@ open class ActualItem(
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute,
     val shapeSpecOverride: PackageShapeSpec? = null,
-    val packingShapeOverride: PackingShape3<InfraNumber>? = null,
+    val packingShapeOverride: PackingShape3<FltX>? = null,
     val materialAmountsOverride: Map<MaterialKey, UInt64>? = null,
-    val materialWeightsOverride: Map<MaterialKey, Quantity<InfraNumber>>? = null
+    val materialWeightsOverride: Map<MaterialKey, Quantity<FltX>>? = null
 ) : Item, ManualIndexed() {
-    override val explicitPackingShape: PackingShape3<InfraNumber>?
+    override val explicitPackingShape: PackingShape3<FltX>?
         get() = packingShapeOverride
     override val packingShapeSpec: PackageShapeSpec?
-        get() = shapeSpecOverride ?: (pack?.shape as? PackageShape<InfraNumber>)?.shapeSpec
+        get() = shapeSpecOverride ?: pack?.shape?.shapeSpec
     override val priorities = priorityAttribute.mapNotNull { it(this)?.let { value -> Pair(it.key, value) } }.toMap()
     override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
         materialAmountsOverride?.let {
@@ -233,15 +237,15 @@ open class ActualItem(
         }
         counter
     }
-    override val materialWeights: Map<MaterialKey, Quantity<InfraNumber>> by lazy {
+    override val materialWeights: Map<MaterialKey, Quantity<FltX>> by lazy {
         materialWeightsOverride?.let {
             return@lazy it
         }
-        val counter = HashMap<MaterialKey, Quantity<InfraNumber>>()
+        val counter = HashMap<MaterialKey, Quantity<FltX>>()
         for ((material, amount) in pack?.materials ?: emptyMap()) {
             val key = material.key
-            val weight = material.weight * InfraNumber(amount.toULong().toDouble())
-            counter[key] = (counter[key] ?: (weight * infraZero())) + weight
+            val weight = material.weight * FltX(amount.toULong().toDouble())
+            counter[key] = (counter[key] ?: (weight * fltXZero())) + weight
         }
         counter
     }
@@ -261,10 +265,10 @@ open class ActualItem(
         packageCode = pack.code,
         pack = pack,
         priorityAttribute = priorityAttribute,
-        width = itemPackQuantityToInfra(pack.width),
-        height = itemPackQuantityToInfra(pack.height),
-        depth = itemPackQuantityToInfra(pack.depth),
-        weight = itemPackQuantityToInfra(pack.weight),
+        width = itemPackQuantityToFltX(pack.width),
+        height = itemPackQuantityToFltX(pack.height),
+        depth = itemPackQuantityToFltX(pack.depth),
+        weight = itemPackQuantityToFltX(pack.weight),
         enabledOrientations = enabledOrientations,
         batchNo = batchNo,
         warehouse = warehouse,
@@ -279,10 +283,10 @@ open class ActualItem(
 open class PatternedItem(
     private val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>,
     // inherited from Cuboid<Item>
-    override val width: Quantity<InfraNumber>,
-    override val height: Quantity<InfraNumber>,
-    override val depth: Quantity<InfraNumber>,
-    override val weight: Quantity<InfraNumber>,
+    override val width: Quantity<FltX>,
+    override val height: Quantity<FltX>,
+    override val depth: Quantity<FltX>,
+    override val weight: Quantity<FltX>,
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
@@ -291,12 +295,12 @@ open class PatternedItem(
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
-    override val volume: Quantity<InfraNumber> = run {
-        val totalAmount = actualItems.fold(infraZero()) { acc, (_, amount, _) -> acc + InfraNumber(amount.toULong().toDouble()) }
-        if (totalAmount eq infraZero()) {
-            width * height * depth * infraZero()
+    override val volume: Quantity<FltX> = run {
+        val totalAmount = actualItems.fold(fltXZero()) { acc, (_, amount, _) -> acc + FltX(amount.toULong().toDouble()) }
+        if (totalAmount eq fltXZero()) {
+            width * height * depth * fltXZero()
         } else {
-            actualItems.sumOf { it.first.volume * InfraNumber(it.second.toULong().toDouble()) } / totalAmount
+            actualItems.sumOf { it.first.volume * FltX(it.second.toULong().toDouble()) } / totalAmount
         }
     }
     override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
@@ -308,12 +312,12 @@ open class PatternedItem(
         }
         counter
     }
-    override val materialWeights: Map<MaterialKey, Quantity<InfraNumber>> by lazy {
-        val counter = HashMap<MaterialKey, Quantity<InfraNumber>>()
+    override val materialWeights: Map<MaterialKey, Quantity<FltX>> by lazy {
+        val counter = HashMap<MaterialKey, Quantity<FltX>>()
         for ((item, amount, _) in actualItems) {
             for ((material, weight) in item.materialWeights) {
-                val thisWeight = weight * InfraNumber(amount.toULong().toDouble())
-                counter[material] = (counter[material] ?: (thisWeight * infraZero())) + thisWeight
+                val thisWeight = weight * FltX(amount.toULong().toDouble())
+                counter[material] = (counter[material] ?: (thisWeight * fltXZero())) + thisWeight
             }
         }
         counter
@@ -326,7 +330,7 @@ open class PatternedItem(
         ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
             val amount = actualItems.fold(UInt64.zero) { acc, (_, thisAmount, _) -> acc + thisAmount }
             val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
-            val volume = actualItems.sumOf { it.first.volume * InfraNumber(it.second.toULong().toDouble()) } / InfraNumber(amount.toULong().toDouble())
+            val volume = actualItems.sumOf { it.first.volume * FltX(it.second.toULong().toDouble()) } / FltX(amount.toULong().toDouble())
             val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume.value)
             return Triple(
                 PatternedItem(
@@ -334,7 +338,7 @@ open class PatternedItem(
                 width = pattern.shape.width + deformation[0],
                 height = pattern.shape.height + deformation[1],
                 depth = pattern.shape.depth + deformation[2],
-                weight = actualItems.sumOf { it.first.weight * InfraNumber(it.second.toULong().toDouble()) } / InfraNumber(amount.toULong().toDouble()),
+                weight = actualItems.sumOf { it.first.weight * FltX(it.second.toULong().toDouble()) } / FltX(amount.toULong().toDouble()),
                 enabledOrientations = Orientation.merge(actualItems.first().first, pattern.enabledOrientations),
                 batchNo = pattern.batchNo,
                 priorities = pattern.priorities,
@@ -359,7 +363,7 @@ open class PatternedItem(
 
     // inherited from CuboidUnit<Item>
     override fun enabledOrientationsAt(
-        space: AbstractContainer2Shape<*>,
+        space: Container2Geometry<*, FltX>,
         withRotation: Boolean
     ): List<Orientation> {
         val actualOrientations = super.enabledOrientationsAt(
@@ -394,7 +398,7 @@ open class PatternedItem(
     }
 
     override fun enabledOrientationsAt(
-        space: AbstractContainer3Shape,
+        space: Container3Geometry<FltX>,
         withRotation: Boolean
     ): List<Orientation> {
         val actualOrientations = super.enabledOrientationsAt(
@@ -425,7 +429,8 @@ open class PatternedItem(
                     }
             )
         }
-        actualOrientations.removeAll { packageAttribute.extraOrientationRule?.let { it1 -> it1(space, it) } == false }
+        val containerSpace = space.asContainer3Shape()
+        actualOrientations.removeAll { packageAttribute.extraOrientationRule?.let { it1 -> it1(containerSpace, it) } == false }
         return actualOrientations.toList()
     }
 
@@ -441,9 +446,9 @@ open class PatternedItem(
 open class ItemView(
     unit: Item,
     orientation: Orientation = Orientation.Upright
-) : CuboidView<Item>(unit, orientation) {
+) : CuboidView<Item, FltX>(unit, orientation) {
     /** 放置级装载形状覆盖。Placement-level packing shape override. */
-    open val placementPackingShape: PackingShape3<InfraNumber>? get() = null
+    open val placementPackingShape: PackingShape3<FltX>? get() = null
     open val type get() = ItemType(unit.packageType, orientation.category)
     val packageType by unit::packageType
     val packageCategory by unit::packageCategory
@@ -477,7 +482,7 @@ open class ItemView(
 
     fun enabledStackingOn(bottomSupport: BottomSupport): Boolean {
         return unit.packageAttribute.enabledStackingOn(
-            unit = this,
+            item = this,
             bottomSupport = bottomSupport
         )
     }
@@ -485,15 +490,15 @@ open class ItemView(
     fun enabledStackingOn(
         bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
-        height: Quantity<InfraNumber> = this.height * infraZero(),
-        space: AbstractContainer3Shape = Container3Shape()
+        height: Quantity<FltX> = this.height * fltXZero(),
+        space: Container3Geometry<FltX> = Container3Shape()
     ): Boolean {
         return unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItem = bottomItem,
             layer = layer,
             height = height,
-            space = space
+            space = space.asContainer3Shape()
         )
     }
 
@@ -502,11 +507,11 @@ open class ItemView(
             return super.rotation?.let { ItemView(it.unit, it.orientation) }
         }
 
-    override fun rotationAt(space: AbstractContainer2Shape<*>): ItemView? {
+    override fun rotationAt(space: Container2Geometry<*, FltX>): ItemView? {
         return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
-    override fun rotationAt(space: AbstractContainer3Shape): ItemView? {
+    override fun rotationAt(space: Container3Geometry<FltX>): ItemView? {
         return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
@@ -519,21 +524,21 @@ open class ItemView(
 }
 
 /** 货物投影别名，用于 item-domain 的二维装载语义。Item projection alias for item-domain 2D loading semantics. */
-typealias ItemProjection<P> = Projection<Item, P>
+typealias ItemProjection<P> = Projection<Item, FltX, P>
 /** 多层货物投影别名，用于 item-domain 的堆叠投影语义。Multi-pile item projection alias for item-domain stacking projection semantics. */
-typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
+typealias MultipleItemProjection<P> = MultiPileProjection<Item, FltX, P>
 /** 任意二维放置。Any 2D placement. */
-typealias AnyPlacement2<P> = QuantityPlacement2<*, P>
+typealias AnyPlacement2<P> = QuantityPlacement2<*, FltX, P>
 /** 任意侧视二维放置。Any side-plane 2D placement. */
 typealias AnySidePlacement2 = AnyPlacement2<Side>
 /** 任意前视二维放置。Any front-plane 2D placement. */
 typealias AnyFrontPlacement2 = AnyPlacement2<Front>
 /** 任意三维放置。Any 3D placement. */
-typealias AnyPlacement3 = QuantityPlacement3<*>
+typealias AnyPlacement3 = QuantityPlacement3<*, FltX>
 /** 货物二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Item 2D placement alias that hides the underlying QuantityPlacement2 type parameter. */
-typealias ItemPlacement2<P> = QuantityPlacement2<Item, P>
+typealias ItemPlacement2<P> = QuantityPlacement2<Item, FltX, P>
 /** 货物三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias ItemPlacement3 = QuantityPlacement3<Item>
+typealias ItemPlacement3 = QuantityPlacement3<Item, FltX>
 
 /**
  * 解析放置级真实装载形状，优先使用 ItemView 携带的候选几何。
@@ -541,7 +546,7 @@ typealias ItemPlacement3 = QuantityPlacement3<Item>
  *
  * @return 放置级装载形状 / placement-level packing shape
  */
-fun AnyPlacement3.resolvedPackingShape(): PackingShape3<InfraNumber> {
+fun AnyPlacement3.resolvedPackingShape(): PackingShape3<FltX> {
     val itemView = view as? ItemView
     itemView?.placementPackingShape?.let {
         return it
@@ -658,7 +663,7 @@ private fun hasHorizontalCylinderStackingSupportCoverage(
 ): Boolean {
     val cylinder = item.resolvedPackingShape() as? CylinderPackingShape3 ?: return true
     val axis = cylinder.axis
-    if (axis == Axis3.Y || item.absoluteY eq infraZero()) {
+    if (axis == Axis3.Y || item.absoluteY eq fltXZero()) {
         return true
     }
 
@@ -825,7 +830,7 @@ suspend fun ItemPlacement3.enabledStackingOn(
             space = space
         )
     }
-    return if (absoluteY eq infraZero()) {
+    return if (absoluteY eq fltXZero()) {
         unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItems = emptyList(),
@@ -903,17 +908,18 @@ fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
-fun List<AnyPlacement3>.dump(offset: Point<Dim3, InfraNumber>): List<ItemPlacement3> {
-    return dump(point3(offset))
+fun List<AnyPlacement3>.dump(offset: Point<Dim3, FltX>): List<ItemPlacement3> {
+    return dump(point3FltX(offset))
 }
 
-fun List<AnyPlacement3>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
-    val offsetVector = QuantityVector3(offset.x, offset.y, offset.z)
+fun List<AnyPlacement3>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+    val offsetVector = QuantityVector3<FltX>(offset.x, offset.y, offset.z)
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
         when (val unit = placement.unit) {
-            is Container3<*> -> {
-                items.addAll(unit.units.dump(placement.position + offsetVector))
+            is Container3<*, *> -> {
+                @Suppress("UNCHECKED_CAST")
+                items.addAll((unit.units as List<AnyPlacement3>).dump(placement.position + offsetVector))
             }
 
             is Item -> {
@@ -931,17 +937,18 @@ fun List<AnyPlacement3>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacem
     return items
 }
 
-fun List<AnyPlacement3>.dumpAbsolutely(offset: Point<Dim3, InfraNumber>): List<ItemPlacement3> {
-    return dumpAbsolutely(point3(offset))
+fun List<AnyPlacement3>.dumpAbsolutely(offset: Point<Dim3, FltX>): List<ItemPlacement3> {
+    return dumpAbsolutely(point3FltX(offset))
 }
 
-fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
-    val offsetVector = QuantityVector3(offset.x, offset.y, offset.z)
+fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+    val offsetVector = QuantityVector3<FltX>(offset.x, offset.y, offset.z)
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
         when (val unit = placement.unit) {
-            is Container3<*> -> {
-                items.addAll(unit.units.dump(placement.absolutePosition + offsetVector))
+            is Container3<*, *> -> {
+                @Suppress("UNCHECKED_CAST")
+                items.addAll((unit.units as List<AnyPlacement3>).dump(placement.absolutePosition + offsetVector))
             }
 
             is Item -> {
@@ -961,7 +968,7 @@ fun List<AnyPlacement3>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<
 
 @get:JvmName("projectionBottomOnly")
 /** 投影底部限定属性。Projection bottom-only constraint. */
-val Projection<*, *>.bottomOnly: Boolean
+val Projection<*, FltX, *>.bottomOnly: Boolean
     get() {
         val u = unit
         return when (u) {

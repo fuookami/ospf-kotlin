@@ -2,15 +2,16 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.HorizontalCylinderSupportGeometry
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.horizontalCylinderCuboidSupportCoverage
@@ -20,8 +21,8 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
 private const val PackingGeometryOverlapTolerance = 1e-7
 
 private data class PackingGeometry(
-    val shape: PackingShape3<InfraNumber>,
-    val position: QuantityPoint3
+    val shape: PackingShape3<FltX>,
+    val position: QuantityPoint3<FltX>
 ) {
     val minX = position.x.toDouble()
     val minY = position.y.toDouble()
@@ -227,7 +228,7 @@ internal fun requirePackedBinShapeGeometry(
     val geometries = bin.items.mapIndexed { index, packed ->
         val placement = packed.placement
         val shape = placement.resolvedPackingShape()
-        if (!bin.type.enabled(shape, placement.absolutePosition)) {
+        if (!bin.type.asContainer3Shape().enabled(shape, placement.absolutePosition)) {
             val geometry = PackingGeometry(
                 shape = shape,
                 position = placement.absolutePosition

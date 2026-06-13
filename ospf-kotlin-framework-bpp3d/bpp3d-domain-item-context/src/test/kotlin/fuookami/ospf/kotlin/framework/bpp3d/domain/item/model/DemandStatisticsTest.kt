@@ -1,12 +1,13 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -29,31 +30,31 @@ class DemandStatisticsTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
-    private fun packageShape(type: PackageType = PackageType.CartonContainer): PackageShape<InfraNumber> {
+    private fun packageShape(type: PackageType = PackageType.CartonContainer): PackageShape<FltX> {
         return PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(0.1) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(0.1) * Kilogram,
             packageType = type
         )
     }
 
-    private fun cylinderPackageShape(type: PackageType = PackageType.CartonContainer): PackageShape<InfraNumber> {
+    private fun cylinderPackageShape(type: PackageType = PackageType.CartonContainer): PackageShape<FltX> {
         return PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(0.1) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(0.1) * Kilogram,
             packageType = type,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
@@ -64,10 +65,10 @@ class DemandStatisticsTest {
         val item = ActualItem(
             id = "item-0",
             name = "item-0",
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B0"),
             packageAttribute = defaultPackageAttribute()
@@ -84,14 +85,14 @@ class DemandStatisticsTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "A",
-            weight = infraScalar(5.0) * Kilogram
+            weight = fltX(5.0) * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("B"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "B",
-            weight = infraScalar(3.0) * Kilogram
+            weight = fltX(3.0) * Kilogram
         )
         val pack = Package.innerPackage(
             shape = packageShape(),
@@ -111,8 +112,8 @@ class DemandStatisticsTest {
 
         assertEquals(UInt64(2), item.materialAmounts[materialA.key])
         assertEquals(UInt64.one, item.materialAmounts[materialB.key])
-        assertTrue(item.materialWeights[materialA.key]!! eq (infraScalar(10.0) * Kilogram))
-        assertTrue(item.materialWeights[materialB.key]!! eq (infraScalar(3.0) * Kilogram))
+        assertTrue(item.materialWeights[materialA.key]!! eq (fltX(10.0) * Kilogram))
+        assertTrue(item.materialWeights[materialB.key]!! eq (fltX(3.0) * Kilogram))
     }
 
     @Test
@@ -122,21 +123,21 @@ class DemandStatisticsTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "A-1",
-            weight = infraScalar(5.0) * Kilogram
+            weight = fltX(5.0) * Kilogram
         )
         val materialAForItem2 = Material(
             no = MaterialNo("A"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "A-2",
-            weight = infraScalar(7.0) * Kilogram
+            weight = fltX(7.0) * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("B"),
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "B",
-            weight = infraScalar(3.0) * Kilogram
+            weight = fltX(3.0) * Kilogram
         )
 
         val item1 = ActualItem(
@@ -181,23 +182,58 @@ class DemandStatisticsTest {
         )
         assertEquals(UInt64(8), patterned.materialAmounts[materialAForItem1.key])
         assertEquals(UInt64(3), patterned.materialAmounts[materialB.key])
-        assertTrue(patterned.materialWeights[materialAForItem1.key]!! eq (infraScalar(44.0) * Kilogram))
-        assertTrue(patterned.materialWeights[materialB.key]!! eq (infraScalar(9.0) * Kilogram))
+        assertTrue(patterned.materialWeights[materialAForItem1.key]!! eq (fltX(44.0) * Kilogram))
+        assertTrue(patterned.materialWeights[materialB.key]!! eq (fltX(9.0) * Kilogram))
 
         val placements = listOf(
-            itemPlacement3Of(item1.view(), point3(x = infraScalar(0.0) * Meter)),
-            itemPlacement3Of(item1.view(), point3(x = infraScalar(1.0) * Meter)),
-            itemPlacement3Of(item1.view(), point3(x = infraScalar(2.0) * Meter)),
-            itemPlacement3Of(item2.view(), point3(x = infraScalar(3.0) * Meter)),
-            itemPlacement3Of(item2.view(), point3(x = infraScalar(4.0) * Meter))
+            itemPlacement3Of(
+                item1.view(),
+                QuantityPoint3(
+                    x = fltX(0.0) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
+            ),
+            itemPlacement3Of(
+                item1.view(),
+                QuantityPoint3(
+                    x = fltX(1.0) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
+            ),
+            itemPlacement3Of(
+                item1.view(),
+                QuantityPoint3(
+                    x = fltX(2.0) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
+            ),
+            itemPlacement3Of(
+                item2.view(),
+                QuantityPoint3(
+                    x = fltX(3.0) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
+            ),
+            itemPlacement3Of(
+                item2.view(),
+                QuantityPoint3(
+                    x = fltX(4.0) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
+            )
         )
         val layer = BinLayer(
             iteration = Int64(0),
             from = DemandStatisticsTest::class,
             shape = Container3Shape(
-                width = infraScalar(10.0) * Meter,
-                height = infraScalar(10.0) * Meter,
-                depth = infraScalar(10.0) * Meter
+                width = fltX(10.0) * Meter,
+                height = fltX(10.0) * Meter,
+                depth = fltX(10.0) * Meter
             ),
             units = placements
         )
@@ -223,11 +259,11 @@ class DemandStatisticsTest {
         val materialWeightStatistics = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         assertTrue(
             ((materialWeightStatistics[Bpp3dDemandKey.Material(materialAForItem1.key)] as Bpp3dDemandValue.Weight).value)
-                eq (infraScalar(44.0) * Kilogram)
+                eq (fltX(44.0) * Kilogram)
         )
         assertTrue(
             ((materialWeightStatistics[Bpp3dDemandKey.Material(materialB.key)] as Bpp3dDemandValue.Weight).value)
-                eq (infraScalar(9.0) * Kilogram)
+                eq (fltX(9.0) * Kilogram)
         )
     }
 
@@ -238,7 +274,7 @@ class DemandStatisticsTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "CYL-M",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val cylinderItem = ActualItem(
             id = "cyl-item-1",
@@ -249,15 +285,15 @@ class DemandStatisticsTest {
                     material to UInt64(2)
                 )
             ),
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(0.1) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(0.1) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("BC1"),
             packageAttribute = defaultPackageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
@@ -277,26 +313,34 @@ class DemandStatisticsTest {
         val materialWeightStatistics = cylinderItem.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         assertTrue(
             ((materialWeightStatistics[Bpp3dDemandKey.Material(material.key)] as Bpp3dDemandValue.Weight).value)
-                eq (infraScalar(4.0) * Kilogram)
+                eq (fltX(4.0) * Kilogram)
         )
 
         val placements = listOf(
             itemPlacement3Of(
                 view = cylinderItem.view(),
-                position = point3(x = infraScalar(0.0) * Meter)
+                position = QuantityPoint3(
+                    x = fltX(0.0) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
             ),
             itemPlacement3Of(
                 view = cylinderItem.view(),
-                position = point3(x = infraScalar(1.2) * Meter)
+                position = QuantityPoint3(
+                    x = fltX(1.2) * Meter,
+                    y = fltX(0.0) * Meter,
+                    z = fltX(0.0) * Meter
+                )
             )
         )
         val layer = BinLayer(
             iteration = Int64(0),
             from = DemandStatisticsTest::class,
             shape = Container3Shape(
-                width = infraScalar(10.0) * Meter,
-                height = infraScalar(10.0) * Meter,
-                depth = infraScalar(10.0) * Meter
+                width = fltX(10.0) * Meter,
+                height = fltX(10.0) * Meter,
+                depth = fltX(10.0) * Meter
             ),
             units = placements
         )
@@ -309,7 +353,7 @@ class DemandStatisticsTest {
         val layerMaterialWeight = layer.statistics(Bpp3dDemandMode.ItemMaterialWeight)
         assertTrue(
             ((layerMaterialWeight[Bpp3dDemandKey.Material(material.key)] as Bpp3dDemandValue.Weight).value)
-                eq (infraScalar(8.0) * Kilogram)
+                eq (fltX(8.0) * Kilogram)
         )
     }
 }

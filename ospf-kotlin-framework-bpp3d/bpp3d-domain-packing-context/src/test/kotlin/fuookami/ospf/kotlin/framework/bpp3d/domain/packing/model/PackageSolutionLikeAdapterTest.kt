@@ -1,14 +1,13 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageClassification
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -24,8 +23,8 @@ class PackageSolutionLikeAdapterTest {
 
     private fun material(
         no: String,
-        unitWeightKg: InfraNumber
-    ): Material<InfraNumber> {
+        unitWeightKg: FltX
+    ): Material<FltX> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -35,7 +34,7 @@ class PackageSolutionLikeAdapterTest {
         )
     }
 
-    private fun shape(scale: InfraNumber): PackageShape<InfraNumber> {
+    private fun shape(scale: FltX): PackageShape<FltX> {
         return PackageShape(
             width = scale * Meter,
             height = scale * Meter,
@@ -49,18 +48,18 @@ class PackageSolutionLikeAdapterTest {
     fun materialQuantityKindsShouldMapToPackingProgramValues() {
         val materialAmount = material(
             no = "M-APS-AMOUNT",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val materialWeight = material(
             no = "M-APS-WEIGHT",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val materialBoth = material(
             no = "M-APS-BOTH",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val node = PackageSolutionLikeNode(
-            shape = shape(InfraNumber.one),
+            shape = shape(FltX.one),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = materialAmount.key,
@@ -68,13 +67,13 @@ class PackageSolutionLikeAdapterTest {
                 ),
                 PackageSolutionLikeMaterialItem(
                     material = materialWeight.key,
-                    quantity = PackageSolutionLikeQuantity.Weight(infraScalar(5.0) * Kilogram)
+                    quantity = PackageSolutionLikeQuantity.Weight(fltX(5.0) * Kilogram)
                 ),
                 PackageSolutionLikeMaterialItem(
                     material = materialBoth.key,
                     quantity = PackageSolutionLikeQuantity.AmountAndWeight(
                         amount = UInt64(3),
-                        weight = infraScalar(7.0) * Kilogram
+                        weight = fltX(7.0) * Kilogram
                     )
                 )
             )
@@ -96,10 +95,10 @@ class PackageSolutionLikeAdapterTest {
     fun childrenShouldMapToOuterPackingProgramAndAggregateMaterials() {
         val material = material(
             no = "M-APS-CHILD",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val childByAmount = PackageSolutionLikeNode(
-            shape = shape(InfraNumber.one),
+            shape = shape(FltX.one),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = material.key,
@@ -108,22 +107,22 @@ class PackageSolutionLikeAdapterTest {
             )
         )
         val childByWeight = PackageSolutionLikeNode(
-            shape = shape(infraScalar(1.2)),
+            shape = shape(fltX(1.2)),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = material.key,
-                    quantity = PackageSolutionLikeQuantity.Weight(infraScalar(4.0) * Kilogram)
+                    quantity = PackageSolutionLikeQuantity.Weight(fltX(4.0) * Kilogram)
                 )
             )
         )
         val parent = PackageSolutionLikeNode(
-            shape = shape(infraScalar(2.0)),
+            shape = shape(fltX(2.0)),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = material.key,
                     quantity = PackageSolutionLikeQuantity.AmountAndWeight(
                         amount = UInt64.one,
-                        weight = infraScalar(1.0) * Kilogram
+                        weight = fltX(1.0) * Kilogram
                     )
                 )
             ),
@@ -143,10 +142,10 @@ class PackageSolutionLikeAdapterTest {
     fun fltXMaterialQuantityShouldMapThroughPackageSolutionLikeAdapter() {
         val material = material(
             no = "M-APS-FLTX",
-            unitWeightKg = InfraNumber.one
+            unitWeightKg = FltX.one
         )
         val node = PackageSolutionLikeNode(
-            shape = shape(InfraNumber.one),
+            shape = shape(FltX.one),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = material.key,

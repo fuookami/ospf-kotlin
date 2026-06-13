@@ -13,48 +13,37 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class QuantityProjectionPlacementCoreProofTest {
-    private data class FltXBox(
+class ProjectionPlacementContractTest {
+    private data class Box(
         override val width: Quantity<FltX>,
         override val height: Quantity<FltX>,
         override val depth: Quantity<FltX>,
         override val weight: Quantity<FltX>,
         override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : QuantityCuboid<FltXBox, FltX> {
-        override val self: FltXBox
-            get() = this
-    }
-
-    private data class LegacyBox(
-        override val width: InfraQuantity,
-        override val height: InfraQuantity,
-        override val depth: InfraQuantity,
-        override val weight: InfraQuantity,
-        override val enabledOrientations: List<Orientation> = Orientation.entries
-    ) : Cuboid<LegacyBox> {
-        override val self: LegacyBox
+    ) : Cuboid<Box, FltX> {
+        override val self: Box
             get() = this
     }
 
     @Test
-    fun quantityPileProjectionShouldStackByPlaneDistance() {
-        val box = FltXBox(
+    fun pileProjectionShouldStackByPlaneDistance() {
+        val box = Box(
             width = Quantity(FltX(1.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(2.0), Meter),
             weight = Quantity(FltX(3.0), Kilogram)
         )
-        val planeProjection = QuantityPlaneProjection(
-            view = box.view(Orientation.Upright),
+        val planeProjection = PlaneProjection(
+            view = box.view(Orientation.Upright)!!,
             plane = Bottom
         )
-        val pile = QuantityPileProjection(
-            planeProjection = planeProjection,
+        val pile = PileProjection(
+            plane = planeProjection,
             layer = UInt64(3)
         )
 
         val placements = pile.toPlacement3At(
-            position = QuantityPoint2G(
+            position = QuantityPoint2(
                 x = Quantity(FltX.zero, Meter),
                 y = Quantity(FltX.zero, Meter)
             )
@@ -68,7 +57,7 @@ class QuantityProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun projectivePlaneShouldReadQuantityContainerGeometry() {
+    fun projectivePlaneShouldReadContainerGeometry() {
         val shape = QuantityContainer3Shape(
             width = Quantity(FltX(3.0), Meter),
             height = Quantity(FltX(5.0), Meter),
@@ -87,78 +76,76 @@ class QuantityProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun modelPlacementShouldAdaptToQuantityPlacement() {
-        val box = LegacyBox(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(3.0) * Meter,
-            weight = infraScalar(4.0) * Kilogram
+    fun placementShouldExposeGeometryWithoutAdapter() {
+        val box = Box(
+            width = fltX(1.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(3.0) * Meter,
+            weight = fltX(4.0) * Kilogram
         )
-        val legacyPlacement = QuantityPlacement3(
+        val placement = QuantityPlacement3(
             view = box.view(Orientation.Upright)!!,
             position = point3(
-                x = infraScalar(5.0) * Meter,
-                y = infraScalar(6.0) * Meter,
-                z = infraScalar(7.0) * Meter
+                x = fltX(5.0) * Meter,
+                y = fltX(6.0) * Meter,
+                z = fltX(7.0) * Meter
             )
         )
-        val quantityPlacement = legacyPlacement.asQuantityCuboidPlacement3()
 
-        assertTrue(quantityPlacement.x eq (infraScalar(5.0) * Meter))
-        assertTrue(quantityPlacement.y eq (infraScalar(6.0) * Meter))
-        assertTrue(quantityPlacement.z eq (infraScalar(7.0) * Meter))
-        assertTrue(quantityPlacement.width eq box.width)
-        assertTrue(quantityPlacement.depth eq box.depth)
+        assertTrue(placement.x eq (fltX(5.0) * Meter))
+        assertTrue(placement.y eq (fltX(6.0) * Meter))
+        assertTrue(placement.z eq (fltX(7.0) * Meter))
+        assertTrue(placement.width eq box.width)
+        assertTrue(placement.depth eq box.depth)
     }
 
     @Test
-    fun modelProjectionShouldAdaptToQuantityProjection() {
-        val box = LegacyBox(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(3.0) * Meter,
-            weight = infraScalar(4.0) * Kilogram
+    fun projectionShouldExpandWithoutAdapter() {
+        val box = Box(
+            width = fltX(1.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(3.0) * Meter,
+            weight = fltX(4.0) * Kilogram
         )
-        val legacyProjection = PileProjection(
+        val projection = PileProjection(
             plane = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
             layer = UInt64(2)
         )
-        val QuantityProjection = legacyProjection.asQuantityProjection()
-        val placements = QuantityProjection.toPlacement3At(
-            QuantityPoint2G(
-                x = infraScalar(0.0) * Meter,
-                y = infraScalar(0.0) * Meter
+        val placements = projection.toPlacement3At(
+            QuantityPoint2(
+                x = fltX(0.0) * Meter,
+                y = fltX(0.0) * Meter
             )
         )
 
         assertEquals(2, placements.size)
-        assertTrue(QuantityProjection.length eq legacyProjection.length)
-        assertTrue(QuantityProjection.width eq legacyProjection.width)
+        assertTrue(projection.length eq (fltX(3.0) * Meter))
+        assertTrue(projection.width eq (fltX(1.0) * Meter))
     }
 
     @Test
-    fun quantityPlacementShouldSupportContainsAndIntersection() {
-        val box = FltXBox(
+    fun placement2ShouldSupportContainsAndIntersection() {
+        val box = Box(
             width = Quantity(FltX(2.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(2.0), Meter),
             weight = Quantity(FltX(1.0), Kilogram)
         )
-        val left = QuantityProjectionPlacement2(
-            projection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom),
-            position = QuantityPoint2G(
+        val left = QuantityPlacement2(
+            projection = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
+            position = QuantityPoint2(
                 x = Quantity(FltX.zero, Meter),
                 y = Quantity(FltX.zero, Meter)
             )
         )
-        val right = QuantityProjectionPlacement2(
-            projection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom),
-            position = QuantityPoint2G(
+        val right = QuantityPlacement2(
+            projection = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
+            position = QuantityPoint2(
                 x = Quantity(FltX(1.0), Meter),
                 y = Quantity(FltX.zero, Meter)
             )
         )
-        val inside = QuantityPoint2G(
+        val inside = QuantityPoint2(
             x = Quantity(FltX(0.5), Meter),
             y = Quantity(FltX(0.5), Meter)
         )
@@ -172,37 +159,37 @@ class QuantityProjectionPlacementCoreProofTest {
     }
 
     @Test
-    fun quantityTopAndBottomPlacementsShouldBeComputable() {
-        val box = FltXBox(
+    fun topAndBottomPlacementsShouldBeComputable() {
+        val box = Box(
             width = Quantity(FltX(2.0), Meter),
             height = Quantity(FltX(1.0), Meter),
             depth = Quantity(FltX(2.0), Meter),
             weight = Quantity(FltX(1.0), Kilogram)
         )
-        val pileProjection = QuantityPileProjection(
-            planeProjection = QuantityPlaneProjection(box.view(Orientation.Upright), Bottom),
+        val pileProjection = PileProjection(
+            plane = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
             layer = UInt64(2)
         )
-        val placements = listOf(
-            QuantityCuboidPlacement3(
-                view = box.view(Orientation.Upright),
-                position = QuantityPoint3G(
+        val placements: List<QuantityPlacement3<*, FltX>> = listOf(
+            QuantityPlacement3(
+                view = box.view(Orientation.Upright)!!,
+                position = QuantityPoint3(
                     x = Quantity(FltX.zero, Meter),
                     y = Quantity(FltX.zero, Meter),
                     z = Quantity(FltX.zero, Meter)
                 )
             ),
-            QuantityCuboidPlacement3(
-                view = box.view(Orientation.Upright),
-                position = QuantityPoint3G(
+            QuantityPlacement3(
+                view = box.view(Orientation.Upright)!!,
+                position = QuantityPoint3(
                     x = Quantity(FltX.zero, Meter),
                     y = Quantity(FltX(0.5), Meter),
                     z = Quantity(FltX.zero, Meter)
                 )
             ),
-            QuantityCuboidPlacement3(
-                view = box.view(Orientation.Upright),
-                position = QuantityPoint3G(
+            QuantityPlacement3(
+                view = box.view(Orientation.Upright)!!,
+                position = QuantityPoint3(
                     x = Quantity(FltX(5.0), Meter),
                     y = Quantity(FltX.zero, Meter),
                     z = Quantity(FltX.zero, Meter)
@@ -224,7 +211,6 @@ class QuantityProjectionPlacementCoreProofTest {
         assertTrue(!bottoms.contains(stackedHigh))
         assertTrue((stackedHigh.y gr stackedLow.y) == true)
         assertTrue((stackedLow.y ls stackedHigh.y) == true)
-        assertEquals(2, pileProjection.toPlacement3At(QuantityPoint2G(Quantity(FltX.zero, Meter), Quantity(FltX.zero, Meter))).size)
+        assertEquals(2, pileProjection.toPlacement3At(QuantityPoint2(Quantity(FltX.zero, Meter), Quantity(FltX.zero, Meter))).size)
     }
 }
-

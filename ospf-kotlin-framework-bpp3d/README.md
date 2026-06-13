@@ -28,7 +28,7 @@ For the current MVP:
 Explicit non-goals and remaining work:
 
 1. Arbitrary 3D cylinder rotation is not a target.
-2. Full shape-polymorphic migration for all legacy cuboid algorithms is still in progress.
+2. Some cuboid-oriented search algorithms are still being migrated to fully shape-polymorphic implementations.
 3. Full solver-native continuous radius optimization is still in progress; the current column-generation model selects concrete generated `BinLayer` columns. Continuous-radius metadata has a solver-variable prototype carried through `ColumnGenerationState`, RMP/final solve info, packing snapshot KPI, and a shared solver registration plan with variable bounds, selected-radius bound validation, and blocked model-registration diagnostics. Interval-only continuous radius variables that qualify for the PWL approximation path are registered into the solver model with continuous `r`, radius bound constraints, and a core `UnivariateLinearPiecewiseFunction` symbol via `model.add(pwlSymbol)`, then expanded by the core mechanism-model lifecycle. They are wired into footprint (via `rMax` conservative envelope), volume (via `PWLRadiusSelectionMetadata.actualVolume`/`pwlVolume`), final MILP selection, and renderer `actualVolume`; other interval-only symbolic radius variables remain unregistered and are reported through the gap contract.
 4. Renderer source code is not part of this repository; this module emits shape metadata consumed by the external renderer, which now supports native X/Y/Z cylinders and `actualVolume` display semantics.
 
@@ -171,13 +171,13 @@ val cylinderItem = ActualItem(
     name = "cyl-1",
     pack = Package.innerPackage(
         shape = PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.2) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.2) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         ),
@@ -187,7 +187,7 @@ val cylinderItem = ActualItem(
     batchNo = BatchNo("B-cyl-1"),
     packageAttribute = packageAttribute,
     shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-        radius = infraScalar(0.5) * Meter,
+        radius = fltX(0.5) * Meter,
         axis = Axis3.Y
     )
 )

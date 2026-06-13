@@ -6,11 +6,11 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Point
@@ -25,14 +25,14 @@ import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 
 private fun infraPoint3(
-    x: InfraNumber = infraZero(),
-    y: InfraNumber = infraZero(),
-    z: InfraNumber = infraZero()
-): Point<Dim3, InfraNumber> {
+    x: FltX = fltXZero(),
+    y: FltX = fltXZero(),
+    z: FltX = fltXZero()
+): Point<Dim3, FltX> {
     return Point(x, y, z)
 }
 
-internal fun fitness(space: Space, block: Block): Quantity<InfraNumber> {
+internal fun fitness(space: Space, block: Block): Quantity<FltX> {
     return when (space.forwardLink?.first ?: Side) {
         is Front -> {
             space.width + space.depth - block.width - block.depth
@@ -52,7 +52,7 @@ internal fun compareWithFitness(
     space: Space,
     lhs: Block,
     rhs: Block,
-    fitness: (Space, Block) -> Quantity<InfraNumber>
+    fitness: (Space, Block) -> Quantity<FltX>
 ): Order {
     val lhsValue = fitness(space, lhs)
     val rhsValue = fitness(space, rhs)
@@ -97,7 +97,7 @@ class DepthFirstSearchAlgorithm(
 
     suspend operator fun invoke(
         items: Map<Item, UInt64>,
-        bins: Map<BinType, UInt64>,
+        bins: Map<BinType<FltX>, UInt64>,
         blockTable: List<Block>
     ): Pair<List<BlockBin>, List<Item>> {
         requireNoCylinderItemsForCuboidSearch(
@@ -117,7 +117,7 @@ class DepthFirstSearchAlgorithm(
                             pack(
                                 promise = promise,
                                 items = restItems,
-                                shape = binType,
+                                shape = binType.asContainer3Shape(),
                                 fixedSpaces = emptyList(),
                                 blockTable = blockTable,
                                 branch = UInt64.one
@@ -155,7 +155,7 @@ class DepthFirstSearchAlgorithm(
                         units = spaces.map { space ->
                             blockPlacement3Of(
                                 view = space.block!!.view()!!,
-                                position = point3(space.position)
+                                position = point3FltX(space.position)
                             )
                         }
                     )
@@ -602,10 +602,8 @@ class DepthFirstSearchAlgorithm(
             mergedSpaces[i] = space1
         }
         return mergedSpaces
-            .filter { it.value.shape.volume neq infraZero() }
+            .filter { it.value.shape.volume neq fltXZero() }
             .sortedWith(compareBy { it.index })
             .map { it.value }
     }
 }
-
-

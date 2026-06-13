@@ -6,13 +6,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemCuboid
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCuboid
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -27,23 +26,22 @@ import org.apache.logging.log4j.kotlin.logger
 
 
 
-private typealias HeightNumber = InfraNumber
 
 data object ItemHeightCombinator {
     private val logger = logger()
-    private val defaultTowSumOffset = HeightNumber(300.0)
-    private val defaultThreeSumOffset = HeightNumber(300.0)
+    private val defaultTowSumOffset = FltX(300.0)
+    private val defaultThreeSumOffset = FltX(300.0)
 
     fun twoSum(
-        height: HeightNumber,
-        heights: List<HeightNumber>,
-        offset: HeightNumber = defaultTowSumOffset
-    ): List<Pair<HeightNumber, HeightNumber>> {
+        height: FltX,
+        heights: List<FltX>,
+        offset: FltX = defaultTowSumOffset
+    ): List<Pair<FltX, FltX>> {
         // todo: use Two Sum algorithm
 
         for (scale in 1..2) {
-            val heightSoft = offset * HeightNumber(scale.toDouble())
-            val map = ArrayList<Pair<HeightNumber, HeightNumber>>()
+            val heightSoft = offset * FltX(scale.toDouble())
+            val map = ArrayList<Pair<FltX, FltX>>()
             for (i in heights.indices) {
                 for (j in (i + 1) until heights.size) {
                     val sum = heights[i] + heights[j]
@@ -60,15 +58,15 @@ data object ItemHeightCombinator {
     }
 
     fun threeSum(
-        height: HeightNumber,
-        heights: List<HeightNumber>,
-        offset: HeightNumber = defaultThreeSumOffset
-    ): List<Triple<HeightNumber, HeightNumber, HeightNumber>> {
+        height: FltX,
+        heights: List<FltX>,
+        offset: FltX = defaultThreeSumOffset
+    ): List<Triple<FltX, FltX, FltX>> {
         // todo: use Three Sum algorithm
 
         for (scale in 1..2) {
-            val heightSoft = offset * HeightNumber(scale.toDouble())
-            val map = ArrayList<Triple<HeightNumber, HeightNumber, HeightNumber>>()
+            val heightSoft = offset * FltX(scale.toDouble())
+            val map = ArrayList<Triple<FltX, FltX, FltX>>()
             for (i in heights.indices) {
                 for (j in i until heights.size) {
                     for (k in j until heights.size) {
@@ -91,11 +89,11 @@ data object ItemHeightCombinator {
     }
 
     suspend fun getItemCombination(
-        itemsGroup: Map<HeightNumber, List<Item>>,
+        itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Pair<HeightNumber, HeightNumber>,
-        restWeight: HeightNumber = infraInfinity(),
-        averageWeight: HeightNumber? = null
+        heights: Pair<FltX, FltX>,
+        restWeight: FltX = fltXInfinity(),
+        averageWeight: FltX? = null
     ): List<Item>? {
         return getItemCombination(
             itemsGroup = itemsGroup,
@@ -108,12 +106,12 @@ data object ItemHeightCombinator {
     }
 
     suspend fun <T> getItemCombination(
-        itemsGroup: Map<HeightNumber, List<T>>,
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Pair<HeightNumber, HeightNumber>,
+        heights: Pair<FltX, FltX>,
         mapper: Extractor<Item, T>,
-        restWeight: HeightNumber = infraInfinity(),
-        averageWeight: HeightNumber? = null
+        restWeight: FltX = fltXInfinity(),
+        averageWeight: FltX? = null
     ): List<Item>? {
         var items: List<Item>? = null
 
@@ -163,11 +161,11 @@ data object ItemHeightCombinator {
     }
 
     suspend fun getItemCombination(
-        itemsGroup: Map<HeightNumber, List<Item>>,
+        itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Triple<HeightNumber, HeightNumber, HeightNumber>,
-        restWeight: HeightNumber = infraInfinity(),
-        averageWeight: HeightNumber? = null
+        heights: Triple<FltX, FltX, FltX>,
+        restWeight: FltX = fltXInfinity(),
+        averageWeight: FltX? = null
     ): List<Item>? {
         return getItemCombination(
             itemsGroup = itemsGroup,
@@ -180,12 +178,12 @@ data object ItemHeightCombinator {
     }
 
     suspend fun <T> getItemCombination(
-        itemsGroup: Map<HeightNumber, List<T>>,
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Triple<HeightNumber, HeightNumber, HeightNumber>,
+        heights: Triple<FltX, FltX, FltX>,
         mapper: (T) -> Item,
-        restWeight: HeightNumber = infraInfinity(),
-        averageWeight: HeightNumber? = null,
+        restWeight: FltX = fltXInfinity(),
+        averageWeight: FltX? = null,
     ): List<Item>? {
         var items: List<Item>? = null
 
@@ -240,7 +238,7 @@ data object ItemHeightCombinator {
                             height = heights.second,
                             mapper = mapper,
                             restWeight = restWeight - mapper(firstItem).weight.value,
-                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) / HeightNumber.two },
+                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) / FltX.two },
                             scope = this
                         )) {
                             val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.value.toDouble() }
@@ -313,12 +311,12 @@ data object ItemHeightCombinator {
     }
 
         private fun <T> getItem(
-        itemsGroup: Map<HeightNumber, List<T>>,
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        height: HeightNumber,
+        height: FltX,
         mapper: (T) -> Item,
-        restWeight: HeightNumber = infraInfinity(),
-        averageWeight: HeightNumber? = null,
+        restWeight: FltX = fltXInfinity(),
+        averageWeight: FltX? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
         val promise = Channel<T>(Channel.UNLIMITED)
@@ -353,12 +351,12 @@ data object ItemHeightCombinator {
     }
 
         private fun <T> getItem2(
-        itemsGroup: Map<HeightNumber, List<T>>,
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        height: HeightNumber,
+        height: FltX,
         mapper: (T) -> Item,
-        restWeight: HeightNumber = infraInfinity(),
-        averageWeight: HeightNumber? = null,
+        restWeight: FltX = fltXInfinity(),
+        averageWeight: FltX? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {
         val promise = Channel<Pair<T, T>>(Channel.UNLIMITED)
@@ -400,6 +398,3 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 }
-
-
-

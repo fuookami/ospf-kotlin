@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
@@ -24,6 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.DemandShadowPriceKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerationRequest
@@ -36,9 +38,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -69,13 +70,13 @@ class MaterialPackingApplicationIntegrationTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
-    private fun material(no: String, unitWeightKg: InfraNumber): Material<InfraNumber> {
+    private fun material(no: String, unitWeightKg: FltX): Material<FltX> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -87,18 +88,18 @@ class MaterialPackingApplicationIntegrationTest {
 
     private fun candidate(
         id: String,
-        material: Material<InfraNumber>,
+        material: Material<FltX>,
         amountPerPackage: UInt64
-    ): MaterialPackingProgramCandidate<InfraNumber> {
+    ): MaterialPackingProgramCandidate<FltX> {
         return MaterialPackingProgramCandidate(
             id = id,
             itemName = id,
             program = PackingProgram.innerPackage(
                 shape = PackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(1.0) * Kilogram,
+                    width = fltX(1.0) * Meter,
+                    height = fltX(1.0) * Meter,
+                    depth = fltX(1.0) * Meter,
+                    weight = fltX(1.0) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material.key to amountPerPackage)
@@ -106,13 +107,13 @@ class MaterialPackingApplicationIntegrationTest {
         )
     }
 
-    private fun seedItem(id: String, material: Material<InfraNumber>): ActualItem {
+    private fun seedItem(id: String, material: Material<FltX>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = infraScalar(1.0) * Meter,
-                height = infraScalar(1.0) * Meter,
-                depth = infraScalar(1.0) * Meter,
-                weight = infraScalar(1.0) * Kilogram,
+                width = fltX(1.0) * Meter,
+                height = fltX(1.0) * Meter,
+                depth = fltX(1.0) * Meter,
+                weight = fltX(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -132,10 +133,10 @@ class MaterialPackingApplicationIntegrationTest {
         binDepthMeter: Double = 3.0
     ): BinLayer {
         val binType = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(binDepthMeter) * Meter,
-            capacity = infraScalar(100.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(binDepthMeter) * Meter,
+            capacity = fltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-SEED"
@@ -144,7 +145,7 @@ class MaterialPackingApplicationIntegrationTest {
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
             from = MaterialPackingApplicationIntegrationTest::class,
             bin = binType,
-            shape = Container3Shape(binType),
+            shape = Container3Shape(binType.asContainer3Shape()),
             units = listOf(
                 item.toItemPlacement()
             )
@@ -211,7 +212,7 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun materialAmountOnlyShouldBePackedThenEnterCgFlow() = runBlocking {
-        val material = material("M-A1", InfraNumber.one)
+        val material = material("M-A1", FltX.one)
         val seed = seedItem("seed-a1", material)
         val layer = seedLayer(seed)
         val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(3.0)))
@@ -224,8 +225,8 @@ class MaterialPackingApplicationIntegrationTest {
                 initialColumns = listOf(layer),
                 finalBins = listOf(finalBinOf(layer)),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -243,7 +244,7 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun materialWeightOnlyShouldBePackedThenEnterCgFlow() = runBlocking {
-        val material = material("M-W1", InfraNumber(2.0))
+        val material = material("M-W1", FltX(2.0))
         val seed = seedItem("seed-w1", material)
         val layer = seedLayer(seed)
         val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(3.0)))
@@ -251,13 +252,13 @@ class MaterialPackingApplicationIntegrationTest {
         val response = service.solve(
             request = ColumnGenerationApplicationRequest(
                 itemDemands = emptyList(),
-                materialWeightDemands = listOf(Pair(material, infraScalar(5.0) * Kilogram)),
+                materialWeightDemands = listOf(Pair(material, fltX(5.0) * Kilogram)),
                 materialPackingCandidates = listOf(candidate("pack-w1", material, UInt64.one)),
                 initialColumns = listOf(layer),
                 finalBins = listOf(finalBinOf(layer)),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -275,7 +276,7 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun materialPackingSummaryShouldMatchFinalPackingAnalyzerSummary() = runBlocking {
-        val material = material("M-S1", InfraNumber.one)
+        val material = material("M-S1", FltX.one)
         val seed = seedItem("seed-s1", material)
         val layer = seedLayer(seed, binDepthMeter = 4.0)
         val service = ColumnGenerationApplicationService(FixedValueSolver(milpValue = Flt64(4.0)))
@@ -288,8 +289,8 @@ class MaterialPackingApplicationIntegrationTest {
                 initialColumns = listOf(layer),
                 finalBins = listOf(finalBinOf(layer)),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -310,15 +311,15 @@ class MaterialPackingApplicationIntegrationTest {
 
     @Test
     fun layerGenerationProgramDemandShouldWorkWithoutMaterialPacker() = runBlocking {
-        val material = material("M-PROGRAM-DIRECT", InfraNumber(2.0))
+        val material = material("M-PROGRAM-DIRECT", FltX(2.0))
         val candidate = MaterialPackingProgramCandidate(
             id = "program-direct",
             program = PackingProgram.innerPackageWithMaterialValues(
                 shape = PackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(1.0) * Kilogram,
+                    width = fltX(1.0) * Meter,
+                    height = fltX(1.0) * Meter,
+                    depth = fltX(1.0) * Meter,
+                    weight = fltX(1.0) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(
@@ -344,8 +345,8 @@ class MaterialPackingApplicationIntegrationTest {
                 initialColumns = listOf(layer),
                 finalBins = listOf(finalBinOf(layer)),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }

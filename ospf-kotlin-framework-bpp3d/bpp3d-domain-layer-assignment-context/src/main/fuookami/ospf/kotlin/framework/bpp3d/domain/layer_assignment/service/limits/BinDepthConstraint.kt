@@ -4,13 +4,13 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Bpp3dSolverValueAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.DefaultBpp3dSolverValueAdapter
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentOne
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.layerAssignmentZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -42,14 +42,14 @@ class BinDepthConstraint(
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
      */
-    fun invoke(model: MetaModel<InfraNumber>): Try {
-        val linearModel = model as AbstractLinearMetaModel<InfraNumber>
+    fun invoke(model: MetaModel<FltX>): Try {
+        val linearModel = model as AbstractLinearMetaModel<FltX>
         for ((i, bin) in bins.withIndex()) {
             val lhs = LinearPolynomial(
                 monomials = listOf(LinearMonomial(layerAssignmentOne(), capacity.loadDepth[i])),
                 constant = layerAssignmentZero()
             )
-            val rhs = LinearPolynomial<InfraNumber>(emptyList(), solverValueAdapter.depthToSolver(bin.depth))
+            val rhs = LinearPolynomial<FltX>(emptyList(), solverValueAdapter.depthToSolver(bin.depth))
             when (val result = linearModel.addConstraint(
                 relation = LinearInequality(lhs, rhs, Comparison.LE),
                 name = "${name}_${i}"

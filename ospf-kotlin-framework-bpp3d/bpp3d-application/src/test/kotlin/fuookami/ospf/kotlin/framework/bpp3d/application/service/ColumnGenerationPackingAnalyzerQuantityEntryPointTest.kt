@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
@@ -46,8 +46,8 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(infraScalar(0.0)),
-            hangingPolicy = AbsoluteHangingPolicy(infraScalar(0.0)),
+            deformationAttribute = LinearDeformationAttribute(fltX(0.0)),
+            hangingPolicy = AbsoluteHangingPolicy(fltX(0.0)),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -95,10 +95,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             )
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ANALYZER-GENERIC"
@@ -139,10 +139,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
     fun layerPlacementAdapterShouldAcceptGeneratedHorizontalCylinderCandidate() = runBlocking {
         val item = horizontalCylinderLayer(Axis3.X).units.single().item.toModel()
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-X"
@@ -218,10 +218,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-STACK"
@@ -297,10 +297,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-STACK"
@@ -382,10 +382,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-HANGING-$axis"
@@ -484,10 +484,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-HETEROGENEOUS-STACK"
@@ -538,10 +538,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = horizontalCylinderLayer(Axis3.Z)
         val modelLayer = layer.toModel()
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ANALYZER-CYLINDER-Z"
@@ -641,10 +641,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = horizontalCylinderLayer(Axis3.Z)
         val modelLayer = layer.toModel()
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(20.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-ANALYZER-CYLINDER-Z-POLICY"

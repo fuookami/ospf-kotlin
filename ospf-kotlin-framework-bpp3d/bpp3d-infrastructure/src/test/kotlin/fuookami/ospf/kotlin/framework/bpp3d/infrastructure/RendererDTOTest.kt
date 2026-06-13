@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 
 class RendererDTOTest {
     @Test
-    fun cuboidItemDtoShouldRoundTripWithBackwardCompatibleDefaults() {
+    fun cuboidItemDtoShouldRoundTripWithDefaultFields() {
         val item = RenderLoadingPlanItemDTO(
             name = "cuboid-1",
             packageType = "CartonContainer",

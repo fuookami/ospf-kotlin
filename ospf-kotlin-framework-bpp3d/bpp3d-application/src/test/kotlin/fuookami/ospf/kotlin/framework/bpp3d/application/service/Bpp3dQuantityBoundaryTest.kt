@@ -24,27 +24,24 @@ class Bpp3dQuantityBoundaryTest {
         return normalized.contains("/src/main/") && path.name.endsWith(".kt")
     }
 
-    private fun isLegacyQuantityAllowed(path: Path): Boolean {
-        val normalized = path.pathString.replace('\\', '/')
-        return normalized.contains("/api/compat/")
-                || normalized.contains("/model/compat/")
-                || normalized.contains("/legacy/")
-                || normalized.contains("/compat/")
-    }
-
     @Test
-    fun legacyQuantityShouldStayInsideCompatibilityBoundary() {
+    fun migrationQuantityNamesShouldNotReturn() {
         val root = bpp3dRoot()
+        val forbiddenTokens = listOf(
+            "Leg" + "acy" + "Quantity",
+            "Infra" + "Number",
+            "Infra" + "Quantity",
+            "infra" + "Scalar"
+        )
         val violations = Files.walk(root).use { stream ->
             stream
                 .filter { Files.isRegularFile(it) }
                 .filter { isMainKotlin(it) }
-                .filter { !isLegacyQuantityAllowed(it) }
                 .flatMap { path ->
                     Files
                         .readAllLines(path)
                         .mapIndexedNotNull { index, line ->
-                            if (line.contains("LegacyQuantity")) {
+                            if (forbiddenTokens.any { token -> line.contains(token) }) {
                                 "${root.relativize(path)}:${index + 1}:$line"
                             } else {
                                 null
@@ -59,7 +56,7 @@ class Bpp3dQuantityBoundaryTest {
             actual = violations.isEmpty(),
             message = violations.joinToString(
                 separator = System.lineSeparator(),
-                prefix = "LegacyQuantity leaked outside compatibility boundary:${System.lineSeparator()}"
+                prefix = "Migration quantity names returned:${System.lineSeparator()}"
             )
         )
     }

@@ -6,13 +6,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.Eq
@@ -25,7 +24,7 @@ import kotlinx.coroutines.*
 
 
 
-sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, Eq<ItemContainer<S>> {
+sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, FltX>, ItemMergeUnit, Eq<ItemContainer<S>> {
     val items: List<ItemPlacement3> get() = dump()
 
     val packageType: PackageType
@@ -39,24 +38,24 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
     val packageCategory get() = packageType.category
 
     val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }
-    val bottomOnlyHeight: Quantity<InfraNumber>
+    val bottomOnlyHeight: Quantity<FltX>
         get() = items.maxOfOrNull { item ->
             if (item.bottomOnly) {
                 item.maxY
             } else {
-                shape.height * infraZero()
+                shape.height * fltXZero()
             }
-        } ?: (shape.height * infraZero())
+        } ?: (shape.height * fltXZero())
 
     val topFlat: Boolean get() = topPlacements(units).all { (it.view as ItemView).topFlat }
 
     // inherit from CuboidUnit<Block>
     override val enabledOrientations: List<Orientation> get() = listOf(Orientation.Upright)
 
-    fun dump(offset: QuantityPoint3 = point3()) = units.dump(offset)
-    fun dumpAbsolutely(offset: QuantityPoint3 = point3()) = units.dumpAbsolutely(offset)
+    fun dump(offset: QuantityPoint3<FltX> = point3FltX()) = units.dump(offset)
+    fun dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()) = units.dumpAbsolutely(offset)
 
-    override fun view(orientation: Orientation): CuboidView<S>? = CuboidView(copy(), orientation)
+    override fun view(orientation: Orientation): CuboidView<S, FltX>? = CuboidView(copy(), orientation)
 
     override fun partialEq(rhs: ItemContainer<S>): Boolean {
         if (shape neq rhs.shape) {
@@ -78,13 +77,13 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
 }
 
 /** 货物容器二维放置别名，用于容器结构性兼容边界。Item-container 2D placement alias for container structural compatibility boundaries. */
-typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, P>
+typealias ItemContainerPlacement2<S, P> = QuantityPlacement2<S, FltX, P>
 /** 货物容器侧视二维放置别名，用于容器堆叠检查边界。Item-container side-plane 2D placement alias for container stacking check boundaries. */
 typealias ItemContainerSidePlacement2<S> = ItemContainerPlacement2<S, Side>
 /** 货物容器前视二维放置别名，用于容器堆叠检查边界。Item-container front-plane 2D placement alias for container stacking check boundaries. */
 typealias ItemContainerFrontPlacement2<S> = ItemContainerPlacement2<S, Front>
 /** 货物容器三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Item-container 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias ItemContainerPlacement3<S> = QuantityPlacement3<S>
+typealias ItemContainerPlacement3<S> = QuantityPlacement3<S, FltX>
 
 @get:JvmName("itemContainerPlacementPackageType")
 val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageType: PackageType
@@ -98,12 +97,12 @@ val <S : ItemContainer<S>> ItemContainerPlacement3<S>.packageCategory: PackageCa
         return unit.packageCategory
     }
 
-fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dump(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
-    return unit.dump(position + QuantityVector3(offset.x, offset.y, offset.z))
+fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+    return unit.dump(position + QuantityVector3<FltX>(offset.x, offset.y, offset.z))
 }
 
-fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dumpAbsolutely(offset: QuantityPoint3 = point3()): List<ItemPlacement3> {
-    return unit.dump(absolutePosition + QuantityVector3(offset.x, offset.y, offset.z))
+fun <S : ItemContainer<S>> ItemContainerPlacement3<S>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<ItemPlacement3> {
+    return unit.dump(absolutePosition + QuantityVector3<FltX>(offset.x, offset.y, offset.z))
 }
 @JvmName("itemContainerPlacement2SideEnabledStackingOn")
 suspend fun <S : ItemContainer<S>> ItemContainerSidePlacement2<S>.enabledStackingOn(
@@ -117,9 +116,14 @@ suspend fun <S : ItemContainer<S>> ItemContainerSidePlacement2<S>.enabledStackin
             for (item in bottomPlacements(toPlacement3().dump())) {
                 promises.add(async(Dispatchers.Default) {
                     val itemPlacement = item.toItemPlacementOrNull() ?: return@async false
+                    val restSpace = Container3Shape(space).restSpace(itemPlacement.position)
                     itemPlacement.enabledStackingOn(
                         bottomItems = bottomPlacements,
-                        space = Container3Shape(space).restSpace(itemPlacement.position)
+                        space = Container3Shape(
+                            width = restSpace.width,
+                            height = restSpace.height,
+                            depth = restSpace.depth
+                        )
                     )
                 })
             }
@@ -146,9 +150,14 @@ suspend fun <S : ItemContainer<S>> ItemContainerFrontPlacement2<S>.enabledStacki
             for (item in bottomPlacements(toPlacement3().dump())) {
                 promises.add(async(Dispatchers.Default) {
                     val itemPlacement = item.toItemPlacementOrNull() ?: return@async false
+                    val restSpace = Container3Shape(space).restSpace(itemPlacement.position)
                     itemPlacement.enabledStackingOn(
                         bottomItems = bottomPlacements,
-                        space = Container3Shape(space).restSpace(itemPlacement.position)
+                        space = Container3Shape(
+                            width = restSpace.width,
+                            height = restSpace.height,
+                            depth = restSpace.depth
+                        )
                     )
                 })
             }

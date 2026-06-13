@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -14,11 +14,11 @@ import kotlin.test.assertTrue
 
 class OrientationTest {
     private data class StubCuboid(
-        override val width: InfraQuantity,
-        override val height: InfraQuantity,
-        override val depth: InfraQuantity,
-        override val weight: InfraQuantity
-    ) : AbstractCuboid<InfraNumber>
+        override val width: Quantity<FltX>,
+        override val height: Quantity<FltX>,
+        override val depth: Quantity<FltX>,
+        override val weight: Quantity<FltX>
+    ) : AbstractCuboid<FltX>
 
     private data class StubCuboidX(
         override val width: Quantity<FltX>,
@@ -28,10 +28,10 @@ class OrientationTest {
     ) : AbstractCuboid<FltX>
 
     private val unit = StubCuboid(
-        width = infraScalar(2.0) * Meter,
-        height = infraScalar(2.0) * Meter,
-        depth = infraScalar(3.0) * Meter,
-        weight = infraScalar(5.0) * Kilogram
+        width = fltX(2.0) * Meter,
+        height = fltX(2.0) * Meter,
+        depth = fltX(3.0) * Meter,
+        weight = fltX(5.0) * Kilogram
     )
 
     @Test
@@ -51,29 +51,29 @@ class OrientationTest {
 
     @Test
     fun eachOrientationShouldMapDimensionsCorrectly() {
-        assertTrue(Orientation.Upright.width(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.Upright.height(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.Upright.depth(unit) eq (infraScalar(3.0) * Meter))
+        assertTrue(Orientation.Upright.width(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.Upright.height(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.Upright.depth(unit) eq (fltX(3.0) * Meter))
 
-        assertTrue(Orientation.UprightRotated.width(unit) eq (infraScalar(3.0) * Meter))
-        assertTrue(Orientation.UprightRotated.height(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.UprightRotated.depth(unit) eq (infraScalar(2.0) * Meter))
+        assertTrue(Orientation.UprightRotated.width(unit) eq (fltX(3.0) * Meter))
+        assertTrue(Orientation.UprightRotated.height(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.UprightRotated.depth(unit) eq (fltX(2.0) * Meter))
 
-        assertTrue(Orientation.Side.width(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.Side.height(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.Side.depth(unit) eq (infraScalar(3.0) * Meter))
+        assertTrue(Orientation.Side.width(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.Side.height(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.Side.depth(unit) eq (fltX(3.0) * Meter))
 
-        assertTrue(Orientation.SideRotated.width(unit) eq (infraScalar(3.0) * Meter))
-        assertTrue(Orientation.SideRotated.height(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.SideRotated.depth(unit) eq (infraScalar(2.0) * Meter))
+        assertTrue(Orientation.SideRotated.width(unit) eq (fltX(3.0) * Meter))
+        assertTrue(Orientation.SideRotated.height(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.SideRotated.depth(unit) eq (fltX(2.0) * Meter))
 
-        assertTrue(Orientation.Lie.width(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.Lie.height(unit) eq (infraScalar(3.0) * Meter))
-        assertTrue(Orientation.Lie.depth(unit) eq (infraScalar(2.0) * Meter))
+        assertTrue(Orientation.Lie.width(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.Lie.height(unit) eq (fltX(3.0) * Meter))
+        assertTrue(Orientation.Lie.depth(unit) eq (fltX(2.0) * Meter))
 
-        assertTrue(Orientation.LieRotated.width(unit) eq (infraScalar(2.0) * Meter))
-        assertTrue(Orientation.LieRotated.height(unit) eq (infraScalar(3.0) * Meter))
-        assertTrue(Orientation.LieRotated.depth(unit) eq (infraScalar(2.0) * Meter))
+        assertTrue(Orientation.LieRotated.width(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.LieRotated.height(unit) eq (fltX(3.0) * Meter))
+        assertTrue(Orientation.LieRotated.depth(unit) eq (fltX(2.0) * Meter))
     }
 
     @Test
@@ -90,7 +90,7 @@ class OrientationTest {
     }
 
     @Test
-    fun serializerShouldRoundTripLegacyLabels() {
+    fun serializerShouldRoundTripStableLabels() {
         for (orientation in Orientation.entries) {
             val encoded = Json.encodeToString(OrientationSerializer, orientation)
             assertEquals("\"${orientation.label}\"", encoded)

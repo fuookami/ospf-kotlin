@@ -1,7 +1,8 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
-import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2
+import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2 as GeometryRectangle2
 import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -12,16 +13,16 @@ class ProjectivePlaneGeometryBridgeTest {
     @Test
     fun bottomPlaneRoundTripShouldKeepPoint() {
         val point3 = QuantityPoint3(
-            x = infraScalar(2.0) * Meter,
-            y = infraScalar(5.0) * Meter,
-            z = infraScalar(7.0) * Meter
+            x = fltX(2.0) * Meter,
+            y = fltX(5.0) * Meter,
+            z = fltX(7.0) * Meter
         )
 
         val point2 = Bottom.point2(point3)
         val recovered = Bottom.point3(point2, Bottom.distance(point3))
 
-        assertTrue(point2.x eq (infraScalar(7.0) * Meter))
-        assertTrue(point2.y eq (infraScalar(2.0) * Meter))
+        assertTrue(point2.x eq (fltX(7.0) * Meter))
+        assertTrue(point2.y eq (fltX(2.0) * Meter))
         assertTrue(recovered.x eq point3.x)
         assertTrue(recovered.y eq point3.y)
         assertTrue(recovered.z eq point3.z)
@@ -30,9 +31,9 @@ class ProjectivePlaneGeometryBridgeTest {
     @Test
     fun sideAndFrontPlaneRoundTripShouldKeepPoint() {
         val point3 = QuantityPoint3(
-            x = infraScalar(2.0) * Meter,
-            y = infraScalar(5.0) * Meter,
-            z = infraScalar(7.0) * Meter
+            x = fltX(2.0) * Meter,
+            y = fltX(5.0) * Meter,
+            z = fltX(7.0) * Meter
         )
 
         val sideRecovered = Side.point3(Side.point2(point3), Side.distance(point3))
@@ -48,22 +49,22 @@ class ProjectivePlaneGeometryBridgeTest {
 
     @Test
     fun footprintByGeometryShouldMatchPlaneAxes() {
-        val cuboid: QuantityCuboid3<InfraNumber> = QuantityCuboid3(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(4.0) * Meter
+        val cuboid: QuantityCuboid3<FltX> = QuantityCuboid3(
+            width = fltX(2.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(4.0) * Meter
         )
 
-        val bottomShape: QuantityRectangle2<InfraNumber> = Bottom.footprintByGeometry(cuboid)
-        val sideShape: QuantityRectangle2<InfraNumber> = Side.footprintByGeometry(cuboid)
-        val frontShape: QuantityRectangle2<InfraNumber> = Front.footprintByGeometry(cuboid)
+        val bottomShape: GeometryRectangle2<FltX> = Bottom.footprintByGeometry(cuboid)
+        val sideShape: GeometryRectangle2<FltX> = Side.footprintByGeometry(cuboid)
+        val frontShape: GeometryRectangle2<FltX> = Front.footprintByGeometry(cuboid)
 
-        assertTrue(bottomShape.width eq (infraScalar(4.0) * Meter))
-        assertTrue(bottomShape.height eq (infraScalar(2.0) * Meter))
-        assertTrue(sideShape.width eq (infraScalar(2.0) * Meter))
-        assertTrue(sideShape.height eq (infraScalar(3.0) * Meter))
-        assertTrue(frontShape.width eq (infraScalar(3.0) * Meter))
-        assertTrue(frontShape.height eq (infraScalar(4.0) * Meter))
+        assertTrue(bottomShape.width eq (fltX(4.0) * Meter))
+        assertTrue(bottomShape.height eq (fltX(2.0) * Meter))
+        assertTrue(sideShape.width eq (fltX(2.0) * Meter))
+        assertTrue(sideShape.height eq (fltX(3.0) * Meter))
+        assertTrue(frontShape.width eq (fltX(3.0) * Meter))
+        assertTrue(frontShape.height eq (fltX(4.0) * Meter))
     }
 }
 

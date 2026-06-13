@@ -6,10 +6,11 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerPlacement
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayerView
@@ -28,7 +29,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackin
  * 统一创建 BinLayer 的放置对象。
  * Create BinLayer placement via a unified adapter.
  */
-internal fun BinLayer.toLayerPlacement(z: Quantity<InfraNumber>? = null): BinLayerPlacement {
+internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): BinLayerPlacement {
     ensureGeneratedCylinderCandidatePath(
         layer = this
     )
@@ -42,11 +43,11 @@ internal fun BinLayer.toLayerPlacement(z: Quantity<InfraNumber>? = null): BinLay
  * @param z 层深度坐标 / layer depth coordinate
  * @return 层放置 / layer placement
  */
-internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<InfraNumber>? = null): BinLayerPlacement {
+internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null): BinLayerPlacement {
     val position = if (z == null) {
-        point3()
+        point3FltX()
     } else {
-        point3(z = z)
+        point3FltX(z = z.value, unit = z.unit)
     }
     return binLayerPlacementOf(
         view = BinLayerView(copy()),
@@ -58,9 +59,9 @@ internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<InfraNumber>? 
  * 统一创建空层箱体，避免业务处散落 QuantityPlacement3 构造。
  * Build a bin with one placed layer via adapter.
  */
-internal fun LayerBin.withPlacedLayer(layer: BinLayer, z: Quantity<InfraNumber>? = null): LayerBin {
+internal fun LayerBin.withPlacedLayer(layer: BinLayer, z: Quantity<FltX>? = null): LayerBin {
     return layerBinOf(
-        shape = shape,
+        shape = type,
         units = listOf(layer.toLayerPlacement(z)),
         batchNo = batchNo
     )
@@ -71,12 +72,12 @@ internal fun LayerBin.withPlacedLayer(layer: BinLayer, z: Quantity<InfraNumber>?
  * Create item placement via a unified adapter for fixtures.
  */
 internal fun Item.toItemPlacement(
-    x: Quantity<InfraNumber>? = null,
-    y: Quantity<InfraNumber>? = null,
-    z: Quantity<InfraNumber>? = null,
+    x: Quantity<FltX>? = null,
+    y: Quantity<FltX>? = null,
+    z: Quantity<FltX>? = null,
     orientation: Orientation = Orientation.Upright
 ): ItemPlacement3 {
-    val origin = point3()
+    val origin = point3FltX()
     val position = point3(
         x = x ?: origin.x,
         y = y ?: origin.y,

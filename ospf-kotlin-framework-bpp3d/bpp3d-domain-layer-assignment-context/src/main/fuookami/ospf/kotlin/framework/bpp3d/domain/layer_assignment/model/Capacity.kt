@@ -4,7 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
-private val flt64Converter: IntoValue<InfraNumber> = IntoValue.fromConverter(InfraNumber)
+private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
 
 /**
  * 容量接口，提供装载重量、体积、深度及装载率的符号表达。
@@ -29,16 +29,16 @@ private val flt64Converter: IntoValue<InfraNumber> = IntoValue.fromConverter(Inf
  */
 interface Capacity {
     /** 装载重量符号 / load weight symbols */
-    val loadWeight: LinearIntermediateSymbols1<InfraNumber>
+    val loadWeight: LinearIntermediateSymbols1<FltX>
     /** 装载体积符号 / load volume symbols */
-    val loadVolume: LinearIntermediateSymbols1<InfraNumber>
+    val loadVolume: LinearIntermediateSymbols1<FltX>
     /** 装载深度符号 / load depth symbols */
-    val loadDepth: LinearIntermediateSymbols1<InfraNumber>
+    val loadDepth: LinearIntermediateSymbols1<FltX>
 
     /** 装载率符号 / loading rate symbols */
-    val loadingRate: LinearIntermediateSymbols1<InfraNumber>
+    val loadingRate: LinearIntermediateSymbols1<FltX>
     /** 尾箱装载率符号 / tail loading rate symbols */
-    val tailLoadingRate: LinearIntermediateSymbols1<InfraNumber>
+    val tailLoadingRate: LinearIntermediateSymbols1<FltX>
 }
 
 /**
@@ -56,12 +56,12 @@ class PreciseLoadCapacity(
     private val assignment: PreciseAssignment,
     private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ) : Capacity {
-    override lateinit var loadWeight: LinearIntermediateSymbols1<InfraNumber>
-    override lateinit var loadVolume: LinearIntermediateSymbols1<InfraNumber>
-    override lateinit var loadDepth: LinearIntermediateSymbols1<InfraNumber>
+    override lateinit var loadWeight: LinearIntermediateSymbols1<FltX>
+    override lateinit var loadVolume: LinearIntermediateSymbols1<FltX>
+    override lateinit var loadDepth: LinearIntermediateSymbols1<FltX>
 
-    override lateinit var loadingRate: LinearIntermediateSymbols1<InfraNumber>
-    override lateinit var tailLoadingRate: LinearIntermediateSymbols1<InfraNumber>
+    override lateinit var loadingRate: LinearIntermediateSymbols1<FltX>
+    override lateinit var tailLoadingRate: LinearIntermediateSymbols1<FltX>
 
     /**
      * 注册容量符号到模型。
@@ -70,15 +70,15 @@ class PreciseLoadCapacity(
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
      */
-    fun register(model: MetaModel<InfraNumber>): Try {
+    fun register(model: MetaModel<FltX>): Try {
         if (!::loadWeight.isInitialized) {
-            loadWeight = LinearIntermediateSymbols1<InfraNumber>(
+            loadWeight = LinearIntermediateSymbols1<FltX>(
                 name = "load_weight",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.weightToSolver(layer.weight), assignment.x[i, j])), InfraNumber.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.weightToSolver(layer.weight), assignment.x[i, j])), FltX.zero)
                     }),
                     name = "load_weight_${i}"
                 )
@@ -97,13 +97,13 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadVolume.isInitialized) {
-            loadVolume = LinearIntermediateSymbols1<InfraNumber>(
+            loadVolume = LinearIntermediateSymbols1<FltX>(
                 name = "load_volume",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), InfraNumber.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), FltX.zero)
                     }),
                     name = "load_volume_${i}"
                 )
@@ -122,13 +122,13 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadDepth.isInitialized) {
-            loadDepth = LinearIntermediateSymbols1<InfraNumber>(
+            loadDepth = LinearIntermediateSymbols1<FltX>(
                 name = "load_depth",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.depthToSolver(layer.depth), assignment.x[i, j])), InfraNumber.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.depthToSolver(layer.depth), assignment.x[i, j])), FltX.zero)
                     }),
                     name = "load_depth_${i}"
                 )
@@ -147,13 +147,13 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadingRate.isInitialized) {
-            loadingRate = LinearIntermediateSymbols1<InfraNumber>(
+            loadingRate = LinearIntermediateSymbols1<FltX>(
                 name = "loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), InfraNumber.zero)
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), FltX.zero)
                     }) / solverValueAdapter.volumeToSolver(bins[i].volume),
                     name = "loading_rate_${i}"
                 )
@@ -172,7 +172,7 @@ class PreciseLoadCapacity(
         }
 
         if (!::tailLoadingRate.isInitialized) {
-            tailLoadingRate = LinearIntermediateSymbols1<InfraNumber>(
+            tailLoadingRate = LinearIntermediateSymbols1<FltX>(
                 name = "tail_loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->

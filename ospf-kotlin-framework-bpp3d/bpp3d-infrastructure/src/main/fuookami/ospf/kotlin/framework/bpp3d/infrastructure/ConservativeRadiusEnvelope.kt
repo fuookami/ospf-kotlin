@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 
 /**
@@ -17,8 +18,8 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
  * @property rMax 半径上界（envelope 半径）/ radius upper bound (envelope radius)
  */
 data class ConservativeRadiusEnvelope(
-    val rMin: InfraNumber,
-    val rMax: InfraNumber
+    val rMin: FltX,
+    val rMax: FltX
 ) {
     init {
         require(rMin.toDouble() > 0.0) { "rMin must be positive" }
@@ -26,16 +27,16 @@ data class ConservativeRadiusEnvelope(
     }
 
     /** envelope 半径（保守使用 rMax）/ envelope radius (conservatively rMax) */
-    val envelopeRadius: InfraNumber get() = rMax
+    val envelopeRadius: FltX get() = rMax
 
     /** envelope 直径（保守使用 2*rMax）/ envelope diameter (conservatively 2*rMax) */
-    val envelopeDiameter: InfraNumber get() = rMax * InfraNumber(2.0)
+    val envelopeDiameter: FltX get() = rMax * FltX(2.0)
 
     /**
      * 保守 footprint 宽度。
      * Conservative footprint width.
      */
-    fun footprintWidth(axis: Axis3, cylinderHeight: InfraNumber): InfraNumber {
+    fun footprintWidth(axis: Axis3, cylinderHeight: FltX): FltX {
         return when (axis) {
             Axis3.X -> cylinderHeight
             Axis3.Y, Axis3.Z -> envelopeDiameter
@@ -46,7 +47,7 @@ data class ConservativeRadiusEnvelope(
      * 保守 footprint 深度。
      * Conservative footprint depth.
      */
-    fun footprintDepth(axis: Axis3, cylinderHeight: InfraNumber): InfraNumber {
+    fun footprintDepth(axis: Axis3, cylinderHeight: FltX): FltX {
         return when (axis) {
             Axis3.Z -> cylinderHeight
             Axis3.X, Axis3.Y -> envelopeDiameter
@@ -57,7 +58,7 @@ data class ConservativeRadiusEnvelope(
      * 保守 bounding 宽度。
      * Conservative bounding width.
      */
-    fun boundingWidth(axis: Axis3, cylinderHeight: InfraNumber): InfraNumber {
+    fun boundingWidth(axis: Axis3, cylinderHeight: FltX): FltX {
         return footprintWidth(axis, cylinderHeight)
     }
 
@@ -65,7 +66,7 @@ data class ConservativeRadiusEnvelope(
      * 保守 bounding 高度。
      * Conservative bounding height.
      */
-    fun boundingHeight(axis: Axis3, cylinderHeight: InfraNumber): InfraNumber {
+    fun boundingHeight(axis: Axis3, cylinderHeight: FltX): FltX {
         return when (axis) {
             Axis3.X, Axis3.Z -> envelopeDiameter
             Axis3.Y -> cylinderHeight
@@ -76,7 +77,7 @@ data class ConservativeRadiusEnvelope(
      * 保守 bounding 深度。
      * Conservative bounding depth.
      */
-    fun boundingDepth(axis: Axis3, cylinderHeight: InfraNumber): InfraNumber {
+    fun boundingDepth(axis: Axis3, cylinderHeight: FltX): FltX {
         return footprintDepth(axis, cylinderHeight)
     }
 
@@ -84,22 +85,22 @@ data class ConservativeRadiusEnvelope(
      * 保守支撑覆盖半径。
      * Conservative support coverage radius.
      */
-    fun supportCoverageRadius(): InfraNumber = rMax
+    fun supportCoverageRadius(): FltX = rMax
 
     /**
      * 保守碰撞边界。
      * Conservative collision margin.
      */
-    fun collisionMargin(): InfraNumber = envelopeDiameter
+    fun collisionMargin(): FltX = envelopeDiameter
 
     /**
      * 使用真实半径计算真实 footprint 宽度。
      * Compute real footprint width using actual radius.
      */
-    fun realFootprintWidth(axis: Axis3, cylinderHeight: InfraNumber, actualRadius: InfraNumber): InfraNumber {
+    fun realFootprintWidth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
         return when (axis) {
             Axis3.X -> cylinderHeight
-            Axis3.Y, Axis3.Z -> actualRadius * InfraNumber(2.0)
+            Axis3.Y, Axis3.Z -> actualRadius * FltX(2.0)
         }
     }
 
@@ -107,10 +108,10 @@ data class ConservativeRadiusEnvelope(
      * 使用真实半径计算真实 footprint 深度。
      * Compute real footprint depth using actual radius.
      */
-    fun realFootprintDepth(axis: Axis3, cylinderHeight: InfraNumber, actualRadius: InfraNumber): InfraNumber {
+    fun realFootprintDepth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
         return when (axis) {
             Axis3.Z -> cylinderHeight
-            Axis3.X, Axis3.Y -> actualRadius * InfraNumber(2.0)
+            Axis3.X, Axis3.Y -> actualRadius * FltX(2.0)
         }
     }
 
@@ -118,7 +119,7 @@ data class ConservativeRadiusEnvelope(
      * 使用真实半径计算真实 bounding 宽度。
      * Compute real bounding width using actual radius.
      */
-    fun realBoundingWidth(axis: Axis3, cylinderHeight: InfraNumber, actualRadius: InfraNumber): InfraNumber {
+    fun realBoundingWidth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
         return realFootprintWidth(axis, cylinderHeight, actualRadius)
     }
 
@@ -126,9 +127,9 @@ data class ConservativeRadiusEnvelope(
      * 使用真实半径计算真实 bounding 高度。
      * Compute real bounding height using actual radius.
      */
-    fun realBoundingHeight(axis: Axis3, cylinderHeight: InfraNumber, actualRadius: InfraNumber): InfraNumber {
+    fun realBoundingHeight(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
         return when (axis) {
-            Axis3.X, Axis3.Z -> actualRadius * InfraNumber(2.0)
+            Axis3.X, Axis3.Z -> actualRadius * FltX(2.0)
             Axis3.Y -> cylinderHeight
         }
     }
@@ -137,7 +138,7 @@ data class ConservativeRadiusEnvelope(
      * 使用真实半径计算真实 bounding 深度。
      * Compute real bounding depth using actual radius.
      */
-    fun realBoundingDepth(axis: Axis3, cylinderHeight: InfraNumber, actualRadius: InfraNumber): InfraNumber {
+    fun realBoundingDepth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
         return realFootprintDepth(axis, cylinderHeight, actualRadius)
     }
 
@@ -145,7 +146,7 @@ data class ConservativeRadiusEnvelope(
      * 验证 solver-selected radius 是否在 [rMin, rMax] 范围内。
      * Validate that solver-selected radius is within [rMin, rMax].
      */
-    fun isRadiusValid(solverRadius: InfraNumber): Boolean {
+    fun isRadiusValid(solverRadius: FltX): Boolean {
         return solverRadius.toDouble() >= rMin.toDouble() && solverRadius.toDouble() <= rMax.toDouble()
     }
 }

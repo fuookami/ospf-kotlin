@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 
 class PWLRadiusSquaredApproximationTest {
 
@@ -24,10 +25,10 @@ class PWLRadiusSquaredApproximationTest {
 
     @Test
     fun testCustomBreakpointConfig() {
-        val customBp = listOf(infraScalar(1.0), infraScalar(2.0), infraScalar(3.0))
+        val customBp = listOf(fltX(1.0), fltX(2.0), fltX(3.0))
         val config = PWLRadiusApproximationConfig(
             maxSegments = 4,
-            relativeErrorTolerance = infraScalar(0.005),
+            relativeErrorTolerance = fltX(0.005),
             breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
             customBreakpoints = customBp,
             enableDebugInfo = true
@@ -45,8 +46,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testUniformBreakpointsBasic() {
         val config = PWLRadiusApproximationConfig(maxSegments = 4, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = config
         )
         assertEquals(4, pwl.numSegments)
@@ -61,8 +62,8 @@ class PWLRadiusSquaredApproximationTest {
 
     @Test
     fun testUniformBreakpointsAtEndpoints() {
-        val rMin = infraScalar(2.0)
-        val rMax = infraScalar(3.0)
+        val rMin = fltX(2.0)
+        val rMax = fltX(3.0)
         val config = PWLRadiusApproximationConfig(maxSegments = 1, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(rMin, rMax, config)
         assertEquals(1, pwl.numSegments)
@@ -78,8 +79,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testEvaluateAtBreakpoints() {
         val config = PWLRadiusApproximationConfig(maxSegments = 4, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = config
         )
         // At breakpoints, PWL approximation is exact (passes through r² values)
@@ -96,12 +97,12 @@ class PWLRadiusSquaredApproximationTest {
     fun testEvaluateMidpoint() {
         val config = PWLRadiusApproximationConfig(maxSegments = 1, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(4.0),
+            rMin = fltX(2.0),
+            rMax = fltX(4.0),
             config = config
         )
         // Midpoint r=3.0: actual r²=9, PWL q = 6*3 - 8 = 10
-        val mid = infraScalar(3.0)
+        val mid = fltX(3.0)
         val q = pwl.evaluate(mid).toDouble()
         // chord: slope=2+4=6, intercept=-2*4=-8, so q=6*3-8=10
         assertEquals(10.0, q, 1e-10)
@@ -114,12 +115,12 @@ class PWLRadiusSquaredApproximationTest {
     fun testEvaluateBelowRange() {
         val config = PWLRadiusApproximationConfig(maxSegments = 2, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(4.0),
+            rMin = fltX(2.0),
+            rMax = fltX(4.0),
             config = config
         )
         // Below rMin: should use first segment extrapolation
-        val r = infraScalar(1.0)
+        val r = fltX(1.0)
         val q = pwl.evaluate(r).toDouble()
         // slope = 2 + 3 = 5, intercept = -6
         assertEquals(5.0 * 1.0 - 6.0, q, 1e-10)
@@ -129,12 +130,12 @@ class PWLRadiusSquaredApproximationTest {
     fun testEvaluateAboveRange() {
         val config = PWLRadiusApproximationConfig(maxSegments = 2, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(4.0),
+            rMin = fltX(2.0),
+            rMax = fltX(4.0),
             config = config
         )
         // Above rMax: should use last segment extrapolation
-        val r = infraScalar(5.0)
+        val r = fltX(5.0)
         val q = pwl.evaluate(r).toDouble()
         // slope = 3 + 4 = 7, intercept = -12
         assertEquals(7.0 * 5.0 - 12.0, q, 1e-10)
@@ -146,8 +147,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testMaxRelativeError() {
         val config = PWLRadiusApproximationConfig(maxSegments = 2, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(3.0),
+            rMin = fltX(1.0),
+            rMax = fltX(3.0),
             config = config
         )
         // With 2 segments, max relative error should be bounded
@@ -158,13 +159,13 @@ class PWLRadiusSquaredApproximationTest {
     @Test
     fun testMoreSegmentsLowerError() {
         val pwl2 = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = PWLRadiusApproximationConfig(maxSegments = 2, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         )
         val pwl8 = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = PWLRadiusApproximationConfig(maxSegments = 8, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         )
         assertTrue(
@@ -181,8 +182,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testActualErrorAtBreakpointIsZero() {
         val config = PWLRadiusApproximationConfig(maxSegments = 4, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = config
         )
         for (bp in pwl.breakpoints) {
@@ -196,12 +197,12 @@ class PWLRadiusSquaredApproximationTest {
     fun testActualRelativeError() {
         val config = PWLRadiusApproximationConfig(maxSegments = 2, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(4.0),
+            rMin = fltX(2.0),
+            rMax = fltX(4.0),
             config = config
         )
         // At midpoint of first segment [2.0, 3.0]: r=2.5
-        val mid = infraScalar(2.5)
+        val mid = fltX(2.5)
         val relError = pwl.actualRelativeError(mid).toDouble()
         // PWL q = slope*r + intercept = 5*2.5 - 6 = 6.5, actual = 6.25
         // relative error = 0.25 / 6.25 = 0.04
@@ -213,11 +214,11 @@ class PWLRadiusSquaredApproximationTest {
 
     @Test
     fun testCustomBreakpoints() {
-        val customBp = listOf(infraScalar(1.0), infraScalar(1.5), infraScalar(3.0), infraScalar(5.0))
+        val customBp = listOf(fltX(1.0), fltX(1.5), fltX(3.0), fltX(5.0))
         val config = PWLRadiusApproximationConfig(customBreakpoints = customBp)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = config
         )
         assertEquals(3, pwl.numSegments)
@@ -230,17 +231,17 @@ class PWLRadiusSquaredApproximationTest {
 
     @Test
     fun testCustomBreakpointsExactAtEndpoints() {
-        val customBp = listOf(infraScalar(2.0), infraScalar(4.0))
+        val customBp = listOf(fltX(2.0), fltX(4.0))
         val config = PWLRadiusApproximationConfig(customBreakpoints = customBp)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(4.0),
+            rMin = fltX(2.0),
+            rMax = fltX(4.0),
             config = config
         )
         assertEquals(1, pwl.numSegments)
         // At endpoints: exact match
-        assertEquals(4.0, pwl.evaluate(infraScalar(2.0)).toDouble(), 1e-10)
-        assertEquals(16.0, pwl.evaluate(infraScalar(4.0)).toDouble(), 1e-10)
+        assertEquals(4.0, pwl.evaluate(fltX(2.0)).toDouble(), 1e-10)
+        assertEquals(16.0, pwl.evaluate(fltX(4.0)).toDouble(), 1e-10)
     }
 
     // ===== Adaptive breakpoint tests =====
@@ -249,8 +250,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testAdaptiveBreakpointsMoreSegmentsNearBoundaries() {
         val config = PWLRadiusApproximationConfig(maxSegments = 8, breakpointStrategy = PWLBreakpointStrategy.Adaptive)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = config
         )
         assertEquals(8, pwl.numSegments)
@@ -263,21 +264,21 @@ class PWLRadiusSquaredApproximationTest {
 
     @Test
     fun testErrorDrivenBreakpointsMeetTolerance() {
-        val tolerance = infraScalar(0.01)
+        val tolerance = fltX(0.01)
         val config = PWLRadiusApproximationConfig(
             maxSegments = 16,
             relativeErrorTolerance = tolerance,
             breakpointStrategy = PWLBreakpointStrategy.ErrorDriven
         )
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = config
         )
         // Error-driven should achieve better error than uniform with same maxSegments
         val uniformPwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(5.0),
+            rMin = fltX(1.0),
+            rMax = fltX(5.0),
             config = PWLRadiusApproximationConfig(maxSegments = 16, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         )
         // Error-driven should have equal or lower error
@@ -293,8 +294,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testNarrowInterval() {
         val config = PWLRadiusApproximationConfig(maxSegments = 2, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(5.0),
-            rMax = infraScalar(5.1),
+            rMin = fltX(5.0),
+            rMax = fltX(5.1),
             config = config
         )
         // Narrow interval should have very small error
@@ -307,8 +308,8 @@ class PWLRadiusSquaredApproximationTest {
         // [1.0, 10.0] is a more realistic wide interval for BPP3D cylinder radii
         val config = PWLRadiusApproximationConfig(maxSegments = 16, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(10.0),
+            rMin = fltX(1.0),
+            rMax = fltX(10.0),
             config = config
         )
         // With 16 uniform segments over [1, 10], max relative error should be reasonable
@@ -319,9 +320,9 @@ class PWLRadiusSquaredApproximationTest {
     @Test
     fun testExtremeRadiusIntervalDerivationReportsUnmetDefaultTolerance() {
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(50.0),
-            relativeErrorTolerance = infraScalar(0.01),
+            rMin = fltX(1.0),
+            rMax = fltX(50.0),
+            relativeErrorTolerance = fltX(0.01),
             maxSegments = 8
         )
         assertEquals(8, result.recommendedSegments)
@@ -335,15 +336,15 @@ class PWLRadiusSquaredApproximationTest {
     @Test
     fun testExtremeRadiusIntervalImprovesWithHigherSegmentBudget() {
         val defaultBudget = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(50.0),
-            relativeErrorTolerance = infraScalar(0.01),
+            rMin = fltX(1.0),
+            rMax = fltX(50.0),
+            relativeErrorTolerance = fltX(0.01),
             maxSegments = 8
         )
         val higherBudget = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(50.0),
-            relativeErrorTolerance = infraScalar(0.01),
+            rMin = fltX(1.0),
+            rMax = fltX(50.0),
+            relativeErrorTolerance = fltX(0.01),
             maxSegments = 512
         )
 
@@ -363,8 +364,8 @@ class PWLRadiusSquaredApproximationTest {
 
     @Test
     fun testBreakpointStrategiesForExtremeRadiusInterval() {
-        val rMin = infraScalar(1.0)
-        val rMax = infraScalar(50.0)
+        val rMin = fltX(1.0)
+        val rMax = fltX(50.0)
         val uniform = buildStrategyBenchmark(
             strategy = PWLBreakpointStrategy.Uniform,
             rMin = rMin,
@@ -409,8 +410,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testRequiresPositiveRMin() {
         try {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
-                rMin = infraScalar(0.0),
-                rMax = infraScalar(5.0),
+                rMin = fltX(0.0),
+                rMax = fltX(5.0),
                 config = PWLRadiusApproximationConfig()
             )
             throw AssertionError("Should have thrown for non-positive rMin")
@@ -423,8 +424,8 @@ class PWLRadiusSquaredApproximationTest {
     fun testRequiresRMaxGreaterThanRMin() {
         try {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
-                rMin = infraScalar(5.0),
-                rMax = infraScalar(3.0),
+                rMin = fltX(5.0),
+                rMax = fltX(3.0),
                 config = PWLRadiusApproximationConfig()
             )
             throw AssertionError("Should have thrown for rMax <= rMin")
@@ -437,11 +438,11 @@ class PWLRadiusSquaredApproximationTest {
     fun testRequiresAtLeastTwoBreakpoints() {
         try {
             PWLRadiusSquaredApproximation(
-                breakpoints = listOf(infraScalar(1.0)),
-                slopes = listOf(infraScalar(2.0)),
-                intercepts = listOf(infraScalar(-1.0)),
-                maxRelativeError = infraScalar(0.01),
-                maxAbsoluteError = infraScalar(0.1)
+                breakpoints = listOf(fltX(1.0)),
+                slopes = listOf(fltX(2.0)),
+                intercepts = listOf(fltX(-1.0)),
+                maxRelativeError = fltX(0.01),
+                maxAbsoluteError = fltX(0.1)
             )
             throw AssertionError("Should have thrown for less than 2 breakpoints")
         } catch (_: IllegalArgumentException) {
@@ -453,11 +454,11 @@ class PWLRadiusSquaredApproximationTest {
     fun testRequiresMatchingSlopesSize() {
         try {
             PWLRadiusSquaredApproximation(
-                breakpoints = listOf(infraScalar(1.0), infraScalar(2.0), infraScalar(3.0)),
-                slopes = listOf(infraScalar(3.0)),  // Should be 2
-                intercepts = listOf(infraScalar(-2.0), infraScalar(-6.0)),
-                maxRelativeError = infraScalar(0.01),
-                maxAbsoluteError = infraScalar(0.1)
+                breakpoints = listOf(fltX(1.0), fltX(2.0), fltX(3.0)),
+                slopes = listOf(fltX(3.0)),  // Should be 2
+                intercepts = listOf(fltX(-2.0), fltX(-6.0)),
+                maxRelativeError = fltX(0.01),
+                maxAbsoluteError = fltX(0.1)
             )
             throw AssertionError("Should have thrown for mismatched slopes size")
         } catch (_: IllegalArgumentException) {
@@ -470,9 +471,9 @@ class PWLRadiusSquaredApproximationTest {
     @Test
     fun testDeriveSegmentCountForWideInterval() {
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = infraScalar(1.0),
-            rMax = infraScalar(10.0),
-            relativeErrorTolerance = infraScalar(0.01),
+            rMin = fltX(1.0),
+            rMax = fltX(10.0),
+            relativeErrorTolerance = fltX(0.01),
             maxSegments = 64
         )
         assertTrue(result.meetsTolerance, "Should meet 1% tolerance for [1, 10] within 64 segments")
@@ -484,9 +485,9 @@ class PWLRadiusSquaredApproximationTest {
     @Test
     fun testDeriveSegmentCountForNarrowInterval() {
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = infraScalar(5.0),
-            rMax = infraScalar(5.1),
-            relativeErrorTolerance = infraScalar(0.01),
+            rMin = fltX(5.0),
+            rMax = fltX(5.1),
+            relativeErrorTolerance = fltX(0.01),
             maxSegments = 64
         )
         assertTrue(result.meetsTolerance, "Should meet 1% tolerance for [5, 5.1]")
@@ -497,9 +498,9 @@ class PWLRadiusSquaredApproximationTest {
     @Test
     fun testDeriveSegmentCountInfo() {
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = infraScalar(2.0),
-            rMax = infraScalar(5.0),
-            relativeErrorTolerance = infraScalar(0.01),
+            rMin = fltX(2.0),
+            rMax = fltX(5.0),
+            relativeErrorTolerance = fltX(0.01),
             maxSegments = 32
         )
         val info = result.info()
@@ -518,8 +519,8 @@ class PWLRadiusSquaredApproximationTest {
 
     private fun buildStrategyBenchmark(
         strategy: PWLBreakpointStrategy,
-        rMin: InfraNumber,
-        rMax: InfraNumber,
+        rMin: FltX,
+        rMax: FltX,
         maxSegments: Int
     ): StrategyBenchmark {
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
@@ -540,8 +541,8 @@ class PWLRadiusSquaredApproximationTest {
 
     private fun assertValidStrategyBenchmark(
         benchmark: StrategyBenchmark,
-        rMin: InfraNumber,
-        rMax: InfraNumber
+        rMin: FltX,
+        rMax: FltX
     ) {
         assertEquals(
             expected = rMin.toDouble(),
@@ -565,11 +566,11 @@ class PWLRadiusSquaredApproximationTest {
 
     private fun assertOverApproximatesAtSamples(
         pwl: PWLRadiusSquaredApproximation,
-        rMin: InfraNumber,
-        rMax: InfraNumber
+        rMin: FltX,
+        rMax: FltX
     ) {
         for (i in 0..20) {
-            val t = infraScalar(i.toDouble()) / infraScalar(20.0)
+            val t = fltX(i.toDouble()) / fltX(20.0)
             val r = rMin + (rMax - rMin) * t
             val actualRadiusSquared = r * r
             assertTrue(

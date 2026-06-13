@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusOptimizationGapReport
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
@@ -39,7 +40,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAlgorithmShapeTypeDTO
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.RenderAxis3DTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber as Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Flt64 as SolverFlt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -69,18 +70,18 @@ class GurobiColumnGenerationTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(Flt64.zero),
-            hangingPolicy = AbsoluteHangingPolicy(Flt64.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
     private fun item(
         id: String,
-        material: Material<Flt64>,
-        widthInMeter: Flt64 = Flt64.one,
-        heightInMeter: Flt64 = Flt64.one,
-        depthInMeter: Flt64 = Flt64.one,
+        material: Material<FltX>,
+        widthInMeter: FltX = FltX.one,
+        heightInMeter: FltX = FltX.one,
+        depthInMeter: FltX = FltX.one,
         shapeSpec: PackageShapeSpec = PackageShapeSpec.Cuboid
     ): ActualItem {
         val pack = Package.innerPackage(
@@ -88,7 +89,7 @@ class GurobiColumnGenerationTest {
                 width = widthInMeter * Meter,
                 height = heightInMeter * Meter,
                 depth = depthInMeter * Meter,
-                weight = Flt64.one * Kilogram,
+                weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = shapeSpec
             ),
@@ -106,22 +107,22 @@ class GurobiColumnGenerationTest {
 
     private fun horizontalCylinderItem(
         id: String,
-        material: Material<Flt64>,
+        material: Material<FltX>,
         axis: Axis3,
-        radiusInMeter: Flt64 = Flt64(0.4),
-        lengthInMeter: Flt64 = Flt64.one,
+        radiusInMeter: FltX = FltX(0.4),
+        lengthInMeter: FltX = FltX.one,
         shapeSpec: PackageShapeSpec.VerticalCylinder = PackageShapeSpec.VerticalCylinder(
             radius = radiusInMeter * Meter,
             axis = axis
         )
     ): ActualItem {
-        val diameter = radiusInMeter * Flt64(2.0)
+        val diameter = radiusInMeter * FltX(2.0)
         val shape = when (axis) {
             Axis3.X -> PackageShape(
                 width = lengthInMeter * Meter,
                 height = diameter * Meter,
                 depth = diameter * Meter,
-                weight = Flt64.one * Kilogram,
+                weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = shapeSpec
             )
@@ -130,7 +131,7 @@ class GurobiColumnGenerationTest {
                 width = diameter * Meter,
                 height = lengthInMeter * Meter,
                 depth = diameter * Meter,
-                weight = Flt64.one * Kilogram,
+                weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = shapeSpec
             )
@@ -139,7 +140,7 @@ class GurobiColumnGenerationTest {
                 width = diameter * Meter,
                 height = diameter * Meter,
                 depth = lengthInMeter * Meter,
-                weight = Flt64.one * Kilogram,
+                weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = shapeSpec
             )
@@ -160,8 +161,8 @@ class GurobiColumnGenerationTest {
 
     private fun itemFromCsvWidth(
         id: String,
-        material: Material<Flt64>,
-        widthInMeter: Flt64,
+        material: Material<FltX>,
+        widthInMeter: FltX,
         shapeSpec: PackageShapeSpec
     ): ActualItem {
         val cylinderSpec = shapeSpec as? PackageShapeSpec.VerticalCylinder
@@ -186,10 +187,10 @@ class GurobiColumnGenerationTest {
 
     private fun itemFromCsvDimensions(
         id: String,
-        material: Material<Flt64>,
-        widthInMeter: Flt64,
-        heightInMeter: Flt64,
-        depthInMeter: Flt64,
+        material: Material<FltX>,
+        widthInMeter: FltX,
+        heightInMeter: FltX,
+        depthInMeter: FltX,
         shapeSpec: PackageShapeSpec
     ): ActualItem {
         val cylinderSpec = shapeSpec as? PackageShapeSpec.VerticalCylinder
@@ -226,12 +227,12 @@ class GurobiColumnGenerationTest {
 
     private fun generatedHorizontalSeedLayer(
         item: ActualItem,
-        binType: BinType
+        binType: BinType<FltX>
     ): BinLayer? {
         val axis = horizontalAxisOf(item) ?: return null
         val source = "circle-packing-horizontal-grid-single-axis=${axis.name.lowercase()}"
         return runBlocking {
-            CirclePackingLayerGenerator<Flt64>().generate(
+            CirclePackingLayerGenerator<FltX>().generate(
                 Bpp3dLayerGenerationRequest(
                     iteration = 0,
                     bin = binType,
@@ -244,13 +245,13 @@ class GurobiColumnGenerationTest {
 
     private fun generatedHorizontalGridLayer(
         item: ActualItem,
-        binType: BinType
+        binType: BinType<FltX>
     ): BinLayer {
         val axis = horizontalAxisOf(item)
             ?: throw IllegalArgumentException("item must be a horizontal cylinder")
         val source = "circle-packing-horizontal-grid-axis=${axis.name.lowercase()}"
         return runBlocking {
-            CirclePackingLayerGenerator<Flt64>().generate(
+            CirclePackingLayerGenerator<FltX>().generate(
                 Bpp3dLayerGenerationRequest(
                     iteration = 0,
                     bin = binType,
@@ -264,11 +265,11 @@ class GurobiColumnGenerationTest {
 
     private fun generatedHorizontalLayerBySource(
         items: List<ActualItem>,
-        binType: BinType,
+        binType: BinType<FltX>,
         source: String
     ): BinLayer {
         return runBlocking {
-            CirclePackingLayerGenerator<Flt64>().generate(
+            CirclePackingLayerGenerator<FltX>().generate(
                 Bpp3dLayerGenerationRequest(
                     iteration = 0,
                     bin = binType,
@@ -282,7 +283,7 @@ class GurobiColumnGenerationTest {
 
     private fun generatedHorizontalSupportedStackLayer(
         items: List<ActualItem>,
-        binType: BinType
+        binType: BinType<FltX>
     ): BinLayer? {
         val axis = items.mapNotNull { item -> horizontalAxisOf(item) }
             .singleOrNull()
@@ -295,7 +296,7 @@ class GurobiColumnGenerationTest {
             "circle-packing-horizontal-supported-stack-axis=${axis.name.lowercase()}"
         )
         return runBlocking {
-            val generated = CirclePackingLayerGenerator<Flt64>().generate(
+            val generated = CirclePackingLayerGenerator<FltX>().generate(
                 Bpp3dLayerGenerationRequest(
                     iteration = 0,
                     bin = binType,
@@ -312,29 +313,29 @@ class GurobiColumnGenerationTest {
     private fun layerBin(
         items: List<ActualItem>,
         typeCode: String = "BIN-GUROBI",
-        depthInMeter: Flt64 = Flt64(3.0),
-        binType: BinType? = null,
-        widthInMeter: Flt64 = Flt64(3.0)
+        depthInMeter: FltX = FltX(3.0),
+        binType: BinType<FltX>? = null,
+        widthInMeter: FltX = FltX(3.0)
     ): LayerBin {
         val resolvedBinType = binType ?: BinType(
             width = widthInMeter * Meter,
-            height = Flt64(3.0) * Meter,
+            height = FltX(3.0) * Meter,
             depth = depthInMeter * Meter,
-            capacity = Flt64(100.0) * Kilogram,
+            capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = typeCode
         )
         val placements = items.mapIndexed { index, item ->
             item.toItemPlacement(
-                x = Flt64(index.toLong()) * Meter
+                x = FltX(index.toLong()) * Meter
             )
         }
         val layer = BinLayer(
             iteration = Int64.zero,
             from = GurobiColumnGenerationTest::class,
             bin = resolvedBinType,
-            shape = Container3Shape(resolvedBinType),
+            shape = resolvedBinType.asContainer3Shape(),
             units = placements
         )
         return layerBinOf(
@@ -351,47 +352,47 @@ class GurobiColumnGenerationTest {
         val itemId: String,
         val materialNo: String,
         val materialName: String,
-        val materialWeightKg: Flt64,
+        val materialWeightKg: FltX,
         val shapeType: String?,
-        val radiusMeter: Flt64?,
-        val radiusMinMeter: Flt64?,
-        val radiusMaxMeter: Flt64?,
-        val radiusStepMeter: Flt64?,
-        val diameterMinMeter: Flt64?,
-        val diameterMaxMeter: Flt64?,
-        val diameterStepMeter: Flt64?,
+        val radiusMeter: FltX?,
+        val radiusMinMeter: FltX?,
+        val radiusMaxMeter: FltX?,
+        val radiusStepMeter: FltX?,
+        val diameterMinMeter: FltX?,
+        val diameterMaxMeter: FltX?,
+        val diameterStepMeter: FltX?,
         val radiusWeightFunctionKey: String?,
         val axis: String?,
-        val widthMeter: Flt64?,
-        val heightMeter: Flt64?,
-        val depthMeter: Flt64?
+        val widthMeter: FltX?,
+        val heightMeter: FltX?,
+        val depthMeter: FltX?
     )
 
     private data class MaterialWidthAmountScenarioRow(
         val material: String,
-        val width: Flt64,
+        val width: FltX,
         val amount: UInt64,
         val materialNo: String?,
         val materialName: String?,
-        val materialWeightKg: Flt64?,
+        val materialWeightKg: FltX?,
         val shapeType: String?,
-        val radiusMeter: Flt64?,
-        val radiusMinMeter: Flt64?,
-        val radiusMaxMeter: Flt64?,
-        val radiusStepMeter: Flt64?,
-        val diameterMinMeter: Flt64?,
-        val diameterMaxMeter: Flt64?,
-        val diameterStepMeter: Flt64?,
+        val radiusMeter: FltX?,
+        val radiusMinMeter: FltX?,
+        val radiusMaxMeter: FltX?,
+        val radiusStepMeter: FltX?,
+        val diameterMinMeter: FltX?,
+        val diameterMaxMeter: FltX?,
+        val diameterStepMeter: FltX?,
         val radiusWeightFunctionKey: String?,
         val axis: String?
     )
 
     private data class CsvDrivenScenario(
         val itemDemands: List<Pair<ActualItem, UInt64>>,
-        val demandEntries: List<Bpp3dDemandEntry<Flt64>>,
+        val demandEntries: List<Bpp3dDemandEntry<FltX>>,
         val initialColumns: List<BinLayer>,
         val finalBins: List<LayerBin>,
-        val materialAmountDemands: Map<Material<Flt64>, UInt64>,
+        val materialAmountDemands: Map<Material<FltX>, UInt64>,
         val groupCount: Int,
         val materialCount: Int,
         val totalLayerCount: Int,
@@ -419,18 +420,18 @@ class GurobiColumnGenerationTest {
 
     private fun buildSolverConfig(
         prefix: String,
-        defaultTimeSeconds: Flt64 = Flt64(40.0),
+        defaultTimeSeconds: FltX = FltX(40.0),
         defaultThreadNum: Int = 4,
-        defaultGap: Flt64 = Flt64(0.01),
-        defaultNotImprovementTimeSeconds: Flt64 = Flt64(15.0)
+        defaultGap: FltX = FltX(0.01),
+        defaultNotImprovementTimeSeconds: FltX = FltX(15.0)
     ): SolverConfig {
-        val timeSeconds = optionalFlt64Property("$prefix.solver.time.seconds")
+        val timeSeconds = optionalFltXProperty("$prefix.solver.time.seconds")
             ?: defaultTimeSeconds
         val threadNum = optionalIntProperty("$prefix.solver.thread.num")
             ?: defaultThreadNum
-        val gap = optionalFlt64Property("$prefix.solver.gap")
+        val gap = optionalFltXProperty("$prefix.solver.gap")
             ?: defaultGap
-        val notImprovementTimeSeconds = optionalFlt64Property("$prefix.solver.not.improvement.time.seconds")
+        val notImprovementTimeSeconds = optionalFltXProperty("$prefix.solver.not.improvement.time.seconds")
             ?: defaultNotImprovementTimeSeconds
         return SolverConfig(
             time = timeSeconds.toDouble().seconds,
@@ -694,17 +695,17 @@ class GurobiColumnGenerationTest {
         }
     }
 
-    private fun optionalCsvFlt64(
+    private fun optionalCsvFltX(
         cols: List<String>,
         column: Int?,
         fieldName: String,
         rowIndex: Int
-    ): Flt64? {
+    ): FltX? {
         val raw = column
             ?.let { cols.getOrNull(it) }
             ?.takeIf { it.isNotEmpty() }
             ?: return null
-        return raw.toDoubleOrNull()?.let { Flt64(it) }
+        return raw.toDoubleOrNull()?.let { FltX(it) }
             ?: throw IllegalStateException("invalid $fieldName at row $rowIndex: $raw")
     }
 
@@ -763,7 +764,7 @@ class GurobiColumnGenerationTest {
             }
             val materialWeight = cols.getOrNull(materialWeightColumn)
                 ?.toDoubleOrNull()
-                ?.let { Flt64(it) }
+                ?.let { FltX(it) }
                 ?: throw IllegalStateException("invalid material_weight_kg at row $rowIndex: ${cols.getOrNull(materialWeightColumn)}")
             CsvScenarioRow(
                 groupIndex = cols.getOrNull(groupIndexColumn)?.toIntOrNull()
@@ -781,43 +782,43 @@ class GurobiColumnGenerationTest {
                     ?: throw IllegalStateException("empty material_name at row $rowIndex"),
                 materialWeightKg = materialWeight,
                 shapeType = shapeTypeColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() },
-                radiusMeter = optionalCsvFlt64(
+                radiusMeter = optionalCsvFltX(
                     cols = cols,
                     column = radiusMeterColumn,
                     fieldName = "radius_meter",
                     rowIndex = rowIndex
                 ),
-                radiusMinMeter = optionalCsvFlt64(
+                radiusMinMeter = optionalCsvFltX(
                     cols = cols,
                     column = radiusMinMeterColumn,
                     fieldName = "radius_min",
                     rowIndex = rowIndex
                 ),
-                radiusMaxMeter = optionalCsvFlt64(
+                radiusMaxMeter = optionalCsvFltX(
                     cols = cols,
                     column = radiusMaxMeterColumn,
                     fieldName = "radius_max",
                     rowIndex = rowIndex
                 ),
-                radiusStepMeter = optionalCsvFlt64(
+                radiusStepMeter = optionalCsvFltX(
                     cols = cols,
                     column = radiusStepMeterColumn,
                     fieldName = "radius_step",
                     rowIndex = rowIndex
                 ),
-                diameterMinMeter = optionalCsvFlt64(
+                diameterMinMeter = optionalCsvFltX(
                     cols = cols,
                     column = diameterMinMeterColumn,
                     fieldName = "diameter_min",
                     rowIndex = rowIndex
                 ),
-                diameterMaxMeter = optionalCsvFlt64(
+                diameterMaxMeter = optionalCsvFltX(
                     cols = cols,
                     column = diameterMaxMeterColumn,
                     fieldName = "diameter_max",
                     rowIndex = rowIndex
                 ),
-                diameterStepMeter = optionalCsvFlt64(
+                diameterStepMeter = optionalCsvFltX(
                     cols = cols,
                     column = diameterStepMeterColumn,
                     fieldName = "diameter_step",
@@ -827,19 +828,19 @@ class GurobiColumnGenerationTest {
                     cols.getOrNull(column)
                 }?.takeIf { it.isNotEmpty() },
                 axis = axisColumn?.let { column -> cols.getOrNull(column) }?.takeIf { it.isNotEmpty() },
-                widthMeter = optionalCsvFlt64(
+                widthMeter = optionalCsvFltX(
                     cols = cols,
                     column = widthMeterColumn,
                     fieldName = "width",
                     rowIndex = rowIndex
                 ),
-                heightMeter = optionalCsvFlt64(
+                heightMeter = optionalCsvFltX(
                     cols = cols,
                     column = heightMeterColumn,
                     fieldName = "height",
                     rowIndex = rowIndex
                 ),
-                depthMeter = optionalCsvFlt64(
+                depthMeter = optionalCsvFltX(
                     cols = cols,
                     column = depthMeterColumn,
                     fieldName = "depth",
@@ -848,8 +849,8 @@ class GurobiColumnGenerationTest {
             )
         }
 
-        val materialsByNo = LinkedHashMap<String, Material<Flt64>>()
-        val materialWeightKgByNo = LinkedHashMap<String, Flt64>()
+        val materialsByNo = LinkedHashMap<String, Material<FltX>>()
+        val materialWeightKgByNo = LinkedHashMap<String, FltX>()
         for (row in rows) {
             if (materialsByNo.containsKey(row.materialNo)) {
                 continue
@@ -875,9 +876,9 @@ class GurobiColumnGenerationTest {
             itemsById[row.itemId] = itemFromCsvDimensions(
                 id = row.itemId,
                 material = material,
-                widthInMeter = row.widthMeter ?: Flt64.one,
-                heightInMeter = row.heightMeter ?: Flt64.one,
-                depthInMeter = row.depthMeter ?: Flt64.one,
+                widthInMeter = row.widthMeter ?: FltX.one,
+                heightInMeter = row.heightMeter ?: FltX.one,
+                depthInMeter = row.depthMeter ?: FltX.one,
                 shapeSpec = shapeSpec
             )
         }
@@ -899,10 +900,10 @@ class GurobiColumnGenerationTest {
                 layerRows.maxOf { row -> row.depthMeter?.toDouble() ?: 1.0 }
             }
             val binType = BinType(
-                width = maxOf(Flt64(maxItemsPerLayer.toLong()), Flt64(maxLayerWidth)) * Meter,
-                height = maxOf(Flt64(3.0), Flt64(maxLayerHeight * 3.0)) * Meter,
-                depth = maxOf(Flt64(layerCount.toLong()), Flt64(maxLayerDepth)) * Meter,
-                capacity = Flt64(1500.0) * Kilogram,
+                width = maxOf(FltX(maxItemsPerLayer.toLong()), FltX(maxLayerWidth)) * Meter,
+                height = maxOf(FltX(3.0), FltX(maxLayerHeight * 3.0)) * Meter,
+                depth = maxOf(FltX(layerCount.toLong()), FltX(maxLayerDepth)) * Meter,
+                capacity = FltX(1500.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
                 typeCode = "BIN-GUROBI-CSV-$groupIndex"
@@ -932,9 +933,9 @@ class GurobiColumnGenerationTest {
                     val bin = layerBin(
                         items = layerItems,
                         typeCode = binType.typeCode,
-                        depthInMeter = Flt64(layerCount.toLong()),
+                        depthInMeter = FltX(layerCount.toLong()),
                         binType = binType,
-                        widthInMeter = Flt64(maxItemsPerLayer.toLong())
+                        widthInMeter = FltX(maxItemsPerLayer.toLong())
                     )
                     val rawLayer = bin.units.first().unit
                     initialColumns.add(
@@ -967,7 +968,7 @@ class GurobiColumnGenerationTest {
                 ?: throw IllegalStateException("missing material in weight map: ${entry.key}")
             val weightKg = materialWeightKgByNo[entry.key]
                 ?: throw IllegalStateException("missing material weight in map: ${entry.key}")
-            Pair(material, (Flt64(entry.value.toLong()) * weightKg) * Kilogram)
+            Pair(material, (FltX(entry.value.toLong()) * weightKg) * Kilogram)
         }
         val depthBoundaryLayerOrientationPolicy = depthBoundaryPolicyFromRows(
             rows = lines.drop(1).map { line -> line.split(",").map { it.trim() } },
@@ -1201,19 +1202,19 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun groupedLayerCsvShouldRemainCompatibleWithLegacySixColumns() {
+    fun groupedLayerCsvShouldAcceptMinimalSixColumns() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg
-            0,0,item-legacy,MAT-A,Material-A,1.0
+            0,0,item-minimal,MAT-A,Material-A,1.0
         """.trimIndent()
 
         val scenario = loadCsvDrivenScenarioFromCsvText(csv)
-        val legacyItem = scenario.itemDemands
+        val minimalItem = scenario.itemDemands
             .firstOrNull()
             ?.first
-            ?: throw IllegalStateException("missing legacy item in scenario")
+            ?: throw IllegalStateException("missing minimal item in scenario")
 
-        assertEquals(PackageShapeSpec.Cuboid, legacyItem.packageShape.shapeSpec)
+        assertEquals(PackageShapeSpec.Cuboid, minimalItem.packageShape.shapeSpec)
     }
 
     @Test
@@ -1338,7 +1339,7 @@ class GurobiColumnGenerationTest {
     fun csvShapeSpecParserShouldAcceptHorizontalCylinderAxesAsMetadata() {
         val cylinderXSpec = toPackageShapeSpec(
             shapeType = "vertical_cylinder",
-            radiusMeter = Flt64(0.5),
+            radiusMeter = FltX(0.5),
             radiusMinMeter = null,
             radiusMaxMeter = null,
             radiusStepMeter = null,
@@ -1352,7 +1353,7 @@ class GurobiColumnGenerationTest {
             ?: throw IllegalStateException("axis=x shape spec should be VerticalCylinder")
         val cylinderZSpec = toPackageShapeSpec(
             shapeType = "vertical_cylinder",
-            radiusMeter = Flt64(0.5),
+            radiusMeter = FltX(0.5),
             radiusMinMeter = null,
             radiusMaxMeter = null,
             radiusStepMeter = null,
@@ -1370,19 +1371,19 @@ class GurobiColumnGenerationTest {
     }
 
     @Test
-    fun materialWidthAmountCsvShouldRemainCompatibleWithLegacyColumns() {
+    fun materialWidthAmountCsvShouldAcceptMinimalColumns() {
         val csv = """
             material,width,amount
             MAT-A,1000,1
         """.trimIndent()
 
         val scenario = loadCsvDrivenScenarioFromCsvText(csv)
-        val legacyItem = scenario.itemDemands
+        val minimalItem = scenario.itemDemands
             .firstOrNull()
             ?.first
-            ?: throw IllegalStateException("missing legacy item in scenario")
+            ?: throw IllegalStateException("missing minimal item in scenario")
 
-        assertEquals(PackageShapeSpec.Cuboid, legacyItem.packageShape.shapeSpec)
+        assertEquals(PackageShapeSpec.Cuboid, minimalItem.packageShape.shapeSpec)
     }
 
     @Test
@@ -1650,7 +1651,7 @@ class GurobiColumnGenerationTest {
     fun groupedLayerCsvShouldRejectUnsupportedSchemaColumns() {
         val csv = """
             group_index,layer_index,item_id,material_no,material_name,material_weight_kg,unexpected_shape_hint
-            0,0,item-a,MAT-A,Material-A,1.0,legacy
+            0,0,item-a,MAT-A,Material-A,1.0,default
         """.trimIndent()
 
         val exception = kotlin.test.assertFailsWith<IllegalStateException> {
@@ -2117,10 +2118,10 @@ class GurobiColumnGenerationTest {
         val lastLayerAllowedCylinderAxesColumn = optionalColumn("last_layer_allowed_cylinder_axes")
         val firstLayerAllowedCuboidOrientationsColumn = optionalColumn("first_layer_allowed_cuboid_orientations")
         val lastLayerAllowedCuboidOrientationsColumn = optionalColumn("last_layer_allowed_cuboid_orientations")
-        val widthScale = optionalFlt64Property("bpp3d.gurobi.dataset.material.width.scale")
-            ?: Flt64(1000.0)
-        val defaultMaterialWeightKg = optionalFlt64Property("bpp3d.gurobi.dataset.material.default.weight.kg")
-            ?: Flt64.one
+        val widthScale = optionalFltXProperty("bpp3d.gurobi.dataset.material.width.scale")
+            ?: FltX(1000.0)
+        val defaultMaterialWeightKg = optionalFltXProperty("bpp3d.gurobi.dataset.material.default.weight.kg")
+            ?: FltX.one
         val defaultBinDepth = optionalIntProperty("bpp3d.gurobi.dataset.material.default.bin.depth")
             ?: 240
 
@@ -2136,7 +2137,7 @@ class GurobiColumnGenerationTest {
                 ?: throw IllegalStateException("empty material at row $rowIndex")
             val width = cols.getOrNull(widthColumn)
                 ?.toDoubleOrNull()
-                ?.let { Flt64(it) }
+                ?.let { FltX(it) }
                 ?: throw IllegalStateException("invalid width at row $rowIndex: ${cols.getOrNull(widthColumn)}")
             val amountAsDouble = cols.getOrNull(amountColumn)
                 ?.toDoubleOrNull()
@@ -2152,45 +2153,45 @@ class GurobiColumnGenerationTest {
                     amount = UInt64(amount.toULong()),
                     materialNo = materialNoColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
                     materialName = materialNameColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
-                    materialWeightKg = materialWeightColumn?.let { cols.getOrNull(it)?.toDoubleOrNull()?.let { value -> Flt64(value) } },
+                    materialWeightKg = materialWeightColumn?.let { cols.getOrNull(it)?.toDoubleOrNull()?.let { value -> FltX(value) } },
                     shapeType = shapeTypeColumn?.let { cols.getOrNull(it)?.takeIf { value -> value.isNotEmpty() } },
-                    radiusMeter = optionalCsvFlt64(
+                    radiusMeter = optionalCsvFltX(
                         cols = cols,
                         column = radiusMeterColumn,
                         fieldName = "radius_meter",
                         rowIndex = rowIndex
                     ),
-                    radiusMinMeter = optionalCsvFlt64(
+                    radiusMinMeter = optionalCsvFltX(
                         cols = cols,
                         column = radiusMinMeterColumn,
                         fieldName = "radius_min",
                         rowIndex = rowIndex
                     ),
-                    radiusMaxMeter = optionalCsvFlt64(
+                    radiusMaxMeter = optionalCsvFltX(
                         cols = cols,
                         column = radiusMaxMeterColumn,
                         fieldName = "radius_max",
                         rowIndex = rowIndex
                     ),
-                    radiusStepMeter = optionalCsvFlt64(
+                    radiusStepMeter = optionalCsvFltX(
                         cols = cols,
                         column = radiusStepMeterColumn,
                         fieldName = "radius_step",
                         rowIndex = rowIndex
                     ),
-                    diameterMinMeter = optionalCsvFlt64(
+                    diameterMinMeter = optionalCsvFltX(
                         cols = cols,
                         column = diameterMinMeterColumn,
                         fieldName = "diameter_min",
                         rowIndex = rowIndex
                     ),
-                    diameterMaxMeter = optionalCsvFlt64(
+                    diameterMaxMeter = optionalCsvFltX(
                         cols = cols,
                         column = diameterMaxMeterColumn,
                         fieldName = "diameter_max",
                         rowIndex = rowIndex
                     ),
-                    diameterStepMeter = optionalCsvFlt64(
+                    diameterStepMeter = optionalCsvFltX(
                         cols = cols,
                         column = diameterStepMeterColumn,
                         fieldName = "diameter_step",
@@ -2207,11 +2208,11 @@ class GurobiColumnGenerationTest {
             throw IllegalStateException("csv has no valid demand rows")
         }
 
-        val materialsByNo = LinkedHashMap<String, Material<Flt64>>()
+        val materialsByNo = LinkedHashMap<String, Material<FltX>>()
         val itemDemands = ArrayList<Pair<ActualItem, UInt64>>()
         val totalAmountByMaterialNo = LinkedHashMap<String, UInt64>()
-        val totalWeightByMaterialNo = LinkedHashMap<String, Flt64>()
-        val widthsInMeter = ArrayList<Flt64>()
+        val totalWeightByMaterialNo = LinkedHashMap<String, FltX>()
+        val widthsInMeter = ArrayList<FltX>()
         var totalAmount = UInt64.zero
 
         for ((index, row) in rows.withIndex()) {
@@ -2227,7 +2228,7 @@ class GurobiColumnGenerationTest {
                     weight = materialWeightKg * Kilogram
                 )
             }
-            val widthInMeter = maxOf(row.width / widthScale, Flt64(0.2))
+            val widthInMeter = maxOf(row.width / widthScale, FltX(0.2))
             widthsInMeter.add(widthInMeter)
             val shapeSpec = toPackageShapeSpec(
                 shapeType = row.shapeType,
@@ -2251,20 +2252,20 @@ class GurobiColumnGenerationTest {
             itemDemands.add(Pair(actualItem, row.amount))
             totalAmount += row.amount
             totalAmountByMaterialNo[materialNo] = (totalAmountByMaterialNo[materialNo] ?: UInt64.zero) + row.amount
-            val weightContribution = Flt64(row.amount.toLong().toDouble()) * materialWeightKg
-            totalWeightByMaterialNo[materialNo] = (totalWeightByMaterialNo[materialNo] ?: Flt64.zero) + weightContribution
+            val weightContribution = FltX(row.amount.toLong().toDouble()) * materialWeightKg
+            totalWeightByMaterialNo[materialNo] = (totalWeightByMaterialNo[materialNo] ?: FltX.zero) + weightContribution
         }
 
-        val maxWidthInMeter = widthsInMeter.maxOrNull() ?: Flt64.one
+        val maxWidthInMeter = widthsInMeter.maxOrNull() ?: FltX.one
         val totalDepthInMeter = maxOf(
-            Flt64(totalAmount.toLong().toDouble()),
-            Flt64(defaultBinDepth.toLong())
+            FltX(totalAmount.toLong().toDouble()),
+            FltX(defaultBinDepth.toLong())
         )
         val binType = BinType(
             width = maxWidthInMeter * Meter,
-            height = Flt64(3.0) * Meter,
+            height = FltX(3.0) * Meter,
             depth = totalDepthInMeter * Meter,
-            capacity = maxOf(Flt64(totalAmount.toLong().toDouble()), Flt64.one) * Kilogram,
+            capacity = maxOf(FltX(totalAmount.toLong().toDouble()), FltX.one) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-MATERIAL-WIDTH"
@@ -2339,13 +2340,13 @@ class GurobiColumnGenerationTest {
 
     private fun toPackageShapeSpec(
         shapeType: String?,
-        radiusMeter: Flt64?,
-        radiusMinMeter: Flt64?,
-        radiusMaxMeter: Flt64?,
-        radiusStepMeter: Flt64?,
-        diameterMinMeter: Flt64?,
-        diameterMaxMeter: Flt64?,
-        diameterStepMeter: Flt64?,
+        radiusMeter: FltX?,
+        radiusMinMeter: FltX?,
+        radiusMaxMeter: FltX?,
+        radiusStepMeter: FltX?,
+        diameterMinMeter: FltX?,
+        diameterMaxMeter: FltX?,
+        diameterStepMeter: FltX?,
         radiusWeightFunctionKey: String?,
         axis: String?,
         rowDescription: String
@@ -2394,7 +2395,7 @@ class GurobiColumnGenerationTest {
             )
             val resolvedRadiusMeter = radiusMeter
                 ?: radiusMinMeter
-                ?: diameterMinMeter?.let { it / Flt64(2.0) }
+                ?: diameterMinMeter?.let { it / FltX(2.0) }
                 ?: throw IllegalStateException(
                     "missing radius_meter, radius_min, or diameter_min for cylinder row: $rowDescription"
                 )
@@ -2416,13 +2417,13 @@ class GurobiColumnGenerationTest {
     }
 
     private fun requireConcreteCsvRadiusMetadata(
-        radiusMeter: Flt64?,
-        radiusMinMeter: Flt64?,
-        radiusMaxMeter: Flt64?,
-        radiusStepMeter: Flt64?,
-        diameterMinMeter: Flt64?,
-        diameterMaxMeter: Flt64?,
-        diameterStepMeter: Flt64?,
+        radiusMeter: FltX?,
+        radiusMinMeter: FltX?,
+        radiusMaxMeter: FltX?,
+        radiusStepMeter: FltX?,
+        diameterMinMeter: FltX?,
+        diameterMaxMeter: FltX?,
+        diameterStepMeter: FltX?,
         radiusWeightFunctionKey: String?,
         axis: Axis3,
         rowDescription: String
@@ -2499,12 +2500,12 @@ class GurobiColumnGenerationTest {
             ?.toIntOrNull()
     }
 
-    private fun optionalFlt64Property(name: String): Flt64? {
+    private fun optionalFltXProperty(name: String): FltX? {
         return System.getProperty(name)
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
             ?.toDoubleOrNull()
-            ?.let { Flt64(it) }
+            ?.let { FltX(it) }
     }
 
     private fun optionalStringProperty(name: String): String? {
@@ -2664,7 +2665,7 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI",
-            weight = Flt64(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val actualItem = item("item-gurobi", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -2672,11 +2673,11 @@ class GurobiColumnGenerationTest {
         val seedLayer = BinLayer(
             iteration = rawSeedLayer.iteration,
             from = rawSeedLayer.from,
-            bin = seedBin.shape,
+            bin = seedBin.type,
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
-        val demandValue = Flt64.one
+        val demandValue = FltX.one
         val demandEntries = listOf(
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
@@ -2687,7 +2688,7 @@ class GurobiColumnGenerationTest {
                     demandValue,
                     Interval.Closed,
                     Interval.Closed,
-                    Flt64
+                    FltX
                 ).value!!
             )
         )
@@ -2701,18 +2702,18 @@ class GurobiColumnGenerationTest {
             demandEntries = demandEntries,
             finalBins = listOf(
                 layerBinOf(
-                    shape = seedBin.shape,
+                    shape = seedBin.type,
                     units = emptyList<BinLayerPlacement>(),
                     batchNo = seedBin.batchNo
                 )
             )
         )
 
-        var capturedRequest: Bpp3dLayerGenerationRequest<Flt64>? = null
-        var analyzedState: ColumnGenerationState<Flt64>? = null
+        var capturedRequest: Bpp3dLayerGenerationRequest<FltX>? = null
+        var analyzedState: ColumnGenerationState<FltX>? = null
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<Flt64> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     capturedRequest = request
                     return emptyList()
                 }
@@ -2742,12 +2743,12 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-SVC",
-            weight = Flt64(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val actualItem = item("item-gurobi-svc", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
-        val demandValue = Flt64.one
+        val demandValue = FltX.one
         val demandEntries = listOf(
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
@@ -2758,7 +2759,7 @@ class GurobiColumnGenerationTest {
                     demandValue,
                     Interval.Closed,
                     Interval.Closed,
-                    Flt64
+                    FltX
                 ).value!!
             )
         )
@@ -2774,14 +2775,14 @@ class GurobiColumnGenerationTest {
                 initialColumns = listOf(seedLayer),
                 finalBins = listOf(
                     layerBinOf(
-                        shape = seedBin.shape,
+                        shape = seedBin.type,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = seedBin.batchNo
                     )
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -2805,34 +2806,34 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-HORIZONTAL-X",
-            weight = Flt64.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val materialZ = Material(
             no = MaterialNo("M-GUROBI-HORIZONTAL-Z"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-HORIZONTAL-Z",
-            weight = Flt64.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val itemX = horizontalCylinderItem(
             id = "item-gurobi-horizontal-x",
             material = materialX,
             axis = Axis3.X,
-            radiusInMeter = Flt64(0.25),
-            lengthInMeter = Flt64(0.8)
+            radiusInMeter = FltX(0.25),
+            lengthInMeter = FltX(0.8)
         )
         val itemZ = horizontalCylinderItem(
             id = "item-gurobi-horizontal-z",
             material = materialZ,
             axis = Axis3.Z,
-            radiusInMeter = Flt64(0.25),
-            lengthInMeter = Flt64(0.8)
+            radiusInMeter = FltX(0.25),
+            lengthInMeter = FltX(0.8)
         )
         val binType = BinType(
-            width = Flt64(1.6) * Meter,
-            height = Flt64(0.6) * Meter,
-            depth = Flt64(1.0) * Meter,
-            capacity = Flt64(20.0) * Kilogram,
+            width = FltX(1.6) * Meter,
+            height = FltX(0.6) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-HORIZONTAL"
@@ -2918,44 +2919,44 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-HORIZONTAL-HETEROGENEOUS-SUPPORT-A",
-            weight = Flt64.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val supportMaterialB = Material(
             no = MaterialNo("M-GUROBI-HORIZONTAL-HETEROGENEOUS-SUPPORT-B"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-HORIZONTAL-HETEROGENEOUS-SUPPORT-B",
-            weight = Flt64.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val cylinderMaterial = Material(
             no = MaterialNo("M-GUROBI-HORIZONTAL-HETEROGENEOUS-CYLINDER"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-HORIZONTAL-HETEROGENEOUS-CYLINDER",
-            weight = Flt64.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val supportA = item(
             id = "item-gurobi-horizontal-heterogeneous-support-a",
             material = supportMaterialA,
-            widthInMeter = Flt64(0.4)
+            widthInMeter = FltX(0.4)
         )
         val supportB = item(
             id = "item-gurobi-horizontal-heterogeneous-support-b",
             material = supportMaterialB,
-            widthInMeter = Flt64(0.6)
+            widthInMeter = FltX(0.6)
         )
         val cylinder = horizontalCylinderItem(
             id = "item-gurobi-horizontal-heterogeneous-cylinder",
             material = cylinderMaterial,
             axis = Axis3.X,
-            radiusInMeter = Flt64(0.5),
-            lengthInMeter = Flt64.one
+            radiusInMeter = FltX(0.5),
+            lengthInMeter = FltX.one
         )
         val binType = BinType(
-            width = Flt64(1.2) * Meter,
-            height = Flt64(2.2) * Meter,
-            depth = Flt64.one * Meter,
-            capacity = Flt64(30.0) * Kilogram,
+            width = FltX(1.2) * Meter,
+            height = FltX(2.2) * Meter,
+            depth = FltX.one * Meter,
+            capacity = FltX(30.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-HORIZONTAL-HETEROGENEOUS-STACK"
@@ -3024,14 +3025,14 @@ class GurobiColumnGenerationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-A",
-            weight = Flt64(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("M-GUROBI-B"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-GUROBI-B",
-            weight = Flt64(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val itemA = item("item-gurobi-a", materialA)
         val itemB = item("item-gurobi-b", materialB)
@@ -3058,14 +3059,14 @@ class GurobiColumnGenerationTest {
                 initialColumns = listOf(seedLayer),
                 finalBins = listOf(
                     layerBinOf(
-                        shape = seedBin.shape,
+                        shape = seedBin.type,
                         units = emptyList<BinLayerPlacement>(),
                         batchNo = seedBin.batchNo
                     )
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -3100,10 +3101,10 @@ class GurobiColumnGenerationTest {
         val itemsPerLayer = 12
         val finalBinCount = 1
         val sharedBinType = BinType(
-            width = Flt64(itemsPerLayer.toDouble()) * Meter,
-            height = Flt64(3.0) * Meter,
-            depth = Flt64(2.0) * Meter,
-            capacity = Flt64(300.0) * Kilogram,
+            width = FltX(itemsPerLayer.toDouble()) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(300.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-MEDIUM"
@@ -3114,7 +3115,7 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-MEDIUM-$index",
-                weight = Flt64(1.0) * Kilogram
+                weight = FltX(1.0) * Kilogram
             )
         }
         val items = (0 until (layerCount * itemsPerLayer)).map { index ->
@@ -3125,9 +3126,9 @@ class GurobiColumnGenerationTest {
             val bin = layerBin(
                 items = chunk,
                 typeCode = sharedBinType.typeCode,
-                depthInMeter = Flt64(2.0),
+                depthInMeter = FltX(2.0),
                 binType = sharedBinType,
-                widthInMeter = Flt64(itemsPerLayer.toLong())
+                widthInMeter = FltX(itemsPerLayer.toLong())
             )
             val rawLayer = bin.units.first().unit
             BinLayer(
@@ -3168,11 +3169,11 @@ class GurobiColumnGenerationTest {
                     maxColumnsPerIteration = 64
                 ),
                 executorConfig = ColumnGenerationStandardExecutorConfig(
-                    integralityTolerance = Flt64(1e-5)
+                    integralityTolerance = FltX(1e-5)
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -3209,10 +3210,10 @@ class GurobiColumnGenerationTest {
         val itemsPerLayer = 10
         val finalBinCount = 1
         val sharedBinType = BinType(
-            width = Flt64(itemsPerLayer.toDouble()) * Meter,
-            height = Flt64(3.0) * Meter,
-            depth = Flt64(layerCount.toDouble()) * Meter,
-            capacity = Flt64(600.0) * Kilogram,
+            width = FltX(itemsPerLayer.toDouble()) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(layerCount.toDouble()) * Meter,
+            capacity = FltX(600.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-GUROBI-LARGE"
@@ -3223,7 +3224,7 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-LARGE-$index",
-                weight = Flt64(1.0) * Kilogram
+                weight = FltX(1.0) * Kilogram
             )
         }
         val items = (0 until (layerCount * itemsPerLayer)).map { index ->
@@ -3234,9 +3235,9 @@ class GurobiColumnGenerationTest {
             val bin = layerBin(
                 items = chunk,
                 typeCode = sharedBinType.typeCode,
-                depthInMeter = Flt64(layerCount.toLong()),
+                depthInMeter = FltX(layerCount.toLong()),
                 binType = sharedBinType,
-                widthInMeter = Flt64(itemsPerLayer.toLong())
+                widthInMeter = FltX(itemsPerLayer.toLong())
             )
             val rawLayer = bin.units.first().unit
             BinLayer(
@@ -3277,11 +3278,11 @@ class GurobiColumnGenerationTest {
                     maxColumnsPerIteration = 64
                 ),
                 executorConfig = ColumnGenerationStandardExecutorConfig(
-                    integralityTolerance = Flt64(1e-5)
+                    integralityTolerance = FltX(1e-5)
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -3325,15 +3326,15 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-MIXED-$index",
-                weight = Flt64(1.0) * Kilogram
+                weight = FltX(1.0) * Kilogram
             )
         }
         val binTypes = (0 until groupCount).map { index ->
             BinType(
-                width = Flt64(itemsPerLayer.toDouble()) * Meter,
-                height = Flt64(3.0) * Meter,
-                depth = Flt64(layersPerGroup.toDouble()) * Meter,
-                capacity = Flt64(600.0) * Kilogram,
+                width = FltX(itemsPerLayer.toDouble()) * Meter,
+                height = FltX(3.0) * Meter,
+                depth = FltX(layersPerGroup.toDouble()) * Meter,
+                capacity = FltX(600.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
                 typeCode = "BIN-GUROBI-MIXED-$index"
@@ -3357,9 +3358,9 @@ class GurobiColumnGenerationTest {
                 val bin = layerBin(
                     items = layerItems,
                     typeCode = binTypes[groupIndex].typeCode,
-                    depthInMeter = Flt64(layersPerGroup.toLong()),
+                    depthInMeter = FltX(layersPerGroup.toLong()),
                     binType = binTypes[groupIndex],
-                    widthInMeter = Flt64(itemsPerLayer.toLong())
+                    widthInMeter = FltX(itemsPerLayer.toLong())
                 )
                 val rawLayer = bin.units.first().unit
                 layers.add(
@@ -3409,11 +3410,11 @@ class GurobiColumnGenerationTest {
                     maxColumnsPerIteration = 64
                 ),
                 executorConfig = ColumnGenerationStandardExecutorConfig(
-                    integralityTolerance = Flt64(1e-5)
+                    integralityTolerance = FltX(1e-5)
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -3464,11 +3465,11 @@ class GurobiColumnGenerationTest {
                 ),
                 depthBoundaryLayerOrientationPolicy = scenario.depthBoundaryLayerOrientationPolicy,
                 executorConfig = ColumnGenerationStandardExecutorConfig(
-                    integralityTolerance = Flt64(1e-5)
+                    integralityTolerance = FltX(1e-5)
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -3486,12 +3487,12 @@ class GurobiColumnGenerationTest {
             ?: scenario.packedLayerCount
         val expectedItemCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.item.count")
             ?: scenario.totalItemCount
-        val maxElapsedSeconds = optionalFlt64Property("bpp3d.gurobi.dataset.max.elapsed.seconds")
-            ?: Flt64(120.0)
-        val maxMilpGap = optionalFlt64Property("bpp3d.gurobi.dataset.max.milp.gap")
-            ?: Flt64(0.05)
-        val maxLpGap = optionalFlt64Property("bpp3d.gurobi.dataset.max.lp.gap")
-            ?: Flt64(0.05)
+        val maxElapsedSeconds = optionalFltXProperty("bpp3d.gurobi.dataset.max.elapsed.seconds")
+            ?: FltX(120.0)
+        val maxMilpGap = optionalFltXProperty("bpp3d.gurobi.dataset.max.milp.gap")
+            ?: FltX(0.05)
+        val maxLpGap = optionalFltXProperty("bpp3d.gurobi.dataset.max.lp.gap")
+            ?: FltX(0.05)
 
         printScenarioMetrics(
             caseName = "single-dataset",
@@ -3510,12 +3511,12 @@ class GurobiColumnGenerationTest {
         response.result.lpInfos.first()["lp_gap"]
             ?.toDoubleOrNull()
             ?.let { lpGap ->
-                assertTrue(Flt64(lpGap) <= maxLpGap)
+                assertTrue(FltX(lpGap) <= maxLpGap)
             }
         response.result.finalInfo["milp_gap"]
             ?.toDoubleOrNull()
             ?.let { milpGap ->
-                assertTrue(Flt64(milpGap) <= maxMilpGap)
+                assertTrue(FltX(milpGap) <= maxMilpGap)
             }
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
@@ -3548,14 +3549,14 @@ class GurobiColumnGenerationTest {
         )
         val expectedCaseCount = optionalIntProperty("bpp3d.gurobi.dataset.suite.expected.case.count")
             ?: scenarios.size
-        val maxElapsedSeconds = optionalFlt64Property("bpp3d.gurobi.dataset.suite.max.elapsed.seconds")
-            ?: Flt64(180.0)
-        val maxTotalElapsedSeconds = optionalFlt64Property("bpp3d.gurobi.dataset.suite.max.total.elapsed.seconds")
-            ?: Flt64(600.0)
-        val maxMilpGap = optionalFlt64Property("bpp3d.gurobi.dataset.suite.max.milp.gap")
-            ?: Flt64(0.05)
-        val maxLpGap = optionalFlt64Property("bpp3d.gurobi.dataset.suite.max.lp.gap")
-            ?: Flt64(0.05)
+        val maxElapsedSeconds = optionalFltXProperty("bpp3d.gurobi.dataset.suite.max.elapsed.seconds")
+            ?: FltX(180.0)
+        val maxTotalElapsedSeconds = optionalFltXProperty("bpp3d.gurobi.dataset.suite.max.total.elapsed.seconds")
+            ?: FltX(600.0)
+        val maxMilpGap = optionalFltXProperty("bpp3d.gurobi.dataset.suite.max.milp.gap")
+            ?: FltX(0.05)
+        val maxLpGap = optionalFltXProperty("bpp3d.gurobi.dataset.suite.max.lp.gap")
+            ?: FltX(0.05)
         val solver = GurobiDelegatingColumnGenerationSolver(
             config = buildSolverConfig(prefix = "bpp3d.gurobi.dataset.suite")
         )
@@ -3577,11 +3578,11 @@ class GurobiColumnGenerationTest {
                     ),
                     depthBoundaryLayerOrientationPolicy = scenario.depthBoundaryLayerOrientationPolicy,
                     executorConfig = ColumnGenerationStandardExecutorConfig(
-                        integralityTolerance = Flt64(1e-5)
+                        integralityTolerance = FltX(1e-5)
                     ),
                     generators = listOf(
-                        object : Bpp3dLayerGenerator<Flt64> {
-                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                        object : Bpp3dLayerGenerator<FltX> {
+                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                                 return emptyList()
                             }
                         }
@@ -3607,7 +3608,7 @@ class GurobiColumnGenerationTest {
                 ?.toDoubleOrNull()
                 ?.let { lpGap ->
                     assertTrue(
-                        Flt64(lpGap) <= maxLpGap,
+                        FltX(lpGap) <= maxLpGap,
                         "${scenarioCase.name}: lp_gap=$lpGap exceeds $maxLpGap"
                     )
                 }
@@ -3615,7 +3616,7 @@ class GurobiColumnGenerationTest {
                 ?.toDoubleOrNull()
                 ?.let { milpGap ->
                     assertTrue(
-                        Flt64(milpGap) <= maxMilpGap,
+                        FltX(milpGap) <= maxMilpGap,
                         "${scenarioCase.name}: milp_gap=$milpGap exceeds $maxMilpGap"
                     )
                 }
@@ -3654,14 +3655,14 @@ class GurobiColumnGenerationTest {
             seed = seed,
             caseCount = caseCount
         )
-        val maxElapsedSeconds = optionalFlt64Property("bpp3d.gurobi.random.dataset.max.elapsed.seconds")
-            ?: Flt64(120.0)
-        val maxTotalElapsedSeconds = optionalFlt64Property("bpp3d.gurobi.random.dataset.max.total.elapsed.seconds")
-            ?: Flt64(300.0)
-        val maxMilpGap = optionalFlt64Property("bpp3d.gurobi.random.dataset.max.milp.gap")
-            ?: Flt64(0.05)
-        val maxLpGap = optionalFlt64Property("bpp3d.gurobi.random.dataset.max.lp.gap")
-            ?: Flt64(0.05)
+        val maxElapsedSeconds = optionalFltXProperty("bpp3d.gurobi.random.dataset.max.elapsed.seconds")
+            ?: FltX(120.0)
+        val maxTotalElapsedSeconds = optionalFltXProperty("bpp3d.gurobi.random.dataset.max.total.elapsed.seconds")
+            ?: FltX(300.0)
+        val maxMilpGap = optionalFltXProperty("bpp3d.gurobi.random.dataset.max.milp.gap")
+            ?: FltX(0.05)
+        val maxLpGap = optionalFltXProperty("bpp3d.gurobi.random.dataset.max.lp.gap")
+            ?: FltX(0.05)
         val solver = GurobiDelegatingColumnGenerationSolver(
             config = buildSolverConfig(prefix = "bpp3d.gurobi.random.dataset")
         )
@@ -3683,11 +3684,11 @@ class GurobiColumnGenerationTest {
                     ),
                     depthBoundaryLayerOrientationPolicy = scenario.depthBoundaryLayerOrientationPolicy,
                     executorConfig = ColumnGenerationStandardExecutorConfig(
-                        integralityTolerance = Flt64(1e-5)
+                        integralityTolerance = FltX(1e-5)
                     ),
                     generators = listOf(
-                        object : Bpp3dLayerGenerator<Flt64> {
-                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                        object : Bpp3dLayerGenerator<FltX> {
+                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                                 return emptyList()
                             }
                         }
@@ -3713,7 +3714,7 @@ class GurobiColumnGenerationTest {
                 ?.toDoubleOrNull()
                 ?.let { lpGap ->
                     assertTrue(
-                        Flt64(lpGap) <= maxLpGap,
+                        FltX(lpGap) <= maxLpGap,
                         "${scenarioCase.name}: lp_gap=$lpGap exceeds $maxLpGap"
                     )
                 }
@@ -3721,7 +3722,7 @@ class GurobiColumnGenerationTest {
                 ?.toDoubleOrNull()
                 ?.let { milpGap ->
                     assertTrue(
-                        Flt64(milpGap) <= maxMilpGap,
+                        FltX(milpGap) <= maxMilpGap,
                         "${scenarioCase.name}: milp_gap=$milpGap exceeds $maxMilpGap"
                     )
                 }
@@ -3764,15 +3765,15 @@ class GurobiColumnGenerationTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-GUROBI-MIXED-WEIGHT-$index",
-                weight = Flt64((index + 1).toDouble()) * Kilogram
+                weight = FltX((index + 1).toDouble()) * Kilogram
             )
         }
         val binTypes = (0 until groupCount).map { index ->
             BinType(
-                width = Flt64(itemsPerLayer.toDouble()) * Meter,
-                height = Flt64(3.0) * Meter,
-                depth = Flt64(layersPerGroup.toDouble()) * Meter,
-                capacity = Flt64(1200.0) * Kilogram,
+                width = FltX(itemsPerLayer.toDouble()) * Meter,
+                height = FltX(3.0) * Meter,
+                depth = FltX(layersPerGroup.toDouble()) * Meter,
+                capacity = FltX(1200.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
                 typeCode = "BIN-GUROBI-MIXED-WEIGHT-$index"
@@ -3796,9 +3797,9 @@ class GurobiColumnGenerationTest {
                 val bin = layerBin(
                     items = layerItems,
                     typeCode = binTypes[groupIndex].typeCode,
-                    depthInMeter = Flt64(layersPerGroup.toLong()),
+                    depthInMeter = FltX(layersPerGroup.toLong()),
                     binType = binTypes[groupIndex],
-                    widthInMeter = Flt64(itemsPerLayer.toLong())
+                    widthInMeter = FltX(itemsPerLayer.toLong())
                 )
                 val rawLayer = bin.units.first().unit
                 layers.add(
@@ -3818,7 +3819,7 @@ class GurobiColumnGenerationTest {
         val materialWeightDemands = materials.mapIndexed { index, material ->
             Pair(
                 material,
-                Flt64((expectedMaterialAmount.toLong() * (index + 1L)).toDouble()) * Kilogram
+                FltX((expectedMaterialAmount.toLong() * (index + 1L)).toDouble()) * Kilogram
             )
         }
         val demandEntries = demandEntriesFromItems(items = itemDemands) +
@@ -3856,11 +3857,11 @@ class GurobiColumnGenerationTest {
                     maxColumnsPerIteration = 96
                 ),
                 executorConfig = ColumnGenerationStandardExecutorConfig(
-                    integralityTolerance = Flt64(1e-5)
+                    integralityTolerance = FltX(1e-5)
                 ),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<Flt64> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<Flt64>): List<Bpp3dLayerGenerationResult<Flt64>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }

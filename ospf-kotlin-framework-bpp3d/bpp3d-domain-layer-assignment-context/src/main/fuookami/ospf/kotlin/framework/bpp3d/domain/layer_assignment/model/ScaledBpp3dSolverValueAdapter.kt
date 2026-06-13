@@ -4,7 +4,6 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.number.toFltX
@@ -64,13 +63,13 @@ class ScaledBpp3dSolverValueAdapter(
     private val unitSystem: Bpp3dSolverUnitSystem = Bpp3dSolverUnitSystem(),
     private val scale: Bpp3dSolverFltXScale = Bpp3dSolverFltXScale()
 ) : Bpp3dSolverValueAdapter {
-    private fun FltX.toSolverInfraNumber(): InfraNumber = InfraNumber(this.toDouble())
+    private fun FltX.toSolverNumber(): FltX = FltX(this.toDouble())
 
-    override fun amountToSolver(value: UInt64): InfraNumber {
-        return (value.toFltX() * scale.amount).toSolverInfraNumber()
+    override fun amountToSolver(value: UInt64): FltX {
+        return (value.toFltX() * scale.amount).toSolverNumber()
     }
 
-    override fun amountRangeToSolver(value: ValueRange<UInt64>): ValueRange<InfraNumber> {
+    override fun amountRangeToSolver(value: ValueRange<UInt64>): ValueRange<FltX> {
         val lower = amountToSolver(value.lowerBound.value.unwrap())
         val upper = amountToSolver(value.upperBound.value.unwrap())
         return ValueRange(
@@ -78,38 +77,38 @@ class ScaledBpp3dSolverValueAdapter(
             upper,
             value.lowerBound.interval,
             value.upperBound.interval,
-            InfraNumber
+            FltX
         ).value!!
     }
 
-    override fun lengthToSolver(value: Quantity<InfraNumber>): InfraNumber {
+    override fun lengthToSolver(value: Quantity<FltX>): FltX {
         return quantityToSolver(value, unitSystem.lengthUnit, scale.length)
     }
 
-    override fun areaToSolver(value: Quantity<InfraNumber>): InfraNumber {
+    override fun areaToSolver(value: Quantity<FltX>): FltX {
         return quantityToSolver(value, unitSystem.areaUnit, scale.area)
     }
 
-    override fun volumeToSolver(value: Quantity<InfraNumber>): InfraNumber {
+    override fun volumeToSolver(value: Quantity<FltX>): FltX {
         return quantityToSolver(value, unitSystem.volumeUnit, scale.volume)
     }
 
-    override fun depthToSolver(value: Quantity<InfraNumber>): InfraNumber {
+    override fun depthToSolver(value: Quantity<FltX>): FltX {
         return quantityToSolver(value, unitSystem.lengthUnit, scale.depth)
     }
 
-    override fun weightToSolver(value: Quantity<InfraNumber>): InfraNumber {
+    override fun weightToSolver(value: Quantity<FltX>): FltX {
         return quantityToSolver(value, unitSystem.weightUnit, scale.weight)
     }
 
     private fun quantityToSolver(
-        value: Quantity<InfraNumber>,
+        value: Quantity<FltX>,
         targetUnit: PhysicalUnit,
         factor: FltX
-    ): InfraNumber {
+    ): FltX {
         val normalized = value.convertTo(targetUnit)
             ?: throw IllegalArgumentException("Incompatible unit: ${value.unit} vs $targetUnit")
-        return (normalized.value.toFltX() * factor).toSolverInfraNumber()
+        return (normalized.value.toFltX() * factor).toSolverNumber()
     }
 }
 

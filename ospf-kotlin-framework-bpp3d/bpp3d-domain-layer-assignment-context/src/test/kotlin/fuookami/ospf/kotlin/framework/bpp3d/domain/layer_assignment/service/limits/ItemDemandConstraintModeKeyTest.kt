@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
@@ -27,11 +28,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialAmounts
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.demandEntriesFromMaterialWeights
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -51,23 +51,23 @@ import kotlin.test.assertTrue
 class ItemDemandConstraintModeKeyTest {
     private val cargo = object : AbstractCargoAttribute {}
 
-    private fun fixedRange(value: InfraNumber): ValueRange<InfraNumber> {
-        return ValueRange(value, value, Interval.Closed, Interval.Closed, InfraNumber).value!!
+    private fun fixedRange(value: FltX): ValueRange<FltX> {
+        return ValueRange(value, value, Interval.Closed, Interval.Closed, FltX).value!!
     }
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
     private fun createItem(
         id: String,
-        material: Material<InfraNumber>,
+        material: Material<FltX>,
         materialAmount: UInt64 = UInt64(2)
     ): ActualItem {
         return ActualItem(
@@ -75,10 +75,10 @@ class ItemDemandConstraintModeKeyTest {
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(0.1) * Kilogram,
+                    width = fltX(1.0) * Meter,
+                    height = fltX(1.0) * Meter,
+                    depth = fltX(1.0) * Meter,
+                    weight = fltX(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to materialAmount)
@@ -91,7 +91,7 @@ class ItemDemandConstraintModeKeyTest {
 
     private fun createCylinderItem(
         id: String,
-        material: Material<InfraNumber>,
+        material: Material<FltX>,
         materialAmount: UInt64 = UInt64(3)
     ): ActualItem {
         return ActualItem(
@@ -99,51 +99,51 @@ class ItemDemandConstraintModeKeyTest {
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(0.1) * Kilogram,
+                    width = fltX(1.0) * Meter,
+                    height = fltX(1.0) * Meter,
+                    depth = fltX(1.0) * Meter,
+                    weight = fltX(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer,
                     shapeSpec = PackageShapeSpec.VerticalCylinder(
-                        radius = infraScalar(0.5) * Meter,
+                        radius = fltX(0.5) * Meter,
                         axis = Axis3.Y
                     )
                 ),
                 materials = mapOf(material to materialAmount)
             ),
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(0.1) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(0.1) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
     }
 
-    private fun testLoad(demandEntries: List<Bpp3dDemandEntry<InfraNumber>>): Load<InfraNumber> {
-        val symbols = LinearExpressionSymbols1<InfraNumber>(
+    private fun testLoad(demandEntries: List<Bpp3dDemandEntry<FltX>>): Load<FltX> {
+        val symbols = LinearExpressionSymbols1<FltX>(
             "load",
             Shape1(demandEntries.size)
         ) { i, _ ->
-            LinearExpressionSymbol(InfraNumber.zero, name = "load_$i")
+            LinearExpressionSymbol(FltX.zero, name = "load_$i")
         }
-        return object : Load<InfraNumber> {
-            override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = demandEntries
+        return object : Load<FltX> {
+            override val demandEntries: List<Bpp3dDemandEntry<FltX>> = demandEntries
             override val demandValueAdapter = DefaultBpp3dSolverValueAdapter
-            override val load: LinearIntermediateSymbols1<InfraNumber> = symbols
-            override val overLoad: LinearIntermediateSymbols1<InfraNumber> = symbols
-            override val lessLoad: LinearIntermediateSymbols1<InfraNumber> = symbols
+            override val load: LinearIntermediateSymbols1<FltX> = symbols
+            override val overLoad: LinearIntermediateSymbols1<FltX> = symbols
+            override val lessLoad: LinearIntermediateSymbols1<FltX> = symbols
             override val overEnabled: Boolean = true
             override val lessEnabled: Boolean = true
         }
     }
 
-    private fun demandModesInModel(model: LinearMetaModel<InfraNumber>): Set<Bpp3dDemandMode> {
+    private fun demandModesInModel(model: LinearMetaModel<FltX>): Set<Bpp3dDemandMode> {
         return model.relationConstraints.mapNotNull {
             (it.args as? DemandShadowPriceKey)?.mode
         }.toSet()
@@ -156,7 +156,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-AMOUNT",
-            weight = infraScalar(1.0) * Kilogram
+            weight = fltX(1.0) * Kilogram
         )
         val load = testLoad(
             demandEntriesFromMaterialAmounts(
@@ -165,7 +165,7 @@ class ItemDemandConstraintModeKeyTest {
         )
         val model = LinearMetaModel(
             name = "material-amount-only-demand",
-            converter = InfraNumber
+            converter = FltX
         )
         val constraint = itemDemandConstraint(load)
 
@@ -180,16 +180,16 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val load = testLoad(
             demandEntriesFromMaterialWeights(
-                materials = listOf(Pair(material, infraScalar(12.5) * Kilogram))
+                materials = listOf(Pair(material, fltX(12.5) * Kilogram))
             )
         )
         val model = LinearMetaModel(
             name = "material-weight-only-demand",
-            converter = InfraNumber
+            converter = FltX
         )
         val constraint = itemDemandConstraint(load)
 
@@ -204,7 +204,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-MIX",
-            weight = infraScalar(3.0) * Kilogram
+            weight = fltX(3.0) * Kilogram
         )
         val item = createItem("item-mix", material, UInt64(3))
         val load = testLoad(
@@ -212,14 +212,14 @@ class ItemDemandConstraintModeKeyTest {
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,
                     key = Bpp3dDemandKey.Item(item),
-                    demand = InfraNumber.one,
-                    demandRange = fixedRange(InfraNumber.one)
+                    demand = FltX.one,
+                    demandRange = fixedRange(FltX.one)
                 )
-            ) + demandEntriesFromMaterialWeights(listOf(Pair(material, infraScalar(9.0) * Kilogram)))
+            ) + demandEntriesFromMaterialWeights(listOf(Pair(material, fltX(9.0) * Kilogram)))
         )
         val model = LinearMetaModel(
             name = "mixed-demand-modes",
-            converter = InfraNumber
+            converter = FltX
         )
         val constraint = itemDemandConstraint(load)
 
@@ -237,7 +237,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "A",
-            weight = infraScalar(5.0) * Kilogram
+            weight = fltX(5.0) * Kilogram
         )
         val item = createItem("item-1", material, UInt64(2))
 
@@ -249,33 +249,33 @@ class ItemDemandConstraintModeKeyTest {
         assertNotEquals(materialAmountKey, materialWeightKey)
         assertNotEquals(amountKey, materialWeightKey)
 
-        val load = object : Load<InfraNumber> {
-            override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val load = object : Load<FltX> {
+            override val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,
                     key = Bpp3dDemandKey.Item(item),
-                    demand = InfraNumber.one,
-                    demandRange = fixedRange(InfraNumber.one)
+                    demand = FltX.one,
+                    demandRange = fixedRange(FltX.one)
                 ),
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialAmount,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = InfraNumber(2.0),
-                    demandRange = fixedRange(InfraNumber(2.0))
+                    demand = FltX(2.0),
+                    demandRange = fixedRange(FltX(2.0))
                 ),
                 Bpp3dDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialWeight,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = InfraNumber(10.0),
-                    demandRange = fixedRange(InfraNumber(10.0))
+                    demand = FltX(10.0),
+                    demandRange = fixedRange(FltX(10.0))
                 )
             )
             override val demandValueAdapter = DefaultBpp3dSolverValueAdapter
-            override val load: LinearIntermediateSymbols1<InfraNumber>
+            override val load: LinearIntermediateSymbols1<FltX>
                 get() = error("not used in this test")
-            override val overLoad: LinearIntermediateSymbols1<InfraNumber>
+            override val overLoad: LinearIntermediateSymbols1<FltX>
                 get() = error("not used in this test")
-            override val lessLoad: LinearIntermediateSymbols1<InfraNumber>
+            override val lessLoad: LinearIntermediateSymbols1<FltX>
                 get() = error("not used in this test")
             override val overEnabled: Boolean = true
             override val lessEnabled: Boolean = true
@@ -301,12 +301,12 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-ACTIVE",
-            weight = infraScalar(4.0) * Kilogram
+            weight = fltX(4.0) * Kilogram
         )
         val item = createItem("item-active", material, UInt64(3))
         val load = testLoad(
             demandEntriesFromMaterialWeights(
-                materials = listOf(Pair(material, infraScalar(12.0) * Kilogram))
+                materials = listOf(Pair(material, fltX(12.0) * Kilogram))
             )
         )
         val constraint = itemDemandConstraint(load)
@@ -333,7 +333,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-CYL-SEM",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val cylinder = createCylinderItem(
             id = "cylinder-semantics",
@@ -345,22 +345,22 @@ class ItemDemandConstraintModeKeyTest {
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(cylinder),
-                demand = InfraNumber.one,
-                demandRange = fixedRange(InfraNumber.one)
+                demand = FltX.one,
+                demandRange = fixedRange(FltX.one)
             )
         ) + demandEntriesFromMaterialAmounts(
             materials = listOf(Pair(material, UInt64(3)))
         ) + demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(material, infraScalar(6.0) * Kilogram))
+            materials = listOf(Pair(material, fltX(6.0) * Kilogram))
         )
-        val load = object : Load<InfraNumber> {
-            override val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = demandEntries
+        val load = object : Load<FltX> {
+            override val demandEntries: List<Bpp3dDemandEntry<FltX>> = demandEntries
             override val demandValueAdapter = DefaultBpp3dSolverValueAdapter
-            override val load: LinearIntermediateSymbols1<InfraNumber>
+            override val load: LinearIntermediateSymbols1<FltX>
                 get() = error("not used in this test")
-            override val overLoad: LinearIntermediateSymbols1<InfraNumber>
+            override val overLoad: LinearIntermediateSymbols1<FltX>
                 get() = error("not used in this test")
-            override val lessLoad: LinearIntermediateSymbols1<InfraNumber>
+            override val lessLoad: LinearIntermediateSymbols1<FltX>
                 get() = error("not used in this test")
             override val overEnabled: Boolean = true
             override val lessEnabled: Boolean = true

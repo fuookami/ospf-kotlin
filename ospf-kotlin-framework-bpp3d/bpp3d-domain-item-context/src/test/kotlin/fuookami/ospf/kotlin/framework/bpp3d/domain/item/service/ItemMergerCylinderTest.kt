@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -16,10 +17,9 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Front
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.FilterStackingOnPolicy
@@ -35,24 +35,24 @@ class ItemMergerCylinderTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = infraScalar(10.0) * Meter,
-            maxDepth = infraScalar(10.0) * Meter,
+            maxHeight = fltX(10.0) * Meter,
+            maxDepth = fltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
     private fun cylinderItem(id: String): ActualItem {
-        val radius = infraScalar(0.5) * Meter
+        val radius = fltX(0.5) * Meter
         return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
-            height = infraScalar(1.0) * Meter,
+            height = fltX(1.0) * Meter,
             depth = radius + radius,
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -65,19 +65,19 @@ class ItemMergerCylinderTest {
 
     private fun space(): Container3Shape {
         return Container3Shape(
-            width = infraScalar(4.0) * Meter,
-            height = infraScalar(4.0) * Meter,
-            depth = infraScalar(4.0) * Meter
+            width = fltX(4.0) * Meter,
+            height = fltX(4.0) * Meter,
+            depth = fltX(4.0) * Meter
         )
     }
 
     private fun pattern(): Pattern {
         val range = ValueRange(
-            lb = InfraNumber.zero,
-            ub = infraScalar(10.0),
+            lb = FltX.zero,
+            ub = fltX(10.0),
             lbInterval = Interval.Closed,
             ubInterval = Interval.Closed,
-            constants = InfraNumber
+            constants = FltX
         ).value!!
         return object : Pattern() {
             override val bottomLengthRange = range
@@ -103,7 +103,7 @@ class ItemMergerCylinderTest {
             ItemMerger.merge(
                 items = listOf(cylinderItem("cylinder-top-level")),
                 space = space(),
-                restWeight = InfraNumber.maximum,
+                restWeight = FltX.maximum,
                 patterns = emptyList()
             )
         }
@@ -117,7 +117,7 @@ class ItemMergerCylinderTest {
             ItemMerger.mergePiles(
                 items = listOf(cylinderItem("cylinder-pile")),
                 space = space(),
-                restWeight = InfraNumber.maximum
+                restWeight = FltX.maximum
             )
         }
 
@@ -130,7 +130,7 @@ class ItemMergerCylinderTest {
             ItemMerger.mergeBlocks(
                 items = listOf(cylinderItem("cylinder-block")),
                 space = space(),
-                restWeight = InfraNumber.maximum
+                restWeight = FltX.maximum
             )
         }
 
@@ -144,7 +144,7 @@ class ItemMergerCylinderTest {
                 items = listOf(cylinderItem("cylinder-pattern-block")),
                 space = space(),
                 patterns = listOf(pattern()),
-                restWeight = InfraNumber.maximum
+                restWeight = FltX.maximum
             )
         }
 
@@ -157,7 +157,7 @@ class ItemMergerCylinderTest {
             ItemMerger.mergeHollowSquareBlocks(
                 items = mapOf(cylinderItem("cylinder-hollow") to UInt64(8)),
                 space = space(),
-                restWeight = InfraNumber.maximum
+                restWeight = FltX.maximum
             )
         }
 
@@ -169,7 +169,7 @@ class ItemMergerCylinderTest {
         val result = pattern()(
             originItems = mapOf(cylinderItem("cylinder-pattern-direct") to UInt64.one),
             space = space(),
-            restWeight = InfraNumber.maximum
+            restWeight = FltX.maximum
         )
 
         when (result) {

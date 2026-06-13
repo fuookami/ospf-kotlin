@@ -6,12 +6,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgram
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackingProgramMaterialValue
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.mergePackingProgramMaterialValues
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -31,7 +31,7 @@ data class PackageSolutionLikeMaterialItem(
 )
 
 data class PackageSolutionLikeNode(
-    val shape: PackageShape<InfraNumber>,
+    val shape: PackageShape<FltX>,
     val materialItems: List<PackageSolutionLikeMaterialItem> = emptyList(),
     val children: List<PackageSolutionLikeNode> = emptyList()
 )
@@ -54,7 +54,7 @@ private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMateria
     }
 }
 
-fun PackageSolutionLikeNode.toPackingProgram(): PackingProgram<InfraNumber> {
+fun PackageSolutionLikeNode.toPackingProgram(): PackingProgram<FltX> {
     val childPrograms = children.map { child -> child.toPackingProgram() }
     val mergedMaterials = LinkedHashMap<MaterialKey, PackingProgramMaterialValue>()
     for (child in childPrograms) {

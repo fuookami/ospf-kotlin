@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.math.geometry.QuantityCylinder3
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -17,11 +18,11 @@ interface AbstractCylinder<V : FloatingNumber<V>> {
     val weight: Quantity<V>
 }
 
-interface Cylinder<T : Cylinder<T>> : AbstractCylinder<InfraNumber> {
+interface Cylinder<T : Cylinder<T>> : AbstractCylinder<FltX> {
     val self: T
     val enabledAxes: List<Axis3>
 
-    fun geometry(axis: Axis3 = this.axis): QuantityCylinder3<InfraNumber> {
+    fun geometry(axis: Axis3 = this.axis): QuantityCylinder3<FltX> {
         return QuantityCylinder3(
             radius = radius,
             height = height,

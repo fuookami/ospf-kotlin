@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.PI
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
@@ -24,7 +25,7 @@ class MaterialDemandReducedCostTest {
     private data class ReducedCostContainer(
         override val shape: Container3Shape,
         override val units: List<AnyPlacement3>
-    ) : Container3<ReducedCostContainer> {
+    ) : Container3<ReducedCostContainer, FltX> {
         override fun copy(): ReducedCostContainer {
             return ReducedCostContainer(shape = shape, units = units)
         }
@@ -40,8 +41,8 @@ class MaterialDemandReducedCostTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -50,15 +51,15 @@ class MaterialDemandReducedCostTest {
         return ActualItem(
             id = id,
             name = id,
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
@@ -73,9 +74,9 @@ class MaterialDemandReducedCostTest {
         return itemPlacement3Of(
             view = item.view(Orientation.Upright),
             position = point3(
-                x = infraScalar(x) * Meter,
-                y = infraScalar(y) * Meter,
-                z = infraScalar(z) * Meter
+                x = fltX(x) * Meter,
+                y = fltX(y) * Meter,
+                z = fltX(z) * Meter
             )
         )
     }
@@ -91,17 +92,17 @@ class MaterialDemandReducedCostTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val item = ActualItem(
             id = "item-rc",
             name = "item-rc",
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = infraScalar(1.0) * Meter,
-                    height = infraScalar(1.0) * Meter,
-                    depth = infraScalar(1.0) * Meter,
-                    weight = infraScalar(0.1) * Kilogram,
+                    width = fltX(1.0) * Meter,
+                    height = fltX(1.0) * Meter,
+                    depth = fltX(1.0) * Meter,
+                    weight = fltX(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(3))
@@ -121,13 +122,13 @@ class MaterialDemandReducedCostTest {
             unit = item,
             demandEntries = listOf(Pair(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))),
             shadowPriceOf = { mode, key ->
-                shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price?.toDouble()?.let(::InfraNumber)
-                    ?: infraScalar(0.0)
+                shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price?.toDouble()?.let(::FltX)
+                    ?: fltX(0.0)
             },
             demandValueToScalar = { value ->
                 when (value) {
-                    is Bpp3dDemandValue.Amount -> infraScalar(value.value.toULong().toDouble())
-                    is Bpp3dDemandValue.Weight -> infraScalar(value.value.value.toDouble())
+                    is Bpp3dDemandValue.Amount -> fltX(value.value.toULong().toDouble())
+                    is Bpp3dDemandValue.Weight -> fltX(value.value.value.toDouble())
                 }
             }
         )
@@ -136,7 +137,7 @@ class MaterialDemandReducedCostTest {
     }
 
     @Test
-    fun legacyReducedCostShouldUseCylinderShapeVolume() {
+    fun reducedCostShouldUseCylinderShapeVolume() {
         val item = cylinderItem("cyl-rc")
 
         val reducedCost = zeroShadowPriceMap().reducedCost(item)
@@ -145,14 +146,14 @@ class MaterialDemandReducedCostTest {
     }
 
     @Test
-    fun legacyReducedCostShouldUseCylinderShapeVolumeInsideContainer() {
+    fun reducedCostShouldUseCylinderShapeVolumeInsideContainer() {
         val first = cylinderItem("cyl-rc-a")
         val second = cylinderItem("cyl-rc-b")
         val container = ReducedCostContainer(
             shape = Container3Shape(
-                width = infraScalar(3.0) * Meter,
-                height = infraScalar(2.0) * Meter,
-                depth = infraScalar(2.0) * Meter
+                width = fltX(3.0) * Meter,
+                height = fltX(2.0) * Meter,
+                depth = fltX(2.0) * Meter
             ),
             units = listOf(
                 placementOf(item = first),

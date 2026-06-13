@@ -1,5 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.application.service
+package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialType
@@ -10,8 +11,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.toLayerGener
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -26,8 +26,8 @@ class PackingProgramLayerCandidateAdapterTest {
 
     private fun material(
         no: String,
-        unitWeightKg: InfraNumber
-    ): Material<InfraNumber> {
+        unitWeightKg: FltX
+    ): Material<FltX> {
         return Material(
             no = MaterialNo(no),
             type = MaterialType.RawMaterial,
@@ -37,12 +37,12 @@ class PackingProgramLayerCandidateAdapterTest {
         )
     }
 
-    private fun shape(): PackageShape<InfraNumber> {
+    private fun shape(): PackageShape<FltX> {
         return PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer
         )
     }
@@ -51,7 +51,7 @@ class PackingProgramLayerCandidateAdapterTest {
     fun amountOnlyShouldDeriveWeightWhenCatalogProvided() {
         val material = material(
             no = "M-LAYER-AMOUNT",
-            unitWeightKg = InfraNumber(2.0)
+            unitWeightKg = FltX(2.0)
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-amount",
@@ -76,7 +76,7 @@ class PackingProgramLayerCandidateAdapterTest {
     fun weightOnlyShouldNotBackfillAmount() {
         val material = material(
             no = "M-LAYER-WEIGHT",
-            unitWeightKg = InfraNumber(2.0)
+            unitWeightKg = FltX(2.0)
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-weight",
@@ -84,7 +84,7 @@ class PackingProgramLayerCandidateAdapterTest {
                 shape = shape(),
                 materials = mapOf(
                     material.key to PackingProgramMaterialValue(
-                        weight = infraScalar(5.0) * Kilogram
+                        weight = fltX(5.0) * Kilogram
                     )
                 )
             )
@@ -92,14 +92,14 @@ class PackingProgramLayerCandidateAdapterTest {
 
         val item = candidate.toLayerGenerationItem(sequence = 1)
         assertTrue(item.materialAmounts.isEmpty())
-        assertEquals(InfraNumber(5.0), item.materialWeights[material.key]?.value)
+        assertEquals(FltX(5.0), item.materialWeights[material.key]?.value)
     }
 
     @Test
     fun amountAndWeightShouldKeepExplicitWeight() {
         val material = material(
             no = "M-LAYER-BOTH",
-            unitWeightKg = InfraNumber(2.0)
+            unitWeightKg = FltX(2.0)
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-both",
@@ -108,7 +108,7 @@ class PackingProgramLayerCandidateAdapterTest {
                 materials = mapOf(
                     material.key to PackingProgramMaterialValue(
                         amount = UInt64(3),
-                        weight = infraScalar(9.0) * Kilogram
+                        weight = fltX(9.0) * Kilogram
                     )
                 )
             )
@@ -119,7 +119,7 @@ class PackingProgramLayerCandidateAdapterTest {
             materialCatalog = mapOf(material.key to material)
         )
         assertEquals(UInt64(3), item.materialAmounts[material.key])
-        assertEquals(InfraNumber(9.0), item.materialWeights[material.key]?.value)
+        assertEquals(FltX(9.0), item.materialWeights[material.key]?.value)
     }
 }
 

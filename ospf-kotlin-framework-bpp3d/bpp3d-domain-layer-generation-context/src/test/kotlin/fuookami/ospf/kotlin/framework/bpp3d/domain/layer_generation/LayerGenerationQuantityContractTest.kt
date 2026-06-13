@@ -35,12 +35,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asShapePlacement3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -60,15 +59,15 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class LayerGenerationFltXProofTest {
+class LayerGenerationQuantityContractTest {
     private val cargo = object : AbstractCargoAttribute {}
 
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -82,10 +81,10 @@ class LayerGenerationFltXProofTest {
         axis: Axis3,
         radiusValue: Double = 0.5
     ): ActualItem {
-        val radius = infraScalar(radiusValue) * Meter
+        val radius = fltX(radiusValue) * Meter
         val diameter = radius + radius
-        val length = infraScalar(1.0) * Meter
-        val weight = infraScalar(0.2) * Kilogram
+        val length = fltX(1.0) * Meter
+        val weight = fltX(0.2) * Kilogram
         val shape = when (axis) {
             Axis3.X -> PackageShape(
                 width = length,
@@ -139,10 +138,10 @@ class LayerGenerationFltXProofTest {
         depthValue: Double = 1.0
     ): ActualItem {
         val shape = PackageShape(
-            width = infraScalar(widthValue) * Meter,
-            height = infraScalar(heightValue) * Meter,
-            depth = infraScalar(depthValue) * Meter,
-            weight = infraScalar(0.2) * Kilogram,
+            width = fltX(widthValue) * Meter,
+            height = fltX(heightValue) * Meter,
+            depth = fltX(depthValue) * Meter,
+            weight = fltX(0.2) * Kilogram,
             packageType = PackageType.CartonContainer
         )
         val pack = PackingProgram.innerPackage(
@@ -191,7 +190,7 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun fltXStatisticsShouldBeAvailableInLayerGenerationContext() {
-        val context = LayerGenerationContext<InfraNumber>()
+        val context = LayerGenerationContext<FltX>()
         assertNotNull(context)
 
         val material = QuantityMaterial(
@@ -268,7 +267,7 @@ class LayerGenerationFltXProofTest {
         )
         val layer = QuantityBinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
-            from = LayerGenerationFltXProofTest::class,
+            from = LayerGenerationQuantityContractTest::class,
             width = q(FltX(2.0), Meter),
             height = q(FltX(2.0), Meter),
             depth = q(FltX(2.0), Meter),
@@ -282,7 +281,7 @@ class LayerGenerationFltXProofTest {
             )
         )
 
-        val request = bpp3dLayerGenerationRequestFromQuantity<FltX, InfraNumber>(
+        val request = bpp3dLayerGenerationRequestFromQuantity<FltX, FltX>(
             iteration = 2,
             items = listOf(item),
             existingLayers = listOf(layer),
@@ -297,7 +296,7 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun delegatedGeneratorsShouldProvideNonEmptyResultWhenHistoricalLayersExist() = runBlocking {
-        val context = LayerGenerationContext<InfraNumber>(
+        val context = LayerGenerationContext<FltX>(
             generators = listOf(
                 BlockLayerGenerator(),
                 BLLocalLayerGenerator(),
@@ -336,7 +335,7 @@ class LayerGenerationFltXProofTest {
         )
         val layer = QuantityBinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,
-            from = LayerGenerationFltXProofTest::class,
+            from = LayerGenerationQuantityContractTest::class,
             width = q(FltX(3.0), Meter),
             height = q(FltX(3.0), Meter),
             depth = q(FltX(3.0), Meter),
@@ -405,7 +404,7 @@ class LayerGenerationFltXProofTest {
         val highMaterialKey = highItem.materialAmounts.keys.first()
         val lowMaterialKey = lowItem.materialAmounts.keys.first()
 
-        val generator = BlockLayerGenerator<InfraNumber>()
+        val generator = BlockLayerGenerator<FltX>()
         val generated = generator.generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
@@ -424,11 +423,11 @@ class LayerGenerationFltXProofTest {
                     DemandModeKey(
                         Bpp3dDemandMode.ItemMaterialAmount,
                         fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(highMaterialKey)
-                    ) to InfraNumber(10.0),
+                    ) to FltX(10.0),
                     DemandModeKey(
                         Bpp3dDemandMode.ItemMaterialAmount,
                         fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey.Material(lowMaterialKey)
-                    ) to InfraNumber(1.0)
+                    ) to FltX(1.0)
                 ),
                 scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToScalar = { it }),
                 maxCandidates = 2
@@ -442,7 +441,7 @@ class LayerGenerationFltXProofTest {
         assertNotNull(lastScore)
         assertEquals(10.0, firstScore.toDouble(), 1e-10)
         assertEquals(1.0, lastScore.toDouble(), 1e-10)
-        assertTrue((firstScore ?: InfraNumber.zero) > (lastScore ?: InfraNumber.zero))
+        assertTrue((firstScore ?: FltX.zero) > (lastScore ?: FltX.zero))
     }
 
     @Test
@@ -452,19 +451,19 @@ class LayerGenerationFltXProofTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT-ONLY",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = infraScalar(1.0) * Meter,
-                height = infraScalar(1.0) * Meter,
-                depth = infraScalar(1.0) * Meter,
-                weight = infraScalar(1.0) * Kilogram,
+                width = fltX(1.0) * Meter,
+                height = fltX(1.0) * Meter,
+                depth = fltX(1.0) * Meter,
+                weight = fltX(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
-                    weight = infraScalar(3.0) * Kilogram
+                    weight = fltX(3.0) * Kilogram
                 )
             )
         )
@@ -482,7 +481,7 @@ class LayerGenerationFltXProofTest {
             materialWeightsOverride = program.materialWeights()
         )
         val demandKey = Bpp3dDemandKey.Material(material.key)
-        val generated = BlockLayerGenerator<InfraNumber>().generate(
+        val generated = BlockLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 items = listOf(item),
@@ -500,11 +499,11 @@ class LayerGenerationFltXProofTest {
                     DemandModeKey(
                         mode = Bpp3dDemandMode.ItemMaterialAmount,
                         key = demandKey
-                    ) to InfraNumber(10.0),
+                    ) to FltX(10.0),
                     DemandModeKey(
                         mode = Bpp3dDemandMode.ItemMaterialWeight,
                         key = demandKey
-                    ) to InfraNumber(2.0)
+                    ) to FltX(2.0)
                 ),
                 scoreByShadowPrice = shadowPriceAwareLayerScore(shadowPriceToScalar = { it }),
                 maxCandidates = 1
@@ -541,16 +540,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK"
         )
 
-        val generated = BlockLayerGenerator<InfraNumber>().generate(
+        val generated = BlockLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -588,16 +587,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK-GEN"
         )
 
-        val generated = BlockLayerGenerator<InfraNumber>().generateFromQuantity(
+        val generated = BlockLayerGenerator<FltX>().generateFromQuantity(
             iteration = 0,
             bin = bin,
             items = listOf(item, item),
@@ -633,16 +632,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PATTERN"
         )
 
-        val generated = PatternLayerGenerator<InfraNumber>().generate(
+        val generated = PatternLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -680,16 +679,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PILE"
         )
 
-        val generated = PileLayerGenerator<InfraNumber>().generate(
+        val generated = PileLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -705,10 +704,10 @@ class LayerGenerationFltXProofTest {
     @Test
     fun pileLayerGeneratorShouldRejectHorizontalCylinderAxes() = runBlocking {
         val bin = BinType(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PILE-HORIZONTAL-CYLINDER"
@@ -721,7 +720,7 @@ class LayerGenerationFltXProofTest {
             )
 
             val error = assertFailsWith<IllegalArgumentException> {
-                PileLayerGenerator<InfraNumber>().generate(
+                PileLayerGenerator<FltX>().generate(
                     Bpp3dLayerGenerationRequest(
                         iteration = 0,
                         bin = bin,
@@ -738,13 +737,13 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun fallbackLayerGeneratorsShouldRejectHorizontalCylinderAxesWithoutBin() = runBlocking {
-        val generators: List<Pair<String, Bpp3dLayerGenerator<InfraNumber>>> = listOf(
-            "block" to BlockLayerGenerator<InfraNumber>(),
-            "bl-local" to BLLocalLayerGenerator<InfraNumber>(),
-            "bl-global" to BLGlobalLayerGenerator<InfraNumber>(),
-            "pattern" to PatternLayerGenerator<InfraNumber>(),
-            "pile" to PileLayerGenerator<InfraNumber>(),
-            "circle-packing" to CirclePackingLayerGenerator<InfraNumber>()
+        val generators: List<Pair<String, Bpp3dLayerGenerator<FltX>>> = listOf(
+            "block" to BlockLayerGenerator<FltX>(),
+            "bl-local" to BLLocalLayerGenerator<FltX>(),
+            "bl-global" to BLGlobalLayerGenerator<FltX>(),
+            "pattern" to PatternLayerGenerator<FltX>(),
+            "pile" to PileLayerGenerator<FltX>(),
+            "circle-packing" to CirclePackingLayerGenerator<FltX>()
         )
 
         for ((source, generator) in generators) {
@@ -772,17 +771,17 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun blockLoadingLayerGeneratorsShouldRejectHorizontalCylinderAxesWithBin() = runBlocking {
-        val generators: List<Pair<String, Bpp3dLayerGenerator<InfraNumber>>> = listOf(
-            "block" to BlockLayerGenerator<InfraNumber>(),
-            "bl-local" to BLLocalLayerGenerator<InfraNumber>(),
-            "bl-global" to BLGlobalLayerGenerator<InfraNumber>(),
-            "pattern" to PatternLayerGenerator<InfraNumber>()
+        val generators: List<Pair<String, Bpp3dLayerGenerator<FltX>>> = listOf(
+            "block" to BlockLayerGenerator<FltX>(),
+            "bl-local" to BLLocalLayerGenerator<FltX>(),
+            "bl-global" to BLGlobalLayerGenerator<FltX>(),
+            "pattern" to PatternLayerGenerator<FltX>()
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(2.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(2.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK-LOADING-HORIZONTAL-CYLINDER"
@@ -838,16 +837,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -887,16 +886,16 @@ class LayerGenerationFltXProofTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-TIE"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -916,16 +915,16 @@ class LayerGenerationFltXProofTest {
             axis = Axis3.X
         )
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-AXIS-X"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -975,16 +974,16 @@ class LayerGenerationFltXProofTest {
             axis = Axis3.Z
         )
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-AXIS-Z"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1041,16 +1040,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-STACK"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1118,16 +1117,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-STACK"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1204,16 +1203,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HETEROGENEOUS-STACK"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1290,16 +1289,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-PARTIAL-STACK"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1331,15 +1330,15 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val singleBin = BinType(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-STACK"
         )
-        val singleGenerated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val singleGenerated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = singleBin,
@@ -1365,15 +1364,15 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val multiBin = BinType(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.2) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.2) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-MULTI-STACK"
         )
-        val multiGenerated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val multiGenerated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = multiBin,
@@ -1404,7 +1403,7 @@ class LayerGenerationFltXProofTest {
             axis = Axis3.Z,
             radiusValue = 0.5
         )
-        val heterogeneousGenerated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val heterogeneousGenerated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = multiBin,
@@ -1432,16 +1431,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-CYLINDER-BOTTOM-STACK"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1473,16 +1472,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1513,16 +1512,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-HANGING"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1593,16 +1592,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.2) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.2) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-HANGING"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1633,16 +1632,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = infraScalar(1.2) * Meter,
-            height = infraScalar(1.5) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.2) * Meter,
+            height = fltX(1.5) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING-PARTIAL"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1660,11 +1659,11 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldAcceptSelectedContinuousRadiusWeightFunctionKey() = runBlocking {
-        val radius = infraScalar(0.5) * Meter
-        val weight = infraScalar(0.2) * Kilogram
+        val radius = fltX(0.5) * Meter
+        val weight = fltX(0.2) * Kilogram
         val shape = PackageShape(
             width = radius + radius,
-            height = infraScalar(1.0) * Meter,
+            height = fltX(1.0) * Meter,
             depth = radius + radius,
             weight = weight,
             packageType = PackageType.CartonContainer
@@ -1686,22 +1685,22 @@ class LayerGenerationFltXProofTest {
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter,
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter,
                 radiusWeightFunctionKey = "prefer-large-radius"
             )
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-CONTINUOUS-RADIUS-KEY"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1739,16 +1738,16 @@ class LayerGenerationFltXProofTest {
             axis = Axis3.Y
         )
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-AXIS-Y"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1777,16 +1776,16 @@ class LayerGenerationFltXProofTest {
             axis = Axis3.Y
         )
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-GEOMETRY"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1818,16 +1817,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 0.75
         )
         val bin = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(3.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(3.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-MIXED"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1850,16 +1849,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 1.0
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-BOUNDARY"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1875,9 +1874,9 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldExpandDynamicRadiusCandidates() = runBlocking {
-        val radius = infraScalar(0.15) * Meter
-        val height = infraScalar(1.0) * Meter
-        val weight = infraScalar(0.2) * Kilogram
+        val radius = fltX(0.15) * Meter
+        val height = fltX(1.0) * Meter
+        val weight = fltX(0.2) * Kilogram
         val shape = PackageShape(
             width = radius + radius,
             height = height,
@@ -1902,22 +1901,22 @@ class LayerGenerationFltXProofTest {
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
                 axis = Axis3.Y,
-                diameterMin = infraScalar(0.30) * Meter,
-                diameterMax = infraScalar(0.36) * Meter,
-                diameterStep = infraScalar(0.01) * Meter
+                diameterMin = fltX(0.30) * Meter,
+                diameterMax = fltX(0.36) * Meter,
+                diameterStep = fltX(0.01) * Meter
             )
         )
         val bin = BinType(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-DYNAMIC-RADIUS"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -1967,10 +1966,10 @@ class LayerGenerationFltXProofTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldExpandDynamicRadiusHorizontalCandidates() = runBlocking {
-        val radius = infraScalar(0.15) * Meter
+        val radius = fltX(0.15) * Meter
         val diameter = radius + radius
-        val length = infraScalar(1.0) * Meter
-        val weight = infraScalar(0.2) * Kilogram
+        val length = fltX(1.0) * Meter
+        val weight = fltX(0.2) * Kilogram
         val shape = PackageShape(
             width = length,
             height = diameter,
@@ -1995,22 +1994,22 @@ class LayerGenerationFltXProofTest {
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
                 axis = Axis3.X,
-                diameterMin = infraScalar(0.30) * Meter,
-                diameterMax = infraScalar(0.36) * Meter,
-                diameterStep = infraScalar(0.01) * Meter
+                diameterMin = fltX(0.30) * Meter,
+                diameterMax = fltX(0.36) * Meter,
+                diameterStep = fltX(0.01) * Meter
             )
         )
         val bin = BinType(
-            width = infraScalar(2.2) * Meter,
-            height = infraScalar(0.4) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.2) * Meter,
+            height = fltX(0.4) * Meter,
+            depth = fltX(1.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-DYNAMIC-RADIUS"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,
@@ -2063,16 +2062,16 @@ class LayerGenerationFltXProofTest {
             radiusValue = 1.1
         )
         val bin = BinType(
-            width = infraScalar(2.0) * Meter,
-            height = infraScalar(1.0) * Meter,
-            depth = infraScalar(2.0) * Meter,
-            capacity = infraScalar(10.0) * Kilogram,
+            width = fltX(2.0) * Meter,
+            height = fltX(1.0) * Meter,
+            depth = fltX(2.0) * Meter,
+            capacity = fltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-OVERSIZED"
         )
 
-        val generated = CirclePackingLayerGenerator<InfraNumber>().generate(
+        val generated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
                 iteration = 0,
                 bin = bin,

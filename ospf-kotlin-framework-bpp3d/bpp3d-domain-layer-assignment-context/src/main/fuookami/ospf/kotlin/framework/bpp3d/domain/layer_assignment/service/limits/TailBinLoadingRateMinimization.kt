@@ -4,13 +4,13 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LayerBin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -28,7 +28,7 @@ class TailBinLoadingRateMinimization(
     private val bins: List<LayerBin>,
     private val assignment: PreciseAssignment,
     private val capacity: Capacity,
-    private val coefficient: (LayerBin) -> InfraNumber,
+    private val coefficient: (LayerBin) -> FltX,
     val name: String = "tail_bin_loading_rate_minimization"
 ) {
     /**
@@ -38,8 +38,8 @@ class TailBinLoadingRateMinimization(
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
      */
-    fun invoke(model: MetaModel<InfraNumber>): Try {
-        val linearModel = model as AbstractLinearMetaModel<InfraNumber>
+    fun invoke(model: MetaModel<FltX>): Try {
+        val linearModel = model as AbstractLinearMetaModel<FltX>
         when (val result = linearModel.minimize(
             polynomial = sum(bins.mapIndexed { i, bin ->
                 LinearMonomial(coefficient(bin), capacity.tailLoadingRate[i])

@@ -7,12 +7,10 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.number.toFltX
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
 
@@ -49,7 +47,6 @@ private fun <V : FloatingNumber<V>> quantityPlus(
     rhs: Quantity<V>
 ): Quantity<V> {
     return when (lhs.value) {
-        is InfraNumber -> ((lhs as Quantity<InfraNumber>) + (rhs as Quantity<InfraNumber>)) as Quantity<V>
         is FltX -> ((lhs as Quantity<FltX>) + (rhs as Quantity<FltX>)) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported numeric type: ${lhs.value::class.simpleName}")
     }
@@ -60,10 +57,9 @@ private fun <V : FloatingNumber<V>> quantityScale(
     value: Quantity<V>,
     amount: UInt64
 ): Quantity<V> {
-    val scalarF64 = infraScalar(amount)
+    val scalarF64 = fltX(amount)
     return when (value.value) {
-        is InfraNumber -> ((value as Quantity<InfraNumber>) * scalarF64) as Quantity<V>
-        is FltX -> ((value as Quantity<FltX>) * scalarF64.toFltX()) as Quantity<V>
+        is FltX -> ((value as Quantity<FltX>) * scalarF64) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported numeric type: ${value.value::class.simpleName}")
     }
 }

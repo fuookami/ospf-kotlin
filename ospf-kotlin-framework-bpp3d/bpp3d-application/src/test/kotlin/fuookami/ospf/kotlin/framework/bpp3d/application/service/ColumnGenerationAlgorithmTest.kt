@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.continuousCylinderRadiusSolverPrototype
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.QuantityBinLayer as QuantityBinLayer
@@ -44,9 +45,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -78,19 +78,19 @@ class ColumnGenerationAlgorithmTest {
         return PackageAttribute(
             packageType = type,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
 
-    private fun item(id: String, material: Material<InfraNumber>): ActualItem {
+    private fun item(id: String, material: Material<FltX>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = InfraNumber.one * Meter,
-                height = InfraNumber.one * Meter,
-                depth = InfraNumber.one * Meter,
-                weight = InfraNumber.one * Kilogram,
+                width = FltX.one * Meter,
+                height = FltX.one * Meter,
+                depth = FltX.one * Meter,
+                weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -105,19 +105,19 @@ class ColumnGenerationAlgorithmTest {
         )
     }
 
-    private fun continuousRadiusItem(id: String, material: Material<InfraNumber>): ActualItem {
+    private fun continuousRadiusItem(id: String, material: Material<FltX>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = InfraNumber.one * Meter,
-                height = infraScalar(1.2) * Meter,
-                depth = InfraNumber.one * Meter,
-                weight = InfraNumber.one * Kilogram,
+                width = FltX.one * Meter,
+                height = fltX(1.2) * Meter,
+                depth = FltX.one * Meter,
+                weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = PackageShapeSpec.VerticalCylinder(
-                    radius = infraScalar(0.5) * Meter,
+                    radius = fltX(0.5) * Meter,
                     axis = Axis3.Y,
-                    radiusMin = infraScalar(0.4) * Meter,
-                    radiusMax = infraScalar(0.6) * Meter,
+                    radiusMin = fltX(0.4) * Meter,
+                    radiusMax = fltX(0.6) * Meter,
                     radiusWeightFunctionKey = "cg-radius-key"
                 )
             ),
@@ -136,8 +136,8 @@ class ColumnGenerationAlgorithmTest {
     private fun fixedDemandEntry(
         mode: Bpp3dDemandMode,
         key: Bpp3dDemandKey,
-        demand: InfraNumber
-    ): Bpp3dDemandEntry<InfraNumber> {
+        demand: FltX
+    ): Bpp3dDemandEntry<FltX> {
         return Bpp3dDemandEntry(
             mode = mode,
             key = key,
@@ -147,7 +147,7 @@ class ColumnGenerationAlgorithmTest {
                 demand,
                 Interval.Closed,
                 Interval.Closed,
-                InfraNumber
+                FltX
             ).value!!
         )
     }
@@ -157,24 +157,24 @@ class ColumnGenerationAlgorithmTest {
         typeCode: String = "BIN-A"
     ): LayerBin {
         val binType = BinType(
-            width = infraScalar(3.0) * Meter,
-            height = infraScalar(3.0) * Meter,
-            depth = infraScalar(3.0) * Meter,
-            capacity = infraScalar(100.0) * Kilogram,
+            width = fltX(3.0) * Meter,
+            height = fltX(3.0) * Meter,
+            depth = fltX(3.0) * Meter,
+            capacity = fltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = typeCode
         )
         val placements = items.mapIndexed { index, item ->
             item.toItemPlacement(
-                x = infraScalar(index.toDouble()) * Meter
+                x = fltX(index.toDouble()) * Meter
             )
         }
         val layer = BinLayer(
             iteration = Int64.zero,
             from = ColumnGenerationAlgorithmTest::class,
             bin = binType,
-            shape = Container3Shape(binType),
+            shape = Container3Shape(binType.asContainer3Shape()),
             units = placements
         )
         return layerBinOf(
@@ -188,8 +188,8 @@ class ColumnGenerationAlgorithmTest {
     @Test
     fun columnGenerationAlgorithmShouldLiveInApplicationService() {
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             }
@@ -200,8 +200,8 @@ class ColumnGenerationAlgorithmTest {
     @Test
     fun algorithmShouldStopWhenNoAcceptedColumns() = runBlocking {
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             }
@@ -241,8 +241,8 @@ class ColumnGenerationAlgorithmTest {
             packageAttribute = packageAttribute()
         )
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             }
@@ -264,8 +264,8 @@ class ColumnGenerationAlgorithmTest {
         val analyzeCounter = AtomicInteger(0)
         val heartbeatCounter = AtomicInteger(0)
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             },
@@ -294,7 +294,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-FLOW",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val seedItem = item(
             id = "item-cg-flow-seed",
@@ -309,13 +309,13 @@ class ColumnGenerationAlgorithmTest {
         val rmpCallStates = ArrayList<Pair<Int, Int>>()
         var finalSolverColumnCount = -1
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return if (request.iteration == 0) {
                         listOf(
                             Bpp3dLayerGenerationResult(
                                 layer = generatedLayer,
-                                reducedCost = InfraNumber(-1.0),
+                                reducedCost = FltX(-1.0),
                                 source = "test-add-column"
                             )
                         )
@@ -328,7 +328,7 @@ class ColumnGenerationAlgorithmTest {
                 rmpCallStates.add(Pair(state.iteration, state.columns.size))
                 ColumnGenerationLpResult(
                     shadowPrices = emptyMap(),
-                    objective = InfraNumber(100.0) - infraScalar(state.iteration.toDouble()),
+                    objective = FltX(100.0) - fltX(state.iteration.toDouble()),
                     info = mapOf(
                         Pair("solver", "stub-lp"),
                         Pair("iteration", state.iteration.toString())
@@ -339,7 +339,7 @@ class ColumnGenerationAlgorithmTest {
                 finalSolverColumnCount = state.columns.size
                 ColumnGenerationFinalResult(
                     columns = state.columns,
-                    objective = InfraNumber(77.0),
+                    objective = FltX(77.0),
                     info = mapOf(Pair("solver", "stub-final"))
                 )
             },
@@ -369,13 +369,13 @@ class ColumnGenerationAlgorithmTest {
 
     @Test
     fun rmpSolverAndRequestBuilderShouldBePreferredWhenProvided() = runBlocking {
-        val legacyRmpCounter = AtomicInteger(0)
+        val fallbackRmpCounter = AtomicInteger(0)
         val rmpSolverCounter = AtomicInteger(0)
         val requestBuilderCounter = AtomicInteger(0)
         var observedMaxCandidates = -1
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     observedMaxCandidates = request.maxCandidates
                     return emptyList()
                 }
@@ -383,8 +383,8 @@ class ColumnGenerationAlgorithmTest {
             rmpSolver = ColumnGenerationRmpSolver {
                 rmpSolverCounter.incrementAndGet()
                 ColumnGenerationLpResult(
-                    shadowPrices = emptyMap<DemandModeKey, InfraNumber>(),
-                    objective = InfraNumber(42.0)
+                    shadowPrices = emptyMap<DemandModeKey, FltX>(),
+                    objective = FltX(42.0)
                 )
             },
             layerRequestBuilder = ColumnGenerationLayerRequestBuilder { state, items, _ ->
@@ -398,7 +398,7 @@ class ColumnGenerationAlgorithmTest {
                 )
             },
             solveRmpWithResult = {
-                legacyRmpCounter.incrementAndGet()
+                fallbackRmpCounter.incrementAndGet()
                 ColumnGenerationLpResult(emptyMap())
             }
         )
@@ -408,10 +408,10 @@ class ColumnGenerationAlgorithmTest {
             config = ColumnGenerationConfig(maxColumnsPerIteration = 99)
         )
         assertEquals(1, rmpSolverCounter.get())
-        assertEquals(0, legacyRmpCounter.get())
+        assertEquals(0, fallbackRmpCounter.get())
         assertEquals(1, requestBuilderCounter.get())
         assertEquals(1, observedMaxCandidates)
-        assertEquals(listOf(InfraNumber(42.0)), result.lpObjectives)
+        assertEquals(listOf(FltX(42.0)), result.lpObjectives)
     }
 
     @Test
@@ -421,7 +421,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-RADIUS",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val item = continuousRadiusItem(
             id = "item-cg-radius",
@@ -432,8 +432,8 @@ class ColumnGenerationAlgorithmTest {
         var finalVariables = emptyList<String>()
         var analyzerVariables = emptyList<String>()
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             },
@@ -441,7 +441,7 @@ class ColumnGenerationAlgorithmTest {
                 rmpVariables.addAll(state.continuousRadiusSolverPrototypes.map { it.variableName })
                 ColumnGenerationLpResult(
                     shadowPrices = emptyMap(),
-                    objective = InfraNumber(1.0)
+                    objective = FltX(1.0)
                 )
             },
             finalMilpSolver = ColumnGenerationFinalSolver { state ->
@@ -473,7 +473,7 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(listOf(expectedVariable), requestBuilderVariables)
         assertEquals(listOf(expectedVariable), finalVariables)
         assertEquals(listOf(expectedVariable), analyzerVariables)
-        assertEquals(listOf(InfraNumber(1.0)), result.lpObjectives)
+        assertEquals(listOf(FltX(1.0)), result.lpObjectives)
     }
 
     @Test
@@ -483,13 +483,13 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-1",
-            weight = InfraNumber.half * Kilogram
+            weight = FltX.half * Kilogram
         )
         val bin = layerBin(listOf(item("item-1", material)))
         val analyzer = ColumnGenerationPackingAnalyzer()
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             },
@@ -517,7 +517,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-RADIUS-KPI",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val item = continuousRadiusItem(
             id = "item-cg-radius-kpi",
@@ -574,7 +574,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-RADIUS-VAR",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val item = continuousRadiusItem(
             id = "item-cg-radius-var",
@@ -585,21 +585,21 @@ class ColumnGenerationAlgorithmTest {
         val seedLayer = BinLayer(
             iteration = rawSeedLayer.iteration,
             from = rawSeedLayer.from,
-            bin = seedBin.shape,
+            bin = seedBin.type,
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
         val finalBin: LayerBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
         val prototype = continuousRadiusSolverPrototypesFromItems(listOf(item)).single()
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(item),
-                demand = InfraNumber.one
+                demand = FltX.one
             )
         )
         val lpRadiusTokens = ArrayList<String>()
@@ -664,8 +664,8 @@ class ColumnGenerationAlgorithmTest {
             finalBins = listOf(finalBin)
         )
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     return emptyList()
                 }
             },
@@ -727,7 +727,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-RADIUS-INTERVAL",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val item = item("item-cg-radius-interval-demand", material)
         val seedBin = layerBin(listOf(item))
@@ -735,12 +735,12 @@ class ColumnGenerationAlgorithmTest {
         val seedLayer = BinLayer(
             iteration = rawSeedLayer.iteration,
             from = rawSeedLayer.from,
-            bin = seedBin.shape,
+            bin = seedBin.type,
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
         val finalBin: LayerBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
@@ -749,15 +749,15 @@ class ColumnGenerationAlgorithmTest {
                 source = "ColumnGenerationState.item.interval",
                 radiusWeightFunctionKey = "prefer-large-radius",
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter
             )
         )
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(item),
-                demand = InfraNumber.one
+                demand = FltX.one
             )
         )
         val lpRadiusTokens = ArrayList<String>()
@@ -821,7 +821,7 @@ class ColumnGenerationAlgorithmTest {
             demandEntries = demandEntries,
             finalBins = listOf(finalBin)
         )
-        val state = ColumnGenerationState<InfraNumber>(
+        val state = ColumnGenerationState<FltX>(
             iteration = 0,
             columns = listOf(seedLayer),
             continuousRadiusSolverPrototypes = listOf(prototype)
@@ -879,7 +879,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CG-RADIUS-INTERVAL-NO-KEY",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val item = item("item-cg-radius-interval-no-key-demand", material)
         val seedBin = layerBin(listOf(item))
@@ -887,12 +887,12 @@ class ColumnGenerationAlgorithmTest {
         val seedLayer = BinLayer(
             iteration = rawSeedLayer.iteration,
             from = rawSeedLayer.from,
-            bin = seedBin.shape,
+            bin = seedBin.type,
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
         val finalBin: LayerBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
@@ -903,15 +903,15 @@ class ColumnGenerationAlgorithmTest {
                 source = "ColumnGenerationState.item.interval-no-key",
                 radiusWeightFunctionKey = null,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter
             )
         )
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(item),
-                demand = InfraNumber.one
+                demand = FltX.one
             )
         )
         val lpRadiusTokens = ArrayList<String>()
@@ -975,7 +975,7 @@ class ColumnGenerationAlgorithmTest {
             demandEntries = demandEntries,
             finalBins = listOf(finalBin)
         )
-        val state = ColumnGenerationState<InfraNumber>(
+        val state = ColumnGenerationState<FltX>(
             iteration = 0,
             columns = listOf(seedLayer),
             continuousRadiusSolverPrototypes = listOf(prototype)
@@ -1008,7 +1008,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-2",
-            weight = InfraNumber.half * Kilogram
+            weight = FltX.half * Kilogram
         )
         val actualItem = item("item-2", material)
         val seedBin = layerBin(listOf(actualItem))
@@ -1016,16 +1016,16 @@ class ColumnGenerationAlgorithmTest {
         val seedLayer = BinLayer(
             iteration = rawSeedLayer.iteration,
             from = rawSeedLayer.from,
-            bin = seedBin.shape,
+            bin = seedBin.type,
             shape = rawSeedLayer.shape,
             units = rawSeedLayer.units
         )
         val finalBin: LayerBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
-        val demandValue = InfraNumber.one
+        val demandValue = FltX.one
         val demandEntries = listOf(
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
@@ -1036,7 +1036,7 @@ class ColumnGenerationAlgorithmTest {
                     demandValue,
                     Interval.Closed,
                     Interval.Closed,
-                    InfraNumber
+                    FltX
                 ).value!!
             )
         )
@@ -1092,11 +1092,11 @@ class ColumnGenerationAlgorithmTest {
             finalBins = listOf(finalBin)
         )
 
-        var capturedRequest: Bpp3dLayerGenerationRequest<InfraNumber>? = null
-        var analyzedState: ColumnGenerationState<InfraNumber>? = null
+        var capturedRequest: Bpp3dLayerGenerationRequest<FltX>? = null
+        var analyzedState: ColumnGenerationState<FltX>? = null
         val algorithm = ColumnGenerationAlgorithm(
-            layerGenerator = object : Bpp3dLayerGenerator<InfraNumber> {
-                override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+            layerGenerator = object : Bpp3dLayerGenerator<FltX> {
+                override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                     capturedRequest = request
                     return emptyList()
                 }
@@ -1115,7 +1115,7 @@ class ColumnGenerationAlgorithmTest {
         val finalState = analyzedState
         assertNotNull(request)
         assertNotNull(finalState)
-        assertEquals(listOf(InfraNumber(11.0)), result.lpObjectives)
+        assertEquals(listOf(FltX(11.0)), result.lpObjectives)
         assertEquals(1, result.columns.size)
         assertEquals(1, finalState.bins.size)
         assertTrue(request.demandEntries.any { it.mode is Bpp3dDemandMode.ItemAmount })
@@ -1124,7 +1124,7 @@ class ColumnGenerationAlgorithmTest {
             mode = Bpp3dDemandMode.ItemAmount,
             key = Bpp3dDemandKey.Item(actualItem)
         )
-        assertEquals(InfraNumber(7.0), request.shadowPrices[demandKey] ?: InfraNumber.zero)
+        assertEquals(FltX(7.0), request.shadowPrices[demandKey] ?: FltX.zero)
     }
 
     @Test
@@ -1154,13 +1154,13 @@ class ColumnGenerationAlgorithmTest {
             packageAttribute = packageAttribute()
         )
         val itemCache = LinkedHashMap<QuantityItem<FltX>, ActualItem>()
-        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material<InfraNumber>>()
+        val materialCache = LinkedHashMap<QuantityMaterial<FltX>, Material<FltX>>()
         val modelItem = quantityItem.toModel(materialCache, itemCache)
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(modelItem),
-                demand = InfraNumber.one
+                demand = FltX.one
             )
         )
         val solver = object : ColumnGenerationSolver {
@@ -1222,7 +1222,7 @@ class ColumnGenerationAlgorithmTest {
             batchNo = BatchNo("B-QG"),
             packageAttribute = packageAttribute()
         )
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.Material,
                 key = Bpp3dDemandKey.Material(
@@ -1231,7 +1231,7 @@ class ColumnGenerationAlgorithmTest {
                         type = quantityMaterial.type
                     )
                 ),
-                demand = InfraNumber.one
+                demand = FltX.one
             )
         )
         val solver = object : ColumnGenerationSolver {
@@ -1406,8 +1406,8 @@ class ColumnGenerationAlgorithmTest {
             itemDemands = listOf(Pair(quantityItem, UInt64.one)),
             initialColumns = listOf(quantityInitialLayer),
             generators = listOf(
-                object : Bpp3dLayerGenerator<InfraNumber> {
-                    override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                object : Bpp3dLayerGenerator<FltX> {
+                    override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                         return emptyList()
                     }
                 }
@@ -1419,7 +1419,7 @@ class ColumnGenerationAlgorithmTest {
         )
 
         assertEquals(1, response.result.lpSolvedTimes)
-        assertEquals(listOf(InfraNumber(3.0)), response.result.lpObjectives)
+        assertEquals(listOf(FltX(3.0)), response.result.lpObjectives)
         assertEquals(1, response.result.columns.size)
         assertEquals(1, response.result.columns.first().units.size)
         assertTrue(!response.result.finalSolved)
@@ -1432,13 +1432,13 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-DEPTH-FINAL",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val actualItem = item("item-depth-final", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
         val finalBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
@@ -1446,7 +1446,7 @@ class ColumnGenerationAlgorithmTest {
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(actualItem),
-                demand = InfraNumber.one
+                demand = FltX.one
             )
         )
         val solver = object : ColumnGenerationSolver {
@@ -1501,8 +1501,8 @@ class ColumnGenerationAlgorithmTest {
                     initialColumns = listOf(seedLayer),
                     finalBins = listOf(finalBin),
                     generators = listOf(
-                        object : Bpp3dLayerGenerator<InfraNumber> {
-                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                        object : Bpp3dLayerGenerator<FltX> {
+                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                                 return emptyList()
                             }
                         }
@@ -1525,7 +1525,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-DEPTH-CONFLICT",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val actualItem = item("item-depth-conflict", material)
         val requestPolicy = DepthBoundaryLayerOrientationPolicy(
@@ -1580,17 +1580,17 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-3",
-            weight = InfraNumber.half * Kilogram
+            weight = FltX.half * Kilogram
         )
         val actualItem = item("item-3", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
         val finalBin: LayerBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
-        val demandValue = InfraNumber.one
+        val demandValue = FltX.one
         val demandEntries = listOf(
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
@@ -1601,7 +1601,7 @@ class ColumnGenerationAlgorithmTest {
                     demandValue,
                     Interval.Closed,
                     Interval.Closed,
-                    InfraNumber
+                    FltX
                 ).value!!
             )
         )
@@ -1656,8 +1656,8 @@ class ColumnGenerationAlgorithmTest {
                 initialColumns = listOf(seedLayer),
                 finalBins = listOf(finalBin),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -1667,7 +1667,7 @@ class ColumnGenerationAlgorithmTest {
         )
 
         assertTrue(response.result.finalSolved)
-        assertEquals(listOf(InfraNumber(11.0)), response.result.lpObjectives)
+        assertEquals(listOf(FltX(11.0)), response.result.lpObjectives)
         assertEquals(1, response.result.columns.size)
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
@@ -1684,7 +1684,7 @@ class ColumnGenerationAlgorithmTest {
         assertNotNull(itemAmountTotal)
         assertTrue(itemAmountTotal > 0.0)
         assertTrue(
-            (snapshot.demandModeShadowPriceTotals["item_amount"] ?: InfraNumber.zero).toDouble() > 0.0
+            (snapshot.demandModeShadowPriceTotals["item_amount"] ?: FltX.zero).toDouble() > 0.0
         )
     }
 
@@ -1695,17 +1695,17 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-4",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val actualItem = item("item-4", material)
         val seedBin = layerBin(listOf(actualItem))
         val seedLayer = seedBin.units.first().unit
         val finalBin: LayerBin = layerBinOf(
-            shape = seedBin.shape,
+            shape = seedBin.type,
             units = emptyList<BinLayerPlacement>(),
             batchNo = seedBin.batchNo
         )
-        val demandValue = InfraNumber(2.0)
+        val demandValue = FltX(2.0)
         val demandEntries = listOf(
             Bpp3dDemandEntry(
                 mode = Bpp3dDemandMode.ItemMaterialWeight,
@@ -1716,7 +1716,7 @@ class ColumnGenerationAlgorithmTest {
                     demandValue,
                     Interval.Closed,
                     Interval.Closed,
-                    InfraNumber
+                    FltX
                 ).value!!
             )
         )
@@ -1771,8 +1771,8 @@ class ColumnGenerationAlgorithmTest {
                 initialColumns = listOf(seedLayer),
                 finalBins = listOf(finalBin),
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -1782,7 +1782,7 @@ class ColumnGenerationAlgorithmTest {
         )
 
         assertTrue(response.result.finalSolved)
-        assertEquals(listOf(InfraNumber(13.0)), response.result.lpObjectives)
+        assertEquals(listOf(FltX(13.0)), response.result.lpObjectives)
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(1, snapshot.bins.size)
@@ -1801,14 +1801,14 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-5A",
-            weight = InfraNumber.one * Kilogram
+            weight = FltX.one * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("M-5B"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-5B",
-            weight = infraScalar(2.0) * Kilogram
+            weight = fltX(2.0) * Kilogram
         )
         val itemA = item("item-5a", materialA)
         val itemB = item("item-5b", materialB)
@@ -1818,36 +1818,36 @@ class ColumnGenerationAlgorithmTest {
         val seedLayerB = seedBinB.units.first().unit
         val finalBins = listOf(
             layerBinOf(
-                shape = seedBinA.shape,
+                shape = seedBinA.type,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBinA.batchNo
             ),
             layerBinOf(
-                shape = seedBinB.shape,
+                shape = seedBinB.type,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBinB.batchNo
             )
         )
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = listOf(
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(itemA),
-                demand = InfraNumber(2.0)
+                demand = FltX(2.0)
             ),
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemAmount,
                 key = Bpp3dDemandKey.Item(itemB),
-                demand = InfraNumber.one
+                demand = FltX.one
             ),
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemMaterialWeight,
                 key = Bpp3dDemandKey.Material(materialA.key),
-                demand = InfraNumber(2.0)
+                demand = FltX(2.0)
             ),
             fixedDemandEntry(
                 mode = Bpp3dDemandMode.ItemMaterialWeight,
                 key = Bpp3dDemandKey.Material(materialB.key),
-                demand = InfraNumber(4.0)
+                demand = FltX(4.0)
             )
         )
         val solver = object : ColumnGenerationSolver {
@@ -1907,8 +1907,8 @@ class ColumnGenerationAlgorithmTest {
                 initialColumns = listOf(seedLayerA, seedLayerB),
                 finalBins = finalBins,
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -1918,7 +1918,7 @@ class ColumnGenerationAlgorithmTest {
         )
 
         assertTrue(response.result.finalSolved)
-        assertEquals(listOf(InfraNumber(19.0)), response.result.lpObjectives)
+        assertEquals(listOf(FltX(19.0)), response.result.lpObjectives)
         assertEquals(2, response.result.columns.size)
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
@@ -1946,7 +1946,7 @@ class ColumnGenerationAlgorithmTest {
                 type = MaterialType.RawMaterial,
                 cargo = CargoAttr,
                 name = "M-6-$index",
-                weight = InfraNumber.one * Kilogram
+                weight = FltX.one * Kilogram
             )
         }
         val items = (0 until layerCount).map { index ->
@@ -1966,24 +1966,24 @@ class ColumnGenerationAlgorithmTest {
         }
         val finalBins = seedBins.map { seedBin ->
             layerBinOf(
-                shape = seedBin.shape,
+                shape = seedBin.type,
                 units = emptyList<BinLayerPlacement>(),
                 batchNo = seedBin.batchNo
             )
         }
-        val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = buildList {
+        val demandEntries: List<Bpp3dDemandEntry<FltX>> = buildList {
             addAll(items.map { actualItem ->
                 fixedDemandEntry(
                     mode = Bpp3dDemandMode.ItemAmount,
                     key = Bpp3dDemandKey.Item(actualItem),
-                    demand = InfraNumber.one
+                    demand = FltX.one
                 )
             })
             addAll(materials.map { material ->
                 fixedDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialWeight,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = infraScalar(layerCount.toDouble() / materialCount.toDouble())
+                    demand = fltX(layerCount.toDouble() / materialCount.toDouble())
                 )
             })
         }
@@ -2041,8 +2041,8 @@ class ColumnGenerationAlgorithmTest {
                 initialColumns = seedLayers,
                 finalBins = finalBins,
                 generators = listOf(
-                    object : Bpp3dLayerGenerator<InfraNumber> {
-                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<InfraNumber>): List<Bpp3dLayerGenerationResult<InfraNumber>> {
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
                             return emptyList()
                         }
                     }
@@ -2052,7 +2052,7 @@ class ColumnGenerationAlgorithmTest {
         )
 
         assertTrue(response.result.finalSolved)
-        assertEquals(listOf(InfraNumber(37.0)), response.result.lpObjectives)
+        assertEquals(listOf(FltX(37.0)), response.result.lpObjectives)
         assertEquals(layerCount, response.result.columns.size)
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)

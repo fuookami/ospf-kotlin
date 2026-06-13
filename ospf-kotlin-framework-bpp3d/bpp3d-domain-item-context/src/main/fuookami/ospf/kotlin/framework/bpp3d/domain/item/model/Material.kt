@@ -8,8 +8,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MaterialNo
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 
@@ -54,7 +53,7 @@ open class MaterialKey(
 
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> defaultMaterialWeight(): Quantity<V> {
-    return Quantity(infraZero(), Kilogram) as Quantity<V>
+    return Quantity(fltXZero(), Kilogram) as Quantity<V>
 }
 
 open class Material<V : FloatingNumber<V>>(

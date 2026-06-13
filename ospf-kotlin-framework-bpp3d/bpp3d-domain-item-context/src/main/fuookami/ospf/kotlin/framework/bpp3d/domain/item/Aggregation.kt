@@ -7,6 +7,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
@@ -29,7 +30,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 class Aggregation(
     val schemes: Map<BatchNo, Scheme>,
-    val bins: Map<BinType, UInt64?>
+    val bins: Map<BinType<FltX>, UInt64?>
 ) {
     val batchNos: List<BatchNo> = schemes.asSequence()
         .sortedBy {
@@ -47,7 +48,7 @@ class Aggregation(
         .toMap<Item, UInt64>()
         .toMutableMap()
 
-    private val usedBins: MutableMap<BinType, UInt64> = bins.keys.asSequence()
+    private val usedBins: MutableMap<BinType<FltX>, UInt64> = bins.keys.asSequence()
         .associateWith { UInt64.zero }
         .toSortedMapWithThreeWayComparator { lhs, rhs ->
             if (lhs.isMain) {
@@ -99,7 +100,7 @@ class Aggregation(
             }
             .toMap()
 
-    val restBins: Map<BinType, UInt64>
+    val restBins: Map<BinType<FltX>, UInt64>
         get() = bins.asSequence()
             .map {
                 val amount = if (it.value == null) {
@@ -136,19 +137,16 @@ class Aggregation(
         }
     }
 
-    fun release(bins: Map<BinType, UInt64>) {
+    fun release(bins: Map<BinType<FltX>, UInt64>) {
         for ((bin, amount) in bins) {
             usedBins[bin] = (usedBins[bin] ?: UInt64.zero) - amount
         }
     }
 
     @JvmName("useBins")
-    fun use(bins: Map<BinType, UInt64>) {
+    fun use(bins: Map<BinType<FltX>, UInt64>) {
         for ((bin, amount) in bins) {
             usedBins[bin] = (usedBins[bin] ?: UInt64.zero) + amount
         }
     }
 }
-
-
-

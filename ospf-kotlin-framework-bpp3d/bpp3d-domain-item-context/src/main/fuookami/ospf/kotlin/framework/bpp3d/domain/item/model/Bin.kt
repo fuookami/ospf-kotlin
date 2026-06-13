@@ -2,55 +2,44 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
-import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.ThreeWayComparator
 import fuookami.ospf.kotlin.utils.functional.ord
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-
-
-
-
-
-
-
-class BinType(
+class BinType<V : FloatingNumber<V>>(
     // inherited from Container3Shape
-    override val width: Quantity<InfraNumber>,
-    override val height: Quantity<InfraNumber>,
-    override val depth: Quantity<InfraNumber>,
-    val capacity: Quantity<InfraNumber>,
-    val longitudinalBalance: InfraNumber?,
-    val lateralBalance: InfraNumber?,
+    override val width: Quantity<V>,
+    override val height: Quantity<V>,
+    override val depth: Quantity<V>,
+    val capacity: Quantity<V>,
+    val longitudinalBalance: V?,
+    val lateralBalance: V?,
     val typeCode: String,
     val isMain: Boolean = false,
-    val extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
-) : AbstractContainer3Shape {
+    val extraCheckRule: ((BinType<V>, List<BinLayerPlacement>) -> Boolean)? = null
+) : Container3Geometry<V> {
     fun new(
-        width: Quantity<InfraNumber>? = null,
-        height: Quantity<InfraNumber>? = null,
-        depth: Quantity<InfraNumber>? = null,
-        capacity: Quantity<InfraNumber>? = null,
-        longitudinalBalance: InfraNumber? = null,
-        lateralBalance: InfraNumber? = null,
+        width: Quantity<V>? = null,
+        height: Quantity<V>? = null,
+        depth: Quantity<V>? = null,
+        capacity: Quantity<V>? = null,
+        longitudinalBalance: V? = null,
+        lateralBalance: V? = null,
         typeCode: String? = null,
         isMain: Boolean? = null,
-        extraCheckRule: ((BinType, List<BinLayerPlacement>) -> Boolean)? = null
-    ): BinType {
+        extraCheckRule: ((BinType<V>, List<BinLayerPlacement>) -> Boolean)? = null
+    ): BinType<V> {
         return BinType(
             width = width ?: this.width,
             height = height ?: this.height,
@@ -61,30 +50,6 @@ class BinType(
             typeCode = typeCode ?: this.typeCode,
             isMain = isMain ?: this.isMain,
             extraCheckRule = extraCheckRule ?: this.extraCheckRule
-        )
-    }
-
-    // inherited from Container3Shape
-    override fun enabled(unit: ItemCuboid, orientation: Orientation): Boolean {
-        return super.enabled(unit, orientation) && unit.weight leq capacity
-    }
-
-    override fun enabled(unit: AnyPlacement3): Boolean {
-        return super.enabled(unit) && unit.weight leq capacity
-    }
-
-    override fun enabled(units: List<AnyPlacement3>): Boolean {
-        return super.enabled(units) && units.sumOf { it.weight } leq capacity
-    }
-
-    fun estimateAmount(
-        totalVolume: Quantity<InfraNumber>,
-        totalWeight: Quantity<InfraNumber>,
-        estimatedLoadingRate: InfraNumber = infraOne()
-    ): InfraNumber {
-        return max(
-            ((totalVolume / volume).value / estimatedLoadingRate),
-            (totalWeight / capacity).value
         )
     }
 
@@ -120,7 +85,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * infraZero()
+                                it.y * fltXZero()
                             }
                         }
 
@@ -129,7 +94,7 @@ class BinType(
                         }
 
                         else -> {
-                            it.y * infraZero()
+                            it.y * fltXZero()
                         }
                     }
                 }
@@ -139,7 +104,7 @@ class BinType(
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * infraZero()
+                                it.y * fltXZero()
                             }
                         }
 
@@ -148,7 +113,7 @@ class BinType(
                         }
 
                         else -> {
-                            it.y * infraZero()
+                            it.y * fltXZero()
                         }
                     }
                 }
@@ -170,11 +135,15 @@ class BinType(
                     scope = this
                 )
                 for (thisLayers in layersPromise) {
-                    var z = infraZero() * depth.unit
+                    var z = fltXZero() * depth.unit
                     val thisPlacements = thisLayers.map {
                         val ret = binLayerPlacementOf(
                             view = BinLayerView(it.copy()),
-                            position = point3(z = z)
+                            position = QuantityPoint3(
+                                x = fltXZero() * depth.unit,
+                                y = fltXZero() * depth.unit,
+                                z = z
+                            )
                         )
                         z += it.depth
                         ret
@@ -199,16 +168,59 @@ class BinType(
     override fun toString() = "$typeCode-$width*$height*$depth"
 }
 
-class Bin<T : Cuboid<T>> internal constructor(
-    // inherited from Container3<Bin<T>>
-    override val shape: BinType,
-    override val units: List<ItemContainerPlacement3<T>>,
-    val batchNo: BatchNo? = null
-) : Container3<Bin<T>>, AutoIndexed(Bin::class) {
-    val capacity by shape::capacity
+fun BinType<FltX>.enabled(unit: Item, orientation: Orientation): Boolean {
+    val geometry: Container3Geometry<FltX> = this
+    return geometry.enabled(unit, orientation) && unit.weight leq capacity
+}
 
-    override fun copy() = Bin(shape, units.map { it.copy() }, batchNo)
-    fun copy(newBatchNo: BatchNo) = Bin(shape, units.map { it.copy() }, newBatchNo)
+fun BinType<FltX>.enabled(unit: AnyPlacement3): Boolean {
+    val geometry: Container3Geometry<FltX> = this
+    return geometry.enabled(unit) && unit.weight leq capacity
+}
+
+fun BinType<FltX>.enabled(units: List<AnyPlacement3>): Boolean {
+    val geometry: Container3Geometry<FltX> = this
+    return geometry.enabled(units) && units.sumOf { it.weight } leq capacity
+}
+
+fun BinType<FltX>.estimateAmount(
+    totalVolume: Quantity<FltX>,
+    totalWeight: Quantity<FltX>,
+    estimatedLoadingRate: FltX = fltXOne()
+): FltX {
+    return max(
+        ((totalVolume / volume).value / estimatedLoadingRate),
+        (totalWeight / capacity).value
+    )
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
+    return when (value) {
+        is FltX -> this as Quantity<FltX>
+        else -> Quantity(fltX(value.toString().toDouble()), unit)
+    }
+}
+
+fun <V : FloatingNumber<V>> BinType<V>.asContainer3Shape(): Container3Shape {
+    return Container3Shape(
+        width = width.toFltXQuantity(),
+        height = height.toFltXQuantity(),
+        depth = depth.toFltXQuantity()
+    )
+}
+
+class Bin<T, V> internal constructor(
+    // inherited from Container3<Bin<T, V>>
+    val type: BinType<V>,
+    override val units: List<Placement3<T, V>>,
+    val batchNo: BatchNo? = null
+) : Container3<Bin<T, V>, V>, AutoIndexed(Bin::class) where T : Cuboid<T, V>, V : FloatingNumber<V> {
+    override val shape: Container3Geometry<V> = type
+    val capacity by type::capacity
+
+    override fun copy() = Bin(type, units.map { it.copy() }, batchNo)
+    fun copy(newBatchNo: BatchNo) = Bin(type, units.map { it.copy() }, newBatchNo)
 }
 
 /**
@@ -221,12 +233,12 @@ class Bin<T : Cuboid<T>> internal constructor(
  * @return 箱层装箱 / layer bin
  */
 fun layerBinOf(
-    shape: BinType,
+    shape: BinType<FltX>,
     units: List<BinLayerPlacement>,
     batchNo: BatchNo? = null
 ): LayerBin {
     return Bin(
-        shape = shape,
+        type = shape,
         units = units,
         batchNo = batchNo
     )
@@ -242,12 +254,12 @@ fun layerBinOf(
  * @return 货物装箱 / item bin
  */
 fun itemBinOf(
-    shape: BinType,
+    shape: BinType<FltX>,
     units: List<ItemPlacement3>,
     batchNo: BatchNo? = null
 ): ItemBin {
     return Bin(
-        shape = shape,
+        type = shape,
         units = units,
         batchNo = batchNo
     )
@@ -263,21 +275,22 @@ fun itemBinOf(
  * @return 组合块装箱 / block bin
  */
 fun blockBinOf(
-    shape: BinType,
+    shape: BinType<FltX>,
     units: List<BlockPlacement3>,
     batchNo: BatchNo? = null
 ): BlockBin {
     return Bin(
-        shape = shape,
+        type = shape,
         units = units,
         batchNo = batchNo
     )
 }
 
-fun List<Bin<*>>.group(): Map<BinType, UInt64> {
-    return this.groupBy { it.shape }.mapValues { UInt64(it.value.size) }
+fun <V : FloatingNumber<V>> List<Bin<*, V>>.group(): Map<BinType<V>, UInt64> {
+    return this.groupBy { it.type }.mapValues { UInt64(it.value.size) }
 }
-fun List<Bin<*>>.unpack(): Map<Item, UInt64> {
+
+fun List<Bin<*, FltX>>.unpack(): Map<Item, UInt64> {
     val items = HashSet<Item>()
     for (bin in this) {
         items.addAll(bin.amounts.keys.filterIsInstance<Item>())
@@ -287,7 +300,7 @@ fun List<Bin<*>>.unpack(): Map<Item, UInt64> {
     }
 }
 
-infix fun Collection<Bin<*>>.ord(rhs: Collection<Bin<*>>): Order {
+infix fun Collection<Bin<*, FltX>>.ord(rhs: Collection<Bin<*, FltX>>): Order {
     return when (val result = this.size ord rhs.size) {
         Order.Equal -> {
             if (this.isEmpty() || rhs.isEmpty()) {
@@ -320,18 +333,15 @@ infix fun Collection<Bin<*>>.ord(rhs: Collection<Bin<*>>): Order {
 }
 
 /** 箱层装箱别名。Bin alias for bin-layer units. */
-typealias LayerBin = Bin<BinLayer>
+typealias LayerBin = Bin<BinLayer, FltX>
 /** 货物装箱别名。Bin alias for item units. */
-typealias ItemBin = Bin<Item>
+typealias ItemBin = Bin<Item, FltX>
 /** 组合块装箱别名。Bin alias for block units. */
-typealias BlockBin = Bin<Block>
+typealias BlockBin = Bin<Block, FltX>
 
 fun LayerBin.dump(): ItemBin {
     return itemBinOf(
-        shape = this.shape,
+        shape = this.type,
         units = this.units.flatMap { it.unit.dumpAbsolutely() }
     )
 }
-
-
-

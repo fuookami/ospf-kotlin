@@ -6,12 +6,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ComplexBlock
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.blockPlacement3Of
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ComplexBlockGenerator(
@@ -106,7 +106,7 @@ class ComplexBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         simpleBlocks: List<Block>,
-        restWeight: InfraNumber = infraInfinity()
+        restWeight: FltX = fltXInfinity()
     ): List<ComplexBlock> {
         if (simpleBlocks.isEmpty()) {
             return emptyList()
@@ -153,10 +153,10 @@ class ComplexBlockGenerator(
         val rhsView = rhs.view() ?: return null
         return ComplexBlock(
             blocks = listOf(
-                blockPlacement3Of(view = lhsView, position = point3()),
+                blockPlacement3Of(view = lhsView, position = point3FltX()),
                 blockPlacement3Of(
                     view = rhsView,
-                    position = point3(x = lhs.width.value)
+                    position = point3FltX(x = lhs.width.value, unit = lhs.width.unit)
                 )
             )
         )
@@ -167,10 +167,10 @@ class ComplexBlockGenerator(
         val rhsView = rhs.view() ?: return null
         return ComplexBlock(
             blocks = listOf(
-                blockPlacement3Of(view = lhsView, position = point3()),
+                blockPlacement3Of(view = lhsView, position = point3FltX()),
                 blockPlacement3Of(
                     view = rhsView,
-                    position = point3(y = lhs.height.value)
+                    position = point3FltX(y = lhs.height.value, unit = lhs.height.unit)
                 )
             )
         )
@@ -181,10 +181,10 @@ class ComplexBlockGenerator(
         val rhsView = rhs.view() ?: return null
         return ComplexBlock(
             blocks = listOf(
-                blockPlacement3Of(view = lhsView, position = point3()),
+                blockPlacement3Of(view = lhsView, position = point3FltX()),
                 blockPlacement3Of(
                     view = rhsView,
-                    position = point3(z = lhs.depth.value)
+                    position = point3FltX(z = lhs.depth.value, unit = lhs.depth.unit)
                 )
             )
         )
@@ -194,7 +194,7 @@ class ComplexBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         block: Block,
-        restWeight: InfraNumber
+        restWeight: FltX
     ): Boolean {
         return space.enabled(block) && enough(items, block) && (block.weight.value leq restWeight)
     }

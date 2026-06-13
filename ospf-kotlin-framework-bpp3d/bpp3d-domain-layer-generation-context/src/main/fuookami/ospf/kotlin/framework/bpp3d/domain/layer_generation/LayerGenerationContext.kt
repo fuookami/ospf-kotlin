@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.ComplexBlockGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.SimpleBlockGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
@@ -25,6 +26,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ItemView
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Material
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.enabledStackingOn
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.group
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.resolvedPackingShape
@@ -39,10 +41,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractCylinder
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.QuantityPoint3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.asShapePlacement3
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
@@ -53,6 +57,7 @@ import fuookami.ospf.kotlin.quantities.quantity.leq
 import fuookami.ospf.kotlin.quantities.quantity.minus
 import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
@@ -67,15 +72,30 @@ import kotlin.math.sqrt
  */
 data class Bpp3dLayerGenerationRequest<V>(
     val iteration: Int,
-    val bin: BinType? = null,
+    val bin: BinType<FltX>? = null,
     val items: List<Item>,
     val existingLayers: List<BinLayer> = emptyList(),
     val demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    val scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    val scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX)? = null,
     val timeLimit: Duration = ZERO,
     val maxCandidates: Int = 256
 )
+
+private fun layerPoint3(
+    x: Quantity<FltX>? = null,
+    y: Quantity<FltX>? = null,
+    z: Quantity<FltX>? = null,
+    unit: PhysicalUnit? = null
+): QuantityPoint3<FltX> {
+    val actualUnit = unit ?: x?.unit ?: y?.unit ?: z?.unit ?: Meter
+    val zero = Quantity(fltXZero(), actualUnit)
+    return point3(
+        x = x ?: zero,
+        y = y ?: zero,
+        z = z ?: zero
+    )
+}
 
 /**
  * Layer generation result.
@@ -85,18 +105,18 @@ data class Bpp3dLayerGenerationResult<V>(
     val layer: BinLayer,
     val reducedCost: V? = null,
     val score: V? = null,
-    val numericScore: InfraNumber? = null,
+    val numericScore: FltX? = null,
     val source: String
 )
 
 fun <V> bpp3dLayerGenerationRequest(
     iteration: Int,
-    bin: BinType? = null,
+    bin: BinType<FltX>? = null,
     items: List<Item>,
     existingLayers: List<BinLayer> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX)? = null,
     timeLimit: Duration = ZERO,
     maxCandidates: Int = 256
 ): Bpp3dLayerGenerationRequest<V> {
@@ -115,16 +135,16 @@ fun <V> bpp3dLayerGenerationRequest(
 
 fun <T : FloatingNumber<T>, V> bpp3dLayerGenerationRequestFromQuantity(
     iteration: Int,
-    bin: BinType? = null,
+    bin: BinType<FltX>? = null,
     items: List<QuantityItem<T>>,
     existingLayers: List<QuantityBinLayer<T>> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX)? = null,
     timeLimit: Duration = ZERO,
     maxCandidates: Int = 256
 ): Bpp3dLayerGenerationRequest<V> {
-    val materialCache = LinkedHashMap<QuantityMaterial<T>, Material<InfraNumber>>()
+    val materialCache = LinkedHashMap<QuantityMaterial<T>, Material<FltX>>()
     val itemCache = LinkedHashMap<QuantityItem<T>, ActualItem>()
     return bpp3dLayerGenerationRequest(
         iteration = iteration,
@@ -141,14 +161,14 @@ fun <T : FloatingNumber<T>, V> bpp3dLayerGenerationRequestFromQuantity(
 
 fun <V> bpp3dLayerGenerationRequestFromProgramDemands(
     iteration: Int,
-    bin: BinType? = null,
+    bin: BinType<FltX>? = null,
     items: List<Item> = emptyList(),
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
-    programMaterialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap(),
+    programMaterialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap(),
     existingLayers: List<BinLayer> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX)? = null,
     timeLimit: Duration = ZERO,
     maxCandidates: Int = 256
 ): Bpp3dLayerGenerationRequest<V> {
@@ -216,12 +236,12 @@ interface Bpp3dLayerGenerator<V> {
  */
 suspend fun <V, T : FloatingNumber<T>> Bpp3dLayerGenerator<V>.generateFromQuantity(
     iteration: Int,
-    bin: BinType? = null,
+    bin: BinType<FltX>? = null,
     items: List<QuantityItem<T>>,
     existingLayers: List<QuantityBinLayer<T>> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX)? = null,
     timeLimit: Duration = ZERO,
     maxCandidates: Int = 256
 ): List<Bpp3dLayerGenerationResult<V>> {
@@ -242,14 +262,14 @@ suspend fun <V, T : FloatingNumber<T>> Bpp3dLayerGenerator<V>.generateFromQuanti
 
 suspend fun <V> Bpp3dLayerGenerator<V>.generateFromProgramDemands(
     iteration: Int,
-    bin: BinType? = null,
+    bin: BinType<FltX>? = null,
     items: List<Item> = emptyList(),
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
-    programMaterialCatalog: Map<MaterialKey, Material<InfraNumber>> = emptyMap(),
+    programMaterialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap(),
     existingLayers: List<BinLayer> = emptyList(),
     demandEntries: List<LayerGenerationDemandEntry> = emptyList(),
     shadowPrices: Map<DemandModeKey, V> = emptyMap(),
-    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber)? = null,
+    scoreByShadowPrice: ((BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX)? = null,
     timeLimit: Duration = ZERO,
     maxCandidates: Int = 256
 ): List<Bpp3dLayerGenerationResult<V>> {
@@ -281,21 +301,21 @@ private fun resolveDemandDomainDiscrete(unit: PhysicalUnit?): Boolean {
 }
 
 fun <V> shadowPriceAwareLayerScore(
-    shadowPriceToScalar: (V) -> InfraNumber,
-    demandValueToScalar: (Bpp3dDemandValue) -> InfraNumber = { demand ->
+    shadowPriceToScalar: (V) -> FltX,
+    demandValueToScalar: (Bpp3dDemandValue) -> FltX = { demand ->
         when (demand) {
-            is Bpp3dDemandValue.Amount -> InfraNumber(demand.value.toULong().toDouble())
+            is Bpp3dDemandValue.Amount -> FltX(demand.value.toULong().toDouble())
             is Bpp3dDemandValue.Weight -> demand.value.value
         }
     }
-): (BinLayer, Bpp3dLayerGenerationRequest<V>) -> InfraNumber {
+): (BinLayer, Bpp3dLayerGenerationRequest<V>) -> FltX {
     return { layer, request ->
         val activeEntries = if (request.demandEntries.isNotEmpty()) {
             request.demandEntries.map { DemandModeKey(it.mode, it.key, it.quantityUnit) }
         } else {
             request.shadowPrices.keys
         }
-        var total = InfraNumber.zero
+        var total = FltX.zero
         for (entry in activeEntries) {
             val shadowPrice = request.shadowPrices[entry] ?: continue
             val concreteMode = entry.mode.toConcreteMode(
@@ -319,7 +339,7 @@ private fun <V> rankByShadowScore(
             val thisScore = result.numericScore ?: score(result.layer, request)
             result.copy(numericScore = thisScore)
         }
-        .sortedByDescending { it.numericScore ?: InfraNumber.negativeInfinity }
+        .sortedByDescending { it.numericScore ?: FltX.negativeInfinity }
 }
 
 private suspend fun <V> delegatedOrDefault(
@@ -333,7 +353,7 @@ private suspend fun <V> delegatedOrDefault(
         .take(request.maxCandidates)
 }
 
-private fun pickOrientation(item: Item, bin: BinType?): Orientation? {
+private fun pickOrientation(item: Item, bin: BinType<FltX>?): Orientation? {
     return item.enabledOrientations.firstOrNull { orientation ->
         bin?.enabled(item, orientation) ?: true
     }
@@ -345,7 +365,7 @@ private fun buildLayer(
     item: Item
 ): BinLayer? {
     val orientation = pickOrientation(item, request.bin) ?: return null
-    val placement = ItemPlacement3(item.view(orientation), point3())
+    val placement = ItemPlacement3(item.view(orientation), point3FltX())
     val iteration = Int64(request.iteration.toLong())
     val bin = request.bin
     return if (bin == null) {
@@ -364,7 +384,7 @@ private fun buildLayer(
             iteration = iteration,
             from = source.kotlin,
             bin = bin,
-            shape = Container3Shape(bin),
+            shape = Container3Shape(bin.asContainer3Shape()),
             units = listOf(placement)
         )
     }
@@ -410,7 +430,7 @@ private suspend fun <V> mapBlockLoadingToLayers(
         return emptyList()
     }
 
-    val binShape = Container3Shape(bin)
+    val binShape = Container3Shape(bin.asContainer3Shape())
     val simpleBlocks = SimpleBlockGenerator(
         config = SimpleBlockGenerator.Config(
             mergeAsPatternBlock = false,
@@ -470,7 +490,7 @@ private suspend fun <V> mapBlockLoadingToLayers(
                 iteration = iteration,
                 from = sourceClass.kotlin,
                 bin = bin,
-                shape = Container3Shape(bin),
+                shape = Container3Shape(bin.asContainer3Shape()),
                 units = units
             )
         }
@@ -491,7 +511,7 @@ private suspend fun <V> mapItemsToPileLayers(
     sourceClass: Class<*>
 ): List<Bpp3dLayerGenerationResult<V>> {
     val bin = request.bin ?: return emptyList()
-    val binShape = Container3Shape(bin)
+    val binShape = Container3Shape(bin.asContainer3Shape())
     val iteration = Int64(request.iteration.toLong())
     val layers = LinkedHashSet<BinLayer>()
     for (item in request.items) {
@@ -511,7 +531,7 @@ private suspend fun <V> mapItemsToPileLayers(
         for (index in UInt64.zero until maxByBinHeight) {
             val placement = ItemPlacement3(
                 view = itemView,
-                position = point3(y = itemView.height * infraScalar(index.toULong().toDouble()))
+                position = layerPoint3(y = itemView.height * fltX(index.toULong().toDouble()))
             )
             val isEnabled = item.packageAttribute.enabledStackingOn(
                 item = placement,
@@ -594,7 +614,7 @@ private class CirclePackingCandidateItemView(
 
 private data class CirclePackingItemCandidate(
     val view: ItemView,
-    val sourceRadius: Quantity<InfraNumber>? = null
+    val sourceRadius: Quantity<FltX>? = null
 )
 
 private data class CirclePackingLayerCandidate(
@@ -607,7 +627,7 @@ private data class CirclePackingLayerCandidate(
 private fun cylinderAxisLength(
     source: CylinderPackingShape3,
     axis: Axis3
-): Quantity<InfraNumber> {
+): Quantity<FltX> {
     return when (axis) {
         Axis3.X -> source.boundingWidth
         Axis3.Y -> source.boundingHeight
@@ -617,11 +637,11 @@ private fun cylinderAxisLength(
 
 private fun cylinderCandidateShape(
     source: CylinderPackingShape3,
-    radius: Quantity<InfraNumber>,
+    radius: Quantity<FltX>,
     axis: Axis3
 ): CylinderPackingShape3 {
     return CylinderPackingShape3(
-        cylinder = object : AbstractCylinder<InfraNumber> {
+        cylinder = object : AbstractCylinder<FltX> {
             override val radius = radius
             override val height = cylinderAxisLength(
                 source = source,
@@ -635,7 +655,7 @@ private fun cylinderCandidateShape(
 
 private fun circlePackingItemCandidates(
     item: Item,
-    bin: BinType?
+    bin: BinType<FltX>?
 ): List<CirclePackingItemCandidate> {
     if (bin != null && (item.weight leq bin.capacity) != true) {
         return emptyList()
@@ -745,11 +765,11 @@ private fun horizontalCylinderSingleHangingSupportPlacements(
         return null
     }
 
-    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * infraScalar(0.5)
+    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * fltX(0.5)
     val supportPosition = when (axis) {
-        Axis3.X -> point3(z = radialOffset)
-        Axis3.Y -> point3()
-        Axis3.Z -> point3(x = radialOffset)
+        Axis3.X -> layerPoint3(z = radialOffset)
+        Axis3.Y -> point3FltX()
+        Axis3.Z -> layerPoint3(x = radialOffset)
     }
     return listOf(
         ItemPlacement3(
@@ -758,7 +778,7 @@ private fun horizontalCylinderSingleHangingSupportPlacements(
         ),
         ItemPlacement3(
             view = cylinderView,
-            position = point3(y = supportView.height)
+            position = layerPoint3(y = supportView.height)
         )
     )
 }
@@ -821,14 +841,14 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
         view = supportView,
         axis = axis
     )
-    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * infraScalar(0.5)
+    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * fltX(0.5)
     val placements = ArrayList<ItemPlacement3>(supportCount + 1)
     for (index in 0 until supportCount) {
-        val axisOffset = supportAxisSpan * infraScalar(index.toDouble())
+        val axisOffset = supportAxisSpan * fltX(index.toDouble())
         val position = when (axis) {
-            Axis3.X -> point3(x = axisOffset, z = radialOffset)
-            Axis3.Y -> point3()
-            Axis3.Z -> point3(x = radialOffset, z = axisOffset)
+            Axis3.X -> layerPoint3(x = axisOffset, z = radialOffset)
+            Axis3.Y -> point3FltX()
+            Axis3.Z -> layerPoint3(x = radialOffset, z = axisOffset)
         }
         placements.add(
             ItemPlacement3(
@@ -840,7 +860,7 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
     placements.add(
         ItemPlacement3(
             view = cylinderView,
-            position = point3(y = supportView.height)
+            position = layerPoint3(y = supportView.height)
         )
     )
     return placements
@@ -911,14 +931,14 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
             continue
         }
 
-        val radialOffset = (cylinderRadialSpan - referenceRadialSpan) * infraScalar(0.5)
+        val radialOffset = (cylinderRadialSpan - referenceRadialSpan) * fltX(0.5)
         val placements = ArrayList<ItemPlacement3>(supportCount + 1)
-        var axisOffset = cylinderAxisSpan * infraScalar(0.0)
+        var axisOffset = cylinderAxisSpan * fltX(0.0)
         for (supportView in eligibleSupports.take(supportCount)) {
             val position = when (axis) {
-                Axis3.X -> point3(x = axisOffset, z = radialOffset)
-                Axis3.Y -> point3()
-                Axis3.Z -> point3(x = radialOffset, z = axisOffset)
+                Axis3.X -> layerPoint3(x = axisOffset, z = radialOffset)
+                Axis3.Y -> point3FltX()
+                Axis3.Z -> layerPoint3(x = radialOffset, z = axisOffset)
             }
             placements.add(
                 ItemPlacement3(
@@ -931,7 +951,7 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
         placements.add(
             ItemPlacement3(
                 view = cylinderView,
-                position = point3(y = heightReference.height)
+                position = layerPoint3(y = heightReference.height)
             )
         )
         return placements
@@ -942,7 +962,7 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
 private fun horizontalCylinderSupportAxisSpan(
     view: ItemView,
     axis: Axis3
-): Quantity<InfraNumber> {
+): Quantity<FltX> {
     return when (axis) {
         Axis3.X -> view.width
         Axis3.Y -> view.height
@@ -953,7 +973,7 @@ private fun horizontalCylinderSupportAxisSpan(
 private fun horizontalCylinderSupportRadialSpan(
     view: ItemView,
     axis: Axis3
-): Quantity<InfraNumber> {
+): Quantity<FltX> {
     return when (axis) {
         Axis3.X -> view.depth
         Axis3.Y -> view.height
@@ -1009,11 +1029,11 @@ private fun horizontalCylinderRepeatedSupportPlacements(
         axis = axis
     )
     for (index in 0 until supportCount) {
-        val axisOffset = supportAxisSpan * infraScalar(index.toDouble())
+        val axisOffset = supportAxisSpan * fltX(index.toDouble())
         val position = when (axis) {
-            Axis3.X -> point3(x = axisOffset)
-            Axis3.Y -> point3()
-            Axis3.Z -> point3(z = axisOffset)
+            Axis3.X -> layerPoint3(x = axisOffset)
+            Axis3.Y -> point3FltX()
+            Axis3.Z -> layerPoint3(z = axisOffset)
         }
         placements.add(
             ItemPlacement3(
@@ -1025,7 +1045,7 @@ private fun horizontalCylinderRepeatedSupportPlacements(
     placements.add(
         ItemPlacement3(
             view = cylinderView,
-            position = point3(y = supportView.height)
+            position = layerPoint3(y = supportView.height)
         )
     )
     return placements
@@ -1082,16 +1102,16 @@ private fun horizontalCylinderHeterogeneousSupportPlacements(
 
         val supportPlacements = ArrayList<ItemPlacement3>()
         var coveredAxisSpan = 0.0
-        var axisOffset = cylinderAxisSpan * infraScalar(0.0)
+        var axisOffset = cylinderAxisSpan * fltX(0.0)
         for (supportView in eligibleSupports) {
             val supportAxisSpan = horizontalCylinderSupportAxisSpan(
                 view = supportView,
                 axis = axis
             )
             val position = when (axis) {
-                Axis3.X -> point3(x = axisOffset)
-                Axis3.Y -> point3()
-                Axis3.Z -> point3(z = axisOffset)
+                Axis3.X -> layerPoint3(x = axisOffset)
+                Axis3.Y -> point3FltX()
+                Axis3.Z -> layerPoint3(z = axisOffset)
             }
             supportPlacements.add(
                 ItemPlacement3(
@@ -1105,7 +1125,7 @@ private fun horizontalCylinderHeterogeneousSupportPlacements(
                 supportPlacements.add(
                     ItemPlacement3(
                         view = cylinderView,
-                        position = point3(y = heightReference.height)
+                        position = layerPoint3(y = heightReference.height)
                     )
                 )
                 return supportPlacements
@@ -1139,7 +1159,7 @@ private fun circlePackingStackedLayerIsGeometryValid(
 private suspend fun horizontalCylinderSupportedStackCandidates(
     sourceClass: Class<*>,
     iteration: Int64,
-    bin: BinType,
+    bin: BinType<FltX>,
     binShape: Container3Shape,
     items: List<Item>,
     cylinderItem: Item,
@@ -1198,11 +1218,11 @@ private suspend fun horizontalCylinderSupportedStackCandidates(
         ) {
             val supportPlacement = ItemPlacement3(
                 view = supportView,
-                position = point3()
+                position = point3FltX()
             )
             val cylinderPlacement = ItemPlacement3(
                 view = cylinderCandidate.view,
-                position = point3(y = supportView.height)
+                position = layerPoint3(y = supportView.height)
             )
             val placements = listOf(supportPlacement, cylinderPlacement)
             if (circlePackingStackedLayerIsGeometryValid(
@@ -1410,7 +1430,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
 ): List<Bpp3dLayerGenerationResult<V>> {
     val bin = request.bin ?: return emptyList()
     val iteration = Int64(request.iteration.toLong())
-    val binShape = Container3Shape(bin)
+    val binShape = Container3Shape(bin.asContainer3Shape())
     val binWidth = bin.width.value.toDouble()
     val binDepth = bin.depth.value.toDouble()
     if (binWidth <= 0.0 || binDepth <= 0.0) {
@@ -1451,13 +1471,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                 }
                 val placements = ArrayList<ItemPlacement3>(cols * rows)
                 for (row in 0 until rows) {
-                    val z = cellDepth * infraScalar(row.toDouble())
+                    val z = cellDepth * fltX(row.toDouble())
                     for (col in 0 until cols) {
-                        val x = cellWidth * infraScalar(col.toDouble())
+                        val x = cellWidth * fltX(col.toDouble())
                         placements.add(
                             ItemPlacement3(
                                 view = itemView,
-                                position = point3(x = x, z = z)
+                                position = layerPoint3(x = x, z = z)
                             )
                         )
                     }
@@ -1535,13 +1555,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
             if (rectCols > 0 && rectRows > 0) {
                 val placements = ArrayList<ItemPlacement3>(rectCols * rectRows)
                 for (row in 0 until rectRows) {
-                    val z = diameter * infraScalar(row.toDouble())
+                    val z = diameter * fltX(row.toDouble())
                     for (col in 0 until rectCols) {
-                        val x = diameter * infraScalar(col.toDouble())
+                        val x = diameter * fltX(col.toDouble())
                         placements.add(
                             ItemPlacement3(
                                 view = itemView,
-                                position = point3(x = x, z = z)
+                                position = layerPoint3(x = x, z = z)
                             )
                         )
                     }
@@ -1565,13 +1585,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
             }
 
             val hexRowStepScale = sqrt(3.0) / 2.0
-            val hexRowStep = diameter * infraScalar(hexRowStepScale)
+            val hexRowStep = diameter * fltX(hexRowStepScale)
             val hexRowStepValue = hexRowStep.value.toDouble()
             if (hexRowStepValue > 0.0) {
                 val placements = ArrayList<ItemPlacement3>()
                 var row = 0
                 while (true) {
-                    val z = hexRowStep * infraScalar(row.toDouble())
+                    val z = hexRowStep * fltX(row.toDouble())
                     if (z.value.toDouble() + diameterValue > binDepth) {
                         break
                     }
@@ -1579,14 +1599,14 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                     var col = 0
                     while (true) {
                         val xScale = col.toDouble() + offset
-                        val x = diameter * infraScalar(xScale)
+                        val x = diameter * fltX(xScale)
                         if (x.value.toDouble() + diameterValue > binWidth) {
                             break
                         }
                         placements.add(
                             ItemPlacement3(
                                 view = itemView,
-                                position = point3(x = x, z = z)
+                                position = layerPoint3(x = x, z = z)
                             )
                         )
                         col += 1
@@ -1623,7 +1643,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
         .map { candidate ->
             Bpp3dLayerGenerationResult<V>(
                 layer = candidate.layer,
-                numericScore = InfraNumber(candidate.packed.toDouble()),
+                numericScore = FltX(candidate.packed.toDouble()),
                 source = candidate.source
             )
         }
@@ -1889,6 +1909,3 @@ class LayerGenerationContext<V>(
             .take(request.maxCandidates)
     }
 }
-
-
-

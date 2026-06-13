@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
@@ -10,10 +11,9 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
@@ -25,14 +25,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.LinearDeformationA
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageAttribute
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageShapeSpec
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.WeightAttribute
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.asContainer3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.layerBinOf
 
 class DepthBoundaryLayerOrientationPolicyTest {
     private val binType = BinType(
-        width = infraScalar(4.0) * Meter,
-        height = infraScalar(4.0) * Meter,
-        depth = infraScalar(12.0) * Meter,
-        capacity = infraScalar(100.0) * Kilogram,
+        width = fltX(4.0) * Meter,
+        height = fltX(4.0) * Meter,
+        depth = fltX(12.0) * Meter,
+        capacity = fltX(100.0) * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
         typeCode = "BIN-DEPTH-POLICY"
@@ -308,8 +309,8 @@ class DepthBoundaryLayerOrientationPolicyTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -322,10 +323,10 @@ class DepthBoundaryLayerOrientationPolicyTest {
         return ActualItem(
             id = id,
             name = id,
-            width = InfraNumber.one * Meter,
-            height = InfraNumber.one * Meter,
-            depth = InfraNumber.one * Meter,
-            weight = InfraNumber.one * Kilogram,
+            width = FltX.one * Meter,
+            height = FltX.one * Meter,
+            depth = FltX.one * Meter,
+            weight = FltX.one * Kilogram,
             enabledOrientations = enabledOrientations,
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -347,7 +348,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
             iteration = Int64.zero,
             from = DepthBoundaryLayerOrientationPolicyTest::class,
             bin = binType,
-            shape = Container3Shape(binType),
+            shape = Container3Shape(binType.asContainer3Shape()),
             units = listOf(item.toItemPlacement(orientation = orientation))
         )
     }
@@ -370,7 +371,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
             iteration = Int64.zero,
             from = DepthBoundaryLayerOrientationPolicyTest::class,
             bin = binType,
-            shape = Container3Shape(binType),
+            shape = Container3Shape(binType.asContainer3Shape()),
             units = listOf(
                 cuboid.toItemPlacement(orientation = cuboidOrientation),
                 cylinder.toItemPlacement(orientation = Orientation.Upright)
@@ -380,7 +381,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
 
     private fun placedLayer(layer: BinLayer, z: Double): BinLayerPlacement {
         return layer.toKnownCoordinateLayerPlacement(
-            z = infraScalar(z) * Meter
+            z = fltX(z) * Meter
         )
     }
 
@@ -393,7 +394,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
 
     private fun cylinder(axis: Axis3): PackageShapeSpec.VerticalCylinder {
         return PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.4) * Meter,
+            radius = fltX(0.4) * Meter,
             axis = axis
         )
     }

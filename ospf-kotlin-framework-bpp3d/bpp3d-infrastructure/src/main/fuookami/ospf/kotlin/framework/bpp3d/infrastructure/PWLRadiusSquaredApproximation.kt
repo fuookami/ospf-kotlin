@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 /**
  * PWL 段数推导结果。
  * PWL segment count derivation result.
@@ -18,7 +19,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
  */
 data class SegmentCountDerivation(
     val recommendedSegments: Int,
-    val achievedMaxRelativeError: InfraNumber,
+    val achievedMaxRelativeError: FltX,
     val meetsTolerance: Boolean,
     val iterations: Int
 ) {
@@ -51,11 +52,11 @@ data class SegmentCountDerivation(
  * @property maxAbsoluteError 最大绝对误差 / maximum absolute error
  */
 data class PWLRadiusSquaredApproximation(
-    val breakpoints: List<InfraNumber>,
-    val slopes: List<InfraNumber>,
-    val intercepts: List<InfraNumber>,
-    val maxRelativeError: InfraNumber,
-    val maxAbsoluteError: InfraNumber
+    val breakpoints: List<FltX>,
+    val slopes: List<FltX>,
+    val intercepts: List<FltX>,
+    val maxRelativeError: FltX,
+    val maxAbsoluteError: FltX
 ) {
     init {
         require(breakpoints.size >= 2) { "Need at least 2 breakpoints" }
@@ -85,12 +86,12 @@ data class PWLRadiusSquaredApproximation(
          * @return 段数推导结果 / segment count derivation result
          */
         fun deriveSegmentCount(
-            rMin: InfraNumber,
-            rMax: InfraNumber,
-            relativeErrorTolerance: InfraNumber,
+            rMin: FltX,
+            rMax: FltX,
+            relativeErrorTolerance: FltX,
             maxSegments: Int = 64
         ): SegmentCountDerivation {
-            require(rMin > InfraNumber.zero) { "rMin must be positive" }
+            require(rMin > FltX.zero) { "rMin must be positive" }
             require(rMax > rMin) { "rMax must be greater than rMin" }
             require(maxSegments >= 1) { "maxSegments must be at least 1" }
 
@@ -143,11 +144,11 @@ data class PWLRadiusSquaredApproximation(
          * @return PWL 近似函数 / PWL approximation
          */
         fun fromRadiusInterval(
-            rMin: InfraNumber,
-            rMax: InfraNumber,
+            rMin: FltX,
+            rMax: FltX,
             config: PWLRadiusApproximationConfig
         ): PWLRadiusSquaredApproximation {
-            require(rMin > InfraNumber.zero) { "rMin must be positive" }
+            require(rMin > FltX.zero) { "rMin must be positive" }
             require(rMax > rMin) { "rMax must be greater than rMin" }
 
             val breakpoints = when {
@@ -160,8 +161,8 @@ data class PWLRadiusSquaredApproximation(
                 }
             }
 
-            val slopes = ArrayList<InfraNumber>()
-            val intercepts = ArrayList<InfraNumber>()
+            val slopes = ArrayList<FltX>()
+            val intercepts = ArrayList<FltX>()
             for (i in 0 until breakpoints.size - 1) {
                 val r0 = breakpoints[i]
                 val r1 = breakpoints[i + 1]
@@ -184,9 +185,9 @@ data class PWLRadiusSquaredApproximation(
         }
 
         private fun validateCustomBreakpoints(
-            breakpoints: List<InfraNumber>,
-            rMin: InfraNumber,
-            rMax: InfraNumber
+            breakpoints: List<FltX>,
+            rMin: FltX,
+            rMax: FltX
         ) {
             require(breakpoints.first() <= rMin) {
                 "Custom breakpoints must start at or below rMin"
@@ -202,10 +203,10 @@ data class PWLRadiusSquaredApproximation(
         }
 
         private fun generateBreakpoints(
-            rMin: InfraNumber,
-            rMax: InfraNumber,
+            rMin: FltX,
+            rMax: FltX,
             config: PWLRadiusApproximationConfig
-        ): List<InfraNumber> {
+        ): List<FltX> {
             return when (config.breakpointStrategy) {
                 PWLBreakpointStrategy.Uniform -> {
                     generateUniformBreakpoints(rMin, rMax, config.maxSegments)
@@ -220,12 +221,12 @@ data class PWLRadiusSquaredApproximation(
         }
 
         private fun generateUniformBreakpoints(
-            rMin: InfraNumber,
-            rMax: InfraNumber,
+            rMin: FltX,
+            rMax: FltX,
             numSegments: Int
-        ): List<InfraNumber> {
-            val delta = (rMax - rMin) / infraScalar(numSegments.toDouble())
-            return (0..numSegments).map { i -> rMin + delta * infraScalar(i.toDouble()) }
+        ): List<FltX> {
+            val delta = (rMax - rMin) / fltX(numSegments.toDouble())
+            return (0..numSegments).map { i -> rMin + delta * fltX(i.toDouble()) }
         }
 
         /**
@@ -234,18 +235,18 @@ data class PWLRadiusSquaredApproximation(
          * where the relative error of r² is more sensitive.
          */
         private fun generateAdaptiveBreakpoints(
-            rMin: InfraNumber,
-            rMax: InfraNumber,
+            rMin: FltX,
+            rMax: FltX,
             numSegments: Int
-        ): List<InfraNumber> {
-            val result = ArrayList<InfraNumber>()
+        ): List<FltX> {
+            val result = ArrayList<FltX>()
             for (i in 0..numSegments) {
-                val t = infraScalar(i.toDouble()) / infraScalar(numSegments.toDouble())
+                val t = fltX(i.toDouble()) / fltX(numSegments.toDouble())
                 // Chebyshev node: map t to [0, 1] with concentration near 0 (rMin side)
                 // theta = pi * t, Chebyshev node = 0.5 * (1 - cos(theta))
                 // This places more nodes near t=0 (mapped to rMin) and t=1 (mapped to rMax)
                 // For r², relative error is worse at small r, so we bias toward rMin.
-                val chebyshev = infraScalar(0.5) * (infraScalar(1.0) - infraScalar(kotlin.math.cos(kotlin.math.PI * t.toDouble())))
+                val chebyshev = fltX(0.5) * (fltX(1.0) - fltX(kotlin.math.cos(kotlin.math.PI * t.toDouble())))
                 val r = rMin + (rMax - rMin) * chebyshev
                 result.add(r)
             }
@@ -258,11 +259,11 @@ data class PWLRadiusSquaredApproximation(
          * to segments with the highest relative error.
          */
         private fun generateErrorDrivenBreakpoints(
-            rMin: InfraNumber,
-            rMax: InfraNumber,
-            relativeTolerance: InfraNumber,
+            rMin: FltX,
+            rMax: FltX,
+            relativeTolerance: FltX,
             maxSegments: Int
-        ): List<InfraNumber> {
+        ): List<FltX> {
             var breakpoints = generateUniformBreakpoints(rMin, rMax, maxSegments)
             val maxIterations = 5
             var iterations = 0
@@ -278,7 +279,7 @@ data class PWLRadiusSquaredApproximation(
 
                 // Find the segment with highest relative error and bisect it
                 val worstSegment = segmentErrors.indices.maxByOrNull { segmentErrors[it].toDouble() } ?: break
-                val mid = (breakpoints[worstSegment] + breakpoints[worstSegment + 1]) / infraScalar(2.0)
+                val mid = (breakpoints[worstSegment] + breakpoints[worstSegment + 1]) / fltX(2.0)
                 val newBreakpoints = breakpoints.toMutableList()
                 newBreakpoints.add(worstSegment + 1, mid)
                 if (newBreakpoints.size - 1 > maxSegments * 2) break // Safety limit
@@ -293,26 +294,26 @@ data class PWLRadiusSquaredApproximation(
          * Compute maximum relative errors per segment.
          */
         private fun computeSegmentRelativeErrors(
-            breakpoints: List<InfraNumber>,
-            slopes: List<InfraNumber>,
-            intercepts: List<InfraNumber>
-        ): Pair<InfraNumber, List<InfraNumber>> {
-            var globalMaxRelError = InfraNumber.zero
-            val segmentErrors = ArrayList<InfraNumber>()
+            breakpoints: List<FltX>,
+            slopes: List<FltX>,
+            intercepts: List<FltX>
+        ): Pair<FltX, List<FltX>> {
+            var globalMaxRelError = FltX.zero
+            val segmentErrors = ArrayList<FltX>()
             val numSamples = 50
             for (i in 0 until breakpoints.size - 1) {
                 val r0 = breakpoints[i]
                 val r1 = breakpoints[i + 1]
                 val slope = slopes[i]
                 val intercept = intercepts[i]
-                var segMaxRelError = InfraNumber.zero
+                var segMaxRelError = FltX.zero
                 for (j in 0..numSamples) {
-                    val t = infraScalar(j.toDouble()) / infraScalar(numSamples.toDouble())
+                    val t = fltX(j.toDouble()) / fltX(numSamples.toDouble())
                     val r = r0 + (r1 - r0) * t
                     val actualRSquared = r * r
                     val approxRSquared = slope * r + intercept
                     val absError = (approxRSquared - actualRSquared).abs()
-                    if (actualRSquared > infraScalar(1e-12)) {
+                    if (actualRSquared > fltX(1e-12)) {
                         val relError = absError / actualRSquared
                         if (relError > segMaxRelError) segMaxRelError = relError
                     }
@@ -324,12 +325,12 @@ data class PWLRadiusSquaredApproximation(
         }
 
         private fun computeMaxErrors(
-            breakpoints: List<InfraNumber>,
-            slopes: List<InfraNumber>,
-            intercepts: List<InfraNumber>
-        ): Pair<InfraNumber, InfraNumber> {
-            var maxRelError = InfraNumber.zero
-            var maxAbsError = InfraNumber.zero
+            breakpoints: List<FltX>,
+            slopes: List<FltX>,
+            intercepts: List<FltX>
+        ): Pair<FltX, FltX> {
+            var maxRelError = FltX.zero
+            var maxAbsError = FltX.zero
             val numSamples = 100
             for (i in 0 until breakpoints.size - 1) {
                 val r0 = breakpoints[i]
@@ -337,13 +338,13 @@ data class PWLRadiusSquaredApproximation(
                 val slope = slopes[i]
                 val intercept = intercepts[i]
                 for (j in 0..numSamples) {
-                    val t = infraScalar(j.toDouble()) / infraScalar(numSamples.toDouble())
+                    val t = fltX(j.toDouble()) / fltX(numSamples.toDouble())
                     val r = r0 + (r1 - r0) * t
                     val actualRSquared = r * r
                     val approxRSquared = slope * r + intercept
                     val absError = (approxRSquared - actualRSquared).abs()
                     if (absError > maxAbsError) maxAbsError = absError
-                    if (actualRSquared > infraScalar(1e-12)) {
+                    if (actualRSquared > fltX(1e-12)) {
                         val relError = absError / actualRSquared
                         if (relError > maxRelError) maxRelError = relError
                     }
@@ -360,7 +361,7 @@ data class PWLRadiusSquaredApproximation(
      * 对 r 在 [breakpoints.first, breakpoints.last] 范围内使用分段线性近似；
      * 超出范围时使用最近段外推。
      */
-    fun evaluate(r: InfraNumber): InfraNumber {
+    fun evaluate(r: FltX): FltX {
         // Binary search for the correct segment
         val bp = breakpoints
         if (r <= bp.first()) {
@@ -383,7 +384,7 @@ data class PWLRadiusSquaredApproximation(
      * 计算实际误差 |q - r²|。
      * Compute actual error |q - r²|.
      */
-    fun actualError(r: InfraNumber): InfraNumber {
+    fun actualError(r: FltX): FltX {
         val q = evaluate(r)
         val actualRSquared = r * r
         return (q - actualRSquared).abs()
@@ -393,10 +394,10 @@ data class PWLRadiusSquaredApproximation(
      * 计算实际相对误差 |q - r²| / r²。
      * Compute actual relative error |q - r²| / r².
      */
-    fun actualRelativeError(r: InfraNumber): InfraNumber {
+    fun actualRelativeError(r: FltX): FltX {
         val absError = actualError(r)
         val actualRSquared = r * r
-        if (actualRSquared < infraScalar(1e-12)) return InfraNumber.zero
+        if (actualRSquared < fltX(1e-12)) return FltX.zero
         return absError / actualRSquared
     }
 }

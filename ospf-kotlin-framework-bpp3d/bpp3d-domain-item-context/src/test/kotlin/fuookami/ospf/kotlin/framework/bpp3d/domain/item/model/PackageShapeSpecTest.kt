@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
@@ -11,14 +12,14 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.unit.Millimeter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraQuantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 class PackageShapeSpecTest {
     private fun assertRadiusValues(
-        actual: List<InfraQuantity>,
+        actual: List<Quantity<FltX>>,
         expected: List<Double>
     ) {
         assertEquals(
@@ -37,28 +38,28 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderShouldKeepResolvedRadiusForPackingShape() {
         val shape = PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.2) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(3.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.2) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(3.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y,
                 radiusCandidates = listOf(
-                    infraScalar(0.4) * Meter,
-                    infraScalar(0.5) * Meter,
-                    infraScalar(0.6) * Meter
+                    fltX(0.4) * Meter,
+                    fltX(0.5) * Meter,
+                    fltX(0.6) * Meter
                 ),
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter
             )
         )
 
         val packingShape = assertNotNull(shape.toPackingShapeOrNull())
         assertTrue(packingShape is CylinderPackingShape3)
-        assertTrue(packingShape.radius eq (infraScalar(0.5) * Meter))
-        assertTrue(packingShape.boundingWidth eq (infraScalar(1.0) * Meter))
+        assertTrue(packingShape.radius eq (fltX(0.5) * Meter))
+        assertTrue(packingShape.boundingWidth eq (fltX(1.0) * Meter))
         assertRadiusValues(
             actual = (shape.shapeSpec as PackageShapeSpec.VerticalCylinder).resolvedRadiusCandidates,
             expected = listOf(0.4, 0.5, 0.6)
@@ -68,10 +69,10 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderRadiusWeightFunctionKeyShouldRemainMetadataOnly() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.5) * Meter,
+            radius = fltX(0.5) * Meter,
             axis = Axis3.Y,
-            radiusMin = infraScalar(0.4) * Meter,
-            radiusMax = infraScalar(0.6) * Meter,
+            radiusMin = fltX(0.4) * Meter,
+            radiusMax = fltX(0.6) * Meter,
             radiusWeightFunctionKey = "continuous-radius-prototype"
         )
 
@@ -88,16 +89,16 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderProductionShapeShouldUseSelectedContinuousRadiusResult() {
         val shape = PackageShape(
-            width = infraScalar(1.0) * Meter,
-            height = infraScalar(1.2) * Meter,
-            depth = infraScalar(1.0) * Meter,
-            weight = infraScalar(3.0) * Kilogram,
+            width = fltX(1.0) * Meter,
+            height = fltX(1.2) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(3.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter,
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter,
                 radiusWeightFunctionKey = "continuous-radius-prototype"
             )
         )
@@ -105,7 +106,7 @@ class PackageShapeSpecTest {
         val packingShape = assertNotNull(shape.toPackingShapeOrNull())
 
         assertTrue(packingShape is CylinderPackingShape3)
-        assertTrue(packingShape.radius eq (infraScalar(0.5) * Meter))
+        assertTrue(packingShape.radius eq (fltX(0.5) * Meter))
         assertEquals(
             expected = "continuous-radius-prototype",
             actual = (shape.shapeSpec as PackageShapeSpec.VerticalCylinder).radiusWeightFunctionKey
@@ -115,10 +116,10 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderContinuousRadiusSelectionShouldExposeSelectedResult() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.5) * Meter,
+            radius = fltX(0.5) * Meter,
             axis = Axis3.Z,
-            radiusMin = infraScalar(0.4) * Meter,
-            radiusMax = infraScalar(0.6) * Meter,
+            radiusMin = fltX(0.4) * Meter,
+            radiusMax = fltX(0.6) * Meter,
             radiusWeightFunctionKey = "continuous-radius-prototype"
         )
 
@@ -126,18 +127,18 @@ class PackageShapeSpecTest {
 
         assertEquals("continuous-radius-prototype", selection.key)
         assertEquals(Axis3.Z, selection.axis)
-        assertTrue(selection.selectedRadius eq (infraScalar(0.5) * Meter))
-        assertTrue(selection.radiusMin!! eq (infraScalar(0.4) * Meter))
-        assertTrue(selection.radiusMax!! eq (infraScalar(0.6) * Meter))
+        assertTrue(selection.selectedRadius eq (fltX(0.5) * Meter))
+        assertTrue(selection.radiusMin!! eq (fltX(0.4) * Meter))
+        assertTrue(selection.radiusMax!! eq (fltX(0.6) * Meter))
     }
 
     @Test
     fun selectedContinuousRadiusShouldExposeSolverPrototype() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.5) * Meter,
+            radius = fltX(0.5) * Meter,
             axis = Axis3.Z,
-            radiusMin = infraScalar(0.4) * Meter,
-            radiusMax = infraScalar(0.6) * Meter,
+            radiusMin = fltX(0.4) * Meter,
+            radiusMax = fltX(0.6) * Meter,
             radiusWeightFunctionKey = "continuous-radius-prototype"
         )
 
@@ -146,9 +147,9 @@ class PackageShapeSpecTest {
         assertEquals("continuous-radius-prototype", prototype.radiusWeightFunctionKey)
         assertEquals(Axis3.Z, prototype.axis)
         assertEquals("cylinder_radius_unit_test_continuous_radius_prototype_Z", prototype.variableName)
-        assertTrue(prototype.radiusLowerBound!! eq (infraScalar(0.4) * Meter))
-        assertTrue(prototype.radiusUpperBound!! eq (infraScalar(0.6) * Meter))
-        assertTrue(prototype.initialRadius!! eq (infraScalar(0.5) * Meter))
+        assertTrue(prototype.radiusLowerBound!! eq (fltX(0.4) * Meter))
+        assertTrue(prototype.radiusUpperBound!! eq (fltX(0.6) * Meter))
+        assertTrue(prototype.initialRadius!! eq (fltX(0.5) * Meter))
         assertTrue(prototype.isProductionReady)
         assertEquals(emptyList(), prototype.gaps)
     }
@@ -160,9 +161,9 @@ class PackageShapeSpecTest {
                 source = "unit test",
                 radiusWeightFunctionKey = "continuous-radius-prototype",
                 axis = Axis3.Y,
-                selectedRadius = infraScalar(0.3) * Meter,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter
+                selectedRadius = fltX(0.3) * Meter,
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter
             )
         }
 
@@ -176,9 +177,9 @@ class PackageShapeSpecTest {
                 source = "unit test",
                 radiusWeightFunctionKey = "continuous-radius-prototype",
                 axis = Axis3.Y,
-                selectedRadius = infraScalar(0.7) * Meter,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter
+                selectedRadius = fltX(0.7) * Meter,
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter
             )
         }
 
@@ -233,15 +234,15 @@ class PackageShapeSpecTest {
                 source = "Gurobi CSV",
                 radiusWeightFunctionKey = "continuous-radius-prototype",
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.15) * Meter,
-                radiusMax = infraScalar(0.18) * Meter
+                radiusMin = fltX(0.15) * Meter,
+                radiusMax = fltX(0.18) * Meter
             )
         )
 
         assertEquals("continuous-radius-prototype", prototype.radiusWeightFunctionKey)
         assertEquals("cylinder_radius_Gurobi_CSV_continuous_radius_prototype_Y", prototype.variableName)
-        assertTrue(prototype.radiusLowerBound!! eq (infraScalar(0.15) * Meter))
-        assertTrue(prototype.radiusUpperBound!! eq (infraScalar(0.18) * Meter))
+        assertTrue(prototype.radiusLowerBound!! eq (fltX(0.15) * Meter))
+        assertTrue(prototype.radiusUpperBound!! eq (fltX(0.18) * Meter))
         assertEquals(null, prototype.initialRadius)
         assertEquals(
             expected = listOf(
@@ -259,11 +260,11 @@ class PackageShapeSpecTest {
     fun verticalCylinderRadiusWeightFunctionKeyShouldRejectDiscreteRadiusCandidates() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y,
                 radiusCandidates = listOf(
-                    infraScalar(0.4) * Meter,
-                    infraScalar(0.5) * Meter
+                    fltX(0.4) * Meter,
+                    fltX(0.5) * Meter
                 ),
                 radiusWeightFunctionKey = "continuous-radius-prototype"
             )
@@ -271,11 +272,11 @@ class PackageShapeSpecTest {
 
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.4) * Meter,
-                radiusMax = infraScalar(0.6) * Meter,
-                radiusStep = infraScalar(0.1) * Meter,
+                radiusMin = fltX(0.4) * Meter,
+                radiusMax = fltX(0.6) * Meter,
+                radiusStep = fltX(0.1) * Meter,
                 radiusWeightFunctionKey = "continuous-radius-prototype"
             )
         }
@@ -285,11 +286,11 @@ class PackageShapeSpecTest {
     fun verticalCylinderShouldRejectResolvedRadiusOutsideCandidates() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y,
                 radiusCandidates = listOf(
-                    infraScalar(0.4) * Meter,
-                    infraScalar(0.6) * Meter
+                    fltX(0.4) * Meter,
+                    fltX(0.6) * Meter
                 )
             )
         }
@@ -299,10 +300,10 @@ class PackageShapeSpecTest {
     fun verticalCylinderShouldRejectInvalidRadiusRange() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.5) * Meter,
+                radius = fltX(0.5) * Meter,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.6) * Meter,
-                radiusMax = infraScalar(0.4) * Meter
+                radiusMin = fltX(0.6) * Meter,
+                radiusMax = fltX(0.4) * Meter
             )
         }
     }
@@ -310,11 +311,11 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderShouldGenerateRadiusCandidatesFromDiameterInterval() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.15) * Meter,
+            radius = fltX(0.15) * Meter,
             axis = Axis3.Y,
-            diameterMin = infraScalar(0.30) * Meter,
-            diameterMax = infraScalar(0.36) * Meter,
-            diameterStep = infraScalar(0.01) * Meter
+            diameterMin = fltX(0.30) * Meter,
+            diameterMax = fltX(0.36) * Meter,
+            diameterStep = fltX(0.01) * Meter
         )
 
         assertRadiusValues(
@@ -326,11 +327,11 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderShouldGenerateMillimeterRadiusCandidatesFromDiameterInterval() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(150.0) * Millimeter,
+            radius = fltX(150.0) * Millimeter,
             axis = Axis3.Y,
-            diameterMin = infraScalar(300.0) * Millimeter,
-            diameterMax = infraScalar(360.0) * Millimeter,
-            diameterStep = infraScalar(10.0) * Millimeter
+            diameterMin = fltX(300.0) * Millimeter,
+            diameterMax = fltX(360.0) * Millimeter,
+            diameterStep = fltX(10.0) * Millimeter
         )
 
         assertRadiusValues(
@@ -342,11 +343,11 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderShouldGenerateRadiusCandidatesFromRadiusInterval() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.15) * Meter,
+            radius = fltX(0.15) * Meter,
             axis = Axis3.Y,
-            radiusMin = infraScalar(0.15) * Meter,
-            radiusMax = infraScalar(0.18) * Meter,
-            radiusStep = infraScalar(0.005) * Meter
+            radiusMin = fltX(0.15) * Meter,
+            radiusMax = fltX(0.18) * Meter,
+            radiusStep = fltX(0.005) * Meter
         )
 
         assertRadiusValues(
@@ -358,19 +359,19 @@ class PackageShapeSpecTest {
     @Test
     fun verticalCylinderShouldPreferExplicitRadiusCandidatesOverIntervals() {
         val spec = PackageShapeSpec.VerticalCylinder(
-            radius = infraScalar(0.16) * Meter,
+            radius = fltX(0.16) * Meter,
             axis = Axis3.Y,
             radiusCandidates = listOf(
-                infraScalar(0.16) * Meter,
-                infraScalar(0.15) * Meter,
-                infraScalar(0.16) * Meter
+                fltX(0.16) * Meter,
+                fltX(0.15) * Meter,
+                fltX(0.16) * Meter
             ),
-            radiusMin = infraScalar(0.15) * Meter,
-            radiusMax = infraScalar(0.18) * Meter,
-            radiusStep = infraScalar(0.005) * Meter,
-            diameterMin = infraScalar(0.30) * Meter,
-            diameterMax = infraScalar(0.36) * Meter,
-            diameterStep = infraScalar(0.01) * Meter
+            radiusMin = fltX(0.15) * Meter,
+            radiusMax = fltX(0.18) * Meter,
+            radiusStep = fltX(0.005) * Meter,
+            diameterMin = fltX(0.30) * Meter,
+            diameterMax = fltX(0.36) * Meter,
+            diameterStep = fltX(0.01) * Meter
         )
 
         assertRadiusValues(
@@ -383,27 +384,27 @@ class PackageShapeSpecTest {
     fun verticalCylinderShouldRejectInvalidDynamicRadiusIntervals() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.15) * Meter,
+                radius = fltX(0.15) * Meter,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.15) * Meter,
-                radiusMax = infraScalar(0.18) * Meter,
-                radiusStep = infraScalar(0.0) * Meter
+                radiusMin = fltX(0.15) * Meter,
+                radiusMax = fltX(0.18) * Meter,
+                radiusStep = fltX(0.0) * Meter
             )
         }
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.15) * Meter,
+                radius = fltX(0.15) * Meter,
                 axis = Axis3.Y,
-                diameterMin = infraScalar(0.30) * Meter,
-                diameterMax = infraScalar(0.36) * Meter,
-                diameterStep = infraScalar(-0.01) * Meter
+                diameterMin = fltX(0.30) * Meter,
+                diameterMax = fltX(0.36) * Meter,
+                diameterStep = fltX(-0.01) * Meter
             )
         }
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.15) * Meter,
+                radius = fltX(0.15) * Meter,
                 axis = Axis3.Y,
-                radiusStep = infraScalar(0.005) * Meter
+                radiusStep = fltX(0.005) * Meter
             )
         }
     }
@@ -412,14 +413,14 @@ class PackageShapeSpecTest {
     fun verticalCylinderShouldRejectMixedRadiusAndDiameterIntervalsWithoutExplicitCandidates() {
         assertFailsWith<IllegalArgumentException> {
             PackageShapeSpec.VerticalCylinder(
-                radius = infraScalar(0.15) * Meter,
+                radius = fltX(0.15) * Meter,
                 axis = Axis3.Y,
-                radiusMin = infraScalar(0.15) * Meter,
-                radiusMax = infraScalar(0.18) * Meter,
-                radiusStep = infraScalar(0.005) * Meter,
-                diameterMin = infraScalar(0.30) * Meter,
-                diameterMax = infraScalar(0.36) * Meter,
-                diameterStep = infraScalar(0.01) * Meter
+                radiusMin = fltX(0.15) * Meter,
+                radiusMax = fltX(0.18) * Meter,
+                radiusStep = fltX(0.005) * Meter,
+                diameterMin = fltX(0.30) * Meter,
+                diameterMax = fltX(0.36) * Meter,
+                diameterStep = fltX(0.01) * Meter
             )
         }
     }

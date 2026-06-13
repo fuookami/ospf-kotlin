@@ -4,11 +4,11 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
@@ -43,7 +43,7 @@ data class ColumnGenerationPackingSnapshot(
     val bins: List<LayerBin>,
     val packingResult: PackingResult,
     val schema: SchemaDTO,
-    val demandModeShadowPriceTotals: Map<String, InfraNumber> = emptyMap(),
+    val demandModeShadowPriceTotals: Map<String, FltX> = emptyMap(),
     val demandModeShadowPriceEntryCounts: Map<String, Int> = emptyMap()
 )
 
@@ -70,12 +70,12 @@ private fun demandModeTag(mode: Bpp3dDemandMode): String {
  * @param index 层序号 / layer index
  * @return 分析用箱型 / analysis bin type
  */
-private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType {
+private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType<FltX> {
     return BinType(
         width = layer.shape.width,
         height = layer.shape.height,
         depth = layer.shape.depth,
-        capacity = infraInfinity() * Kilogram,
+        capacity = fltXInfinity() * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
         typeCode = "QUANTITY-KNOWN-COORDINATE-${index + 1}"
@@ -96,7 +96,7 @@ class ColumnGenerationPackingAnalyzer(
     private val contextBuilder: (ColumnGenerationState<*>) -> PackingContext = { state ->
         PackingContext(info = mapOf("cg_iteration" to state.iteration.toString()))
     }
-) : ColumnGenerationSolutionAnalyzer<InfraNumber> {
+) : ColumnGenerationSolutionAnalyzer<FltX> {
     /**
      * 最近一次分析的装箱快照。
      * Latest packing snapshot from the most recent analysis.
@@ -110,7 +110,7 @@ class ColumnGenerationPackingAnalyzer(
      *
      * @param state 列生成状态 / column generation state
      */
-    override suspend fun analyze(state: ColumnGenerationState<InfraNumber>) {
+    override suspend fun analyze(state: ColumnGenerationState<FltX>) {
         val bins: List<LayerBin> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
@@ -137,11 +137,11 @@ class ColumnGenerationPackingAnalyzer(
         )
         val allContinuousRadiusSelectionResults = continuousRadiusSelectionResults + pwlSelectionResults
         val schema = rendererAdapter.toSchema(packingResult, allContinuousRadiusSelectionResults)
-        val demandModeShadowPriceTotals = LinkedHashMap<String, InfraNumber>()
+        val demandModeShadowPriceTotals = LinkedHashMap<String, FltX>()
         val demandModeShadowPriceEntryCounts = LinkedHashMap<String, Int>()
         for ((key, value) in state.shadowPrices) {
             val modeTag = demandModeTag(key.mode)
-            demandModeShadowPriceTotals[modeTag] = (demandModeShadowPriceTotals[modeTag] ?: InfraNumber.zero) + value
+            demandModeShadowPriceTotals[modeTag] = (demandModeShadowPriceTotals[modeTag] ?: FltX.zero) + value
             demandModeShadowPriceEntryCounts[modeTag] = (demandModeShadowPriceEntryCounts[modeTag] ?: 0) + 1
         }
         val schemaKpi = LinkedHashMap(schema.kpi)
@@ -189,8 +189,8 @@ suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQ
     columns: List<QuantityBinLayer<T>>,
     bins: List<LayerBin> = emptyList(),
     depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null,
-    shadowPrices: Map<DemandModeKey, InfraNumber> = emptyMap(),
-    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    shadowPrices: Map<DemandModeKey, FltX> = emptyMap(),
+    materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ) {
     val modelColumns = columns.map { layer -> layer.toModel(materialCache, itemCache) }

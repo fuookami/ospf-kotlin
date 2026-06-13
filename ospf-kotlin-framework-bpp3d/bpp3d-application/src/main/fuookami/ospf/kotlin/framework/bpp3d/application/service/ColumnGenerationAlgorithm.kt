@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ActualItem
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ContinuousCylinderRadiusSolverPrototype
@@ -22,7 +23,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGe
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.Bpp3dLayerGenerator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.bpp3dLayerGenerationRequest
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import kotlin.time.Duration
 import kotlin.time.TimeSource
@@ -60,9 +60,9 @@ data class ColumnGenerationState<V>(
     val bins: List<LayerBin> = emptyList(),
     val shadowPrices: Map<DemandModeKey, V> = emptyMap(),
     val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList(),
-    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap(),
+    val continuousRadiusSolverResults: Map<String, FltX> = emptyMap(),
     // PWL results stored as opaque Map for public API - internal types remain internal
-    val pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>> = emptyMap()
+    val pwlContinuousRadiusResults: Map<String, Map<String, FltX>> = emptyMap()
 )
 
 /**
@@ -95,13 +95,13 @@ fun continuousRadiusSolverPrototypesFromItems(
  */
 fun extractContinuousRadiusSolverResultsFromInfo(
     info: Map<String, String>
-): Map<String, InfraNumber> {
+): Map<String, FltX> {
     val prefix = "continuous_radius_solver_selected_"
-    val results = LinkedHashMap<String, InfraNumber>()
+    val results = LinkedHashMap<String, FltX>()
     for ((key, value) in info) {
         if (key.startsWith(prefix)) {
             val variableName = key.removePrefix(prefix)
-            results[variableName] = InfraNumber(value.toDouble())
+            results[variableName] = FltX(value.toDouble())
         }
     }
     return results
@@ -138,7 +138,7 @@ data class ColumnGenerationFinalResult<V>(
     val objective: V? = null,
     val info: Map<String, String> = emptyMap(),
     // PWL results stored as opaque Map for public API - internal types remain internal
-    val pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>> = emptyMap()
+    val pwlContinuousRadiusResults: Map<String, Map<String, FltX>> = emptyMap()
 )
 
 /**
@@ -170,9 +170,9 @@ data class ColumnGenerationResult<V>(
     val elapsed: Duration = Duration.ZERO,
     val lpInfos: List<Map<String, String>> = emptyList(),
     val finalInfo: Map<String, String> = emptyMap(),
-    val continuousRadiusSolverResults: Map<String, InfraNumber> = emptyMap(),
+    val continuousRadiusSolverResults: Map<String, FltX> = emptyMap(),
     // PWL results stored as opaque Map for public API - internal types remain internal
-    val pwlContinuousRadiusResults: Map<String, Map<String, InfraNumber>> = emptyMap()
+    val pwlContinuousRadiusResults: Map<String, Map<String, FltX>> = emptyMap()
 )
 
 /**
@@ -462,7 +462,7 @@ class ColumnGenerationAlgorithm<V>(
 suspend fun <V, T : FloatingNumber<T>> ColumnGenerationAlgorithm<V>.solveQuantity(
     items: List<QuantityItem<T>>,
     config: ColumnGenerationConfig = ColumnGenerationConfig(),
-    materialCache: MutableMap<QuantityMaterial<T>, Material<InfraNumber>> = LinkedHashMap(),
+    materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
 ): ColumnGenerationResult<V> {
     return solve(

@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -16,7 +17,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPr
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container2
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandMode
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.utils.functional.*
 
-private val shadowPriceConverter = IntoValue.fromConverter(InfraNumber)
+private val shadowPriceConverter = IntoValue.fromConverter(FltX)
 
 /**
  * 需求影子价格键，用于标识需求约束的影子价格。
@@ -57,7 +57,7 @@ data class DemandShadowPriceKey(
  * 符号线性多项式构造。
  * Symbol linear polynomial construction.
  */
-private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<InfraNumber> {
+private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(layerAssignmentOne(), symbol)),
         constant = layerAssignmentZero()
@@ -68,7 +68,7 @@ private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<InfraNumber> {
  * 常量多项式构造。
  * Constant polynomial construction.
  */
-private fun constantPolynomial(value: InfraNumber): LinearPolynomial<InfraNumber> {
+private fun constantPolynomial(value: FltX): LinearPolynomial<FltX> {
     return LinearPolynomial(emptyList(), value)
 }
 
@@ -113,8 +113,14 @@ private fun demandStatistics(
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (cuboid) {
         is Item -> cuboid.statistics(mode)
-        is Container3<*> -> cuboid.statistics(mode)
-        is Container2<*, *> -> cuboid.statistics(mode)
+        is Container3<*, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            (cuboid as Container3<*, FltX>).statistics(mode)
+        }
+        is Container2<*, *, *> -> {
+            @Suppress("UNCHECKED_CAST")
+            (cuboid as Container2<*, FltX, *>).statistics(mode)
+        }
         else -> emptyMap()
     }
 }
@@ -131,14 +137,14 @@ private fun demandStatistics(
  * @property name 约束名称 / constraint name
  */
 open class DemandConstraint<
-        Args : AbstractBPP3DShadowPriceArguments<T>,
-        T : Cuboid<T>
+        Args : AbstractBPP3DShadowPriceArguments<FltX, T>,
+        T : Cuboid<T, FltX>
         > protected constructor(
-    private val load: Load<InfraNumber>,
-    private val demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
-    private val shadowPriceExtractor: ((Args) -> InfraNumber?)? = null,
+    private val load: Load<FltX>,
+    private val demandEntries: List<Bpp3dDemandEntry<FltX>> = load.demandEntries,
+    private val shadowPriceExtractor: ((Args) -> FltX?)? = null,
     override val name: String = "demand"
-) : CGPipeline<Args, AbstractLinearMetaModel<InfraNumber>, AbstractBPP3DShadowPriceMap<Args, T>> {
+) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
     private fun symbolAt(index: Int): Symbol {
         return (runCatching { load.load[index] as Symbol }.getOrNull()
             ?: throw IllegalStateException("Missing load symbol at index $index"))
@@ -153,10 +159,10 @@ open class DemandConstraint<
     }
 
     private fun resolveShadowPrice(
-        map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, T>>,
-        demand: Bpp3dDemandEntry<InfraNumber>,
+        map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, FltX, T>>,
+        demand: Bpp3dDemandEntry<FltX>,
         concreteMode: Bpp3dDemandMode
-    ): InfraNumber {
+    ): FltX {
         val keys = LinkedHashSet<DemandShadowPriceKey>()
         keys.add(
             DemandShadowPriceKey(
@@ -191,13 +197,13 @@ open class DemandConstraint<
         for (key in keys) {
             val shadowPrice = map[key]?.price
             if (shadowPrice != null) {
-                return InfraNumber(shadowPrice.toDouble())
+                return FltX(shadowPrice.toDouble())
             }
         }
         return layerAssignmentZero()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel<InfraNumber>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<FltX>): Try {
         for ((i, demand) in demandEntries.withIndex()) {
             val upperBound = demand.demandRange.upperBound.value.unwrap()
             val lowerBound = demand.demandRange.lowerBound.value.unwrap()
@@ -272,7 +278,7 @@ open class DemandConstraint<
         return ok
     }
 
-    override fun extractor(): ShadowPriceExtractor<Args, AbstractBPP3DShadowPriceMap<Args, T>>? {
+    override fun extractor(): ShadowPriceExtractor<Args, AbstractBPP3DShadowPriceMap<Args, FltX, T>>? {
         if (shadowPriceExtractor != null) {
             return { _, args ->
                 shadowPriceConverter.fromValue(shadowPriceExtractor.invoke(args) ?: layerAssignmentZero())
@@ -306,8 +312,8 @@ open class DemandConstraint<
     }
 
     override fun refresh(
-        shadowPriceMap: AbstractBPP3DShadowPriceMap<Args, T>,
-        model: AbstractLinearMetaModel<InfraNumber>,
+        shadowPriceMap: AbstractBPP3DShadowPriceMap<Args, FltX, T>,
+        model: AbstractLinearMetaModel<FltX>,
         shadowPrices: MetaDualSolution
     ): Try {
         return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
@@ -325,9 +331,9 @@ open class DemandConstraint<
  * @return Item 专用需求约束 / item-only demand constraint
  */
 fun itemDemandConstraint(
-    load: Load<InfraNumber>,
-    demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
-    shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
+    load: Load<FltX>,
+    demandEntries: List<Bpp3dDemandEntry<FltX>> = load.demandEntries,
+    shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> FltX?)? = null,
     name: String = "demand"
 ): ItemDemandConstraint {
     return ItemDemandConstraint(
@@ -348,9 +354,9 @@ fun itemDemandConstraint(
  * @property name 约束名称 / constraint name
  */
 class ItemDemandConstraint(
-    load: Load<InfraNumber>,
-    demandEntries: List<Bpp3dDemandEntry<InfraNumber>> = load.demandEntries,
-    shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> InfraNumber?)? = null,
+    load: Load<FltX>,
+    demandEntries: List<Bpp3dDemandEntry<FltX>> = load.demandEntries,
+    shadowPriceExtractor: ((BPP3DShadowPriceArguments) -> FltX?)? = null,
     name: String = "demand"
 ) : DemandConstraint<BPP3DShadowPriceArguments, Item>(
     load = load,

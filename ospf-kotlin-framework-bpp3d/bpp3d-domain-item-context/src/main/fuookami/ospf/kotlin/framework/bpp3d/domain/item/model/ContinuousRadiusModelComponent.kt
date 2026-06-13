@@ -11,10 +11,9 @@ import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.ConservativeRadiusEnvelope
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusApproximationConfig
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PWLRadiusSquaredApproximation
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -53,7 +52,7 @@ data class ContinuousRadiusSolverVariable(
 data class PWLContinuousRadiusSolverVariable(
     val prototype: ContinuousCylinderRadiusSolverPrototype,
     val radiusVariable: RealVar,
-    val pwlFunction: UnivariateLinearPiecewiseFunction<InfraNumber>,
+    val pwlFunction: UnivariateLinearPiecewiseFunction<FltX>,
     val pwlApproximation: PWLRadiusSquaredApproximation,
     val envelope: ConservativeRadiusEnvelope,
     val config: PWLRadiusApproximationConfig
@@ -142,8 +141,8 @@ fun pwlContinuousRadiusSolverVariables(
 
             // Build core UnivariateLinearPiecewiseFunction: q ≈ r²
             val x = LinearPolynomial(
-                listOf(LinearMonomial(infraScalar(1.0), radiusVariable)),
-                infraScalar(0.0)
+                listOf(LinearMonomial(fltX(1.0), radiusVariable)),
+                fltX(0.0)
             )
             val pwlFunction = UnivariateLinearPiecewiseFunction(
                 x = x,
@@ -330,11 +329,11 @@ private fun ContinuousCylinderRadiusSolverPrototype.registrationSelectedRadiusDe
  */
 data class PWLExtractedRadius(
     val variableName: String,
-    val solverRadius: InfraNumber,
-    val solverRadiusSquared: InfraNumber,
-    val actualRadiusSquared: InfraNumber,
-    val pwlAbsoluteError: InfraNumber,
-    val pwlRelativeError: InfraNumber,
+    val solverRadius: FltX,
+    val solverRadiusSquared: FltX,
+    val actualRadiusSquared: FltX,
+    val pwlAbsoluteError: FltX,
+    val pwlRelativeError: FltX,
     val isWithinEnvelope: Boolean,
     val envelope: ConservativeRadiusEnvelope,
     val pwlApproximation: PWLRadiusSquaredApproximation
@@ -343,7 +342,7 @@ data class PWLExtractedRadius(
      * 计算真实圆柱体积（使用 solver 选择的半径）。
      * Compute actual cylinder volume using solver-selected radius.
      */
-    fun actualVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
+    fun actualVolume(height: FltX, pi: FltX): FltX {
         return pi * actualRadiusSquared * height
     }
 
@@ -351,7 +350,7 @@ data class PWLExtractedRadius(
      * 计算 PWL 近似体积（使用 q ≈ r²）。
      * Compute PWL approximate volume using q ≈ r².
      */
-    fun pwlVolume(height: InfraNumber, pi: InfraNumber): InfraNumber {
+    fun pwlVolume(height: FltX, pi: FltX): FltX {
         return pi * solverRadiusSquared * height
     }
 
@@ -424,7 +423,7 @@ class ContinuousRadiusModelComponent(
      * @param ensureTry 错误处理函数 / error handling function
      */
     fun register(
-        model: LinearMetaModel<InfraNumber>,
+        model: LinearMetaModel<FltX>,
         ensureTry: (Try, String) -> Unit
     ) {
         // Register native variables / 注册 native 变量
@@ -434,8 +433,8 @@ class ContinuousRadiusModelComponent(
             // Lower bound / 下界
             proto.radiusLowerBound?.let { lb ->
                 val lhs = LinearPolynomial(
-                    listOf(LinearMonomial(InfraNumber.one, solverVar.variable)),
-                    InfraNumber.zero
+                    listOf(LinearMonomial(FltX.one, solverVar.variable)),
+                    FltX.zero
                 )
                 val rhs = LinearPolynomial(emptyList(), lb.value)
                 ensureTry(
@@ -449,8 +448,8 @@ class ContinuousRadiusModelComponent(
             // Upper bound / 上界
             proto.radiusUpperBound?.let { ub ->
                 val lhs = LinearPolynomial(
-                    listOf(LinearMonomial(InfraNumber.one, solverVar.variable)),
-                    InfraNumber.zero
+                    listOf(LinearMonomial(FltX.one, solverVar.variable)),
+                    FltX.zero
                 )
                 val rhs = LinearPolynomial(emptyList(), ub.value)
                 ensureTry(
@@ -465,8 +464,8 @@ class ContinuousRadiusModelComponent(
             if (proto.isProductionReady) {
                 proto.initialRadius?.let { ir ->
                     val lhs = LinearPolynomial(
-                        listOf(LinearMonomial(InfraNumber.one, solverVar.variable)),
-                        InfraNumber.zero
+                        listOf(LinearMonomial(FltX.one, solverVar.variable)),
+                        FltX.zero
                     )
                     val rhs = LinearPolynomial(emptyList(), ir.value)
                     ensureTry(
@@ -494,7 +493,7 @@ class ContinuousRadiusModelComponent(
             ensureTry(
                 model.addConstraint(
                     relation = LinearInequality(
-                        LinearPolynomial(listOf(LinearMonomial(InfraNumber.one, r)), InfraNumber.zero),
+                        LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
                         LinearPolynomial(emptyList(), envelope.rMin),
                         Comparison.GE
                     ),
@@ -507,7 +506,7 @@ class ContinuousRadiusModelComponent(
             ensureTry(
                 model.addConstraint(
                     relation = LinearInequality(
-                        LinearPolynomial(listOf(LinearMonomial(InfraNumber.one, r)), InfraNumber.zero),
+                        LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
                         LinearPolynomial(emptyList(), envelope.rMax),
                         Comparison.LE
                     ),
@@ -538,12 +537,12 @@ class ContinuousRadiusModelComponent(
      * @param model 线性元模型（求解后）/ linear meta model (after solving)
      * @return 变量名到 solver 选择值的映射 / variable name to solver-selected value map
      */
-    fun extractNativeResults(model: LinearMetaModel<InfraNumber>): Map<String, InfraNumber> {
-        val results = LinkedHashMap<String, InfraNumber>()
+    fun extractNativeResults(model: LinearMetaModel<FltX>): Map<String, FltX> {
+        val results = LinkedHashMap<String, FltX>()
         for (solverVar in nativeVariables) {
             val proto = solverVar.prototype
             val token = model.tokens.find(solverVar.variable) ?: continue
-            val value = token.doubleResult?.let { InfraNumber(it) } ?: continue
+            val value = token.doubleResult?.let { FltX(it) } ?: continue
             results[proto.variableName] = value
         }
         return results
@@ -556,20 +555,20 @@ class ContinuousRadiusModelComponent(
      * @param model 线性元模型（求解后）/ linear meta model (after solving)
      * @return opaque Map，外层 key 为变量名，内层 key 为结果字段 / opaque Map, outer key = variable name, inner key = result field
      */
-    fun extractPWLResults(model: LinearMetaModel<InfraNumber>): Map<String, Map<String, InfraNumber>> {
+    fun extractPWLResults(model: LinearMetaModel<FltX>): Map<String, Map<String, FltX>> {
         if (pwlVariables.isEmpty()) return emptyMap()
 
-        val pwlResultsMap = LinkedHashMap<String, Map<String, InfraNumber>>()
+        val pwlResultsMap = LinkedHashMap<String, Map<String, FltX>>()
         for (pwlVar in pwlVariables) {
             val rToken = model.tokens.find(pwlVar.radiusVariable)
-            val rValue = rToken?.doubleResult?.let { InfraNumber(it) } ?: continue
+            val rValue = rToken?.doubleResult?.let { FltX(it) } ?: continue
 
             val qToken = model.tokens.find(pwlVar.pwlFunction.resultVar)
-            val qValue = qToken?.doubleResult?.let { InfraNumber(it) } ?: InfraNumber.zero
+            val qValue = qToken?.doubleResult?.let { FltX(it) } ?: FltX.zero
 
             val actualRSquared = rValue * rValue
             val pwlError = (qValue - actualRSquared).abs()
-            val pwlRelativeError = if (actualRSquared > infraScalar(1e-12)) pwlError / actualRSquared else InfraNumber.zero
+            val pwlRelativeError = if (actualRSquared > fltX(1e-12)) pwlError / actualRSquared else FltX.zero
             val isWithinEnvelope = pwlVar.envelope.isRadiusValid(rValue)
 
             pwlResultsMap[pwlVar.variableName] = mapOf(
@@ -578,9 +577,9 @@ class ContinuousRadiusModelComponent(
                 "actualRadiusSquared" to actualRSquared,
                 "pwlAbsoluteError" to pwlError,
                 "pwlRelativeError" to pwlRelativeError,
-                "isWithinEnvelope" to InfraNumber(if (isWithinEnvelope) 1.0 else 0.0),
+                "isWithinEnvelope" to FltX(if (isWithinEnvelope) 1.0 else 0.0),
                 "maxPWLRelativeError" to pwlVar.pwlApproximation.maxRelativeError,
-                "numSegments" to InfraNumber(pwlVar.pwlApproximation.numSegments.toDouble())
+                "numSegments" to FltX(pwlVar.pwlApproximation.numSegments.toDouble())
             )
         }
         return pwlResultsMap

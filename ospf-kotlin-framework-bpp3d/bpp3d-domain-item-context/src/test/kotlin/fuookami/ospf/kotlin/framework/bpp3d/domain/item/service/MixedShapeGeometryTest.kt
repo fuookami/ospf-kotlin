@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import kotlin.math.PI
 import kotlin.test.assertFalse
 import kotlin.test.assertEquals
@@ -18,12 +19,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BottomSupport
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CuboidPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingAlgorithmShapeType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackingShapeType
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraScalar
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.point3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.toDouble
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbsoluteHangingPolicy
@@ -42,11 +42,11 @@ class MixedShapeGeometryTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = infraScalar(10.0) * Meter,
-            maxDepth = infraScalar(10.0) * Meter,
+            maxHeight = fltX(10.0) * Meter,
+            maxDepth = fltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(InfraNumber.zero),
-            hangingPolicy = AbsoluteHangingPolicy(InfraNumber.zero, withWeight = withWeight),
+            deformationAttribute = LinearDeformationAttribute(FltX.zero),
+            hangingPolicy = AbsoluteHangingPolicy(FltX.zero, withWeight = withWeight),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -61,10 +61,10 @@ class MixedShapeGeometryTest {
         return ActualItem(
             id = id,
             name = id,
-            width = infraScalar(width) * Meter,
-            height = infraScalar(height) * Meter,
-            depth = infraScalar(depth) * Meter,
-            weight = infraScalar(1.0) * Kilogram,
+            width = fltX(width) * Meter,
+            height = fltX(height) * Meter,
+            depth = fltX(depth) * Meter,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = attribute
@@ -78,8 +78,8 @@ class MixedShapeGeometryTest {
         attribute: PackageAttribute = packageAttribute(),
         axis: Axis3 = Axis3.Y
     ): ActualItem {
-        val radius = infraScalar(radiusValue) * Meter
-        val length = infraScalar(heightValue) * Meter
+        val radius = fltX(radiusValue) * Meter
+        val length = fltX(heightValue) * Meter
         val diameter = radius + radius
         return ActualItem(
             id = id,
@@ -96,7 +96,7 @@ class MixedShapeGeometryTest {
                 Axis3.Z -> length
                 Axis3.X, Axis3.Y -> diameter
             },
-            weight = infraScalar(1.0) * Kilogram,
+            weight = fltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = attribute,
@@ -115,17 +115,17 @@ class MixedShapeGeometryTest {
     ) = itemPlacement3Of(
         view = item.view(Orientation.Upright),
         position = point3(
-            x = infraScalar(x) * Meter,
-            y = infraScalar(y) * Meter,
-            z = infraScalar(z) * Meter
+            x = fltX(x) * Meter,
+            y = fltX(y) * Meter,
+            z = fltX(z) * Meter
         )
     )
 
     private fun space(): Container3Shape {
         return Container3Shape(
-            width = infraScalar(10.0) * Meter,
-            height = infraScalar(10.0) * Meter,
-            depth = infraScalar(10.0) * Meter
+            width = fltX(10.0) * Meter,
+            height = fltX(10.0) * Meter,
+            depth = fltX(10.0) * Meter
         )
     }
 
@@ -188,8 +188,8 @@ class MixedShapeGeometryTest {
     fun `direct cylinder bottom support uses circular footprint area`() {
         val cylinder = cylinderItem("cyl1", 0.5, 1.0)
         val support = BottomSupport(
-            area = (infraScalar(0.8) * Meter) * (infraScalar(1.0) * Meter),
-            weight = infraScalar(10.0) * Kilogram
+            area = (fltX(0.8) * Meter) * (fltX(1.0) * Meter),
+            weight = fltX(10.0) * Kilogram
         )
 
         assertTrue(cylinder.enabledStackingOn(support))
@@ -315,8 +315,8 @@ class MixedShapeGeometryTest {
             axis = Axis3.X
         )
         val support = BottomSupport(
-            area = (infraScalar(1.0) * Meter) * (infraScalar(1.0) * Meter),
-            weight = infraScalar(10.0) * Kilogram
+            area = (fltX(1.0) * Meter) * (fltX(1.0) * Meter),
+            weight = fltX(10.0) * Kilogram
         )
 
         val error = assertFailsWith<IllegalArgumentException> {
@@ -399,8 +399,8 @@ class MixedShapeGeometryTest {
             heightValue = 1.0
         )
         val support = BottomSupport(
-            area = (infraScalar(1.0) * Meter) * (infraScalar(1.0) * Meter),
-            weight = infraScalar(10.0) * Kilogram
+            area = (fltX(1.0) * Meter) * (fltX(1.0) * Meter),
+            weight = fltX(10.0) * Kilogram
         )
 
         val error = assertFailsWith<IllegalArgumentException> {
@@ -420,7 +420,7 @@ class MixedShapeGeometryTest {
             ItemMerger.merge(
                 items = listOf(cuboid, cylinder),
                 space = space(),
-                restWeight = InfraNumber.maximum,
+                restWeight = FltX.maximum,
                 patterns = emptyList()
             )
         }

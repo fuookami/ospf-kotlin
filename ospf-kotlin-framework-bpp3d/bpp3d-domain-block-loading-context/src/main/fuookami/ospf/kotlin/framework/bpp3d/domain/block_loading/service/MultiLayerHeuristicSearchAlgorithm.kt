@@ -6,6 +6,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -57,7 +58,7 @@ class MultiLayerHeuristicSearchAlgorithm(
 
     suspend operator fun invoke(
         items: Map<Item, UInt64>,
-        bins: Map<BinType, UInt64>,
+        bins: Map<BinType<FltX>, UInt64>,
         blockTable: List<Block>,
     ): Pair<List<BlockBin>, List<Item>> {
         requireNoCylinderItemsForCuboidSearch(
@@ -74,7 +75,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                     pack(
                         promise = promise,
                         items = restItems,
-                        shape = binType,
+                        shape = binType.asContainer3Shape(),
                         fixedSpaces = emptyList(),
                         blockTable = blockTable
                     )
@@ -102,7 +103,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                         units = spaces.map { space ->
                             blockPlacement3Of(
                                 view = space.block!!.view()!!,
-                                position = point3(space.position)
+                                position = point3FltX(space.position)
                             )
                         }
                     )
@@ -365,4 +366,3 @@ class MultiLayerHeuristicSearchAlgorithm(
         promise.close()
     }
 }
-

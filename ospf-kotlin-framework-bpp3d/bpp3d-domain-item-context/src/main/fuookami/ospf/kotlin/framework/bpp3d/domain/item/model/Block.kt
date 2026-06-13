@@ -7,14 +7,13 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.InfraNumber
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraNegativeInfinity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraOne
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.infraZero
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXNegativeInfinity
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXOne
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXZero
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 
@@ -125,8 +124,8 @@ class HollowSquareBlock(
     override fun copy() = HollowSquareBlock(units.map { it.copy() })
 
     override fun toString(): String {
-        val amount = units.count { it.view == itemView && it.position.y eq infraZero() }
-        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq infraZero() }.size
+        val amount = units.count { it.view == itemView && it.position.y eq fltXZero() }
+        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq fltXZero() }.size
         return "$item (${amount} + ${rotationAmount})*$layer"
     }
 }
@@ -137,12 +136,16 @@ class Pile(
     companion object {
         private fun dump(items: List<ItemView>): List<ItemPlacement3> {
             val units = ArrayList<ItemPlacement3>()
-            var y = infraZero() * items.first().height.unit
+            var y = fltXZero() * items.first().height.unit
             for (item in items) {
                 units.add(
                     itemPlacement3Of(
                         view = item,
-                        position = point3(y = y)
+                        position = QuantityPoint3(
+                            x = fltXZero() * item.height.unit,
+                            y = y,
+                            z = fltXZero() * item.height.unit
+                        )
                     )
                 )
                 y += item.height
@@ -153,14 +156,14 @@ class Pile(
         fun layer(
             item: Item,
             bottomItems: List<Item>,
-        ): Pair<UInt64, Quantity<InfraNumber>> {
+        ): Pair<UInt64, Quantity<FltX>> {
             return layer(item.view(), bottomItems.map { ItemView(it) })
         }
 
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
-        ): Pair<UInt64, Quantity<InfraNumber>> {
+        ): Pair<UInt64, Quantity<FltX>> {
             return if (bottomItems.isNotEmpty() && bottomItems.last().type == item.type) {
                 val notSameIndex = bottomItems.indexOfLast { it.type != item.type }
                 val sameItems = if (notSameIndex == -1) {
@@ -170,7 +173,7 @@ class Pile(
                 }
                 Pair(UInt64(sameItems.size), sameItems.sumOf { it.height })
             } else {
-                Pair(UInt64.zero, item.height * infraZero())
+                Pair(UInt64.zero, item.height * fltXZero())
             }
         }
     }
@@ -218,10 +221,18 @@ class LayeredBlock(
 ) : Block(dump(blocks)) {
     companion object {
         private fun dump(blocks: List<SimpleBlock>): List<ItemPlacement3> {
-            var y = infraZero() * blocks.first().height.unit
+            var y = fltXZero() * blocks.first().height.unit
             val placements = ArrayList<ItemPlacement3>()
             for (block in blocks) {
-                placements.addAll(block.units.dump(point3(y = y)))
+                placements.addAll(
+                    block.units.dump(
+                        QuantityPoint3(
+                            x = fltXZero() * block.height.unit,
+                            y = y,
+                            z = fltXZero() * block.height.unit
+                        )
+                    )
+                )
                 y += block.height
             }
             return placements
@@ -268,11 +279,11 @@ class ComplexBlock(
 }
 
 /** 组合块视图别名，仅保留为 block 结构性投影兼容入口。Block view alias kept only for block structural projection compatibility. */
-typealias BlockView = CuboidView<Block>
+typealias BlockView = CuboidView<Block, FltX>
 /** 组合块二维放置别名，用于隐藏底层 QuantityPlacement2 泛型。Block 2D placement alias that hides the underlying QuantityPlacement2 type parameter. */
-typealias BlockPlacement2<P> = QuantityPlacement2<Block, P>
+typealias BlockPlacement2<P> = QuantityPlacement2<Block, FltX, P>
 /** 组合块三维放置别名，用于隐藏底层 QuantityPlacement3 泛型。Block 3D placement alias that hides the underlying QuantityPlacement3 type parameter. */
-typealias BlockPlacement3 = QuantityPlacement3<Block>
+typealias BlockPlacement3 = QuantityPlacement3<Block, FltX>
 
 
 
