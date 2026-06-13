@@ -111,7 +111,7 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 Extensions propagate through all solve paths: plain MILP, column-generation LP master and final MILP, and recovery/partial fallback MILP. The default empty `extensions` list preserves backward compatibility.
 
-`Csp1dProduceContext.addColumns` implements a rebuild-compatible lifecycle: it deduplicates new cutting plans against the existing pool and returns the accepted subset. Since `AbstractLinearMetaModel` does not support in-place variable addition with constraint expression refresh, the CG main loop uses rebuild mode — new plans are added to the pool and the next iteration rebuilds the full model via `Csp1dMilpSolver.solveLP()`. When the underlying variable container supports in-place extension, this method can be upgraded to register variables, refresh constraints, and update the objective incrementally.
+`Csp1dProduceContext.addColumns` implements true in-place incremental column generation: `ProduceAggregation.addColumns()` creates `x_$iteration` variable groups and `batch_$iteration` intermediate symbol groups, flushes intermediate symbols via `flush+asMutable` so constraints automatically include new column coefficients, and appends objective terms. Since constraint pipelines reference intermediate symbols (not x variables directly), addColumns only needs to flush intermediate symbols without refreshing constraints. Extension pipelines are not refreshed here; they use rebuild mode or `Csp1dModelingExtension.addColumns()` (to be supported after CGPipeline migration).
 
 ## Extension Policies
 
@@ -132,7 +132,13 @@ Extraction policies receive `Produce<V>`, demands, materials, machines, generate
 
 ## Shadow Price Lifecycle
 
-LP shadow price extraction is managed through `Csp1dShadowPriceLifecycle<V>`, which unifies constraint-name-to-shadow-price-key registration, dual value extraction, and framework `AbstractCsp1dShadowPriceMap` population. Demand, material, and machine constraints register their shadow price keys into the lifecycle's registry during model construction. After LP solve, the lifecycle extracts dual values with explicit `Flt64 → V` conversion (no `dualValue as? V` casting) and populates both the framework-compatible `AbstractCsp1dShadowPriceMap` and the lightweight `ShadowPriceMap<V>` used by pricing. The existing constraint name map mechanism is retained as a compatible fallback.
+LP shadow price extraction is managed through `Csp1dShadowPriceLifecycle<V>`, which prioritizes CGPipeline-based extraction and falls back to constraint-name registry for non-CGPipeline constraints.
+
+The three main constraint pipelines — `DemandConstraintPipeline`, `MaterialConstraintPipeline`, and `MachineConstraintPipeline` — implement `Csp1dCGPipeline` (the CSP1D specialization of `CGPipeline<Args, Model, Map>`). During model construction, each constraint is registered with `constraint.args = Csp1dShadowPriceKey` (e.g., `ProductDemandShadowPriceKey`, `MaterialUsageShadowPriceKey`, `MachineBatchShadowPriceKey`, `MachineCapacityShadowPriceKey`). After LP solve, `Csp1dShadowPriceLifecycle` calls each CGPipeline's `refresh` method, which uses `model.constraintsOfGroup(this)` to find the pipeline's constraints and extracts dual values via `constraint.args` — no constraint-name lookup needed.
+
+Each CGPipeline also implements `extractor()`, which computes the reduced cost contribution for a given cutting plan by looking up shadow prices from `AbstractCsp1dShadowPriceMap`. This allows the framework to compute pricing benefits directly from the shadow price map without external key resolution.
+
+The lifecycle populates both the framework-compatible `AbstractCsp1dShadowPriceMap` (for downstream CGPipeline consumers) and the lightweight `ShadowPriceMap<V>` (for pricing). LP dual values are converted with explicit `Flt64 → V` conversion instead of direct generic casts. The constraint-name registry is retained as a `@Deprecated` fallback for extension pipelines that are plain `Pipeline` (not `CGPipeline`).
 
 ## Outputs
 

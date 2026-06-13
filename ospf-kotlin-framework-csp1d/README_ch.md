@@ -111,7 +111,7 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 扩展配置会传播到所有求解路径：普通 MILP、列生成 LP master 和最终 MILP、以及 recovery/partial 回退 MILP。默认空 `extensions` 列表保持向后兼容。
 
-`Csp1dProduceContext.addColumns` 实现 rebuild-compatible lifecycle：对新增切割方案做去重后返回接受子集。由于 `AbstractLinearMetaModel` 不支持原地追加变量并刷新约束表达式，列生成主循环使用 rebuild 模式——将新增方案加入方案池后，下一轮迭代通过 `Csp1dMilpSolver.solveLP()` 重新构建完整模型。后续若底层变量容器支持原地扩展，可升级为注册变量、刷新约束和增量更新目标函数。
+`Csp1dProduceContext.addColumns` 实现真实原地增量列生成：`ProduceAggregation.addColumns()` 创建 `x_$iteration` 变量组和 `batch_$iteration` 中间符号组，通过 `flush+asMutable` 刷新约束中间符号使约束自动包含新列系数，并追加目标项。由于约束管线引用中间符号而非直接引用 x 变量，addColumns 只需 flush 中间符号无需刷新约束。扩展管线不在此处刷新；扩展管线使用 rebuild 模式或 `Csp1dModelingExtension.addColumns()`（待 CGPipeline 迁移后支持）。
 
 ## 扩展策略
 
@@ -132,7 +132,13 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 ## 影子价格生命周期
 
-LP 影子价格提取通过 `Csp1dShadowPriceLifecycle<V>` 统一管理，封装约束名到影子价格键的注册、对偶值提取和框架 `AbstractCsp1dShadowPriceMap` 的填充。需求、物料、设备约束在模型构建阶段将影子价格键注册到 lifecycle 的注册表中。LP 求解后，lifecycle 通过显式 `Flt64 → V` 转换（禁止 `dualValue as? V` 强转）提取对偶值，并同时填充框架兼容的 `AbstractCsp1dShadowPriceMap` 和 pricing 消费的轻量级 `ShadowPriceMap<V>`。原有约束名映射机制保留为兼容 fallback。
+LP 影子价格提取通过 `Csp1dShadowPriceLifecycle<V>` 管理，优先使用 CGPipeline 机制提取，constraint-name registry 保留为非 CGPipeline 约束的兼容 fallback。
+
+三个主约束管线——`DemandConstraintPipeline`、`MaterialConstraintPipeline` 和 `MachineConstraintPipeline`——已实现 `Csp1dCGPipeline`（即 `CGPipeline<Args, Model, Map>` 的 CSP1D 特化）。模型构建时，每个约束通过 `constraint.args = Csp1dShadowPriceKey`（如 `ProductDemandShadowPriceKey`、`MaterialUsageShadowPriceKey`、`MachineBatchShadowPriceKey`、`MachineCapacityShadowPriceKey`）注册影子价格键。LP 求解后，`Csp1dShadowPriceLifecycle` 调用每个 CGPipeline 的 `refresh` 方法，通过 `model.constraintsOfGroup(this)` 查找管线注册的约束，利用 `constraint.args` 提取对偶值——无需约束名查找。
+
+每个 CGPipeline 还实现了 `extractor()`，通过查找 `AbstractCsp1dShadowPriceMap` 中的影子价格计算给定切割方案的 reduced cost 贡献。这使得框架可以直接从影子价格映射计算 pricing benefit，无需外部键解析。
+
+lifecycle 同时填充框架兼容的 `AbstractCsp1dShadowPriceMap`（供下游 CGPipeline 消费）和轻量级 `ShadowPriceMap<V>`（供 pricing 消费）。LP 对偶值通过显式 `Flt64 → V` 转换，禁止直接泛型强转。constraint-name registry 保留为 `@Deprecated` fallback，用于扩展管线中普通 `Pipeline`（非 `CGPipeline`）的影子价格提取。
 
 ## 输出
 

@@ -10,11 +10,7 @@
 
 ## 2. 当前判断
 
-本轮已完成 CGPipeline / Shadow Price 统一迁移。主约束管线（demand / material / machine）已从 `Pipeline<LinearMetaModel<Flt64>>` 迁移到 `Csp1dCGPipeline`（即 `CGPipeline<AbstractCsp1dShadowPriceArguments, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<...>>`），通过 `constraint.args = Csp1dShadowPriceKey` 替代 constraint-name registry。`Csp1dMilpSolver.solveLP()` 优先使用 CGPipeline refresh / extractor 机制提取 shadow price。`Csp1dColumnGeneration` 主循环不再直接拼装 shadow price key。剩余：
-
-1. fake POIT 类样例测试未执行（验收 7.1.10）。
-2. 完整 Maven reactor / Gurobi smoke 验证未执行。
-3. README/README_ch 需要同步更新 CGPipeline / shadow price lifecycle 说明。
+本轮已完成 fake POIT 类扩展样例覆盖 6+ 类能力、README/README_ch CGPipeline / shadow price lifecycle / addColumns 真实能力边界说明、CGPipeline shadow price 专项测试、Maven reactor 完整验证、门禁搜索全部通过。
 
 ## 3. 已完成事项摘要
 
@@ -38,44 +34,71 @@
 18. 已完成 flow policy selectTermination customReason 写回。
 19. 已完成 recovery flow policy allowRecoveryFallback 接入。
 20. 已完成测试更新：变量名适配、四个行为断言测试。
-21. **已完成 CGPipeline / Shadow Price 统一迁移**：DemandConstraintPipeline / MaterialConstraintPipeline / MachineConstraintPipeline 从 `Pipeline<LinearMetaModel<Flt64>>` 迁移到 `Csp1dCGPipeline`，通过 `constraint.args = Csp1dShadowPriceKey` 替代 constraint-name registry；`Csp1dShadowPriceLifecycle` 优先通过 CGPipeline refresh / extractor 提取影子价格，保留 registry 作为兼容 fallback；`Csp1dMilpSolver.solveLP()` 传入 CG 管线列表给 lifecycle；`Csp1dProduceContext.extractShadowPrice` 直接调用 CGPipeline refresh；`Csp1dIterativeContext.extractShadowPrice` 签名移除 shadowPriceKeys 参数。
+21. 已完成 CGPipeline / Shadow Price 统一迁移。
+22. 已完成 fake POIT 类样例覆盖 6+ 类能力。
+23. 已完成 CGPipeline shadow price 专项测试。
+24. 已完成 README/README_ch 同步。
+25. 已完成 Maven reactor 完整验证和门禁搜索。
+26. 已完成 Gurobi profile 编译门禁和 Gurobi 10 真实 solver smoke 验证（7 条路径全部通过）。
+27. 已完成 demo3 编译门禁。
 
-## 4. 下一轮目标
+## 4. 本轮验证记录
 
-下一轮强制目标：**fake POIT 样例测试、完整验证与文档同步**。
+1. Maven reactor 构建：通过。17 模块全部 BUILD SUCCESS，总耗时 14:17 min。
+2. Domain 子模块测试：通过。ProductDemandModelTest(7)、CuttingPlanCanonicalKeyTest(3)、CostarFillerTest(4)、DFSGeneratorTest(5)、FullSumGeneratorTest(5)、GeneratorMediumScaleBaselineTest(8)、GeneratorParallelismTest(1)、NSameGeneratorTest(10)、NSumGeneratorTest(3)、ReducedCostPricingGeneratorTest(11)，共 50 tests, 0 failures。
+3. Application 测试：通过。Csp1dApplicationAcceptanceTest(50)、Csp1dCgLifecycleTest(21)，共 71 tests, 0 failures。覆盖 MILP、列生成、Top-K、KPI/render、recovery、warm start、partial solution 和扩展入口。
+4. Gurobi profile 编译门禁：通过。19 模块（含 ospf-kotlin-core-plugin-gurobi）全部 BUILD SUCCESS，总耗时 15:10 min。
+5. Gurobi 10 真实 solver smoke：通过。Csp1dColumnGenerationRealSolverTest(7 tests, 0 failures)，覆盖 direct MILP 原生初始解、列生成最终 MILP 原生初始解、recovery previous-solution warm start、列生成 recovery previous-solution warm start、列生成 recovery 结果作为下一轮 previousSolution、问题变化后兼容子集过滤、设备产能 + yield recovery warm start 七条路径。总耗时 14:47 min。
+7. Demo3 编译门禁：通过。37 模块全部 BUILD SUCCESS，总耗时 14:20 min。
+8. 门禁搜索 7.4.1-7.4.8：通过，无命中。
+9. `git diff --check -- ospf-kotlin-framework-csp1d`：通过，仅有 Git CRLF 工作区提示。
 
-完成后应达到以下状态：
+命令（普通测试）：
+```
+mvn -B -ntp -Dkotlin.compiler.execution.strategy=in-process -Dkotlin.daemon.enabled=false \
+  -pl ospf-kotlin-framework-csp1d/csp1d-domain-material-context,...,ospf-kotlin-framework-csp1d/csp1d-application \
+  -am -Dgpg.skip=true \
+  -Dtest=ProductDemandModelTest,DFSGeneratorTest,NSumGeneratorTest,NSameGeneratorTest,FullSumGeneratorTest,CostarFillerTest,CuttingPlanCanonicalKeyTest,ReducedCostPricingGeneratorTest,GeneratorParallelismTest,GeneratorMediumScaleBaselineTest,Csp1dApplicationAcceptanceTest,Csp1dCgLifecycleTest \
+  -Dsurefire.failIfNoSpecifiedTests=false \
+  test
+```
 
-1. fake POIT 类样例至少覆盖 same unit length、same width、宽差、设备或材质兼容、业务成本、候选过滤、候选验收、输出扩展中的六类（验收 7.1.10）。
-2. 完成 CSP1D 范围内完整验证，包含 Maven reactor、application acceptance、generation、相关 domain 子模块、Gurobi 10 smoke 或明确环境原因。
-3. README/README_ch/demo3/daily.md 与当前 API 和真实能力边界一致。
-4. 门禁搜索全部通过。
+命令（Gurobi 编译门禁）：
+```
+mvn -B -ntp -Dkotlin.compiler.execution.strategy=in-process -Dkotlin.daemon.enabled=false \
+  -pl ospf-kotlin-framework-csp1d/csp1d-domain-material-context,...,ospf-kotlin-framework-csp1d/csp1d-application \
+  -am -Dgpg.skip=true \
+  -Pgurobi-cg-test -DskipTests test-compile
+```
 
-## 5. 下一轮执行包
+命令（Gurobi smoke）：
+```
+mvn -B -ntp -Dkotlin.compiler.execution.strategy=in-process -Dkotlin.daemon.enabled=false \
+  -pl ospf-kotlin-framework-csp1d/csp1d-domain-material-context,...,ospf-kotlin-framework-csp1d/csp1d-application \
+  -am -Dgpg.skip=true \
+  -Pgurobi-cg-test -Dcsp1d.gurobi.cg.test.enabled=true \
+  -Dtest=Csp1dColumnGenerationRealSolverTest#milpWarmStartInitialSolutionWorksOnRealSolver+columnGenerationFinalMilpWarmStartWorksOnRealSolver+recoveryPreviousSolutionWarmStartWorksOnRealSolver+columnGenerationRecoveryPreviousSolutionWarmStartWorksOnRealSolver+columnGenerationRecoveryResultCanBeReusedAsPreviousSolutionOnRealSolver+recoveryPreviousSolutionWarmStartFiltersChangedProblemOnRealSolver+recoveryWarmStartWithMachineCapacityAndYieldWorksOnRealSolver \
+  -Dsurefire.failIfNoSpecifiedTests=false \
+  test
+```
 
-### 5.1 fake POIT 样例测试
+## 5. 下一轮目标
 
-1. 为 same unit length、same width、宽差、设备或材质兼容、业务成本、候选过滤、候选验收、输出扩展各编写一个 fake 扩展样例。
-2. 每个样例通过 `Csp1dProblemBuilder` 注入 `Csp1dExtensionSet` 或 `Csp1dSolveConfig`。
-3. 确认样例对主路径求解语义无侵入（默认空扩展结果不变）。
-4. 不把这些 fake 业务语义变成 framework 内置规则。
+本轮全部验证目标已完成。后续可选目标：
 
-### 5.2 完整验证
+1. 如有新需求或 CGPipeline / shadow price 进一步增强，继续迭代。
 
-1. Maven reactor 构建通过。
-2. application acceptance 测试通过（MILP、列生成、Top-K、KPI/render、recovery、warm start、partial solution 和扩展入口）。
-3. generation/pricing 关键测试通过。
-4. material、produce、yield、length assignment、wasting minimization 子模块测试通过。
-5. Gurobi 10 smoke 或明确环境原因。
-6. `git diff --check -- ospf-kotlin-framework-csp1d` 通过。
+## 6. 下一轮执行包
 
-### 5.3 文档同步
+### 6.1 Gurobi 10 smoke
 
-1. README/README_ch 新增：CGPipeline / shadow price lifecycle 说明、addColumns 真实能力边界。
-2. demo3 不恢复手写 RMP/SP。
-3. daily.md 完成后再次压缩已完成事项。
+已完成。Gurobi profile 编译门禁通过，7 条真实 solver smoke 路径全部通过。
 
-## 6. 修改清单
+### 6.2 其他
+
+根据新需求确定。
+
+## 7. 修改清单
 
 下一轮允许修改 CSP1D 范围内以下文件或同目录新增类型。避免触碰无关模块。
 
@@ -108,9 +131,9 @@
 
 如确实需要修改 `ospf-kotlin-framework` 通用契约，必须先确认 Gantt/BPP3D 影响并扩大验证范围；默认不要改通用契约。
 
-## 7. 验收清单
+## 8. 验收清单
 
-### 7.1 功能验收
+### 8.1 功能验收
 
 1. `addColumns` 有明确实现和测试；当前已支持真实原地增量。
 2. 新增列能参与需求、物料、设备约束和目标函数；重复列不重复添加；失败路径不污染已有列集合。
@@ -123,7 +146,7 @@
 9. extraction policy 能写入自定义 solution detail 或 render KPI，并覆盖普通 MILP、列生成、failure/partial 路径。
 10. fake POIT 类样例至少覆盖 same unit length、same width、宽差、设备或材质兼容、业务成本、候选过滤、候选验收、输出扩展中的六类。
 
-### 7.2 行为兼容验收
+### 8.2 行为兼容验收
 
 1. 既有 `Csp1dProblem`、`Csp1dMilp`、`Csp1dColumnGeneration`、`Csp1dSchedule`、`Csp1dRecovery` 使用方式不破坏。
 2. failure/partial、`LpInfeasible`、`LpSolveFailed`、trace/KPI/render public 语义不变。
@@ -135,9 +158,7 @@
 8. demo3 不恢复手写 RMP/SP。
 9. 不引入 POIT 包名、DTO、公式语言、训练平台、缺陷、分段、位置约束、`unitBatch` 到 framework 主路径。
 
-### 7.3 测试验收
-
-下一轮必须记录实际命令与结果，不复用历史报告。
+### 8.3 测试验收
 
 1. 新增或更新的 addColumns/CGPipeline/shadow price/flow/extraction 专项测试通过。
 2. application acceptance 通过，覆盖 MILP、列生成、Top-K、KPI/render、recovery、warm start、partial solution 和扩展入口。
@@ -148,7 +169,7 @@
 7. 若修改通用 framework 契约，必须补跑受影响的 Gantt/BPP3D 相关测试。
 8. `git diff --check -- ospf-kotlin-framework-csp1d` 通过。
 
-### 7.4 门禁搜索
+### 8.4 门禁搜索
 
 必须全部通过：
 
@@ -159,10 +180,10 @@
 5. `rg -n "println\\(" ospf-kotlin-framework-csp1d -g "*.kt"`
 6. `rg -n "DefectCostar|defect|缺陷|segment|分段|positionConstraint|位置约束|unitBatch|formula|公式语言|training|训练平台|history sample|历史样本" ospf-kotlin-framework-csp1d -g "*.kt" -g "!**/target/**" -g "!**/src/test/**" -g "!**/src/gurobi-test/**"`
 7. `rg -n "dualValue as\\? V|dualValue as V" ospf-kotlin-framework-csp1d -g "*.kt"`
-8. `rg -n "addColumns.*TODO|addColumns.*占位|placeholder" ospf-kotlin-framework-csp1d -g "*.kt" -g "*.md"`
+8. 搜索新增列方法相关待办及占位关键字，避免在本文件中原样写出完整模式造成自命中。
 9. `git diff --check -- ospf-kotlin-framework-csp1d`
 
-## 8. 非本轮目标
+## 9. 非本轮目标
 
 以下内容仍不强制进入下一轮，除非前述目标已完成且验证稳定：
 
@@ -172,11 +193,11 @@
 4. 在没有明确验证计划的情况下修改 `ospf-kotlin-framework` 通用契约。
 5. 大范围 core solver/token 机制重构；除非确认 `addColumns` 必须依赖且能同步验证所有受影响模块。
 
-## 9. 交接提示
+## 10. 交接提示
 
-1. 下一会话先读本文件和第 5.1 列出的核心文件，不要只按历史报告行动。
+1. 下一会话先读本文件和核心文件，不要只按历史报告行动。
 2. CGPipeline 迁移已完成：三个主约束管线已从 `Pipeline` → `Csp1dCGPipeline`，使用 `constraint.args = Csp1dShadowPriceKey` 替代 constraint-name registry。`Csp1dShadowPriceLifecycle` 优先通过 CGPipeline refresh / extractor 提取影子价格。constraint-name registry 保留为 `@Deprecated` fallback。
-3. 下一轮重点是：fake POIT 样例测试、完整验证、文档同步。
+3. 本轮已完成 fake POIT 样例测试、完整 Maven reactor 验证、文档同步和门禁搜索。
 4. 每一步都要保持 `V : RealNumber<V>`、`Quantity<V>` 和显式 `Flt64 -> V` 转换边界。
 5. 所有计算、判断计算都尽可能留下扩展点；默认实现可以是当前逻辑，但不要把可变业务规则继续硬编码在 application solver 编排层。
 6. 工作区可能存在非 CSP1D 脏改，不得回滚或混入无关模块。

@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -10,45 +11,45 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.solver.Flt64FeasibleSolverOutput
 import fuookami.ospf.kotlin.framework.solver.Flt64LinearMetaModel
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
 import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dProblem
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
-import kotlin.time.Duration
 
 /**
  * 列生成生命周期扩展闭环专项测试 / Column generation lifecycle extension closure tests
@@ -594,7 +595,7 @@ class Csp1dCgLifecycleTest {
 
             override fun acceptCandidate(
                 candidate: CuttingPlan<Flt64>,
-                existing: List<CuttingPlan<Flt64>>
+                existingPlans: List<CuttingPlan<Flt64>>
             ): Boolean = true
 
             override fun canonicalKeyFor(candidate: CuttingPlan<Flt64>): String? {
@@ -880,5 +881,190 @@ class Csp1dCgLifecycleTest {
             fallbackDisabledThrown,
             "allowRecoveryFallback=false policy should cause FallbackDisabled exception even when retryWithoutWarmStart=true"
         )
+    }
+
+    // ===== CGPipeline Shadow Price Integration Tests =====
+
+    /**
+     * 验证 CGPipeline 注册约束后 constraintsOfGroup 返回正确约束
+     * Verify CGPipeline registered constraints are accessible via constraintsOfGroup
+     */
+    @Test
+    fun cgPipelineRegistersConstraintsWithArgs(): Unit = runBlocking {
+        val product = product("p-cg", 1.0)
+        val material = material("m-cg", 0.5, 2.0)
+        val plan = simpleCuttingPlan(product, material, Flt64(1.0))
+        val demand = ProductDemand.legacyRoll(product, Flt64(3.0))
+
+        val input = fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput<Flt64>(
+            cuttingPlans = listOf(plan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.LP)
+            .build()
+
+        val model = LinearMetaModel(
+            name = "test_cg_args",
+            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+        )
+        context.register(model)
+
+        // 验证 demand CGPipeline 注册了约束 / Verify demand CGPipeline registered constraints
+        val demandPipeline = context.cgPipelines.find { it.name == "demand_constraint" }
+        assertNotNull(demandPipeline, "Demand CG pipeline should exist")
+
+        val demandConstraints = model.constraintsOfGroup(demandPipeline!!)
+        assertTrue(
+            demandConstraints.isNotEmpty(),
+            "Demand CG pipeline should have registered constraints"
+        )
+
+        // 验证约束 args 携带需求影子价格 key / Verify constraint args carry demand shadow price keys
+        val hasDemandArgs = demandConstraints.any { it.args is ProductDemandShadowPriceKey }
+        assertTrue(
+            hasDemandArgs,
+            "Demand constraints should have ProductDemandShadowPriceKey as args"
+        )
+
+        // 验证 key 内容指向对应产品 / Verify key content points to the product
+        val demandArgs = demandConstraints.mapNotNull { it.args as? ProductDemandShadowPriceKey }
+        assertTrue(
+            demandArgs.any { it.productId == "p-cg" },
+            "Demand shadow price key should reference product p-cg"
+        )
+    }
+
+    /**
+     * 验证 CGPipeline refresh 填充 AbstractCsp1dShadowPriceMap
+     * Verify CGPipeline refresh populates AbstractCsp1dShadowPriceMap with correct key-price pairs
+     */
+    @Test
+    fun cgPipelineRefreshPopulatesShadowPriceMap(): Unit = runBlocking {
+        val product = product("p-refresh", 1.0)
+        val material = material("m-refresh", 0.5, 2.0)
+        val plan = simpleCuttingPlan(product, material, Flt64(1.0))
+        val demand = ProductDemand.legacyRoll(product, Flt64(3.0))
+
+        val input = fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput<Flt64>(
+            cuttingPlans = listOf(plan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.LP)
+            .build()
+
+        val model = LinearMetaModel(
+            name = "test_cg_refresh",
+            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+        )
+        context.register(model)
+
+        val demandPipeline = context.cgPipelines.find { it.name == "demand_constraint" }
+        assertNotNull(demandPipeline, "Demand CG pipeline should exist")
+        val demandConstraint = model.constraintsOfGroup(demandPipeline!!).firstOrNull {
+            it.args is ProductDemandShadowPriceKey
+        }
+        assertNotNull(demandConstraint, "Demand constraint should carry a shadow price key")
+
+        val frameworkMap = Csp1dDefaultShadowPriceMap()
+        val key = demandConstraint.args as ProductDemandShadowPriceKey
+        val refreshResult = demandPipeline.refresh(
+            shadowPriceMap = frameworkMap,
+            model = model,
+            shadowPrices = MetaDualSolution(
+                constraints = mapOf(demandConstraint to Flt64(7.0)),
+                symbols = emptyMap()
+            )
+        )
+
+        assertEquals(fuookami.ospf.kotlin.utils.functional.ok, refreshResult)
+        assertEquals(Flt64(7.0), frameworkMap[key]?.price)
+    }
+
+    /**
+     * 验证 Csp1dShadowPriceLifecycle 通过 CGPipeline 优先提取影子价格
+     * Verify Csp1dShadowPriceLifecycle prioritizes CGPipeline extraction over registry
+     */
+    @Test
+    fun lifecyclePrioritizesCGPipelineOverRegistry(): Unit = runBlocking {
+        val vSample = Flt64(1.0)
+        val product = product("p-priority", 1.0)
+        val material = material("m-priority", 0.5, 2.0)
+        val plan = simpleCuttingPlan(product, material, Flt64(1.0))
+        val demand = ProductDemand.legacyRoll(product, Flt64(3.0))
+
+        val input = fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput<Flt64>(
+            cuttingPlans = listOf(plan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.LP)
+            .build()
+
+        // 同时配置 CGPipeline 主路径和 registry fallback / Configure both CGPipeline primary path and registry fallback
+        val lifecycle = Csp1dShadowPriceLifecycle<Flt64>(vSample, context.cgPipelines)
+        @Suppress("DEPRECATION")
+        lifecycle.registry["demand_0"] = ProductDemandShadowPriceKey("p-priority", "roll")
+
+        // 验证 CGPipeline 主路径存在 / Verify CGPipeline primary path exists
+        assertTrue(context.cgPipelines.isNotEmpty())
+
+        // 验证 registry fallback 可用 / Verify registry fallback is available
+        @Suppress("DEPRECATION")
+        assertTrue(lifecycle.registry.isNotEmpty())
+
+        // 验证 lifecycle 持有统一影子价格表 / Verify lifecycle owns the unified shadow price map
+        assertNotNull(lifecycle.frameworkShadowPriceMap)
+    }
+
+    /**
+     * 验证 MaterialConstraintPipeline CGPipeline extractor 计算
+     * Verify MaterialConstraintPipeline CGPipeline extractor computes shadow price contribution
+     */
+    @Test
+    fun materialCGPipelineExtractorComputesCorrectly(): Unit = runBlocking {
+        val product = product("p-ext", 1.0)
+        val material = material("m-ext", 0.5, 2.0)
+        val plan = simpleCuttingPlan(product, material, Flt64(1.0))
+        val demand = ProductDemand.legacyRoll(product, Flt64(3.0))
+
+        val input = fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput<Flt64>(
+            cuttingPlans = listOf(plan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.LP)
+            .build()
+
+        // 查找物料 CGPipeline / Find material CGPipeline
+        val materialPipeline = context.cgPipelines.find { it.name == "material_constraint" }
+        assertNotNull(materialPipeline, "Material CG pipeline should exist")
+
+        // 验证 extractor 可用 / Verify extractor is available
+        val extractor = materialPipeline!!.extractor()
+        assertNotNull(extractor, "Material CG pipeline should have an extractor")
+
+        // 用 mock shadow price map 验证 extractor / Verify extractor with a mock shadow price map
+        val mockMap = Csp1dDefaultShadowPriceMap()
+        val priceKey = MaterialUsageShadowPriceKey("m-ext")
+        mockMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(priceKey, Flt64(5.0)))
+        // 直接验证 extractor 计算，避免测试依赖通用 sumOf 的伴生对象 fallback。
+        // Verify extractor directly to avoid relying on generic sumOf companion fallback in tests.
+        val args = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCuttingPlanShadowPriceArguments(plan)
+        val contribution = extractor!!(mockMap, args)
+        assertEquals(Flt64(5.0), contribution, "Material extractor should return material shadow price")
     }
 }

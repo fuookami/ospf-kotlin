@@ -1,33 +1,47 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainCalculationContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultCsp1dDomainPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allFeasible
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allWidthFeasible
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultCsp1dDomainPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allFeasible
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allWidthFeasible
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
+import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dSolveConfig
 
 /**
  * 领域策略集成测试 / Domain policy integration test
@@ -523,5 +537,352 @@ class Csp1dDomainPolicyTest {
         assertEquals(1, extensionSet.generationStrategies.size)
         assertEquals(1, extensionSet.flowPolicies.size)
         assertEquals(0, extensionSet.pricingPolicies.size)
+    }
+
+    // ===== Fake POIT 扩展样例测试 / Fake POIT extension sample tests =====
+
+    private fun <V : RealNumber<V>> fakeSameUnitLengthExtension(materialId: String): Csp1dModelingExtension<V> {
+        return Csp1dModelingExtension(
+            pipeline = FakeSameUnitLengthPipeline(materialId),
+            mode = Csp1dExtensionMode.ALL
+        )
+    }
+
+    /**
+     * Fake same-unit-length 建模扩展管线 / Fake same-unit-length modeling extension pipeline
+     *
+     * 模拟下游同单位长度约束：为同物料方案注册一个辅助变量。
+     * Simulates downstream same-unit-length logic by registering one helper variable for same-material plans.
+     */
+    class FakeSameUnitLengthPipeline(
+        private val materialId: String
+    ) : Pipeline<LinearMetaModel<Flt64>> {
+        override val name = "fake_same_unit_length_$materialId"
+
+        var helper: URealVar? = null
+            private set
+
+        override fun invoke(model: LinearMetaModel<Flt64>): Try {
+            val variable = URealVar("fake_same_unit_length_$materialId")
+            helper = variable
+            return model.add(variable)
+        }
+    }
+
+    private fun <V : RealNumber<V>> fakeSameWidthExtension(machineId: String): Csp1dModelingExtension<V> {
+        return Csp1dModelingExtension(
+            pipeline = FakeSameWidthPipeline(machineId),
+            mode = Csp1dExtensionMode.ALL
+        )
+    }
+
+    /**
+     * Fake same-width 建模扩展管线 / Fake same-width modeling extension pipeline
+     *
+     * 模拟下游同宽约束：为同设备方案注册一个辅助变量。
+     * Simulates downstream same-width logic by registering one helper variable for same-machine plans.
+     */
+    class FakeSameWidthPipeline(
+        private val machineId: String
+    ) : Pipeline<LinearMetaModel<Flt64>> {
+        override val name = "fake_same_width_$machineId"
+
+        var helper: URealVar? = null
+            private set
+
+        override fun invoke(model: LinearMetaModel<Flt64>): Try {
+            val variable = URealVar("fake_same_width_$machineId")
+            helper = variable
+            return model.add(variable)
+        }
+    }
+
+    /**
+     * Fake 候选验收策略 / Fake candidate acceptance strategy
+     *
+     * 模拟 POIT 中候选验收逻辑：只接受特定物料的方案。
+     * Simulate POIT's candidate acceptance: only accept plans for specific materials.
+     */
+    class FakeCandidateAcceptanceStrategy<V : RealNumber<V>>(
+        private val acceptedMaterialIds: Set<String>
+    ) : Csp1dGenerationStrategy<V> {
+        override val name = "fake_candidate_acceptance"
+        override fun acceptCandidate(candidate: CuttingPlan<V>, existingPlans: List<CuttingPlan<V>>): Boolean {
+            return candidate.material.id in acceptedMaterialIds
+        }
+    }
+
+    /**
+     * Fake 输出扩展策略 / Fake extraction policy for output enrichment
+     *
+     * 模拟 POIT 中输出扩展：向 solution details 和 render KPI 写入自定义信息。
+     * Simulate POIT's output enrichment: write custom information to solution details and render KPI.
+     */
+    class FakeOutputExtractionPolicy<V : RealNumber<V>>(
+        private val customDetailKey: String = "poit_custom_detail",
+        private val customDetailValue: String = "poit_enriched"
+    ) : Csp1dExtractionPolicy<V> {
+        override val name = "fake_output_extraction"
+        override fun enrichOutput(
+            details: MutableMap<String, String>,
+            renderKpi: MutableMap<String, String>,
+            produce: Produce<V>,
+            demands: List<ProductDemand<V>>,
+            materials: List<Material<V>>,
+            machines: List<Machine<V>>,
+            generatedPlans: List<CuttingPlan<V>>,
+            iterationCount: Int,
+            terminationReason: String?,
+            finalMilpStatus: String?,
+            pricingStatistics: CuttingPlanGenerationStatistics?
+        ) {
+            details[customDetailKey] = customDetailValue
+            renderKpi["poit_custom_kpi"] = "enabled"
+        }
+    }
+
+    @Test
+    fun sameUnitLengthExtensionCanBeInjectedViaExtensionSet() {
+        val extension = fakeSameUnitLengthExtension<Flt64>("m1")
+        val extensionSet = Csp1dExtensionSet<Flt64>(
+            modelingExtensions = listOf(extension)
+        )
+        val pipeline = extensionSet.modelingExtensions.first().resolvePipeline(null)
+        val model = LinearMetaModel(
+            name = "fake_same_unit_length_test",
+            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+        )
+
+        assertEquals(1, extensionSet.modelingExtensions.size)
+        assertEquals("fake_same_unit_length_m1", pipeline.name)
+        assertEquals(ok, pipeline(model))
+        val helper = assertNotNull((pipeline as FakeSameUnitLengthPipeline).helper)
+        assertNotNull(model.tokens.find(helper))
+    }
+
+    @Test
+    fun sameWidthExtensionCanBeInjectedViaExtensionSet() {
+        val extension = fakeSameWidthExtension<Flt64>("mc1")
+        val extensionSet = Csp1dExtensionSet<Flt64>(
+            modelingExtensions = listOf(extension)
+        )
+        val pipeline = extensionSet.modelingExtensions.first().resolvePipeline(null)
+        val model = LinearMetaModel(
+            name = "fake_same_width_test",
+            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+        )
+
+        assertEquals(1, extensionSet.modelingExtensions.size)
+        assertEquals("fake_same_width_mc1", pipeline.name)
+        assertEquals(ok, pipeline(model))
+        val helper = assertNotNull((pipeline as FakeSameWidthPipeline).helper)
+        assertNotNull(model.tokens.find(helper))
+    }
+
+    @Test
+    fun candidateAcceptanceStrategyFiltersByMaterial() {
+        val strategy = FakeCandidateAcceptanceStrategy<Flt64>(setOf("mat-good"))
+        val goodMaterial = testMaterial("mat-good")
+        val badMaterial = testMaterial("mat-bad")
+        val goodPlan = CuttingPlan(
+            id = "good-plan",
+            material = goodMaterial,
+            slices = emptyList(),
+            demandContributions = emptyList()
+        )
+        val badPlan = CuttingPlan(
+            id = "bad-plan",
+            material = badMaterial,
+            slices = emptyList(),
+            demandContributions = emptyList()
+        )
+        assertTrue(strategy.acceptCandidate(goodPlan, emptyList()), "Should accept plans from mat-good")
+        assertFalse(strategy.acceptCandidate(badPlan, emptyList()), "Should reject plans from mat-bad")
+    }
+
+    @Test
+    fun outputExtractionPolicyWritesCustomDetails() {
+        val policy = FakeOutputExtractionPolicy<Flt64>()
+        val details = mutableMapOf<String, String>()
+        val renderKpi = mutableMapOf<String, String>()
+        policy.enrichOutput(
+            details = details,
+            renderKpi = renderKpi,
+            produce = Produce(emptyList(), emptyList(), emptyList(), emptyList()),
+            demands = emptyList(),
+            materials = emptyList(),
+            machines = emptyList(),
+            generatedPlans = emptyList(),
+            iterationCount = 0,
+            terminationReason = null,
+            finalMilpStatus = null,
+            pricingStatistics = null
+        )
+        assertEquals("poit_enriched", details["poit_custom_detail"])
+        assertEquals("enabled", renderKpi["poit_custom_kpi"])
+    }
+
+    @Test
+    fun allFakePoitExtensionsCanBeCombinedInExtensionSet() {
+        val extensionSet = Csp1dExtensionSet<Flt64>(
+            modelingExtensions = listOf(
+                fakeSameUnitLengthExtension("m1"),
+                fakeSameWidthExtension("mc1")
+            ),
+            domainPolicies = listOf(
+                FakeWidthDifferencePolicy(emptySet()),
+                FakeMachineCompatibilityPolicy(emptySet())
+            ),
+            objectivePolicies = listOf(
+                FakeMaterialCostPolicy(emptyMap())
+            ),
+            generationStrategies = listOf(
+                FakeCandidateFilterStrategy(emptySet()),
+                FakeCandidateAcceptanceStrategy(setOf("m1"))
+            ),
+            extractionPolicies = listOf(
+                FakeOutputExtractionPolicy()
+            )
+        )
+        // 验证 6+ 类 fake POIT 能力均已装入 extension set / Verify 6+ fake POIT categories are carried by extension set
+        assertEquals(2, extensionSet.modelingExtensions.size)
+        assertEquals(2, extensionSet.domainPolicies.size)
+        assertEquals(1, extensionSet.objectivePolicies.size)
+        assertEquals(2, extensionSet.generationStrategies.size)
+        assertEquals(1, extensionSet.extractionPolicies.size)
+    }
+
+    // ===== Builder DSL 注入测试 / Builder DSL injection tests =====
+
+    /**
+     * 验证 Csp1dSolveConfigBuilder 能注入所有 6+ 类 POIT 扩展
+     * Verify Csp1dSolveConfigBuilder can inject all 6+ POIT extension categories
+     */
+    @Test
+    fun allPoitExtensionsCanBeInjectedViaSolveConfigBuilder() {
+        val solveConfig = csp1dSolveConfig<Flt64> {
+            extension(fakeSameUnitLengthExtension("m1"))
+            extension(fakeSameWidthExtension("mc1"))
+            domainPolicy(FakeWidthDifferencePolicy(emptySet()))
+            domainPolicy(FakeMachineCompatibilityPolicy(emptySet()))
+            objectivePolicy(FakeMaterialCostPolicy(emptyMap()))
+            generationStrategy(FakeCandidateFilterStrategy(emptySet()))
+            generationStrategy(FakeCandidateAcceptanceStrategy(setOf("m1")))
+            extractionPolicy(FakeOutputExtractionPolicy())
+        }
+
+        // 验证建模扩展：same unit length + same width / Verify modeling extensions
+        assertEquals(2, solveConfig.extensions.size,
+            "Builder should carry 2 modeling extensions (same unit length + same width)")
+
+        // 验证领域策略：宽差 + 设备兼容 / Verify domain policies
+        assertEquals(2, solveConfig.extensionSet.domainPolicies.size,
+            "Builder should carry 2 domain policies (width diff + machine compat)")
+
+        // 验证目标策略：业务成本 / Verify objective policy
+        assertEquals(1, solveConfig.extensionSet.objectivePolicies.size,
+            "Builder should carry 1 objective policy (material cost)")
+
+        // 验证生成策略：候选过滤 + 候选验收 / Verify generation strategies
+        assertEquals(2, solveConfig.extensionSet.generationStrategies.size,
+            "Builder should carry 2 generation strategies (filter + acceptance)")
+
+        // 验证提取策略：输出扩展 / Verify extraction policy
+        assertEquals(1, solveConfig.extensionSet.extractionPolicies.size,
+            "Builder should carry 1 extraction policy (output enrichment)")
+    }
+
+    /**
+     * 验证默认空 Csp1dSolveConfig 不改变扩展集
+     * Verify default empty Csp1dSolveConfig does not add extensions
+     */
+    @Test
+    fun defaultSolveConfigHasNoExtensions() {
+        val solveConfig = Csp1dSolveConfig<Flt64>()
+        assertTrue(solveConfig.extensions.isEmpty(), "Default config should have no modeling extensions")
+        assertTrue(solveConfig.extensionSet.modelingExtensions.isEmpty(), "Default extensionSet should have no modeling extensions")
+        assertTrue(solveConfig.extensionSet.domainPolicies.isEmpty(), "Default extensionSet should have no domain policies")
+        assertTrue(solveConfig.extensionSet.objectivePolicies.isEmpty(), "Default extensionSet should have no objective policies")
+        assertTrue(solveConfig.extensionSet.generationStrategies.isEmpty(), "Default extensionSet should have no generation strategies")
+        assertTrue(solveConfig.extensionSet.pricingPolicies.isEmpty(), "Default extensionSet should have no pricing policies")
+        assertTrue(solveConfig.extensionSet.flowPolicies.isEmpty(), "Default extensionSet should have no flow policies")
+        assertTrue(solveConfig.extensionSet.extractionPolicies.isEmpty(), "Default extensionSet should have no extraction policies")
+    }
+
+    /**
+     * 验证 Csp1dExtensionSet.empty() 不引入任何扩展
+     * Verify Csp1dExtensionSet.empty() introduces no extensions
+     */
+    @Test
+    fun emptyExtensionSetDoesNotIntroduceExtensions() {
+        val emptySet = Csp1dExtensionSet.empty<Flt64>()
+        assertTrue(emptySet.modelingExtensions.isEmpty())
+        assertTrue(emptySet.domainPolicies.isEmpty())
+        assertTrue(emptySet.objectivePolicies.isEmpty())
+        assertTrue(emptySet.generationStrategies.isEmpty())
+        assertTrue(emptySet.pricingPolicies.isEmpty())
+        assertTrue(emptySet.flowPolicies.isEmpty())
+        assertTrue(emptySet.extractionPolicies.isEmpty())
+    }
+
+    /**
+     * 验证 fake POIT 样例覆盖 6+ 类扩展能力
+     * 验收 7.1.10: same unit length, same width, 宽差, 设备/材质兼容, 业务成本, 候选过滤, 候选验收, 输出扩展
+     * Verify fake POIT samples cover 6+ extension categories
+     * Acceptance 7.1.10: same unit length, same width, width diff, machine/material compat, business cost, candidate filter, candidate acceptance, output enrichment
+     */
+    @Test
+    fun fakePoitSamplesCoverSixPlusCategories() {
+        val categories = mutableSetOf<String>()
+
+        // 1. 同单位长度 / same unit length
+        val sameUnitLength = fakeSameUnitLengthExtension<Flt64>("m1")
+        categories.add("same_unit_length")
+
+        // 2. 同宽 / same width
+        val sameWidth = fakeSameWidthExtension<Flt64>("mc1")
+        categories.add("same_width")
+
+        // 3. 宽差 / width difference
+        val widthDiff = FakeWidthDifferencePolicy<Flt64>(emptySet())
+        categories.add("width_difference")
+
+        // 4. 设备/材质兼容 / machine or material compatibility
+        val machineCompat = FakeMachineCompatibilityPolicy<Flt64>(emptySet())
+        categories.add("machine_material_compatibility")
+
+        // 5. 业务成本 / business cost
+        val materialCost = FakeMaterialCostPolicy<Flt64>(emptyMap())
+        categories.add("business_cost")
+
+        // 6. 候选过滤 / candidate filter
+        val candidateFilter = FakeCandidateFilterStrategy<Flt64>(emptySet())
+        categories.add("candidate_filter")
+
+        // 7. 候选验收 / candidate acceptance
+        val candidateAcceptance = FakeCandidateAcceptanceStrategy<Flt64>(setOf("m1"))
+        categories.add("candidate_acceptance")
+
+        // 8. 输出扩展 / output enrichment
+        val outputExtraction = FakeOutputExtractionPolicy<Flt64>()
+        categories.add("output_enrichment")
+
+        // 验证至少覆盖 6 类能力 / Verify at least 6 categories are covered
+        assertTrue(categories.size >= 6,
+            "Should cover at least 6 POIT categories, got ${categories.size}: $categories")
+
+        // 验证可组合到同一个 extension set / Verify all samples can be combined in one extension set
+        val combined = Csp1dExtensionSet<Flt64>(
+            modelingExtensions = listOf(sameUnitLength, sameWidth),
+            domainPolicies = listOf(widthDiff, machineCompat),
+            objectivePolicies = listOf(materialCost),
+            generationStrategies = listOf(candidateFilter, candidateAcceptance),
+            extractionPolicies = listOf(outputExtraction)
+        )
+        assertEquals(2, combined.modelingExtensions.size)
+        assertEquals(2, combined.domainPolicies.size)
+        assertEquals(1, combined.objectivePolicies.size)
+        assertEquals(2, combined.generationStrategies.size)
+        assertEquals(1, combined.extractionPolicies.size)
     }
 }

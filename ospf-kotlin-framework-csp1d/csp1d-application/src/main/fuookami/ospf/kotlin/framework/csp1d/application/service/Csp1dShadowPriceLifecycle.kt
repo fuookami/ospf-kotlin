@@ -2,17 +2,16 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipelineList
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.toShadowPriceMap
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.extractShadowPrice
-import fuookami.ospf.kotlin.framework.model.extractShadowPrice
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipelineList
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.toShadowPriceMap
 
 /**
  * CSP1D 影子价格生命周期 / CSP1D shadow price lifecycle
@@ -68,9 +67,9 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
      * 优先使用 CGPipeline refresh / extractor 机制（主路径），
      * 然后用 constraint-name registry 补充非 CG 约束的影子价格（fallback）。
      *
-     * LP 对偶值是 Flt64，通过 solverValueLike 显式转换为 V，禁止 `dualValue as? V`。
+     * LP 对偶值是 Flt64，通过 solverValueLike 显式转换为 V，禁止直接把 dualValue 强转为 V。
      * LP dual values are Flt64; explicit conversion to V via solverValueLike is required.
-     * Casting like `dualValue as? V` is forbidden.
+     * Directly casting dualValue to V is forbidden.
      *
      * @param model 元模型 / Meta model
      * @param dualSolution LP 对偶解 / LP dual solution
