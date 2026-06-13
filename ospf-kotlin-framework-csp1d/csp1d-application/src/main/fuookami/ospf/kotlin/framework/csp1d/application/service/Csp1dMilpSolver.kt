@@ -6,7 +6,11 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
@@ -14,6 +18,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPri
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipelineList
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
@@ -167,14 +172,8 @@ class Csp1dMilpSolver(
             converter = IntoValue.Identity
         )
 
-        // 通过 Csp1dShadowPriceLifecycle 统一管理影子价格注册与提取
-        // Use Csp1dShadowPriceLifecycle for unified shadow price registration and extraction
-        val vSample = resolveVSampleForLP(input)
-        val shadowPriceLifecycle = Csp1dShadowPriceLifecycle(vSample)
-
         // 通过 Csp1dProduceContext 注册 LP 模式建模逻辑 / Register LP mode modeling logic through Csp1dProduceContext
         val context = Csp1dProduceContextBuilder(input)
-            .shadowPriceKeys(shadowPriceLifecycle.registry)
             .mode(Csp1dModelingMode.LP)
             .apply {
                 // 注入建模扩展（context-aware pipeline 在 build 时解析）
@@ -199,14 +198,19 @@ class Csp1dMilpSolver(
             stage = "solve CSP1D produce LP"
         )
 
-        // 通过 lifecycle 统一提取影子价格（同时填充 framework map 和 lightweight map）
-        // Extract shadow prices through lifecycle (populates both framework map and lightweight map)
-        val shadowPrices = shadowPriceLifecycle.extractFromDualSolution(lpResult.dualSolution)
+        // 从 Csp1dProduceContext 获取 CG 管线列表，传入 lifecycle
+        // Get CG pipeline list from Csp1dProduceContext, pass to lifecycle
+        val vSample = resolveVSampleForLP(input)
+        val lifecycle = Csp1dShadowPriceLifecycle<V>(vSample, context.cgPipelines)
+
+        // 通过 lifecycle 统一提取影子价格（CGPipeline 主路径 + registry fallback）
+        // Extract shadow prices through lifecycle (CGPipeline primary path + registry fallback)
+        val shadowPrices = lifecycle.extractFromDualSolution(model, lpResult.dualSolution)
         return LpResult(
             shadowPrices = shadowPrices,
             model = model,
             lpOutput = lpResult,
-            frameworkShadowPriceMap = shadowPriceLifecycle.frameworkShadowPriceMap
+            frameworkShadowPriceMap = lifecycle.frameworkShadowPriceMap
         )
     }
 

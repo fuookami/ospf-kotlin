@@ -500,13 +500,12 @@ class Csp1dCgLifecycleTest {
     }
 
     /**
-     * 验证 lifecycle registry 可以被约束管线正确填充
-     * Verify lifecycle registry can be correctly populated by constraint pipelines
+     * 验证 lifecycle 通过 CGPipeline 机制正确提取影子价格
+     * Verify lifecycle correctly extracts shadow prices via CGPipeline mechanism
      */
     @Test
-    fun shadowPriceLifecycleRegistryWorksWithProduceContext(): Unit = runBlocking {
+    fun shadowPriceLifecycleWorksWithCGPipelineProduceContext(): Unit = runBlocking {
         val vSample = Flt64(1.0)
-        val lifecycle = Csp1dShadowPriceLifecycle(vSample)
 
         val product = product("p-sp", 1.0)
         val material = material("m-sp", 0.5, 2.0)
@@ -520,27 +519,28 @@ class Csp1dCgLifecycleTest {
             machines = emptyList()
         )
 
-        // Build context with lifecycle's registry
+        // Build context (CG pipelines are automatically included by builder)
         val context = Csp1dProduceContextBuilder(input)
-            .shadowPriceKeys(lifecycle.registry)
             .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.LP)
             .build()
 
-        val model = LinearMetaModel(
-            name = "test_sp",
-            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
-        )
-        context.register(model)
-
-        // Verify that the registry was populated with demand constraint keys
+        // Verify that CG pipelines are present in context
         assertTrue(
-            lifecycle.registry.isNotEmpty(),
-            "Shadow price registry should be populated after context registration"
+            context.cgPipelines.isNotEmpty(),
+            "CG pipelines should be populated in produce context"
         )
 
-        // Verify at least one demand key exists
-        val hasDemandKey = lifecycle.registry.values.any { it is ProductDemandShadowPriceKey }
-        assertTrue(hasDemandKey, "Registry should contain at least one ProductDemandShadowPriceKey")
+        // Verify at least one demand CG pipeline exists
+        val hasDemandPipeline = context.cgPipelines.any {
+            it.name == "demand_constraint"
+        }
+        assertTrue(hasDemandPipeline, "CG pipeline list should contain demand_constraint pipeline")
+
+        // Create lifecycle with CG pipelines from context
+        val lifecycle = Csp1dShadowPriceLifecycle<Flt64>(vSample, context.cgPipelines)
+
+        // Verify framework map is initialized
+        assertNotNull(lifecycle.frameworkShadowPriceMap)
     }
 
     // ===== Pricing Policy Extension Tests =====

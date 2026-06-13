@@ -6,14 +6,16 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
+import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 
 /**
  * 需求平衡约束管线 / Demand balance constraint pipeline
@@ -25,6 +27,10 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * demandQuantity[i] 是中间符号，由 ProduceAggregation 在 register 和 addColumns 时管理，
  * 约束管线不再直接引用 x 变量，因此 addColumns 时只需 flush 中间符号，无需刷新约束。
  *
+ * 实现 CGPipeline 接口，通过 constraint.args = Csp1dShadowPriceKey 关联影子价格，
+ * 替代原先的 constraint-name registry 机制。LP 对偶值提取通过 refresh / extractor
+ * 直接从 AbstractCsp1dShadowPriceMap 获取，无需手动遍历 constraint name。
+ *
  * Add balance constraint for each product demand:
  * - With yield slack: demandQuantity[i] - over + under = demand
  * - Without yield slack: demandQuantity[i] >= demand
@@ -33,52 +39,43 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * and addColumns. Constraint pipelines no longer reference x variables directly, so addColumns
  * only needs to flush intermediate symbols without refreshing constraints.
  *
+ * Implements CGPipeline interface, associating shadow prices via constraint.args = Csp1dShadowPriceKey,
+ * replacing the previous constraint-name registry mechanism. LP dual value extraction uses
+ * refresh / extractor to obtain values directly from AbstractCsp1dShadowPriceMap without
+ * manual constraint name traversal.
+ *
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
  * @property demands 需求列表 / Demand list
  * @property yieldUnderVars 欠产松弛变量 / Under-production slack variables
  * @property yieldOverVars 超产松弛变量 / Over-production slack variables
- * @property shadowPriceKeys 约束名到影子价格键的映射（LP 求解时使用）/ Constraint name to shadow price key mapping (used in LP solving)
  */
 class DemandConstraintPipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val demands: List<ProductDemand<V>>,
     private val yieldUnderVars: List<URealVar?> = emptyList(),
-    private val yieldOverVars: List<URealVar?> = emptyList(),
-    private val shadowPriceKeys: MutableMap<String, Csp1dShadowPriceKey>? = null
-) : Pipeline<LinearMetaModel<Flt64>> {
+    private val yieldOverVars: List<URealVar?> = emptyList()
+) : Csp1dCGPipeline {
 
     override val name: String = "demand_constraint"
 
-    override fun invoke(model: LinearMetaModel<Flt64>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val hasYieldSlack = yieldUnderVars.any { it != null } || yieldOverVars.any { it != null }
 
         for ((demandIndex, demand) in demands.withIndex()) {
-            val constraintName = "demand_$demandIndex"
-            registerShadowPriceKey(constraintName, demand)
+            val priceKey = ProductDemandShadowPriceKey(
+                productId = demand.product.id,
+                unitSymbol = shadowPriceUnitSymbol(demand.quantity.unit)
+            )
 
             if (hasYieldSlack) {
-                addEqualityConstraint(model, demandIndex, demand, constraintName)
+                addEqualityConstraint(model, demandIndex, demand, priceKey)
             } else {
-                addGeConstraint(model, demand, demandIndex, constraintName)
+                addGeConstraint(model, demand, demandIndex, priceKey)
             }
         }
 
         return ok
-    }
-
-    private fun registerShadowPriceKey(
-        constraintName: String,
-        demand: ProductDemand<V>
-    ) {
-        val unitSymbol = shadowPriceUnitSymbol(demand.quantity.unit)
-        shadowPriceKeys?.set(
-            constraintName,
-            ProductDemandShadowPriceKey(
-                productId = demand.product.id,
-                unitSymbol = unitSymbol
-            )
-        )
     }
 
     /**
@@ -98,10 +95,10 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
     }
 
     private fun addEqualityConstraint(
-        model: LinearMetaModel<Flt64>,
+        model: AbstractLinearMetaModel<Flt64>,
         demandIndex: Int,
         demand: ProductDemand<V>,
-        constraintName: String
+        priceKey: ProductDemandShadowPriceKey
     ) {
         val underVar = yieldUnderVars.getOrNull(demandIndex)
         val overVar = yieldOverVars.getOrNull(demandIndex)
@@ -122,18 +119,20 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
             val rhs = constantPolynomial(demand.quantity.value.toFlt64())
             model.addConstraint(
                 relation = LinearInequality(lhs = lhs, rhs = rhs, comparison = Comparison.EQ),
-                name = constraintName
+                group = this,
+                name = "demand_$demandIndex",
+                args = priceKey
             )
         } else {
-            addGeConstraint(model, demand, demandIndex, constraintName)
+            addGeConstraint(model, demand, demandIndex, priceKey)
         }
     }
 
     private fun addGeConstraint(
-        model: LinearMetaModel<Flt64>,
+        model: AbstractLinearMetaModel<Flt64>,
         demand: ProductDemand<V>,
         demandIndex: Int,
-        constraintName: String
+        priceKey: ProductDemandShadowPriceKey
     ) {
         val lhs = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, produce.demandQuantity[demandIndex])),
@@ -142,8 +141,41 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
         val rhs = constantPolynomial(demand.quantity.value.toFlt64())
         model.addConstraint(
             relation = LinearInequality(lhs = lhs, rhs = rhs, comparison = Comparison.GE),
-            name = constraintName
+            group = this,
+            name = "demand_$demandIndex",
+            args = priceKey
         )
+    }
+
+    override fun refresh(
+        shadowPriceMap: Csp1dShadowPriceMap,
+        model: AbstractLinearMetaModel<Flt64>,
+        shadowPrices: MetaDualSolution
+    ): Try {
+        return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
+    }
+
+    override fun extractor(): Csp1dShadowPriceExtractor? {
+        if (demands.isEmpty()) return null
+        return { map, args ->
+            if (args is Csp1dCuttingPlanShadowPriceArguments<*>) {
+                var price = Flt64.zero
+                for (demand in demands) {
+                    val key = ProductDemandShadowPriceKey(
+                        productId = demand.product.id,
+                        unitSymbol = shadowPriceUnitSymbol(demand.quantity.unit)
+                    )
+                    val shadowPrice = map[key]?.price ?: continue
+                    val contribution = args.plan.demandContributions.find {
+                        it.product.id == demand.product.id && it.quantity.unit == demand.quantity.unit
+                    } ?: continue
+                    price += shadowPrice * contribution.quantity.value.toFlt64()
+                }
+                price
+            } else {
+                Flt64.zero
+            }
+        }
     }
 
     companion object {

@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -21,13 +20,17 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipeline
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipelineList
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dIterativeContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dPipelineList
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.SimpleDomainCalculationContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
@@ -52,6 +55,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.Lengt
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.service.pipeline.LengthConstraintPipeline
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.service.pipeline.LengthObjectivePipeline
 import fuookami.ospf.kotlin.framework.model.Pipeline
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import kotlin.math.roundToLong
 
@@ -69,12 +73,12 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     val waste: WasteAggregation<V>?,
     val length: LengthAggregation<V>?,
     val constraintPipelines: Csp1dPipelineList,
+    val cgPipelines: Csp1dCGPipelineList,
     private val yieldObjective: YieldObjectivePipeline<V>?,
     private val wasteObjective: WasteObjectivePipeline<V>?,
     private val lengthObjective: LengthObjectivePipeline<V>?,
     private val extraPipelines: Csp1dPipelineList = emptyList(),
     override val mode: Csp1dModelingMode = Csp1dModelingMode.MILP,
-    private val shadowPriceKeys: MutableMap<String, Csp1dShadowPriceKey>? = null,
     private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList(),
     private val wasteOverProductionAreaMeasure: OverProductionAreaMeasure = OverProductionAreaMeasure.ProductMaxWidthProxy,
     private val wasteRestMaterialMeasure: RestMaterialMeasure = RestMaterialMeasure.RestWidthByMaterialLengthProxy,
@@ -115,7 +119,17 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             }
         }
 
-        // 2. 注册约束管线
+        // 2. 注册 CG 约束管线（含 group 注册）
+        for (pipeline in cgPipelines) {
+            pipeline.register(model)
+            when (val result = pipeline(model)) {
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+                is Ok -> {}
+            }
+        }
+
+        // 3. 注册非 CG 约束管线（yield/length 等）
         for (pipeline in constraintPipelines) {
             pipeline.register(model)
             when (val result = pipeline(model)) {
@@ -125,7 +139,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             }
         }
 
-        // 3. 注册扩展约束管线
+        // 4. 注册扩展约束管线
         for (pipeline in extraPipelines) {
             pipeline.register(model)
             when (val result = pipeline(model)) {
@@ -135,10 +149,10 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             }
         }
 
-        // 4. 组装目标函数
+        // 5. 组装目标函数
         setObjective(model)
 
-        // 5. 应用 warm start 初始解（仅 MILP 模式）
+        // 6. 应用 warm start 初始解（仅 MILP 模式）
         if (mode == Csp1dModelingMode.MILP && warmStartPlanUsages.isNotEmpty()) {
             applyWarmStart(model)
         }
@@ -440,45 +454,57 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
     override fun extractShadowPrice(
         model: AbstractLinearMetaModel<Flt64>,
-        shadowPrices: MetaDualSolution,
-        shadowPriceKeys: MutableMap<String, Csp1dShadowPriceKey>
+        shadowPrices: MetaDualSolution
     ): Try {
-        // MetaDualSolution 格式适配：从 constraints 映射提取 shadow price
-        // MathConstraint 的具体子类有 name 属性
-        // LP 对偶值是 Flt64，需要通过 solverValueLike 显式转换为 V
-        // LP dual values are Flt64; explicit conversion to V via solverValueLike is required
-        val prices = HashMap<Csp1dShadowPriceKey, V>()
-        for ((constraint, dualValue) in shadowPrices.constraints) {
-            val constraintName = when (constraint) {
-                is fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint<*> -> constraint.name
-                is fuookami.ospf.kotlin.core.model.mechanism.QuadraticInequalityConstraint<*> -> constraint.name
-                else -> continue
+        // 通过 CGPipeline refresh 机制自动提取影子价格到 AbstractCsp1dShadowPriceMap
+        // 不再依赖 constraint-name registry
+        // Extract shadow prices automatically via CGPipeline refresh mechanism
+        // No longer depending on constraint-name registry
+        val frameworkMap = Csp1dDefaultShadowPriceMap()
+        for (pipeline in cgPipelines) {
+            when (val result = pipeline.refresh(frameworkMap, model, shadowPrices)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
-            val key = shadowPriceKeys[constraintName] ?: continue
-            val vDual = solverValueLike(vSample, dualValue)
-            val existingValue = prices[key]
-            prices[key] = if (existingValue != null) existingValue + vDual else vDual
+            val extractor = pipeline.extractor() ?: continue
+            frameworkMap.put(extractor)
         }
         return ok
     }
 
     /**
      * 从 LP 对偶解提取影子价格映射 / Extract shadow price map from LP dual solution
+     *
+     * 使用 CGPipeline extractor 机制从 AbstractCsp1dShadowPriceMap 转换为
+     * pricing 可消费的轻量级 ShadowPriceMap<V>。
+     *
+     * 注意：此方法不传 model，因此无法执行 CGPipeline refresh（需要 model.constraintsOfGroup）。
+     * 仅通过 constraint.args 回退提取。推荐使用 Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution)
+     * 走 CGPipeline 主路径。
+     *
+     * Use CGPipeline extractor mechanism to convert from AbstractCsp1dShadowPriceMap
+     * to lightweight ShadowPriceMap<V> for pricing consumption.
+     *
+     * Note: This method does not receive model, so CGPipeline refresh (which needs model.constraintsOfGroup)
+     * cannot be executed. Only constraint.args fallback extraction is available. Recommend using
+     * Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution) for the CGPipeline primary path.
      */
     fun extractShadowPriceMap(
-        dualSolution: Map<Constraint<Flt64, Linear>, Flt64>,
-        shadowPriceKeys: Map<String, Csp1dShadowPriceKey>
+        dualSolution: Map<fuookami.ospf.kotlin.core.model.mechanism.Constraint<Flt64, Linear>, Flt64>
     ): ShadowPriceMap<V> {
-        // LP 对偶值是 Flt64，需要通过 solverValueLike 显式转换为 V
-        // LP dual values are Flt64; explicit conversion to V via solverValueLike is required
-        val shadowPrices = HashMap<Csp1dShadowPriceKey, V>()
+        val frameworkMap = Csp1dDefaultShadowPriceMap()
+        // 无 model 时无法执行 CGPipeline refresh，直接从 constraint.origin.args 提取
+        // Without model, cannot execute CGPipeline refresh; extract from constraint.origin.args
+        val prices = HashMap<Csp1dShadowPriceKey, V>()
         for ((constraint, dualValue) in dualSolution) {
-            val key = shadowPriceKeys[constraint.name] ?: continue
+            val args = constraint.origin?.args as? Csp1dShadowPriceKey ?: continue
             val vDual = solverValueLike(vSample, dualValue)
-            val existingValue = shadowPrices[key]
-            shadowPrices[key] = if (existingValue != null) existingValue + vDual else vDual
+            frameworkMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(args, dualValue))
+            val existingValue = prices[args]
+            prices[args] = if (existingValue != null) existingValue + vDual else vDual
         }
-        return ShadowPriceMap(shadowPrices)
+        return ShadowPriceMap(prices)
     }
 
     // ===== 辅助方法 =====
@@ -524,7 +550,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
     return when (sample) {
         is Flt64 -> value as V
-        is FltX -> value.toFltX() as V
+        is fuookami.ospf.kotlin.math.algebra.number.FltX -> value.toFltX() as V
         else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
     }
 }
@@ -538,7 +564,6 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     private var _yieldConfig: YieldModelingConfig<V>? = null
     private var _wasteConfig: WasteMinimizationConfig<V>? = null
     private var _lengthConfig: LengthAssignmentModelingConfig<V>? = null
-    private var _shadowPriceKeys: MutableMap<String, Csp1dShadowPriceKey>? = null
     private var _mode: Csp1dModelingMode = Csp1dModelingMode.MILP
     private var _isFinalMilp: Boolean = false
     private val _extraPipelines = ArrayList<Pipeline<LinearMetaModel<Flt64>>>()
@@ -557,11 +582,6 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
 
     fun lengthConfig(config: LengthAssignmentModelingConfig<V>): Csp1dProduceContextBuilder<V> {
         this._lengthConfig = config
-        return this
-    }
-
-    fun shadowPriceKeys(keys: MutableMap<String, Csp1dShadowPriceKey>): Csp1dProduceContextBuilder<V> {
-        this._shadowPriceKeys = keys
         return this
     }
 
@@ -664,24 +684,25 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             null
         }
 
-        val constraintPipelines = mutableListOf<Pipeline<LinearMetaModel<Flt64>>>()
-        constraintPipelines.add(DemandConstraintPipeline(
+        // 构建 CG 约束管线（demand/material/machine）
+        val cgPipelines = mutableListOf<Csp1dCGPipeline>()
+        cgPipelines.add(DemandConstraintPipeline(
             produce = produce,
             demands = input.demands,
             yieldUnderVars = yieldAgg?.underProduction ?: emptyList(),
-            yieldOverVars = yieldAgg?.overProduction ?: emptyList(),
-            shadowPriceKeys = _shadowPriceKeys
+            yieldOverVars = yieldAgg?.overProduction ?: emptyList()
         ))
-        constraintPipelines.add(MaterialConstraintPipeline(
+        cgPipelines.add(MaterialConstraintPipeline(
             produce = produce,
-            materials = input.materials,
-            shadowPriceKeys = _shadowPriceKeys
+            materials = input.materials
         ))
-        constraintPipelines.add(MachineConstraintPipeline(
+        cgPipelines.add(MachineConstraintPipeline(
             produce = produce,
-            machines = input.machines,
-            shadowPriceKeys = _shadowPriceKeys
+            machines = input.machines
         ))
+
+        // 非_cg 约束管线（yield/length 等）
+        val constraintPipelines = mutableListOf<Pipeline<LinearMetaModel<Flt64>>>()
         if (yieldAgg != null && yieldCfg != null) {
             constraintPipelines.add(YieldConstraintPipeline(
                 yield = yieldAgg,
@@ -732,12 +753,12 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             waste = wasteAgg,
             length = lengthAgg,
             constraintPipelines = constraintPipelines,
+            cgPipelines = cgPipelines,
             yieldObjective = yieldObjective,
             wasteObjective = wasteObjective,
             lengthObjective = lengthObjective,
             extraPipelines = _extraPipelines,
             mode = _mode,
-            shadowPriceKeys = _shadowPriceKeys,
             warmStartPlanUsages = input.warmStartPlanUsages,
             wasteOverProductionAreaMeasure = wasteCfg?.overProductionAreaMeasure ?: OverProductionAreaMeasure.ProductMaxWidthProxy,
             wasteRestMaterialMeasure = wasteCfg?.restMaterialMeasure ?: RestMaterialMeasure.RestWidthByMaterialLengthProxy,

@@ -87,19 +87,21 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
      *
      * 从 LP 松弛的对偶解中提取各约束的影子价格，
      * 用于定价子问题计算 reduced cost。
+     * 通过 CGPipeline refresh / extractor 机制自动提取，
+     * 不再依赖 constraint-name registry。
      *
      * Extract shadow prices of each constraint from the LP relaxation dual solution,
      * for use in the pricing sub-problem to compute reduced cost.
+     * Extraction is automatic via CGPipeline refresh / extractor mechanism,
+     * no longer depending on constraint-name registry.
      *
      * @param model 元模型 / Meta model
      * @param shadowPrices 对偶解 / Dual solution
-     * @param shadowPriceKeys 约束名到影子价格键的映射 / Constraint name to shadow price key mapping
      * @return 操作结果 / Operation result
      */
     fun extractShadowPrice(
         model: AbstractLinearMetaModel<Flt64>,
-        shadowPrices: MetaDualSolution,
-        shadowPriceKeys: MutableMap<String, fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPriceKey>
+        shadowPrices: MetaDualSolution
     ): Try
 }
 

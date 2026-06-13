@@ -10,12 +10,11 @@
 
 ## 2. 当前判断
 
-5.2 addColumns 真实原地增量已实现，5.3 约束管线中间符号迁移已完成（是 CGPipeline 迁移的前提条件），5.1/5.4 部分扩展点下沉已完成。剩余：
+本轮已完成 CGPipeline / Shadow Price 统一迁移。主约束管线（demand / material / machine）已从 `Pipeline<LinearMetaModel<Flt64>>` 迁移到 `Csp1dCGPipeline`（即 `CGPipeline<AbstractCsp1dShadowPriceArguments, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<...>>`），通过 `constraint.args = Csp1dShadowPriceKey` 替代 constraint-name registry。`Csp1dMilpSolver.solveLP()` 优先使用 CGPipeline refresh / extractor 机制提取 shadow price。`Csp1dColumnGeneration` 主循环不再直接拼装 shadow price key。剩余：
 
-1. Shadow price extractor/map 统一机制未完成（仍用 constraint-name registry，需迁移到 `AbstractCsp1dShadowPriceMap` 生命周期）。
-2. `Csp1dColumnGeneration` 主循环仍直接承担部分领域拼装，需继续瘦身。
-3. 扩展点完整性复核（5.5）和文档/示例/验证（5.6）未执行。
-4. 完整 Maven/Gurobi/门禁验证未执行。
+1. fake POIT 类样例测试未执行（验收 7.1.10）。
+2. 完整 Maven reactor / Gurobi smoke 验证未执行。
+3. README/README_ch 需要同步更新 CGPipeline / shadow price lifecycle 说明。
 
 ## 3. 已完成事项摘要
 
@@ -33,83 +32,48 @@
 12. 已完成 `widthFeasibilityCheck`、`enabledWithoutWidthCheck`、`overridesWidthFeasibility` 的宽度扩展收口。
 13. 已完成 shadow price key/map 类型桥接、显式 `Flt64 -> V` 转换和基础 shadow price lifecycle wrapper。
 14. 已完成列生成生命周期与输出扩展闭环：flow policy、extraction policy、pricing benefit/isImproving、custom canonical key、candidate dominance、termination、partial/fallback 和输出扩展均已接入主路径。
-15. **已完成 `addColumns` 真实原地增量列生成**：`ProduceAggregation` 重写为迭代模式，引入 `CuttingPlanAggregation` 管理 per-iteration 方案集合和去重；`addColumns()` 创建 x_$iteration 变量组和 batch_$iteration 中间符号组，通过 flush+asMutable 对已有约束中间符号追加新列系数；`Csp1dProduceContext.addColumns()` 委托给 `ProduceAggregation.addColumns()` 并追加目标项。
-16. **已完成约束管线中间符号迁移**：DemandConstraintPipeline / MaterialConstraintPipeline / MachineConstraintPipeline 均改为引用 `ProduceAggregation` 的中间符号（demandQuantity / materialQuantity / machineBatchQuantity / machineCapacityQuantity）而非直接引用 x 变量，使 addColumns 刷新中间符号时约束自动包含新列系数。
-17. **已完成 canonicalKeyOverrides / dominanceAcceptOverrides 全链路贯通**：从 `Csp1dGenerationStrategy.canonicalKeyFor` / `acceptDominance` 出发，贯穿 generation input → DFSGenerator / FullSumGenerator / NSameGenerator / NSumGenerator → GenerationCollector → GenerationParallelism merge → ReducedCostPricingGenerator → Csp1dColumnGeneration deduplicatePlans，custom canonical key 和 dominance acceptance 在初始生成、pricing、dedup 三个阶段均生效。
-18. **已完成 flow policy selectTermination customReason 写回**：`Csp1dColumnGeneration` 在 PricingConverged / AllDuplicates / IterationLimitReached / early stop 四个终止点均调用 `resolveTerminationReason` 将 customReason 写回 `terminationReason`。
-19. **已完成 recovery flow policy allowRecoveryFallback 接入**：`Csp1dRecovery` 和 `Csp1dColumnGenerationRecovery` 均从 extensionSet.flowPolicies 提取 policy 并调用 `allowRecoveryFallbackByPolicies`，flow policy 可覆盖默认 `retryWithoutWarmStart` 决策；`Csp1dFlowContext` 新增 `warmStartPlanCount` / `warmStartRequiresFallback` 属性。
-20. 已完成测试更新：变量名 x_0 → x_0_0 适配迭代命名，新增 canonicalKeyForAffectsDeduplication / acceptDominanceWorksWithoutDominancePruning / selectTerminationCustomReasonAffectsTerminationReason / allowRecoveryFallbackPolicyOverridesDefault 四个行为断言测试。
+15. 已完成 `addColumns` 真实原地增量列生成。
+16. 已完成约束管线中间符号迁移。
+17. 已完成 canonicalKeyOverrides / dominanceAcceptOverrides 全链路贯通。
+18. 已完成 flow policy selectTermination customReason 写回。
+19. 已完成 recovery flow policy allowRecoveryFallback 接入。
+20. 已完成测试更新：变量名适配、四个行为断言测试。
+21. **已完成 CGPipeline / Shadow Price 统一迁移**：DemandConstraintPipeline / MaterialConstraintPipeline / MachineConstraintPipeline 从 `Pipeline<LinearMetaModel<Flt64>>` 迁移到 `Csp1dCGPipeline`，通过 `constraint.args = Csp1dShadowPriceKey` 替代 constraint-name registry；`Csp1dShadowPriceLifecycle` 优先通过 CGPipeline refresh / extractor 提取影子价格，保留 registry 作为兼容 fallback；`Csp1dMilpSolver.solveLP()` 传入 CG 管线列表给 lifecycle；`Csp1dProduceContext.extractShadowPrice` 直接调用 CGPipeline refresh；`Csp1dIterativeContext.extractShadowPrice` 签名移除 shadowPriceKeys 参数。
 
 ## 4. 下一轮目标
 
-下一轮强制目标：**CSP1D Shadow Price 统一迁移与最终交付收口**。
+下一轮强制目标：**fake POIT 样例测试、完整验证与文档同步**。
 
 完成后应达到以下状态：
 
-1. 需求、物料、设备等 shadow-price-producing 主约束进入统一 `CGPipeline` / extractor / `AbstractCsp1dShadowPriceMap` 生命周期，原 constraint-name registry 只作为兼容 fallback 或明确边界。
-2. `Csp1dMilpSolver.solveLP()` 优先从统一 extractor 或 `AbstractCsp1dShadowPriceMap` 生成 pricing 使用的 `ShadowPriceMap<V>`。
-3. `Csp1dColumnGeneration` 的 LP master、shadow price、pricing、deduplicate、termination、final MILP、partial/fallback、trace/KPI/render 尽量通过 context / pipeline / policy / extraction 机制组织。
-4. 默认空扩展保持既有求解语义、generation canonical 结果、failure/partial、`LpInfeasible`、`LpSolveFailed`、trace/KPI/render 口径不变。
-5. README/README_ch/demo3/daily.md 与当前 API 和真实能力边界一致。
-6. 完成 CSP1D 范围内完整验证，包含 Maven reactor、application acceptance、generation、相关 domain 子模块、Gurobi 10 smoke 或明确环境原因。
+1. fake POIT 类样例至少覆盖 same unit length、same width、宽差、设备或材质兼容、业务成本、候选过滤、候选验收、输出扩展中的六类（验收 7.1.10）。
+2. 完成 CSP1D 范围内完整验证，包含 Maven reactor、application acceptance、generation、相关 domain 子模块、Gurobi 10 smoke 或明确环境原因。
+3. README/README_ch/demo3/daily.md 与当前 API 和真实能力边界一致。
+4. 门禁搜索全部通过。
 
 ## 5. 下一轮执行包
 
-### 5.1 基线审计与保护
+### 5.1 fake POIT 样例测试
 
-1. 记录 `git status --short`，区分 CSP1D 改动和其它模块脏改；不得回滚或混入无关模块。
-2. 读取并确认当前变更后的 `Csp1dModelContext`、`Csp1dProduceContext`、`Csp1dMilpSolver`、`Csp1dColumnGeneration`、`Csp1dRecovery`、`Csp1dSolutionEnrichment`、`CuttingPlanGenerationContext`、`GenerationCollector`、`ProduceAggregation`。
-3. 对照本文件第 7 节先列出当前已满足、未满足和需验证项。
-4. 先补测试保护，再做结构改造；默认空扩展行为必须有基线可比较。
-
-### 5.2 CGPipeline 与 Shadow Price 深度迁移
-
-1. 阅读通用 `Pipeline`、`CGPipeline`、`ShadowPrice`、`AbstractShadowPriceMap` 以及 Gantt/BPP3D 已有实现。
-2. 迁移或包装主 LP 约束：
-   - demand balance。
-   - material usage。
-   - machine batch。
-   - machine capacity。
-3. 为这些约束建立统一 register / refresh / extractor 机制。
-4. `Csp1dMilpSolver.solveLP()` 优先从统一 extractor 或 `AbstractCsp1dShadowPriceMap` 生成 pricing 使用的 `ShadowPriceMap<V>`。
-5. 保留 constraint-name registry 时，必须清楚标注为 fallback，并有测试证明主路径优先使用统一 extractor。
-6. LP dual 到 `V` 的转换继续集中在 adapter/extraction 边界，禁止恢复 `dualValue as? V`。
-
-### 5.3 Column Generation 主循环收敛
-
-1. 将 LP master 注册、新列处理、shadow price 提取、pricing input 构造、deduplicate、termination、final MILP、enrichment 的可变判断继续下沉到 context / pipeline / policy。
-2. 检查 `Csp1dColumnGeneration` 是否仍直接承担领域约束、目标、shadow price key、KPI 拼装细节；能下沉的继续下沉。
-3. 统一 ordinary MILP、CG LP、CG final MILP 的建模注册路径，不引入重复拼模型逻辑。
-4. 保持 `Csp1dTerminationReason`、solution status、failure message、trace/KPI key 的兼容语义。
-5. 如果改动触及 public 输出，README/README_ch 和测试必须同步。
-
-### 5.4 扩展点完整性复核
-
-1. 确认 public config / builder 可注入：
-   - modeling extension。
-   - context-aware pipeline。
-   - domain policy。
-   - objective policy。
-   - generation strategy。
-   - pricing policy。
-   - flow policy。
-   - extraction policy。
-2. 复核计算、判断、派生值、过滤、可行性检查、目标系数、候选排序、reduced cost 判断、termination、partial/fallback、output enrichment 是否仍有硬编码可变业务规则。
-3. 对 fake POIT 类能力做统一样例测试：same unit length、same width、宽差、设备或材质兼容、业务成本、候选过滤、候选验收、输出扩展。
+1. 为 same unit length、same width、宽差、设备或材质兼容、业务成本、候选过滤、候选验收、输出扩展各编写一个 fake 扩展样例。
+2. 每个样例通过 `Csp1dProblemBuilder` 注入 `Csp1dExtensionSet` 或 `Csp1dSolveConfig`。
+3. 确认样例对主路径求解语义无侵入（默认空扩展结果不变）。
 4. 不把这些 fake 业务语义变成 framework 内置规则。
 
-### 5.5 文档、示例与交接
+### 5.2 完整验证
 
-1. README/README_ch 同步说明：
-   - extension set 总览。
-   - flow policy。
-   - extraction policy。
-   - shadow price lifecycle。
-   - `addColumns` 当前真实能力边界（已支持原地增量）。
-   - `CGPipeline` / shadow price 迁移边界。
+1. Maven reactor 构建通过。
+2. application acceptance 测试通过（MILP、列生成、Top-K、KPI/render、recovery、warm start、partial solution 和扩展入口）。
+3. generation/pricing 关键测试通过。
+4. material、produce、yield、length assignment、wasting minimization 子模块测试通过。
+5. Gurobi 10 smoke 或明确环境原因。
+6. `git diff --check -- ospf-kotlin-framework-csp1d` 通过。
+
+### 5.3 文档同步
+
+1. README/README_ch 新增：CGPipeline / shadow price lifecycle 说明、addColumns 真实能力边界。
 2. demo3 不恢复手写 RMP/SP。
-3. daily.md 完成后再次压缩已完成事项，只保留下一轮真正未闭环项。
-4. 若 Gurobi smoke 不能执行，必须写明环境原因；当前已知用户机器有 Gurobi 10 环境，优先执行真实 smoke。
+3. daily.md 完成后再次压缩已完成事项。
 
 ## 6. 修改清单
 
@@ -148,7 +112,7 @@
 
 ### 7.1 功能验收
 
-1. `addColumns` 有明确实现和测试；当前已支持真实原地增量（创建 x_$iteration 变量、batch_$iteration 中间符号、flush+asMutable 刷新约束中间符号、追加目标项）。
+1. `addColumns` 有明确实现和测试；当前已支持真实原地增量。
 2. 新增列能参与需求、物料、设备约束和目标函数；重复列不重复添加；失败路径不污染已有列集合。
 3. demand/material/machine shadow price 主约束进入统一 extractor/map 或明确保留 fallback 的边界。
 4. `Csp1dMilpSolver.solveLP()` 输出的 lightweight `ShadowPriceMap<V>` 与 framework `AbstractCsp1dShadowPriceMap` 语义一致。
@@ -211,8 +175,8 @@
 ## 9. 交接提示
 
 1. 下一会话先读本文件和第 5.1 列出的核心文件，不要只按历史报告行动。
-2. `addColumns` 真实原地增量已完成：`ProduceAggregation.addColumns()` 创建 x_$iteration 变量组和 batch_$iteration 中间符号组，通过 flush+asMutable 刷新约束中间符号；约束管线已改为引用中间符号而非直接引用 x 变量。
-3. 下一轮重点是：shadow price 统一迁移到 `CGPipeline` / `AbstractCsp1dShadowPriceMap` 生命周期、主循环继续瘦身、扩展点完整性复核和完整验证。
+2. CGPipeline 迁移已完成：三个主约束管线已从 `Pipeline` → `Csp1dCGPipeline`，使用 `constraint.args = Csp1dShadowPriceKey` 替代 constraint-name registry。`Csp1dShadowPriceLifecycle` 优先通过 CGPipeline refresh / extractor 提取影子价格。constraint-name registry 保留为 `@Deprecated` fallback。
+3. 下一轮重点是：fake POIT 样例测试、完整验证、文档同步。
 4. 每一步都要保持 `V : RealNumber<V>`、`Quantity<V>` 和显式 `Flt64 -> V` 转换边界。
 5. 所有计算、判断计算都尽可能留下扩展点；默认实现可以是当前逻辑，但不要把可变业务规则继续硬编码在 application solver 编排层。
 6. 工作区可能存在非 CSP1D 脏改，不得回滚或混入无关模块。
