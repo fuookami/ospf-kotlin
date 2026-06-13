@@ -24,15 +24,16 @@ $fixHints = @{
     CuboidTypeBoundOutOfAllowList = "Prefer ItemCuboid, ItemView, ItemPlacement2/3, or a domain-specific alias; keep T : Cuboid<T> only in infrastructure or explicitly classified compatibility factories."
     CuboidWildcardOutOfAllowList = "Replace Cuboid<*> with ItemCuboid or AnyPlacement domain APIs; runtime dispatch should use Any only when the boundary is documented."
     AbstractCuboidOutOfAllowList = "Expose ItemCuboid or PackingShape3 at business boundaries instead of AbstractCuboid<...>."
-    CuboidViewOutOfAllowList = "Expose ItemView, BlockView, or BinLayerView aliases instead of raw CuboidView."
-    CuboidViewWildcardOutOfAllowList = "Do not expose CuboidView<*> outside infrastructure; use ItemView or domain placement aliases."
+    CuboidViewOutOfAllowList = "CuboidView<T,V> is the raw infrastructure view; prefer domain-typed factories (LayerBin.toBinLayerView, etc.) in business code."
+    CuboidViewWildcardOutOfAllowList = "Do not expose CuboidView<*> outside infrastructure; use domain placement APIs."
     CuboidViewReceiverExtensionOutOfAllowList = "Do not add CuboidView receiver extensions in business code; put behavior on ItemView, ItemPlacement, or ItemContainer placement APIs."
     ItemDomainPlacementFactoryCuboidBound = "Keep placement factory Cuboid bounds only inside type-aware factory internals or the documented BLA polymorphic projection entry."
     ItemDomainInternalBinCuboidBound = "Keep Bin Cuboid bounds behind the internal constructor and domain bin factories."
     QuantityCuboid3OutOfAllowList = "Keep QuantityCuboid3 in infrastructure geometry only; business code should use ItemCuboid or shape-domain APIs."
     DeletedQuantityRectangleAliasReflux = "Do not re-introduce QuantityRectangle2; use the generic Rectangle2 infrastructure model."
     LayerAssignmentPolymorphicLimitCuboidBound = "Keep polymorphic layer-assignment limit cuboid bounds only behind protected base constructors and item-specific public factories."
-    QuantityPlacementTypeOutOfAllowList = "Use ItemPlacement2/3, BlockPlacement2/3, BinLayerPlacement, or ItemContainerPlacement aliases."
+    QuantityPlacementTypeOutOfAllowList = "QuantityPlacement2/3<T,V> is the generic infrastructure type; only allowlisted domain files may reference it directly."
+    FltXFixedAliasReflux = "Do not re-introduce deleted FltX-fixed typealiases (LayerBin, ItemBin, BlockBin, ItemPlacement3, etc.); use QuantityPlacement2/3<T, FltX> directly."
     DirectQuantityPlacementConstructorOutOfFactory = "Create placements through placement2Of/placement3Of or narrower domain factories; do not call QuantityPlacement constructors directly."
     DirectQuantityPlacementConstructorInBusinessTest = "Business tests should create placements through itemPlacement2/3Of, blockPlacement2/3Of, binLayerPlacementOf, or other domain factories; keep direct QuantityPlacement constructor coverage in infrastructure tests only."
     Placement2PolymorphicFactoryUseOutOfAllowList = "Use itemPlacement2Of or blockPlacement2Of outside the BLA polymorphic projection search; do not add new business callers of placement2Of."
@@ -234,8 +235,9 @@ Add-TokenViolation -Check "CuboidViewOutOfAllowList" -Pattern "\bCuboidView\b" -
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Block.kt",
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Layer.kt",
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemContainer.kt"
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemContainer.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Bin.kt",
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/LayerPlacementAdapter.kt"
 )
 
 Add-TokenViolation -Check "CuboidViewWildcardOutOfAllowList" -Pattern "\bCuboidView\s*<\s*\*\s*>" -AllowSuffixes @(
@@ -251,16 +253,58 @@ Add-TokenViolation -Check "QuantityCuboid3OutOfAllowList" -Pattern "\bQuantityCu
 
 Add-TokenViolation -Check "DeletedQuantityRectangleAliasReflux" -Pattern "^\s*(data\s+class|class|interface|typealias|fun|val|var)\s+QuantityRectangle2\b|\bQuantityRectangle2\s*<" -AllowSuffixes @()
 
+# --- Deleted FltX-fixed typealias reflux detection ---
+# The following 21 typealiases were deleted during the FltX-fixed alias generalization refactor.
+# They must not be re-introduced. Use QuantityPlacement2/3<T, FltX> / Bin<T, FltX> / CuboidView<T, FltX> directly.
+$deletedFltXAliases = @(
+    "LayerBin", "ItemBin", "BlockBin",
+    "BlockView", "BinLayerView",
+    "ItemProjection", "MultipleItemProjection",
+    "AnyPlacement2", "AnySidePlacement2", "AnyFrontPlacement2", "AnyPlacement3",
+    "ItemPlacement2", "ItemPlacement3",
+    "BlockPlacement2", "BlockPlacement3",
+    "BinLayerPlacement",
+    "ItemContainerPlacement2", "ItemContainerSidePlacement2", "ItemContainerFrontPlacement2", "ItemContainerPlacement3",
+    "BPP3DShadowPriceMap"
+)
+$deletedFltXAliasPattern = "^\s*typealias\s+(" + ($deletedFltXAliases -join '|') + ")\b"
+Add-TokenViolation -Check "FltXFixedAliasReflux" -Pattern $deletedFltXAliasPattern -AllowSuffixes @()
+
 Add-TokenViolation -Check "QuantityPlacementTypeOutOfAllowList" -Pattern "\bQuantityPlacement[23]\s*<" -AllowSuffixes @(
+    # --- infrastructure (defines QuantityPlacement2/3) ---
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Cuboid.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Placement.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Projection.kt",
     "/bpp3d-infrastructure/src/main/fuookami/ospf/kotlin/framework/bpp3d/infrastructure/Container.kt",
+    # --- domain-item-context model (core domain types built on QuantityPlacement2/3) ---
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Item.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/ItemContainer.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Block.kt",
     "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Layer.kt",
-    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt"
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementFactory.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Bin.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/DemandStatistics.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PackageAttribute.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/Pattern.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementTyping.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/PlacementPlaneMapping.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/model/QuantityDomainModels.kt",
+    # --- domain-item-context service ---
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/LoadingOrderCalculator.kt",
+    "/bpp3d-domain-item-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/item/service/ItemMerger.kt",
+    # --- domain-block-loading-context ---
+    "/bpp3d-domain-block-loading-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/block_loading/model/Space.kt",
+    "/bpp3d-domain-block-loading-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/block_loading/service/SimpleBlockGenerator.kt",
+    # --- domain-bla-context ---
+    "/bpp3d-domain-bla-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/bla/service/BottomUpLeftJustifiedAlgorithm.kt",
+    # --- domain-packing-context ---
+    "/bpp3d-domain-packing-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/packing/Aggregation.kt",
+    # --- domain-layer-generation-context ---
+    "/bpp3d-domain-layer-generation-context/src/main/fuookami/ospf/kotlin/framework/bpp3d/domain/layer_generation/LayerGenerationContext.kt",
+    # --- application ---
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/LayerPlacementAdapter.kt",
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/DepthBoundaryLayerOrientationPolicy.kt",
+    "/bpp3d-application/src/main/fuookami/ospf/kotlin/framework/bpp3d/application/service/ColumnGenerationStandardExecutors.kt"
 )
 
 Add-TokenViolation -Check "DirectQuantityPlacementConstructorOutOfFactory" -Pattern "\bQuantityPlacement[23]\s*\(" -AllowSuffixes @(
