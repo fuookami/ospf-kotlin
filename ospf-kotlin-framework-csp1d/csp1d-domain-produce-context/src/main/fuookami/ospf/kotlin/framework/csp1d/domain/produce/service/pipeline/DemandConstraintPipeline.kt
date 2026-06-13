@@ -19,12 +19,19 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * 需求平衡约束管线 / Demand balance constraint pipeline
  *
  * 为每个产品需求添加平衡约束：
- * - 有 yield slack 时：sum(contribution * x) - over + under = demand
- * - 无 yield slack 时：sum(contribution * x) >= demand
+ * - 有 yield slack 时：demandQuantity[i] - over + under = demand
+ * - 无 yield slack 时：demandQuantity[i] >= demand
+ *
+ * demandQuantity[i] 是中间符号，由 ProduceAggregation 在 register 和 addColumns 时管理，
+ * 约束管线不再直接引用 x 变量，因此 addColumns 时只需 flush 中间符号，无需刷新约束。
  *
  * Add balance constraint for each product demand:
- * - With yield slack: sum(contribution * x) - over + under = demand
- * - Without yield slack: sum(contribution * x) >= demand
+ * - With yield slack: demandQuantity[i] - over + under = demand
+ * - Without yield slack: demandQuantity[i] >= demand
+ *
+ * demandQuantity[i] is an intermediate symbol managed by ProduceAggregation during register
+ * and addColumns. Constraint pipelines no longer reference x variables directly, so addColumns
+ * only needs to flush intermediate symbols without refreshing constraints.
  *
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
@@ -47,33 +54,17 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
         val hasYieldSlack = yieldUnderVars.any { it != null } || yieldOverVars.any { it != null }
 
         for ((demandIndex, demand) in demands.withIndex()) {
-            val contributionMonomials = buildContributionMonomials(demand)
-
             val constraintName = "demand_$demandIndex"
             registerShadowPriceKey(constraintName, demand)
 
             if (hasYieldSlack) {
-                addEqualityConstraint(model, demandIndex, demand, contributionMonomials, constraintName)
+                addEqualityConstraint(model, demandIndex, demand, constraintName)
             } else {
-                addGeConstraint(model, demand, contributionMonomials, constraintName)
+                addGeConstraint(model, demand, demandIndex, constraintName)
             }
         }
 
         return ok
-    }
-
-    private fun buildContributionMonomials(
-        demand: ProductDemand<V>
-    ): List<LinearMonomial<Flt64>> {
-        return produce.cuttingPlans.mapIndexedNotNull { index, plan ->
-            val contribution = plan.demandContributions.find {
-                it.product.id == demand.product.id && it.quantity.unit == demand.quantity.unit
-            } ?: return@mapIndexedNotNull null
-            LinearMonomial(
-                coefficient = contribution.quantity.value.toFlt64(),
-                symbol = produce[index]
-            )
-        }
     }
 
     private fun registerShadowPriceKey(
@@ -90,11 +81,26 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 使用中间符号构建需求贡献 LHS / Build demand contribution LHS using intermediate symbol
+     *
+     * 引用 produce.demandQuantity[demandIndex] 而非直接引用 x 变量，
+     * 这样 addColumns 刷新中间符号时约束自动包含新列系数。
+     *
+     * Reference produce.demandQuantity[demandIndex] instead of x variables directly,
+     * so that addColumns flush of intermediate symbols automatically includes new column coefficients.
+     */
+    private fun buildDemandLhs(demandIndex: Int): LinearPolynomial<Flt64> {
+        return LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, produce.demandQuantity[demandIndex])),
+            constant = Flt64.zero
+        )
+    }
+
     private fun addEqualityConstraint(
         model: LinearMetaModel<Flt64>,
         demandIndex: Int,
         demand: ProductDemand<V>,
-        contributionMonomials: List<LinearMonomial<Flt64>>,
         constraintName: String
     ) {
         val underVar = yieldUnderVars.getOrNull(demandIndex)
@@ -103,7 +109,7 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
         if (underVar != null || overVar != null) {
             val lhs = LinearPolynomial(
                 monomials = buildList {
-                    addAll(contributionMonomials)
+                    add(LinearMonomial(Flt64.one, produce.demandQuantity[demandIndex]))
                     if (underVar != null) {
                         add(LinearMonomial(Flt64.one, underVar))
                     }
@@ -119,18 +125,18 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
                 name = constraintName
             )
         } else {
-            addGeConstraint(model, demand, contributionMonomials, constraintName)
+            addGeConstraint(model, demand, demandIndex, constraintName)
         }
     }
 
     private fun addGeConstraint(
         model: LinearMetaModel<Flt64>,
         demand: ProductDemand<V>,
-        contributionMonomials: List<LinearMonomial<Flt64>>,
+        demandIndex: Int,
         constraintName: String
     ) {
         val lhs = LinearPolynomial(
-            monomials = contributionMonomials,
+            monomials = listOf(LinearMonomial(Flt64.one, produce.demandQuantity[demandIndex])),
             constant = Flt64.zero
         )
         val rhs = constantPolynomial(demand.quantity.value.toFlt64())

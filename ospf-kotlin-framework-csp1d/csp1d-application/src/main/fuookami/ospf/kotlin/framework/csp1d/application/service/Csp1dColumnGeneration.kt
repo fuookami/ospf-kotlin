@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
@@ -136,6 +137,12 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val candidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
             { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
         }
+        val canonicalKeyOverrides = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
+            { candidate: CuttingPlan<V> -> strategy.canonicalKeyFor(candidate) }
+        }
+        val dominanceAcceptOverrides = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
+            { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptDominance(candidate, existing) }
+        }
         val domainPolicies = resolvedConfig.extensionSet.domainPolicies
         val vSample = problem.demands.firstOrNull()?.quantity?.value
             ?: problem.materials.firstOrNull()?.widthRange?.upperBound?.value
@@ -145,6 +152,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             configuration = columnConfig,
             domainPolicies = domainPolicies,
             candidateFilters = candidateFilters,
+            canonicalKeyOverrides = canonicalKeyOverrides,
+            dominanceAcceptOverrides = dominanceAcceptOverrides,
             flowPolicies = resolvedConfig.extensionSet.flowPolicies,
             widthFeasibilityCheck = widthCheck
         )
@@ -240,6 +249,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     val (customReason, customMessage) = selectTerminationByPolicies(
                         flowPolicies, flowCtx, terminationReason.name, lpFailureMessage
                     )
+                    terminationReason = resolveTerminationReason(customReason, terminationReason)
                     lpFailureMessage = customMessage ?: lpFailureMessage
                 }
                 break
@@ -272,14 +282,17 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     existingPlans = currentPlans,
                     domainPolicies = domainPolicies,
                     candidateFilters = pricingCandidateFilters,
-                    widthFeasibilityCheck = widthCheck
+                    widthFeasibilityCheck = widthCheck,
+                    canonicalKeyOverrides = canonicalKeyOverrides,
+                    dominanceAcceptOverrides = dominanceAcceptOverrides
                 ),
                 shadowPrices = shadowPrices,
                 maxGeneratedPlans = UInt64(columnConfig.maxPricingPlans.coerceAtLeast(0)),
                 objectiveConfig = pricingObjectiveConfig(resolvedConfig),
                 pricingCostModifiers = pricingCostModifiers,
                 pricingBenefitModifiers = pricingBenefitModifiers,
-                isImprovingJudges = isImprovingJudges
+                isImprovingJudges = isImprovingJudges,
+                canonicalKeyOverrides = canonicalKeyOverrides
             )
             val pricingReport = pricingGenerator.generateWithReport(pricingInput)
             pricingGenerationStatistics = mergeGenerationStatistics(
@@ -300,6 +313,24 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     )
                 )
                 terminationReason = Csp1dTerminationReason.PricingConverged
+                // Apply flow policy selectTermination
+                if (flowPolicies.isNotEmpty()) {
+                    val flowCtx = buildFlowContext(
+                        iteration = iteration,
+                        currentPlans = currentPlans,
+                        iterationLimit = columnConfig.iterationLimit,
+                        allowPartialSolution = resolvedConfig.allowPartialSolution,
+                        hasValidLpResult = hasValidLpResult,
+                        pricingStatistics = pricingGenerationStatistics
+                    )
+                    val (customReason, customMessage) = selectTerminationByPolicies(
+                        flowPolicies, flowCtx, terminationReason.name, null
+                    )
+                    terminationReason = resolveTerminationReason(customReason, terminationReason)
+                    if (customMessage != null) {
+                        lpFailureMessage = customMessage
+                    }
+                }
                 break
             }
 
@@ -314,7 +345,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 pricingStatistics = pricingGenerationStatistics
             )
 
-            val addedPlans = deduplicatePlans(currentPlans, newPlans, flowPolicies, flowContext)
+            val addedPlans = deduplicatePlans(currentPlans, newPlans, flowPolicies, flowContext, canonicalKeyOverrides)
             if (addedPlans.isEmpty()) {
                 pricedPlanCounts.add(UInt64.zero)
                 iterationRecords.add(
@@ -327,6 +358,16 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     )
                 )
                 terminationReason = Csp1dTerminationReason.AllDuplicates
+                // Apply flow policy selectTermination
+                if (flowPolicies.isNotEmpty()) {
+                    val (customReason, customMessage) = selectTerminationByPolicies(
+                        flowPolicies, flowContext, terminationReason.name, null
+                    )
+                    terminationReason = resolveTerminationReason(customReason, terminationReason)
+                    if (customMessage != null) {
+                        lpFailureMessage = customMessage
+                    }
+                }
                 break
             }
 
@@ -344,6 +385,24 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
 
             if (iteration == columnConfig.iterationLimit - 1) {
                 terminationReason = Csp1dTerminationReason.IterationLimitReached
+                // Apply flow policy selectTermination
+                if (flowPolicies.isNotEmpty()) {
+                    val limitContext = buildFlowContext(
+                        iteration = iteration,
+                        currentPlans = currentPlans,
+                        iterationLimit = columnConfig.iterationLimit,
+                        allowPartialSolution = resolvedConfig.allowPartialSolution,
+                        hasValidLpResult = hasValidLpResult,
+                        pricingStatistics = pricingGenerationStatistics
+                    )
+                    val (customReason, customMessage) = selectTerminationByPolicies(
+                        flowPolicies, limitContext, terminationReason.name, null
+                    )
+                    terminationReason = resolveTerminationReason(customReason, terminationReason)
+                    if (customMessage != null) {
+                        lpFailureMessage = customMessage
+                    }
+                }
             }
 
             // Check flow policy early stop condition
@@ -358,10 +417,11 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 )
                 if (shouldStopByPolicies(flowPolicies, stopContext)) {
                     terminationReason = Csp1dTerminationReason.PricingConverged
-                    // Apply custom termination message from flow policy
+                    // Apply custom termination reason/message from flow policy
                     val (customReason, customMessage) = selectTerminationByPolicies(
                         flowPolicies, stopContext, terminationReason.name, null
                     )
+                    terminationReason = resolveTerminationReason(customReason, terminationReason)
                     if (customMessage != null) {
                         lpFailureMessage = customMessage
                     }
@@ -454,6 +514,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         configuration: Csp1dConfiguration<V>,
         domainPolicies: List<Csp1dDomainPolicy<V>> = emptyList(),
         candidateFilters: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
+        canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList(),
+        dominanceAcceptOverrides: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
         flowPolicies: List<Csp1dFlowPolicy<V>> = emptyList(),
         widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ): InitialPlanPool<V> {
@@ -472,10 +534,17 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                 demands = problem.demands,
                 domainPolicies = domainPolicies,
                 candidateFilters = candidateFilters,
-                widthFeasibilityCheck = widthFeasibilityCheck
+                widthFeasibilityCheck = widthFeasibilityCheck,
+                canonicalKeyOverrides = canonicalKeyOverrides,
+                dominanceAcceptOverrides = dominanceAcceptOverrides
             )
         )
-        val generatedPlans = report.plans.distinctBy { it.canonicalKey() }
+        // Resolve canonical key with strategy overrides
+        val resolveCanonicalKey: (CuttingPlan<V>) -> CuttingPlanCanonicalKey = { plan ->
+            val customKey = canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) }
+            if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
+        }
+        val generatedPlans = report.plans.distinctBy { resolveCanonicalKey(it) }
             .take(configuration.maxInitialPlans)
         // Apply flow policy initial plan filter with context
         val filteredPlans = if (flowPolicies.isNotEmpty()) {
@@ -536,12 +605,19 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         existing: List<CuttingPlan<V>>,
         candidates: List<CuttingPlan<V>>,
         flowPolicies: List<Csp1dFlowPolicy<V>> = emptyList(),
-        flowContext: Csp1dFlowContext<V>? = null
+        flowContext: Csp1dFlowContext<V>? = null,
+        canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList()
     ): List<CuttingPlan<V>> {
+        // Resolve canonical key with strategy overrides
+        val resolveCanonicalKey: (CuttingPlan<V>) -> CuttingPlanCanonicalKey = { plan ->
+            val customKey = canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) }
+            if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
+        }
         val existingIds = existing.map { it.id }.toSet()
-        val existingKeys = existing.map { it.canonicalKey() }.toSet()
+        val existingKeys = existing.map { resolveCanonicalKey(it) }.toSet()
         return candidates.filter { candidate ->
-            candidate.id !in existingIds && candidate.canonicalKey() !in existingKeys
+            val candidateKey = resolveCanonicalKey(candidate)
+            candidate.id !in existingIds && candidateKey !in existingKeys
                 // Apply flow policy equivalence check with context
                 && if (flowPolicies.isNotEmpty() && flowContext != null) {
                     !existing.any { existingPlan ->
@@ -659,6 +735,24 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val milpResult: Csp1dMilpSolver.MilpResult<V>?,
         val failureMessage: String?
     )
+
+    /**
+     * 将 selectTerminationByPolicies 返回的 customReason 映射回 Csp1dTerminationReason。
+     * 若 customReason 与某个枚举名匹配则使用该值，否则保留默认。
+     *
+     * Map customReason from selectTerminationByPolicies back to Csp1dTerminationReason.
+     * If customReason matches an enum name, use that value; otherwise keep the default.
+     */
+    private fun resolveTerminationReason(
+        customReason: String,
+        defaultReason: Csp1dTerminationReason
+    ): Csp1dTerminationReason {
+        return try {
+            Csp1dTerminationReason.valueOf(customReason)
+        } catch (_: IllegalArgumentException) {
+            defaultReason
+        }
+    }
 }
 
 data class Csp1dColumnGenerationResult<V : RealNumber<V>>(

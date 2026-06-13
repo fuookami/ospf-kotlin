@@ -19,12 +19,18 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * 设备约束管线 / Machine constraint pipeline
  *
  * 为每个设备添加两类约束：
- * - 批次数约束：sum(x_j where plan_j.machineId == machine.id) <= maxBatchCount
- * - 产能约束：sum(consumption_j * x_j where plan_j.machineId == machine.id) <= capacity
+ * - 批次数约束：machineBatchQuantity[i] <= maxBatchCount
+ * - 产能约束：machineCapacityQuantity[i] <= capacity
+ *
+ * machineBatchQuantity[i] 和 machineCapacityQuantity[i] 是中间符号，
+ * 由 ProduceAggregation 管理，约束管线不再直接引用 x 变量。
  *
  * Add two types of constraints for each machine:
- * - Batch count constraint: sum(x_j where plan_j.machineId == machine.id) <= maxBatchCount
- * - Capacity constraint: sum(consumption_j * x_j where plan_j.machineId == machine.id) <= capacity
+ * - Batch count constraint: machineBatchQuantity[i] <= maxBatchCount
+ * - Capacity constraint: machineCapacityQuantity[i] <= capacity
+ *
+ * machineBatchQuantity[i] and machineCapacityQuantity[i] are intermediate symbols
+ * managed by ProduceAggregation. Constraint pipelines no longer reference x variables directly.
  *
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
@@ -53,19 +59,21 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
         machine: Machine<V>
     ) {
         val maxBatchCount = machine.maxBatchCount ?: return
-        val lhs = LinearPolynomial(
-            monomials = produce.cuttingPlans.mapIndexedNotNull { index, plan ->
-                if (plan.machineId != machine.id) return@mapIndexedNotNull null
-                LinearMonomial(Flt64.one, produce[index])
-            },
-            constant = Flt64.zero
-        )
-        if (lhs.monomials.isEmpty()) return
+
+        // 跳过零值中间符号（没有方案分配到该设备）
+        // Skip zero-valued intermediate symbols (no plans assigned to this machine)
+        val symbol = produce.machineBatchQuantity[machineIndex]
+        if (symbol.polynomial.monomials.isEmpty()) return
 
         val constraintName = "machine_batch_$machineIndex"
         shadowPriceKeys?.set(
             constraintName,
             MachineBatchShadowPriceKey(machine.id)
+        )
+
+        val lhs = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, symbol)),
+            constant = Flt64.zero
         )
         model.addConstraint(
             relation = LinearInequality(
@@ -83,20 +91,21 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
         machine: Machine<V>
     ) {
         val capacity = machine.capacity ?: return
-        val lhs = LinearPolynomial(
-            monomials = produce.cuttingPlans.mapIndexedNotNull { index, plan ->
-                if (plan.machineId != machine.id) return@mapIndexedNotNull null
-                val consumption = machineCapacityConsumptionValue(plan, machine) ?: return@mapIndexedNotNull null
-                LinearMonomial(consumption.toFlt64(), produce[index])
-            },
-            constant = Flt64.zero
-        )
-        if (lhs.monomials.isEmpty()) return
+
+        // 跳过零值中间符号（没有方案产能消耗匹配该设备）
+        // Skip zero-valued intermediate symbols (no plan capacity consumption matches this machine)
+        val symbol = produce.machineCapacityQuantity[machineIndex]
+        if (symbol.polynomial.monomials.isEmpty()) return
 
         val constraintName = "machine_capacity_$machineIndex"
         shadowPriceKeys?.set(
             constraintName,
             MachineCapacityShadowPriceKey(machine.id)
+        )
+
+        val lhs = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, symbol)),
+            constant = Flt64.zero
         )
         model.addConstraint(
             relation = LinearInequality(
@@ -106,16 +115,5 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
             ),
             name = constraintName
         )
-    }
-
-    private fun machineCapacityConsumptionValue(
-        plan: fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan<V>,
-        machine: Machine<V>
-    ): V? {
-        val capacity = machine.capacity ?: return null
-        val consumption = plan.capacityConsumption ?: return null
-        if (consumption.unit != capacity.unit) return null
-        if (consumption.value <= consumption.value.constants.zero) return null
-        return consumption.value
     }
 }

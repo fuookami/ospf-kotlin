@@ -18,10 +18,16 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * 物料可用批次约束管线 / Material available batch constraint pipeline
  *
  * 为每个物料添加可用批次上限约束：
- * sum(x_j where plan_j.material == material_i) <= available_batches
+ * materialQuantity[i] <= available_batches
+ *
+ * materialQuantity[i] 是中间符号，由 ProduceAggregation 管理，
+ * 约束管线不再直接引用 x 变量。
  *
  * Add available batch upper bound constraint for each material:
- * sum(x_j where plan_j.material == material_i) <= available_batches
+ * materialQuantity[i] <= available_batches
+ *
+ * materialQuantity[i] is an intermediate symbol managed by ProduceAggregation.
+ * Constraint pipelines no longer reference x variables directly.
  *
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
@@ -42,19 +48,15 @@ class MaterialConstraintPipeline<V : RealNumber<V>>(
                 continue
             }
 
-            val lhs = LinearPolynomial(
-                monomials = produce.cuttingPlans.mapIndexedNotNull { index, plan ->
-                    if (plan.material.id != material.id) return@mapIndexedNotNull null
-                    LinearMonomial(Flt64.one, produce[index])
-                },
-                constant = Flt64.zero
-            )
-            if (lhs.monomials.isEmpty()) continue
-
             val constraintName = "material_$materialIndex"
             shadowPriceKeys?.set(
                 constraintName,
                 MaterialUsageShadowPriceKey(material.id)
+            )
+
+            val lhs = LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64.one, produce.materialQuantity[materialIndex])),
+                constant = Flt64.zero
             )
             model.addConstraint(
                 relation = LinearInequality(

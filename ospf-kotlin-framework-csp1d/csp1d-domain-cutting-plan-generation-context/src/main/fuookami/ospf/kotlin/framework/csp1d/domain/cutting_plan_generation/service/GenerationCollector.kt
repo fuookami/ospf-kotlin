@@ -15,7 +15,17 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private val maxPlans: Int,
     private val deadline: Long?,
     private val enableDominancePruning: Boolean = false,
-    private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
+    private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution,
+    /**
+     * 自定义 canonical key 解析函数，返回非 null 时替代默认 canonicalKey()。
+     * Custom canonical key resolver; when returns non-null, replaces the default canonicalKey().
+     */
+    private val canonicalKeyOverride: ((CuttingPlan<V>) -> String?)? = null,
+    /**
+     * 自定义 dominance 接受函数，返回 true 表示新候选应被接受。
+     * Custom dominance acceptance function; returns true if the new candidate should be accepted.
+     */
+    private val dominanceAcceptOverride: ((CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean)? = null
 ) {
     private val startTime = System.nanoTime()
     private val canonicalKeys = HashSet<CuttingPlanCanonicalKey>()
@@ -87,8 +97,18 @@ internal class GenerationCollector<V : RealNumber<V>>(
             return false
         }
 
-        if (!canonicalKeys.add(plan.canonicalKey())) {
+        val key = resolveCanonicalKey(plan)
+        if (!canonicalKeys.add(key)) {
             ++duplicateCandidates
+            return false
+        }
+
+        // Apply custom dominance acceptance override regardless of enableDominancePruning.
+        // This allows acceptDominance to act as a general acceptance filter
+        // even when built-in dominance pruning is disabled (the default).
+        if (dominanceAcceptOverride != null && !dominanceAcceptOverride(plan, acceptedPlans.toList())) {
+            canonicalKeys.remove(key)
+            ++dominatedCandidates
             return false
         }
 
@@ -96,7 +116,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
             when (applyDominancePruning(plan)) {
                 DominanceAction.Accept -> {}
                 DominanceAction.Reject -> {
-                    canonicalKeys.remove(plan.canonicalKey())
+                    canonicalKeys.remove(key)
                     ++dominatedCandidates
                     return false
                 }
@@ -120,6 +140,11 @@ internal class GenerationCollector<V : RealNumber<V>>(
             }
         }
         return true
+    }
+
+    private fun resolveCanonicalKey(plan: CuttingPlan<V>): CuttingPlanCanonicalKey {
+        val customKey = canonicalKeyOverride?.invoke(plan)
+        return if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
     }
 
     fun report(): CuttingPlanGenerationReport<V> {
@@ -146,6 +171,9 @@ internal class GenerationCollector<V : RealNumber<V>>(
     }
 
     private fun applyDominancePruning(plan: CuttingPlan<V>): DominanceAction {
+        // Note: dominanceAcceptOverride is checked in record() before this method is called,
+        // so it does not need to be re-checked here.
+
         // Tier 1: Same-contribution dominance (existing behavior)
         val dominanceKey = plan.dominanceKey()
         val existingIndex = dominanceIndex[dominanceKey]
@@ -153,7 +181,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
             val existingPlan = acceptedPlans.getOrNull(existingIndex) ?: return DominanceAction.Accept
             return when (compareRestWidth(plan, existingPlan)) {
                 DominanceComparison.NewDominates -> {
-                    canonicalKeys.remove(existingPlan.canonicalKey())
+                    canonicalKeys.remove(resolveCanonicalKey(existingPlan))
                     acceptedPlans[existingIndex] = plan
                     dominanceIndex[dominanceKey] = existingIndex
                     if (dominanceStrategy == DominanceStrategy.CrossContribution) {

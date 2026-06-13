@@ -1195,8 +1195,8 @@ class Csp1dApplicationAcceptanceTest {
         val milpResult = Csp1dMilpSolver(solver).solve(input)
 
         assertNotNull(milpResult)
-        assertTrue("x_0" !in solver.lastInitialResults)
-        assertEquals(Flt64(3.0), solver.lastInitialResults["x_1"])
+        assertTrue("x_0_0" !in solver.lastInitialResults)
+        assertTrue(Flt64(3.0) eq solver.lastInitialResults["x_0_1"]!!)
     }
 
     /**
@@ -1259,7 +1259,7 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
         assertEquals(1, result.trace.appliedWarmStartPlanCount)
         assertEquals(1, result.trace.appliedWarmStartUsageCount)
-        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 
@@ -1358,7 +1358,7 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
         assertEquals(1, result.trace.appliedWarmStartPlanCount)
         assertEquals(1, result.trace.appliedWarmStartUsageCount)
-        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         val machineUsage = assertNotNull(
             result.solution.produce.machineUsages.firstOrNull { usage -> usage.machine.id == machine.id }?.used,
             "Machine capacity usage should be backfilled"
@@ -1494,8 +1494,8 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(2, result.trace.warmStartPlanCount)
         assertEquals(2, result.trace.appliedWarmStartPlanCount)
         assertEquals(2, result.trace.appliedWarmStartUsageCount)
-        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
-        assertEquals(Flt64.one, solver.lastInitialResults["x_1"])
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_1"]!!)
         assertTrue(result.solution.generatedPlans.none { it.id == stalePlan.id })
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
@@ -1573,8 +1573,8 @@ class Csp1dApplicationAcceptanceTest {
         ).solveWithTrace(problem)
 
         assertEquals(Csp1dFinalMilpStatus.Solved, result.trace.finalMilpStatus)
-        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
-        assertEquals(Flt64.one, solver.lastInitialResults["x_1"])
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_1"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 
@@ -1647,8 +1647,8 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(2, result.trace.warmStartPlanCount)
         assertEquals(2, result.trace.appliedWarmStartPlanCount)
         assertEquals(2, result.trace.appliedWarmStartUsageCount)
-        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
-        assertEquals(Flt64.one, solver.lastInitialResults["x_1"])
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_1"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 
@@ -1731,7 +1731,7 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dWarmStartStatus.Applied, secondResult.trace.warmStartStatus)
         assertEquals(1, secondResult.trace.appliedWarmStartPlanCount)
         assertEquals(1, secondResult.trace.appliedWarmStartUsageCount)
-        assertEquals(Flt64.one, solver.lastInitialResults["x_0"])
+        assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, secondResult.solution.status)
     }
 

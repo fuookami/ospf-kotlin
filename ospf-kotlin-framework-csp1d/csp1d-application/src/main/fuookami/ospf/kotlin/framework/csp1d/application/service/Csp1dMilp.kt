@@ -67,6 +67,12 @@ class Csp1dMilp<V : RealNumber<V>>(
             candidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
                 { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
             },
+            canonicalKeyOverrides = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
+                { candidate: CuttingPlan<V> -> strategy.canonicalKeyFor(candidate) }
+            },
+            dominanceAcceptOverrides = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
+                { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptDominance(candidate, existing) }
+            },
             flowPolicies = resolvedConfig.extensionSet.flowPolicies,
             widthFeasibilityCheck = widthCheck
         )
@@ -135,6 +141,8 @@ class Csp1dMilp<V : RealNumber<V>>(
         configuration: Csp1dConfiguration<V>,
         domainPolicies: List<Csp1dDomainPolicy<V>> = emptyList(),
         candidateFilters: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
+        canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList(),
+        dominanceAcceptOverrides: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
         flowPolicies: List<fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy<V>> = emptyList(),
         widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ): List<CuttingPlan<V>> {
@@ -150,10 +158,17 @@ class Csp1dMilp<V : RealNumber<V>>(
                 demands = problem.demands,
                 domainPolicies = domainPolicies,
                 candidateFilters = candidateFilters,
-                widthFeasibilityCheck = widthFeasibilityCheck
+                widthFeasibilityCheck = widthFeasibilityCheck,
+                canonicalKeyOverrides = canonicalKeyOverrides,
+                dominanceAcceptOverrides = dominanceAcceptOverrides
             )
         )
-        val generatedPlans = report.plans.distinctBy { it.canonicalKey() }
+        // Resolve canonical key with strategy overrides
+        val resolveCanonicalKey: (CuttingPlan<V>) -> fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey = { plan ->
+            val customKey = canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) }
+            if (customKey != null) fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
+        }
+        val generatedPlans = report.plans.distinctBy { resolveCanonicalKey(it) }
             .take(configuration.maxInitialPlans)
         // Apply flow policy initial plan filter with context
         return if (flowPolicies.isNotEmpty()) {

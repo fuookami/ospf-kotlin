@@ -27,7 +27,24 @@ data class CuttingPlanCanonicalKey(
     val capacityConsumption: String?,
     val slices: List<CuttingPlanSliceCanonicalKey>,
     val demandContributions: List<CuttingPlanDemandContributionCanonicalKey>
-)
+) {
+    /**
+     * 从自定义字符串键构造简并 canonical key / Construct a degenerate canonical key from a custom string key
+     *
+     * 当下游通过 Csp1dGenerationStrategy.canonicalKeyFor 提供自定义 key 时，
+     * 使用此构造函数将字符串封装为 CuttingPlanCanonicalKey 以参与去重集合。
+     *
+     * When downstream provides a custom key via Csp1dGenerationStrategy.canonicalKeyFor,
+     * this constructor wraps the string into a CuttingPlanCanonicalKey for dedup set membership.
+     */
+    constructor(customKey: String) : this(
+        materialId = customKey,
+        machineId = null,
+        capacityConsumption = null,
+        slices = emptyList(),
+        demandContributions = emptyList()
+    )
+}
 
 /**
  * 切片结构化去重键 / Structural deduplication key for a cutting plan slice

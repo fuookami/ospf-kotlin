@@ -37,8 +37,13 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
     reports: List<CuttingPlanGenerationReport<V>>,
     maxPlans: Int,
     startedAt: Long,
-    deadline: Long?
+    deadline: Long?,
+    canonicalKeyOverride: ((CuttingPlan<V>) -> String?)? = null
 ): CuttingPlanGenerationReport<V> {
+    val resolveCanonicalKey: (CuttingPlan<V>) -> CuttingPlanCanonicalKey = { plan ->
+        val customKey = canonicalKeyOverride?.invoke(plan)
+        if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
+    }
     val canonicalKeys = HashSet<CuttingPlanCanonicalKey>()
     val plans = ArrayList<CuttingPlan<V>>()
     var duplicateCandidates = reports.sumOf { it.statistics.duplicateCandidates }
@@ -58,7 +63,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             if (plans.size >= maxPlans) {
                 break
             }
-            if (!canonicalKeys.add(plan.canonicalKey())) {
+            if (!canonicalKeys.add(resolveCanonicalKey(plan))) {
                 ++duplicateCandidates
                 ++crossWorkerDuplicateCandidates
                 continue
